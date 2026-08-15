@@ -82,12 +82,18 @@ the validated runtime profile and the immutable Authority object's trusted
 `canonicalType` is exactly `Formula`. TAB, NUL, an isolated CR, every other C0
 control, and DEL remain unsafe; no newline normalization is performed. Formula
 display qualification is a narrow structure check, not a command whitelist or
-TeX parser. POSIX, drive-qualified, URL/file-URI, dot-segment, home-relative,
-UNC, and ordinary relative multi-segment paths remain unavailable. A path is
-identified from its directory structure and ordinary filename, so a mathematical
-formula whose final numeric token resembles an extension is not rejected by an
-independent suffix rule. Canonical type is never inferred from payload or text,
-and rejected labels remain bounded and cannot expose IDs or payloads.
+TeX parser. The complete original string is checked first for IDs, URI and
+drive/POSIX/relative path forms, known system directories, hashes, release
+tokens, and slugs. Only after those checks may a trusted Formula retain `/` or
+`\\` used by reviewed notation. Path evidence is checked at any position in the
+value, including an assignment such as `x=folder/file.txt`, an embedded drive
+path such as `f=C:\\Users\\a.txt`, or an embedded URI/UNC value. POSIX,
+drive-qualified, URL/file-URI, dot-segment, home-relative, UNC, and ordinary
+relative multi-segment paths remain unavailable. A path is identified from its
+directory structure and ordinary filename, so a mathematical formula whose
+final numeric token resembles an extension is not rejected by an independent
+suffix rule. Canonical type is never inferred from payload or text, and
+rejected labels remain bounded and cannot expose IDs or payloads.
 
 ### 9. Two-segment Formula ambiguity (2026-08-15)
 

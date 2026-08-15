@@ -173,6 +173,28 @@ function objectRow(canonicalId: string, label: string) {
   };
 }
 
+const V018_FORMULA_DISPLAY_NAMES = [
+  'y(t)=\\frac{A}{2}\\left[H(j \\omega) e^{j \\omega t}+H(-j \\omega) e^{-j \\omega t}\\right]',
+  'P=\\frac{1}{\\Delta} \\sum_{k=1}^{n} p_{k} \\Delta_{k}',
+  '\\text{DC gain} = \\lim_{s \\rightarrow 0} G(s)',
+  '\\ddot{\\theta} + \\frac{g}{l} \\theta = \\frac{T_c}{m l^2}',
+  'G(s)=\\frac{b_{m} s^{-(n-m)}+b_{m-1} s^{-(n-m+1)}+\\cdots+b_{1} s^{-(n-1)}+b_{0} s^{-n}}{1+a_{n-1} s^{-1}+\\cdots+a_{1} s^{-(n-1)}+a_{0} s^{-n}}',
+  'G(s)=\\frac{U(s)}{\\Omega(s)}=K_t',
+  'G(s)=G_{1}(s) \\pm G_{2}(s)',
+  '\\int u d v=u v-\\int v d u',
+  '\\dot{x}(t)=a x(t)+b u(t)',
+  'H(s)=\\frac{1}{s+k}',
+  'm=\\left.\\frac{d g}{d x}\\right|_{x(t)=x_{0}}',
+  '\\frac{V_{2}(s)}{V_{1}(s)}=-R C s',
+  'G(s)=\\frac{U(s)}{\\Theta(s)}=K_1',
+  'Y(s)=\\frac{k_{1}}{s-s_{1}}+\\frac{k_{2}}{s-s_{2}}',
+  '\\dot{\\mathbf{x}}(t)=\\mathbf{A x}(t)+\\mathbf{B u}(t)',
+  'T_{L}(s) = J s^{2} \\theta(s) + b s \\theta(s)',
+  '\\frac{U_o(s)}{U_i(s)}=\\frac{1}{R_1 R_2 C_1 C_2 s^2 + (R_1 C_1 + R_2 C_2) s + 1}',
+  'C(s)=\\frac{G(s)}{1 \\mp G(s) H(s)} R(s)=\\Phi(s) R(s)',
+  'f(t)=\\sum_{i=1}^{n} C_{i} e^{p_{i} t} 1(t)',
+] as const;
+
 function relationRow(
   relationId: string,
   relationType: string,
@@ -466,6 +488,35 @@ describe('authority domain shard delivery', () => {
     expect(isSafeAuthorityLabel('\\\\server name\\share\\file.txt')).toBe(false);
     expect(isSafeAuthorityLabel('folder name/file.txt')).toBe(false);
     expect(isSafeAuthorityLabel('../runtime/formula')).toBe(false);
+  });
+
+  it('accepts the controlled v0.18 Formula display set with non-leading LaTeX commands', () => {
+    expect(V018_FORMULA_DISPLAY_NAMES).toHaveLength(19);
+    for (const label of V018_FORMULA_DISPLAY_NAMES) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(true);
+      expect(isSafeAuthorityLabel(label, 'Formula')).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+    }
+  });
+
+  it('rejects path evidence embedded anywhere before allowing Formula separators', () => {
+    const embeddedPaths = [
+      'x=folder/file.txt',
+      'x=folder\\file.txt',
+      'f=C:\\Users\\a.txt',
+      'x=/runtime/formula',
+      'x=../runtime/formula',
+      'x=~/runtime/formula',
+      'x=https://example.test/formula',
+      'x=file:///runtime/formula',
+      'x=\\\\server\\share\\file.txt',
+      'x=\\\\server\\share',
+    ];
+    for (const label of embeddedPaths) {
+      expect(isSafeAuthorityLabel(label, 'Formula', true)).toBe(false);
+      expect(isSafeAuthorityLabel(label, 'DomainConcept')).toBe(false);
+      expect(isSafeAuthorityLabel(label)).toBe(false);
+    }
   });
 
   it('requires a trusted Formula profile for leading-backslash formulas', () => {

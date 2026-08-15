@@ -15,10 +15,16 @@ import type { AuthorityEngineeringObject } from '@/lib/authoritative-knowledge/a
 const ZH_CN = 'zh-CN' as const;
 const SHA256 = /^[a-f0-9]{64}$/u;
 const DISALLOWED_CONTROL = /[\u0000-\u0009\u000b-\u000c\u000e-\u001f\u007f]/u;
-const LEADING_FORMULA_NOTATION = /^\\{1,2}\S/u;
 const PLAIN_PATH_DIRECTORY = /^[A-Za-z0-9][A-Za-z0-9 ._\-]*$/u;
 const PLAIN_PATH_FILE = /^[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*$/u;
 const PATH_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/u;
+const EMBEDDED_URI = /(?:^|[^A-Za-z0-9])(?:[A-Za-z][A-Za-z0-9+.-]*:)(?:\/\/|\/|[A-Za-z0-9][A-Za-z0-9+.-]*[/#?])/u;
+const EMBEDDED_DRIVE_PATH = /(?:^|[^A-Za-z0-9])[A-Za-z]:[\\/]/u;
+const EMBEDDED_POSIX_PATH = /(?:^|[^A-Za-z0-9)])\/(?:[A-Za-z0-9._-]+(?:[\\/]|$))/u;
+const EMBEDDED_RELATIVE_PATH = /(?:^|[^A-Za-z0-9.])\.\.[\\/]|(?:^|[=:([{])\.[\\/]|(?:^|[=:([{])~[\\/]/u;
+const EMBEDDED_PLAIN_FILE_PATH = /(?:^|[^A-Za-z0-9_.-])(?:[A-Za-z0-9][A-Za-z0-9 ._\-]*[\\/])+[A-Za-z0-9][A-Za-z0-9 ._(){}=\-]*\.[A-Za-z][A-Za-z0-9]{0,15}(?=$|[^A-Za-z0-9_.-])/u;
+const EMBEDDED_UNC_PATH = /(?:^|[^A-Za-z0-9])\\\\([^\s\\/]+)[\\/]([^\s\\/]+)(?:[\\/]|$)/u;
+const KNOWN_PATH_DIRECTORY = /(?:^|[^A-Za-z0-9])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[\\/]|$)/iu;
 
 export interface AuthorityLabelSnapshotBinding {
   readonly snapshotId: string;
@@ -95,7 +101,7 @@ function rootedPathSegments(value: string): readonly string[] {
   return value.replace(/^\\{1,2}/u, '').split(/[\\/]/u).filter(Boolean);
 }
 
-function hasFormulaPathStructure(value: string): boolean {
+function hasPathStructure(value: string): boolean {
   const segments = rootedPathSegments(value);
   if (segments.length < 2) return false;
   const last = segments[segments.length - 1]!;
@@ -121,6 +127,18 @@ function hasFormulaPathStructure(value: string): boolean {
     && segments.every((segment) => PLAIN_PATH_DIRECTORY.test(segment));
 }
 
+function hasEmbeddedPathStructure(value: string): boolean {
+  const unc = EMBEDDED_UNC_PATH.exec(value);
+  return EMBEDDED_URI.test(value)
+    || EMBEDDED_DRIVE_PATH.test(value)
+    || EMBEDDED_POSIX_PATH.test(value)
+    || EMBEDDED_RELATIVE_PATH.test(value)
+    || KNOWN_PATH_DIRECTORY.test(value)
+    || EMBEDDED_PLAIN_FILE_PATH.test(value)
+    || (unc !== null && PLAIN_PATH_DIRECTORY.test(unc[1]!) && PLAIN_PATH_DIRECTORY.test(unc[2]!))
+    || hasPathStructure(value);
+}
+
 export function isSafeAuthorityLabel(
   value: string | null | undefined,
   canonicalType?: string | null,
@@ -138,10 +156,11 @@ export function isSafeAuthorityLabel(
   if (/^~(?:[/\\]|$)/u.test(normalized)) return false;
   if (/(?:^|[/\\])\.{1,2}(?:[/\\]|$)/u.test(normalized)) return false;
   if (/^(?:[A-Za-z]:[\\/]|\/|\.\.?(?:[/\\]))/u.test(normalized)) return false;
+  if (hasEmbeddedPathStructure(normalized)) return false;
   if (/^\\/u.test(normalized)) {
-    if (!trustedFormula || !LEADING_FORMULA_NOTATION.test(normalized) || hasFormulaPathStructure(normalized)) return false;
+    if (!trustedFormula) return false;
   } else if (/[\\/]/u.test(normalized)) {
-    return false;
+    if (!trustedFormula) return false;
   }
   if (/(?:sha256|hash|release|snapshot|bundle|profile|projection|activation|commit|path)[=:]/iu.test(normalized)) return false;
   // Multi-token ASCII identifiers such as positive_feedback_inner_loop are

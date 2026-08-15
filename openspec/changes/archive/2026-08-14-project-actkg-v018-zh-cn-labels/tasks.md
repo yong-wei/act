@@ -41,3 +41,6 @@
 - [x] 3.6 Restore the 320px current-active graph's title/control separation and
   initial SVG/node visibility; fail closed in product QA and refresh the
   authenticated visual-review evidence for the repaired revision.
+- [x] 3.7 Re-qualify the controlled v0.18 Formula display set after allowing
+  non-leading LaTeX separators; check complete-string embedded path rejection,
+  trusted Formula scoping, and strict archived-change/spec validation.

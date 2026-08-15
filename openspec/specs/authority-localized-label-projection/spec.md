@@ -58,7 +58,11 @@ and the validated runtime profile when qualifying a Formula display label. It
 MUST NOT infer Formula status from payload fields or label text. Raw LF and CRLF
 MUST be preserved only for a Formula under a trusted runtime profile. TAB, NUL,
 isolated CR, all other C0 controls, and DEL MUST be rejected without rewriting
-the remaining text.
+the remaining text. The complete original label MUST be checked for unsafe IDs,
+URI and drive/POSIX/relative path forms, known system directories, hashes,
+release tokens, and slugs before a trusted Formula receives its narrow `/` and
+`\\` notation exception. Path recognition MUST apply at any position in the
+label and MUST NOT depend on a command whitelist or a TeX parser.
 
 #### Scenario: A trusted Formula contains reviewed line breaks
 
@@ -66,12 +70,22 @@ the remaining text.
   is exactly `Formula` and whose display name contains LF or CRLF
 - **THEN** the resolver SHALL return the original label bytes unchanged
 
+#### Scenario: A trusted Formula uses non-leading LaTeX notation
+
+- **WHEN** an admitted runtime profile resolves a `Formula` whose reviewed
+  display name begins with ordinary mathematical text and contains LaTeX
+  commands such as `y(t)=\\frac{A}{2}` or `G(s)=\\frac{U(s)}{\\Omega(s)}`
+- **THEN** the resolver SHALL retain the original display name
+- **AND WHEN** the same value is resolved without the trusted Formula context
+- **THEN** the resolver SHALL fail closed
+
 #### Scenario: A path-shaped or untrusted formula candidate is supplied
 
 - **WHEN** a label is POSIX, drive-qualified, URL/file-URI, dot-segment,
-  home-relative, or an ordinary relative multi-segment path; when a rooted or
-  UNC value lacks the trusted Formula context; or when that Formula value has
-  explicit directory structure and an ordinary filename
+  home-relative, or an ordinary relative multi-segment path; when any of those
+  path forms is embedded in a Formula value; when a rooted or UNC value lacks
+  the trusted Formula context; or when that Formula value has explicit
+  directory structure and an ordinary filename
 - **THEN** the resolver SHALL fail closed without exposing the rejected value
 
 #### Scenario: A reviewed Formula has an extension-like mathematical tail
