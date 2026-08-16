@@ -1,0 +1,50 @@
+{
+  "contract": "act-teaching-projection-runtime/v1",
+  "nodes": [
+    {
+      "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "pathEligible": true,
+      "cardPolicy": "required",
+      "moduleId": "module-1-modeling",
+      "scopeId": "act-control-theory-core",
+      "rationale": "当前 2-1 蓝图以方框图化简连接建模语言与闭环分析。",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "pathEligible": true,
+      "cardPolicy": "required",
+      "moduleId": "module-1-modeling",
+      "scopeId": "act-control-theory-core",
+      "rationale": "当前 1-2 互动课程将传递函数作为由真实对象走向统一分析对象的主绑定。",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "pathEligible": true,
+      "cardPolicy": "required",
+      "moduleId": "module-2-stability",
+      "scopeId": "act-control-theory-core",
+      "rationale": "当前 1-1 蓝图以反馈连接建立全课程控制视角。",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "pathEligible": true,
+      "cardPolicy": "optional",
+      "moduleId": "module-2-stability",
+      "scopeId": "act-control-theory-core",
+      "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+      "projectionStatus": "PROJECTED"
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "pathEligible": true,
+      "cardPolicy": "required",
+      "moduleId": "module-1-modeling",
+      "scopeId": "act-control-theory-core",
+      "rationale": "当前建模蓝图要求学生以拉普拉斯变换建立可分析的动态模型。",
+      "projectionStatus": "PROJECTED"
+    }
+  ]
+}

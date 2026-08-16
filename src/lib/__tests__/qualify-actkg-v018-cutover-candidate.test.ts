@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { prepareActKgV018CutoverQualification } from '../../../scripts/knowledge-cutover/qualify-actkg-v018-cutover-candidate';
+import { reviewedNeighborhoodOverlaySha256 } from '../authority-domain-shards/v018-reviewed-neighborhood-labels';
 import {
   assertV018ProductionPointersUnchanged,
   collectDeclaredCandidateHashes,
@@ -50,17 +51,16 @@ describe('v0.18 cutover qualification', () => {
         selectors: Record<string, { advanced: boolean; restored: boolean }>;
       };
       dualRebuild: { byteEquivalent: boolean; comparedFiles: number };
+      inputHashes: { reviewedNeighborhoodOverlay?: string };
     };
     expect(report.publicationOnly).toBe(true);
     expect(report.productionCutoverAuthorized).toBe(false);
     expect(report.selectorConsumption).toBe(false);
     expect(report.consumerResults.map((row) => row.consumerId).sort()).toEqual([...V018_NAMED_CONSUMERS].sort());
     expect(report.consumerResults.every((row) => row.reads.length > 0)).toBe(true);
-    const readyConsumers = report.consumerResults.filter((row) => row.consumerId !== 'engineering-graph');
-    expect(readyConsumers.every((row) => (
+    expect(report.consumerResults.every((row) => (
       row.status === 'READY' && row.presentationLeak === false && row.reads.every((read) => read.ok)
     ))).toBe(true);
-    expect(report.consumerResults.find((row) => row.consumerId === 'engineering-graph')?.status).toBe('BLOCKED');
     expect(report.isolatedRollback.restored).toBe(true);
     expect(report.isolatedRollback.realPointersUnchanged).toBe(true);
     expect(Object.keys(report.isolatedRollback.selectors).sort()).toEqual([
@@ -73,13 +73,15 @@ describe('v0.18 cutover qualification', () => {
     expect(report.isolatedRollback.selectors.authority.advanced).toBe(true);
     expect(report.isolatedRollback.selectors.projection.advanced).toBe(true);
     expect(report.isolatedRollback.selectors.prerequisites.advanced).toBe(true);
+    expect(report.isolatedRollback.selectors['authority-domain-shards'].advanced).toBe(true);
     expect(report.isolatedRollback.selectors['consumer-activation'].advanced).toBe(true);
     expect(Object.values(report.isolatedRollback.selectors).every((row) => row.restored)).toBe(true);
     expect(report.dualRebuild.comparedFiles).toBeGreaterThanOrEqual(3);
-    expect(result.blockers).toContain('teaching-dual-replay-trees-absent');
-    expect(report.dualRebuild.byteEquivalent).toBe(false);
-    expect(result.blockers.some((row) => row.startsWith('isolated-shard:'))).toBe(true);
-    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).not.toContain('teaching-dual-replay-trees-absent');
+    expect(report.dualRebuild.byteEquivalent).toBe(true);
+    expect(result.blockers.some((row) => row.startsWith('isolated-shard:'))).toBe(false);
+    expect(result.status).toBe('READY');
+    expect(report.inputHashes.reviewedNeighborhoodOverlay).toBe(reviewedNeighborhoodOverlaySha256());
     const after = snapshotCurrentPointers(REPO_ROOT);
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
