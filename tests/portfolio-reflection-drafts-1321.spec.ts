@@ -151,6 +151,14 @@ async function captureEvidenceScreenshot(page: Page, filename: string) {
   await page.screenshot({ path: join(outputDirectory, filename), fullPage: true });
 }
 
+async function capturePortfolioEvidenceScreenshot(page: Page, filename: string) {
+  const outputDirectory = process.env.PORTFOLIO_EVIDENCE_CAPTURE_DIR;
+  if (!outputDirectory) return;
+
+  await mkdir(outputDirectory, { recursive: true });
+  await page.screenshot({ path: join(outputDirectory, filename), fullPage: true });
+}
+
 test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection draft across desktop and mobile layouts', async ({
   context,
   page,
@@ -182,14 +190,14 @@ test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection d
   await expect(page.getByText('PID 仿真设计', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: /伦理整改/ }).click();
   await expect(page.getByText('存在碰撞风险', { exact: true })).toBeVisible();
-  await captureEvidenceScreenshot(page, 'portfolio-evidence-1440.png');
+  await capturePortfolioEvidenceScreenshot(page, 'portfolio-evidence-1440.png');
 
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/profile/portfolio');
   await expectNoHorizontalOverflow(page);
   await page.getByRole('button', { name: /课堂作品/ }).click();
   await expect(page.getByText('unit-5-3 路 step-03', { exact: true })).toBeVisible();
-  await captureEvidenceScreenshot(page, 'portfolio-evidence-320.png');
+  await capturePortfolioEvidenceScreenshot(page, 'portfolio-evidence-320.png');
 
   await page.goto('/profile/portfolio?category=reflection&intent=create&source=portfolio&taskIntent=create-portfolio-reflection');
   const mobileEditor = page.locator('[data-portfolio-reflection-draft-editor]');
