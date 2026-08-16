@@ -4652,6 +4652,19 @@ model ArenaSubmission {
   @@index([artifactHash])
 }
 
+model ArenaOfficialSubmitReservation {
+  id           String    @id
+  userId       String
+  taskId       String
+  classId      String    @default("")
+  submittedAt  DateTime
+  submissionId String?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, taskId, classId, submittedAt])
+  @@index([submissionId])
+}
+
 model ArenaBlackBoxExperiment {
   id          String   @id @default(cuid())
   userId      String

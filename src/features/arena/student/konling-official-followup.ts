@@ -1,5 +1,6 @@
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { formatArenaMetric } from '../display-labels';
+import { hasEarlierOfficialSubmitSuccessor } from './official-submit-gate';
 
 export type ArenaKonlingSuggestionKind = 'stagnation' | 'continuous-failure' | 'constraint-violation';
 
@@ -29,6 +30,7 @@ export interface ArenaKonlingFollowupDb {
     findFirst(args: unknown): Promise<{ id: string } | null>;
   };
   $executeRaw?(strings: TemplateStringsArray, ...values: unknown[]): Promise<number>;
+  $queryRaw?<T = unknown>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T>;
   $transaction?<T>(fn: (tx: ArenaKonlingFollowupDb) => Promise<T>): Promise<T>;
 }
 
@@ -245,6 +247,15 @@ async function claimOfficialRevisitLocked(
   if (typeof db.$executeRaw === 'function') {
     await db.$executeRaw`SELECT id FROM "AIIntervention" WHERE id = ${input.interventionId} FOR UPDATE`;
   }
+  if (!input.submission.userId) return false;
+  if (await hasEarlierOfficialSubmitSuccessor({
+    db,
+    userId: input.submission.userId,
+    taskId: input.submission.taskId,
+    classId: input.submission.classId,
+    baselineAt: input.baselineAt,
+    submittedAt: input.submission.submittedAt,
+  })) return false;
   if (db.arenaSubmission) {
     const earlier = await db.arenaSubmission.findFirst({
       where: {

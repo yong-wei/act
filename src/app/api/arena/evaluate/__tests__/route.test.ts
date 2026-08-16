@@ -10,6 +10,9 @@ const mocks = vi.hoisted(() => ({
   listSubmissions: vi.fn(),
   createArenaOfficialKonlingFollowup: vi.fn(),
   readArenaOfficialRevisit: vi.fn(),
+  reserveOfficialArenaSubmissionOrder: vi.fn(),
+  attachOfficialArenaSubmissionReservation: vi.fn(),
+  abandonOfficialArenaSubmissionReservation: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -28,6 +31,12 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
 vi.mock('@/features/arena/student/konling-official-followup', () => ({
   createArenaOfficialKonlingFollowup: mocks.createArenaOfficialKonlingFollowup,
   readArenaOfficialRevisit: mocks.readArenaOfficialRevisit,
+}));
+
+vi.mock('@/features/arena/student/official-submit-gate', () => ({
+  reserveOfficialArenaSubmissionOrder: mocks.reserveOfficialArenaSubmissionOrder,
+  attachOfficialArenaSubmissionReservation: mocks.attachOfficialArenaSubmissionReservation,
+  abandonOfficialArenaSubmissionReservation: mocks.abandonOfficialArenaSubmissionReservation,
 }));
 
 vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
@@ -150,6 +159,12 @@ describe('POST /api/arena/evaluate', () => {
     mocks.listSubmissions.mockImplementation(async () => []);
     mocks.readArenaOfficialRevisit.mockResolvedValue(null);
     mocks.createArenaOfficialKonlingFollowup.mockResolvedValue(null);
+    mocks.reserveOfficialArenaSubmissionOrder.mockImplementation(async () => ({
+      id: 'reservation-1',
+      submittedAt: '2026-08-17T00:00:00.000Z',
+    }));
+    mocks.attachOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
+    mocks.abandonOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
   });
 
   it('requires an authenticated user', async () => {
@@ -170,6 +185,11 @@ describe('POST /api/arena/evaluate', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('Unknown arena task');
+    expect(mocks.abandonOfficialArenaSubmissionReservation).toHaveBeenCalledWith({
+      db: expect.anything(),
+      reservationId: 'reservation-1',
+    });
+    expect(mocks.attachOfficialArenaSubmissionReservation).not.toHaveBeenCalled();
   });
 
   it('requests realtime reconciliation for new and duplicate accepted Arena evidence', async () => {
@@ -391,10 +411,16 @@ describe('POST /api/arena/evaluate', () => {
     expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       studentLabel: '学生甲',
+      submittedAt: '2026-08-17T00:00:00.000Z',
       store: { marker: 'store' },
       blackBoxExperimentStore: { marker: 'blackbox-store' },
       identificationModelStore: { marker: 'blackbox-store' },
     }));
+    expect(mocks.attachOfficialArenaSubmissionReservation).toHaveBeenLastCalledWith({
+      db: expect.anything(),
+      reservationId: 'reservation-1',
+      submissionId: 'submission-artifact-route-b',
+    });
   });
 
   it('maps unsupported official evaluation adapter modes to 400 before persistence', async () => {

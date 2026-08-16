@@ -16,11 +16,17 @@ import {
   resolveAccessibleArenaPublicationForStudent,
 } from '@/features/arena/teacher/publication-store';
 import type { ControllerArtifact } from '@/features/arena/types';
+import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
 import { requestRealtimeSimulationTaskReconciliation } from '@/lib/data-governance/simulation-task-reconciliation';
 import {
   createArenaOfficialKonlingFollowup,
   readArenaOfficialRevisit,
 } from '@/features/arena/student/konling-official-followup';
+import {
+  abandonOfficialArenaSubmissionReservation,
+  attachOfficialArenaSubmissionReservation,
+  reserveOfficialArenaSubmissionOrder,
+} from '@/features/arena/student/official-submit-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,20 +84,48 @@ export async function POST(request: Request) {
       })
       : null;
 
-    const submission = await createPersistedArenaSubmission({
-      taskId: body.taskId,
-      artifact: body.artifact,
+    const reservation = await reserveOfficialArenaSubmissionOrder({
+      db: prisma as any,
       userId: session.user.id,
-      publicationId: publicationContext?.id,
+      taskId: body.taskId,
       classId: publicationContext?.classId,
-      seasonId: publicationContext?.seasonId,
-      isLate: publicationContext?.isLate,
-      studentLabel: session.user.name ?? '匿名学生',
-      submittedAt: new Date().toISOString(),
-      store: prismaArenaSubmissionStore,
-      blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
-      identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
+    let persisted = false;
+    let submission: ArenaSubmissionRecord;
+    try {
+      submission = await createPersistedArenaSubmission({
+        taskId: body.taskId,
+        artifact: body.artifact,
+        userId: session.user.id,
+        publicationId: publicationContext?.id,
+        classId: publicationContext?.classId,
+        seasonId: publicationContext?.seasonId,
+        isLate: publicationContext?.isLate,
+        studentLabel: session.user.name ?? '匿名学生',
+        submittedAt: reservation.submittedAt,
+        store: prismaArenaSubmissionStore,
+        blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+        identificationModelStore: prismaArenaBlackBoxExperimentStore,
+      });
+      persisted = true;
+      try {
+        await attachOfficialArenaSubmissionReservation({
+          db: prisma as any,
+          reservationId: reservation.id,
+          submissionId: submission.id,
+        });
+      } catch (error) {
+        console.error('Arena official submit reservation attach failed', error);
+      }
+    } catch (error) {
+      if (!persisted) {
+        await abandonOfficialArenaSubmissionReservation({
+          db: prisma as any,
+          reservationId: reservation.id,
+        }).catch(() => undefined);
+      }
+      throw error;
+    }
     const persistedWriteback = await persistArenaSubmissionEvidenceWriteback(prisma as any, submission);
     if (persistedWriteback.evidenceWriteback.status === 'accepted') {
       await requestRealtimeSimulationTaskReconciliation(prisma, {

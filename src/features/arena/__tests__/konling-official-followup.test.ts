@@ -228,6 +228,46 @@ describe('Arena official Konling followup', () => {
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
   });
 
+  it('does not let a later persisted submission close the round while an earlier reserved successor is pending', async () => {
+    const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
+    const queryRaw = vi.fn().mockResolvedValue([{ id: 'reservation-s2' }]);
+    const executeRaw = vi.fn().mockResolvedValue(1);
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: { helpful: true },
+          evidence: {
+            sourceSubmission: {
+              score: 60,
+              submittedAt: '2026-08-01T00:00:00.000Z',
+              metrics: {},
+              hardConstraintResults: [],
+            },
+          },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      arenaSubmission: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      $queryRaw: queryRaw,
+      $executeRaw: executeRaw,
+    };
+
+    await expect(readArenaOfficialRevisit({
+      db,
+      submission: later,
+      history: [later],
+    })).resolves.toBeNull();
+    expect(queryRaw).toHaveBeenCalled();
+    expect(executeRaw).toHaveBeenCalledTimes(1);
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+    expect(db.arenaSubmission.findFirst).not.toHaveBeenCalled();
+  });
+
   it('uses a locked database check so a later submission cannot claim an earlier successor', async () => {
     const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
     const db = {
