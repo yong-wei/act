@@ -15,13 +15,16 @@ const readyObservation = {
   publicReadyzStatus: 200,
   authorityReleaseId: 'ctr:release:control-theory-engineering-v0.9',
   authoritySnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+  authoritySha256: '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
   projectionId: 'proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d',
   projectionSha256: 'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
   prerequisitePublicationId: 'proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b',
   prerequisiteSha256: 'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
   activationId: 'first-cutover-7f4cdd1084af-769b1a832622',
   activationSha256: 'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
+  shardSha256: '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
   stagedAuthorityReceiptSha256: V018_STAGED_AUTHORITY_RECEIPT_SHA256,
+  stagedAuthorityMountedSha256: V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   stagedQualificationSha256: V018_STAGED_QUALIFICATION_SHA256,
   activeGraphReleaseId: 'ctr:release:control-theory-engineering-v0.9',
   activeGraphSnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
@@ -49,6 +52,25 @@ describe('v0.18 host shadow evaluation', () => {
     });
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-v018-shadow-not-executed-on-deployed-image');
+  });
+
+  it('fails closed when the production shard selector is missing', () => {
+    const result = evaluateV018HostShadow({
+      ...readyObservation,
+      shardSha256: undefined,
+      pointersUnchangedAfterStage: false,
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-v09-shard-selector-missing');
+  });
+
+  it('fails closed when staged Authority is not the tree the sidecar read', () => {
+    const result = evaluateV018HostShadow({
+      ...readyObservation,
+      stagedAuthorityMountedSha256: '0'.repeat(64),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-v018-authority-not-mounted-in-sidecar');
   });
 
   it('fails closed when the active graph is not the frozen v0.9 snapshot', () => {

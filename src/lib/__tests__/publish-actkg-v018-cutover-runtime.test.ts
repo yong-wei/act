@@ -113,6 +113,28 @@ describe('v0.18 runtime publication', () => {
     expect(report.hostVerification?.blockers).toContain('host-shadow-verification-incomplete');
   });
 
+  it('records concrete host-shadow blockers on the sealed receipt', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-host-blockers-'));
+    roots.push(outputRoot);
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      hostVerification: {
+        status: 'BLOCKED',
+        blockers: ['host-v09-shard-selector-missing'],
+      },
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-shadow-verification-incomplete');
+    expect(result.blockers).toContain('host-v09-shard-selector-missing');
+  });
+
   it('does not accept a READY report whose overlay hash drifted', async () => {
     const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-overlay-'));
     roots.push(outputRoot);

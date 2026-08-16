@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   evaluateV018HostShadow,
+  V09_HOST_POINTER_HASHES,
   type HostShadowObservation,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
 import { asRecord, writeCanonical } from '../../src/lib/teaching-projection/qualify/v018-shared';
@@ -30,6 +31,7 @@ function ssh(target: string, script: string): string {
 function runDeployedImageStagedShadow(sshTarget: string): {
   source: 'deployed-image-staged-candidate' | 'local-qualification';
   consumers: Array<{ consumerId: string; status: string }>;
+  mountedAuthorityReceiptSha256?: string;
 } {
   const raw = ssh(sshTarget, [
     'set -e',
@@ -46,16 +48,22 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     'podman exec act-obe-app cat /app/course-content/runtime/knowledge/prerequisites/current.json > "$fixture/knowledge/prerequisites/current.json"',
     'podman exec act-obe-app cat /app/course-content/runtime/knowledge/consumer-activation/current.json > "$fixture/knowledge/consumer-activation/current.json"',
     'cat > /tmp/v018-host-shadow-run.mjs <<\'JS\'',
-    'import { writeFileSync } from "node:fs";',
+    'import { createHash } from "node:crypto";',
+    'import { readFileSync, writeFileSync } from "node:fs";',
     'import { qualifyActKgV018CutoverCandidate } from "./src/lib/teaching-projection/qualify/v018-qualify.ts";',
     'const result = await qualifyActKgV018CutoverCandidate({ repoRoot: "/app", outputRoot: "/out" });',
-    'writeFileSync("/out/result.json", JSON.stringify(result));',
+    'const receipt = readFileSync("/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/candidate-receipt.json");',
+    'writeFileSync("/out/result.json", JSON.stringify({',
+    '  ...result,',
+    '  mountedAuthorityReceiptSha256: createHash("sha256").update(receipt).digest("hex"),',
+    '}));',
     'JS',
     'podman run --rm --network none --entrypoint ./node_modules/.bin/tsx \\',
     '  -v "$fixture/knowledge:/app/course-content/runtime/knowledge:ro" \\',
     '  -v "$authority/current.json:/app/course-content/authoring/knowledge/authority/current.json:ro" \\',
     '  -v "$authority/releases/$v09snap:/app/course-content/authoring/knowledge/authority/releases/$v09snap:ro" \\',
     '  -v /tmp/v018-catalog-authoring:/app/course-content/authoring/knowledge/authority-domain-catalog:ro \\',
+    '  -v "$stage/authority:/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18:ro" \\',
     '  -v "$stage/teaching-projection:/app/course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18:ro" \\',
     '  -v "$stage/qualification:/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18:ro" \\',
     '  -v "$out:/out" \\',
@@ -66,8 +74,9 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     'import json',
     'from pathlib import Path',
     'report = json.loads(Path("/tmp/v018-host-shadow-out/qualification-readiness.json").read_text())',
+    'sidecar = json.loads(Path("/tmp/v018-host-shadow-out/result.json").read_text())',
     'consumers = [{"consumerId": row.get("consumerId",""), "status": row.get("status","")} for row in report.get("consumerResults") or []]',
-    'print(json.dumps({"status": report.get("status"), "blockers": report.get("blockers") or [], "consumers": consumers}))',
+    'print(json.dumps({"status": report.get("status"), "blockers": report.get("blockers") or [], "consumers": consumers, "mountedAuthorityReceiptSha256": sidecar.get("mountedAuthorityReceiptSha256")}))',
     'PY',
   ].join('\n'));
   const parsed = asRecord(JSON.parse(raw.split('\n').filter((line) => line.trim().startsWith('{')).at(-1) ?? '{}'));
@@ -80,6 +89,9 @@ function runDeployedImageStagedShadow(sshTarget: string): {
   return {
     source: parsed.status === 'READY' ? 'deployed-image-staged-candidate' : 'local-qualification',
     consumers,
+    mountedAuthorityReceiptSha256: typeof parsed.mountedAuthorityReceiptSha256 === 'string'
+      ? parsed.mountedAuthorityReceiptSha256
+      : undefined,
   };
 }
 
@@ -126,6 +138,11 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     'def cexec(path):',
     '    data = subprocess.check_output(["podman","exec","act-obe-app","cat",path])',
     '    return {"sha256": hashlib.sha256(data).hexdigest(), "obj": json.loads(data)}',
+    'def cexec_optional_sha(path):',
+    '    if subprocess.call(["podman","exec","act-obe-app","test","-e",path]) != 0:',
+    '        return None',
+    '    data = subprocess.check_output(["podman","exec","act-obe-app","cat",path])',
+    '    return hashlib.sha256(data).hexdigest()',
     'auth = load("/home/projects/act/course-content/authoring/knowledge/authority/current.json")',
     'projection = cexec("/app/course-content/runtime/knowledge/projection/current.json")',
     'prerequisite = cexec("/app/course-content/runtime/knowledge/prerequisites/current.json")',
@@ -136,12 +153,14 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     '  "workerHealth": inspect("act-obe-worker", "{{.State.Health.Status}}"),',
     '  "authorityReleaseId": auth.get("releaseId"),',
     '  "authoritySnapshotId": auth.get("snapshotId"),',
+    '  "authoritySha256": sha("/home/projects/act/course-content/authoring/knowledge/authority/current.json"),',
     '  "projectionId": projection["obj"].get("projectionId"),',
     '  "projectionSha256": projection["sha256"],',
     '  "prerequisitePublicationId": prerequisite["obj"].get("publicationId"),',
     '  "prerequisiteSha256": prerequisite["sha256"],',
     '  "activationId": activation["obj"].get("activationId"),',
     '  "activationSha256": activation["sha256"],',
+    '  "shardSha256": cexec_optional_sha("/app/course-content/runtime/knowledge/authority-domain-shards/current.json"),',
     '  "shardCurrentPresent": subprocess.call(["podman","exec","act-obe-app","test","-e","/app/course-content/runtime/knowledge/authority-domain-shards/current.json"]) == 0,',
     '  "stagedAuthorityReceiptSha256": sha("/home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/authority/candidate-receipt.json"),',
     '  "stagedQualificationSha256": sha("/home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/qualification/qualification-readiness.json"),',
@@ -163,9 +182,15 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     publicReadyzStatus: publicReadyz.status,
     activeGraphReleaseId: active.releaseId,
     activeGraphSnapshotId: active.snapshotId,
+    stagedAuthorityMountedSha256: sidecar.mountedAuthorityReceiptSha256,
     consumerStatuses: consumers,
     consumerShadowSource: sidecar.source,
-    pointersUnchangedAfterStage: remote.authorityReleaseId === 'ctr:release:control-theory-engineering-v0.9',
+    pointersUnchangedAfterStage:
+      remote.authoritySha256 === V09_HOST_POINTER_HASHES.authority
+      && remote.projectionSha256 === V09_HOST_POINTER_HASHES.projection
+      && remote.prerequisiteSha256 === V09_HOST_POINTER_HASHES.prerequisites
+      && remote.activationSha256 === V09_HOST_POINTER_HASHES.activation
+      && remote.shardSha256 === V09_HOST_POINTER_HASHES.shards,
   };
   const evaluated = evaluateV018HostShadow(observation);
   const report = {

@@ -321,6 +321,9 @@ export async function publishActKgV018CutoverRuntime(input: {
   blockers.push(...assertV09Pointers(pointersAfter, repoRoot));
   if (input.hostVerification?.status !== 'READY') {
     blockers.push('host-shadow-verification-incomplete');
+    if (Array.isArray(input.hostVerification?.blockers)) {
+      blockers.push(...input.hostVerification.blockers);
+    }
   } else if (Array.isArray(input.hostVerification.blockers) && input.hostVerification.blockers.length > 0) {
     blockers.push(...input.hostVerification.blockers);
   }
