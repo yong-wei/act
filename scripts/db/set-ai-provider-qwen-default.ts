@@ -5,13 +5,14 @@
 import { pathToFileURL } from 'node:url';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
+import { DEFAULT_SILICONFLOW_MODEL } from '../../src/lib/ai/provider-config';
 import {
   AI_PROVIDER_SETTINGS_KEY,
   AIProviderSettingsDb,
   getDefaultAIProviderSettings,
   normalizeAIProviderSettings,
   setAIProviderSettings,
-  withSiliconFlowQwenDefault,
+  type AIProviderSettings,
 } from '../../src/lib/ai/provider-settings';
 
 export interface SyncSiliconFlowQwenDefaultResult {
@@ -35,17 +36,27 @@ function readRawSiliconFlowSelectedModel(value: unknown): string {
 export async function syncSiliconFlowQwenDefault(
   db: AIProviderSettingsDb,
   logger: (message: string) => void = (message) => console.log(message),
+  fallback: AIProviderSettings = getDefaultAIProviderSettings(),
 ): Promise<SyncSiliconFlowQwenDefaultResult> {
   const row = await db.platformSetting.findUnique({
     where: { key: AI_PROVIDER_SETTINGS_KEY },
     select: { value: true },
   });
   const rawSelectedModel = readRawSiliconFlowSelectedModel(row?.value);
-  const current = normalizeAIProviderSettings(row?.value, getDefaultAIProviderSettings());
-  const next = withSiliconFlowQwenDefault(current);
+  const needsSync = rawSelectedModel === '' || rawSelectedModel === 'deepseek-ai/DeepSeek-V4-Flash';
+  const current = normalizeAIProviderSettings(row?.value, fallback);
+  const next = needsSync
+    ? {
+        ...current,
+        providers: current.providers.map((provider) => (
+          provider.id === 'siliconflow'
+            ? { ...provider, selectedModel: DEFAULT_SILICONFLOW_MODEL }
+            : provider
+        )),
+      }
+    : current;
   const siliconflow = next.providers.find((provider) => provider.id === 'siliconflow');
   const selectedModel = siliconflow?.selectedModel ?? '';
-  const needsSync = rawSelectedModel === '' || rawSelectedModel === 'deepseek-ai/DeepSeek-V4-Flash';
   if (!needsSync) {
     logger(`SiliconFlow selectedModel is already ${selectedModel}.`);
     return { changed: false, selectedModel };

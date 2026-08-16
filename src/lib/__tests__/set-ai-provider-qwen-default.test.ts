@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { AI_PROVIDER_SETTINGS_KEY } from '@/lib/ai/provider-settings';
+import { AI_PROVIDER_SETTINGS_KEY, getDefaultAIProviderSettings } from '@/lib/ai/provider-settings';
 import { syncSiliconFlowQwenDefault } from '../../../scripts/db/set-ai-provider-qwen-default';
 
 function fakeDb(initial: unknown) {
@@ -94,6 +94,22 @@ describe('set-ai-provider-qwen-default sync', () => {
     expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
     expect(upsert).toHaveBeenCalledTimes(2);
     expect(messages[1]).toContain('already');
+  });
+
+  it('writes Qwen even when env fallback would fill a custom model', async () => {
+    const { db, upsert, current } = fakeDb(emptySelectedModelSettings);
+    const fallback = getDefaultAIProviderSettings({
+      AI_PROVIDER: 'siliconflow',
+      AI_BASE_URL: 'https://api.siliconflow.cn/v1',
+      AI_MODEL: 'custom/model',
+      AI_API_KEY: 'sk-test',
+    } as unknown as NodeJS.ProcessEnv);
+
+    const first = await syncSiliconFlowQwenDefault(db as never, () => undefined, fallback);
+    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+    expect(JSON.stringify(current())).not.toContain('"selectedModel":"custom/model"');
   });
 
   it('writes a missing settings row once and is idempotent on the next run', async () => {
