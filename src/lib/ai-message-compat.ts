@@ -63,6 +63,10 @@ export function toLegacyMessage(message: IncomingMessage): Message {
 
 export async function toModelMessages(messages: IncomingMessage[]): Promise<ModelMessage[]> {
   const providerMessages = messages.flatMap((message) => {
+    // Konling persists page-context and assistant-binding records as system
+    // messages for audit and restoration. Providers only accept the single
+    // server-owned system prompt from streamText, so exclude them here.
+    if (message.role === 'system') return [];
     const uiMessage = toUIMessage(message);
     // Persisted streams may end after a tool call but before its result. Replaying
     // that orphaned call makes the next provider request invalid, so retain only

@@ -119,6 +119,8 @@ export interface AuthorityShardObject {
   id: string;
   canonicalType: string;
   label: string;
+  /** Localized search/detail aliases; never used as identity. */
+  aliases: readonly string[];
   description: string | null;
   governance: {
     reviewStatus: string | null;
@@ -156,6 +158,8 @@ export interface AuthorityShardRelation {
 export interface AuthorityShardBoundaryRef {
   canonicalId: string;
   label: string;
+  /** Localized search/detail aliases when the boundary is materialized. */
+  aliases?: readonly string[];
   canonicalType: string;
   adjacentDomainIds: readonly RegisteredPeerDomainId[];
 }
@@ -217,6 +221,8 @@ export interface AuthorityNodeDetailShard {
     id: string;
     canonicalType: string;
     label: string;
+    /** Localized search/detail aliases; never used as identity. */
+    aliases?: readonly string[];
     description: string | null;
     teachingFields: Record<string, unknown>;
     governance: {

@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildRuntimeReleaseManifest } from '../runtime-release';
+import { buildRuntimeBlobReleaseManifest, buildRuntimeReleaseManifest, serializeRuntimeBlobReleaseManifest } from '../runtime-release';
 import {
   RuntimeTextbookHotCacheError,
   stageTextbookRetrievalHotCache,
@@ -68,5 +68,16 @@ describe('digest-pinned textbook retrieval hot cache', () => {
 
     await expect(stageTextbookRetrievalHotCache({ runtimeRoot, cacheParent, manifest }))
       .rejects.toMatchObject({ code: 'runtime-hot-cache-source-mismatch' } satisfies Partial<RuntimeTextbookHotCacheError>);
+  });
+
+  it('discovers a validated v2 materialized manifest before the retained v1 filename', async () => {
+    const { runtimeRoot, cacheParent } = await fixture();
+    const manifest = await buildRuntimeBlobReleaseManifest(runtimeRoot, { sourceRevision: 'a'.repeat(40) });
+    await writeFile(path.join(runtimeRoot, '.act-runtime-release.v2.json'), serializeRuntimeBlobReleaseManifest(manifest));
+
+    await expect(stageTextbookRetrievalHotCache({ runtimeRoot, cacheParent })).resolves.toMatchObject({
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+    });
   });
 });

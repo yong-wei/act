@@ -258,7 +258,7 @@ describe('adaptive path journey client behavior', () => {
     expect(container.querySelector(`[data-adaptive-path-journey-control="${state}"]`)).not.toBeNull();
     if (state === 'blocked') {
       expect(container.textContent).toContain(title);
-      expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+      expect(container.querySelectorAll('a[href="/assessment/adaptive-practice?goal=control-correction"]')).toHaveLength(1);
       expect(container.textContent).not.toContain('恢复学习路径');
     } else {
       expect(container.textContent).toContain(title);
@@ -286,7 +286,7 @@ describe('adaptive path journey client behavior', () => {
         await Promise.resolve();
       });
 
-      expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+      expect(container.querySelectorAll('a[href="/assessment/adaptive-practice?goal=control-correction"]')).toHaveLength(1);
       expect(container.querySelector('[data-adaptive-path-next-action="ready"]')).toBeNull();
       expect(container.textContent).not.toContain('恢复学习路径');
       expect(container.textContent).not.toContain('刷新路径状态');
@@ -311,7 +311,7 @@ describe('adaptive path journey client behavior', () => {
       await Promise.resolve();
     });
 
-    expect(container.querySelectorAll(`a[href="${updated.return.href}"]`)).toHaveLength(1);
+    expect(container.querySelectorAll('a[href="/assessment/adaptive-practice?goal=control-correction"]')).toHaveLength(1);
     expect(container.textContent).toContain('刷新路径状态');
     expect(container.textContent).not.toContain('恢复学习路径');
   });

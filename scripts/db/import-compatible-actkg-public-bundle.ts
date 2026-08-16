@@ -10,6 +10,7 @@ import {
   resolveAuthorityStorePaths,
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
   type AuthoritativeKnowledgeDatabase,
 } from '../../src/lib/authoritative-knowledge';
 import { loadAndValidatePublicBundleV1 } from '../actkg-release/public-bundle-v1';
@@ -64,7 +65,12 @@ async function main(): Promise<void> {
       : await importValidatedActKGBundle(db, validated);
 
     const receipt = await db.actkgBundleReceipt.findUniqueOrThrow({
-      where: { bundleDigest: validated.bundleIdentity.bundleDigest },
+      where: {
+        bundleContractVersion_bundleDigest: {
+          bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+          bundleDigest: validated.bundleIdentity.bundleDigest,
+        },
+      },
     });
     if (receipt.candidateState !== ACCEPTED_CANDIDATE_STATE) {
       throw new Error('standard Bundle receipt is not ACCEPTED_CANDIDATE');

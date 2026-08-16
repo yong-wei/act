@@ -5,8 +5,8 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1327');
-const manifestPath = path.join(evidenceDir, 'candidate-batch-manifest.json');
+const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1349');
+const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/lib/adaptive-path-candidate-batches.ts',
@@ -33,6 +33,10 @@ type CaptureInputState = {
 
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function normalizedSourceBytes(file: string): Buffer {
+  return Buffer.from(readFileSync(path.resolve(process.cwd(), file)).toString('utf8').replaceAll('\r\n', '\n').replaceAll('\r', '\n'));
 }
 
 function sourceHashAtCommit(commitSha: string, file: string): string {
@@ -67,7 +71,7 @@ function readCaptureInputState(): CaptureInputState {
     commitSha,
     trackedChanges: trackedChangesOutsideEvidence(),
     workingTreeSourceSha256: Object.fromEntries(
-      sourceFiles.map((file) => [file, sha256(readFileSync(path.resolve(process.cwd(), file)))]),
+      sourceFiles.map((file) => [file, sha256(normalizedSourceBytes(file))]),
     ),
     committedSourceSha256: Object.fromEntries(
       sourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]),
@@ -128,6 +132,7 @@ const candidatePathId = 'candidate-source-path';
 const batchId = 'path-candidate-batch_issue1327';
 const missingBatchId = 'path-candidate-batch_issue1327-missing';
 const failedBatchId = 'path-candidate-batch_issue1327-failed';
+const unauthorizedBatchId = 'path-candidate-batch_issue1349-unauthorized';
 const candidateIds = ['path-candidate_foundation', 'path-candidate_sprint'];
 
 const planNode = {
@@ -263,12 +268,53 @@ const learnerStateWithoutActivePath = {
   },
 };
 
-async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<void>) {
+async function installRoutes(
+  page: Page,
+  waitForCandidateBatch?: () => Promise<void>,
+  generatedBatchId = batchId,
+  observeCandidateBatchRequest?: (requestCount: number) => number | undefined,
+) {
+  let candidateBatchRequestCount = 0;
+  await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
+    json: {
+      goalId: 'control-correction',
+      classId: 'class-issue-1349',
+      courseTitle: 'Control correction',
+      topic: 'Candidate path comparison',
+      learningObjectives: ['Compare generated learning paths'],
+      modeContextToken: 'issue-1349-mode-context-token',
+      readiness: {
+        status: 'ready',
+        reason: 'ready',
+        source: 'path-advisor',
+        studentAction: 'generate',
+        studentMessage: 'Ready',
+      },
+    },
+  }));
+  await page.route('**/api/adaptive/path-advisor-tool', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      agentSessionId: 'agent-session-issue-1349',
+      generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
+      result: {
+        generationStatus: 'succeeded',
+        candidateBatch: { id: generatedBatchId },
+      },
+    }),
+  }));
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => route.fulfill({ json: { batch: candidateBatch } }));
   await page.route(`**/api/learning-paths/candidate-batches/${batchId}**`, async (route) => {
+    candidateBatchRequestCount += 1;
+    const forcedStatus = observeCandidateBatchRequest?.(candidateBatchRequestCount);
+    if (forcedStatus) {
+      await route.fulfill({ status: forcedStatus, json: { error: 'Candidate batch unavailable' } });
+      return;
+    }
     await waitForCandidateBatch?.();
     const candidateId = new URL(route.request().url()).searchParams.get('candidate');
     if (candidateId && !candidateIds.includes(candidateId)) {
@@ -283,6 +329,14 @@ async function installRoutes(page: Page, waitForCandidateBatch?: () => Promise<v
   await page.route(`**/api/learning-paths/candidate-batches/${failedBatchId}**`, (route) => (
     route.fulfill({ status: 500, json: { error: 'Candidate batch unavailable' } })
   ));
+  await page.route(`**/api/learning-paths/candidate-batches/${unauthorizedBatchId}**`, (route) => (
+    route.fulfill({ status: 403, json: { error: 'Candidate batch is not available to this learner' } })
+  ));
+  if (generatedBatchId !== batchId) {
+    await page.route(`**/api/learning-paths/candidate-batches/${generatedBatchId}**`, (route) => (
+      route.fulfill({ status: 403, json: { error: 'Candidate batch is not available to this learner' } })
+    ));
+  }
   await page.route('**/api/learning-paths/missing-path', (route) => (
     route.fulfill({ status: 404, json: { error: 'Learning path not found' } })
   ));
@@ -305,7 +359,7 @@ async function login(context: BrowserContext) {
   expect(response.ok() || (response.status() >= 300 && response.status() < 400), await response.text()).toBe(true);
 }
 
-test('keeps the comparison surface visible while a candidate batch is loading', async ({ page }) => {
+test('hides the comparison surface while a candidate batch is loading', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   let releaseCandidateBatch: (() => void) | undefined;
   const candidateBatchGate = new Promise<void>((resolve) => {
@@ -322,6 +376,7 @@ test('keeps the comparison surface visible while a candidate batch is loading', 
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
   releaseCandidateBatch?.();
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
@@ -360,7 +415,7 @@ test('keeps the active path available while configuring a new path', async ({ co
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
-test('shows candidate comparison after generation adds a candidate batch', async ({ context, page }) => {
+test('shows candidate comparison immediately after generation adds a candidate batch', async ({ context, page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await login(context);
   await installRoutes(page);
@@ -368,15 +423,70 @@ test('shows candidate comparison after generation adds a candidate batch', async
   const query = new URLSearchParams({
     goal: 'control-correction',
     intent: 'contextual-recommendation',
-    batch: batchId,
   });
   await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
+
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+
+  await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
   await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
+  await expect(page.locator('[data-adaptive-path-generation-panel="editable"]')).toBeVisible();
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test('reuses the authorized candidate batch when generation synchronizes the route', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  let candidateBatchRequestCount = 0;
+  await installRoutes(page, undefined, batchId, (requestCount) => {
+    candidateBatchRequestCount = requestCount;
+    return requestCount > 1 ? 500 : undefined;
+  });
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+
+  await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+  await page.waitForTimeout(250);
+  await expect(page.locator('[data-adaptive-path-candidate-recovery-state]')).toHaveCount(0);
+  expect(candidateBatchRequestCount).toBe(1);
+});
+
+test('does not write an unauthorized generated batch to the URL', async ({ context, page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(context);
+  await installRoutes(page, undefined, 'unauthorized-generated');
+
+  const query = new URLSearchParams({
+    goal: 'control-correction',
+    intent: 'contextual-recommendation',
+  });
+  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+  const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+  await expect(generateAction).toBeEnabled();
+  await generateAction.click();
+  await expect(page.locator('[data-adaptive-path-candidate-recovery-state="failed"]')).toBeVisible();
+  await expect(page).not.toHaveURL(/batch=unauthorized-generated/);
+  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
 async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
@@ -419,8 +529,8 @@ test('candidate batch evidence remains bound to committed sources', () => {
     expect(sourceGitBlobIdAtCommit(manifest.commitSha, file)).toBe(manifest.sourceGitBlobIds[file]);
   }
   expect(new Set(manifest.screenshots.map((screenshot) => `${screenshot.scenario}:${screenshot.width}`))).toEqual(new Set([
-    'no-batch:1440', 'loaded:1440', 'missing:1440', 'failed:1440',
-    'no-batch:320', 'loaded:320', 'missing:320', 'failed:320',
+    'no-batch:1440', 'loaded:1440', 'missing:1440', 'failed:1440', 'unauthorized:1440',
+    'no-batch:320', 'loaded:320', 'missing:320', 'failed:320', 'unauthorized:320',
   ]));
   for (const screenshot of manifest.screenshots) {
     expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
@@ -471,7 +581,7 @@ async function assertNoHorizontalOverflow(page: Page) {
 async function captureEvidence(
   page: Page,
   viewport: { name: string; width: number; height: number },
-  scenario: 'no-batch' | 'loaded' | 'missing' | 'failed',
+  scenario: 'no-batch' | 'loaded' | 'missing' | 'failed' | 'unauthorized',
   assertions: string[],
   focusedControl?: string,
 ) {
@@ -492,7 +602,15 @@ async function captureEvidence(
     height: viewport.height,
     activePathId,
     candidateSourcePathId: candidatePathId,
-    batchId: scenario === 'loaded' ? batchId : scenario === 'missing' ? missingBatchId : scenario === 'failed' ? failedBatchId : null,
+    batchId: scenario === 'loaded'
+      ? batchId
+      : scenario === 'missing'
+        ? missingBatchId
+        : scenario === 'failed'
+          ? failedBatchId
+          : scenario === 'unauthorized'
+            ? unauthorizedBatchId
+            : null,
     assertions,
     focusedControl: focusedControl ?? null,
     noHorizontalOverflow: true,
@@ -523,10 +641,13 @@ for (const viewport of [
       'candidate comparison stays hidden without an explicit batch',
     ]);
 
-    comparison = await openGeneration(page, batchId);
-    await expect(page.locator('[data-adaptive-path-candidate-state="loading"]')).toBeVisible();
+    const generateAction = page.locator('[data-adaptive-path-generation-action="submit-panel-request"]');
+    await expect(generateAction).toBeEnabled();
+    await generateAction.click();
+    comparison = page.locator('[data-learning-path-options-layout="route-modules"]');
     await expect(page.locator('[data-adaptive-path-continue-action="current-path"]')).toBeVisible();
     releaseCandidateBatch?.();
+    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
     await expect(comparison).toBeVisible();
     await expect(comparison.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await expect(comparison.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
@@ -539,11 +660,15 @@ for (const viewport of [
     await selectAction.focus();
     await expect(selectAction).toBeFocused();
     await captureEvidence(page, viewport, 'loaded', [
+      'generation updates the current route without a full reload',
       'loading state precedes candidate rendering',
       'at least two generated candidates are visible',
       'active path remains reachable before selection',
       'primary candidate actions are visible and keyboard focusable',
     ], '选择Foundation candidate');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toBeVisible();
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
     await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerStateWithoutActivePath }));
     await openGeneration(page, missingBatchId, undefined, 'missing-path');
@@ -561,18 +686,26 @@ for (const viewport of [
       'failed batch fails closed into an explicit recovery state',
       'regeneration action remains available',
     ]);
+
+    await openGeneration(page, unauthorizedBatchId, undefined, 'missing-path');
+    await expect(page.locator('[data-adaptive-path-candidate-recovery-state="failed"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: '重新生成路径' })).toBeVisible();
+    await captureEvidence(page, viewport, 'unauthorized', [
+      'unauthorized candidate batch fails closed without rendering candidate details',
+      'regeneration action remains available',
+    ]);
   });
 }
 
 test.afterAll(() => {
   if (!updateEvidence) return;
   expect(captureProvenance).not.toBeNull();
-  expect(screenshots).toHaveLength(8);
+  expect(screenshots).toHaveLength(10);
   verifyCaptureProvenance(captureProvenance!, 'after all screenshots');
   const temporaryManifestPath = `${manifestPath}.${process.pid}.tmp`;
   const manifest = `${JSON.stringify({
     schemaVersion: 1,
-    issue: 1327,
+    issue: 1349,
     capturedAt: new Date().toISOString(),
     commitSha: captureProvenance!.commitSha,
     generator: 'tests/adaptive-path-candidate-batches.spec.ts',

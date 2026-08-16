@@ -13,6 +13,7 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
 } from '../../src/lib/authoritative-knowledge/contracts';
 import {
   assertFormalLearningFactSelectorUnchanged,
@@ -788,7 +789,12 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
     }
     await importBundle(options.db, validated);
     const candidateReceipt = await options.db.actkgBundleReceipt.findUnique({
-      where: { bundleDigest: hop.candidate.bundleDigest },
+      where: {
+        bundleContractVersion_bundleDigest: {
+          bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+          bundleDigest: hop.candidate.bundleDigest,
+        },
+      },
     });
     if (!candidateReceipt || candidateReceipt.candidateState !== ACCEPTED_CANDIDATE_STATE) {
       fail(`candidate Bundle receipt is not ACCEPTED_CANDIDATE at order ${hop.order}`);

@@ -30,6 +30,7 @@ const sourceFiles = [
   'src/lib/authority-domain-shards/envelope.ts',
   'src/lib/authority-domain-shards/loader.ts',
   'src/lib/authority-domain-shards/materialize.ts',
+  'src/lib/authority-domain-shards/labels.ts',
   'src/app/api/knowledge/_active-authority.ts',
   'src/app/api/knowledge/shards/active/route.ts',
   'src/app/api/knowledge/shards/active/domains/[domain]/route.ts',
@@ -1814,6 +1815,43 @@ async function captureMarkers(page: Page, stateName: string) {
         height: Math.round(rect.height),
       };
     };
+     const unionRect = (rects) => {
+       const validRects = rects.filter(Boolean);
+       if (validRects.length === 0) return null;
+       const left = Math.min(...validRects.map((rect) => rect.left));
+       const top = Math.min(...validRects.map((rect) => rect.top));
+       const right = Math.max(...validRects.map((rect) => rect.right));
+       const bottom = Math.max(...validRects.map((rect) => rect.bottom));
+       return {
+         left,
+         top,
+         right,
+         bottom,
+         width: right - left,
+         height: bottom - top,
+       };
+     };
+     const rectanglesOverlap = (left, right) => Boolean(
+       left
+       && right
+       && left.left < right.right
+       && left.right > right.left
+       && left.top < right.bottom
+       && left.bottom > right.top,
+     );
+     const viewportRect = {
+       left: 0,
+       top: 0,
+       right: window.innerWidth,
+       bottom: window.innerHeight,
+     };
+     const intersectsViewport = (rect) => Boolean(
+       rect
+       && rect.left < viewportRect.right
+       && rect.right > viewportRect.left
+       && rect.top < viewportRect.bottom
+       && rect.bottom > viewportRect.top,
+     );
      const expandedDock = document.querySelector('[data-platform-floating-dock-expanded-panel]');
      const desktopToolsRect = rectFor(desktopTools);
      const mobileToolsRect = rectFor(mobileTools);
@@ -1824,6 +1862,12 @@ async function captureMarkers(page: Page, stateName: string) {
      const dockRect = rectFor(dock);
      const konlingSidebarRect = rectFor(konlingSidebar);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
+     const activeHeaderRect = rectFor(activeGraph?.querySelector('[data-active-authority-header]'));
+     const activeTitleRect = rectFor(activeGraph?.querySelector('[data-active-authority-title]'));
+     const activeToolbarRect = rectFor(activeGraph?.querySelector('[data-active-authority-toolbar]'));
+     const knowledgeModeControlsRect = unionRect(
+       Array.from(root?.querySelectorAll('[data-knowledge-mode]') ?? []).map(rectFor),
+     );
      const activeNodes = Array.from(document.querySelectorAll('[data-active-authority-node]'));
      const activeSvg = activeGraph?.querySelector('svg[data-active-authority-svg="true"]');
      const activeSvgViewBox = (activeSvg?.getAttribute('viewBox') ?? '')
@@ -1907,6 +1951,13 @@ async function captureMarkers(page: Page, stateName: string) {
            && rectWithinActiveSvg(shape.getBoundingClientRect());
        }).length
        : 0;
+     const nodeGeometryWithinViewportCount = activeNodes.filter((node) => intersectsViewport(node.getBoundingClientRect())).length;
+     const relationGeometryWithinViewportCount = activeRelations.filter((edge) => {
+       const shape = edge.querySelector('line, path, polyline');
+       return relationGeometryVisible(edge)
+         && Boolean(shape)
+         && intersectsViewport(shape.getBoundingClientRect());
+     }).length;
     return {
       htmlClass: document.documentElement.className,
       workspace: legacyWorkspaceRoot?.getAttribute('data-knowledge-workspace') ?? null,
@@ -1923,6 +1974,16 @@ async function captureMarkers(page: Page, stateName: string) {
         viewport: activeSvg?.getAttribute('data-active-authority-viewport') ?? null,
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
+        firstViewport: {
+          headerRect: activeHeaderRect,
+          titleRect: activeTitleRect,
+          toolbarRect: activeToolbarRect,
+          modeControlsRect: knowledgeModeControlsRect,
+          titleControlsOverlap: rectanglesOverlap(activeTitleRect, knowledgeModeControlsRect),
+          svgVisibleInViewport: intersectsViewport(activeSvgRect),
+          nodeGeometryWithinViewportCount,
+          relationGeometryWithinViewportCount,
+        },
         nodeLabelReadability,
         teachingCoverageNote: teachingCoverage?.textContent?.trim() ?? null,
         stage: document.querySelector('[data-active-graph-stage="authority"]') ? 'authority' : null,
@@ -2255,6 +2316,12 @@ async function captureAuthenticatedRoleEvidence(
         const activeInteractionEvidence = await captureActiveInteractionEvidence(mobilePage, mobileProbe);
         const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
         const activeMarkers = objectRecord(markers.activeAuthority);
+        const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
+        const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
+          ? activeFirstViewport.nodeGeometryWithinViewportCount
+          : 0;
+        const titleControlsOverlap = activeFirstViewport.titleControlsOverlap === true;
+        const svgVisibleInViewport = activeFirstViewport.svgVisibleInViewport === true;
         const activeApiEvidence = projectSafeApiEvidence(
           role,
           await mobileProbe.readLog(),
@@ -2278,8 +2345,15 @@ async function captureAuthenticatedRoleEvidence(
           || activeMarkers.viewport !== 'compact'
           || activeMarkers.visibleNodeCount <= 0
           || activeMarkers.stage !== 'authority'
+          || titleControlsOverlap
+          || !svgVisibleInViewport
+          || nodeGeometryWithinViewportCount <= 0
         ) {
-          throw new Error(`active mobile product evidence failed in role:${role}`);
+          throw new Error(`active mobile first-viewport geometry contract failed in role:${role}: ${JSON.stringify({
+            titleControlsOverlap,
+            svgVisibleInViewport,
+            nodeGeometryWithinViewportCount,
+          })}`);
         }
         const screenshot = path.join(outputDir, `role-${role}-active-mobile.png`);
         await mobilePage.screenshot({ path: screenshot, fullPage: false });
@@ -2289,6 +2363,11 @@ async function captureAuthenticatedRoleEvidence(
           api: activeApiEvidence,
           activeSurfaceScan,
           activeInteractionEvidence,
+          firstViewport: {
+            titleControlsOverlap,
+            svgVisibleInViewport,
+            nodeGeometryWithinViewportCount,
+          },
           graphVisible: true,
           nonEmptyCanvas: true,
           screenshotPath: path.relative(repoRoot, screenshot),
@@ -2416,6 +2495,10 @@ async function captureActiveAuthorityVisualMatrix(
       const completedApiLog = await probe.readLog();
       const activeMarkers = objectRecord(markers.activeAuthority);
       const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
+      const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
+      const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
+        ? activeFirstViewport.nodeGeometryWithinViewportCount
+        : 0;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       if (
         markers.knowledgeGraphMode !== 'active'
@@ -2431,6 +2514,9 @@ async function captureActiveAuthorityVisualMatrix(
           activeMarkers.viewport !== 'compact'
           || activeMarkers.viewBox !== '0 0 320 520'
           || activeNodeLabelReadability.readable !== true
+          || activeFirstViewport.titleControlsOverlap === true
+          || activeFirstViewport.svgVisibleInViewport !== true
+          || nodeGeometryWithinViewportCount <= 0
         ))
         || surfaceScan.passed !== true
       ) {
@@ -2444,6 +2530,16 @@ async function captureActiveAuthorityVisualMatrix(
               viewBoxHeight: activeNodeLabelReadability.viewBoxHeight ?? null,
               readable: activeNodeLabelReadability.readable === true,
             })}`
+            : state.name === 'active-mobile' && (
+              activeFirstViewport.titleControlsOverlap === true
+              || activeFirstViewport.svgVisibleInViewport !== true
+              || nodeGeometryWithinViewportCount <= 0
+            )
+              ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
+                titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
+                svgVisibleInViewport: activeFirstViewport.svgVisibleInViewport === true,
+                nodeGeometryWithinViewportCount,
+              })}`
             : `active visual matrix DOM contract failed in ${state.name}`,
         );
       }

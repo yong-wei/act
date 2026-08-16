@@ -1,35 +1,24 @@
 import { createPrismaClient } from '../lib/prisma-client.mjs';
 import bcryptModule from 'bcryptjs';
 
+import { VERIFIED_TEST_ACCOUNTS } from '../db/verified-test-accounts.mjs';
+
 const bcrypt = bcryptModule.default ?? bcryptModule;
 
 const prisma = createPrismaClient();
 
 const CASES = [
-  {
-    label: 'teacher-test_teacher',
-    where: { employeeNumber: 'test_teacher' },
-    expectedPassword: 'TestTeacher@Just2026!',
-  },
-  {
-    label: 'student-demo',
-    where: {
-      OR: [
-        { name: { equals: 'demo', mode: 'insensitive' } },
-        { email: { equals: 'demo@example.com', mode: 'insensitive' } },
-      ],
-    },
-    expectedPassword: 'DemoStudent@Just2026!',
-  },
+  ...VERIFIED_TEST_ACCOUNTS.map((account) => ({
+    label: `${account.role}-${account.loginId}`,
+    where: account.employeeNumber
+      ? { employeeNumber: account.employeeNumber }
+      : { email: { equals: account.email, mode: 'insensitive' } },
+    expectedPassword: account.password,
+  })),
   {
     label: 'teacher-201300000012',
     where: { employeeNumber: '201300000012' },
     expectedPassword: 'zyw1983@Just',
-  },
-  {
-    label: 'admin',
-    where: { employeeNumber: 'admin' },
-    expectedPassword: 'admin@Just',
   },
 ];
 

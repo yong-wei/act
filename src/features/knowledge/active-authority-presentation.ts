@@ -37,6 +37,7 @@ export interface ActiveRelationPresentation {
 export interface ActiveNodePresentation {
   key: string;
   label: string;
+  aliases: readonly string[];
   description: string | null;
   type: ActiveNodeTypePresentation;
   sourceNode: ActiveCanvasNode;
@@ -334,6 +335,7 @@ export function createActiveAuthorityGraphModel(
     .map((sourceNode) => ({
       key: sourceNode.id,
       label: safeNodeLabel(sourceNode) as string,
+      aliases: sourceNode.aliases ?? [],
       description: safeDescription(sourceNode),
       type: presentActiveNodeType(sourceNode.canonicalType),
       sourceNode,
@@ -475,7 +477,7 @@ export function activeNodeSearch(
   const needle = query.trim().toLocaleLowerCase();
   return model.nodes
     .filter((node) => !canonicalType || node.type.canonicalType === canonicalType)
-    .filter((node) => !needle || `${node.label} ${node.description ?? ''} ${node.type.label}`.toLocaleLowerCase().includes(needle))
+    .filter((node) => !needle || `${node.label} ${node.aliases.join(' ')} ${node.description ?? ''} ${node.type.label}`.toLocaleLowerCase().includes(needle))
     .sort((left, right) => left.label.localeCompare(right.label) || left.key.localeCompare(right.key));
 }
 

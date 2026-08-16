@@ -12,8 +12,11 @@ import {
   readActiveRuntimeReleaseManifest,
 } from '../runtime-active-release';
 import {
+  ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME,
   ACT_RUNTIME_RELEASE_MANIFEST_FILENAME,
+  buildRuntimeBlobReleaseManifest,
   buildRuntimeReleaseManifest,
+  serializeRuntimeBlobReleaseManifest,
   serializeRuntimeReleaseManifest,
 } from '../runtime-release';
 
@@ -29,7 +32,33 @@ async function fixture() {
     sourceRevision: 'a'.repeat(40),
   });
   await writeFile(path.join(root, ACT_RUNTIME_RELEASE_MANIFEST_FILENAME), serializeRuntimeReleaseManifest(manifest));
+  await writeActiveReceipt(root, manifest);
   return { root, manifest };
+}
+
+async function blobFixture() {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-blob-receipt-'));
+  roots.push(root);
+  await mkdir(path.join(root, 'lessons', '1-1', 'media'), { recursive: true });
+  await writeFile(path.join(root, 'lessons', '1-1', 'media', 'intro.mp4'), Buffer.from([1, 2, 3]));
+  const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: 'b'.repeat(40) });
+  await writeFile(path.join(root, ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME), serializeRuntimeBlobReleaseManifest(manifest));
+  await writeActiveReceipt(root, manifest);
+  return { root, manifest };
+}
+
+async function writeActiveReceipt(root: string, manifest: { releaseId: string; manifestSha256: string; treeSha256: string }, receiptRoot = root) {
+  await writeFile(path.join(receiptRoot, 'act-runtime-active-receipt.json'), JSON.stringify({
+    schemaVersion: 'runtime-release-active-receipt.v1',
+    selection: {
+      schemaVersion: 'runtime-release-selection.v1',
+      generation: 1,
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+      treeSha256: manifest.treeSha256,
+    },
+    healthCheck: 'readyz',
+  }));
 }
 
 afterEach(async () => {
@@ -57,5 +86,62 @@ describe('active runtime release manifest', () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-release-empty-'));
     roots.push(root);
     await expect(readActiveRuntimeReleaseManifest(root)).resolves.toBeNull();
+  });
+
+  it('preserves the activated v1 manifest fallback when no v2 receipt is mounted', async () => {
+    const { root, manifest } = await fixture();
+    await rm(path.join(root, 'act-runtime-active-receipt.json'));
+    await expect(readActiveRuntimeReleaseManifest(root)).resolves.toMatchObject({
+      schemaVersion: 'act-runtime-release.v1',
+      releaseId: manifest.releaseId,
+    });
+  });
+
+  it('uses the materialized v2 manifest as the only blob media allowlist', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-blob-release-'));
+    roots.push(root);
+    await mkdir(path.join(root, 'lessons', '1-1', 'media'), { recursive: true });
+    await writeFile(path.join(root, 'lessons', '1-1', 'media', 'intro.mp4'), Buffer.from([1, 2, 3]));
+    const manifest = await buildRuntimeBlobReleaseManifest(root, { sourceRevision: 'b'.repeat(40) });
+    await writeFile(path.join(root, ACT_RUNTIME_BLOB_MATERIALIZED_MANIFEST_FILENAME), serializeRuntimeBlobReleaseManifest(manifest));
+    await writeActiveReceipt(root, manifest);
+
+    const active = await readActiveRuntimeReleaseManifest(root);
+    expect(active).toEqual(manifest);
+    expect(findRuntimeMediaReleaseObject(active!, 'lessons/1-1/media/intro.mp4')).toMatchObject({
+      objectKey: `runtime/blobs/sha256/${manifest.files[0].sha256}`,
+    });
+  });
+
+  it('fails closed when a mounted manifest has no active receipt', async () => {
+    const { root } = await blobFixture();
+    await rm(path.join(root, 'act-runtime-active-receipt.json'));
+    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({
+      code: 'runtime-active-release-receipt-unreadable',
+    });
+  });
+
+  it('fails closed for a damaged or mismatched active receipt', async () => {
+    const { root, manifest } = await blobFixture();
+    const receipt = path.join(root, 'act-runtime-active-receipt.json');
+    await writeFile(receipt, '{');
+    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({
+      code: 'runtime-active-release-receipt-invalid',
+    });
+    await writeActiveReceipt(root, { ...manifest, manifestSha256: 'f'.repeat(64) });
+    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({
+      code: 'runtime-active-release-receipt-mismatch',
+    });
+  });
+
+  it('supports a separately mounted receipt directory for atomic host projection updates', async () => {
+    const { root, manifest } = await blobFixture();
+    const receiptRoot = await mkdtemp(path.join(os.tmpdir(), 'act-runtime-active-receipt-'));
+    roots.push(receiptRoot);
+    await rm(path.join(root, 'act-runtime-active-receipt.json'));
+    await writeActiveReceipt(root, manifest, receiptRoot);
+    await expect(readActiveRuntimeReleaseManifest(root, path.join(receiptRoot, 'act-runtime-active-receipt.json'))).resolves.toMatchObject({
+      releaseId: manifest.releaseId,
+    });
   });
 });

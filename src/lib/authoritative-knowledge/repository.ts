@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import path from 'node:path';
 
+import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
+
 import { isGlobalCourseCoverageRuntimeSelectorPermitted } from '@/lib/legacy-knowledge-runtime-retirement';
 
 import {
@@ -16,9 +18,11 @@ import {
   CURRENT_AGGREGATE_RELEASE_SET_ID,
   CTKG_0_2_SCHEMA_VERSION,
   STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+  STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL,
   isAggregateReleaseProtocol,
   isExactAggregateReleaseProtocol,
   isStandardPublicBundleProtocol,
+  isStandardPublicBundleV2Protocol,
   type AuthoritySelector,
   type AuthoritativeBundleArtifactRecord,
   type AuthoritativeBundleReceiptRecord,
@@ -39,6 +43,10 @@ import {
   type AuthoritativeSourceMappingRecord,
   type AuthoritativeSourceObjectRecord,
   type AuthoritativeUpstreamRagReferenceRecord,
+  type AuthoritativeV2AdmissionBindingRecord,
+  type AuthoritativeV2Evidence,
+  type AuthoritativeV2MultilingualLabelRecord,
+  type AuthoritativeV2ProjectionProfileRecord,
   type CourseCoverageAuditIdentity,
   type CourseCoverageDiagnostic,
   type CourseCoverageRecord,
@@ -74,6 +82,9 @@ export interface AuthoritativeKnowledgeTransaction {
   actkgBundleArtifact: Delegate;
   actkgProjectionIdentity: Delegate;
   actkgProjectionLinkMetadata: Delegate;
+  actkgV2ProjectionProfile?: Delegate;
+  actkgV2MultilingualLabel?: Delegate;
+  actkgV2AdmissionBinding?: Delegate;
   courseCoverageOverlayVersion: Delegate;
   courseCoverageOverlayEntry: Delegate;
   courseCoverageImportReceipt: Delegate;
@@ -116,6 +127,76 @@ function byOrdinalAndId<T extends { ordinal: number }>(
   return [...rows].sort((left, right) => (
     left.ordinal - right.ordinal || identity(left).localeCompare(identity(right))
   ));
+}
+
+function buildV2Evidence(input: {
+  releaseId: string;
+  bundleReceiptId: string | null;
+  profiles: unknown[];
+  labels: unknown[];
+  binding: unknown;
+}): AuthoritativeV2Evidence {
+  const profiles = [...input.profiles as AuthoritativeV2ProjectionProfileRecord[]]
+    .sort((left, right) => left.profileKey.localeCompare(right.profileKey));
+  const labels = byOrdinalAndId(
+    input.labels as AuthoritativeV2MultilingualLabelRecord[],
+    (row) => row.terminologyAssertionId,
+  );
+  const binding = input.binding as AuthoritativeV2AdmissionBindingRecord | null;
+  if (!binding) throw new Error('V2 admission binding missing');
+  if (binding.releaseId !== input.releaseId
+    || !input.bundleReceiptId
+    || binding.bundleReceiptId !== input.bundleReceiptId
+    || binding.protocol !== STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL
+    || binding.provenance !== 'registry'
+    || binding.verificationScope !== 'admission-time'
+    || binding.verifiedDuringLoad !== false) {
+    throw new Error('V2 admission binding identity is invalid');
+  }
+  const bindingPayload = {
+    provenance: binding.provenance,
+    verificationScope: binding.verificationScope,
+    verifiedDuringLoad: binding.verifiedDuringLoad,
+    registryIdentity: binding.registryIdentity,
+    upstreamRepository: binding.upstreamRepository,
+    publicationRevision: binding.publicationRevision,
+    sourceRevision: binding.sourceRevision,
+    bundleIdentity: binding.bundleIdentity,
+  };
+  if (sha256(canonicalJson(bindingPayload)) !== binding.bindingDigest) {
+    throw new Error('V2 admission binding digest mismatch');
+  }
+  if (profiles.length !== 3 || labels.length !== 1909) {
+    throw new Error(`V2 typed evidence count mismatch: profiles=${profiles.length}, labels=${labels.length}`);
+  }
+  for (const row of profiles) {
+    if (row.releaseId !== input.releaseId
+      || !row.profileKey
+      || !row.profileId
+      || !SHA256.test(row.profileSha256)
+      || !row.mappingContractVersion
+      || !row.aggregationPolicy) {
+      throw new Error(`V2 profile identity missing for ${row.profileKey}`);
+    }
+  }
+  for (const row of labels) {
+    if (row.releaseId !== input.releaseId
+      || !Number.isInteger(row.ordinal)
+      || row.ordinal < 0
+      || !row.entityId
+      || !row.language
+      || !row.label
+      || !row.labelType
+      || !row.terminologyAssertionId) {
+      throw new Error(`V2 multilingual label identity missing at ${row.ordinal}`);
+    }
+  }
+  return {
+    protocol: STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL,
+    profiles,
+    multilingualLabels: labels,
+    admissionBinding: binding,
+  };
 }
 
 function compare(
@@ -249,6 +330,7 @@ function diagnoseExactAggregateSnapshot(
 function diagnoseStandardBundleSnapshot(
   snapshot: AuthoritativeKnowledgeSnapshot,
   diagnostics: RepositoryDiagnostic[],
+  protocol: typeof STANDARD_PUBLIC_BUNDLE_PROTOCOL | typeof STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL = STANDARD_PUBLIC_BUNDLE_PROTOCOL,
 ): void {
   const { release, receipt, bundleReceipt } = snapshot;
   for (const [field, value] of [
@@ -356,7 +438,7 @@ function diagnoseStandardBundleSnapshot(
   compare(diagnostics, {
     code: 'bundle-identity-mismatch',
     field: 'bundleReceipt.bundleContractVersion',
-    expected: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+    expected: protocol,
     actual: bundleReceipt.bundleContractVersion,
   });
   compare(diagnostics, {
@@ -544,7 +626,7 @@ function diagnoseStandardBundleSnapshot(
     ['receipt.projectionId', release.projectionId, receipt.projectionId],
     ['receipt.projectionDigest', release.projectionDigest, receipt.projectionDigest],
     ['receipt.sourceDatasetHash', release.sourceDatasetHash, receipt.sourceDatasetHash],
-    ['receipt.bundleContractVersion', STANDARD_PUBLIC_BUNDLE_PROTOCOL, receipt.bundleContractVersion],
+    ['receipt.bundleContractVersion', protocol, receipt.bundleContractVersion],
   ] as const) {
     compareNullable(diagnostics, {
       code: 'receipt-identity-mismatch',
@@ -584,7 +666,11 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
   const diagnostics: RepositoryDiagnostic[] = [];
   const { releaseSet, release, receipt } = snapshot;
   const exact = isExactAggregateReleaseProtocol(release.protocol);
-  const standard = isStandardPublicBundleProtocol(release.protocol);
+  const standard = isStandardPublicBundleProtocol(release.protocol)
+    || isStandardPublicBundleV2Protocol(release.protocol);
+  const standardProtocol = isStandardPublicBundleV2Protocol(release.protocol)
+    ? STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL
+    : STANDARD_PUBLIC_BUNDLE_PROTOCOL;
   const aggregate = isAggregateReleaseProtocol(release.protocol);
 
   compare(diagnostics, {
@@ -683,7 +769,7 @@ function diagnoseSnapshot(snapshot: AuthoritativeKnowledgeSnapshot): RepositoryD
   if (exact) {
     diagnoseExactAggregateSnapshot(snapshot, diagnostics);
   } else if (standard) {
-    diagnoseStandardBundleSnapshot(snapshot, diagnostics);
+    diagnoseStandardBundleSnapshot(snapshot, diagnostics, standardProtocol);
   } else if (aggregate) {
     diagnostics.push({
       code: 'release-identity-mismatch',
@@ -761,7 +847,9 @@ export class AuthoritativeKnowledgeRepository {
       if (isAggregateReleaseProtocol(release.protocol)) {
         // Aggregate branch: exact #1125 or standard public Bundle. Historical
         // CTKG 0.1 tables are never queried for these releases.
-        const standard = isStandardPublicBundleProtocol(release.protocol);
+        const standard = isStandardPublicBundleProtocol(release.protocol)
+          || isStandardPublicBundleV2Protocol(release.protocol);
+        const v2 = isStandardPublicBundleV2Protocol(release.protocol);
         const [
           receipt,
           releaseArtifacts,
@@ -859,6 +947,35 @@ export class AuthoritativeKnowledgeRepository {
             })
           : [];
 
+        let v2Evidence: AuthoritativeV2Evidence | null = null;
+        if (v2) {
+          if (!transaction.actkgV2ProjectionProfile
+            || !transaction.actkgV2MultilingualLabel
+            || !transaction.actkgV2AdmissionBinding) {
+            throw new Error('V2 typed evidence delegates are unavailable');
+          }
+          const [profiles, labels, binding] = await Promise.all([
+            transaction.actkgV2ProjectionProfile.findMany({
+              where: { releaseId: selector.releaseId },
+              orderBy: [{ profileKey: 'asc' }],
+            }),
+            transaction.actkgV2MultilingualLabel.findMany({
+              where: { releaseId: selector.releaseId },
+              orderBy: [{ ordinal: 'asc' }, { terminologyAssertionId: 'asc' }],
+            }),
+            transaction.actkgV2AdmissionBinding.findUnique({
+              where: { releaseId: selector.releaseId },
+            }),
+          ]);
+          v2Evidence = buildV2Evidence({
+            releaseId: selector.releaseId,
+            bundleReceiptId: typedBundleReceipt?.id ?? null,
+            profiles,
+            labels,
+            binding,
+          });
+        }
+
         const snapshot: AuthoritativeKnowledgeSnapshot = {
           authorityState: 'candidate',
           productionAuthoritative: false,
@@ -912,6 +1029,7 @@ export class AuthoritativeKnowledgeRepository {
                 ),
               }
             : {}),
+          ...(v2 ? { v2Evidence } : {}),
         };
         const diagnostics = diagnoseSnapshot(snapshot);
         return diagnostics.length === 0

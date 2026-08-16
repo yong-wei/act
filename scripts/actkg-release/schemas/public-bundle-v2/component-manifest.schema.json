@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actkg.example/schema/public-bundle/component-manifest-v2.schema.json",
+  "title": "ActKG Component Manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "components"],
+  "properties": {
+    "contract_version": {"const": "actkg-component-manifest/2"},
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/component"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "safePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000]+$"
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_id",
+        "release_version",
+        "release_hash",
+        "component_role",
+        "component_path",
+        "component_sha256",
+        "source_release_hash",
+        "source_revision"
+      ],
+      "properties": {
+        "release_id": {"type": "string", "minLength": 1},
+        "release_version": {"type": "string", "minLength": 1},
+        "release_hash": {"$ref": "#/$defs/sha256"},
+        "component_role": {"enum": ["module", "integration", "terminology"]},
+        "component_path": {"$ref": "#/$defs/safePath"},
+        "component_sha256": {"$ref": "#/$defs/sha256"},
+        "source_release_hash": {"$ref": "#/$defs/sha256"},
+        "source_revision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["commit"],
+          "properties": {
+            "commit": {"$ref": "#/$defs/commit"},
+            "tag": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

@@ -28,13 +28,16 @@ export function KnowledgeGraphWorkspace({
       data-knowledge-graph-version={mode}
       data-knowledge-graph-mode={mode}
     >
-      <div className="absolute right-3 top-3 z-50 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur">
+      <div
+        className="absolute right-3 top-3 z-50 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur max-[639px]:left-3 max-[639px]:right-3 max-[639px]:w-auto max-[639px]:flex-nowrap max-[639px]:overflow-x-auto"
+        data-knowledge-mode-switch="true"
+      >
         <button
           type="button"
           aria-pressed={mode === 'active'}
           data-knowledge-mode="active"
           onClick={() => setMode('active')}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'active' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
+          className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'active' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
           当前 Authority
         </button>
@@ -43,7 +46,7 @@ export function KnowledgeGraphWorkspace({
           aria-pressed={mode === 'legacy'}
           data-knowledge-mode="legacy"
           onClick={() => setMode('legacy')}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'legacy' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
+          className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'legacy' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
           历史 Legacy
         </button>
@@ -53,7 +56,7 @@ export function KnowledgeGraphWorkspace({
             aria-pressed={mode === 'candidate'}
             data-knowledge-mode="candidate"
             onClick={() => setMode('candidate')}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'candidate' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
+            className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'candidate' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
           >
             受控候选诊断
           </button>

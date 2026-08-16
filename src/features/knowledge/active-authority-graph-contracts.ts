@@ -46,6 +46,7 @@ export interface ActiveCanvasNode {
   id: string;
   canonicalType: string;
   label: string;
+  aliases?: readonly string[];
   description: string | null;
   governance: {
     reviewStatus: string | null;
