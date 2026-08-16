@@ -16,8 +16,9 @@
 | 路径 | `course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json` |
 | status | `READY` |
 | blockers | `[]` |
-| receiptDigest | `84f6c18a493cea53db193904f49778da80fab50fd5b8e5c1c3060aacfc781bc1` |
-| 文件 sha256 | `94b66f3a39b450da79c2016abe6deeed7a21486b7fab72f6f96073282e6a1f9f` |
+| receiptDigest | `6b5393c5cabce980e70540142cd3dc56695319b9dc8782363faad9fefc258321` |
+| 文件 sha256 | `1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1` |
+| overlay sha256 | `41799cf9c45cbf0d3828991ba9baed217ae09b696c9a5d5f0d0da08afb520948` |
 | 发布器 pin | `V018_SEALED_QUALIFICATION_SHA256` 已改到上述文件哈希 |
 | 1909 行索引 | 未改写 |
 | 生产指针 | 仍为 v0.9，冻结哈希一致 |

@@ -31,7 +31,7 @@ fail-closed 发布门禁已合入 `integration`。选项 1 overlay 之后，密�
 
 ## 阻断原因（真实，不要绕过）
 
-历史 BLOCKED 报告（`receiptDigest=219c9232…`，文件 sha256 `fafdcf2a0644971f…`）已被正式 qualify CLI 覆盖为 READY：`receiptDigest=84f6c18a493cea53db193904f49778da80fab50fd5b8e5c1c3060aacfc781bc1`，文件 sha256 `94b66f3a39b450da79c2016abe6deeed7a21486b7fab72f6f96073282e6a1f9f`。该 READY 来自 `admit-actkg-v018-neighborhood-zh-cn-labels`，不是手改旧报告。
+历史 BLOCKED 报告（`receiptDigest=219c9232…`，文件 sha256 `fafdcf2a0644971f…`）已被正式 qualify CLI 覆盖为 READY：`receiptDigest=6b5393c5cabce980e70540142cd3dc56695319b9dc8782363faad9fefc258321`，文件 sha256 `1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1`，overlay sha256 `41799cf9c45cbf0d3828991ba9baed217ae09b696c9a5d5f0d0da08afb520948`。该 READY 来自 `admit-actkg-v018-neighborhood-zh-cn-labels`，不是手改旧报告。
 
 主要 blockers：`isolated-shard` 标签不可用、`teaching-dual-replay-trees-absent`、`isolated-five-selector-incomplete`。
 

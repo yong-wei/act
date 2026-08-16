@@ -7,6 +7,7 @@ import type {
   AuthorityEngineeringBody,
   AuthoritySnapshotManifest,
 } from '../../authoritative-knowledge/authority-snapshot';
+import { reviewedNeighborhoodOverlaySha256 } from '../../authority-domain-shards/v018-reviewed-neighborhood-labels';
 import { projectionDigest } from '../hash';
 import { V018_CURRENT_POINTER_PATHS } from '../rebase/v018-contracts';
 import { readV018PointerSnapshots } from '../rebase/v018-receipt';
@@ -120,15 +121,20 @@ export async function qualifyActKgV018CutoverCandidate(input: {
   const dualReplay = compareDualReplayArtifactBytes(repoRoot);
   blockers.push(...dualReplay.blockers);
 
+  const reviewedNeighborhoodOverlay = reviewedNeighborhoodOverlaySha256();
   const inputHashes = {
     authorityReceipt: shaFile(authorityReceiptPath),
     teachingReceipt: shaFile(teachingReceiptPath),
     authorityManifest: shaFile(authorityManifestPath),
     authorityEngineering: shaFile(authorityEngineeringPath),
     labels: existsSync(labelPath) ? shaFile(labelPath) : '',
+    reviewedNeighborhoodOverlay,
     captureRevision: String(authorityManifest.captureRevision ?? ''),
     declaredHashCount: collectDeclaredCandidateHashes(repoRoot).length,
   };
+  if (!/^[a-f0-9]{64}$/u.test(reviewedNeighborhoodOverlay)) {
+    blockers.push('reviewed-neighborhood-overlay-hash-invalid');
+  }
 
   if (authorityReceipt.status !== 'staged' || authorityReceipt.nonActivation !== true) blockers.push('authority-candidate-not-inactive');
   if (teachingReceipt.status !== 'READY' || teachingReceipt.nonActivation !== true) blockers.push('teaching-candidate-not-inactive');

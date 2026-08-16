@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { reviewedNeighborhoodOverlaySha256 } from '../../authority-domain-shards/v018-reviewed-neighborhood-labels';
 import { projectionDigest, projectionSha256 } from '../hash';
 import {
   assertV018ProductionPointersUnchanged,
@@ -25,7 +26,7 @@ import {
 export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as const;
 export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
 export const V018_SEALED_QUALIFICATION_SHA256 =
-  '94b66f3a39b450da79c2016abe6deeed7a21486b7fab72f6f96073282e6a1f9f';
+  '1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1';
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
 export const V09_POINTER_HASHES = {
   'course-content/authoring/knowledge/authority/current.json':
@@ -159,6 +160,11 @@ function verifyQualificationBinding(
   }
   if (teaching.publicationHash !== '0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7') {
     blockers.push('qualification-publication-hash-drift');
+  }
+  const declaredOverlay = String(asRecord(qualification.inputHashes).reviewedNeighborhoodOverlay ?? '');
+  const actualOverlay = reviewedNeighborhoodOverlaySha256();
+  if (!/^[a-f0-9]{64}$/u.test(declaredOverlay) || declaredOverlay !== actualOverlay) {
+    blockers.push('qualification-overlay-hash-drift');
   }
   return blockers;
 }

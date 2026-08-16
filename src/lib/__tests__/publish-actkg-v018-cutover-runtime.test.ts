@@ -66,6 +66,37 @@ describe('v0.18 runtime publication', () => {
     expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
   });
 
+  it('does not accept a READY report whose overlay hash drifted', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-overlay-'));
+    roots.push(outputRoot);
+    const driftedPath = path.join(outputRoot, 'qualification-readiness.json');
+    const original = JSON.parse(readFileSync(path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json',
+    ), 'utf8')) as Record<string, unknown>;
+    const hashes = {
+      ...(original.inputHashes as Record<string, unknown>),
+      reviewedNeighborhoodOverlay: '0'.repeat(64),
+    };
+    const { receiptDigest: _ignored, ...rest } = original;
+    const rewritten = { ...rest, inputHashes: hashes };
+    writeFileSync(driftedPath, `${JSON.stringify({ ...rewritten, receiptDigest: projectionDigest(rewritten) })}\n`);
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      qualificationReport: driftedPath,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.imageBuilt).toBe(false);
+    expect(result.blockers).toContain('qualification-overlay-hash-drift');
+    expect(result.blockers).toContain('qualification-file-hash-drift');
+  });
+
   it('does not treat a mutated READY report with a stale digest as qualified', async () => {
     const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-digest-'));
     roots.push(outputRoot);

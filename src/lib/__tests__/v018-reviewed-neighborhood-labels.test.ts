@@ -12,6 +12,7 @@ import {
   V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH,
   V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_ID,
   reviewedNeighborhoodLabelsForSnapshot,
+  reviewedNeighborhoodOverlaySha256,
 } from '@/lib/authority-domain-shards/v018-reviewed-neighborhood-labels';
 import type { AuthoritativeV2Evidence } from '@/lib/authoritative-knowledge/contracts';
 
@@ -131,6 +132,12 @@ describe('v0.18 reviewed neighborhood overlay', () => {
   it('does not mutate the sealed 1909-row admission count contract', () => {
     expect(V018_REVIEWED_NEIGHBORHOOD_LABELS).toHaveLength(25);
     expect(V018_REVIEWED_NEIGHBORHOOD_LABELS.every((row) => row.ordinal >= 10_000)).toBe(true);
+  });
+
+  it('seals a stable overlay artifact hash', () => {
+    const digest = reviewedNeighborhoodOverlaySha256();
+    expect(digest).toMatch(/^[a-f0-9]{64}$/u);
+    expect(reviewedNeighborhoodOverlaySha256()).toBe(digest);
   });
 
   it('replaces an unsafe admitted preferred and omits an unsafe alternative', () => {

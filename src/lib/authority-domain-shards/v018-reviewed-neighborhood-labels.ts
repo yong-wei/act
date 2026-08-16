@@ -4,9 +4,12 @@
  */
 
 import type { AuthoritativeV2MultilingualLabelRecord } from '@/lib/authoritative-knowledge/contracts';
+import { projectionCanonicalJson, projectionSha256 } from '@/lib/teaching-projection/hash';
 
 export const V018_REVIEWED_NEIGHBORHOOD_OVERLAY_CONTRACT =
   'actkg-v018-reviewed-neighborhood-labels/v1' as const;
+export const V018_REVIEWED_NEIGHBORHOOD_MERGE_POLICY =
+  'replace-unsafe-preferred-omit-unsafe-alternatives/v1' as const;
 
 export const V018_REVIEWED_NEIGHBORHOOD_RELEASE_ID =
   'ctr:release:control-theory-engineering-v0.18' as const;
@@ -62,6 +65,28 @@ export const V018_REVIEWED_NEIGHBORHOOD_LABELS: readonly AuthoritativeV2Multilin
       snapshotHash: V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH,
     }),
   })));
+
+export function reviewedNeighborhoodOverlayArtifact(): {
+  readonly contract: typeof V018_REVIEWED_NEIGHBORHOOD_OVERLAY_CONTRACT;
+  readonly mergePolicy: typeof V018_REVIEWED_NEIGHBORHOOD_MERGE_POLICY;
+  readonly releaseId: typeof V018_REVIEWED_NEIGHBORHOOD_RELEASE_ID;
+  readonly snapshotId: typeof V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_ID;
+  readonly snapshotHash: typeof V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH;
+  readonly labels: readonly { entityId: string; label: string }[];
+} {
+  return Object.freeze({
+    contract: V018_REVIEWED_NEIGHBORHOOD_OVERLAY_CONTRACT,
+    mergePolicy: V018_REVIEWED_NEIGHBORHOOD_MERGE_POLICY,
+    releaseId: V018_REVIEWED_NEIGHBORHOOD_RELEASE_ID,
+    snapshotId: V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_ID,
+    snapshotHash: V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH,
+    labels: ROWS,
+  });
+}
+
+export function reviewedNeighborhoodOverlaySha256(): string {
+  return projectionSha256(projectionCanonicalJson(reviewedNeighborhoodOverlayArtifact()));
+}
 
 export function reviewedNeighborhoodLabelsForSnapshot(
   snapshot: { releaseId: string; snapshotId: string; snapshotHash: string },

@@ -99,6 +99,19 @@ in one tree MUST exist in the other with identical bytes.
 - **WHEN** both trees exist and all shared relative paths are byte-identical
 - **THEN** teaching dual-replay SHALL not add a blocker
 
+### Requirement: Neighborhood overlay is a sealed qualification input
+
+The qualification manifest MUST hash the reviewed neighborhood overlay artifact
+independently of the sealed 1909-row label index. Publication MUST recompute
+that hash from the current overlay contract, merge policy, snapshot binding,
+and 25 reviewed labels, and MUST fail closed on drift.
+
+#### Scenario: Overlay labels change after a READY report
+
+- **WHEN** the reviewed overlay contract, merge policy, snapshot binding, or
+  any of the 25 labels differs from the sealed qualification hash
+- **THEN** runtime publication MUST block with overlay hash drift
+
 ### Requirement: Neighborhood labels must resolve before shard compose advances
 
 Isolated shard compose MUST resolve classifier-safe zh-CN labels for every
