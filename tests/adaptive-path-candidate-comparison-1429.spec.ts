@@ -1,3 +1,6 @@
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
+
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
 const goalId = 'control-correction';
@@ -228,6 +231,23 @@ async function choosePair(page: Page, left: string, right: string, keyboard = fa
   }
 }
 
+async function captureCandidateComparisonEvidence(page: Page, viewportName: 'desktop' | 'mobile-320') {
+  if (process.env.ISSUE_1429_WRITE_EVIDENCE !== '1') return;
+  const outputDir = path.join(
+    process.cwd(),
+    'artifacts/commercial-ui/issue-1429-candidate-comparison',
+  );
+  await mkdir(outputDir, { recursive: true });
+  const fileName = viewportName === 'desktop'
+    ? 'candidate-comparison-1440.png'
+    : 'candidate-comparison-320.png';
+  await page.screenshot({
+    path: path.join(outputDir, fileName),
+    fullPage: true,
+    animations: 'disabled',
+  });
+}
+
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
@@ -268,10 +288,15 @@ for (const viewport of [
     await expect(page).toHaveURL(/compareRight=option-b/);
     await expect(page).toHaveURL(/compareVersion=/);
 
+    const confirm = page.getByRole('button', { name: '比较这两条路径' });
+    await confirm.focus();
+    await expect(confirm).toBeFocused();
+
     const geometry = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,
     }));
     expect(geometry.scrollWidth).toBe(geometry.clientWidth);
+    await captureCandidateComparisonEvidence(page, viewport.name);
   });
 }
