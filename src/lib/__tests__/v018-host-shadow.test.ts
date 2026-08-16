@@ -11,6 +11,7 @@ import {
   loadHostShadowVerificationReport,
   V018_FROZEN_IMAGE_TAG,
   V018_HOST_SHADOW_CONTRACT,
+  V018_SEALED_IMAGE_CONFIG_SHA256,
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   V018_STAGED_QUALIFICATION_SHA256,
 } from '../teaching-projection/publish/v018-host-shadow';
@@ -23,7 +24,9 @@ afterEach(() => {
 
 const readyObservation = {
   appImage: V018_FROZEN_IMAGE_TAG,
+  appImageId: V018_SEALED_IMAGE_CONFIG_SHA256,
   workerImage: V018_FROZEN_IMAGE_TAG,
+  workerImageId: V018_SEALED_IMAGE_CONFIG_SHA256,
   workerHealth: 'healthy',
   readyz: { app: true, db: true, redis: true },
   publicReadyzStatus: 200,
@@ -96,6 +99,15 @@ describe('v0.18 host shadow evaluation', () => {
     });
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-v018-authority-not-mounted-in-sidecar');
+  });
+
+  it('fails closed when the host image digest is not the sealed config', () => {
+    const result = evaluateV018HostShadow({
+      ...readyObservation,
+      appImageId: '0'.repeat(64),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-app-image-digest-mismatch');
   });
 
   it('fails closed when the active graph is not the frozen v0.9 snapshot', () => {

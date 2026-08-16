@@ -6,7 +6,7 @@
 
 ## 一句话
 
-`#1411` 继续由 `act-dev1` 执行。正式入口读取密封 host-shadow 报告，非 READY 不能封出顶层 READY，主机镜像必须等于本次 `imageTag`，并复用 `94d585ae63a6` 密封镜像而不是用当前 HEAD 重建。当前收据 `status=BLOCKED`，`receiptDigest=22ed2216640ad5…`，blocker 含生产缺少 shards current.json。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
+`#1411` 继续由 `act-dev1` 执行。正式入口复用密封 OCI 镜像时校验 `manifest.json` tag/config digest `d2ee9cf7…`，并把主机 Image ID 绑到同一 digest。当前收据保持 BLOCKED，blocker 含生产缺少 shards current.json。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
 
 ## 认领真源（手工修复后）
 

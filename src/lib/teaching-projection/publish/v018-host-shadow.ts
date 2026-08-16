@@ -16,6 +16,10 @@ export const V018_HOST_SHADOW_CONTRACT = 'actkg-v018-host-shadow/v1' as const;
 export const V018_FROZEN_IMAGE_TAG = 'localhost/act-obe-platform:v018-94d585ae63a6';
 export const V018_FROZEN_APPLICATION_REVISION =
   '94d585ae63a6f1839ce611c7f8a1271df945933f';
+export const V018_SEALED_IMAGE_TAR_SHA256 =
+  'bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024';
+export const V018_SEALED_IMAGE_CONFIG_SHA256 =
+  'd2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2';
 export const V018_STAGED_AUTHORITY_RECEIPT_SHA256 =
   'c2f22672cc4c188dfd607183eca35e74e9c727207b0439512f3180ffed130cd3';
 export const V018_STAGED_QUALIFICATION_SHA256 =
@@ -32,7 +36,9 @@ export const V09_HOST_POINTER_HASHES = {
 
 export interface HostShadowObservation {
   appImage?: string;
+  appImageId?: string;
   workerImage?: string;
+  workerImageId?: string;
   workerHealth?: string;
   readyz?: { app?: boolean; db?: boolean; redis?: boolean };
   publicReadyzStatus?: number;
@@ -180,6 +186,10 @@ export function evaluateV018HostShadow(observation: HostShadowObservation): {
   const blockers: string[] = [];
   if (observation.appImage !== V018_FROZEN_IMAGE_TAG) blockers.push('host-app-image-mismatch');
   if (observation.workerImage !== V018_FROZEN_IMAGE_TAG) blockers.push('host-worker-image-mismatch');
+  const appImageId = (observation.appImageId ?? '').replace(/^sha256:/, '');
+  const workerImageId = (observation.workerImageId ?? '').replace(/^sha256:/, '');
+  if (appImageId !== V018_SEALED_IMAGE_CONFIG_SHA256) blockers.push('host-app-image-digest-mismatch');
+  if (workerImageId !== V018_SEALED_IMAGE_CONFIG_SHA256) blockers.push('host-worker-image-digest-mismatch');
   if (observation.workerHealth !== 'healthy') blockers.push('host-worker-unhealthy');
   if (observation.readyz?.app !== true || observation.readyz.db !== true || observation.readyz.redis !== true) {
     blockers.push('host-readyz-incomplete');

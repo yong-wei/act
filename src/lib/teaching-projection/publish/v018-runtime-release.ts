@@ -9,6 +9,8 @@ import {
   expectedHostPointerHashes,
   loadHostShadowVerificationReport,
   V018_FROZEN_IMAGE_TAG,
+  V018_SEALED_IMAGE_CONFIG_SHA256,
+  V018_SEALED_IMAGE_TAR_SHA256,
 } from './v018-host-shadow';
 import { projectionDigest, projectionSha256 } from '../hash';
 import {
@@ -208,21 +210,45 @@ function verifyQualificationBinding(
   return blockers;
 }
 
+function readDockerArchiveIdentity(imageTarPath: string): { repoTags: string[]; configSha256: string } | null {
+  try {
+    const raw = execFileSync('tar', ['-xOf', imageTarPath, 'manifest.json'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const manifest = JSON.parse(raw) as unknown;
+    const first = Array.isArray(manifest) ? asRecord(manifest[0]) : {};
+    const repoTags = Array.isArray(first.RepoTags)
+      ? first.RepoTags.filter((value): value is string => typeof value === 'string')
+      : [];
+    const config = String(first.Config ?? '');
+    const match = /(?:^|\/)([a-f0-9]{64})$/.exec(config);
+    if (!match) return null;
+    return { repoTags, configSha256: match[1] };
+  } catch {
+    return null;
+  }
+}
+
 export function resolveSealedFrozenImage(input: {
   repoRoot: string;
   applicationRevision: string;
-}): { imageTag: string; provenancePath: string; imageTarPath: string } | null {
+}): { imageTag: string; provenancePath: string; imageTarPath: string; configSha256: string } | null {
   const repoRoot = path.resolve(input.repoRoot);
   const provenancePath = path.join(repoRoot, 'deploy/images/act-obe.tar.provenance.json');
   const imageTarPath = path.join(repoRoot, 'deploy/images/act-obe.tar');
   if (!existsSync(provenancePath) || !existsSync(imageTarPath)) return null;
   const provenance = asRecord(readJson(provenancePath));
   if (String(provenance.appRevision ?? '') !== input.applicationRevision) return null;
-  if (!/^[a-f0-9]{64}$/.test(String(provenance.imageTarSha256 ?? ''))) return null;
+  if (String(provenance.imageTarSha256 ?? '') !== V018_SEALED_IMAGE_TAR_SHA256) return null;
+  const oci = readDockerArchiveIdentity(imageTarPath);
+  if (!oci || !oci.repoTags.includes(V018_FROZEN_IMAGE_TAG)) return null;
+  if (oci.configSha256 !== V018_SEALED_IMAGE_CONFIG_SHA256) return null;
   return {
     imageTag: V018_FROZEN_IMAGE_TAG,
     provenancePath,
     imageTarPath,
+    configSha256: oci.configSha256,
   };
 }
 

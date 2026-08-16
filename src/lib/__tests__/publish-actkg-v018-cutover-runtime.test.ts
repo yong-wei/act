@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -37,7 +37,9 @@ const SHARD_PATH = 'course-content/runtime/knowledge/authority-domain-shards/cur
 function readyHostObservation(overrides: Partial<HostShadowObservation> = {}): HostShadowObservation {
   return {
     appImage: V018_FROZEN_IMAGE_TAG,
+    appImageId: 'd2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2',
     workerImage: V018_FROZEN_IMAGE_TAG,
+    workerImageId: 'd2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2',
     workerHealth: 'healthy',
     readyz: { app: true, db: true, redis: true },
     publicReadyzStatus: 200,
@@ -493,6 +495,19 @@ describe('v0.18 runtime publication', () => {
       repoRoot: REPO_ROOT,
       applicationRevision: '0'.repeat(40),
     })).toBeNull();
+    const fakeRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-fake-image-'));
+    roots.push(fakeRoot);
+    const fakeDeploy = path.join(fakeRoot, 'deploy/images');
+    mkdirSync(fakeDeploy, { recursive: true });
+    writeFileSync(path.join(fakeDeploy, 'act-obe.tar'), 'not-an-oci-archive\n');
+    writeFileSync(path.join(fakeDeploy, 'act-obe.tar.provenance.json'), `${JSON.stringify({
+      appRevision: V018_FROZEN_APPLICATION_REVISION,
+      imageTarSha256: 'bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024',
+    })}\n`);
+    expect(resolveSealedFrozenImage({
+      repoRoot: fakeRoot,
+      applicationRevision: V018_FROZEN_APPLICATION_REVISION,
+    })).toBeNull();
     if (!existsSync(path.join(REPO_ROOT, 'deploy/images/act-obe.tar'))) return;
     const sealed = resolveSealedFrozenImage({
       repoRoot: REPO_ROOT,
@@ -500,6 +515,6 @@ describe('v0.18 runtime publication', () => {
     });
     expect(sealed).not.toBeNull();
     expect(sealed?.imageTag).toBe(V018_FROZEN_IMAGE_TAG);
-    expect(sealed?.provenancePath.endsWith('deploy/images/act-obe.tar.provenance.json')).toBe(true);
+    expect(sealed?.configSha256).toBe('d2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2');
   });
 });
