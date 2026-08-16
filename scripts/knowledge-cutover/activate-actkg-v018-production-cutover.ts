@@ -13,6 +13,7 @@ import {
   V018_CUTOVER_COMPONENTS,
   V018_EXPECTED_OBJECT_COUNT,
   V018_EXPECTED_RELATION_COUNT,
+  V018_TARGET_IDENTITIES,
   assertNoLearnerVisibleSystemIdentifiers,
   compensateV018ProductionCutover,
   createPreparedJournal,
@@ -30,6 +31,7 @@ import {
 import {
   V09_PUBLIC_DOMAIN_LABELS,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+import { V018_NAMED_CONSUMERS } from '../../src/lib/teaching-projection/qualify/v018-qualify-contract';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);
@@ -143,15 +145,38 @@ function observeLiveCounts(root: string): { objects: number; relations: number }
   };
 }
 
-function observeReadyConsumers(root: string): string[] {
+function observeReadyConsumers(root: string): {
+  readyConsumerIds: string[];
+  blockers: string[];
+} {
   const pointer = JSON.parse(readFileSync(path.join(root, 'course-content/runtime/knowledge/consumer-activation/current.json'), 'utf8')) as { activationId: string };
   const activation = JSON.parse(readFileSync(path.join(
     root,
     'course-content/runtime/knowledge/consumer-activation/releases',
     pointer.activationId,
     'activation.json',
-  ), 'utf8')) as { impact?: { readyConsumerIds?: string[] } };
-  return Array.isArray(activation.impact?.readyConsumerIds) ? activation.impact.readyConsumerIds : [];
+  ), 'utf8')) as {
+    impact?: { readyConsumerIds?: string[] };
+    consumers?: Array<{ consumerId?: string; status?: string; combination?: { authoritySnapshotId?: string } }>;
+  };
+  const readyConsumerIds = Array.isArray(activation.impact?.readyConsumerIds) ? activation.impact.readyConsumerIds : [];
+  const blockers: string[] = [];
+  const expected = [...V018_NAMED_CONSUMERS].sort();
+  if (JSON.stringify([...readyConsumerIds].sort()) !== JSON.stringify(expected)) {
+    blockers.push('named-consumers-mismatch');
+  }
+  for (const consumerId of V018_NAMED_CONSUMERS) {
+    const row = (activation.consumers ?? []).find((item) => item.consumerId === consumerId);
+    if (!row || row.status !== 'READY' || row.combination?.authoritySnapshotId !== V018_TARGET_IDENTITIES.authority.id) {
+      blockers.push(`consumer-not-ready:${consumerId}`);
+    }
+  }
+  return { readyConsumerIds, blockers };
+}
+
+function fetchReadyz(url: string): { app?: boolean; db?: boolean; redis?: boolean } {
+  const raw = execFileSync('curl', ['-fsS', url], { encoding: 'utf8' });
+  return JSON.parse(raw) as { app?: boolean; db?: boolean; redis?: boolean };
 }
 
 function run(): void {
@@ -192,6 +217,7 @@ function run(): void {
   }
 
   if (command === 'activate') {
+    const publicUrl = requiredOption('--public-url');
     const preflight = preflightV018ProductionCutover({
       repoRoot: root,
       observation,
@@ -263,30 +289,33 @@ function run(): void {
       }));
       throw error;
     }
-    const publicUrl = requiredOption('--public-url');
-    const counts = observeLiveCounts(root);
-    const readyConsumers = observeReadyConsumers(root);
-    const publicObs = verifyPublicV018(publicUrl);
-    const observations: Record<string, unknown> = {
-      expectedObjectCount: V018_EXPECTED_OBJECT_COUNT,
-      expectedRelationCount: V018_EXPECTED_RELATION_COUNT,
-      objectCount: counts.objects,
-      relationCount: counts.relations,
-      readyConsumers,
-      expectedHashes: expectedPredecessorHashes(predecessorSource),
-      public: publicObs,
-      workerHealth: observation.workerHealth,
-      readyz: observation.readyz,
-    };
+    const observations: Record<string, unknown> = {};
     const blockers: string[] = [];
-    if (counts.objects !== V018_EXPECTED_OBJECT_COUNT) blockers.push('object-count-mismatch');
-    if (counts.relations !== V018_EXPECTED_RELATION_COUNT) blockers.push('relation-count-mismatch');
-    if (readyConsumers.length !== 6) blockers.push('consumer-ready-incomplete');
-    if (observation.workerHealth !== 'healthy') blockers.push('worker-unhealthy');
-    if (observation.readyz?.app !== true || observation.readyz.db !== true || observation.readyz.redis !== true) {
-      blockers.push('readyz-not-ready');
+    try {
+      const counts = observeLiveCounts(root);
+      const consumers = observeReadyConsumers(root);
+      const publicObs = verifyPublicV018(publicUrl);
+      const postReadyz = fetchReadyz(option(process.argv, '--readyz-url') ?? 'http://127.0.0.1:8084/api/readyz');
+      const postPublicReadyz = fetchReadyz(`${publicUrl}/api/readyz`);
+      observations.expectedObjectCount = V018_EXPECTED_OBJECT_COUNT;
+      observations.expectedRelationCount = V018_EXPECTED_RELATION_COUNT;
+      observations.objectCount = counts.objects;
+      observations.relationCount = counts.relations;
+      observations.readyConsumers = consumers.readyConsumerIds;
+      observations.expectedHashes = expectedPredecessorHashes(predecessorSource);
+      observations.public = publicObs;
+      observations.postReadyz = postReadyz;
+      observations.postPublicReadyz = postPublicReadyz;
+      if (counts.objects !== V018_EXPECTED_OBJECT_COUNT) blockers.push('object-count-mismatch');
+      if (counts.relations !== V018_EXPECTED_RELATION_COUNT) blockers.push('relation-count-mismatch');
+      if (postReadyz.app !== true || postReadyz.db !== true || postReadyz.redis !== true) blockers.push('post-readyz-not-ready');
+      if (postPublicReadyz.app !== true || postPublicReadyz.db !== true || postPublicReadyz.redis !== true) {
+        blockers.push('post-public-readyz-not-ready');
+      }
+      blockers.push(...consumers.blockers, ...(publicObs.blockers as string[]));
+    } catch (error) {
+      blockers.push(error instanceof Error ? error.message : String(error));
     }
-    blockers.push(...(publicObs.blockers as string[]));
     if (blockers.length > 0) {
       restoreCatalog(root, predecessorDir);
       journal = compensateV018ProductionCutover({ backend: live, journal, persistJournal: persist, predecessors });
