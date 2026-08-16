@@ -7,6 +7,7 @@ import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { Client } from 'pg';
 
 const schema = `trusted_portrait_${process.pid}_${Date.now()}`;
+const usePglite = process.argv.includes('--pglite');
 const migrationSql = readFileSync(
   path.join(
     process.cwd(),
@@ -17,6 +18,28 @@ const migrationSql = readFileSync(
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+}
+
+function isRealPostgresVersion(version: string): boolean {
+  return /PostgreSQL \d+/i.test(version)
+    && !/pglite|wasm32|emcc|emscripten/i.test(version);
+}
+
+function stripPrismaSchemaParam(raw: string): string {
+  const [base, query] = raw.split('?', 2);
+  if (!query) return raw;
+  const params = query.split('&').filter((part) => part.length > 0 && !part.startsWith('schema='));
+  return params.length > 0 ? `${base}?${params.join('&')}` : base;
+}
+
+function resolveDatabaseUrl(): string | undefined {
+  const explicit = process.env.TRUSTED_PORTRAIT_MIGRATION_DATABASE_URL
+    || process.env.TEST_POSTGRES_DATABASE_URL;
+  if (explicit) return stripPrismaSchemaParam(explicit);
+  if (process.env.TRUSTED_PORTRAIT_MIGRATION_USE_DATABASE_URL === '1' && process.env.DATABASE_URL) {
+    return stripPrismaSchemaParam(process.env.DATABASE_URL);
+  }
+  return undefined;
 }
 
 async function closeClient(client: Client): Promise<void> {
@@ -32,7 +55,38 @@ async function closeClient(client: Client): Promise<void> {
   }
 }
 
-async function main(): Promise<void> {
+async function connectClient(): Promise<{
+  client: Client;
+  engine: 'postgresql' | 'pglite';
+  serverVersion: string;
+  stop: () => Promise<void>;
+}> {
+  if (!usePglite) {
+    const databaseUrl = resolveDatabaseUrl();
+    if (!databaseUrl) {
+      throw new Error(
+        'Real PostgreSQL smoke requires TRUSTED_PORTRAIT_MIGRATION_DATABASE_URL, TEST_POSTGRES_DATABASE_URL, or TRUSTED_PORTRAIT_MIGRATION_USE_DATABASE_URL=1 with DATABASE_URL. Pass --pglite only for the embedded compatibility path.',
+      );
+    }
+
+    const client = new Client({ connectionString: databaseUrl });
+    await client.connect();
+    const versionResult = await client.query<{ version: string }>('SELECT version() AS version');
+    const serverVersion = versionResult.rows[0]?.version ?? '';
+    if (!isRealPostgresVersion(serverVersion)) {
+      await closeClient(client);
+      throw new Error(`expected a real PostgreSQL server, received: ${serverVersion || 'empty version()'}`);
+    }
+    return {
+      client,
+      engine: 'postgresql',
+      serverVersion,
+      stop: async () => {
+        await closeClient(client);
+      },
+    };
+  }
+
   const database = new PGlite();
   const server = new PGLiteSocketServer({
     db: database,
@@ -41,7 +95,6 @@ async function main(): Promise<void> {
     port: 0,
   });
   await server.start();
-
   const [host, port] = server.getServerConn().split(':');
   const client = new Client({
     database: 'template1',
@@ -50,10 +103,33 @@ async function main(): Promise<void> {
     user: 'postgres',
   });
   await client.connect();
+  const versionResult = await client.query<{ version: string }>('SELECT version() AS version');
+  return {
+    client,
+    engine: 'pglite',
+    serverVersion: versionResult.rows[0]?.version ?? 'pglite',
+    stop: async () => {
+      await closeClient(client);
+      try {
+        await server.stop();
+      } finally {
+        await database.close();
+      }
+    },
+  };
+}
+
+async function main(): Promise<void> {
+  const { client, engine, serverVersion, stop } = await connectClient();
 
   try {
     await client.query(`CREATE SCHEMA "${schema}"`);
-    await client.query(`SET search_path TO "${schema}", public`);
+    await client.query(`SET search_path TO "${schema}"`);
+    const currentSchema = await client.query<{ current_schema: string }>('SELECT current_schema()');
+    assert(
+      currentSchema.rows[0]?.current_schema === schema,
+      `smoke must stay in isolated schema ${schema}`,
+    );
 
     await client.query(`
       CREATE TABLE "LearnerPortraitStateVersion" (
@@ -218,17 +294,16 @@ async function main(): Promise<void> {
 
     console.log(JSON.stringify({
       ok: true,
+      engine,
+      serverVersion,
       schema,
+      isolatedSchema: currentSchema.rows[0].current_schema,
       legacyDefaults: legacy.rows[0],
       currentPointer: current.rows[0],
     }, null, 2));
   } finally {
-    await closeClient(client);
-    try {
-      await server.stop();
-    } finally {
-      await database.close();
-    }
+    await client.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`).catch(() => undefined);
+    await stop();
   }
 }
 

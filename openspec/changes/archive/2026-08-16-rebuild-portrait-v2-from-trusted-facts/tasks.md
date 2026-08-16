@@ -42,4 +42,6 @@
 - [x] `openspec validate rebuild-portrait-v2-from-trusted-facts --type change --strict`
 - [x] `prisma validate`
 - [x] `prisma generate`
-- [x] PostgreSQL migration smoke（PGlite PostgreSQL 引擎，非独立 PostgreSQL server）：通过 PGlite socket server 验证迁移前 schema、旧行默认值、可信字段写入与 current pointer 原子切换
+- [x] PGlite 兼容回归：`npm run test:trusted-portrait-migration-pglite` 验证迁移前 schema、旧行默认值、可信字段写入与 current pointer 原子切换
+- [x] 真实 PostgreSQL migration smoke：本机 Homebrew `PostgreSQL 18.4` 独立 schema `trusted_portrait_*`，校验 `version()` 不是 PGlite/wasm，验证旧行默认值、migration SQL、可信字段写入与 current pointer 切换后删除隔离 schema。默认 `npm run test:trusted-portrait-migration-postgres` 无 URL 时 fail closed
+- [x] 归档 OpenSpec 到 `openspec/changes/archive/2026-08-16-rebuild-portrait-v2-from-trusted-facts/`，并同步主 specs
