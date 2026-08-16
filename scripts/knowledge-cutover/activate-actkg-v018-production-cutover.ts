@@ -282,7 +282,15 @@ function run(): void {
     } catch (error) {
       process.stderr.write(`activate failed: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
       restoreCatalog(root, predecessorDir);
-      journal = compensateV018ProductionCutover({ backend: live, journal, persistJournal: persist, predecessors });
+      const persisted = JSON.parse(readFileSync(journalPath, 'utf8')) as CutoverJournal;
+      journal = persisted.status === 'BLOCKED_RECOVERY' || persisted.status === 'ROLLED_BACK'
+        ? persisted
+        : compensateV018ProductionCutover({
+          backend: live,
+          journal: persisted,
+          persistJournal: persist,
+          predecessors,
+        });
       writeReceipt(outDir, sealCutoverReceipt({
         journal,
         blockers: [error instanceof Error ? error.message : String(error)],

@@ -86,6 +86,13 @@ WORKER_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(
 WORKER_HEALTH="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("workerHealth","unknown"))')"
 READYZ_JSON="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["readyz"]))')"
 
+if [ "$ACTION" = rollback ]; then
+  ssh_run "mkdir -p $REMOTE_WORK/out/predecessor-bytes
+  cp -f $REMOTE_WORK/runtime-releases/production-cutover-journal.json $REMOTE_WORK/out/production-cutover-journal.json
+  cp -f $REMOTE_WORK/runtime-releases/predecessor-bytes/* $REMOTE_WORK/out/predecessor-bytes/ 2>/dev/null || true
+  chmod -R 0777 $REMOTE_WORK/out"
+fi
+
 echo "=== sidecar $ACTION ==="
 # shellcheck disable=SC2029
 ssh_run "mkdir -p /home/projects/act/data/runtime/knowledge-cutover

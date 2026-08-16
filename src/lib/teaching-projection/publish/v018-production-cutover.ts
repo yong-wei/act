@@ -433,7 +433,11 @@ export function compensateV018ProductionCutover(input: {
       if (step.status !== 'APPLIED' && step.status !== 'STARTED') continue;
       const current = input.backend.read(step.component);
       const predecessor = input.predecessors[step.component];
-      const isTarget = Boolean(current && current.id === step.target.id);
+      const isTarget = Boolean(
+        current
+        && current.id === step.target.id
+        && (!step.target.hash || current.hash === step.target.hash),
+      );
       const isPredecessor = Boolean(current && current.fileSha256 === predecessor.fileSha256);
       if (current && !isTarget && !isPredecessor) {
         journal = sealJournal({

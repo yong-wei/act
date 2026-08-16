@@ -6,16 +6,53 @@
   "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
   "nextAction": "retain-v09-rollback",
   "observations": {
+    "objectCount": 6843,
+    "relationCount": 2811,
     "expectedObjectCount": 6843,
     "expectedRelationCount": 2811,
-    "expectedHashes": {
-      "authority": "868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d",
-      "projection": "cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703",
-      "prerequisite": "a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e",
-      "authority-domain-shards": "9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c",
-      "consumer-activation": "e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b"
+    "readyConsumers": [
+      "course-runtime",
+      "engineering-graph",
+      "engineering-rag",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "public": {
+      "login": 200,
+      "shards": 200,
+      "teaching": 200,
+      "domainId": "system-modeling",
+      "labels": [
+        "系统建模",
+        "时域分析",
+        "稳定性分析",
+        "频域分析",
+        "根轨迹",
+        "经典控制设计",
+        "离散时间控制分析",
+        "状态空间控制分析与设计"
+      ],
+      "leaks": []
+    },
+    "postReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true
+    },
+    "postPublicReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true
+    },
+    "livePointers": {
+      "authority": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "projection": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "prerequisite": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+      "shards": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+      "activation": "v018-cutover-1b64a853dda5-17f00f669b22"
     }
   },
   "blockers": [],
-  "receiptDigest": "ba9d2f758ba99cf5b14d3ae15087ff7500c2c9283b39e5247a9ff5409c7041af"
+  "receiptDigest": "dd1d9c171649c44a2dde4106343d838aa3a9ec63dec56e87b8484835b6bfaa1b"
 }
