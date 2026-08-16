@@ -1,0 +1,86 @@
+[
+  {
+    "edgeId": "prereq-3380bdb550cb94c17945c2b63eff84d8",
+    "sourceNodeId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "targetNodeId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "layer": "ACT_TEACHING",
+    "relationType": "PREREQUISITE",
+    "strength": "REQUIRED",
+    "scopeId": "act-control-theory-core",
+    "evidenceRefs": [
+      "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+    ],
+    "curatorId": "act.cutover.blueprint",
+    "curatorRationale": "当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。",
+    "status": "PUBLISHED",
+    "authorDecisionId": "prereq-decision-actkg-laplace-transfer",
+    "candidateOrigin": null,
+    "edgeDigest": "fe9688d42f155588a9346d66805e70441dffdc05aac97788f5724e8886f04694",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+    "projectionCaptureId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "authoringRevision": "34e4d9da22b68957371bd2ba760ba9f85b886f3e"
+  },
+  {
+    "edgeId": "prereq-6ad7522812e08e1a5168715660fdece0",
+    "sourceNodeId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "targetNodeId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "layer": "ACT_TEACHING",
+    "relationType": "PREREQUISITE",
+    "strength": "REQUIRED",
+    "scopeId": "act-control-theory-core",
+    "evidenceRefs": [
+      "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+    ],
+    "curatorId": "act.cutover.blueprint",
+    "curatorRationale": "方框图化简使学生能够建立并分析反馈连接。",
+    "status": "PUBLISHED",
+    "authorDecisionId": "prereq-decision-actkg-block-feedback",
+    "candidateOrigin": null,
+    "edgeDigest": "ce24a3eff50ab429c39e3d57660e9fe52c091b3632d12826ec76db877b2e380d",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+    "projectionCaptureId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "authoringRevision": "34e4d9da22b68957371bd2ba760ba9f85b886f3e"
+  },
+  {
+    "edgeId": "prereq-b815936c8131472c4105531e55ab2e47",
+    "sourceNodeId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetNodeId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "layer": "ACT_TEACHING",
+    "relationType": "PREREQUISITE",
+    "strength": "RECOMMENDED",
+    "scopeId": "act-control-theory-core",
+    "evidenceRefs": [
+      "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+    ],
+    "curatorId": "act.cutover.blueprint",
+    "curatorRationale": "稳定性分析以传递函数和极点语言为先行理解基础。",
+    "status": "PUBLISHED",
+    "authorDecisionId": "prereq-decision-actkg-transfer-stability",
+    "candidateOrigin": null,
+    "edgeDigest": "b553a70ec401dbabe6fe1cd0c0a7c479ab0375bf5f3364d3ffd9bb9507c5aeb2",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+    "projectionCaptureId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "authoringRevision": "34e4d9da22b68957371bd2ba760ba9f85b886f3e"
+  },
+  {
+    "edgeId": "prereq-f5628f0fc2e69016954d4d4a3c58e899",
+    "sourceNodeId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetNodeId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "layer": "ACT_TEACHING",
+    "relationType": "PREREQUISITE",
+    "strength": "REQUIRED",
+    "scopeId": "act-control-theory-core",
+    "evidenceRefs": [
+      "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+    ],
+    "curatorId": "act.cutover.blueprint",
+    "curatorRationale": "当前互动课程以传递函数之间的方框图化简推进闭环分析。",
+    "status": "PUBLISHED",
+    "authorDecisionId": "prereq-decision-actkg-transfer-block",
+    "candidateOrigin": null,
+    "edgeDigest": "92ec4ae38fdf07032c93877c28360832b71505de9b723a7bff8da39074b74343",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+    "projectionCaptureId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "authoringRevision": "34e4d9da22b68957371bd2ba760ba9f85b886f3e"
+  }
+]
