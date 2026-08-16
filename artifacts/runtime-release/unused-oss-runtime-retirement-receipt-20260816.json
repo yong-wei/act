@@ -1,0 +1,10 @@
+{
+  "blobReleaseObjectCount": 4,
+  "deletedUnreachableBlobCount": 0,
+  "deletedV1ObjectCount": 20458,
+  "planSha256": "8fec8dc2b179e6a3b47e9f92d68325d69498ac9d2cfd8dce7ce372f25276630d",
+  "receiptSha256": "b2017b5339353ffc755f53a7aa4cb353aeb1bf830834b634e40a3f30bfa59024",
+  "remainingProtectedBlobCount": 11156,
+  "remainingV1ObjectCount": 0,
+  "schemaVersion": "act-runtime-unused-oss-retirement-receipt.v1"
+}

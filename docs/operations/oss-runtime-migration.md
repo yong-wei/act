@@ -11,6 +11,15 @@
 
 首次本地 retrieval 基准只代表主工作树源盘，不代表 ossfs：`vectors.f32`、`bodies.utf8`、`lexical-postings.bin` 的结果见 [baseline](../../artifacts/runtime-release/phase-0-main-textbook-retrieval-baseline-6ffb506f.json)。候选 ossfs 挂载必须使用同一工具重新测量后才能决定是否启用热缓存。
 
+## 未使用 OSS 对象退役
+
+生产切到 v2 blob-view 后，Bucket 里仍可能留下完整的 v1 前缀树，以及不被 active/rollback（及 desired/publishing/retained）引用的 blob。退役只允许走 `scripts/runtime-release/retire-unused-oss-runtime.py`：
+
+- `plan` 是默认动作，只列举和 HEAD/GET，不删除。
+- 删除范围仅限 `runtime/releases/` 与不可达的 `runtime/blobs/sha256/<sha>`。
+- 永不删除 `runtime/blob-releases/` 的 manifest/receipt，也不删除受保护 release 能到达的 blob。
+- `execute` 必须带 `--authorize-unused-oss-runtime-deletion yes`，并与已审查 plan 的 `planSha256` 完全一致；任一身份、对象集或 serving proof 漂移都失败关闭。
+
 ## 当前生产部署合同
 
 生产已切到 v2 `ossfs-blob-view`。应用容器只读 bind 已物化 view，不再从 ECS 本地 `course-content/runtime` 提供课程内容。

@@ -9,7 +9,7 @@ Status: executed 2026-08-16. Hybrid Git-source v2 is active; imported-equivalent
 - Local publisher is `act-runtime-publisher-local` via keychain launcher. Credentials are not in the repository.
 - Local ECS `course-content/runtime` is empty (0 files). App bind uses `data/runtime/blob-views/current`.
 - Hybrid index is present at `resources/textbook-hybrid-retrieval/bge-m3/*`. `/api/readyz` 200, course 200, media 307.
-- Unused v1 ossfs prefix `runtime/releases/runtime-e47451…` is unmounted. OSS v1 objects were not deleted.
+- Unused v1 ossfs prefix is unmounted. OSS `runtime/releases/*` bodies were deleted on 2026-08-16 after a reviewed dry-run (`planSha256=8fec8dc2…`).
 
 ## Required before v1 unmount
 
@@ -29,6 +29,6 @@ Status: executed 2026-08-16. Hybrid Git-source v2 is active; imported-equivalent
 
 ## Still not authorized here
 
-- Deleting OSS v1 prefixes or v1 objects.
 - Deleting unused Podman images (optional disk reclaim, separate authorization).
 - Building or loading a new application image on the 49G root.
+- Deleting protected v2 blob-releases or reachable blobs.

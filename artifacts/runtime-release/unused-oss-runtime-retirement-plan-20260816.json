@@ -1,0 +1,63 @@
+{
+  "blobReleaseObjectCount": 4,
+  "bucket": "act-course-assets",
+  "expectedActiveRelease": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+  "expectedRollbackRelease": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+  "neverDeletePrefixes": [
+    "runtime/blob-releases/"
+  ],
+  "planSha256": "8fec8dc2b179e6a3b47e9f92d68325d69498ac9d2cfd8dce7ce372f25276630d",
+  "protectedBlobBytes": 6383561957,
+  "protectedBlobCount": 11156,
+  "protectedIdentities": [
+    {
+      "fileCount": 11302,
+      "manifestSha256": "5a618fc774fbfbc36af981d5f059e18c3b214659d5f701794a9f1d91b33acc31",
+      "releaseId": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+      "totalBytes": 6365274964,
+      "treeSha256": "cb009def83ef8e8a37117965c37477d84ec758411959876a322b293eacf90b1a"
+    },
+    {
+      "fileCount": 10228,
+      "manifestSha256": "e675ccd7eab763b1f01dc7ebbb71e655c81ac286b0bd642c7bf1442d3ab3cb23",
+      "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+      "totalBytes": 6361518627,
+      "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b"
+    }
+  ],
+  "protectedReleaseIds": [
+    "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+    "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6"
+  ],
+  "schemaVersion": "act-runtime-unused-oss-retirement-plan.v1",
+  "servingProofSha256": "60eedb609c408b2621ea9df6910dd3044c70096b53c1a843cf9583794e08bb0f",
+  "unreachableBlobBytes": 0,
+  "unreachableBlobCount": 0,
+  "unreachableBlobs": [],
+  "unreachableBlobsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "v1ObjectCount": 20458,
+  "v1ObjectsSha256": "8452ec2186518424a3d1110a3dd724bf3fa245685b9ed8197358d943bd12edc7",
+  "v1Prefixes": [
+    {
+      "objectCount": 4,
+      "prefix": "runtime/releases/_transport-probes/",
+      "totalBytes": 460
+    },
+    {
+      "objectCount": 2,
+      "prefix": "runtime/releases/runtime-406e64eecb9b22488f0246fc4912810fef9a68f75c7539a7de977c7/",
+      "totalBytes": 1008977
+    },
+    {
+      "objectCount": 10223,
+      "prefix": "runtime/releases/runtime-b2f0b07c428faba4317bf2f5b7ad51f0858165dee8651fcea52eb6a/",
+      "totalBytes": 5928278127
+    },
+    {
+      "objectCount": 10229,
+      "prefix": "runtime/releases/runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6/",
+      "totalBytes": 6365106509
+    }
+  ],
+  "v1TotalBytes": 12294394073
+}
