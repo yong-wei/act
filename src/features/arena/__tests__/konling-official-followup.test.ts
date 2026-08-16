@@ -159,10 +159,9 @@ describe('Arena official Konling followup', () => {
       where: expect.objectContaining({ id: 'advice-1' }),
       data: {
         outcome: expect.objectContaining({
-          feedback: 'rated',
-          helpful: true,
           status: 'revisited',
           revisitedBySubmissionId: 's2',
+          claimedSubmittedAt: '2026-08-02T00:00:00.000Z',
         }),
       },
     }));

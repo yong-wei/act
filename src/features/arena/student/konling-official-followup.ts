@@ -25,6 +25,7 @@ export interface ArenaKonlingFollowupDb {
     create(args: unknown): Promise<{ id: string }>;
     updateMany?(args: unknown): Promise<{ count: number }>;
   };
+  $executeRaw?(strings: TemplateStringsArray, ...values: unknown[]): Promise<number>;
 }
 
 export async function createArenaOfficialKonlingFollowup(input: {
@@ -60,6 +61,7 @@ export async function createArenaOfficialKonlingFollowup(input: {
           score: input.submission.evaluation.score,
           metrics: input.submission.evaluation.metrics,
           hardConstraintResults: input.submission.evaluation.hardConstraintResults,
+          submittedAt: input.submission.submittedAt,
         },
         suggestion,
       },
@@ -96,28 +98,12 @@ export async function readArenaOfficialRevisit(input: {
     orderBy: { createdAt: 'desc' },
     select: { id: true, evidence: true, outcome: true, createdAt: true },
   });
-  if (!previous || isRevisitedOutcome(previous.outcome)) return null;
-  if (!isEarliestSuccessor(input.submission, previous.createdAt, input.history ?? [])) return null;
+  if (!previous) return null;
   const baseline = baselineFromEvidence(previous.evidence);
-  if (!baseline) return null;
-
-  const claimed = await input.db.aIIntervention.updateMany?.({
-    where: {
-      id: previous.id,
-      OR: [
-        { outcome: null },
-        { NOT: { outcome: { path: ['status'], equals: 'revisited' } } },
-      ],
-    },
-    data: {
-      outcome: {
-        ...(isRecord(previous.outcome) ? previous.outcome : {}),
-        status: 'revisited',
-        revisitedBySubmissionId: input.submission.id,
-      },
-    },
-  });
-  if ((claimed?.count ?? 0) !== 1) return null;
+  if (!baseline || isRevisitedOutcome(previous.outcome)) return null;
+  const baselineAt = Date.parse(baseline.submittedAt ?? previous.createdAt.toISOString());
+  if (!isEarliestSuccessor(input.submission, baselineAt, input.history ?? [])) return null;
+  if (!await claimOfficialRevisit(input.db, previous.id, input.submission)) return null;
 
   const currentFailures = failureLabels(input.submission);
   const status = currentFailures.length === 0 ? '本次正式评测的硬约束均已通过。' : `本次仍未通过：${currentFailures.join('、')}。`;
@@ -226,14 +212,51 @@ function isRevisitedOutcome(value: unknown): boolean {
   return isRecord(value) && value.status === 'revisited';
 }
 
+async function claimOfficialRevisit(
+  db: ArenaKonlingFollowupDb,
+  interventionId: string,
+  submission: ArenaSubmissionRecord,
+): Promise<boolean> {
+  const patch = {
+    status: 'revisited',
+    revisitedBySubmissionId: submission.id,
+    claimedSubmittedAt: submission.submittedAt,
+  };
+  if (typeof db.$executeRaw === 'function') {
+    const rows = await db.$executeRaw`
+      UPDATE "AIIntervention"
+      SET outcome = COALESCE(outcome, '{}'::jsonb) || ${JSON.stringify(patch)}::jsonb
+      WHERE id = ${interventionId}
+        AND (
+          outcome IS NULL
+          OR COALESCE(outcome->>'status', '') <> 'revisited'
+          OR COALESCE(outcome->>'claimedSubmittedAt', '9999-12-31') > ${submission.submittedAt}
+        )
+    `;
+    return rows === 1;
+  }
+  const claimed = await db.aIIntervention.updateMany?.({
+    where: {
+      id: interventionId,
+      OR: [
+        { outcome: null },
+        { NOT: { outcome: { path: ['status'], equals: 'revisited' } } },
+      ],
+    },
+    data: {
+      outcome: patch,
+    },
+  });
+  return (claimed?.count ?? 0) === 1;
+}
+
 function isEarliestSuccessor(
   submission: ArenaSubmissionRecord,
-  previousCreatedAt: Date,
+  previousMs: number,
   history: readonly ArenaSubmissionRecord[],
 ): boolean {
-  const previousMs = previousCreatedAt.getTime();
   const currentMs = Date.parse(submission.submittedAt);
-  if (!Number.isFinite(currentMs) || currentMs <= previousMs) return false;
+  if (!Number.isFinite(previousMs) || !Number.isFinite(currentMs) || currentMs <= previousMs) return false;
   return !history.some((item) => (
     item.id !== submission.id
     && item.userId === submission.userId
@@ -244,7 +267,12 @@ function isEarliestSuccessor(
   ));
 }
 
-function baselineFromEvidence(value: unknown): { score: number; metrics: Record<string, number>; hardConstraintResults: ArenaSubmissionRecord['evaluation']['hardConstraintResults'] } | null {
+function baselineFromEvidence(value: unknown): {
+  score: number;
+  metrics: Record<string, number>;
+  hardConstraintResults: ArenaSubmissionRecord['evaluation']['hardConstraintResults'];
+  submittedAt?: string;
+} | null {
   if (!value || typeof value !== 'object') return null;
   const source = (value as Record<string, unknown>).sourceSubmission as Record<string, unknown> | undefined;
   return source && typeof source.score === 'number'
@@ -252,6 +280,7 @@ function baselineFromEvidence(value: unknown): { score: number; metrics: Record<
       score: source.score,
       metrics: (source.metrics as Record<string, number> | undefined) ?? {},
       hardConstraintResults: (source.hardConstraintResults as ArenaSubmissionRecord['evaluation']['hardConstraintResults'] | undefined) ?? [],
+      submittedAt: typeof source.submittedAt === 'string' ? source.submittedAt : undefined,
     }
     : null;
 }
