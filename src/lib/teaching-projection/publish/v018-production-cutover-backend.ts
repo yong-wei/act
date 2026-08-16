@@ -1,6 +1,6 @@
 /** File and map backends for the v0.18 production cutover protocol. */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { atomicWriteFile } from '../../versioned-knowledge-activation/store';
@@ -111,7 +111,9 @@ export function createFilePointerBackend(root: string): CutoverPointerBackend {
     restore(component, predecessor) {
       const filePath = fileFor(component);
       mkdirSync(path.dirname(filePath), { recursive: true });
-      writeFileSync(filePath, predecessor.bytes);
+      const tmp = `${filePath}.${process.pid}.tmp`;
+      writeFileSync(tmp, predecessor.bytes);
+      renameSync(tmp, filePath);
       return pointerIdentityFromBytes(component, predecessor.bytes);
     },
   };

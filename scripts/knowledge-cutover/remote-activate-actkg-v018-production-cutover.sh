@@ -30,11 +30,15 @@ app_id = sh("podman inspect -f {{.Image}} act-obe-app").replace("sha256:", "")
 worker_id = sh("podman inspect -f {{.Image}} act-obe-worker").replace("sha256:", "")
 view = "/home/projects/act/data/runtime/blob-views/current/knowledge"
 auth = "/home/projects/act/course-content/authoring/knowledge/authority/current.json"
+worker_health = sh("podman inspect -f {{.State.Health.Status}} act-obe-worker || echo unknown")
+readyz = json.loads(sh("curl -fsS http://127.0.0.1:8084/api/readyz"))
 print(json.dumps({
   "appImage": app,
   "appImageId": app_id,
   "workerImage": worker,
   "workerImageId": worker_id,
+  "workerHealth": worker_health,
+  "readyz": {"app": bool(readyz.get("app")), "db": bool(readyz.get("db")), "redis": bool(readyz.get("redis"))},
   "hashes": {
     "authority": digest(auth),
     "projection": digest(view + "/projection/current.json"),
@@ -57,6 +61,8 @@ rsync -a "$ROOT/src/lib/teaching-projection/publish/" \
   "$SSH_TARGET:$REMOTE_WORK/src/lib/teaching-projection/publish/"
 rsync -a "$ROOT/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts" \
   "$SSH_TARGET:$REMOTE_WORK/scripts/knowledge-cutover/"
+rsync -a "$ROOT/scripts/db/verified-test-accounts.mjs" \
+  "$SSH_TARGET:$REMOTE_WORK/accounts.mjs"
 rsync -a \
   "$ROOT/course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18/" \
   "$SSH_TARGET:$REMOTE_WORK/runtime-releases/"
@@ -71,9 +77,20 @@ ln -sfn /home/projects/act/course-content/authoring/knowledge/authority $REMOTE_
 ln -sfn /home/projects/act/data/runtime/blob-views/current/knowledge $REMOTE_WORK/live/course-content/runtime/knowledge
 "
 
+OBS_JSON="$(collect_observation)"
+printf '%s\n' "$OBS_JSON"
+APP_IMAGE="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["appImage"])')"
+APP_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["appImageId"])')"
+WORKER_IMAGE="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workerImage"])')"
+WORKER_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workerImageId"])')"
+WORKER_HEALTH="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("workerHealth","unknown"))')"
+READYZ_JSON="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["readyz"]))')"
+
 echo "=== sidecar $ACTION ==="
 # shellcheck disable=SC2029
-ssh_run "podman run --rm --network host --user 0:0 \
+ssh_run "mkdir -p /home/projects/act/data/runtime/knowledge-cutover
+flock -n /home/projects/act/data/runtime/knowledge-cutover/.v018-cutover.lock \
+podman run --rm --network host --user 0:0 \
   --entrypoint ./node_modules/.bin/tsx \
   -v $REMOTE_WORK/src/lib/teaching-projection/publish:/app/src/lib/teaching-projection/publish:ro \
   -v $REMOTE_WORK/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:/app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:ro \
@@ -84,12 +101,20 @@ ssh_run "podman run --rm --network host --user 0:0 \
   -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/authority:/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18:ro \
   -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/teaching-projection:/app/course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18:ro \
   -v $REMOTE_WORK/catalog-authoring:/app/course-content/authoring/knowledge/authority-domain-catalog:ro \
+  -v $REMOTE_WORK/accounts.mjs:/app/scripts/db/verified-test-accounts.mjs:ro \
   -v $REMOTE_WORK/out:/out \
   $IMAGE \
   /app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts $ACTION \
   --root /app \
   --out /out \
   --predecessor-source host \
-  --first-activation-committed true"
+  --first-activation-committed true \
+  --app-image '$APP_IMAGE' \
+  --app-image-id '$APP_IMAGE_ID' \
+  --worker-image '$WORKER_IMAGE' \
+  --worker-image-id '$WORKER_IMAGE_ID' \
+  --worker-health '$WORKER_HEALTH' \
+  --readyz-json '$READYZ_JSON' \
+  --public-url '$PUBLIC_URL'"
 
 echo "=== done ==="

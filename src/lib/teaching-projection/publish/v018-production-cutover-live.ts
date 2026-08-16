@@ -1,6 +1,6 @@
 /** Live store materialization and activate* backend for v0.18 cutover. */
 
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { emptyTeachingSelectorFingerprint } from '../../authoritative-knowledge/authority-snapshot';
@@ -265,20 +265,9 @@ function unlinkIfSymlink(filePath: string): void {
 
 function replacePointerFile(filePath: string, bytes: Buffer): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
-  try {
-    if (lstatSync(filePath).isSymbolicLink()) unlinkSync(filePath);
-  } catch {
-    // The first write may create the pointer.
-  }
-  const tmp = `${filePath}.tmp`;
+  const tmp = `${filePath}.${process.pid}.tmp`;
   writeFileSync(tmp, bytes);
-  try {
-    unlinkSync(filePath);
-  } catch {
-    // ignore missing
-  }
-  writeFileSync(filePath, bytes);
-  try { unlinkSync(tmp); } catch { /* ignore */ }
+  renameSync(tmp, filePath);
 }
 
 function readLive(root: string, component: V018CutoverComponent): PointerIdentity | null {

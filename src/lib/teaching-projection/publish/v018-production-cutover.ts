@@ -358,16 +358,14 @@ function consumerCommitted(journal: CutoverJournal): boolean {
 export function executeV018ProductionCutover(input: {
   backend: CutoverPointerBackend;
   journal: CutoverJournal;
-  persistJournal: (journal: CutoverJournal) => void;
+  persistJournal: (journal: CutoverJournal) => CutoverJournal;
   predecessors?: Record<V018CutoverComponent, PointerIdentity>;
 }): CutoverJournal {
   if (input.journal.status !== 'PREPARED') {
     throw new V018ProductionCutoverError('journal-not-prepared', `cannot execute from ${input.journal.status}`);
   }
-  let journal = input.journal;
-  input.persistJournal(journal);
-  const reread = journal;
-  if (reread.journalHash !== input.journal.journalHash) {
+  let journal = input.persistJournal(input.journal);
+  if (journal.journalHash !== input.journal.journalHash) {
     throw new V018ProductionCutoverError('journal-reread-drift', 'prepared journal hash drifted');
   }
 
@@ -377,11 +375,10 @@ export function executeV018ProductionCutover(input: {
       if (!current || current.fileSha256 !== step.predecessor.fileSha256 || !samePointer(current, step.predecessor)) {
         throw new V018ProductionCutoverError('predecessor-cas-failed', `${step.component} is not the journaled v0.9 predecessor`);
       }
-      journal = withStep(journal, step.component, 'STARTED', {
+      journal = input.persistJournal(withStep(journal, step.component, 'STARTED', {
         status: step.component === 'consumer-activation' ? 'COMMITTING' : 'PREPARED',
         ready: false,
-      });
-      input.persistJournal(journal);
+      }));
       const applied = input.backend.apply(step.component, step.target.id);
       if (applied.id !== step.target.id) {
         throw new V018ProductionCutoverError('target-id-mismatch', `${step.component} did not advance to ${step.target.id}`);
@@ -389,7 +386,7 @@ export function executeV018ProductionCutover(input: {
       if (step.target.hash && applied.hash !== step.target.hash) {
         throw new V018ProductionCutoverError('target-hash-mismatch', `${step.component} hash drifted`);
       }
-      journal = withStep(
+      journal = input.persistJournal(withStep(
         journal,
         step.component,
         'APPLIED',
@@ -398,11 +395,10 @@ export function executeV018ProductionCutover(input: {
           ready: step.component === 'consumer-activation',
         },
         { target: { id: step.target.id, hash: applied.hash } },
-      );
+      ));
       if (step.component !== 'consumer-activation' && journal.ready) {
         throw new V018ProductionCutoverError('premature-ready', 'release set became READY before consumer activation');
       }
-      input.persistJournal(journal);
     }
     if (!consumerCommitted(journal) || !journal.ready) {
       throw new V018ProductionCutoverError('consumer-not-committed', 'consumer activation is the only READY commit point');
@@ -410,8 +406,7 @@ export function executeV018ProductionCutover(input: {
     return journal;
   } catch (error) {
     const failure = error instanceof Error ? error.message : String(error);
-    journal = sealJournal({ ...journal, failure, ready: false, status: journal.status === 'COMMITTED' ? 'COMMITTED' : 'ROLLING_BACK' });
-    input.persistJournal(journal);
+    journal = input.persistJournal(sealJournal({ ...journal, failure, ready: false, status: journal.status === 'COMMITTED' ? 'COMMITTED' : 'ROLLING_BACK' }));
     if (input.predecessors) {
       journal = compensateV018ProductionCutover({
         backend: input.backend,
@@ -429,11 +424,10 @@ export function executeV018ProductionCutover(input: {
 export function compensateV018ProductionCutover(input: {
   backend: CutoverPointerBackend;
   journal: CutoverJournal;
-  persistJournal: (journal: CutoverJournal) => void;
+  persistJournal: (journal: CutoverJournal) => CutoverJournal;
   predecessors: Record<V018CutoverComponent, PointerIdentity>;
 }): CutoverJournal {
-  let journal = sealJournal({ ...input.journal, status: 'ROLLING_BACK', ready: false });
-  input.persistJournal(journal);
+  let journal = input.persistJournal(sealJournal({ ...input.journal, status: 'ROLLING_BACK', ready: false }));
   try {
     for (const step of [...journal.steps].reverse()) {
       if (step.status !== 'APPLIED' && step.status !== 'STARTED') continue;
@@ -447,7 +441,7 @@ export function compensateV018ProductionCutover(input: {
           status: 'BLOCKED_RECOVERY',
           failure: `concurrent drift at ${step.component}`,
         });
-        input.persistJournal(journal);
+        journal = input.persistJournal(journal);
         throw new V018ProductionCutoverError('concurrent-drift', `concurrent drift at ${step.component}; recovery stopped`);
       }
       if (!isPredecessor) {
@@ -457,20 +451,17 @@ export function compensateV018ProductionCutover(input: {
       if (!restored || restored.fileSha256 !== predecessor.fileSha256) {
         throw new V018ProductionCutoverError('restore-mismatch', `${step.component} did not restore v0.9 bytes`);
       }
-      journal = withStep(journal, step.component, 'ROLLED_BACK', { status: 'ROLLING_BACK', ready: false });
-      input.persistJournal(journal);
+      journal = input.persistJournal(withStep(journal, step.component, 'ROLLED_BACK', { status: 'ROLLING_BACK', ready: false }));
     }
-    journal = sealJournal({ ...journal, status: 'ROLLED_BACK', ready: false, failure: journal.failure });
-    input.persistJournal(journal);
+    journal = input.persistJournal(sealJournal({ ...journal, status: 'ROLLED_BACK', ready: false, failure: journal.failure }));
     return journal;
   } catch (error) {
     if (error instanceof V018ProductionCutoverError && error.code === 'concurrent-drift') throw error;
-    journal = sealJournal({
+    journal = input.persistJournal(sealJournal({
       ...journal,
       status: 'BLOCKED_RECOVERY',
       failure: error instanceof Error ? error.message : String(error),
-    });
-    input.persistJournal(journal);
+    }));
     throw error;
   }
 }
@@ -478,7 +469,7 @@ export function compensateV018ProductionCutover(input: {
 export function exerciseV018RollbackPath(input: {
   live: CutoverPointerBackend;
   rehearsal: CutoverPointerBackend;
-  persistJournal: (journal: CutoverJournal) => void;
+  persistJournal: (journal: CutoverJournal) => CutoverJournal;
   transactionId: string;
 }): { restored: boolean; journal: CutoverJournal } {
   const predecessors = Object.fromEntries(

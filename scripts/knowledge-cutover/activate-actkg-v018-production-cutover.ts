@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { createMapPointerBackend } from '../../src/lib/teaching-projection/publish/v018-production-cutover-backend';
@@ -28,8 +28,6 @@ import {
   type V018CutoverComponent,
 } from '../../src/lib/teaching-projection/publish/v018-production-cutover';
 import {
-  V018_FROZEN_IMAGE_TAG,
-  V018_SEALED_IMAGE_CONFIG_SHA256,
   V09_PUBLIC_DOMAIN_LABELS,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
 
@@ -42,28 +40,47 @@ function fail(message: string): never {
   throw new Error(`v018 production cutover: ${message}`);
 }
 
-function persistTo(filePath: string): (journal: CutoverJournal) => void {
+function persistTo(filePath: string): (journal: CutoverJournal) => CutoverJournal {
   mkdirSync(path.dirname(filePath), { recursive: true });
   return (journal) => {
-    writeFileSync(filePath, `${JSON.stringify(journal, null, 2)}\n`);
+    const tmp = `${filePath}.${process.pid}.tmp`;
+    writeFileSync(tmp, `${JSON.stringify(journal, null, 2)}\n`);
+    const fd = openSync(tmp, 'r+');
+    try { fsyncSync(fd); } finally { closeSync(fd); }
+    renameSync(tmp, filePath);
+    const dirFd = openSync(path.dirname(filePath), 'r');
+    try { fsyncSync(dirFd); } finally { closeSync(dirFd); }
+    return JSON.parse(readFileSync(filePath, 'utf8')) as CutoverJournal;
   };
+}
+
+function requiredOption(name: string): string {
+  const value = option(process.argv, name);
+  if (!value) fail(`${name} is required`);
+  return value;
 }
 
 function collectObservation(root: string, backend: { read(component: V018CutoverComponent): PointerIdentity | null }): CutoverHostObservation {
   const hashes = Object.fromEntries(
     V018_CUTOVER_COMPONENTS.map((component) => [component, backend.read(component)?.fileSha256 ?? '']),
   ) as Record<V018CutoverComponent, string>;
+  const readyzRaw = option(process.argv, '--readyz-json');
+  let readyz: CutoverHostObservation['readyz'];
+  if (readyzRaw) {
+    const parsed = JSON.parse(readyzRaw) as { app?: boolean; db?: boolean; redis?: boolean };
+    readyz = { app: parsed.app === true, db: parsed.db === true, redis: parsed.redis === true };
+  }
   return {
-    appImage: option(process.argv, '--app-image') ?? V018_FROZEN_IMAGE_TAG,
-    appImageId: option(process.argv, '--app-image-id') ?? V018_SEALED_IMAGE_CONFIG_SHA256,
-    workerImage: option(process.argv, '--worker-image') ?? V018_FROZEN_IMAGE_TAG,
-    workerImageId: option(process.argv, '--worker-image-id') ?? V018_SEALED_IMAGE_CONFIG_SHA256,
-    workerHealth: option(process.argv, '--worker-health') ?? 'healthy',
-    readyz: { app: true, db: true, redis: true },
+    appImage: option(process.argv, '--app-image'),
+    appImageId: option(process.argv, '--app-image-id'),
+    workerImage: option(process.argv, '--worker-image'),
+    workerImageId: option(process.argv, '--worker-image-id'),
+    workerHealth: option(process.argv, '--worker-health'),
+    readyz,
     predecessorFileHashes: hashes,
     firstActivationCommitted: option(process.argv, '--first-activation-committed') !== 'false',
     markerPresent: option(process.argv, '--marker-present') === 'true',
-    lockHeld: false,
+    lockHeld: option(process.argv, '--lock-held') === 'true',
   };
 }
 
@@ -83,19 +100,24 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
     accountByKey: (key: string) => { loginId: string; password: string };
   };
   const student = accountByKey('student');
-  const login = execFileSync('curl', [
-    '-fsS', '-c', '-', '-H', 'content-type: application/json',
-    '-d', JSON.stringify({ studentId: student.loginId, password: student.password }),
+  const jar = '/tmp/v018-cutover-cookies.txt';
+  const csrfRaw = execFileSync('curl', ['-fsS', '-c', jar, `${publicUrl}/api/auth/csrf`], { encoding: 'utf8' });
+  const csrfToken = String((JSON.parse(csrfRaw) as { csrfToken?: string }).csrfToken ?? '');
+  execFileSync('curl', [
+    '-sS', '-b', jar, '-c', jar, '-o', '/dev/null',
+    '-H', 'content-type: application/x-www-form-urlencoded',
+    '--data-urlencode', `csrfToken=${csrfToken}`,
+    '--data-urlencode', `email=${student.loginId}`,
+    '--data-urlencode', `password=${student.password}`,
+    '--data-urlencode', 'json=true',
     `${publicUrl}/api/auth/callback/credentials`,
   ], { encoding: 'utf8' });
-  const cookie = [...login.matchAll(/(\S+)\s+(\S+)\s*$/gm)].map((row) => `${row[1]}=${row[2]}`).join('; ');
-  const shards = JSON.parse(execFileSync('curl', ['-fsS', '-H', `cookie: ${cookie}`, `${publicUrl}/api/knowledge/shards/active`], { encoding: 'utf8' }));
-  const labels = (Array.isArray(shards?.domains) ? shards.domains : [])
-    .map((row: { displayName?: string }) => String(row.displayName ?? ''))
-    .filter(Boolean);
+  const shards = JSON.parse(execFileSync('curl', ['-fsS', '-b', jar, `${publicUrl}/api/knowledge/shards/active`], { encoding: 'utf8' }));
+  const domains = Array.isArray(shards?.root?.domains) ? shards.root.domains : [];
+  const labels = domains.map((row: { displayName?: string }) => String(row.displayName ?? '')).filter(Boolean);
   const teachingRaw = execFileSync('curl', [
     '-sS', '-o', '/tmp/v018-cutover-teaching.json', '-w', '%{http_code}',
-    '-H', `cookie: ${cookie}`,
+    '-b', jar,
     `${publicUrl}/api/knowledge/shards/active/domains/modeling`,
   ], { encoding: 'utf8' });
   const leaks = assertNoLearnerVisibleSystemIdentifiers(labels);
@@ -105,6 +127,31 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   if (teachingRaw !== '200') blockers.push('public-teaching-http');
   if (leaks.length > 0) blockers.push('learner-visible-system-identifier');
   return { labels, teachingStatus: Number(teachingRaw), leaks, blockers };
+}
+
+function observeLiveCounts(root: string): { objects: number; relations: number } {
+  const authority = JSON.parse(readFileSync(path.join(root, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { snapshotId: string };
+  const engineering = JSON.parse(readFileSync(path.join(
+    root,
+    'course-content/authoring/knowledge/authority/releases',
+    authority.snapshotId,
+    'engineering.json',
+  ), 'utf8')) as { objects?: unknown[]; relations?: unknown[] };
+  return {
+    objects: Array.isArray(engineering.objects) ? engineering.objects.length : -1,
+    relations: Array.isArray(engineering.relations) ? engineering.relations.length : -1,
+  };
+}
+
+function observeReadyConsumers(root: string): string[] {
+  const pointer = JSON.parse(readFileSync(path.join(root, 'course-content/runtime/knowledge/consumer-activation/current.json'), 'utf8')) as { activationId: string };
+  const activation = JSON.parse(readFileSync(path.join(
+    root,
+    'course-content/runtime/knowledge/consumer-activation/releases',
+    pointer.activationId,
+    'activation.json',
+  ), 'utf8')) as { impact?: { readyConsumerIds?: string[] } };
+  return Array.isArray(activation.impact?.readyConsumerIds) ? activation.impact.readyConsumerIds : [];
 }
 
 function run(): void {
@@ -177,10 +224,16 @@ function run(): void {
       }),
     ) as Record<V018CutoverComponent, PointerIdentity>;
     process.stderr.write('materialize: start\n');
-    const materialized = materializeV018CutoverTrees({
-      repoRoot: root,
-      candidateRoot: option(process.argv, '--candidate-root') ?? root,
-    });
+    let materialized: ReturnType<typeof materializeV018CutoverTrees>;
+    try {
+      materialized = materializeV018CutoverTrees({
+        repoRoot: root,
+        candidateRoot: option(process.argv, '--candidate-root') ?? root,
+      });
+    } catch (error) {
+      restoreCatalog(root, predecessorDir);
+      throw error;
+    }
     process.stderr.write(`materialize: shardSet=${materialized.shardSetId}\n`);
     const persist = persistTo(journalPath);
     let journal = createPreparedJournal({
@@ -210,18 +263,30 @@ function run(): void {
       }));
       throw error;
     }
-    const publicUrl = option(process.argv, '--public-url');
+    const publicUrl = requiredOption('--public-url');
+    const counts = observeLiveCounts(root);
+    const readyConsumers = observeReadyConsumers(root);
+    const publicObs = verifyPublicV018(publicUrl);
     const observations: Record<string, unknown> = {
       expectedObjectCount: V018_EXPECTED_OBJECT_COUNT,
       expectedRelationCount: V018_EXPECTED_RELATION_COUNT,
+      objectCount: counts.objects,
+      relationCount: counts.relations,
+      readyConsumers,
       expectedHashes: expectedPredecessorHashes(predecessorSource),
+      public: publicObs,
+      workerHealth: observation.workerHealth,
+      readyz: observation.readyz,
     };
     const blockers: string[] = [];
-    if (publicUrl) {
-      const publicObs = verifyPublicV018(publicUrl);
-      observations.public = publicObs;
-      blockers.push(...(publicObs.blockers as string[]));
+    if (counts.objects !== V018_EXPECTED_OBJECT_COUNT) blockers.push('object-count-mismatch');
+    if (counts.relations !== V018_EXPECTED_RELATION_COUNT) blockers.push('relation-count-mismatch');
+    if (readyConsumers.length !== 6) blockers.push('consumer-ready-incomplete');
+    if (observation.workerHealth !== 'healthy') blockers.push('worker-unhealthy');
+    if (observation.readyz?.app !== true || observation.readyz.db !== true || observation.readyz.redis !== true) {
+      blockers.push('readyz-not-ready');
     }
+    blockers.push(...(publicObs.blockers as string[]));
     if (blockers.length > 0) {
       restoreCatalog(root, predecessorDir);
       journal = compensateV018ProductionCutover({ backend: live, journal, persistJournal: persist, predecessors });

@@ -73,9 +73,9 @@ function predecessorSet(): Record<V018CutoverComponent, PointerIdentity> {
   ) as Record<V018CutoverComponent, PointerIdentity>;
 }
 
-function persistStack(): { journals: CutoverJournal[]; persist: (journal: CutoverJournal) => void } {
+function persistStack(): { journals: CutoverJournal[]; persist: (journal: CutoverJournal) => CutoverJournal } {
   const journals: CutoverJournal[] = [];
-  return { journals, persist: (journal) => { journals.push(journal); } };
+  return { journals, persist: (journal) => { journals.push(journal); return journal; } };
 }
 
 function readyObservation() {
