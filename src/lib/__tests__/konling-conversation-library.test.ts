@@ -832,6 +832,18 @@ describe('Konling conversation library', () => {
     expect(JSON.stringify(original.messages)).toBe(originalSnapshot);
   });
 
+  it('keeps system context records persisted but excludes them from model projection', async () => {
+    const prepared = prepareKonlingConversationTurn({
+      conversation: conversation(),
+      currentScope: { courseId: 'course-a', pageId: 'page-b' },
+      userMessage: { id: 'user-2', role: 'user', content: '结合当前页解释' },
+    });
+
+    expect(prepared.modelMessages.map((message) => message.role)).toContain('system');
+    const modelMessages = await toModelMessages(prepared.modelMessages);
+    expect(modelMessages.map((message) => message.role)).toEqual(['user']);
+  });
+
   it('appends candidate selection changes and clears candidate context when continuing on Legacy', () => {
     const candidateA = {
       authorityState: 'candidate' as const,
