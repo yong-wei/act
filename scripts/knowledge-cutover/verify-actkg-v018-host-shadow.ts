@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   evaluateV018HostShadow,
+  hostPointerHashesFromObservation,
   V09_HOST_POINTER_HASHES,
   type HostShadowObservation,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
@@ -136,17 +137,15 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     'def inspect(name, fmt):',
     '    return subprocess.check_output(["podman","inspect",name,"--format",fmt], universal_newlines=True).strip()',
     'def cexec(path):',
+    '    if subprocess.call(["podman","exec","act-obe-app","test","-e",path]) != 0:',
+    '        return {"sha256": None, "obj": {}}',
     '    data = subprocess.check_output(["podman","exec","act-obe-app","cat",path])',
     '    return {"sha256": hashlib.sha256(data).hexdigest(), "obj": json.loads(data)}',
-    'def cexec_optional_sha(path):',
-    '    if subprocess.call(["podman","exec","act-obe-app","test","-e",path]) != 0:',
-    '        return None',
-    '    data = subprocess.check_output(["podman","exec","act-obe-app","cat",path])',
-    '    return hashlib.sha256(data).hexdigest()',
     'auth = load("/home/projects/act/course-content/authoring/knowledge/authority/current.json")',
     'projection = cexec("/app/course-content/runtime/knowledge/projection/current.json")',
     'prerequisite = cexec("/app/course-content/runtime/knowledge/prerequisites/current.json")',
     'activation = cexec("/app/course-content/runtime/knowledge/consumer-activation/current.json")',
+    'shards = cexec("/app/course-content/runtime/knowledge/authority-domain-shards/current.json")',
     'print(json.dumps({',
     '  "appImage": inspect("act-obe-app", "{{.ImageName}}"),',
     '  "workerImage": inspect("act-obe-worker", "{{.ImageName}}"),',
@@ -160,8 +159,8 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     '  "prerequisiteSha256": prerequisite["sha256"],',
     '  "activationId": activation["obj"].get("activationId"),',
     '  "activationSha256": activation["sha256"],',
-    '  "shardSha256": cexec_optional_sha("/app/course-content/runtime/knowledge/authority-domain-shards/current.json"),',
-    '  "shardCurrentPresent": subprocess.call(["podman","exec","act-obe-app","test","-e","/app/course-content/runtime/knowledge/authority-domain-shards/current.json"]) == 0,',
+    '  "shardSha256": shards["sha256"],',
+    '  "shardCurrentPresent": shards["sha256"] is not None,',
     '  "stagedAuthorityReceiptSha256": sha("/home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/authority/candidate-receipt.json"),',
     '  "stagedQualificationSha256": sha("/home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/qualification/qualification-readiness.json"),',
     '}))',
@@ -169,7 +168,12 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   ].join('\n'))) as HostShadowObservation;
   const readyz = asRecord(JSON.parse(ssh(sshTarget, 'curl -sS -m 15 http://127.0.0.1:8084/api/readyz')));
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
-  const sidecar = runDeployedImageStagedShadow(sshTarget);
+  let sidecar: ReturnType<typeof runDeployedImageStagedShadow>;
+  try {
+    sidecar = runDeployedImageStagedShadow(sshTarget);
+  } catch {
+    sidecar = { source: 'local-qualification', consumers: [] };
+  }
   const consumers = sidecar.consumers;
   const active = readActiveGraphFromContainer(sshTarget);
   const observation: HostShadowObservation = {
@@ -193,11 +197,13 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
       && remote.shardSha256 === V09_HOST_POINTER_HASHES.shards,
   };
   const evaluated = evaluateV018HostShadow(observation);
+  const pointerHashes = hostPointerHashesFromObservation(observation);
   const report = {
     contract: 'actkg-v018-host-shadow/v1',
     status: evaluated.status,
     blockers: evaluated.blockers,
     observation,
+    pointerHashes,
   };
   writeCanonical(outputPath, report);
   process.stdout.write(`${JSON.stringify({ ...evaluated, reportPath: path.relative(repoRoot, outputPath) }, null, 2)}\n`);

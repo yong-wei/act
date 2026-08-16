@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   evaluateV018HostShadow,
+  hostPointerHashesFromObservation,
   V018_FROZEN_IMAGE_TAG,
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   V018_STAGED_QUALIFICATION_SHA256,
@@ -43,6 +44,17 @@ const readyObservation = {
 describe('v0.18 host shadow evaluation', () => {
   it('is READY only when production stays on v0.9 and the staged candidate matches', () => {
     expect(evaluateV018HostShadow(readyObservation)).toEqual({ status: 'READY', blockers: [] });
+  });
+
+  it('omits a missing shard hash from the sealed host pointer set', () => {
+    const hashes = hostPointerHashesFromObservation({
+      ...readyObservation,
+      shardSha256: undefined,
+    });
+    expect(hashes['course-content/authoring/knowledge/authority/current.json']).toBe(
+      '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
+    );
+    expect(hashes['course-content/runtime/knowledge/authority-domain-shards/current.json']).toBeUndefined();
   });
 
   it('fails closed when consumer results are copied from local qualification', () => {

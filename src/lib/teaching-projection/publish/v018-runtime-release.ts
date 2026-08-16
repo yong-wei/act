@@ -236,6 +236,7 @@ export async function publishActKgV018CutoverRuntime(input: {
   hostVerification?: {
     status: 'READY' | 'BLOCKED';
     blockers?: readonly string[];
+    pointerHashes?: Record<string, string>;
   };
 }): Promise<{
   status: 'READY' | 'BLOCKED';
@@ -328,6 +329,22 @@ export async function publishActKgV018CutoverRuntime(input: {
     blockers.push(...input.hostVerification.blockers);
   }
 
+  const observedHashes = input.hostVerification?.pointerHashes;
+  const sealedPointerHashes: Record<string, string> = {};
+  if (observedHashes) {
+    for (const key of Object.keys(V09_POINTER_HASHES)) {
+      const actual = observedHashes[key];
+      if (typeof actual === 'string' && /^[a-f0-9]{64}$/u.test(actual)) {
+        sealedPointerHashes[key] = actual;
+      }
+    }
+    if (Object.keys(sealedPointerHashes).length !== Object.keys(V09_POINTER_HASHES).length) {
+      blockers.push('host-pointer-hashes-incomplete');
+    }
+  } else if (input.hostVerification) {
+    blockers.push('host-pointer-hashes-missing');
+  }
+
   const uniqueBlockers = [...new Set(blockers)].sort();
   const hostVerification = {
     status: input.hostVerification?.status === 'READY' && uniqueBlockers.length === 0
@@ -353,7 +370,7 @@ export async function publishActKgV018CutoverRuntime(input: {
     dockerMemoryBytes,
     dockerMinMemoryBytes: DOCKER_MIN_MEMORY_BYTES,
     imageTag,
-    pointerHashes: V09_POINTER_HASHES,
+    pointerHashes: observedHashes ? sealedPointerHashes : V09_POINTER_HASHES,
     hostVerification,
     predecessors: {
       authorityReleaseId: V09_RELEASE_ID,

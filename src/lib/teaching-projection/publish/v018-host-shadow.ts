@@ -53,6 +53,28 @@ export interface HostShadowObservation {
   pointersUnchangedAfterStage?: boolean;
 }
 
+export function hostPointerHashesFromObservation(
+  observation: HostShadowObservation,
+): Record<string, string> {
+  const hashes: Record<string, string> = {};
+  if (observation.authoritySha256) {
+    hashes['course-content/authoring/knowledge/authority/current.json'] = observation.authoritySha256;
+  }
+  if (observation.projectionSha256) {
+    hashes['course-content/runtime/knowledge/projection/current.json'] = observation.projectionSha256;
+  }
+  if (observation.prerequisiteSha256) {
+    hashes['course-content/runtime/knowledge/prerequisites/current.json'] = observation.prerequisiteSha256;
+  }
+  if (observation.shardSha256) {
+    hashes['course-content/runtime/knowledge/authority-domain-shards/current.json'] = observation.shardSha256;
+  }
+  if (observation.activationSha256) {
+    hashes['course-content/runtime/knowledge/consumer-activation/current.json'] = observation.activationSha256;
+  }
+  return hashes;
+}
+
 export function evaluateV018HostShadow(observation: HostShadowObservation): {
   status: 'READY' | 'BLOCKED';
   blockers: string[];

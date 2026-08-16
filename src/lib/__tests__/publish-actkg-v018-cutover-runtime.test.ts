@@ -135,6 +135,51 @@ describe('v0.18 runtime publication', () => {
     expect(result.blockers).toContain('host-v09-shard-selector-missing');
   });
 
+  it('seals host-observed pointer hashes instead of the local worktree constants', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-host-hashes-'));
+    roots.push(outputRoot);
+    const hostHashes = {
+      'course-content/authoring/knowledge/authority/current.json':
+        '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
+      'course-content/runtime/knowledge/projection/current.json':
+        'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
+      'course-content/runtime/knowledge/prerequisites/current.json':
+        'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
+      'course-content/runtime/knowledge/authority-domain-shards/current.json':
+        '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
+      'course-content/runtime/knowledge/consumer-activation/current.json':
+        'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
+    };
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      hostVerification: {
+        status: 'BLOCKED',
+        blockers: ['host-v09-shard-selector-missing'],
+        pointerHashes: {
+          ...hostHashes,
+          'course-content/runtime/knowledge/authority-domain-shards/current.json': undefined as unknown as string,
+        },
+      },
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    const report = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
+      pointerHashes: Record<string, string>;
+    };
+    expect(result.blockers).toContain('host-pointer-hashes-incomplete');
+    expect(report.pointerHashes['course-content/authoring/knowledge/authority/current.json']).toBe(
+      '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
+    );
+    expect(report.pointerHashes['course-content/authoring/knowledge/authority/current.json']).not.toBe(
+      '086f14793fbf2aa3afc8fba471503042242645122425c3018b6526e8ab2835f2',
+    );
+  });
+
   it('does not accept a READY report whose overlay hash drifted', async () => {
     const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-overlay-'));
     roots.push(outputRoot);
