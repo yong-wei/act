@@ -102,7 +102,7 @@ export async function readArenaOfficialRevisit(input: {
     orderBy: { createdAt: 'desc' },
     select: { id: true, evidence: true, outcome: true, createdAt: true },
   });
-  if (!previous) return null;
+  if (!previous || isRevisitedOutcome(previous.outcome)) return null;
   const baseline = baselineFromEvidence(previous.evidence);
   if (!baseline) return null;
   const baselineAt = Date.parse(baseline.submittedAt ?? previous.createdAt.toISOString());
@@ -274,7 +274,6 @@ async function claimOfficialRevisitLocked(
         AND (
           outcome IS NULL
           OR COALESCE(outcome->>'status', '') <> 'revisited'
-          OR COALESCE(outcome->>'claimedSubmittedAt', '9999-12-31') > ${input.submission.submittedAt}
         )
     `;
     return rows === 1;

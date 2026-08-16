@@ -183,7 +183,7 @@ describe('Arena official Konling followup', () => {
     };
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
-    expect(db.aIIntervention.updateMany).toHaveBeenCalled();
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
   });
 
   it('does not let a later concurrent submission steal an earlier successor revisit', async () => {
@@ -259,7 +259,7 @@ describe('Arena official Konling followup', () => {
       submission: later,
       history: [later],
     })).resolves.toBeNull();
-    expect(db.arenaSubmission.findFirst).toHaveBeenCalled();
-    expect(db.$executeRaw).toHaveBeenCalled();
+    expect(db.arenaSubmission.findFirst).not.toHaveBeenCalled();
+    expect(db.$executeRaw).not.toHaveBeenCalled();
   });
 });
