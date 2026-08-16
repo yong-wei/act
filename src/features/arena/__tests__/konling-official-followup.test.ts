@@ -123,7 +123,67 @@ describe('Arena official Konling followup', () => {
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toContain('调节时间 -1');
     expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'advice-1', outcome: null },
+      where: { id: 'advice-1' },
+      data: expect.objectContaining({
+        outcome: expect.objectContaining({
+          status: 'revisited',
+          revisitedBySubmissionId: 's2',
+        }),
+      }),
     }));
+  });
+
+  it('still revisits after helpfulness feedback occupies outcome', async () => {
+    const current = submission({ id: 's2', submittedAt: '2026-08-02T00:00:00.000Z', valid: true, score: 80, metrics: { settlingTime: 2 } });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: { feedback: 'rated', helpful: true, recordedAt: '2026-08-01T00:30:00.000Z' },
+          evidence: {
+            sourceSubmission: {
+              score: 60,
+              metrics: { settlingTime: 3 },
+              hardConstraintResults: [{ id: '稳定性', label: '稳定性', passed: false }],
+            },
+          },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+
+    await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toContain('调节时间 -1');
+    expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'advice-1' },
+      data: {
+        outcome: expect.objectContaining({
+          feedback: 'rated',
+          helpful: true,
+          status: 'revisited',
+          revisitedBySubmissionId: 's2',
+        }),
+      },
+    }));
+  });
+
+  it('does not reopen an already revisited official follow-up', async () => {
+    const current = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 82 });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: { status: 'revisited', revisitedBySubmissionId: 's2' },
+          evidence: { sourceSubmission: { score: 60, metrics: {}, hardConstraintResults: [] } },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+    };
+
+    await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
   });
 });

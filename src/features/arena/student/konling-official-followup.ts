@@ -90,18 +90,24 @@ export async function readArenaOfficialRevisit(input: {
       userId: input.submission.userId,
       classId: input.submission.classId ?? null,
       sessionId: { startsWith: `arena-official:${input.submission.taskId}:` },
-      outcome: null,
       createdAt: { lt: new Date(input.submission.submittedAt) },
     },
     orderBy: { createdAt: 'desc' },
-    select: { id: true, evidence: true, createdAt: true },
+    select: { id: true, evidence: true, outcome: true, createdAt: true },
   });
-  const baseline = baselineFromEvidence(previous?.evidence);
+  if (!previous || isRevisitedOutcome(previous.outcome)) return null;
+  const baseline = baselineFromEvidence(previous.evidence);
   if (!baseline) return null;
 
   await input.db.aIIntervention.updateMany?.({
-    where: { id: previous?.id, outcome: null },
-    data: { outcome: { status: 'revisited', revisitedBySubmissionId: input.submission.id } },
+    where: { id: previous.id },
+    data: {
+      outcome: {
+        ...(isRecord(previous.outcome) ? previous.outcome : {}),
+        status: 'revisited',
+        revisitedBySubmissionId: input.submission.id,
+      },
+    },
   });
 
   const currentFailures = failureLabels(input.submission);
@@ -201,6 +207,14 @@ function parameterChangeCount(submissions: readonly ArenaSubmissionRecord[]): nu
     }
   }
   return changes;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isRevisitedOutcome(value: unknown): boolean {
+  return isRecord(value) && value.status === 'revisited';
 }
 
 function baselineFromEvidence(value: unknown): { score: number; metrics: Record<string, number>; hardConstraintResults: ArenaSubmissionRecord['evaluation']['hardConstraintResults'] } | null {
