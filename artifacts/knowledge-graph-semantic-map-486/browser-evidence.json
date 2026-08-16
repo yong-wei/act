@@ -1,5 +1,10 @@
 {
-  "capturedAt": "2026-08-16T06:08:36.836Z",
+  "capturedAt": "2026-08-16T10:08:58.842Z",
+  "headCommit": "a5698b82c2481a674c4e55eb1a5dfb86b028d586",
+  "captureRevision": {
+    "commitSha": "a5698b82c2481a674c4e55eb1a5dfb86b028d586",
+    "treeSha": "d22f6b1e27ba02d25df925ac9212cde32f61a46d"
+  },
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",
   "sourceEvidence": {
@@ -75,10 +80,5 @@
     "Browser states were captured from the current revision by capture-knowledge-workspace-product-qa.ts.",
     "Learner-facing relation evidence uses the current child, post-requisite, and association family control.",
     "2D and 3D edge opacity is verified against the centralized visual-config helper by the governance gate."
-  ],
-  "headCommit": "330e583de4efa80eaffdcb60065b8e4a9fef8281",
-  "captureRevision": {
-    "commitSha": "330e583de4efa80eaffdcb60065b8e4a9fef8281",
-    "treeSha": "06e3d3f514c13214a7734cab2d5cc565ff6d3706"
-  }
+  ]
 }

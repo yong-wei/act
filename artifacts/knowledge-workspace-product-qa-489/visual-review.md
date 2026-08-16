@@ -3,12 +3,12 @@
 结论：PASS
 
 - 复核者：codex-manual-visual-review。
-- 捕获绑定：commit 330e583de4efa80eaffdcb60065b8e4a9fef8281，tree 06e3d3f514c13214a7734cab2d5cc565ff6d3706。
-- 捕获时间：2026-08-16T06:08:36.792Z。
-- 截图绑定：stateMatrix 29 个状态与 ctiveAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前截图一致。
+- 捕获绑定：commit a5698b82c2481a674c4e55eb1a5dfb86b028d586，tree d22f6b1e27ba02d25df925ac9212cde32f61a46d。
+- 捕获时间：2026-08-16T10:08:58.803Z。
+- 截图绑定：stateMatrix 29 个状态与 activeAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前截图一致。
 - 源码绑定：35 个受检路径记录 SHA-256；复核映射与当前源码一致。
 
-复核覆盖桌面 Legacy 图谱、3D 布局、移动端检查器、检查器与控灵并发压力态、Active Authority 桌面和移动端，以及管理员候选发布诊断。代表性 1440px 与 320px 截图已检查，未发现横向溢出、面板遮挡、焦点提示缺失或角色边界泄露。
+人工抽查覆盖 1440px Legacy 图谱、320px 局部工具、320px 控灵压力态和 320px Active Authority。代表截图未见横向溢出、面板遮挡、焦点提示缺失或角色边界泄露。
 
 14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。
 
