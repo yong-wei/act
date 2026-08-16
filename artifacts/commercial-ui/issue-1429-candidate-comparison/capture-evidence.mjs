@@ -63,11 +63,11 @@ function readPngDimensions(bytes) {
 
 async function main() {
   await assertSourceCheckpointStable('capture start');
-  const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const playwrightCli = path.join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js');
   const playwright = spawnSync(
-    npx,
+    process.execPath,
     [
-      'playwright',
+      playwrightCli,
       'test',
       testFile,
       '--workers=1',
@@ -86,7 +86,10 @@ async function main() {
   );
   process.stdout.write(playwright.stdout ?? '');
   process.stderr.write(playwright.stderr ?? '');
-  assert(playwright.status === 0, `Playwright evidence capture failed with status ${playwright.status}`);
+  assert(
+    playwright.status === 0,
+    `Playwright evidence capture failed with status ${playwright.status}: ${playwright.error?.message ?? 'no process error'}`,
+  );
 
   const screenshots = [];
   for (const definition of screenshotDefinitions) {
