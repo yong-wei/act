@@ -1,12 +1,12 @@
 # Handoff: #1411 `publish-actkg-v018-cutover-runtime`
 
-状态: **认领已切到 act-dev1；正式入口已绑定密封 host-shadow 报告；收据 BLOCKED；3.3 仍缺 shards**  
+状态: **3.3/3.4 READY；收据已封；待归档审查合并后领 #1412**  
 日期: 2026-08-16  
 工作树: `/Users/YW/.codex/worktrees/act-dev1`（`buddy.worktreealias=act-dev1`）
 
 ## 一句话
 
-`#1411` 继续由 `act-dev1` 执行。正式入口复用密封 OCI 镜像时校验 `manifest.json` tag/config digest `d2ee9cf7…`，并把主机 Image ID 绑到同一 digest。当前收据保持 BLOCKED，blocker 含生产缺少 shards current.json。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
+`#1411` 的生产 v0.9 shards current.json 已恢复，host-shadow READY，正式 publisher 密封收据 READY（`receiptDigest=56864b1505fa8b…`），五个选择器仍是 v0.9，cutover 未授权。不要认领 #1405。归档合并后再领 #1412。
 
 ## 认领真源（手工修复后）
 
@@ -34,14 +34,13 @@ Buddy-auto lite 若仍因历史 `e734` Claim 判 `partial`/`foreign`，按用户
 | imageTag | `localhost/act-obe-platform:v018-94d585ae63a6` |
 | imageTarSha256 | `bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024` |
 
-任务：1.1、1.2、2.1–2.3、3.1、3.2、3.5 已勾选。1.3、3.3、3.4 仍开。正式入口已绑定密封 host-shadow 报告（contract、状态、五哈希、observation 与冻结前任一致性）。生产缺少 `authority-domain-shards/current.json`，因此 host-shadow 与密封收据保持 BLOCKED。尚未认领 #1412。
+任务：1.1–1.3、2.1–2.3、3.1–3.5 已勾选。host-shadow 与 runtime receipt 均为 READY。五个选择器仍是 v0.9。尚未认领 #1412。
 
 ## 当前必须做的事
 
-1. 完成 task 3.3：在不切换五个选择器的前提下，恢复生产 v0.9 shards current.json，并重跑主机 v0.9 + 受控 v0.18 shadow。
-2. 3.3 通过后再用正式 publisher 封 READY 收据（3.4），补 1.3 终验。
-3. 新 head 推到 PR #1430，处理 Codex/Bugbot thread，`@codex review`。latest-head 清场且零未解决 thread 后合并。
-4. 收尾：`openspec validate` + `openspec archive` 进同一交付单元，Issue 标 `status:archived` 并关闭。然后才认领 #1412。
+1. `openspec validate` + `openspec archive` 进入同一交付单元并推到 PR #1430。
+2. latest-head 清场且零未解决 thread 后合并，Issue 标 `status:archived` 并关闭。
+3. 然后才认领 #1412 做五选择器生产切换。
 
 ## 五个生产指针（必须保持）
 
