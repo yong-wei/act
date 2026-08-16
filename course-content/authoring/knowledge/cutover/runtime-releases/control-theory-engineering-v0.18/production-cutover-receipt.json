@@ -51,8 +51,9 @@
       "prerequisite": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
       "shards": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
       "activation": "v018-cutover-1b64a853dda5-17f00f669b22"
-    }
+    },
+    "postWorkerHealth": "healthy"
   },
   "blockers": [],
-  "receiptDigest": "dd1d9c171649c44a2dde4106343d838aa3a9ec63dec56e87b8484835b6bfaa1b"
+  "receiptDigest": "cc659a561f041844ca24a47827029a1ffe5938fbebf2a4999566408aea9053fb"
 }

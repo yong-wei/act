@@ -86,17 +86,16 @@ WORKER_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(
 WORKER_HEALTH="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("workerHealth","unknown"))')"
 READYZ_JSON="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["readyz"]))')"
 
-if [ "$ACTION" = rollback ]; then
-  ssh_run "mkdir -p $REMOTE_WORK/out/predecessor-bytes
-  cp -f $REMOTE_WORK/runtime-releases/production-cutover-journal.json $REMOTE_WORK/out/production-cutover-journal.json
-  cp -f $REMOTE_WORK/runtime-releases/predecessor-bytes/* $REMOTE_WORK/out/predecessor-bytes/ 2>/dev/null || true
-  chmod -R 0777 $REMOTE_WORK/out"
-fi
-
 echo "=== sidecar $ACTION ==="
 # shellcheck disable=SC2029
-ssh_run "mkdir -p /home/projects/act/data/runtime/knowledge-cutover
-flock -n /home/projects/act/data/runtime/knowledge-cutover/.v018-cutover.lock \
+ssh_run "mkdir -p /home/projects/act/data/runtime/knowledge-cutover $REMOTE_WORK/out/predecessor-bytes
+flock -n /home/projects/act/data/runtime/knowledge-cutover/.v018-cutover.lock bash -c '
+set -euo pipefail
+if [ \"$ACTION\" = rollback ]; then
+  cp -f $REMOTE_WORK/runtime-releases/production-cutover-journal.json $REMOTE_WORK/out/production-cutover-journal.json
+  cp -f $REMOTE_WORK/runtime-releases/predecessor-bytes/* $REMOTE_WORK/out/predecessor-bytes/ 2>/dev/null || true
+  chmod -R 0777 $REMOTE_WORK/out
+fi
 podman run --rm --network host --user 0:0 \
   --entrypoint ./node_modules/.bin/tsx \
   -v $REMOTE_WORK/src/lib/teaching-projection/publish:/app/src/lib/teaching-projection/publish:ro \
@@ -122,6 +121,13 @@ podman run --rm --network host --user 0:0 \
   --worker-image-id '$WORKER_IMAGE_ID' \
   --worker-health '$WORKER_HEALTH' \
   --readyz-json '$READYZ_JSON' \
-  --public-url '$PUBLIC_URL'"
+  --public-url '$PUBLIC_URL'
+post_worker=\"\$(podman inspect -f '{{.State.Health.Status}}' act-obe-worker 2>/dev/null || echo unknown)\"
+printf '%s\\n' \"\$post_worker\" > $REMOTE_WORK/out/post-worker-health.txt
+if [ \"$ACTION\" = activate ] && [ \"\$post_worker\" != healthy ] && [ \"\$post_worker\" != running ]; then
+  echo \"post-switch worker not healthy: \$post_worker\" >&2
+  exit 2
+fi
+'"
 
 echo "=== done ==="

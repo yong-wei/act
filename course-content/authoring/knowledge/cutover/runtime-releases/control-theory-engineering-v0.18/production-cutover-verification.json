@@ -2,7 +2,7 @@
   "contract": "actkg-v018-production-cutover-verification/v1",
   "transactionId": "v018-cutover-2026-08-16T131321310Z",
   "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
-  "receiptDigest": "ba9d2f758ba99cf5b14d3ae15087ff7500c2c9283b39e5247a9ff5409c7041af",
+  "receiptDigest": "cc659a561f041844ca24a47827029a1ffe5938fbebf2a4999566408aea9053fb",
   "status": "READY",
   "public": {
     "login": 200,
@@ -40,6 +40,7 @@
     "shards": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
     "activation": "v018-cutover-1b64a853dda5-17f00f669b22"
   },
+  "postWorkerHealth": "healthy",
   "v09Retained": true,
   "imageTag": "localhost/act-obe-platform:v018-94d585ae63a6"
 }
