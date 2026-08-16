@@ -12,6 +12,7 @@ import type {
 } from '@/lib/authoritative-knowledge/contracts';
 import type { AuthorityEngineeringObject } from '@/lib/authoritative-knowledge/authority-snapshot';
 import { sha256Text } from '@/lib/source-pack/sha256';
+import { reviewedNeighborhoodLabelsForSnapshot } from './v018-reviewed-neighborhood-labels';
 
 const ZH_CN = 'zh-CN' as const;
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -183,6 +184,7 @@ export interface AuthorityLabelResolverInput {
   readonly snapshot: AuthorityLabelSnapshotBinding;
   readonly objects: readonly Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType' | 'semanticName' | 'payload'>[];
   readonly v2Evidence?: AuthoritativeV2Evidence | null;
+  readonly reviewedOverlayLabels?: readonly AuthoritativeV2MultilingualLabelRecord[];
 }
 
 export interface AuthorityLabelResolverContext {
@@ -544,12 +546,58 @@ export function createAuthorityLabelResolverContext(
   if (!Array.isArray(evidence.multilingualLabels)) {
     throw new AuthorityLabelResolverError('evidence-invalid', 'Authority label evidence is unavailable.');
   }
-  const labels = evidence.multilingualLabels.map(cloneLabel);
-  const preferredByEntity = new Set<string>();
-  for (const row of labels) {
+  const overlay = input.reviewedOverlayLabels
+    ?? reviewedNeighborhoodLabelsForSnapshot(snapshot);
+  const overlayPreferred = new Map<string, AuthoritativeV2MultilingualLabelRecord>();
+  for (const row of overlay) {
+    if (row.language !== ZH_CN || row.labelType !== 'canonical_preferred') continue;
+    overlayPreferred.set(row.entityId, row);
+  }
+  const labels: AuthoritativeV2MultilingualLabelRecord[] = [];
+  const preferredEntities = new Set<string>();
+  for (const row of evidence.multilingualLabels) {
     if (row.releaseId !== snapshot.releaseId) {
       throw new AuthorityLabelResolverError('profile-drift', 'Authority label row identity drifted.');
     }
+    if (row.language === ZH_CN && row.labelType === 'canonical_preferred') {
+      const reviewed = overlayPreferred.get(row.entityId);
+      if (
+        reviewed
+        && !isSafeAuthorityLabel(row.label, undefined, true)
+        && isSafeAuthorityLabel(reviewed.label, undefined, true)
+      ) {
+        labels.push(cloneLabel(reviewed));
+        preferredEntities.add(row.entityId);
+        continue;
+      }
+    }
+    if (
+      row.language === ZH_CN
+      && row.labelType === 'alternative'
+      && overlayPreferred.has(row.entityId)
+      && !isSafeAuthorityLabel(row.label, undefined, true)
+    ) {
+      continue;
+    }
+    labels.push(cloneLabel(row));
+    if (row.language === ZH_CN && row.labelType === 'canonical_preferred') {
+      preferredEntities.add(row.entityId);
+    }
+  }
+  for (const row of overlay) {
+    if (row.language === ZH_CN && row.labelType === 'canonical_preferred' && preferredEntities.has(row.entityId)) {
+      continue;
+    }
+    if (row.releaseId !== snapshot.releaseId) {
+      throw new AuthorityLabelResolverError('profile-drift', 'Authority label row identity drifted.');
+    }
+    labels.push(cloneLabel(row));
+    if (row.language === ZH_CN && row.labelType === 'canonical_preferred') {
+      preferredEntities.add(row.entityId);
+    }
+  }
+  const preferredByEntity = new Set<string>();
+  for (const row of labels) {
     if (row.language !== ZH_CN || row.labelType !== 'canonical_preferred') continue;
     if (preferredByEntity.has(row.entityId)) {
       throw new AuthorityLabelResolverError('duplicate-preferred', 'Authority label index contains duplicate preferred labels.');

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   resolveAIProviderConfig,
 } from '@/lib/ai/provider-config';
@@ -8,7 +8,9 @@ import {
   normalizeAIProviderSettings,
   resolveConfiguredAIProviderConfig,
   resolveProviderSecret,
+  setAIProviderSettings,
   validateAIProviderSettingsInput,
+  withSiliconFlowQwenDefault,
 } from '@/lib/ai/provider-settings';
 
 describe('AI provider settings', () => {
@@ -114,6 +116,136 @@ describe('AI provider settings', () => {
     expect(getModelRuntimeOptions(settings, 'siliconflow', 'Qwen/Qwen3.6-35B-A3B')).toEqual({
       enableThinking: false,
     });
+  });
+
+  it('syncs a persisted SiliconFlow DeepSeek selection to the Qwen default', () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'siliconflow',
+      providers: [{
+        id: 'siliconflow',
+        name: 'SiliconFlow',
+        baseURL: 'https://api.siliconflow.cn/v1',
+        selectedModel: 'deepseek-ai/DeepSeek-V4-Flash',
+        models: [],
+      }],
+    });
+
+    const synced = withSiliconFlowQwenDefault(settings);
+    expect(synced.providers[0]?.selectedModel).toBe('Qwen/Qwen3.6-35B-A3B');
+  });
+
+  it('leaves custom SiliconFlow selections and other providers untouched', () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'siliconflow',
+      providers: [
+        {
+          id: 'siliconflow',
+          name: 'SiliconFlow',
+          baseURL: 'https://api.siliconflow.cn/v1',
+          selectedModel: 'MiniMaxAI/MiniMax-M2.5',
+          models: [],
+        },
+        {
+          id: 'custom-provider',
+          name: 'Custom Provider',
+          providerKind: 'anthropic-compatible',
+          baseURL: 'https://example.test/v1',
+          secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+          selectedModel: 'custom/model',
+          enabled: true,
+          priority: 5,
+          capabilities: { tools: true, reasoning: true, vision: true, jsonSchema: false, streaming: true, citationNormalization: true },
+          models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+        },
+      ],
+    });
+
+    const synced = withSiliconFlowQwenDefault(settings);
+    expect(synced.providers[0]?.selectedModel).toBe('MiniMaxAI/MiniMax-M2.5');
+    expect(synced.providers[1]?.selectedModel).toBe('custom/model');
+  });
+
+  it('runs model and audit upserts inside a single transaction', async () => {
+    let committed: unknown = null;
+    const db = {
+      platformSetting: { upsert: vi.fn() },
+      $transaction: vi.fn(async (operation: (tx: {
+        platformSetting: {
+          upsert: (args: {
+            where: { key: string };
+            create: { value: unknown };
+            update: { value: unknown };
+          }) => Promise<void>;
+        };
+      }) => Promise<unknown>) => {
+        const staging: Record<string, unknown> = {};
+        const tx = {
+          platformSetting: {
+            upsert: vi.fn(async ({ where, create, update }: {
+              where: { key: string };
+              create: { value: unknown };
+              update: { value: unknown };
+            }) => {
+              staging[where.key] = update.value ?? create.value;
+            }),
+          },
+        };
+        await operation(tx);
+        committed = { ...staging };
+      }),
+    };
+    const settings = getDefaultAIProviderSettings({
+      AI_PROVIDER: 'siliconflow',
+      AI_BASE_URL: 'https://api.siliconflow.cn/v1',
+      AI_API_KEY: 'sk-test',
+    } as unknown as NodeJS.ProcessEnv);
+
+    await setAIProviderSettings(settings, db as never);
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(committed)).toContain('ai_provider_settings');
+    expect(JSON.stringify(committed)).toContain('ai_provider_settings_audit');
+  });
+
+  it('does not persist the model setting when the audit upsert fails', async () => {
+    let committed: unknown = null;
+    const db = {
+      platformSetting: { upsert: vi.fn() },
+      $transaction: vi.fn(async (operation: (tx: {
+        platformSetting: {
+          upsert: (args: {
+            where: { key: string };
+            create: { value: unknown };
+            update: { value: unknown };
+          }) => Promise<void>;
+        };
+      }) => Promise<unknown>) => {
+        const staging: Record<string, unknown> = {};
+        const tx = {
+          platformSetting: {
+            upsert: vi.fn(async ({ where, create, update }: {
+              where: { key: string };
+              create: { value: unknown };
+              update: { value: unknown };
+            }) => {
+              if (where.key === 'ai_provider_settings_audit') {
+                throw new Error('audit failed');
+              }
+              staging[where.key] = update.value ?? create.value;
+            }),
+          },
+        };
+        await operation(tx);
+        committed = { ...staging };
+      }),
+    };
+    const settings = getDefaultAIProviderSettings({
+      AI_PROVIDER: 'siliconflow',
+      AI_BASE_URL: 'https://api.siliconflow.cn/v1',
+      AI_API_KEY: 'sk-test',
+    } as unknown as NodeJS.ProcessEnv);
+
+    await expect(setAIProviderSettings(settings, db as never)).rejects.toThrow('audit failed');
+    expect(committed).toBeNull();
   });
 
   it('keeps provider capability metadata for mixed OpenAI and Anthropic compatible settings', () => {
