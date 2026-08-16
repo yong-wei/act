@@ -10,6 +10,7 @@ import {
   executeV018ProductionCutover,
   exerciseV018RollbackPath,
   expectedPredecessorHashes,
+  inspectFirstActivationMarker,
   inspectSealedRuntimeReceipt,
   pointerIdentityFromBytes,
   preflightV018ProductionCutover,
@@ -155,6 +156,10 @@ describe('activate-actkg-v018-production-cutover', () => {
       'runtime-receipt-bytes-drift',
     ]));
     expect(inspectSealedRuntimeReceipt(readFileSync(sealedPath)).blockers).toEqual([]);
+  });
+
+  it('accepts the committed first-activation journal as the production marker', () => {
+    expect(inspectFirstActivationMarker(REPO_ROOT).blockers).toEqual([]);
   });
 
   it('does not report READY until consumer activation commits', () => {

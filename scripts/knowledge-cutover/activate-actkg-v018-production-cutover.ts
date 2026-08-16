@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
-import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { createMapPointerBackend } from '../../src/lib/teaching-projection/publish/v018-production-cutover-backend';
@@ -13,6 +13,7 @@ import {
   V018_CUTOVER_COMPONENTS,
   V018_EXPECTED_OBJECT_COUNT,
   V018_EXPECTED_RELATION_COUNT,
+  V018_PROJECTION_ID,
   V018_TARGET_IDENTITIES,
   assertNoLearnerVisibleSystemIdentifiers,
   compensateV018ProductionCutover,
@@ -31,6 +32,10 @@ import {
 import {
   V09_PUBLIC_DOMAIN_LABELS,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+import {
+  V018_RELEASE_ID,
+  V018_SNAPSHOT,
+} from '../../src/lib/teaching-projection/qualify/v018-shared';
 import { runLiveNamedConsumerShadowReads } from '../../src/lib/teaching-projection/qualify/v018-consumers';
 import { V018_NAMED_CONSUMERS } from '../../src/lib/teaching-projection/qualify/v018-qualify-contract';
 
@@ -98,94 +103,168 @@ function restoreCatalog(root: string, predecessorDir: string): void {
   writeFileSync(path.join(catalogDir, 'current.json'), readFileSync(path.join(predecessorDir, 'catalog-current.json')));
 }
 
-function httpStatus(publicUrl: string, jar: string, route: string, outFile?: string): number {
-  const raw = execFileSync('curl', [
-    '-sS',
-    '-o', outFile ?? '/dev/null',
-    '-w', '%{http_code}',
-    '-b', jar,
-    `${publicUrl}${route}`,
-  ], { encoding: 'utf8' });
-  return Number(raw);
-}
-
-function verifyPublicV018(publicUrl: string): Record<string, unknown> {
+function loginJar(publicUrl: string, accountKey: 'student' | 'teacher'): string {
   const { accountByKey } = require('../db/verified-test-accounts.mjs') as {
     accountByKey: (key: string) => { loginId: string; password: string };
   };
-  const student = accountByKey('student');
-  const jar = '/tmp/v018-cutover-cookies.txt';
+  const account = accountByKey(accountKey);
+  const jar = `/tmp/v018-cutover-cookies-${accountKey}.txt`;
   const csrfRaw = execFileSync('curl', ['-fsS', '-c', jar, `${publicUrl}/api/auth/csrf`], { encoding: 'utf8' });
   const csrfToken = String((JSON.parse(csrfRaw) as { csrfToken?: string }).csrfToken ?? '');
   execFileSync('curl', [
     '-sS', '-b', jar, '-c', jar, '-o', '/dev/null',
     '-H', 'content-type: application/x-www-form-urlencoded',
     '--data-urlencode', `csrfToken=${csrfToken}`,
-    '--data-urlencode', `email=${student.loginId}`,
-    '--data-urlencode', `password=${student.password}`,
+    '--data-urlencode', `email=${account.loginId}`,
+    '--data-urlencode', `password=${account.password}`,
     '--data-urlencode', 'json=true',
     `${publicUrl}/api/auth/callback/credentials`,
   ], { encoding: 'utf8' });
-  const shards = JSON.parse(execFileSync('curl', ['-fsS', '-b', jar, `${publicUrl}/api/knowledge/shards/active`], { encoding: 'utf8' }));
-  const domains = Array.isArray(shards?.root?.domains) ? shards.root.domains : [];
-  const labels = domains.map((row: { displayName?: string }) => String(row.displayName ?? '')).filter(Boolean);
-  const teachingStatus = httpStatus(
+  return jar;
+}
+
+function httpGet(
+  publicUrl: string,
+  jar: string,
+  route: string,
+  outFile: string,
+): { status: number; body: string } {
+  const status = Number(execFileSync('curl', [
+    '-sS',
+    '-o', outFile,
+    '-w', '%{http_code}',
+    '-b', jar,
+    `${publicUrl}${route}`,
+  ], { encoding: 'utf8' }));
+  return { status, body: existsSync(outFile) ? readFileSync(outFile, 'utf8') : '' };
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function verifyPublicV018(publicUrl: string): Record<string, unknown> {
+  const studentJar = loginJar(publicUrl, 'student');
+  const teacherJar = loginJar(publicUrl, 'teacher');
+  const shardsGet = httpGet(publicUrl, studentJar, '/api/knowledge/shards/active', '/tmp/v018-cutover-shards.json');
+  const shards = asObject(shardsGet.status === 200 ? JSON.parse(shardsGet.body) : {});
+  const root = asObject(shards.root);
+  const domains = Array.isArray(root.domains) ? root.domains as Array<Record<string, unknown>> : [];
+  const labels = domains.map((row) => String(row.displayName ?? '')).filter(Boolean);
+  const teachingGet = httpGet(
     publicUrl,
-    jar,
+    studentJar,
     '/api/knowledge/shards/active/domains/modeling',
     '/tmp/v018-cutover-teaching.json',
   );
-  const teaching = teachingStatus === 200
-    ? JSON.parse(readFileSync('/tmp/v018-cutover-teaching.json', 'utf8')) as { objects?: Array<{ id?: string }> }
-    : { objects: [] };
-  const nodeIds = (teaching.objects ?? []).map((row) => String(row.id ?? '')).filter(Boolean);
+  const teaching = asObject(teachingGet.status === 200 ? JSON.parse(teachingGet.body) : {});
+  const teachingObjects = Array.isArray(teaching.objects) ? teaching.objects as Array<Record<string, unknown>> : [];
+  const nodeIds = teachingObjects.map((row) => String(row.id ?? '')).filter(Boolean);
   const probeNodeId = nodeIds[0] ?? '';
-  const cardStatus = probeNodeId
-    ? httpStatus(publicUrl, jar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(probeNodeId)}`, '/tmp/v018-cutover-card.json')
-    : 0;
-  const neighborhoodStatus = probeNodeId
-    ? httpStatus(publicUrl, jar, `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(probeNodeId)}`)
-    : 0;
+  let cardGet = { status: 0, body: '' };
+  let cardNode: Record<string, unknown> = {};
+  let neighborhoodGet = { status: 0, body: '' };
+  let neighborhood: Record<string, unknown> = {};
+  let neighborhoodRelations: unknown[] = [];
+  for (const nodeId of nodeIds.slice(0, 8)) {
+    if (!cardNode.id) {
+      cardGet = httpGet(publicUrl, studentJar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, '/tmp/v018-cutover-card.json');
+      const card = asObject(cardGet.status === 200 ? JSON.parse(cardGet.body) : {});
+      cardNode = asObject(card.node);
+    }
+    if (neighborhoodRelations.length === 0) {
+      neighborhoodGet = httpGet(publicUrl, studentJar, `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, '/tmp/v018-cutover-neighborhood.json');
+      neighborhood = asObject(neighborhoodGet.status === 200 ? JSON.parse(neighborhoodGet.body) : {});
+      neighborhoodRelations = [
+        ...(Array.isArray(neighborhood.relations) ? neighborhood.relations : []),
+        ...(Array.isArray(neighborhood.teachingRelations) ? neighborhood.teachingRelations : []),
+      ];
+    }
+    if (cardNode.id && neighborhoodRelations.length > 0) break;
+  }
   let infographStatus = 0;
   let infographNodeId = '';
+  let infographPng = false;
   for (const nodeId of nodeIds.slice(0, 8)) {
-    const status = httpStatus(publicUrl, jar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}/infograph`, '/tmp/v018-cutover-infograph.bin');
-    if (status === 200) {
-      infographStatus = status;
+    const result = httpGet(
+      publicUrl,
+      studentJar,
+      `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}/infograph`,
+      '/tmp/v018-cutover-infograph.bin',
+    );
+    infographStatus = result.status;
+    if (result.status === 200 && readFileSync('/tmp/v018-cutover-infograph.bin').subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
       infographNodeId = nodeId;
+      infographPng = true;
       break;
     }
-    infographStatus = status;
   }
-  const konlingStatus = httpStatus(publicUrl, jar, '/api/ai/konling-context');
-  const learningPathStatus = httpStatus(publicUrl, jar, '/api/learning-paths/latest?goal=control-correction');
-  const courseRuntimeStatus = httpStatus(
+  const konlingRoute = probeNodeId
+    ? `/api/ai/konling-context?selectedNodeId=${encodeURIComponent(probeNodeId)}&status=selected-node`
+    : '/api/ai/konling-context';
+  const konlingGet = httpGet(publicUrl, teacherJar, konlingRoute, '/tmp/v018-cutover-konling.json');
+  const konling = asObject(konlingGet.status === 200 ? JSON.parse(konlingGet.body) : {});
+  const teachingContext = asObject(konling.teaching_projection_context);
+  const courseGet = httpGet(
     publicUrl,
-    jar,
-    '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    teacherJar,
+    `/api/ai/konling-context?courseId=${encodeURIComponent('unit-1-1-see-the-full-picture')}`,
+    '/tmp/v018-cutover-course.json',
   );
-  const leaks = assertNoLearnerVisibleSystemIdentifiers(labels);
+  const courseContext = asObject(
+    courseGet.status === 200
+      ? asObject(JSON.parse(courseGet.body)).teaching_projection_context
+      : {},
+  );
+  const leaks = assertNoLearnerVisibleSystemIdentifiers([
+    ...labels,
+    String(cardNode.label ?? ''),
+  ]);
   const blockers: string[] = [];
   if (labels.length !== 8) blockers.push('public-label-count');
   if (V09_PUBLIC_DOMAIN_LABELS.some((label) => !labels.includes(label))) blockers.push('public-label-missing');
-  if (teachingStatus !== 200) blockers.push('public-teaching-http');
-  if (cardStatus !== 200) blockers.push('public-card-http');
-  if (neighborhoodStatus !== 200) blockers.push('public-prerequisite-http');
-  if (infographStatus !== 200) blockers.push('public-infograph-http');
-  if (konlingStatus !== 200) blockers.push('public-konling-http');
-  if (learningPathStatus !== 200) blockers.push('public-learning-path-http');
-  if (courseRuntimeStatus !== 200) blockers.push('public-course-runtime-http');
+  if (teachingGet.status !== 200 || teachingObjects.length === 0) blockers.push('public-teaching-http');
+  if (cardGet.status !== 200 || !cardNode.id || !cardNode.label) blockers.push('public-card-payload');
+  if (neighborhoodGet.status !== 200 || !neighborhood.nodeId || neighborhoodRelations.length === 0) {
+    blockers.push('public-prerequisite-payload');
+  }
+  if (!infographPng) blockers.push('public-infograph-payload');
+  if (
+    konlingGet.status !== 200
+    || teachingContext.authoritySnapshotId !== V018_SNAPSHOT
+    || teachingContext.authorityReleaseId !== V018_RELEASE_ID
+    || teachingContext.projectionId !== V018_PROJECTION_ID
+  ) {
+    blockers.push('public-konling-identity');
+  }
+  if (
+    courseGet.status !== 200
+    || courseContext.authoritySnapshotId !== V018_SNAPSHOT
+    || courseContext.projectionId !== V018_PROJECTION_ID
+  ) {
+    blockers.push('public-course-runtime-identity');
+  }
+  if (!Array.isArray(teachingContext.prerequisiteAncestors) && !Array.isArray(teachingContext.prerequisiteSuccessors)) {
+    blockers.push('public-learning-path-payload');
+  }
   if (leaks.length > 0) blockers.push('learner-visible-system-identifier');
   return {
     labels,
-    teachingStatus,
-    cardStatus,
-    neighborhoodStatus,
+    teachingStatus: teachingGet.status,
+    teachingObjectCount: teachingObjects.length,
+    cardStatus: cardGet.status,
+    neighborhoodStatus: neighborhoodGet.status,
+    neighborhoodRelationCount: neighborhoodRelations.length,
     infographStatus,
     infographNodeId,
-    konlingStatus,
-    learningPathStatus,
-    courseRuntimeStatus,
+    infographPng,
+    konlingStatus: konlingGet.status,
+    konlingProjectionId: teachingContext.projectionId ?? null,
+    konlingAuthoritySnapshotId: teachingContext.authoritySnapshotId ?? null,
+    courseRuntimeStatus: courseGet.status,
+    courseProjectionId: courseContext.projectionId ?? null,
     probeNodeId,
     leaks,
     blockers,

@@ -27,6 +27,7 @@ import {
   asRecord,
 } from '../qualify/v018-shared';
 import { V018_NAMED_CONSUMERS } from '../qualify/v018-qualify-contract';
+import { readFirstActivationJournal } from '../../knowledge-cutover/first-activation';
 
 export const V018_CUTOVER_JOURNAL_CONTRACT = 'actkg-v018-production-cutover-journal/v1' as const;
 export const V018_CUTOVER_RECEIPT_CONTRACT = 'actkg-v018-production-cutover-receipt/v1' as const;
@@ -47,6 +48,9 @@ export const V018_PROJECTION_ID = 'proj-17f00f669b22c25126ca4c562e1e019c074a7738
 export const V018_PUBLICATION_ID = 'proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7';
 export const V018_EXPECTED_OBJECT_COUNT = 6843;
 export const V018_EXPECTED_RELATION_COUNT = 2811;
+
+export const V018_FIRST_ACTIVATION_MARKER_RELATIVE =
+  'course-content/runtime/knowledge/consumer-activation/first-activation-transactions/first-cutover-7f4cdd1084af419a3e837876.json';
 
 export const V018_CUTOVER_POINTER_PATHS = {
   authority: 'course-content/authoring/knowledge/authority/current.json',
@@ -237,6 +241,25 @@ export function inspectSealedRuntimeReceipt(bytes: Buffer): {
   return { declared, actual, fileSha256, blockers };
 }
 
+export function inspectFirstActivationMarker(repoRoot: string): { blockers: string[] } {
+  const blockers: string[] = [];
+  const markerPath = path.join(repoRoot, V018_FIRST_ACTIVATION_MARKER_RELATIVE);
+  if (!existsSync(markerPath)) {
+    return { blockers: ['production-marker-missing'] };
+  }
+  try {
+    const journal = readFirstActivationJournal(markerPath);
+    if (journal.status !== 'COMMITTED') blockers.push('production-marker-not-committed');
+    if (journal.steps.length === 0 || journal.steps.some((step) => step.status !== 'APPLIED')) {
+      blockers.push('production-marker-steps-incomplete');
+    }
+    if (!/^[a-f0-9]{64}$/.test(journal.journalHash)) blockers.push('production-marker-hash-invalid');
+  } catch {
+    blockers.push('production-marker-invalid');
+  }
+  return { blockers };
+}
+
 export function preflightV018ProductionCutover(input: {
   repoRoot: string;
   observation: CutoverHostObservation;
@@ -301,6 +324,8 @@ export function preflightV018ProductionCutover(input: {
   if (input.observation.lockHeld) blockers.push('exclusive-lock-held');
   if (!input.observation.markerPresent && !input.observation.firstActivationCommitted) {
     blockers.push('production-marker-missing');
+  } else {
+    blockers.push(...inspectFirstActivationMarker(input.repoRoot).blockers);
   }
 
   const expected = expectedPredecessorHashes(input.predecessorSource ?? 'host');

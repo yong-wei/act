@@ -24,6 +24,19 @@ def sh(cmd):
     return subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
 def digest(path):
     return hashlib.sha256(open(path, "rb").read()).hexdigest()
+def marker_committed(path):
+    try:
+        data = json.loads(open(path, encoding="utf-8").read())
+        steps = data.get("steps") or []
+        return (
+            data.get("status") == "COMMITTED"
+            and bool(steps)
+            and all(step.get("status") == "APPLIED" for step in steps)
+            and isinstance(data.get("journalHash"), str)
+            and len(data.get("journalHash")) == 64
+        )
+    except Exception:
+        return False
 app = sh("podman inspect -f {{.ImageName}} act-obe-app")
 worker = sh("podman inspect -f {{.ImageName}} act-obe-worker")
 app_id = sh("podman inspect -f {{.Image}} act-obe-app").replace("sha256:", "")
@@ -46,7 +59,7 @@ print(json.dumps({
     "authority-domain-shards": digest(view + "/authority-domain-shards/current.json"),
     "consumer-activation": digest(view + "/consumer-activation/current.json"),
   },
-  "firstActivation": os.path.exists(view + "/consumer-activation/first-activation-transactions/first-cutover-7f4cdd1084af419a3e837876.json"),
+  "firstActivation": marker_committed(view + "/consumer-activation/first-activation-transactions/first-cutover-7f4cdd1084af419a3e837876.json"),
 }))
 PY'
 }
