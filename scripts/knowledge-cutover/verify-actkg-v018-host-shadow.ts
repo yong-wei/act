@@ -96,6 +96,25 @@ function runDeployedImageStagedShadow(sshTarget: string): {
   };
 }
 
+function readPublicV09BehaviorFromContainer(sshTarget: string): {
+  publicV09LabelCount?: number;
+  publicV09TeachingProjectionId?: string;
+} {
+  try {
+    const raw = ssh(
+      sshTarget,
+      "podman exec act-obe-app ./node_modules/.bin/tsx -e 'import { readActiveRootShard } from \"./src/app/api/knowledge/_active-authority.ts\"; import { readCurrentTeachingProjectionPointer, resolveTeachingProjectionStorePaths } from \"./src/lib/teaching-projection/store.ts\"; const root = readActiveRootShard(); const labels = (root.root?.domains ?? []).map((row) => row.displayName).filter((value) => typeof value === \"string\" && value.trim().length > 0); const pointer = readCurrentTeachingProjectionPointer(resolveTeachingProjectionStorePaths(process.env.ACT_TEACHING_PROJECTION_STORE_ROOT || \"/app/course-content/runtime/knowledge/projection\")); console.log(JSON.stringify({ labelCount: labels.length, projectionId: pointer?.projectionId ?? null }));'",
+    );
+    const parsed = asRecord(JSON.parse(raw.split('\n').filter((line) => line.trim().startsWith('{')).at(-1) ?? '{}'));
+    return {
+      publicV09LabelCount: typeof parsed.labelCount === 'number' ? parsed.labelCount : undefined,
+      publicV09TeachingProjectionId: typeof parsed.projectionId === 'string' ? parsed.projectionId : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 function readActiveGraphFromContainer(sshTarget: string): {
   releaseId?: string;
   snapshotId?: string;
@@ -178,6 +197,7 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   }
   const consumers = sidecar.consumers;
   const active = readActiveGraphFromContainer(sshTarget);
+  const publicV09 = readPublicV09BehaviorFromContainer(sshTarget);
   const observation: HostShadowObservation = {
     ...remote,
     readyz: {
@@ -191,6 +211,8 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     stagedAuthorityMountedSha256: sidecar.mountedAuthorityReceiptSha256,
     consumerStatuses: consumers,
     consumerShadowSource: sidecar.source,
+    publicV09LabelCount: publicV09.publicV09LabelCount,
+    publicV09TeachingProjectionId: publicV09.publicV09TeachingProjectionId,
     pointersUnchangedAfterStage:
       remote.authoritySha256 === V09_HOST_POINTER_HASHES.authority
       && remote.projectionSha256 === V09_HOST_POINTER_HASHES.projection

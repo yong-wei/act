@@ -61,6 +61,8 @@ export interface HostShadowObservation {
   consumerStatuses?: ReadonlyArray<{ consumerId: string; status: string }>;
   consumerShadowSource?: 'deployed-image-staged-candidate' | 'local-qualification';
   pointersUnchangedAfterStage?: boolean;
+  publicV09LabelCount?: number;
+  publicV09TeachingProjectionId?: string;
 }
 
 const HOST_POINTER_PATHS = {
@@ -235,6 +237,12 @@ export function evaluateV018HostShadow(observation: HostShadowObservation): {
   }
   if (observation.activeGraphReleaseId !== V09_RELEASE_ID) blockers.push('host-active-graph-not-v09');
   if (observation.activeGraphSnapshotId !== V09_SNAPSHOT) blockers.push('host-active-graph-snapshot-drift');
+  if (!observation.publicV09LabelCount || observation.publicV09LabelCount < 1) {
+    blockers.push('host-v09-public-label-query-failed');
+  }
+  if (observation.publicV09TeachingProjectionId !== V09_PROJECTION) {
+    blockers.push('host-v09-public-teaching-query-failed');
+  }
   const consumers = observation.consumerStatuses ?? [];
   const readyIds = consumers
     .filter((row) => row.status === 'READY')

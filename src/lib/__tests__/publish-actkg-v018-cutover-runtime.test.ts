@@ -59,6 +59,8 @@ function readyHostObservation(overrides: Partial<HostShadowObservation> = {}): H
     activeGraphReleaseId: 'ctr:release:control-theory-engineering-v0.9',
     activeGraphSnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
     pointersUnchangedAfterStage: true,
+    publicV09LabelCount: 8,
+    publicV09TeachingProjectionId: 'proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d',
     consumerShadowSource: 'deployed-image-staged-candidate',
     consumerStatuses: [
       { consumerId: 'course-runtime', status: 'READY' },

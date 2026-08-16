@@ -46,6 +46,8 @@ const readyObservation = {
   activeGraphReleaseId: 'ctr:release:control-theory-engineering-v0.9',
   activeGraphSnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
   pointersUnchangedAfterStage: true,
+  publicV09LabelCount: 8,
+  publicV09TeachingProjectionId: 'proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d',
   consumerShadowSource: 'deployed-image-staged-candidate' as const,
   consumerStatuses: [
     { consumerId: 'course-runtime', status: 'READY' },
@@ -99,6 +101,17 @@ describe('v0.18 host shadow evaluation', () => {
     });
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-v018-authority-not-mounted-in-sidecar');
+  });
+
+  it('fails closed when public v0.9 label or teaching queries are missing', () => {
+    expect(evaluateV018HostShadow({
+      ...readyObservation,
+      publicV09LabelCount: 0,
+    }).blockers).toContain('host-v09-public-label-query-failed');
+    expect(evaluateV018HostShadow({
+      ...readyObservation,
+      publicV09TeachingProjectionId: undefined,
+    }).blockers).toContain('host-v09-public-teaching-query-failed');
   });
 
   it('fails closed when the host image digest is not the sealed config', () => {
