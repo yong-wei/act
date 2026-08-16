@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   isRegisteredAdaptiveLearningPathGoal: vi.fn(),
   resolveKonlingTeachingAssistantServerModeContext: vi.fn(),
   resolveKonlingTeachingAssistantSignedGraphNodeId: vi.fn(),
+  readAdaptivePathCandidateBatch: vi.fn(),
   verifyKonlingRuntimeScope: vi.fn(),
 }));
 
@@ -32,6 +33,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/adaptive-learning-path-planner', () => ({
   isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
+}));
+
+vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
 }));
 
 vi.mock('@/lib/adaptive-path-goal-options', () => ({
@@ -79,7 +84,7 @@ function post(body: Record<string, unknown>) {
 
 describe('path advisor tool route readiness', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getServerAuthSession.mockResolvedValue({
       user: {
         id: 'student-1',
@@ -101,6 +106,7 @@ describe('path advisor tool route readiness', () => {
       },
     });
     mocks.resolveKonlingTeachingAssistantSignedGraphNodeId.mockReturnValue(null);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue(null);
     mocks.buildKonlingRuntimeContext.mockResolvedValue({ citationContext: undefined });
     mocks.buildKonlingRuntimeGraphContext.mockReturnValue({});
     mocks.resolveKonlingTeachingAssistantServerModeContext.mockResolvedValue({});
@@ -373,6 +379,90 @@ describe('path advisor tool route readiness', () => {
       pathId: 'path-1',
       selectedStyleId: 'recommended',
       styleId: 'recommended',
+    }));
+  });
+
+  it('rejects a candidate comparison outside the authorized batch', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      candidates: [{ styleId: 'style-a' }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选比较对象不属于当前学习路径批次',
+    });
+  });
+
+  it('forwards an authorized candidate pair and comparison identity to the runtime', async () => {
+    const explainLearningPathTradeoff = vi.fn().mockResolvedValue({
+      comparison: { status: 'no-material-difference' },
+    });
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      candidates: [{ styleId: 'style-a' }, { styleId: 'style-b' }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff,
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(200);
+    expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
+      pathId: 'path-1',
+      selectedStyleId: 'style-a',
+      compareWithStyleId: 'style-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
     }));
   });
 

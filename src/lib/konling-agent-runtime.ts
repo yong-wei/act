@@ -2739,6 +2739,8 @@ const rejectLearningPathOptionParameters = adaptivePathToolBaseParameters.extend
 const explainLearningPathTradeoffParameters = adaptivePathToolBaseParameters.extend({
   styleId: z.string().min(1).optional(),
   compareWithStyleId: z.string().min(1).optional(),
+  candidateBatchId: z.string().min(1).optional(),
+  comparisonKey: z.string().min(1).optional(),
 });
 
 const recordPathAdjustmentOutcomeParameters = adaptivePathToolBaseParameters.extend({
@@ -5090,6 +5092,12 @@ async function buildAdaptivePathTradeoffOutput(
   input: KonlingToolRuntimeInput,
   args: z.infer<typeof explainLearningPathTradeoffParameters>,
 ) {
+  if (args.candidateBatchId && (!args.styleId || !args.compareWithStyleId || !args.comparisonKey)) {
+    throw new KonlingRuntimeScopeError(400, '候选批次比较必须明确选择两条不同路径。');
+  }
+  if (args.styleId && args.compareWithStyleId && args.styleId === args.compareWithStyleId) {
+    throw new KonlingRuntimeScopeError(400, '候选路径比较不能选择同一条路径。');
+  }
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
   const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
   const path = await assertScopedAdaptivePathToolPath(input, pathId, {
@@ -5114,6 +5122,7 @@ async function buildAdaptivePathTradeoffOutput(
   const comparison = selectedOption && comparedOption && selectedOption.styleId !== comparedOption.styleId
     ? buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)
     : buildUnavailableAdaptivePathDifferenceExplanation(path.id, options);
+  if (args.comparisonKey) comparison.comparisonKey = args.comparisonKey;
   return {
     operation: 'explained',
     scope: buildAdaptivePathToolScope(input, goalId, path.id),
@@ -5455,6 +5464,7 @@ interface AdaptivePathStoredNodeSummary {
 interface AdaptivePathDifferenceExplanation {
   status: 'ready' | 'no-material-difference' | 'insufficient-data';
   pathId: string;
+  comparisonKey?: string;
   options: Array<{
     optionId: string;
     styleId: string;

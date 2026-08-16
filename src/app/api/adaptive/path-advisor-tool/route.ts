@@ -20,6 +20,7 @@ import {
 import { prisma } from '@/lib/prisma';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { getAdaptivePracticeGoalOption } from '@/lib/adaptive-path-goal-options';
+import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
 import {
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
@@ -116,6 +117,22 @@ export async function POST(request: Request) {
     }
 
     const requestedToolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    if (operation === 'explain' && requestedToolInput.candidateBatchId) {
+      const candidateBatch = await readAdaptivePathCandidateBatch(prisma as any, requestedToolInput.candidateBatchId);
+      const candidateStyleIds = new Set(candidateBatch?.candidates.map((candidate) => candidate.styleId) ?? []);
+      if (
+        !candidateBatch ||
+        candidateBatch.userId !== session.user.id ||
+        candidateBatch.goalId !== goalId ||
+        candidateBatch.sourcePathId !== requestedToolInput.pathId ||
+        !requestedToolInput.styleId ||
+        !requestedToolInput.compareWithStyleId ||
+        !candidateStyleIds.has(requestedToolInput.styleId) ||
+        !candidateStyleIds.has(requestedToolInput.compareWithStyleId)
+      ) {
+        return NextResponse.json({ error: '候选比较对象不属于当前学习路径批次' }, { status: 403 });
+      }
+    }
     if (generationRequestId) {
       requestedToolInput.idempotencyKey = `path-generation-request:${generationRequestId}`;
     }
@@ -396,6 +413,12 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
     selectedStyleId,
     styleId: selectedStyleId,
     compareWithStyleId,
+    candidateBatchId: typeof body.candidateBatchId === 'string' && body.candidateBatchId.length > 0
+      ? body.candidateBatchId
+      : undefined,
+    comparisonKey: typeof body.comparisonKey === 'string' && body.comparisonKey.length > 0
+      ? body.comparisonKey
+      : undefined,
     excludedNodeIds,
     preferredStyleId,
     requestedAt: typeof body.requestedAt === 'string' && body.requestedAt.length > 0 ? body.requestedAt : new Date().toISOString(),
