@@ -34,7 +34,7 @@ Buddy-auto lite 若仍因历史 `e734` Claim 判 `partial`/`foreign`，按用户
 | imageTag | `localhost/act-obe-platform:v018-94d585ae63a6` |
 | imageTarSha256 | `bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024` |
 
-任务：1.1、1.2、2.1–2.3、3.2 已勾选。1.3、3.1（主机尚未放置 v0.18 候选树）、3.3、3.4、3.5 仍开。3.4 因 Codex P1 收回：READY 收据不能早于 3.3。
+任务：1.1、1.2、2.1–2.3、3.1–3.4 已勾选。1.3、3.5 仍开。3.3 已用主机证据通过：生产仍解析 v0.9，v0.18 候选树在 `data/runtime/knowledge-cutover/candidates/`，未改五个选择器。密封收据现为 READY，`nextAction=activate-actkg-v018-production-cutover`，但尚未认领 #1412。
 
 ## 当前必须做的事
 
