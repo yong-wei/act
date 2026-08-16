@@ -1,0 +1,21 @@
+{
+  "contract": "actkg-v018-production-cutover-receipt/v1",
+  "transactionId": "v018-cutover-2026-08-16T131321310Z",
+  "status": "READY",
+  "ready": true,
+  "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
+  "nextAction": "retain-v09-rollback",
+  "observations": {
+    "expectedObjectCount": 6843,
+    "expectedRelationCount": 2811,
+    "expectedHashes": {
+      "authority": "868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d",
+      "projection": "cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703",
+      "prerequisite": "a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e",
+      "authority-domain-shards": "9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c",
+      "consumer-activation": "e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b"
+    }
+  },
+  "blockers": [],
+  "receiptDigest": "ba9d2f758ba99cf5b14d3ae15087ff7500c2c9283b39e5247a9ff5409c7041af"
+}
