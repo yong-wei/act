@@ -178,12 +178,12 @@ describe('Arena official Konling followup', () => {
           evidence: { sourceSubmission: { score: 60, metrics: {}, hardConstraintResults: [] } },
         }),
         create: vi.fn(),
-        updateMany: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
     };
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
-    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+    expect(db.aIIntervention.updateMany).toHaveBeenCalled();
   });
 
   it('does not let a later concurrent submission steal an earlier successor revisit', async () => {
@@ -226,5 +226,40 @@ describe('Arena official Konling followup', () => {
     };
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
+  });
+
+  it('uses a locked database check so a later submission cannot claim an earlier successor', async () => {
+    const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: { status: 'revisited', claimedSubmittedAt: '2026-08-03T00:00:00.000Z' },
+          evidence: {
+            sourceSubmission: {
+              score: 60,
+              submittedAt: '2026-08-01T00:00:00.000Z',
+              metrics: {},
+              hardConstraintResults: [],
+            },
+          },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      arenaSubmission: {
+        findFirst: vi.fn().mockResolvedValue({ id: 's2' }),
+      },
+      $executeRaw: vi.fn().mockResolvedValue(1),
+    };
+
+    await expect(readArenaOfficialRevisit({
+      db,
+      submission: later,
+      history: [later],
+    })).resolves.toBeNull();
+    expect(db.arenaSubmission.findFirst).toHaveBeenCalled();
+    expect(db.$executeRaw).toHaveBeenCalled();
   });
 });

@@ -25,7 +25,11 @@ export interface ArenaKonlingFollowupDb {
     create(args: unknown): Promise<{ id: string }>;
     updateMany?(args: unknown): Promise<{ count: number }>;
   };
+  arenaSubmission?: {
+    findFirst(args: unknown): Promise<{ id: string } | null>;
+  };
   $executeRaw?(strings: TemplateStringsArray, ...values: unknown[]): Promise<number>;
+  $transaction?<T>(fn: (tx: ArenaKonlingFollowupDb) => Promise<T>): Promise<T>;
 }
 
 export async function createArenaOfficialKonlingFollowup(input: {
@@ -100,10 +104,14 @@ export async function readArenaOfficialRevisit(input: {
   });
   if (!previous) return null;
   const baseline = baselineFromEvidence(previous.evidence);
-  if (!baseline || isRevisitedOutcome(previous.outcome)) return null;
+  if (!baseline) return null;
   const baselineAt = Date.parse(baseline.submittedAt ?? previous.createdAt.toISOString());
   if (!isEarliestSuccessor(input.submission, baselineAt, input.history ?? [])) return null;
-  if (!await claimOfficialRevisit(input.db, previous.id, input.submission)) return null;
+  if (!await claimOfficialRevisit(input.db, {
+    interventionId: previous.id,
+    submission: input.submission,
+    baselineAt,
+  })) return null;
 
   const currentFailures = failureLabels(input.submission);
   const status = currentFailures.length === 0 ? '本次正式评测的硬约束均已通过。' : `本次仍未通过：${currentFailures.join('、')}。`;
@@ -214,38 +222,72 @@ function isRevisitedOutcome(value: unknown): boolean {
 
 async function claimOfficialRevisit(
   db: ArenaKonlingFollowupDb,
-  interventionId: string,
-  submission: ArenaSubmissionRecord,
+  input: {
+    interventionId: string;
+    submission: ArenaSubmissionRecord;
+    baselineAt: number;
+  },
 ): Promise<boolean> {
+  if (typeof db.$transaction === 'function') {
+    return db.$transaction((tx) => claimOfficialRevisitLocked(tx, input));
+  }
+  return claimOfficialRevisitLocked(db, input);
+}
+
+async function claimOfficialRevisitLocked(
+  db: ArenaKonlingFollowupDb,
+  input: {
+    interventionId: string;
+    submission: ArenaSubmissionRecord;
+    baselineAt: number;
+  },
+): Promise<boolean> {
+  if (typeof db.$executeRaw === 'function') {
+    await db.$executeRaw`SELECT id FROM "AIIntervention" WHERE id = ${input.interventionId} FOR UPDATE`;
+  }
+  if (db.arenaSubmission) {
+    const earlier = await db.arenaSubmission.findFirst({
+      where: {
+        userId: input.submission.userId,
+        taskId: input.submission.taskId,
+        classId: input.submission.classId ?? null,
+        id: { not: input.submission.id },
+        submittedAt: {
+          gt: new Date(input.baselineAt),
+          lt: new Date(input.submission.submittedAt),
+        },
+      },
+      select: { id: true },
+    });
+    if (earlier) return false;
+  }
   const patch = {
     status: 'revisited',
-    revisitedBySubmissionId: submission.id,
-    claimedSubmittedAt: submission.submittedAt,
+    revisitedBySubmissionId: input.submission.id,
+    claimedSubmittedAt: input.submission.submittedAt,
   };
   if (typeof db.$executeRaw === 'function') {
     const rows = await db.$executeRaw`
       UPDATE "AIIntervention"
       SET outcome = COALESCE(outcome, '{}'::jsonb) || ${JSON.stringify(patch)}::jsonb
-      WHERE id = ${interventionId}
+      WHERE id = ${input.interventionId}
         AND (
           outcome IS NULL
           OR COALESCE(outcome->>'status', '') <> 'revisited'
-          OR COALESCE(outcome->>'claimedSubmittedAt', '9999-12-31') > ${submission.submittedAt}
+          OR COALESCE(outcome->>'claimedSubmittedAt', '9999-12-31') > ${input.submission.submittedAt}
         )
     `;
     return rows === 1;
   }
   const claimed = await db.aIIntervention.updateMany?.({
     where: {
-      id: interventionId,
+      id: input.interventionId,
       OR: [
         { outcome: null },
         { NOT: { outcome: { path: ['status'], equals: 'revisited' } } },
       ],
     },
-    data: {
-      outcome: patch,
-    },
+    data: { outcome: patch },
   });
   return (claimed?.count ?? 0) === 1;
 }

@@ -7878,21 +7878,38 @@ export async function recordKonlingInterventionFeedback(
     helpful: input.helpful ?? null,
     recordedAt: new Date().toISOString(),
   };
-  const updateResult = await db.aIIntervention?.updateMany?.({
-    where: {
-      id: input.interventionId,
-      userId: input.scope.targetUserId,
-      classId: input.scope.classId ?? null,
-      resourceId: input.scope.resourceId ?? null,
-      pathNodeId: input.scope.pathNodeId ?? null,
-    },
-    data: {
-      wasHelpful: input.helpful ?? null,
-      studentResponse: input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : undefined,
-      outcome,
-    },
-  });
-  const updatedCount = typeof getValue(updateResult, 'count') === 'number' ? getValue(updateResult, 'count') as number : 0;
+  const executeRaw = (db as { $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<number> }).$executeRaw;
+  let updatedCount = 0;
+  if (typeof executeRaw === 'function') {
+    updatedCount = await executeRaw`
+      UPDATE "AIIntervention"
+      SET
+        "wasHelpful" = ${input.helpful ?? null},
+        "studentResponse" = COALESCE(${input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : null}, "studentResponse"),
+        outcome = COALESCE(outcome, '{}'::jsonb) || ${JSON.stringify(outcome)}::jsonb
+      WHERE id = ${input.interventionId}
+        AND "userId" = ${input.scope.targetUserId}
+        AND "classId" IS NOT DISTINCT FROM ${input.scope.classId ?? null}
+        AND "resourceId" IS NOT DISTINCT FROM ${input.scope.resourceId ?? null}
+        AND "pathNodeId" IS NOT DISTINCT FROM ${input.scope.pathNodeId ?? null}
+    `;
+  } else {
+    const updateResult = await db.aIIntervention?.updateMany?.({
+      where: {
+        id: input.interventionId,
+        userId: input.scope.targetUserId,
+        classId: input.scope.classId ?? null,
+        resourceId: input.scope.resourceId ?? null,
+        pathNodeId: input.scope.pathNodeId ?? null,
+      },
+      data: {
+        wasHelpful: input.helpful ?? null,
+        studentResponse: input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : undefined,
+        outcome,
+      },
+    });
+    updatedCount = typeof getValue(updateResult, 'count') === 'number' ? getValue(updateResult, 'count') as number : 0;
+  }
   if (updatedCount !== 1) {
     throw new KonlingRuntimeScopeError(404, '干预不存在或不属于当前 Konling 作用域。');
   }
