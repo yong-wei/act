@@ -1,14 +1,14 @@
 {
   "change": "project-profile-evidence-projection",
-  "capturedAt": "2026-08-16T05:30:15.291Z",
-  "captureRevision": "20c7ea305a49df3d702d63aee2261ab8e25d93d1",
+  "capturedAt": "2026-08-16T10:53:50.911Z",
+  "captureRevision": "7ef2ff6218555a9ee37063c65d3eac42287ad9af",
   "generator": "artifacts/commercial-ui/profile-evidence-availability-2/capture-profile-evidence-availability.mjs",
   "sourceHashes": {
     "artifacts/commercial-ui/profile-evidence-availability-2/capture-profile-evidence-availability.mjs": "92f8ae717a0f393f116f5c9ed61ce03a20c1cb339a6189bea6826401905bb09d",
     "tests/portfolio-reflection-drafts-1321.spec.ts": "3b7e4dc08a7a527062fd651de1e1ae07fd41c7e4a5dbc978347a79acf1fb6805",
     "src/app/(main)/profile/portfolio/page.tsx": "d9be27ba4c65615808acd35b1820850a0bed3c178e505655fbc761af6d7e38bb",
     "src/app/api/profile/portfolio-evidence/route.ts": "10bae3eba0a3806c68d1a3add7f3ae0238246539cddc85619bac5b9ea032c439",
-    "src/lib/data-governance/profile-portfolio-evidence.ts": "8dbc609096b428997047cfffa9414957ba8c8a4823219c53b6ccee74303a4a4d"
+    "src/lib/data-governance/profile-portfolio-evidence.ts": "06d2d0eecd8f7fe322e2f7eb86d403dd37ce7090b671e85eb576ff037ec4b185"
   },
   "routes": [
     "/profile/portfolio"
@@ -20,7 +20,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "2196958e9b595c26081bc7abf89b92ba9e49ebaa656c7fcd416e96f714ade323",
+      "sha256": "edc45372f59f5d285f91956310475f723ce498371be5d88f46d7fe553ac3fdd7",
       "dimensions": {
         "width": 1440,
         "height": 1000
