@@ -26,6 +26,7 @@
 - [x] 新增可信事实后增量更新不重新吸收旧污染事实
 - [x] NO_EVIDENCE 时推荐与路径规划不读取 legacy fallback
 - [x] 相同输入重复重建 digest 与 current pointer 幂等
+- [x] 修复 adaptive-learning-center-ui 契约断言并运行 13 个相关 Vitest（668 passed / 0 failed）
 - [x] 运行相关 Vitest
 - [x] 运行 `npm run typecheck`
 
@@ -41,4 +42,4 @@
 - [x] `openspec validate rebuild-portrait-v2-from-trusted-facts --type change --strict`
 - [x] `prisma validate`
 - [x] `prisma generate`
-- [ ] 真实 PostgreSQL migration smoke（本机无可用 PostgreSQL/pg_config，未执行）
+- [x] PostgreSQL migration smoke（PGlite PostgreSQL 引擎，非独立 PostgreSQL server）：通过 PGlite socket server 验证迁移前 schema、旧行默认值、可信字段写入与 current pointer 原子切换
