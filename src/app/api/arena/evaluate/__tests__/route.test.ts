@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   reserveOfficialArenaSubmissionOrder: vi.fn(),
   attachOfficialArenaSubmissionReservation: vi.fn(),
   abandonOfficialArenaSubmissionReservation: vi.fn(),
+  releaseOfficialSubmitReservation: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -37,6 +38,7 @@ vi.mock('@/features/arena/student/official-submit-gate', () => ({
   reserveOfficialArenaSubmissionOrder: mocks.reserveOfficialArenaSubmissionOrder,
   attachOfficialArenaSubmissionReservation: mocks.attachOfficialArenaSubmissionReservation,
   abandonOfficialArenaSubmissionReservation: mocks.abandonOfficialArenaSubmissionReservation,
+  releaseOfficialSubmitReservation: mocks.releaseOfficialSubmitReservation,
 }));
 
 vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
@@ -165,6 +167,7 @@ describe('POST /api/arena/evaluate', () => {
     }));
     mocks.attachOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
     mocks.abandonOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
+    mocks.releaseOfficialSubmitReservation.mockResolvedValue(undefined);
   });
 
   it('requires an authenticated user', async () => {

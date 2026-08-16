@@ -160,11 +160,20 @@ async function main() {
         AND tablename = 'ArenaOfficialSubmitReservation'
     `);
     assert.equal(reservationTable.rows.length, 1, 'official submit reservation table missing after migrate deploy');
+    const reservationOrder = await db.query<{ indexdef: string }>(`
+      SELECT indexdef
+      FROM pg_indexes
+      WHERE schemaname = 'public'
+        AND indexname = 'ArenaOfficialSubmitReservation_scope_submittedAt_key'
+    `);
+    assert.equal(reservationOrder.rows.length, 1, 'official submit order unique index missing');
+    assert.match(reservationOrder.rows[0]!.indexdef, /UNIQUE/i);
 
     process.env.DATABASE_URL = ephemeral.databaseUrl;
     const { createPrismaClient } = await import('../../src/lib/prisma-client');
     const {
       attachOfficialArenaSubmissionReservation,
+      releaseOfficialSubmitReservation,
       reserveOfficialArenaSubmissionOrder,
     } = await import('../../src/features/arena/student/official-submit-gate');
     const { readArenaOfficialRevisit } = await import('../../src/features/arena/student/konling-official-followup');
@@ -211,6 +220,26 @@ async function main() {
       taskId,
     });
     assert.ok(Date.parse(earlier.submittedAt) < Date.parse(later.submittedAt), 'reserved official order must be monotonic');
+    const sameMs = await reserveOfficialArenaSubmissionOrder({
+      db: prisma as never,
+      userId,
+      taskId: 'task-official-same-ms',
+    });
+    await assert.rejects(async () => {
+      await db!.query(`
+        INSERT INTO "ArenaOfficialSubmitReservation" ("id", "userId", "taskId", "classId", "submittedAt")
+        VALUES ('reservation-forced-same-ms-dup', $1, 'task-official-same-ms', '', $2)
+      `, [userId, sameMs.submittedAt]);
+    }, (error: unknown) => (error as { code?: string }).code === '23505');
+    const afterCollision = await reserveOfficialArenaSubmissionOrder({
+      db: prisma as never,
+      userId,
+      taskId: 'task-official-same-ms',
+    });
+    assert.ok(
+      Date.parse(afterCollision.submittedAt) > Date.parse(sameMs.submittedAt),
+      'lock-scoped reserve must advance past an existing same-millisecond timestamp',
+    );
 
     await insertOfficialSubmission(db, {
       id: 'submission-later',
@@ -272,6 +301,11 @@ async function main() {
       WHERE id = 'advice-1'
     `);
     assert.equal(claimed.rows[0]?.outcome?.revisitedBySubmissionId, 'submission-earlier');
+
+    await releaseOfficialSubmitReservation(later);
+    await releaseOfficialSubmitReservation(earlier);
+    await releaseOfficialSubmitReservation(sameMs);
+    await releaseOfficialSubmitReservation(afterCollision);
 
     process.stdout.write([
       'arena-official-followup-postgres: ok',

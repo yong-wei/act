@@ -42,6 +42,7 @@ describe('official Arena submit gate', () => {
       userId: 'student-1',
       taskId: 'task-1',
       classId: 'class-a',
+      acquireLease: false,
     });
 
     expect(reservation.submittedAt).toBe('2026-08-17T00:00:01.000Z');

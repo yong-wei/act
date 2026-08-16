@@ -25,6 +25,7 @@ import {
 import {
   abandonOfficialArenaSubmissionReservation,
   attachOfficialArenaSubmissionReservation,
+  releaseOfficialSubmitReservation,
   reserveOfficialArenaSubmissionOrder,
 } from '@/features/arena/student/official-submit-gate';
 
@@ -93,39 +94,40 @@ export async function POST(request: Request) {
     let persisted = false;
     let submission: ArenaSubmissionRecord;
     try {
-      submission = await createPersistedArenaSubmission({
-        taskId: body.taskId,
-        artifact: body.artifact,
-        userId: session.user.id,
-        publicationId: publicationContext?.id,
-        classId: publicationContext?.classId,
-        seasonId: publicationContext?.seasonId,
-        isLate: publicationContext?.isLate,
-        studentLabel: session.user.name ?? '匿名学生',
-        submittedAt: reservation.submittedAt,
-        store: prismaArenaSubmissionStore,
-        blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
-        identificationModelStore: prismaArenaBlackBoxExperimentStore,
-      });
-      persisted = true;
       try {
-        await attachOfficialArenaSubmissionReservation({
-          db: prisma as any,
-          reservationId: reservation.id,
-          submissionId: submission.id,
+        submission = await createPersistedArenaSubmission({
+          taskId: body.taskId,
+          artifact: body.artifact,
+          userId: session.user.id,
+          publicationId: publicationContext?.id,
+          classId: publicationContext?.classId,
+          seasonId: publicationContext?.seasonId,
+          isLate: publicationContext?.isLate,
+          studentLabel: session.user.name ?? '匿名学生',
+          submittedAt: reservation.submittedAt,
+          store: prismaArenaSubmissionStore,
+          blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+          identificationModelStore: prismaArenaBlackBoxExperimentStore,
         });
+        persisted = true;
+        try {
+          await attachOfficialArenaSubmissionReservation({
+            db: prisma as any,
+            reservationId: reservation.id,
+            submissionId: submission.id,
+          });
+        } catch (error) {
+          console.error('Arena official submit reservation attach failed', error);
+        }
       } catch (error) {
-        console.error('Arena official submit reservation attach failed', error);
+        if (!persisted) {
+          await abandonOfficialArenaSubmissionReservation({
+            db: prisma as any,
+            reservationId: reservation.id,
+          }).catch(() => undefined);
+        }
+        throw error;
       }
-    } catch (error) {
-      if (!persisted) {
-        await abandonOfficialArenaSubmissionReservation({
-          db: prisma as any,
-          reservationId: reservation.id,
-        }).catch(() => undefined);
-      }
-      throw error;
-    }
     const persistedWriteback = await persistArenaSubmissionEvidenceWriteback(prisma as any, submission);
     if (persistedWriteback.evidenceWriteback.status === 'accepted') {
       await requestRealtimeSimulationTaskReconciliation(prisma, {
@@ -170,6 +172,9 @@ export async function POST(request: Request) {
       evidenceWriteback,
       konlingFollowup,
     });
+    } finally {
+      await releaseOfficialSubmitReservation(reservation).catch(() => undefined);
+    }
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ArenaPublicationAccessError) {

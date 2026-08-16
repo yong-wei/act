@@ -4661,7 +4661,7 @@ model ArenaOfficialSubmitReservation {
   submissionId String?
   createdAt    DateTime  @default(now())
 
-  @@index([userId, taskId, classId, submittedAt])
+  @@unique([userId, taskId, classId, submittedAt])
   @@index([submissionId])
 }
 
