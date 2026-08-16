@@ -12,12 +12,23 @@ import {
   type Response,
 } from 'playwright';
 
+import {
+  evidenceCaptureRevisionProblems,
+  type EvidenceCaptureRevision,
+} from '../../src/lib/evidence-capture-guard';
+
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
 const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 const threeDimensionalFitSafetyMargin = 8;
+const captureOutputPrefixes = [
+  'artifacts/knowledge-workspace-product-qa-489/',
+  'artifacts/knowledge-workspace-tools-inspector-487/',
+  'artifacts/knowledge-graph-semantic-map-486/',
+  'artifacts/commercial-ui/knowledge-graph-governance-462/',
+] as const;
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
@@ -222,30 +233,60 @@ function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
 }
 
-function readCleanCaptureRevision() {
+function readGitCaptureState() {
   const status = execFileSync(
     'git',
     ['status', '--porcelain=v1', '--untracked-files=all'],
     { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-  ).trim();
-  if (status) {
+  );
+  const dirtyPaths = status
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((entry) => entry.slice(3).split(' -> ').at(-1) ?? entry)
+    .map((entry) => entry.replace(/^"|"$/gu, '').replace(/\\/gu, '/'));
+  return {
+    revision: {
+      commitSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{commit}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+      treeSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{tree}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+    } satisfies EvidenceCaptureRevision,
+    dirtyPaths,
+  };
+}
+
+function readCleanCaptureRevision() {
+  const state = readGitCaptureState();
+  if (state.dirtyPaths.length > 0) {
     throw new Error(
-      `knowledge workspace product QA capture requires a clean Git worktree; commit or remove these changes first:\n${status}`,
+      `knowledge workspace product QA capture requires a clean Git worktree; commit or remove these changes first:\n${state.dirtyPaths.join('\n')}`,
     );
   }
+  return state.revision;
+}
 
-  return {
-    commitSha: execFileSync(
-      'git',
-      ['rev-parse', '--verify', 'HEAD^{commit}'],
-      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-    ).trim(),
-    treeSha: execFileSync(
-      'git',
-      ['rev-parse', '--verify', 'HEAD^{tree}'],
-      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-    ).trim(),
-  };
+function assertCaptureRevisionUnchanged(
+  expected: EvidenceCaptureRevision,
+  phase: string,
+  allowedDirtyPrefixes: readonly string[] = [],
+) {
+  const actual = readGitCaptureState();
+  const problems = evidenceCaptureRevisionProblems(
+    expected,
+    actual.revision,
+    actual.dirtyPaths,
+    allowedDirtyPrefixes,
+  );
+  if (problems.length > 0) {
+    throw new Error(`knowledge workspace product QA capture ${phase} failed closed: ${problems.join(', ')}`);
+  }
+  return actual;
 }
 
 function ensureOutputDir() {
@@ -2624,6 +2665,7 @@ async function captureActiveAuthorityVisualMatrix(
 function writeToolsInspectorCompatibilityEvidence(
   stateMatrix: Array<Record<string, unknown>>,
   focusEvidence: Array<Record<string, unknown>>,
+  captureRevision: EvidenceCaptureRevision,
 ) {
   const targetDir = path.join(repoRoot, 'artifacts/knowledge-workspace-tools-inspector-487');
   mkdirSync(targetDir, { recursive: true });
@@ -2719,6 +2761,8 @@ function writeToolsInspectorCompatibilityEvidence(
     issue: 487,
     refreshedBy: 'standardize-knowledge-graph-floating-panels',
     capturedAt: new Date().toISOString(),
+    headCommit: captureRevision.commitSha,
+    captureRevision,
     baseUrl,
     selectedNodeId,
     designSourceOfTruth: {
@@ -2759,7 +2803,10 @@ function copyStateScreenshot(
   return state;
 }
 
-function writeSemanticMapCompatibilityEvidence(stateMatrix: Array<Record<string, unknown>>) {
+function writeSemanticMapCompatibilityEvidence(
+  stateMatrix: Array<Record<string, unknown>>,
+  captureRevision: EvidenceCaptureRevision,
+) {
   const targetDir = path.join(repoRoot, 'artifacts/knowledge-graph-semantic-map-486');
   mkdirSync(targetDir, { recursive: true });
   const mappings = [
@@ -2802,6 +2849,8 @@ function writeSemanticMapCompatibilityEvidence(stateMatrix: Array<Record<string,
   );
   writeFileSync(path.join(targetDir, 'browser-evidence.json'), `${JSON.stringify({
     capturedAt: new Date().toISOString(),
+    headCommit: captureRevision.commitSha,
+    captureRevision,
     change: 'refine-knowledge-graph-semantic-map-presentation',
     route: '/knowledge',
     sourceEvidence: {
@@ -2824,7 +2873,10 @@ function writeSemanticMapCompatibilityEvidence(stateMatrix: Array<Record<string,
   }, null, 2)}\n`, 'utf8');
 }
 
-function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string, unknown>>) {
+function writeKnowledgeGraphGovernanceEvidence(
+  stateMatrix: Array<Record<string, unknown>>,
+  captureRevision: EvidenceCaptureRevision,
+) {
   const targetPath = path.join(repoRoot, 'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json');
   const defaultState = stateRecordByName(stateMatrix, 'desktop-default-collapsed-dark');
   const nodeFilterState = stateRecordByName(stateMatrix, 'desktop-local-tools-filter-dark');
@@ -2853,6 +2905,8 @@ function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string,
     change: 'govern-knowledge-graph-navigation-and-visual-qa',
     route: '/knowledge',
     capturedAt: new Date().toISOString(),
+    headCommit: captureRevision.commitSha,
+    captureRevision,
     localToolEvidence: {
       desktopDefault: {
         width: 1440,
@@ -2916,6 +2970,7 @@ function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string,
 
 async function main() {
   const captureRevision = readCleanCaptureRevision();
+  const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
   ensureOutputDir();
   const sessions = new Map<KnowledgeRole, RoleSession>();
   for (const role of ['student', 'teacher', 'admin'] as const) {
@@ -3413,12 +3468,33 @@ async function main() {
       studentSession.storageState,
     );
     const authenticatedRoleEvidence = await captureAuthenticatedRoleEvidence(browser, sessions);
+    const afterBrowserCapture = assertCaptureRevisionUnchanged(captureRevision, 'after-browser-capture');
     const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
+    const changedSourceFiles = sourceFiles.filter((file) => sourceSha256Before[file] !== currentSourceSha256[file]);
+    if (changedSourceFiles.length > 0) {
+      throw new Error(
+        `knowledge workspace product QA capture source changed during capture: ${changedSourceFiles.join(', ')}`,
+      );
+    }
     const evidence = {
       change: 'govern-knowledge-workspace-product-qa',
       issue: 489,
       capturedAt: new Date().toISOString(),
+      headCommit: captureRevision.commitSha,
       captureRevision,
+      captureGuard: {
+        before: {
+          commitSha: captureRevision.commitSha,
+          treeSha: captureRevision.treeSha,
+          dirty: false,
+        },
+        afterBrowserCapture: {
+          commitSha: afterBrowserCapture.revision.commitSha,
+          treeSha: afterBrowserCapture.revision.treeSha,
+          dirty: afterBrowserCapture.dirtyPaths.length > 0,
+        },
+        allowedOutputPrefixes: [...captureOutputPrefixes, 'artifacts/commercial-ui/evidence.json'],
+      },
       baseUrl,
       selectedNodeConfigured: Boolean(selectedNodeId),
       designSourceOfTruth: {
@@ -3487,9 +3563,15 @@ async function main() {
     writeToolsInspectorCompatibilityEvidence(
       stateMatrix as Array<Record<string, unknown>>,
       focusEvidence as Array<Record<string, unknown>>,
+      captureRevision,
     );
-    writeSemanticMapCompatibilityEvidence(stateMatrix as Array<Record<string, unknown>>);
-    writeKnowledgeGraphGovernanceEvidence(stateMatrix as Array<Record<string, unknown>>);
+    writeSemanticMapCompatibilityEvidence(stateMatrix as Array<Record<string, unknown>>, captureRevision);
+    writeKnowledgeGraphGovernanceEvidence(stateMatrix as Array<Record<string, unknown>>, captureRevision);
+    assertCaptureRevisionUnchanged(
+      captureRevision,
+      'after-artifact-write',
+      [...captureOutputPrefixes, 'artifacts/commercial-ui/evidence.json'],
+    );
     console.log(`captured ${stateMatrix.length} knowledge workspace QA states at ${path.relative(repoRoot, outputDir)}`);
   } finally {
     await browser.close();
