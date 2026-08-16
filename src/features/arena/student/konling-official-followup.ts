@@ -84,6 +84,7 @@ export async function createArenaOfficialKonlingFollowup(input: {
 export async function readArenaOfficialRevisit(input: {
   db: ArenaKonlingFollowupDb;
   submission: ArenaSubmissionRecord;
+  history?: readonly ArenaSubmissionRecord[];
 }): Promise<string | null> {
   const previous = await input.db.aIIntervention.findFirst({
     where: {
@@ -96,11 +97,18 @@ export async function readArenaOfficialRevisit(input: {
     select: { id: true, evidence: true, outcome: true, createdAt: true },
   });
   if (!previous || isRevisitedOutcome(previous.outcome)) return null;
+  if (!isEarliestSuccessor(input.submission, previous.createdAt, input.history ?? [])) return null;
   const baseline = baselineFromEvidence(previous.evidence);
   if (!baseline) return null;
 
-  await input.db.aIIntervention.updateMany?.({
-    where: { id: previous.id },
+  const claimed = await input.db.aIIntervention.updateMany?.({
+    where: {
+      id: previous.id,
+      OR: [
+        { outcome: null },
+        { NOT: { outcome: { path: ['status'], equals: 'revisited' } } },
+      ],
+    },
     data: {
       outcome: {
         ...(isRecord(previous.outcome) ? previous.outcome : {}),
@@ -109,6 +117,7 @@ export async function readArenaOfficialRevisit(input: {
       },
     },
   });
+  if ((claimed?.count ?? 0) !== 1) return null;
 
   const currentFailures = failureLabels(input.submission);
   const status = currentFailures.length === 0 ? '本次正式评测的硬约束均已通过。' : `本次仍未通过：${currentFailures.join('、')}。`;
@@ -215,6 +224,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isRevisitedOutcome(value: unknown): boolean {
   return isRecord(value) && value.status === 'revisited';
+}
+
+function isEarliestSuccessor(
+  submission: ArenaSubmissionRecord,
+  previousCreatedAt: Date,
+  history: readonly ArenaSubmissionRecord[],
+): boolean {
+  const previousMs = previousCreatedAt.getTime();
+  const currentMs = Date.parse(submission.submittedAt);
+  if (!Number.isFinite(currentMs) || currentMs <= previousMs) return false;
+  return !history.some((item) => (
+    item.id !== submission.id
+    && item.userId === submission.userId
+    && item.taskId === submission.taskId
+    && item.classId === submission.classId
+    && Date.parse(item.submittedAt) > previousMs
+    && Date.parse(item.submittedAt) < currentMs
+  ));
 }
 
 function baselineFromEvidence(value: unknown): { score: number; metrics: Record<string, number>; hardConstraintResults: ArenaSubmissionRecord['evaluation']['hardConstraintResults'] } | null {

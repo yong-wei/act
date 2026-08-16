@@ -114,6 +114,7 @@ export async function POST(request: Request) {
       const revisit = await readArenaOfficialRevisit({
         db: prisma as any,
         submission,
+        history,
       });
       const followup = await createArenaOfficialKonlingFollowup({
         db: prisma as any,

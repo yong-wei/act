@@ -123,7 +123,7 @@ describe('Arena official Konling followup', () => {
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toContain('调节时间 -1');
     expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'advice-1' },
+      where: expect.objectContaining({ id: 'advice-1' }),
       data: expect.objectContaining({
         outcome: expect.objectContaining({
           status: 'revisited',
@@ -156,7 +156,7 @@ describe('Arena official Konling followup', () => {
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toContain('调节时间 -1');
     expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'advice-1' },
+      where: expect.objectContaining({ id: 'advice-1' }),
       data: {
         outcome: expect.objectContaining({
           feedback: 'rated',
@@ -185,5 +185,47 @@ describe('Arena official Konling followup', () => {
 
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
     expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('does not let a later concurrent submission steal an earlier successor revisit', async () => {
+    const earlier = submission({ id: 's2', submittedAt: '2026-08-02T00:00:00.000Z', valid: true, score: 70 });
+    const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: { helpful: true },
+          evidence: { sourceSubmission: { score: 60, metrics: {}, hardConstraintResults: [] } },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+    };
+
+    await expect(readArenaOfficialRevisit({
+      db,
+      submission: later,
+      history: [earlier, later],
+    })).resolves.toBeNull();
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('returns null when another request already claimed the revisit', async () => {
+    const current = submission({ id: 's2', submittedAt: '2026-08-02T00:00:00.000Z', valid: true, score: 80, metrics: { settlingTime: 2 } });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: null,
+          evidence: { sourceSubmission: { score: 60, metrics: { settlingTime: 3 }, hardConstraintResults: [] } },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+    };
+
+    await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
   });
 });

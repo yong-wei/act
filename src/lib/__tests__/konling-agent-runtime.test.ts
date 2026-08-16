@@ -12932,6 +12932,39 @@ describe('konling agent runtime', () => {
     expect(db.evidenceOutbox.createMany).toHaveBeenCalled();
   });
 
+  it('does not write learning-path outcomes for Arena official follow-up feedback', async () => {
+    const scope = createScope();
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-followup-1',
+          sessionId: 'arena-official:task-1:submission-1',
+          interventionType: 'guidance',
+          content: '先使当前未通过的硬约束达标。',
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn(),
+      },
+      learningPathIntervention: {
+        create: vi.fn(),
+      },
+    };
+
+    await expect(recordKonlingInterventionFeedback(db as never, {
+      scope,
+      interventionId: 'advice-followup-1',
+      feedback: 'rated',
+      helpful: true,
+    })).resolves.toMatchObject({ success: true });
+    expect(db.learningPath.findMany).not.toHaveBeenCalled();
+    expect(db.learningPathIntervention.create).not.toHaveBeenCalled();
+  });
+
   it('persists intervention feedback for a recently completed path node after the active node advances', async () => {
     const scope = createScope({ pathNodeId: 'node-1' });
     const db = {

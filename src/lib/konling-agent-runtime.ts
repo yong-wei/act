@@ -7909,8 +7909,14 @@ export async function recordKonlingInterventionFeedback(
     summary: `学生对干预 ${input.interventionId} 的反馈：${input.feedback}${input.helpful === undefined ? '' : `，helpful=${input.helpful}`}`,
     evidenceRefs: [{ kind: 'ai-intervention', ref: input.interventionId }],
   });
-  await recordKonlingPathInterventionOutcome(db, input, existingIntervention ?? null);
+  if (!isArenaOfficialIntervention(existingIntervention)) {
+    await recordKonlingPathInterventionOutcome(db, input, existingIntervention ?? null);
+  }
   return { success: true, outcome };
+}
+
+function isArenaOfficialIntervention(intervention: unknown): boolean {
+  return getString(intervention, 'sessionId').startsWith('arena-official:');
 }
 
 async function recordKonlingPathInterventionOutcome(
