@@ -24,17 +24,15 @@ import {
   type PortfolioFeedbackDraft,
 } from '@/lib/student-feedback-task-contract';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import type {
+  PortfolioEvidenceSourceState,
+  ClassroomPortfolioWork,
+  EthicsPortfolioCase,
+  SimulationPortfolioDesign,
+} from '@/lib/data-governance/profile-portfolio-evidence';
 
 interface PortfolioData {
-  // Representative works from classroom sessions
-  classWorks: Array<{
-    id: string;
-    title: string;
-    type: string;
-    content: string;
-    createdAt: string;
-    sessionName?: string;
-  }>;
+  classWorks: ClassroomPortfolioWork[];
   // Quality prompt designs
   promptDesigns: Array<{
     id: string;
@@ -44,21 +42,14 @@ interface PortfolioData {
     createdAt: string;
   }>;
   // Simulation designs
-  simulationDesigns: Array<{
-    id: string;
-    name: string;
-    score: number;
-    parameters: Record<string, number>;
-    createdAt: string;
-  }>;
+  simulationDesigns: SimulationPortfolioDesign[];
   // Ethics remediation cases
-  ethicsCases: Array<{
-    id: string;
-    violationType: string;
-    description: string;
-    remediationAction: string;
-    createdAt: string;
-  }>;
+  ethicsCases: EthicsPortfolioCase[];
+  evidenceStates: {
+    classroom: PortfolioEvidenceSourceState;
+    simulations: PortfolioEvidenceSourceState;
+    ethics: PortfolioEvidenceSourceState;
+  };
   // AI collaboration reflections
   reflections: Array<{
     id: string;
@@ -118,49 +109,34 @@ export default function PortfolioPage() {
   const fetchPortfolio = useCallback(async () => {
     try {
       setLoading(true);
-      const mockData: PortfolioData = {
-        classWorks: [],
-        promptDesigns: [],
-        simulationDesigns: [],
-        ethicsCases: [],
-        reflections: [],
-      };
-
-      const reflectionResponse = await fetch('/api/profile/portfolio-reflection-drafts');
+      const [reflectionResponse, evidenceResponse] = await Promise.all([
+        fetch('/api/profile/portfolio-reflection-drafts'),
+        fetch('/api/profile/portfolio-evidence'),
+      ]);
       if (!reflectionResponse.ok) {
         throw new Error('加载反思草稿失败');
       }
       const reflectionData = (await reflectionResponse.json()) as { drafts: PortfolioData['reflections'] };
-      mockData.reflections = reflectionData.drafts;
+      const evidenceData = evidenceResponse.ok
+        ? await evidenceResponse.json() as {
+            classroom: { state: PortfolioEvidenceSourceState; items: ClassroomPortfolioWork[] };
+            simulations: { state: PortfolioEvidenceSourceState; items: SimulationPortfolioDesign[] };
+            ethics: { state: PortfolioEvidenceSourceState; items: EthicsPortfolioCase[] };
+          }
+        : null;
 
-      // Fetch simulation logs for designs
-      const simResponse = await fetch('/api/simulation/cruise-summary-insight');
-      if (simResponse.ok) {
-        const simData = await simResponse.json();
-        if (simData.designs) {
-          mockData.simulationDesigns = simData.designs.slice(0, 5);
-        }
-      }
-
-      // Fetch prompt assessments
-      const promptResponse = await fetch('/api/evaluation/prompt-history/' + session?.user?.id);
-      if (promptResponse.ok) {
-        const promptData = await promptResponse.json();
-        if (promptData.prompts) {
-          mockData.promptDesigns = promptData.prompts.filter((p: { score: number }) => p.score >= 70).slice(0, 5);
-        }
-      }
-
-      // Fetch ethics logs
-      const ethicsResponse = await fetch('/api/ethics/violation');
-      if (ethicsResponse.ok) {
-        const ethicsData = await ethicsResponse.json();
-        if (ethicsData.violations) {
-          mockData.ethicsCases = ethicsData.violations.filter((v: { isResolved: boolean }) => v.isResolved).slice(0, 5);
-        }
-      }
-
-      setPortfolio(mockData);
+      setPortfolio({
+        classWorks: evidenceData?.classroom.items ?? [],
+        promptDesigns: [],
+        simulationDesigns: evidenceData?.simulations.items ?? [],
+        ethicsCases: evidenceData?.ethics.items ?? [],
+        evidenceStates: {
+          classroom: evidenceData?.classroom.state ?? 'unavailable',
+          simulations: evidenceData?.simulations.state ?? 'unavailable',
+          ethics: evidenceData?.ethics.state ?? 'unavailable',
+        },
+        reflections: reflectionData.drafts,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -309,10 +285,16 @@ export default function PortfolioPage() {
 
         {/* Tab Content */}
         <div className="min-h-[400px]">
-          {activeTab === 'works' && <ClassWorksTab works={portfolio?.classWorks || []} />}
+          {activeTab === 'works' && (
+            <ClassWorksTab works={portfolio?.classWorks || []} sourceState={portfolio?.evidenceStates.classroom ?? 'unavailable'} />
+          )}
           {activeTab === 'prompts' && <PromptDesignsTab designs={portfolio?.promptDesigns || []} />}
-          {activeTab === 'simulations' && <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} />}
-          {activeTab === 'ethics' && <EthicsCasesTab cases={portfolio?.ethicsCases || []} />}
+          {activeTab === 'simulations' && (
+            <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} sourceState={portfolio?.evidenceStates.simulations ?? 'unavailable'} />
+          )}
+          {activeTab === 'ethics' && (
+            <EthicsCasesTab cases={portfolio?.ethicsCases || []} sourceState={portfolio?.evidenceStates.ethics ?? 'unavailable'} />
+          )}
           {activeTab === 'reflections' && (
             <ReflectionsTab
               key={reflectionDraft?.id ?? selectedReflection?.id ?? 'reflection-list'}
@@ -355,14 +337,20 @@ function PortfolioAppShell({
   );
 }
 
-function ClassWorksTab({ works }: { works: PortfolioData['classWorks'] }) {
+function ClassWorksTab({
+  works,
+  sourceState,
+}: {
+  works: PortfolioData['classWorks'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (works.length === 0) {
     return (
       <EmptyState
         icon="📝"
-        title="暂无课堂作品"
-        description="参与互动课程后，你的优秀作品将在这里展示"
-        action={{ label: '进入互动课程', href: '/interactive-learning' }}
+        title={sourceState === 'unavailable' ? '课堂作品暂不可用' : '暂无课堂作品'}
+        description={sourceState === 'unavailable' ? '课堂证据来源暂时无法读取，请稍后重试。' : '参与互动课程后，你的课堂提交将在这里展示'}
+        action={sourceState === 'empty' ? { label: '进入互动课程', href: '/interactive-learning' } : undefined}
       />
     );
   }
@@ -434,14 +422,20 @@ function PromptDesignsTab({ designs }: { designs: PortfolioData['promptDesigns']
   );
 }
 
-function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationDesigns'] }) {
+function SimulationDesignsTab({
+  designs,
+  sourceState,
+}: {
+  designs: PortfolioData['simulationDesigns'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (designs.length === 0) {
     return (
       <EmptyState
         icon="🚢"
-        title="暂无仿真设计记录"
-        description="完成仿真任务后，你的设计方案将在这里展示"
-        action={{ label: '开始仿真', href: '/simulations/destroyer' }}
+        title={sourceState === 'unavailable' ? '仿真记录暂不可用' : '暂无仿真设计记录'}
+        description={sourceState === 'unavailable' ? '仿真证据来源暂时无法读取，请稍后重试。' : '完成仿真任务后，你的设计方案将在这里展示'}
+        action={sourceState === 'empty' ? { label: '开始仿真', href: '/simulations/destroyer' } : undefined}
       />
     );
   }
@@ -453,7 +447,7 @@ function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationD
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-foreground">{design.name || '未命名设计'}</h3>
             <div className="flex items-center gap-1">
-              <span className="text-lg font-bold text-emerald-500">{design.score}</span>
+               <span className="text-lg font-bold text-emerald-500">{design.score ?? '未评分'}</span>
               <span className="text-xs text-subtle">分</span>
             </div>
           </div>
@@ -476,14 +470,20 @@ function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationD
   );
 }
 
-function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
+function EthicsCasesTab({
+  cases,
+  sourceState,
+}: {
+  cases: PortfolioData['ethicsCases'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (cases.length === 0) {
     return (
       <EmptyState
         icon="⚖️"
-        title="暂无伦理整改记录"
-        description="良好的工程伦理意识是优秀工程师的基础，继续保持！"
-        action={{ label: '了解工程伦理', href: '/ethics' }}
+        title={sourceState === 'unavailable' ? '伦理记录暂不可用' : '暂无伦理整改记录'}
+        description={sourceState === 'unavailable' ? '伦理证据来源暂时无法读取，请稍后重试。' : '良好的工程伦理意识是优秀工程师的基础，继续保持！'}
+        action={sourceState === 'empty' ? { label: '了解工程伦理', href: '/ethics' } : undefined}
       />
     );
   }
@@ -494,7 +494,9 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
         <div key={item.id} className="surface-card-soft border-l-4 border-green-500 p-5">
           <div className="flex items-start justify-between">
             <div>
-              <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs text-green-500">已整改</span>
+              <span className={`rounded px-2 py-0.5 text-xs ${item.isResolved ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500'}`}>
+                {item.isResolved ? '已整改' : '待整改'}
+              </span>
               <h3 className="mt-2 font-medium text-foreground">
                 {item.violationType === 'EXCESSIVE_RUDDER_RATE'
                   ? '舵角速度违规'
@@ -512,7 +514,7 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
             <span className="text-xs text-subtle">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <p className="mt-2 text-sm text-subtle">{item.description}</p>
-          {item.remediationAction && (
+          {item.isResolved && item.remediationAction && (
             <div className="mt-3 flex items-start gap-2 rounded bg-green-500/5 p-3">
               <svg className="mt-0.5 h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
