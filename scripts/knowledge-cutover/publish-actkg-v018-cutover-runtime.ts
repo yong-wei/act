@@ -15,6 +15,7 @@ import {
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
 import {
   publishActKgV018CutoverRuntime,
+  resolveSealedFrozenImage,
 } from '../../src/lib/teaching-projection/publish/v018-runtime-release';
 
 function option(argv: readonly string[], name: string): string | undefined {
@@ -74,6 +75,11 @@ export async function prepareActKgV018RuntimeRelease(
     frozenApplicationRevision,
     hostVerificationReport,
     runBuild: async ({ repoRoot: root, imageTag: tag }) => {
+      const sealed = resolveSealedFrozenImage({
+        repoRoot: root,
+        applicationRevision: frozenApplicationRevision,
+      });
+      if (sealed) return { ...sealed, imageTag: tag };
       execFileSync('bash', [path.join(root, 'scripts/build.sh')], {
         cwd: root,
         env: {

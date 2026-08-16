@@ -5,7 +5,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { reviewedNeighborhoodOverlaySha256 } from '../../authority-domain-shards/v018-reviewed-neighborhood-labels';
-import { expectedHostPointerHashes, loadHostShadowVerificationReport } from './v018-host-shadow';
+import {
+  expectedHostPointerHashes,
+  loadHostShadowVerificationReport,
+  V018_FROZEN_IMAGE_TAG,
+} from './v018-host-shadow';
 import { projectionDigest, projectionSha256 } from '../hash';
 import {
   assertV018ProductionPointersUnchanged,
@@ -202,6 +206,24 @@ function verifyQualificationBinding(
     blockers.push('qualification-overlay-hash-drift');
   }
   return blockers;
+}
+
+export function resolveSealedFrozenImage(input: {
+  repoRoot: string;
+  applicationRevision: string;
+}): { imageTag: string; provenancePath: string; imageTarPath: string } | null {
+  const repoRoot = path.resolve(input.repoRoot);
+  const provenancePath = path.join(repoRoot, 'deploy/images/act-obe.tar.provenance.json');
+  const imageTarPath = path.join(repoRoot, 'deploy/images/act-obe.tar');
+  if (!existsSync(provenancePath) || !existsSync(imageTarPath)) return null;
+  const provenance = asRecord(readJson(provenancePath));
+  if (String(provenance.appRevision ?? '') !== input.applicationRevision) return null;
+  if (!/^[a-f0-9]{64}$/.test(String(provenance.imageTarSha256 ?? ''))) return null;
+  return {
+    imageTag: V018_FROZEN_IMAGE_TAG,
+    provenancePath,
+    imageTarPath,
+  };
 }
 
 function verifyProvenance(

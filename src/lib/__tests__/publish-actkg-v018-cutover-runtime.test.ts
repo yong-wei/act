@@ -11,6 +11,7 @@ import {
 import { projectionDigest, projectionSha256 } from '../teaching-projection/hash';
 import {
   expectedHostPointerHashes,
+  V018_FROZEN_APPLICATION_REVISION,
   V018_FROZEN_IMAGE_TAG,
   V018_HOST_SHADOW_CONTRACT,
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
@@ -21,6 +22,7 @@ import {
   DOCKER_MIN_MEMORY_BYTES,
   V018_SEALED_QUALIFICATION_SHA256,
   publishActKgV018CutoverRuntime,
+  resolveSealedFrozenImage,
 } from '../teaching-projection/publish/v018-runtime-release';
 import {
   assertV018ProductionPointersUnchanged,
@@ -417,7 +419,7 @@ describe('v0.18 runtime publication', () => {
       /course-content\/authoring\/knowledge\/cutover\/runtime-releases\/control-theory-engineering-v0\.18\/host-shadow-verification\.json$/,
     );
     expect(resolved.imageTag).toBe(V018_FROZEN_IMAGE_TAG);
-    expect(resolved.frozenApplicationRevision).toBe('94d585ae63a6f1839ce611c7f8a1271df945933f');
+    expect(resolved.frozenApplicationRevision).toBe(V018_FROZEN_APPLICATION_REVISION);
     const override = resolveActKgV018RuntimeReleaseArgs([
       '--repo-root',
       REPO_ROOT,
@@ -484,5 +486,20 @@ describe('v0.18 runtime publication', () => {
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-app-image-not-this-build');
     expect(result.blockers).toContain('host-worker-image-not-this-build');
+  });
+
+  it('reuses the sealed frozen image instead of building from HEAD', () => {
+    expect(resolveSealedFrozenImage({
+      repoRoot: REPO_ROOT,
+      applicationRevision: '0'.repeat(40),
+    })).toBeNull();
+    if (!existsSync(path.join(REPO_ROOT, 'deploy/images/act-obe.tar'))) return;
+    const sealed = resolveSealedFrozenImage({
+      repoRoot: REPO_ROOT,
+      applicationRevision: V018_FROZEN_APPLICATION_REVISION,
+    });
+    expect(sealed).not.toBeNull();
+    expect(sealed?.imageTag).toBe(V018_FROZEN_IMAGE_TAG);
+    expect(sealed?.provenancePath.endsWith('deploy/images/act-obe.tar.provenance.json')).toBe(true);
   });
 });
