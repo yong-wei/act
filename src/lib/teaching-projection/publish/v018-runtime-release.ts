@@ -34,6 +34,10 @@ export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as 
 export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
 export const V018_SEALED_QUALIFICATION_SHA256 =
   '1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1';
+export const V018_SEALED_RUNTIME_RECEIPT_DIGEST =
+  'af084fd21d032f3370d85297f311b46a7114fe64510a9d3b29eef7e15688786f';
+export const V018_SEALED_RUNTIME_RECEIPT_SHA256 =
+  'b239f33d8880dd4752127a442cb9f03aed037bd19c47458e074193a432fd4d11';
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
 export const V09_POINTER_HASHES = {
   'course-content/authoring/knowledge/authority/current.json':

@@ -10,8 +10,10 @@ import {
   V09_HOST_POINTER_HASHES,
 } from './v018-host-shadow';
 import {
-  V018_SEALED_QUALIFICATION_SHA256,
   V018_RUNTIME_RELEASE_CONTRACT,
+  V018_SEALED_QUALIFICATION_SHA256,
+  V018_SEALED_RUNTIME_RECEIPT_DIGEST,
+  V018_SEALED_RUNTIME_RECEIPT_SHA256,
 } from './v018-runtime-release';
 import { projectionCanonicalJson, projectionDigest } from '../hash';
 import {
@@ -216,6 +218,25 @@ function readJsonFile(filePath: string): Record<string, unknown> {
   return asRecord(JSON.parse(readFileSync(filePath, 'utf8')));
 }
 
+export function inspectSealedRuntimeReceipt(bytes: Buffer): {
+  declared: string;
+  actual: string;
+  fileSha256: string;
+  blockers: string[];
+} {
+  const blockers: string[] = [];
+  const runtime = asRecord(JSON.parse(bytes.toString('utf8')));
+  const declared = String(runtime.receiptDigest ?? '');
+  const actual = projectionDigest((({ receiptDigest: _ignored, ...rest }) => rest)(runtime));
+  const fileSha256 = sha256(bytes);
+  if (!declared || declared !== actual) blockers.push('runtime-receipt-digest-mismatch');
+  if (declared !== V018_SEALED_RUNTIME_RECEIPT_DIGEST || actual !== V018_SEALED_RUNTIME_RECEIPT_DIGEST) {
+    blockers.push('runtime-receipt-digest-drift');
+  }
+  if (fileSha256 !== V018_SEALED_RUNTIME_RECEIPT_SHA256) blockers.push('runtime-receipt-bytes-drift');
+  return { declared, actual, fileSha256, blockers };
+}
+
 export function preflightV018ProductionCutover(input: {
   repoRoot: string;
   observation: CutoverHostObservation;
@@ -250,7 +271,9 @@ export function preflightV018ProductionCutover(input: {
   else {
     const bytes = readFileSync(runtimePath);
     const runtime = asRecord(JSON.parse(bytes.toString('utf8')));
-    runtimeReceiptDigest = String(runtime.receiptDigest ?? '');
+    const inspected = inspectSealedRuntimeReceipt(bytes);
+    runtimeReceiptDigest = inspected.actual;
+    blockers.push(...inspected.blockers);
     if (runtime.contract !== V018_RUNTIME_RELEASE_CONTRACT) blockers.push('runtime-receipt-contract');
     if (runtime.status !== 'READY') blockers.push('runtime-receipt-not-ready');
     if (runtime.productionCutoverAuthorized === true) blockers.push('runtime-claimed-cutover');

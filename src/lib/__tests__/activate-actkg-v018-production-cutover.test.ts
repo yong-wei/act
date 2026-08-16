@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { createMapPointerBackend } from '../teaching-projection/publish/v018-production-cutover-backend';
@@ -9,6 +10,7 @@ import {
   executeV018ProductionCutover,
   exerciseV018RollbackPath,
   expectedPredecessorHashes,
+  inspectSealedRuntimeReceipt,
   pointerIdentityFromBytes,
   preflightV018ProductionCutover,
   sealCutoverReceipt,
@@ -25,7 +27,10 @@ import {
   V018_FROZEN_IMAGE_TAG,
   V018_SEALED_IMAGE_CONFIG_SHA256,
 } from '../teaching-projection/publish/v018-host-shadow';
-import { V018_SEALED_QUALIFICATION_SHA256 } from '../teaching-projection/publish/v018-runtime-release';
+import {
+  V018_SEALED_QUALIFICATION_SHA256,
+  V018_SEALED_RUNTIME_RECEIPT_DIGEST,
+} from '../teaching-projection/publish/v018-runtime-release';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
@@ -119,6 +124,37 @@ describe('activate-actkg-v018-production-cutover', () => {
     });
     expect(report.status).toBe('READY');
     expect(report.blockers).toEqual([]);
+    expect(report.runtimeReceiptDigest).toBe(V018_SEALED_RUNTIME_RECEIPT_DIGEST);
+  });
+
+  it('blocks transaction entry when the production marker is absent', () => {
+    const report = preflightV018ProductionCutover({
+      repoRoot: REPO_ROOT,
+      observation: {
+        ...readyObservation(),
+        firstActivationCommitted: false,
+        markerPresent: false,
+      },
+      predecessorSource: 'host',
+    });
+    expect(report.status).toBe('BLOCKED');
+    expect(report.blockers).toContain('production-marker-missing');
+  });
+
+  it('blocks a runtime receipt whose self-seal digest drifted', () => {
+    const sealedPath = path.join(
+      REPO_ROOT,
+      'course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18/runtime-release-receipt.json',
+    );
+    const sealed = JSON.parse(readFileSync(sealedPath, 'utf8')) as Record<string, unknown>;
+    const drifted = Buffer.from(`${JSON.stringify({ ...sealed, status: 'BLOCKED' }, null, 2)}\n`);
+    const inspected = inspectSealedRuntimeReceipt(drifted);
+    expect(inspected.blockers).toEqual(expect.arrayContaining([
+      'runtime-receipt-digest-mismatch',
+      'runtime-receipt-digest-drift',
+      'runtime-receipt-bytes-drift',
+    ]));
+    expect(inspectSealedRuntimeReceipt(readFileSync(sealedPath)).blockers).toEqual([]);
   });
 
   it('does not report READY until consumer activation commits', () => {

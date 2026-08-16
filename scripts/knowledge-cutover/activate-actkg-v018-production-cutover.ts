@@ -31,6 +31,7 @@ import {
 import {
   V09_PUBLIC_DOMAIN_LABELS,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+import { runLiveNamedConsumerShadowReads } from '../../src/lib/teaching-projection/qualify/v018-consumers';
 import { V018_NAMED_CONSUMERS } from '../../src/lib/teaching-projection/qualify/v018-qualify-contract';
 
 function option(argv: readonly string[], name: string): string | undefined {
@@ -80,7 +81,7 @@ function collectObservation(root: string, backend: { read(component: V018Cutover
     workerHealth: option(process.argv, '--worker-health'),
     readyz,
     predecessorFileHashes: hashes,
-    firstActivationCommitted: option(process.argv, '--first-activation-committed') !== 'false',
+    firstActivationCommitted: option(process.argv, '--first-activation-committed') === 'true',
     markerPresent: option(process.argv, '--marker-present') === 'true',
     lockHeld: option(process.argv, '--lock-held') === 'true',
   };
@@ -95,6 +96,17 @@ function restoreCatalog(root: string, predecessorDir: string): void {
   const catalogDir = path.join(root, 'course-content/runtime/knowledge/authority-domain-catalog');
   writeFileSync(path.join(catalogDir, 'catalog.json'), readFileSync(path.join(predecessorDir, 'catalog-catalog.json')));
   writeFileSync(path.join(catalogDir, 'current.json'), readFileSync(path.join(predecessorDir, 'catalog-current.json')));
+}
+
+function httpStatus(publicUrl: string, jar: string, route: string, outFile?: string): number {
+  const raw = execFileSync('curl', [
+    '-sS',
+    '-o', outFile ?? '/dev/null',
+    '-w', '%{http_code}',
+    '-b', jar,
+    `${publicUrl}${route}`,
+  ], { encoding: 'utf8' });
+  return Number(raw);
 }
 
 function verifyPublicV018(publicUrl: string): Record<string, unknown> {
@@ -117,18 +129,67 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   const shards = JSON.parse(execFileSync('curl', ['-fsS', '-b', jar, `${publicUrl}/api/knowledge/shards/active`], { encoding: 'utf8' }));
   const domains = Array.isArray(shards?.root?.domains) ? shards.root.domains : [];
   const labels = domains.map((row: { displayName?: string }) => String(row.displayName ?? '')).filter(Boolean);
-  const teachingRaw = execFileSync('curl', [
-    '-sS', '-o', '/tmp/v018-cutover-teaching.json', '-w', '%{http_code}',
-    '-b', jar,
-    `${publicUrl}/api/knowledge/shards/active/domains/modeling`,
-  ], { encoding: 'utf8' });
+  const teachingStatus = httpStatus(
+    publicUrl,
+    jar,
+    '/api/knowledge/shards/active/domains/modeling',
+    '/tmp/v018-cutover-teaching.json',
+  );
+  const teaching = teachingStatus === 200
+    ? JSON.parse(readFileSync('/tmp/v018-cutover-teaching.json', 'utf8')) as { objects?: Array<{ id?: string }> }
+    : { objects: [] };
+  const nodeIds = (teaching.objects ?? []).map((row) => String(row.id ?? '')).filter(Boolean);
+  const probeNodeId = nodeIds[0] ?? '';
+  const cardStatus = probeNodeId
+    ? httpStatus(publicUrl, jar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(probeNodeId)}`, '/tmp/v018-cutover-card.json')
+    : 0;
+  const neighborhoodStatus = probeNodeId
+    ? httpStatus(publicUrl, jar, `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(probeNodeId)}`)
+    : 0;
+  let infographStatus = 0;
+  let infographNodeId = '';
+  for (const nodeId of nodeIds.slice(0, 8)) {
+    const status = httpStatus(publicUrl, jar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}/infograph`, '/tmp/v018-cutover-infograph.bin');
+    if (status === 200) {
+      infographStatus = status;
+      infographNodeId = nodeId;
+      break;
+    }
+    infographStatus = status;
+  }
+  const konlingStatus = httpStatus(publicUrl, jar, '/api/ai/konling-context');
+  const learningPathStatus = httpStatus(publicUrl, jar, '/api/learning-paths/latest?goal=control-correction');
+  const courseRuntimeStatus = httpStatus(
+    publicUrl,
+    jar,
+    '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+  );
   const leaks = assertNoLearnerVisibleSystemIdentifiers(labels);
   const blockers: string[] = [];
   if (labels.length !== 8) blockers.push('public-label-count');
   if (V09_PUBLIC_DOMAIN_LABELS.some((label) => !labels.includes(label))) blockers.push('public-label-missing');
-  if (teachingRaw !== '200') blockers.push('public-teaching-http');
+  if (teachingStatus !== 200) blockers.push('public-teaching-http');
+  if (cardStatus !== 200) blockers.push('public-card-http');
+  if (neighborhoodStatus !== 200) blockers.push('public-prerequisite-http');
+  if (infographStatus !== 200) blockers.push('public-infograph-http');
+  if (konlingStatus !== 200) blockers.push('public-konling-http');
+  if (learningPathStatus !== 200) blockers.push('public-learning-path-http');
+  if (courseRuntimeStatus !== 200) blockers.push('public-course-runtime-http');
   if (leaks.length > 0) blockers.push('learner-visible-system-identifier');
-  return { labels, teachingStatus: Number(teachingRaw), leaks, blockers };
+  return {
+    labels,
+    teachingStatus,
+    cardStatus,
+    neighborhoodStatus,
+    infographStatus,
+    infographNodeId,
+    konlingStatus,
+    learningPathStatus,
+    courseRuntimeStatus,
+    probeNodeId,
+    leaks,
+    blockers,
+  };
 }
 
 function observeLiveCounts(root: string): { objects: number; relations: number } {
@@ -302,6 +363,7 @@ function run(): void {
     try {
       const counts = observeLiveCounts(root);
       const consumers = observeReadyConsumers(root);
+      const consumerBehavior = runLiveNamedConsumerShadowReads(root);
       const publicObs = verifyPublicV018(publicUrl);
       const postReadyz = fetchReadyz(option(process.argv, '--readyz-url') ?? 'http://127.0.0.1:8084/api/readyz');
       const postPublicReadyz = fetchReadyz(`${publicUrl}/api/readyz`);
@@ -310,6 +372,11 @@ function run(): void {
       observations.objectCount = counts.objects;
       observations.relationCount = counts.relations;
       observations.readyConsumers = consumers.readyConsumerIds;
+      observations.consumerBehavior = consumerBehavior.results.map((row) => ({
+        consumerId: row.consumerId,
+        status: row.status,
+        reads: row.reads.map((read) => ({ kind: read.kind, ok: read.ok, detail: read.detail })),
+      }));
       observations.expectedHashes = expectedPredecessorHashes(predecessorSource);
       observations.public = publicObs;
       observations.postReadyz = postReadyz;
@@ -320,7 +387,11 @@ function run(): void {
       if (postPublicReadyz.app !== true || postPublicReadyz.db !== true || postPublicReadyz.redis !== true) {
         blockers.push('post-public-readyz-not-ready');
       }
-      blockers.push(...consumers.blockers, ...(publicObs.blockers as string[]));
+      blockers.push(
+        ...consumers.blockers,
+        ...consumerBehavior.blockers,
+        ...(publicObs.blockers as string[]),
+      );
     } catch (error) {
       blockers.push(error instanceof Error ? error.message : String(error));
     }
