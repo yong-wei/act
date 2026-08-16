@@ -25,6 +25,7 @@
     "test:cruise-teaching": "npx --yes tsx ./scripts/tests/test-cruise-teaching-evaluation.ts",
     "test:integration": "PLAYWRIGHT_PORT=3200 ACT_E2E_FIXTURE_TOKEN=adaptive-path-continuous-journey-v1 sh -c 'node ./scripts/tests/integration-test.mjs && playwright test \"$@\"' --",
     "test:data-governance": "npm run test:runtime-knowledge && KNOWLEDGE_POSTGRES_E2E_REQUIRED=1 npx tsx ./scripts/tests/test-knowledge-link-postgres-e2e.ts && npx tsx ./scripts/tests/data-governance-integration-test.ts",
+    "test:arena-official-followup-postgres": "ARENA_OFFICIAL_FOLLOWUP_POSTGRES_REQUIRED=1 npx tsx ./scripts/tests/test-arena-official-followup-postgres.ts",
     "verify:new-resource-semantics": "tsx ./scripts/data-governance/check-new-resource-semantic-completeness.ts",
     "verify:portrait-v2-primary": "tsx ./scripts/data-governance/check-portrait-v2-primary-usage.ts",
     "test:portrait-v2-primary-usage-command": "node ./scripts/tests/test-portrait-v2-primary-usage-command.mjs",
