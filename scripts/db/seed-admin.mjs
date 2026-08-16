@@ -1,53 +1,17 @@
 import { createPrismaClient } from '../lib/prisma-client.mjs';
-import { UserRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+
+import { accountByKey, ensureVerifiedTestAccounts } from './verified-test-accounts.mjs'
 
 const prisma = createPrismaClient()
 
-const ADMIN_ACCOUNT = {
-  name: 'admin',
-  email: 'admin',
-  employeeNumber: 'admin',
-  password: 'admin@Just',
-}
-
 async function main() {
-  const passwordHash = await bcrypt.hash(ADMIN_ACCOUNT.password, 10)
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { name: { equals: ADMIN_ACCOUNT.name, mode: 'insensitive' } },
-        { email: { equals: ADMIN_ACCOUNT.email, mode: 'insensitive' } },
-      ],
-    },
+  const results = await ensureVerifiedTestAccounts(prisma, {
+    hashPassword: (password) => bcrypt.hash(password, 10),
   })
-
-  if (existing) {
-    await prisma.user.update({
-      where: { id: existing.id },
-      data: {
-        name: ADMIN_ACCOUNT.name,
-        email: ADMIN_ACCOUNT.email,
-        employeeNumber: ADMIN_ACCOUNT.employeeNumber,
-        passwordHash,
-        role: UserRole.ADMIN,
-      },
-    })
-    console.log(`Admin user updated: ${ADMIN_ACCOUNT.email}`)
-    return
-  }
-
-  const user = await prisma.user.create({
-    data: {
-      name: ADMIN_ACCOUNT.name,
-      email: ADMIN_ACCOUNT.email,
-      employeeNumber: ADMIN_ACCOUNT.employeeNumber,
-      passwordHash,
-      role: UserRole.ADMIN,
-    },
-  })
-
-  console.log(`Admin user created: ${user.id}`)
+  const adminRow = results.find((row) => row.key === 'admin')
+  const admin = accountByKey('admin')
+  console.log(`Admin user updated: ${admin.email} (${adminRow?.id ?? 'unknown'})`)
 }
 
 main()

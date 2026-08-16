@@ -52,6 +52,8 @@
     "test:assessment-semantic-generation-command": "node ./scripts/tests/test-assessment-semantic-generation-command.mjs",
     "seed:demo": "node ./scripts/db/seed-demo-user.mjs",
     "seed:admin": "node ./scripts/db/seed-admin.mjs",
+    "seed:test-accounts": "node ./scripts/db/ensure-verified-test-accounts.mjs",
+    "verify:test-account-login": "node ./scripts/db/verify-test-account-login.mjs",
     "seed:missions": "node ./scripts/db/seed-missions.mjs",
     "worker:submission-scan": "tsx ./scripts/assignments/scan-submission-objects.ts",
     "worker:submission-gc": "tsx ./scripts/assignments/gc-submission-objects.ts",

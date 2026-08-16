@@ -20,6 +20,16 @@ export const V018_SEALED_IMAGE_TAR_SHA256 =
   'bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024';
 export const V018_SEALED_IMAGE_CONFIG_SHA256 =
   'd2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2';
+export const V09_PUBLIC_DOMAIN_LABELS = [
+  '系统建模',
+  '时域分析',
+  '稳定性分析',
+  '频域分析',
+  '根轨迹',
+  '经典控制设计',
+  '离散时间控制分析',
+  '状态空间控制分析与设计',
+] as const;
 export const V018_STAGED_AUTHORITY_RECEIPT_SHA256 =
   'c2f22672cc4c188dfd607183eca35e74e9c727207b0439512f3180ffed130cd3';
 export const V018_STAGED_QUALIFICATION_SHA256 =
@@ -61,8 +71,9 @@ export interface HostShadowObservation {
   consumerStatuses?: ReadonlyArray<{ consumerId: string; status: string }>;
   consumerShadowSource?: 'deployed-image-staged-candidate' | 'local-qualification';
   pointersUnchangedAfterStage?: boolean;
-  publicV09LabelCount?: number;
-  publicV09TeachingProjectionId?: string;
+  publicV09Labels?: readonly string[];
+  publicV09TeachingHttpStatus?: number;
+  publicV09TeachingDomainId?: string;
 }
 
 const HOST_POINTER_PATHS = {
@@ -237,10 +248,15 @@ export function evaluateV018HostShadow(observation: HostShadowObservation): {
   }
   if (observation.activeGraphReleaseId !== V09_RELEASE_ID) blockers.push('host-active-graph-not-v09');
   if (observation.activeGraphSnapshotId !== V09_SNAPSHOT) blockers.push('host-active-graph-snapshot-drift');
-  if (!observation.publicV09LabelCount || observation.publicV09LabelCount < 1) {
+  const observedLabels = [...(observation.publicV09Labels ?? [])].sort();
+  const expectedLabels = [...V09_PUBLIC_DOMAIN_LABELS].sort();
+  if (observedLabels.join('\n') !== expectedLabels.join('\n')) {
     blockers.push('host-v09-public-label-query-failed');
   }
-  if (observation.publicV09TeachingProjectionId !== V09_PROJECTION) {
+  if (
+    observation.publicV09TeachingHttpStatus !== 200
+    || observation.publicV09TeachingDomainId !== 'system-modeling'
+  ) {
     blockers.push('host-v09-public-teaching-query-failed');
   }
   const consumers = observation.consumerStatuses ?? [];

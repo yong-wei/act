@@ -16,6 +16,7 @@ import {
   type HostShadowObservation,
 } from '../../src/lib/teaching-projection/publish/v018-host-shadow';
 import { asRecord, writeCanonical } from '../../src/lib/teaching-projection/qualify/v018-shared';
+import { accountByKey } from '../db/verified-test-accounts.mjs';
 
 const DEFAULT_PUBLIC_URL = 'https://act.adapt-learn.online';
 const DEFAULT_SSH = 'root@121.40.124.135';
@@ -96,23 +97,62 @@ function runDeployedImageStagedShadow(sshTarget: string): {
   };
 }
 
-function readPublicV09BehaviorFromContainer(sshTarget: string): {
-  publicV09LabelCount?: number;
-  publicV09TeachingProjectionId?: string;
-} {
-  try {
-    const raw = ssh(
-      sshTarget,
-      "podman exec act-obe-app ./node_modules/.bin/tsx -e 'import { readActiveRootShard } from \"./src/app/api/knowledge/_active-authority.ts\"; import { readCurrentTeachingProjectionPointer, resolveTeachingProjectionStorePaths } from \"./src/lib/teaching-projection/store.ts\"; const root = readActiveRootShard(); const labels = (root.root?.domains ?? []).map((row) => row.displayName).filter((value) => typeof value === \"string\" && value.trim().length > 0); const pointer = readCurrentTeachingProjectionPointer(resolveTeachingProjectionStorePaths(process.env.ACT_TEACHING_PROJECTION_STORE_ROOT || \"/app/course-content/runtime/knowledge/projection\")); console.log(JSON.stringify({ labelCount: labels.length, projectionId: pointer?.projectionId ?? null }));'",
-    );
-    const parsed = asRecord(JSON.parse(raw.split('\n').filter((line) => line.trim().startsWith('{')).at(-1) ?? '{}'));
-    return {
-      publicV09LabelCount: typeof parsed.labelCount === 'number' ? parsed.labelCount : undefined,
-      publicV09TeachingProjectionId: typeof parsed.projectionId === 'string' ? parsed.projectionId : undefined,
-    };
-  } catch {
-    return {};
+function cookieHeader(jar: Map<string, string>): string {
+  return [...jar.entries()].map(([key, value]) => `${key}=${value}`).join('; ');
+}
+
+function rememberCookies(jar: Map<string, string>, response: Response): void {
+  for (const line of response.headers.getSetCookie?.() ?? []) {
+    const pair = line.split(';', 1)[0];
+    const eq = pair.indexOf('=');
+    if (eq > 0) jar.set(pair.slice(0, eq), pair.slice(eq + 1));
   }
+}
+
+async function readPublicV09BehaviorOverHttp(publicUrl: string): Promise<{
+  publicV09Labels?: string[];
+  publicV09TeachingHttpStatus?: number;
+  publicV09TeachingDomainId?: string;
+}> {
+  const account = accountByKey('student');
+  const jar = new Map<string, string>();
+  const csrfResponse = await fetch(`${publicUrl}/api/auth/csrf`);
+  rememberCookies(jar, csrfResponse);
+  const csrfToken = String((await csrfResponse.json() as { csrfToken?: string }).csrfToken ?? '');
+  if (!csrfToken) return {};
+  const loginResponse = await fetch(`${publicUrl}/api/auth/callback/credentials`, {
+    method: 'POST',
+    redirect: 'manual',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      cookie: cookieHeader(jar),
+    },
+    body: new URLSearchParams({
+      csrfToken,
+      email: account.loginId,
+      password: account.password,
+      json: 'true',
+    }),
+  });
+  rememberCookies(jar, loginResponse);
+  const rootResponse = await fetch(`${publicUrl}/api/knowledge/shards/active`, {
+    headers: { cookie: cookieHeader(jar) },
+  });
+  rememberCookies(jar, rootResponse);
+  const root = asRecord(await rootResponse.json());
+  const domains = Array.isArray((asRecord(root.root)).domains) ? (asRecord(root.root)).domains : [];
+  const labels = domains
+    .map((row) => String(asRecord(row).displayName ?? ''))
+    .filter((value) => value.length > 0);
+  const teachingResponse = await fetch(`${publicUrl}/api/knowledge/shards/active/domains/modeling`, {
+    headers: { cookie: cookieHeader(jar) },
+  });
+  const teaching = asRecord(await teachingResponse.json());
+  return {
+    publicV09Labels: labels,
+    publicV09TeachingHttpStatus: teachingResponse.status,
+    publicV09TeachingDomainId: typeof teaching.domainId === 'string' ? teaching.domainId : undefined,
+  };
 }
 
 function readActiveGraphFromContainer(sshTarget: string): {
@@ -197,7 +237,7 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   }
   const consumers = sidecar.consumers;
   const active = readActiveGraphFromContainer(sshTarget);
-  const publicV09 = readPublicV09BehaviorFromContainer(sshTarget);
+  const publicV09 = await readPublicV09BehaviorOverHttp(publicUrl);
   const observation: HostShadowObservation = {
     ...remote,
     readyz: {
@@ -211,8 +251,9 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     stagedAuthorityMountedSha256: sidecar.mountedAuthorityReceiptSha256,
     consumerStatuses: consumers,
     consumerShadowSource: sidecar.source,
-    publicV09LabelCount: publicV09.publicV09LabelCount,
-    publicV09TeachingProjectionId: publicV09.publicV09TeachingProjectionId,
+    publicV09Labels: publicV09.publicV09Labels,
+    publicV09TeachingHttpStatus: publicV09.publicV09TeachingHttpStatus,
+    publicV09TeachingDomainId: publicV09.publicV09TeachingDomainId,
     pointersUnchangedAfterStage:
       remote.authoritySha256 === V09_HOST_POINTER_HASHES.authority
       && remote.projectionSha256 === V09_HOST_POINTER_HASHES.projection
