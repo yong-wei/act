@@ -8,42 +8,64 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-const fixedPasswordScript = read('scripts/db/update-fixed-account-passwords.mjs');
+const verifiedAccounts = read('scripts/db/verified-test-accounts.mjs');
 const passwordOverrideTest = read('scripts/tests/test-account-password-overrides.mjs');
 const validationDoc = read('.agents/skills/interactive-lesson/references/closed-loop-browser-validation.md');
+const opsDoc = read('.agents/skills/server-ops/references/test-accounts.md');
 const demoSeed = read('scripts/db/seed-demo-user.mjs');
+const productionScript = read('scripts/db/ensure-production-test-accounts.sh');
 
 const teacherPassword = 'TestTeacher@Just2026!';
 const demoPassword = 'DemoStudent@Just2026!';
+const adminPassword = 'admin@Just';
 
 assert.equal(
-  fixedPasswordScript.includes("label: 'teacher-test_teacher'") && fixedPasswordScript.includes(teacherPassword),
+  verifiedAccounts.includes("loginId: 'demo'")
+    && verifiedAccounts.includes(demoPassword)
+    && verifiedAccounts.includes("loginId: 'test_teacher'")
+    && verifiedAccounts.includes(teacherPassword)
+    && verifiedAccounts.includes("loginId: 'admin'")
+    && verifiedAccounts.includes(adminPassword),
   true,
-  '固定密码脚本应接管 test_teacher 的复杂密码',
+  '三角色验证账号真源应同时包含学生、教师和管理员登录名与密码',
 );
 
 assert.equal(
-  fixedPasswordScript.includes("label: 'student-demo'") && fixedPasswordScript.includes(demoPassword),
+  demoSeed.includes('ensureVerifiedTestAccounts') && demoSeed.includes('verified-test-accounts.mjs'),
   true,
-  '固定密码脚本应接管 demo 的复杂密码',
+  'demo 种子脚本应从验证账号真源写入三角色账号',
 );
 
 assert.equal(
-  passwordOverrideTest.includes(teacherPassword) && passwordOverrideTest.includes(demoPassword),
+  passwordOverrideTest.includes('VERIFIED_TEST_ACCOUNTS')
+    && passwordOverrideTest.includes('verified-test-accounts.mjs'),
   true,
-  '固定账号密码校验脚本应验证 test_teacher 与 demo 的复杂密码',
+  '固定账号密码校验脚本应从三角色真源读取密码',
 );
 
 assert.equal(
-  demoSeed.includes(demoPassword),
+  validationDoc.includes(teacherPassword)
+    && validationDoc.includes(demoPassword)
+    && validationDoc.includes(adminPassword),
   true,
-  'demo 种子脚本应使用新的复杂密码，避免浏览器弱密码提示',
+  '浏览器验收参考文档应写入三角色测试账号密码',
 );
 
 assert.equal(
-  validationDoc.includes(teacherPassword) && validationDoc.includes(demoPassword),
+  opsDoc.includes('ensure-production-test-accounts.sh')
+    && opsDoc.includes(demoPassword)
+    && opsDoc.includes(teacherPassword)
+    && opsDoc.includes(adminPassword),
   true,
-  '浏览器验收参考文档应写入新的复杂测试账号密码',
+  'server-ops 测试账号文档应指向生产修复脚本并列出三角色密码',
+);
+
+assert.equal(
+  productionScript.includes(demoPassword)
+    && productionScript.includes(teacherPassword)
+    && productionScript.includes(adminPassword),
+  true,
+  '生产测试账号脚本应使用同一组三角色密码',
 );
 
 console.log('browser validation accounts test passed');

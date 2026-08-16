@@ -1,50 +1,17 @@
 import { createPrismaClient } from '../lib/prisma-client.mjs';
-import { UserRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+
+import { accountByKey, ensureVerifiedTestAccounts } from './verified-test-accounts.mjs'
 
 const prisma = createPrismaClient()
 
-const DEMO_ACCOUNT = {
-  name: 'demo',
-  email: 'demo@example.com',
-  password: 'DemoStudent@Just2026!',
-}
-
 async function main() {
-  const passwordHash = await bcrypt.hash(DEMO_ACCOUNT.password, 10)
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { name: { equals: DEMO_ACCOUNT.name, mode: 'insensitive' } },
-        { email: { equals: DEMO_ACCOUNT.email, mode: 'insensitive' } },
-      ],
-    },
+  const results = await ensureVerifiedTestAccounts(prisma, {
+    hashPassword: (password) => bcrypt.hash(password, 10),
   })
-
-  if (existing) {
-    await prisma.user.update({
-      where: { id: existing.id },
-      data: {
-        name: DEMO_ACCOUNT.name,
-        email: DEMO_ACCOUNT.email,
-        passwordHash,
-        role: UserRole.STUDENT,
-      },
-    })
-    console.log(`Demo user updated: ${DEMO_ACCOUNT.email}`)
-    return
-  }
-
-  const user = await prisma.user.create({
-    data: {
-      name: DEMO_ACCOUNT.name,
-      email: DEMO_ACCOUNT.email,
-      passwordHash,
-      role: UserRole.STUDENT,
-    },
-  })
-
-  console.log(`Demo user created: ${user.id}`)
+  const student = results.find((row) => row.key === 'student')
+  const demo = accountByKey('student')
+  console.log(`Demo user updated: ${demo.email} (${student?.id ?? 'unknown'})`)
 }
 
 main()
