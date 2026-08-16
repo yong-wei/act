@@ -1,12 +1,12 @@
 # Handoff: #1411 `publish-actkg-v018-cutover-runtime`
 
-状态: **资格已 READY；镜像/部署仍未授权**  
+状态: **镜像已发布到生产 app/worker；选择器仍为 v0.9；#1411 未归档**  
 日期: 2026-08-16  
-工作树: `/Users/YW/.codex/worktrees/act-dev1`（永久隔离树 `dev1`；旧路径 `e734/act.just.edu.cn` 已废弃）
+工作树: `/Users/YW/.codex/worktrees/act-dev1`（`buddy.worktreealias=act-dev1`）
 
 ## 一句话
 
-fail-closed 发布门禁已合入 `integration`。选项 1 overlay 之后，密封资格报告已是真实 READY，发布器 pin 已改到新文件哈希。五个生产指针仍是 v0.9。不要归档本 change，不要关闭 #1411，不要认领 #1412，不要在未再授权时跑 `scripts/build.sh`。
+认领已从 `e734` 手工改到 `act-dev1`。`scripts/build.sh` 已产出 READY runtime receipt，生产 app/worker 已切到 `localhost/act-obe-platform:v018-94d585ae63a6`。Authority / projection / prerequisites / consumer-activation 仍是 v0.9。不要认领 #1405。#1412 仍需 #1411 收尾（shadow 3.3）后再做。
 
 ## 已完成
 
