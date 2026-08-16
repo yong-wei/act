@@ -15,7 +15,7 @@
 import 'dotenv/config';
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -744,6 +744,27 @@ export async function prepareActKgV018TeachingProjection(
     prerequisite: receipt.prerequisite,
     receiptDigest: receipt.receiptDigest,
   });
+  const projectionRelease = path.join(
+    outputRoot,
+    'projection/releases',
+    firstProjection.projectionId,
+  );
+  const prerequisiteRelease = path.join(
+    outputRoot,
+    'prerequisites/releases',
+    firstPrereq.publicationId,
+  );
+  for (const replayName of ['replay-1', 'replay-2'] as const) {
+    const replayRoot = path.join(outputRoot, replayName);
+    rmSync(replayRoot, { recursive: true, force: true });
+    mkdirSync(replayRoot, { recursive: true });
+    cpSync(projectionRelease, path.join(replayRoot, 'projection/releases', firstProjection.projectionId), {
+      recursive: true,
+    });
+    cpSync(prerequisiteRelease, path.join(replayRoot, 'prerequisites/releases', firstPrereq.publicationId), {
+      recursive: true,
+    });
+  }
   const summary = {
     status: receipt.status,
     outputRoot: relative(repoRoot, outputRoot),

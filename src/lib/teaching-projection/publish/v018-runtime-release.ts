@@ -25,7 +25,7 @@ import {
 export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as const;
 export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
 export const V018_SEALED_QUALIFICATION_SHA256 =
-  'fafdcf2a0644971f67881975eb367c712b81eeaa85d76aff94b3a023fa8b4704';
+  '94b66f3a39b450da79c2016abe6deeed7a21486b7fab72f6f96073282e6a1f9f';
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
 export const V09_POINTER_HASHES = {
   'course-content/authoring/knowledge/authority/current.json':
