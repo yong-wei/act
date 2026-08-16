@@ -1,6 +1,6 @@
 # Browser verification evidence
 
-Date: 2026-08-16
+Date: 2026-08-17
 
 ## Environment
 
@@ -19,6 +19,22 @@ npx playwright test tests/adaptive-path-candidate-comparison-1429.spec.ts --repo
 ```
 
 Result: 2 tests passed.
+
+## Auditable visual capture
+
+- Capture source revision: `eee4eff112519f70ac2df3289f2ceb96693f7c88`
+- Capture command: `node artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs`
+- Manifest: `artifacts/commercial-ui/issue-1429-candidate-comparison/evidence-manifest.json`
+- Desktop screenshot: `artifacts/commercial-ui/issue-1429-candidate-comparison/candidate-comparison-1440.png`
+  - Viewport: 1440 × 1000
+  - Full-page dimensions: 1440 × 3229
+  - SHA-256: `f8a7459ac41ef08375c63930797012e8170d1691db4c6fb585a51451c43e3d07`
+- Mobile screenshot: `artifacts/commercial-ui/issue-1429-candidate-comparison/candidate-comparison-320.png`
+  - Viewport: 320 × 900
+  - Full-page dimensions: 320 × 7402
+  - SHA-256: `04777a8dced7804d7e0b155cf6ac83488ee7990ebae9297586d74f3189ff9369`
+- The capture fails closed when HEAD changes, bound source files are dirty, Playwright fails, a screenshot is missing, or the PNG width does not match its declared viewport.
+- The manifest records source hashes, generator hash, screenshot hashes, authentication mode, projection-fixture boundary, keyboard focus, pair coverage, stale-response rejection, and horizontal-overflow assertions.
 
 ## Verified behavior
 
