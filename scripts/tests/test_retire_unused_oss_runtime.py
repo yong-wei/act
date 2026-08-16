@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/retire-unused-oss-runtime.py"
+LIFECYCLE_SCRIPT = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
 MATERIALIZATION_TEST = ROOT / "scripts/tests/test_runtime_blob_materialization.py"
 
 
@@ -22,6 +23,21 @@ def load_fixture_module():
 
 
 FIXTURE = load_fixture_module()
+LIFECYCLE_SPEC = importlib.util.spec_from_file_location("runtime_blob_lifecycle_for_retirement_test", str(LIFECYCLE_SCRIPT))
+LIFECYCLE = importlib.util.module_from_spec(LIFECYCLE_SPEC)
+LIFECYCLE_SPEC.loader.exec_module(LIFECYCLE)
+
+
+def lifecycle_identity(release_id, seed):
+    return {
+        "schemaVersion": "runtime-blob-release-identity.v1",
+        "releaseId": release_id,
+        "manifestVersion": "act-runtime-release.v2",
+        "manifestSha256": seed * 64,
+        "manifestWireSha256": ("a" if seed != "a" else "b") * 64,
+        "manifestWireSizeBytes": 10,
+        "treeSha256": ("c" if seed != "c" else "d") * 64,
+    }
 
 FAKE_OSSUTIL = r"""#!/usr/bin/env python3
 import json
@@ -132,6 +148,34 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         return result
 
+    def write_lifecycle(self, directory: Path, active: str, rollback: str, publishing=None):
+        state = directory / "state"
+        after = {
+            "schemaVersion": "runtime-blob-release-lifecycle.v2",
+            "generation": 1,
+            "transactionId": "a" * 32,
+            "desired": None,
+            "active": lifecycle_identity(active, "a"),
+            "rollback": lifecycle_identity(rollback, "b"),
+            "publishing": [
+                lifecycle_identity(item, chr(ord("c") + index))
+                for index, item in enumerate(publishing or [])
+            ],
+            "retained": [],
+        }
+        LIFECYCLE.transaction(state, after)
+        return state
+
+    def common_args(self, store, proof, state):
+        return [
+            "--bucket", "test-bucket",
+            "--state-dir", str(state),
+            "--expected-active-release", store["active"],
+            "--expected-rollback-release", store["rollback"],
+            "--serving-proof", str(proof),
+            "--ossutil-path", str(store["fake"]),
+        ]
+
     def setup_store(self, directory: Path):
         oss = directory / "oss"
         oss.mkdir()
@@ -154,6 +198,8 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
         self.write_oss(oss, "runtime/blob-releases/%s/receipt.json" % active_id, active_receipt.read_bytes())
         self.write_oss(oss, "runtime/blob-releases/%s/manifest.json" % rollback_id, rollback_manifest.read_bytes())
         self.write_oss(oss, "runtime/blob-releases/%s/receipt.json" % rollback_id, rollback_receipt.read_bytes())
+        self.write_oss(oss, "runtime/blob-releases/%s/manifest.json" % stale_id, stale_manifest.read_bytes())
+        self.write_oss(oss, "runtime/blob-releases/%s/receipt.json" % stale_id, stale_receipt.read_bytes())
         for source in (active_root / "blobs", rollback_root / "blobs", stale_root / "blobs"):
             for blob in source.iterdir():
                 self.write_oss(oss, "runtime/blobs/sha256/%s" % blob.name, blob.read_bytes())
@@ -176,6 +222,7 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"])
             proof = self.proof(root, store["active"], store["rollback"])
             plan_path = root / "plan.json"
             env = os.environ.copy()
@@ -183,11 +230,7 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
             env["FAKE_OSS_BUCKET"] = "test-bucket"
             summary = self.call(
                 "plan",
-                "--bucket", "test-bucket",
-                "--expected-active-release", store["active"],
-                "--expected-rollback-release", store["rollback"],
-                "--serving-proof", str(proof),
-                "--ossutil-path", str(store["fake"]),
+                *self.common_args(store, proof, state),
                 "--output", str(plan_path),
                 env=env,
             )
@@ -206,6 +249,7 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"])
             proof = self.proof(root, store["active"], store["rollback"])
             env = os.environ.copy()
             env["FAKE_OSS_ROOT"] = str(store["oss"])
@@ -213,11 +257,7 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
             env["FAKE_OUTSIDE"] = "1"
             result = self.call(
                 "plan",
-                "--bucket", "test-bucket",
-                "--expected-active-release", store["active"],
-                "--expected-rollback-release", store["rollback"],
-                "--serving-proof", str(proof),
-                "--ossutil-path", str(store["fake"]),
+                *self.common_args(store, proof, state),
                 "--output", str(root / "plan.json"),
                 env=env,
                 expect_ok=False,
@@ -228,18 +268,13 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"])
             proof = self.proof(root, store["active"], store["rollback"])
             plan_path = root / "plan.json"
             env = os.environ.copy()
             env["FAKE_OSS_ROOT"] = str(store["oss"])
             env["FAKE_OSS_BUCKET"] = "test-bucket"
-            common = [
-                "--bucket", "test-bucket",
-                "--expected-active-release", store["active"],
-                "--expected-rollback-release", store["rollback"],
-                "--serving-proof", str(proof),
-                "--ossutil-path", str(store["fake"]),
-            ]
+            common = self.common_args(store, proof, state)
             self.call("plan", *common, "--output", str(plan_path), env=env)
             denied = self.call("execute", *common, "--plan", str(plan_path), "--receipt-output", str(root / "receipt.json"), env=env, expect_ok=False)
             self.assertIn("authorize-unused-oss-runtime-deletion", denied.stderr)
@@ -263,6 +298,68 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
             self.assertTrue((store["oss"] / "runtime/blobs/sha256" / rollback_sha).exists())
             self.assertTrue((store["oss"] / "runtime/blobs/sha256" / store["shared"]).exists())
             self.assertFalse((store["oss"] / "runtime/blobs/sha256" / stale_sha).exists())
+
+    def test_plan_protects_publishing_roots_even_when_serving_proof_omits_them(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"], publishing=[store["stale"]])
+            proof = self.proof(root, store["active"], store["rollback"])
+            plan_path = root / "plan.json"
+            env = os.environ.copy()
+            env["FAKE_OSS_ROOT"] = str(store["oss"])
+            env["FAKE_OSS_BUCKET"] = "test-bucket"
+            self.call("plan", *self.common_args(store, proof, state), "--output", str(plan_path), env=env)
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            self.assertEqual(plan["unreachableBlobCount"], 0)
+            self.assertEqual(set(plan["protectedReleaseIds"]), {store["active"], store["rollback"], store["stale"]})
+            self.assertEqual(plan["lifecycleGeneration"], 1)
+
+    def test_execute_fails_closed_when_lifecycle_generation_drifts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"])
+            proof = self.proof(root, store["active"], store["rollback"])
+            plan_path = root / "plan.json"
+            env = os.environ.copy()
+            env["FAKE_OSS_ROOT"] = str(store["oss"])
+            env["FAKE_OSS_BUCKET"] = "test-bucket"
+            common = self.common_args(store, proof, state)
+            self.call("plan", *common, "--output", str(plan_path), env=env)
+            current = LIFECYCLE.read_v2(state)
+            after = dict(current)
+            after["generation"] = current["generation"] + 1
+            after["transactionId"] = "b" * 32
+            LIFECYCLE.transaction(state, after)
+            rejected = self.call(
+                "execute",
+                *common,
+                "--plan", str(plan_path),
+                "--authorize-unused-oss-runtime-deletion", "yes",
+                "--receipt-output", str(root / "receipt.json"),
+                env=env,
+                expect_ok=False,
+            )
+            self.assertIn("stale", rejected.stderr)
+
+    def test_plan_rejects_hand_filled_proof_ids_outside_the_lifecycle_set(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = self.setup_store(root)
+            state = self.write_lifecycle(root, store["active"], store["rollback"])
+            proof = self.proof(root, store["active"], store["rollback"], extra=[store["active"], store["rollback"], "runtime-not-in-lifecycle"])
+            env = os.environ.copy()
+            env["FAKE_OSS_ROOT"] = str(store["oss"])
+            env["FAKE_OSS_BUCKET"] = "test-bucket"
+            rejected = self.call(
+                "plan",
+                *self.common_args(store, proof, state),
+                "--output", str(root / "plan.json"),
+                env=env,
+                expect_ok=False,
+            )
+            self.assertIn("subset", rejected.stderr)
 
 
 if __name__ == "__main__":

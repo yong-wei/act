@@ -494,6 +494,45 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             )
             self.assertIn("v1 rollback authority marker is absent", rejected.stderr)
 
+    def test_resumes_v2_from_v1_rollback_preserving_rollback_publishing_and_retained(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate = self.write_identity(root, "runtime-b", "b")
+            publishing = self.write_identity(root, "runtime-c", "c")
+            retained = self.write_identity(root, "runtime-d", "d")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("retain", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(retained), "--now", "2030-01-01T00:00:00Z")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(publishing))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(candidate))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(candidate))
+            self.active_transition("activate", state, 5, candidate)
+            v1_selection, v1_receipt = self.write_v1_state(root)
+            rolled = self.call(
+                "rollback-to-v1",
+                "--state-dir", str(state),
+                "--expected-generation", "6",
+                "--v1-selection-file", str(v1_selection),
+                "--v1-active-receipt-file", str(v1_receipt),
+            )
+            self.assertEqual(rolled["generation"], 7)
+            resumed = self.call(
+                "resume-v2-from-v1-rollback",
+                "--state-dir", str(state),
+                "--expected-generation", "7",
+                "--v1-selection-file", str(v1_selection),
+                "--v1-active-receipt-file", str(v1_receipt),
+                "--active-identity", str(candidate),
+            )
+            self.assertEqual(resumed["generation"], 8)
+            self.assertEqual(resumed["active"]["releaseId"], "runtime-b")
+            self.assertEqual(resumed["rollback"]["releaseId"], "runtime-a")
+            self.assertEqual([item["releaseId"] for item in resumed["publishing"]], ["runtime-c"])
+            self.assertEqual([item["identity"]["releaseId"] for item in resumed["retained"]], ["runtime-d"])
+            protected = self.call("protected-set", "--state-dir", str(state))
+            self.assertEqual(protected["releaseIds"], ["runtime-a", "runtime-b", "runtime-c", "runtime-d"])
+
 
 if __name__ == "__main__":
     unittest.main()

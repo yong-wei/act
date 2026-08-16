@@ -1314,12 +1314,6 @@ def put_blob_spooled_file(
         except RuntimeError:
             detail = process.stderr.decode("utf-8", errors="replace").strip()
             fail(f"ossutil v2 conditional blob put failed for {key}: {detail}")
-    metadata = remote_blob_metadata(bucket, key)
-    if metadata is None:
-        fail(f"remote runtime blob is missing after publication: {key}")
-    if metadata.get("legacy"):
-        verified, _legacy = verify_existing_blob(bucket, key, metadata, expected_size, expected_sha)
-        return verified, False
     return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha), True
 
 

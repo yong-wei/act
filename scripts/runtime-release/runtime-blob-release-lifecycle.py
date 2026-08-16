@@ -857,6 +857,19 @@ def verify_v1_rollback(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def read_preserved_v2_lifecycle(state_dir: Path) -> Dict[str, Any]:
+    """Return the journaled v2 lifecycle that rollback-to-v1 left in place."""
+    current = read_json(state_dir / LIFECYCLE_FILE, lifecycle)
+    if current is None:
+        fail("journaled v2 lifecycle is absent; refuse to resume without protection roots")
+    journal_value = read_json(state_dir / JOURNAL_FILE, journal)
+    if journal_value is None or journal_value["status"] != "committed":
+        fail("committed lifecycle journal is absent")
+    if journal_value["afterLifecycle"] != current:
+        fail("journaled lifecycle does not match the persisted v2 lifecycle")
+    return current
+
+
 def resume_v2_from_v1_rollback(args: argparse.Namespace) -> Dict[str, Any]:
     """Re-enter v2 after an explicit v1-rollback without deleting the marker."""
     state_dir = Path(args.state_dir)
@@ -870,19 +883,28 @@ def resume_v2_from_v1_rollback(args: argparse.Namespace) -> Dict[str, Any]:
         inputs = verified_v1_rollback_inputs(args.v1_selection_file, args.v1_active_receipt_file)
         if inputs["v1SelectionSha256"] != current_marker["v1SelectionSha256"] or inputs["v1ActiveReceiptSha256"] != current_marker["v1ActiveReceiptSha256"]:
             fail("v1 rollback files do not match the authority marker")
-        desired = read_identity_file(args.desired_identity) if args.desired_identity else None
+        prior = read_preserved_v2_lifecycle(state_dir)
+        desired = read_identity_file(args.desired_identity) if args.desired_identity else prior["desired"]
         active = read_identity_file(args.active_identity)
         if desired and desired["releaseId"] == active["releaseId"]:
             desired = None
+        occupied = {active["releaseId"]}
+        if desired:
+            occupied.add(desired["releaseId"])
+        rollback = prior["rollback"]
+        if rollback and rollback["releaseId"] in occupied:
+            rollback = None
+        publishing = [item for item in prior["publishing"] if item["releaseId"] not in occupied]
+        retained = [item for item in prior["retained"] if item["identity"]["releaseId"] not in occupied]
         after = {
             "schemaVersion": LIFECYCLE_SCHEMA,
             "generation": current_marker["generation"] + 1,
             "transactionId": uuid.uuid4().hex,
             "desired": desired,
             "active": active,
-            "rollback": None,
-            "publishing": [],
-            "retained": [],
+            "rollback": rollback,
+            "publishing": publishing,
+            "retained": retained,
         }
         return transaction(state_dir, after)
     finally:

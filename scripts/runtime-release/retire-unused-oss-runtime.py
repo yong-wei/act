@@ -29,19 +29,17 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 ROOT = Path(__file__).resolve().parent
 
 
-def load_materializer():
-    spec = importlib.util.spec_from_file_location(
-        "runtime_blob_materializer_for_retirement",
-        str(ROOT / "materialize-runtime-blob-release.py"),
-    )
+def load_module(name: str, filename: str):
+    spec = importlib.util.spec_from_file_location(name, str(ROOT / filename))
     if spec is None or spec.loader is None:
-        raise RuntimeError("unable to load materialize-runtime-blob-release.py")
+        raise RuntimeError("unable to load %s" % filename)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-MATERIALIZER = load_materializer()
+LIFECYCLE = load_module("runtime_blob_lifecycle_for_retirement", "runtime-blob-release-lifecycle.py")
+MATERIALIZER = load_module("runtime_blob_materializer_for_retirement", "materialize-runtime-blob-release.py")
 
 
 PLAN_SCHEMA = "act-runtime-unused-oss-retirement-plan.v1"
@@ -357,8 +355,30 @@ def objects_digest(objects: Sequence[Dict[str, Any]]) -> str:
     return digest([{"objectKey": item["objectKey"], "sizeBytes": item["sizeBytes"]} for item in objects])
 
 
+def protected_lifecycle_state(state_dir: Path) -> Dict[str, Any]:
+    current = LIFECYCLE.read_v2(state_dir)
+    values = [current["active"]] + ([current["desired"]] if current["desired"] else []) + ([current["rollback"]] if current["rollback"] else []) + current["publishing"] + [item["identity"] for item in current["retained"]]
+    identities = sorted(values, key=lambda item: item["releaseId"])
+    return {
+        "generation": current["generation"],
+        "lifecycleSha256": LIFECYCLE.digest(current),
+        "releaseIds": [item["releaseId"] for item in identities],
+        "identities": identities,
+        "retainedLeases": current["retained"],
+        "activeReleaseId": current["active"]["releaseId"],
+        "rollbackReleaseId": current["rollback"]["releaseId"] if current["rollback"] else None,
+    }
+
+
 def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
     proof = parse_serving_proof(Path(args.serving_proof), args.expected_active_release, args.expected_rollback_release)
+    state = protected_lifecycle_state(Path(args.state_dir))
+    if state["rollbackReleaseId"] is None:
+        fail("lifecycle has no rollback root; refuse unused-object retirement")
+    if proof["activeReleaseId"] != state["activeReleaseId"] or proof["rollbackReleaseId"] != state["rollbackReleaseId"]:
+        fail("serving proof active/rollback do not match the lifecycle authority")
+    if not set(proof["protectedReleaseIds"]).issubset(set(state["releaseIds"])):
+        fail("serving proof protectedReleaseIds are not a subset of the lifecycle protected set")
     transport = OssTransport(args.ossutil_path, args.bucket, args.endpoint, args.region)
     listed_blob_releases = transport.list_objects(BLOB_RELEASE_PREFIX)
     for item in listed_blob_releases:
@@ -370,7 +390,7 @@ def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
         if not allowed_deletion_key(item["objectKey"]) or not item["objectKey"].startswith(V1_PREFIX):
             fail("refusing a non-v1 deletion candidate: %s" % item["objectKey"])
     blobs = transport.list_objects(BLOB_PREFIX)
-    protected_keys, protected_count, identities = load_protected_blobs(transport, proof["protectedReleaseIds"])
+    protected_keys, protected_count, identities = load_protected_blobs(transport, state["releaseIds"])
     blob_by_key = {item["objectKey"]: item for item in blobs}
     missing = [key for key in protected_keys if key not in blob_by_key]
     if missing:
@@ -391,8 +411,11 @@ def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
         "bucket": args.bucket,
         "expectedActiveRelease": proof["activeReleaseId"],
         "expectedRollbackRelease": proof["rollbackReleaseId"],
-        "protectedReleaseIds": proof["protectedReleaseIds"],
+        "lifecycleGeneration": state["generation"],
+        "lifecycleSha256": state["lifecycleSha256"],
+        "protectedReleaseIds": state["releaseIds"],
         "protectedIdentities": identities,
+        "retainedLeases": state["retainedLeases"],
         "servingProofSha256": proof["servingProofSha256"],
         "v1Prefixes": v1_prefixes,
         "v1ObjectCount": len(v1_objects),
@@ -410,6 +433,16 @@ def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
     return dict(base, planSha256=digest(base))
 
 
+def plan(args: argparse.Namespace) -> Dict[str, Any]:
+    lock = LIFECYCLE.locked(Path(args.state_dir))
+    try:
+        result = build_plan(args)
+        write_atomic(Path(args.output), result)
+        return result
+    finally:
+        lock.close()
+
+
 def parsed_plan(path: Path) -> Dict[str, Any]:
     raw = read_json(path, "retirement plan")
     if raw.get("schemaVersion") != PLAN_SCHEMA:
@@ -424,46 +457,60 @@ def parsed_plan(path: Path) -> Dict[str, Any]:
 def execute(args: argparse.Namespace) -> Dict[str, Any]:
     if args.authorize_unused_oss_runtime_deletion != "yes":
         fail("execute requires --authorize-unused-oss-runtime-deletion yes")
-    planned = parsed_plan(Path(args.plan))
-    rebuilt = build_plan(args)
-    if rebuilt["planSha256"] != planned["planSha256"] or rebuilt != planned:
-        fail("retirement plan is stale or the live object set drifted")
-    transport = OssTransport(args.ossutil_path, args.bucket, args.endpoint, args.region)
-    live_v1 = transport.list_objects(V1_PREFIX)
-    if objects_digest(live_v1) != planned["v1ObjectsSha256"]:
-        fail("v1 object set drifted after the plan fence")
-    deleted_v1 = [item["objectKey"] for item in live_v1]
-    transport.delete_many(deleted_v1)
-    deleted_blobs = [item["objectKey"] for item in planned["unreachableBlobs"]]
-    transport.delete_many(deleted_blobs)
-    remaining_v1 = transport.list_objects(V1_PREFIX)
-    if remaining_v1:
-        fail("v1 prefix still contains objects after deletion")
-    remaining_blobs = {item["objectKey"] for item in transport.list_objects(BLOB_PREFIX)}
-    leaked = [key for key in deleted_blobs if key in remaining_blobs]
-    if leaked:
-        fail("deleted blobs are still present")
-    protected_keys, _, _ = load_protected_blobs(transport, planned["protectedReleaseIds"])
-    missing_protected = [key for key in protected_keys if key not in remaining_blobs]
-    if missing_protected:
-        fail("a protected blob is missing after deletion")
-    leftover_blob_releases = transport.list_objects(BLOB_RELEASE_PREFIX)
-    base = {
-        "schemaVersion": RECEIPT_SCHEMA,
-        "planSha256": planned["planSha256"],
-        "deletedV1ObjectCount": len(deleted_v1),
-        "deletedUnreachableBlobCount": len(deleted_blobs),
-        "remainingV1ObjectCount": 0,
-        "remainingProtectedBlobCount": len(protected_keys),
-        "blobReleaseObjectCount": len(leftover_blob_releases),
-    }
-    receipt = dict(base, receiptSha256=digest(base))
-    write_atomic(Path(args.receipt_output), receipt)
-    return receipt
+    lock = LIFECYCLE.locked(Path(args.state_dir))
+    try:
+        planned = parsed_plan(Path(args.plan))
+        rebuilt = build_plan(args)
+        if rebuilt["planSha256"] != planned["planSha256"] or rebuilt != planned:
+            fail("retirement plan is stale or the live object set drifted")
+        current = protected_lifecycle_state(Path(args.state_dir))
+        if current["generation"] != planned["lifecycleGeneration"] or current["lifecycleSha256"] != planned["lifecycleSha256"]:
+            fail("lifecycle generation or digest drifted after the plan fence")
+        transport = OssTransport(args.ossutil_path, args.bucket, args.endpoint, args.region)
+        live_v1 = transport.list_objects(V1_PREFIX)
+        if objects_digest(live_v1) != planned["v1ObjectsSha256"]:
+            fail("v1 object set drifted after the plan fence")
+        deleted_v1 = [item["objectKey"] for item in live_v1]
+        transport.delete_many(deleted_v1)
+        deleted_blobs = [item["objectKey"] for item in planned["unreachableBlobs"]]
+        transport.delete_many(deleted_blobs)
+        remaining_v1 = transport.list_objects(V1_PREFIX)
+        if remaining_v1:
+            fail("v1 prefix still contains objects after deletion")
+        remaining_blobs = {item["objectKey"] for item in transport.list_objects(BLOB_PREFIX)}
+        leaked = [key for key in deleted_blobs if key in remaining_blobs]
+        if leaked:
+            fail("deleted blobs are still present")
+        after = protected_lifecycle_state(Path(args.state_dir))
+        if after["generation"] != planned["lifecycleGeneration"] or after["lifecycleSha256"] != planned["lifecycleSha256"]:
+            fail("lifecycle drifted during deletion")
+        protected_keys, _, _ = load_protected_blobs(transport, planned["protectedReleaseIds"])
+        missing_protected = [key for key in protected_keys if key not in remaining_blobs]
+        if missing_protected:
+            fail("a protected blob is missing after deletion")
+        leftover_blob_releases = transport.list_objects(BLOB_RELEASE_PREFIX)
+        base = {
+            "schemaVersion": RECEIPT_SCHEMA,
+            "planSha256": planned["planSha256"],
+            "lifecycleGeneration": planned["lifecycleGeneration"],
+            "lifecycleSha256": planned["lifecycleSha256"],
+            "protectedReleaseIds": planned["protectedReleaseIds"],
+            "deletedV1ObjectCount": len(deleted_v1),
+            "deletedUnreachableBlobCount": len(deleted_blobs),
+            "remainingV1ObjectCount": 0,
+            "remainingProtectedBlobCount": len(protected_keys),
+            "blobReleaseObjectCount": len(leftover_blob_releases),
+        }
+        receipt = dict(base, receiptSha256=digest(base))
+        write_atomic(Path(args.receipt_output), receipt)
+        return receipt
+    finally:
+        lock.close()
 
 
 def add_shared_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--bucket", required=True)
+    parser.add_argument("--state-dir", required=True)
     parser.add_argument("--expected-active-release", required=True)
     parser.add_argument("--expected-rollback-release", required=True)
     parser.add_argument("--serving-proof", required=True)
@@ -485,8 +532,7 @@ def main() -> None:
     executor.add_argument("--receipt-output", required=True)
     args = parser.parse_args()
     if args.command == "plan":
-        result = build_plan(args)
-        write_atomic(Path(args.output), result)
+        result = plan(args)
     elif args.command == "execute":
         result = execute(args)
     else:

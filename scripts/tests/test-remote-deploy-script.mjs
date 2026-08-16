@@ -379,6 +379,11 @@ function main() {
   );
   verifyDefaultDoesNotRsync();
   verifyLegacyRemoteTransactionQuoting(script);
+  assert.match(
+    script,
+    /RUNTIME_DELIVERY_MODE=legacy-rsync \\\\\n      RUNTIME_CONTENT_DIR=\\"\$\{REMOTE_RUNTIME_DIR\}\\"/,
+    'explicit legacy-rsync must pass mode and the rsync’d runtime tree into 4-deploy',
+  );
 
   assert.match(
     script,

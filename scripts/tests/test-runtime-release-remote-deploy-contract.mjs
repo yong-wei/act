@@ -17,6 +17,14 @@ const blobViewModeMatch = remoteDeploy.match(/\n\s+ossfs-blob-view\)\n\s+log "- 
 assert.ok(blobViewModeMatch, 'remote deploy must have an isolated ossfs-blob-view branch');
 assert.equal(blobViewModeMatch[0].includes('rsync '), false, 'ossfs-blob-view branch must not copy runtime contents with rsync');
 assert.match(remoteDeploy, /check_remote_blob_view/, 'blob-view deployment must verify the already materialized view');
+assert.ok(
+  remoteDeploy.includes('[ \\"${RUNTIME_DELIVERY_MODE}\\" = \\"legacy-rsync\\" ]; then'),
+  'explicit legacy-rsync full deploys must have a Step 5 branch',
+);
+assert.ok(
+  remoteDeploy.includes('RUNTIME_DELIVERY_MODE=legacy-rsync \\\\\n      RUNTIME_CONTENT_DIR=\\"${REMOTE_RUNTIME_DIR}\\"'),
+  'explicit legacy-rsync full deploys must pass delivery mode and the just-rsync’d runtime tree into 4-deploy',
+);
 assert.match(
   remoteDeploy,
   /缺失时失败关闭而不是 rsync runtime/,

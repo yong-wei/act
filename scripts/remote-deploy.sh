@@ -772,6 +772,11 @@ remote "bash -lc 'set -euo pipefail
       ${RUNTIME_OSS_RAM_ROLE:+ACT_RUNTIME_OSS_RAM_ROLE=\"${RUNTIME_OSS_RAM_ROLE}\" }\\
       APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
       \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
+  elif [ \"${DEPLOY_SCOPE}\" = \"all\" ] && [ \"${RUNTIME_DELIVERY_MODE}\" = \"legacy-rsync\" ]; then
+    RUNTIME_DELIVERY_MODE=legacy-rsync \\
+      RUNTIME_CONTENT_DIR=\"${REMOTE_RUNTIME_DIR}\" \\
+      APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
+      \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   else
     APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   fi
