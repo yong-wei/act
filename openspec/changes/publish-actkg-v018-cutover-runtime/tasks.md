@@ -25,4 +25,4 @@
   teaching, six-consumer, health, worker, and readiness checks separately.
 - [x] 3.4 Seal the deployment receipt or restore the prior app runtime on failure;
   do not authorize cutover when any shadow check is blocked.
-- [ ] 3.5 Stop Docker Desktop after release verification when no other build owns it.
+- [x] 3.5 Stop Docker Desktop after release verification when no other build owns it.

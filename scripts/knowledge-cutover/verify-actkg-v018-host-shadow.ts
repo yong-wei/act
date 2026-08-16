@@ -6,7 +6,6 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -26,6 +25,62 @@ function option(argv: readonly string[], name: string): string | undefined {
 
 function ssh(target: string, script: string): string {
   return execFileSync('ssh', [target, script], { encoding: 'utf8' }).trim();
+}
+
+function runDeployedImageStagedShadow(sshTarget: string): {
+  source: 'deployed-image-staged-candidate' | 'local-qualification';
+  consumers: Array<{ consumerId: string; status: string }>;
+} {
+  const raw = ssh(sshTarget, [
+    'set -e',
+    'stage=/home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18',
+    'out=/tmp/v018-host-shadow-out',
+    'fixture=/tmp/v018-runtime-fixture',
+    'authority=/home/projects/act/course-content/authoring/knowledge/authority',
+    'v09snap=snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+    'rm -rf "$out"',
+    'mkdir -p "$out"',
+    'chmod 0777 "$out"',
+    'mkdir -p "$fixture/knowledge/projection" "$fixture/knowledge/prerequisites" "$fixture/knowledge/consumer-activation"',
+    'podman exec act-obe-app cat /app/course-content/runtime/knowledge/projection/current.json > "$fixture/knowledge/projection/current.json"',
+    'podman exec act-obe-app cat /app/course-content/runtime/knowledge/prerequisites/current.json > "$fixture/knowledge/prerequisites/current.json"',
+    'podman exec act-obe-app cat /app/course-content/runtime/knowledge/consumer-activation/current.json > "$fixture/knowledge/consumer-activation/current.json"',
+    'cat > /tmp/v018-host-shadow-run.mjs <<\'JS\'',
+    'import { writeFileSync } from "node:fs";',
+    'import { qualifyActKgV018CutoverCandidate } from "./src/lib/teaching-projection/qualify/v018-qualify.ts";',
+    'const result = await qualifyActKgV018CutoverCandidate({ repoRoot: "/app", outputRoot: "/out" });',
+    'writeFileSync("/out/result.json", JSON.stringify(result));',
+    'JS',
+    'podman run --rm --network none --entrypoint ./node_modules/.bin/tsx \\',
+    '  -v "$fixture/knowledge:/app/course-content/runtime/knowledge:ro" \\',
+    '  -v "$authority/current.json:/app/course-content/authoring/knowledge/authority/current.json:ro" \\',
+    '  -v "$authority/releases/$v09snap:/app/course-content/authoring/knowledge/authority/releases/$v09snap:ro" \\',
+    '  -v /tmp/v018-catalog-authoring:/app/course-content/authoring/knowledge/authority-domain-catalog:ro \\',
+    '  -v "$stage/teaching-projection:/app/course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18:ro" \\',
+    '  -v "$stage/qualification:/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18:ro" \\',
+    '  -v "$out:/out" \\',
+    '  -v /tmp/v018-host-shadow-run.mjs:/app/v018-host-shadow-run.mjs:ro \\',
+    '  localhost/act-obe-platform:v018-94d585ae63a6 \\',
+    '  /app/v018-host-shadow-run.mjs >/tmp/v018-host-shadow-run.log 2>&1',
+    'python3 - <<\'PY\'',
+    'import json',
+    'from pathlib import Path',
+    'report = json.loads(Path("/tmp/v018-host-shadow-out/qualification-readiness.json").read_text())',
+    'consumers = [{"consumerId": row.get("consumerId",""), "status": row.get("status","")} for row in report.get("consumerResults") or []]',
+    'print(json.dumps({"status": report.get("status"), "blockers": report.get("blockers") or [], "consumers": consumers}))',
+    'PY',
+  ].join('\n'));
+  const parsed = asRecord(JSON.parse(raw.split('\n').filter((line) => line.trim().startsWith('{')).at(-1) ?? '{}'));
+  const consumers = Array.isArray(parsed.consumers)
+    ? parsed.consumers.map((row) => {
+        const rec = asRecord(row);
+        return { consumerId: String(rec.consumerId ?? ''), status: String(rec.status ?? '') };
+      })
+    : [];
+  return {
+    source: parsed.status === 'READY' ? 'deployed-image-staged-candidate' : 'local-qualification',
+    consumers,
+  };
 }
 
 function readActiveGraphFromContainer(sshTarget: string): {
@@ -95,16 +150,8 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   ].join('\n'))) as HostShadowObservation;
   const readyz = asRecord(JSON.parse(ssh(sshTarget, 'curl -sS -m 15 http://127.0.0.1:8084/api/readyz')));
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
-  const qualification = asRecord(JSON.parse(readFileSync(path.join(
-    repoRoot,
-    'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json',
-  ), 'utf8')));
-  const consumers = Array.isArray(qualification.consumerResults)
-    ? qualification.consumerResults.map((row) => {
-        const rec = asRecord(row);
-        return { consumerId: String(rec.consumerId ?? ''), status: String(rec.status ?? '') };
-      })
-    : [];
+  const sidecar = runDeployedImageStagedShadow(sshTarget);
+  const consumers = sidecar.consumers;
   const active = readActiveGraphFromContainer(sshTarget);
   const observation: HostShadowObservation = {
     ...remote,
@@ -117,6 +164,7 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
     activeGraphReleaseId: active.releaseId,
     activeGraphSnapshotId: active.snapshotId,
     consumerStatuses: consumers,
+    consumerShadowSource: sidecar.source,
     pointersUnchangedAfterStage: remote.authorityReleaseId === 'ctr:release:control-theory-engineering-v0.9',
   };
   const evaluated = evaluateV018HostShadow(observation);

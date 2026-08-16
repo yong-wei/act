@@ -36,6 +36,7 @@ export interface HostShadowObservation {
   activeGraphReleaseId?: string;
   activeGraphSnapshotId?: string;
   consumerStatuses?: ReadonlyArray<{ consumerId: string; status: string }>;
+  consumerShadowSource?: 'deployed-image-staged-candidate' | 'local-qualification';
   pointersUnchangedAfterStage?: boolean;
 }
 
@@ -80,6 +81,9 @@ export function evaluateV018HostShadow(observation: HostShadowObservation): {
     .filter((row) => row.status === 'READY')
     .map((row) => row.consumerId)
     .sort();
+  if (observation.consumerShadowSource !== 'deployed-image-staged-candidate') {
+    blockers.push('host-v018-shadow-not-executed-on-deployed-image');
+  }
   if (readyIds.join(',') !== [...V018_NAMED_CONSUMERS].sort().join(',')) {
     blockers.push('host-v018-consumer-shadow-incomplete');
   }

@@ -26,6 +26,7 @@ const readyObservation = {
   activeGraphReleaseId: 'ctr:release:control-theory-engineering-v0.9',
   activeGraphSnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
   pointersUnchangedAfterStage: true,
+  consumerShadowSource: 'deployed-image-staged-candidate' as const,
   consumerStatuses: [
     { consumerId: 'course-runtime', status: 'READY' },
     { consumerId: 'engineering-graph', status: 'READY' },
@@ -39,6 +40,15 @@ const readyObservation = {
 describe('v0.18 host shadow evaluation', () => {
   it('is READY only when production stays on v0.9 and the staged candidate matches', () => {
     expect(evaluateV018HostShadow(readyObservation)).toEqual({ status: 'READY', blockers: [] });
+  });
+
+  it('fails closed when consumer results are copied from local qualification', () => {
+    const result = evaluateV018HostShadow({
+      ...readyObservation,
+      consumerShadowSource: 'local-qualification',
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-v018-shadow-not-executed-on-deployed-image');
   });
 
   it('fails closed when the active graph is not the frozen v0.9 snapshot', () => {
