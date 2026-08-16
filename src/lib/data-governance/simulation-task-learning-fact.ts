@@ -61,6 +61,12 @@ export function buildSimulationTaskLearningFact(
     courseId: input.courseId ?? null,
     lessonId: input.lessonId ?? null,
     contextJson: {
+      evidenceGovernance: {
+        evidenceQuality: 'partial',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'unmanaged_learning_fact_context_only',
+      },
       simulationTaskEvidence: input.evidence,
       ...(input.historicalCandidatePlanDigest ? {
         simulationTaskHistoricalCandidate: {

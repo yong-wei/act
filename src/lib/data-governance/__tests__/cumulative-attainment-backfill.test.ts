@@ -24,7 +24,11 @@ function options(input: Partial<CumulativeBackfillOptions> = {}): CumulativeBack
   };
 }
 
-function createDb(config: { invalidEvidence?: boolean; noFacts?: boolean } = {}) {
+function createDb(config: {
+  invalidEvidence?: boolean;
+  noFacts?: boolean;
+  calculationVersion?: string;
+} = {}) {
   const facts = config.noFacts ? [] : [{
     id: 'fact-1',
     userId: 'student-1',
@@ -47,7 +51,7 @@ function createDb(config: { invalidEvidence?: boolean; noFacts?: boolean } = {})
   let fence: any = {
     id: 'global',
     fence: BigInt(4),
-    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    calculationVersion: config.calculationVersion ?? PORTRAIT_V2_CALCULATION_VERSION,
     learnerGeneration: BigInt(7),
     classMaterializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
     classGeneration: BigInt(8),
@@ -314,8 +318,8 @@ describe('cumulative attainment stopped-service migration', () => {
     expect(db._state.fence.fence).toBe(BigInt(4));
   });
 
-  it('advances the fence, invalidates old work, removes inactive queue jobs and writes v2 pointers directly', async () => {
-    const db = createDb();
+  it('upgrades a v2 fence, invalidates old work, and publishes current-version pointers', async () => {
+    const db = createDb({ calculationVersion: 'portrait-v2-cumulative.v2' });
     const digest = await plan(db);
     const student = queue(['waiting', 'active']);
     const classes = queue(['delayed', 'paused']);
@@ -329,6 +333,7 @@ describe('cumulative attainment stopped-service migration', () => {
     });
     expect(db._state.fence).toMatchObject({
       fence: BigInt(5),
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       learnerGeneration: BigInt(8),
       classGeneration: BigInt(9),
       queueGeneration: BigInt(10),
@@ -352,7 +357,14 @@ describe('cumulative attainment stopped-service migration', () => {
     });
     expect(db._state.classPointers.get('class-1')).toMatchObject({
       materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       migrationRunId: 'apply-2026',
+    });
+    expect(db._state.learnerPointers.get('student-1')).toMatchObject({
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      stateVersion: {
+        migrationRunId: 'apply-2026',
+      },
     });
     expect(JSON.stringify(db._state.receipts)).not.toContain('student-1');
     expect(JSON.stringify(db._state.receipts)).not.toContain('class-1');

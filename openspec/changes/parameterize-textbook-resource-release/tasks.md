@@ -20,12 +20,14 @@
 
 - [x] 4.1 `scripts/remote-deploy.sh` 从 resourceSet 动态读取 book ids 和 count。
 - [x] 4.2 移除 `-eq 7` 和固定七本数组。
+- [x] 4.3 远端 provenance 校验将 helper 依赖与 resourceSet 配置作为同一发布单元上传，并从远端仓库根目录解析配置。
 
 ## 5. 测试
 
 - [x] 5.1 更新 runtime provenance streaming 测试。
 - [x] 5.2 更新 externalized deploy 与 remote-deploy 测试，覆盖 resourceSet 动态调用。
 - [x] 5.3 在可用的 Python 环境运行 runtime 与 hybrid retrieval 单元测试；本机 Windows CRLF 环境仅 benchmark lock 既有校验例外。
+- [x] 5.4 覆盖全新远端的 provenance helper 依赖发布，以及递归清理悬空符号链接的 externalized deploy 回归。
 
 ## 6. OpenSpec 与验证
 

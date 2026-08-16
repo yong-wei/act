@@ -2,7 +2,10 @@ import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
-import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import {
+  authorizeServerVerifiedCompetencyContribution,
+  persistCoreLearningFact,
+} from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   buildKaqQuizQuestionMetadata,
@@ -27,12 +30,14 @@ import {
   getAbilityReportFromAnswers,
   getDiagnostic,
   getDiagnosticFromAnswers,
+  getAdaptiveQuestionSelectionById,
   selectNextQuestion,
   selectNextQuestionFromAnswers,
   submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
   type AdaptiveQuestionScope,
+  type CompanionPracticeMetadata,
   type DiagnosticResult,
   type PublicQuestion,
   type SubmitAnswerParams,
@@ -74,6 +79,7 @@ type PersistedAssessmentAnswerRow = {
 type PersistedAssessmentSessionRow = {
   id: string;
   selectedQuestionIds?: string[];
+  metadata?: unknown;
 };
 
 type AdaptiveAssessmentPersistenceTx = {
@@ -92,8 +98,10 @@ type AdaptiveAssessmentPersistenceTx = {
     findUnique(args: Record<string, unknown>): Promise<{
       id: string;
       userId: string;
+      questionRefId?: string;
       questionId: string;
       selectedOptionKey: string;
+      correctOptionKey?: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -104,7 +112,10 @@ type AdaptiveAssessmentPersistenceTx = {
     upsert(args: Record<string, unknown>): Promise<{
       id: string;
       userId: string;
+      questionRefId?: string;
       questionId: string;
+      selectedOptionKey?: string;
+      correctOptionKey?: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -180,6 +191,45 @@ type PersistedAssessmentAnswerWithSession = PersistedAssessmentAnswerRow & {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function assertImmutableCompanionMetadata(existing: unknown, requested: CompanionPracticeMetadata | undefined) {
+  const existingRecord = existing && typeof existing === 'object' && !Array.isArray(existing)
+    ? existing as Record<string, unknown>
+    : {};
+  if (!requested) {
+    if (existingRecord.origin === 'konling-companion-practice') {
+      throw new Error('Companion-practice metadata is required for this session.');
+    }
+    return;
+  }
+  if (Object.keys(existingRecord).length === 0) return;
+  if (JSON.stringify(existingRecord) !== JSON.stringify(requested)) {
+    throw new Error('Companion-practice session metadata is immutable.');
+  }
+}
+
+function assertSelectedCompanionQuestion(
+  session: PersistedAssessmentSessionRow,
+  questionId: string,
+  continuity: CompanionPracticeMetadata | undefined,
+) {
+  if (!continuity) return;
+  const selectedQuestionIds = Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [];
+  if (selectedQuestionIds.length !== 1 || selectedQuestionIds[0] !== questionId) {
+    throw new Error('Companion-practice answer does not match the selected question.');
+  }
+}
+
+function selectedOptionValueFromKey(
+  details: SubmittedAnswerDetails,
+  selectedOptionKey: string | undefined,
+): string {
+  if (!selectedOptionKey) return details.record.selectedOption;
+  const optionIndex = selectedOptionKey.length === 1
+    ? selectedOptionKey.charCodeAt(0) - 'A'.charCodeAt(0)
+    : Number.parseInt(selectedOptionKey.replace('OPTION_', ''), 10) - 1;
+  return details.question.options[optionIndex]?.label ?? details.record.selectedOption;
 }
 
 function questionSource(questionId: string): string {
@@ -684,8 +734,11 @@ async function persistAdaptiveAssessmentSubmission(
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       startedAt: answeredAt,
       lastAnsweredAt: answeredAt,
+      metadata: details.continuity ?? {},
     },
   });
+  assertImmutableCompanionMetadata(session.metadata, details.continuity);
+  assertSelectedCompanionQuestion(session, details.question.id, details.continuity);
 
   let effectiveDetails = details;
   if (details.pathContext) {
@@ -722,8 +775,10 @@ async function persistAdaptiveAssessmentSubmission(
           algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
           startedAt: answeredAt,
           lastAnsweredAt: answeredAt,
+          metadata: details.continuity ?? {},
         },
       });
+      assertImmutableCompanionMetadata(session.metadata, details.continuity);
       effectiveDetails = {
         ...details,
         record: {
@@ -837,27 +892,45 @@ async function persistAdaptiveAssessmentSubmission(
   });
   const createdAnswer = !existingAnswer && answer.answeredAt.getTime() === answeredAt.getTime();
   if (!createdAnswer) {
+    const replayDetails = {
+      ...effectiveDetails,
+      record: {
+        ...effectiveDetails.record,
+        isCorrect: answer.isCorrect,
+        timeSpent: answer.responseTimeSeconds,
+        selectedOption: selectedOptionValueFromKey(effectiveDetails, answer.selectedOptionKey),
+        createdAt: answer.answeredAt.getTime(),
+      },
+      selectedOptionKey: answer.selectedOptionKey ?? effectiveDetails.selectedOptionKey,
+      correctOptionKey: answer.correctOptionKey ?? effectiveDetails.correctOptionKey,
+    };
+    const replayHistory = persistedAnswerRecords
+      .filter((record) => record.createdAt <= answer.answeredAt.getTime());
+    if (!replayHistory.some((record) => record.sessionId === replayDetails.record.sessionId && record.questionId === answer.questionId)) {
+      replayHistory.push(replayDetails.record);
+    }
+    const replayResult = buildSubmitAnswerResult(replayDetails, replayHistory);
     const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
-      question: effectiveDetails.question,
-      sessionId: effectiveDetails.record.sessionId,
+      question: replayDetails.question,
+      sessionId: replayDetails.record.sessionId,
       answerId: answer.id,
-      isCorrect: effectiveDetails.record.isCorrect,
-      score,
+      isCorrect: answer.isCorrect,
+      score: answer.score,
       scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      occurredAt: answeredAt.toISOString(),
+      occurredAt: answer.answeredAt.toISOString(),
     });
     return {
       durableSessionId: session.id,
       durableAnswerId: answer.id,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       masteryUpdateCount: 0,
-      result,
+      result: replayResult,
       adaptiveAssessmentRef: buildAdaptiveAssessmentOutcomeRef({
-        details: effectiveDetails,
+        details: { ...replayDetails, result: replayResult },
         answerId: answer.id,
-        questionRefId: questionRef.id,
-        score,
-        answeredAt,
+        questionRefId: answer.questionRefId ?? questionRef.id,
+        score: answer.score,
+        answeredAt: answer.answeredAt,
         catalogSnapshot,
         kaqQuizEvidence,
       }),
@@ -965,8 +1038,7 @@ async function persistAdaptiveAssessmentSubmission(
     kaqQuizEvidence,
   });
 
-  await persistCoreLearningFact(
-    tx,
+  const learningEvent = authorizeServerVerifiedCompetencyContribution(
     buildAssessmentLearningEvent({
       details: durableDetails,
       answerId: answer.id,
@@ -977,6 +1049,7 @@ async function persistAdaptiveAssessmentSubmission(
       masteryConfidence,
     }),
   );
+  await persistCoreLearningFact(tx, learningEvent);
 
   return {
     durableSessionId: session.id,
@@ -1019,6 +1092,9 @@ export async function submitAnswerWithPersistenceFallback(
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DurableSubmitAnswerResult> {
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
+    if (params.continuity) {
+      throw new Error('Companion practice requires adaptive-assessment persistence.');
+    }
     return submitAnswer(params);
   }
 
@@ -1060,7 +1136,7 @@ async function loadPersistedAnswerRecords(
 }
 
 async function loadPersistedSessionSelection(
-  params: { userId: string; sessionId: string },
+  params: { userId: string; sessionId: string; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb,
 ): Promise<PersistedAssessmentSessionRow> {
   const now = new Date();
@@ -1082,12 +1158,15 @@ async function loadPersistedSessionSelection(
       selectedQuestionIds: [],
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       startedAt: now,
+      metadata: params.continuity ?? {},
     },
     select: {
       id: true,
       selectedQuestionIds: true,
+      metadata: true,
     },
   });
+  assertImmutableCompanionMetadata(session.metadata, params.continuity);
 
   return {
     id: session.id,
@@ -1141,7 +1220,7 @@ export async function getDiagnosticWithPersistenceFallback(
 }
 
 export async function selectNextQuestionWithPersistenceFallback(
-  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope },
+  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<{
@@ -1150,6 +1229,9 @@ export async function selectNextQuestionWithPersistenceFallback(
   confidenceInterval: [number, number];
 }> {
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
+    if (params.continuity) {
+      throw new Error('Companion practice requires adaptive-assessment persistence.');
+    }
     return selectNextQuestion(params);
   }
 
@@ -1157,6 +1239,13 @@ export async function selectNextQuestionWithPersistenceFallback(
     const answers = await loadPersistedAnswerRecords(params.userId, db);
     const session = await loadPersistedSessionSelection(params, db);
     const persistedQuestionIds = session.selectedQuestionIds ?? [];
+    if (params.continuity && persistedQuestionIds.length > 0) {
+      return getAdaptiveQuestionSelectionById({
+        userId: params.userId,
+        sessionId: params.sessionId,
+        questionId: persistedQuestionIds[0],
+      }, answers);
+    }
     const askedQuestionIds = new Set([
       ...persistedQuestionIds,
       ...answers

@@ -30,6 +30,15 @@ The runtime asset exporter SHALL read book configurations from the same resource
 - **WHEN** a declared book has no matching structure configuration
 - **THEN** the exporter SHALL fail closed with a clear missing-configuration error
 
+### Requirement: Remote provenance verification deploys the resource set contract
+The remote deployment workflow SHALL publish the provenance helper, its resource set helper dependency, and the resource set configuration as one release unit before remote provenance verification runs.
+
+#### Scenario: A remote host lacks the previous helper or configuration
+- **WHEN** legacy-rsync or ossfs-release deployment reaches remote provenance verification
+- **THEN** the workflow SHALL upload `textbook-runtime-v2-provenance.mjs`, `textbook-resource-set.mjs`, and `textbook-resource-set.json`
+- **AND** it SHALL execute the provenance helper from the remote repository root
+- **AND** missing or inconsistent helper/configuration files SHALL fail the deployment before it is accepted
+
 ## MODIFIED Requirements
 
 ### Requirement: Structural exports are anomaly-audited

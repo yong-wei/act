@@ -157,6 +157,52 @@ async function waitForMarker(child: ReturnType<typeof spawn>, markerPath: string
 }
 
 describe('all-ABSENT first activation protocol', () => {
+  it('commits and compensates the extended Authority shard pointer in fixed order', () => {
+    const plan = makePlan();
+    const consumer = plan.steps[3]!;
+    const shardPointerPath = path.join(plan.repoRoot, 'authority-domain-shards/current.json');
+    const shard = {
+      component: 'authority-domain-shards' as const,
+      pointerPath: shardPointerPath,
+      target: {
+        component: 'authority-domain-shards' as const,
+        id: 'ads-test',
+        hash,
+      },
+      activate: () => {
+        mkdirSync(path.dirname(shardPointerPath), { recursive: true });
+        writeFileSync(
+          shardPointerPath,
+          `${JSON.stringify({ shardSetId: 'ads-test', shardSetHash: hash })}\n`,
+          'utf8',
+        );
+      },
+    };
+    const extendedPlan = {
+      ...plan,
+      steps: [...plan.steps.slice(0, 3), shard, consumer],
+    };
+
+    const journal = executeFirstActivation({
+      ...extendedPlan,
+      transactionId: 'extended-first-test',
+      createdAt: '2026-08-13T00:00:00.000Z',
+    });
+
+    expect(journal.steps.map((step) => step.component)).toEqual([
+      'authority',
+      'projection',
+      'prerequisite',
+      'authority-domain-shards',
+      'consumer-activation',
+    ]);
+    expect(existsSync(shardPointerPath)).toBe(true);
+    const rolledBack = rollbackCommittedFirstActivation(extendedPlan);
+    expect(rolledBack.status).toBe('ROLLED_BACK');
+    expect(existsSync(shardPointerPath)).toBe(false);
+    expect(extendedPlan.steps.every((step) => !existsSync(step.pointerPath))).toBe(true);
+  });
+
   it('commits in fixed order and can compensate the exact first activation back to absent', () => {
     const plan = makePlan();
     const journal = executeFirstActivation({

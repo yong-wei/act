@@ -16,19 +16,25 @@ function writeExecutable(directory, name, content) {
   return filePath;
 }
 
-function bashPathFor(dir) {
-  if (process.platform !== 'win32') return dir;
-  const result = spawnSync('bash', ['--noprofile', '--norc', '-lc', `cygpath -u '${dir}'`], {
-    encoding: 'utf8',
-  });
-  assert.equal(result.status, 0, `cygpath failed for ${dir}`);
-  return result.stdout.trim();
+function toBashPath(filePath) {
+  if (process.platform !== 'win32') {
+    return filePath;
+  }
+  const converted = spawnSync(
+    'bash',
+    ['-lc', `cygpath -u '${filePath.replace(/'/g, "'\\''")}'`],
+    { encoding: 'utf8' },
+  );
+  if (converted.status !== 0 || !converted.stdout.trim()) {
+    throw new Error(`cannot convert Windows path to bash path: ${filePath}`);
+  }
+  return converted.stdout.trim();
 }
 
-function runRemoteDeploy(fakeBin, env) {
-  const script = path.join(root, 'scripts/remote-deploy.sh');
-  const command = `export PATH="${bashPathFor(fakeBin)}:$PATH"; source '${script}' --skip-build`;
-  return spawnSync('bash', ['--noprofile', '--norc', '-c', command], {
+function runRemoteDeploy(env) {
+  const script = toBashPath(path.join(root, 'scripts/remote-deploy.sh'))
+    .replaceAll("'", "'\\''");
+  return spawnSync('bash', ['--noprofile', '--norc', '-c', `source '${script}' --skip-build`], {
     cwd: root,
     encoding: 'utf8',
     env,
@@ -40,11 +46,15 @@ function verifyCutoverFailureGate() {
   try {
     const fakeBin = path.join(fixtureRoot, 'bin');
     const sshLog = path.join(fixtureRoot, 'ssh.log');
+    const scpLog = path.join(fixtureRoot, 'scp.log');
     const rsyncLog = path.join(fixtureRoot, 'rsync.log');
-    const bashDir = process.platform === 'win32'
-      ? path.dirname(spawnSync('where', ['bash'], { encoding: 'utf8' }).stdout.split(/\r?\n/).find(Boolean))
-      : null;
     fs.mkdirSync(fakeBin);
+    const bashEnvFile = path.join(fixtureRoot, 'bash-env.sh');
+    fs.writeFileSync(
+      bashEnvFile,
+      `export PATH="${toBashPath(fakeBin)}:$PATH"\n`,
+      'utf8',
+    );
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
       `printf '%s\\n' "$*" >> ${JSON.stringify(sshLog)}`,
@@ -54,9 +64,13 @@ function verifyCutoverFailureGate() {
       'exit 0',
       '',
     ].join('\n'));
-    for (const command of ['scp', 'curl']) {
-      writeExecutable(fakeBin, command, '#!/usr/bin/env bash\nexit 0\n');
-    }
+    writeExecutable(fakeBin, 'scp', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(scpLog)}`,
+      'exit 0',
+      '',
+    ].join('\n'));
+    writeExecutable(fakeBin, 'curl', '#!/usr/bin/env bash\nexit 0\n');
     writeExecutable(fakeBin, 'node', [
       '#!/usr/bin/env bash',
       'if [[ "$2" == "ids" ]]; then',
@@ -85,13 +99,14 @@ function verifyCutoverFailureGate() {
     ].join('\n'));
     const baseEnv = {
       ...process.env,
-      PATH: [fakeBin, bashDir, process.env.PATH].filter(Boolean).join(path.delimiter),
+      PATH: `${fakeBin}:${process.env.PATH}`,
+      BASH_ENV: bashEnvFile,
       SKIP_BUILD: '1',
       SSH_TARGET: 'fixture.invalid',
       REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
     };
     const missingImage = path.join(fixtureRoot, 'missing-image.tar');
-    const preCutover = runRemoteDeploy(fakeBin, {
+    const preCutover = runRemoteDeploy({
       ...baseEnv,
       LOCAL_IMAGE_TAR: missingImage,
       LOCAL_PROVENANCE_FILE: `${missingImage}.provenance.json`,
@@ -108,11 +123,11 @@ function verifyCutoverFailureGate() {
     const runtimeRoot = path.join(fixtureRoot, 'runtime');
     fs.writeFileSync(imageTar, 'fixture-image');
     fs.writeFileSync(provenance, '{}\n');
-    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-retrieval'), {
+    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3'), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'manifest.json'),
+      path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3', 'manifest.json'),
       '{}\n',
     );
     writeExecutable(fakeBin, 'rsync', [
@@ -121,18 +136,30 @@ function verifyCutoverFailureGate() {
       'exit 73',
       '',
     ].join('\n'));
-    const postCutover = runRemoteDeploy(fakeBin, {
+    const postCutover = runRemoteDeploy({
       ...baseEnv,
       LOCAL_IMAGE_TAR: imageTar,
       LOCAL_PROVENANCE_FILE: provenance,
       LOCAL_RUNTIME_DIR: runtimeRoot,
     });
     assert.notEqual(postCutover.status, 0, 'runtime rsync 失败应终止 cutover');
+    const scpArgs = fs.readFileSync(scpLog, 'utf8');
+    assert.match(
+      scpArgs,
+      /scripts[\\/]release[\\/]textbook-resource-set\.mjs.*scripts\/textbook-resource-set\.mjs/u,
+      'remote provenance verification must include its resourceSet helper',
+    );
+    assert.match(
+      scpArgs,
+      /course-content[\\/]config[\\/]textbook-resource-set\.json.*course-content\/config\/textbook-resource-set\.json/u,
+      'remote provenance verification must include its resourceSet configuration',
+    );
     const rsyncArgs = fs.readFileSync(rsyncLog, 'utf8');
     for (const pointer of [
       'knowledge/consumer-activation/current.json',
       'knowledge/projection/current.json',
       'knowledge/prerequisites/current.json',
+      'knowledge/authority-domain-shards/current.json',
     ]) {
       assert.match(
         rsyncArgs,
@@ -156,7 +183,7 @@ function verifyCutoverFailureGate() {
 
     fs.writeFileSync(sshLog, '');
     writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 0\n');
-    const postCutoverExplicitExit = runRemoteDeploy(fakeBin, {
+    const postCutoverExplicitExit = runRemoteDeploy({
       ...baseEnv,
       LOCAL_IMAGE_TAR: imageTar,
       LOCAL_PROVENANCE_FILE: provenance,
@@ -225,12 +252,13 @@ function verifyCutoverFailureGate() {
 
 function verifyLegacyRemoteTransactionQuoting(script) {
   const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
-  const end = script.indexOf('\n\nlog\nif [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
+  const end = script.indexOf('\n\nlog\nif [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
   assert.ok(start >= 0 && end > start, 'Legacy deployment must retain a single remote Step 4 transaction');
   const transaction = script.slice(start, end);
   const result = spawnSync('bash', ['-c', `
 set -euo pipefail
 remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
+DEPLOY_SCOPE=all
 RUNTIME_DELIVERY_MODE=legacy-rsync
 REMOTE_PROJECT_DIR=/tmp/act
 REMOTE_RUNTIME_SELECTION_LOCK=/tmp/act/data/runtime/.act-runtime-selection.lock
@@ -241,7 +269,7 @@ REMOTE_RUNTIME_DIR=/tmp/act/course-content/runtime
 REMOTE_RUNTIME_STAGING_DIR=/tmp/act/course-content/runtime.staging.sha
 REMOTE_PROVENANCE_HELPER=/tmp/act/provenance.mjs
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR=/tmp/act/course-content/runtime/resources/textbooks-v2
-REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-retrieval
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3
 REMOTE_PROVENANCE_FILE=/tmp/act/provenance.json
 REMOTE_EXPORT_DB_SCRIPT=/tmp/act/export-db.sh
 REMOTE_LOAD_IMAGES_SCRIPT=/tmp/act/load-images.sh
@@ -291,6 +319,17 @@ function main() {
     'same-SHA retries must not be permanently blocked by a stale staging directory',
   );
   verifyLegacyRemoteTransactionQuoting(script);
+
+  const remoteProvenanceCommand = [
+    'cd ', "'", '$', '{REMOTE_PROJECT_DIR}', "'", ' && node ',
+    "'", '$', '{REMOTE_PROVENANCE_HELPER}', "'",
+  ].join('');
+  assert.equal(
+    (script.split(remoteProvenanceCommand).length - 1) >= 4 &&
+      script.includes(['cd ', String.fromCharCode(92), '"', '$', '{REMOTE_PROJECT_DIR}', String.fromCharCode(92), '"'].join('')),
+    true,
+    'remote provenance verification must resolve resourceSet configuration from the remote project root',
+  );
 
   assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),
@@ -345,6 +384,7 @@ function main() {
     'knowledge/consumer-activation/current.json',
     'knowledge/projection/current.json',
     'knowledge/prerequisites/current.json',
+    'knowledge/authority-domain-shards/current.json',
   ]) {
     assert.match(
       script,
@@ -374,12 +414,12 @@ function main() {
   );
   assert.ok(
     script.includes('guard_no_committed_production_cutover')
-      && script.indexOf('guard_no_committed_production_cutover')
-        < script.indexOf('[2/5] 同步运行时资源与部署脚本'),
+      && script.lastIndexOf('guard_no_committed_production_cutover')
+        < script.indexOf('rsync "${runtime_rsync_args[@]}"'),
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
   assert.ok(
-    (script.match(/check_remote_runtime_pointer_absence\n\s*(?:check_remote_authority_current_pointer_absence\n\s*)?remote "node /g) ?? []).length >= 2,
+    (script.match(/check_remote_runtime_pointer_absence\n\s*(?:check_remote_authority_current_pointer_absence\n\s*)?remote "cd '\$\{REMOTE_PROJECT_DIR\}' && node /g) ?? []).length >= 2,
     'runtime 切换后及最终 remote runtime 验证都必须断言三个 production pointer 均不存在',
   );
 

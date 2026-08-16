@@ -82,6 +82,18 @@
 
 该能力以新增读取合同和新增界面状态接入，不回填历史消息，也不改写既有学习事实、评估尝试或学习路径。上线时先启用服务端快照与契约测试，再启用控灵卡片和评估入口。回滚时关闭卡片入口和快照读取，既有评估结果继续按原合同保留。
 
+### Database rollout and rollback
+
+`AdaptiveAssessmentSession.metadata` uses `JSONB NOT NULL DEFAULT '{}'`. Existing sessions require no backfill: the default represents an ordinary assessment session with no companion-practice provenance, while new companion sessions write the immutable `origin`, `snapshotId`, `targetKnowledgeId`, and optional `structuredCauseId` fields when the session is created.
+
+The forward-compatible deployment order is migration first, then application code. Older application versions ignore the additional column, and the new application treats `{}` as an ordinary non-companion session. Rollback disables the continuity card and companion-practice entry before deploying the previous application version. The metadata column and any recorded provenance remain in place during rollback; they MUST NOT be dropped until the governed assessment retention window has elapsed or the provenance has been exported, because removing it would detach existing assessment results from their continuity source.
+
+Per-visit deduplication remains application-memory state. Closing and reopening Konling or navigating between pages in the same application visit does not repeat an unchanged `snapshotId`; a full reload or a later application visit may present it again. A newly governed result changes the snapshot identity and may therefore produce one new presentation.
+
+### Browser evidence provenance
+
+The browser acceptance generator fails closed unless the declared full commit SHA equals `HEAD`, the tracked worktree is clean at capture start, and every declared runtime input has the same bytes as its Git blob at that revision. The local development service must expose the development-only revision probe and return the same commit, tree, source fingerprint, and clean state. During capture, only files below the Issue 1168 evidence output directory may change; the generator repeats local and runtime checks after every screenshot and immediately before and after writing the manifest.
+
 ## Open Questions
 
 无。首版状态、数据边界、练习数量和路径隔离均已确认。

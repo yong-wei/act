@@ -3,14 +3,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
-const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
-const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8');
+const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
 
-const ossModeStart = remoteDeploy.indexOf('  ossfs-release)\n    log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"');
-const ossModeEnd = remoteDeploy.indexOf('  *)\n    fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"', ossModeStart);
-assert.ok(ossModeStart >= 0 && ossModeEnd > ossModeStart, 'remote deploy must have an isolated ossfs-release branch');
-const ossMode = remoteDeploy.slice(ossModeStart, ossModeEnd);
+const ossModeMatch = remoteDeploy.match(/\r?\n\s+ossfs-release\)\r?\n\s+log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"([\s\S]*?)\r?\n\s+\*\)/);
+assert.ok(ossModeMatch, 'remote deploy must have an isolated ossfs-release branch');
+const ossMode = ossModeMatch[0];
 
 assert.equal(ossMode.includes('rsync '), false, 'ossfs-release branch must not copy runtime contents with rsync');
 assert.match(remoteDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-legacy-rsync\}"/, 'runtime delivery mode must be explicit');
@@ -43,7 +45,7 @@ assert.ok(
 );
 assert.match(
   podmanDeploy,
-  /if \[ "\$RUNTIME_DELIVERY_MODE" = "ossfs-release" \]; then\n  TEACHING_PROJECTION_STORE_DIR="\$\{RUNTIME_CONTENT_DIR\}\/knowledge\/projection"/,
+  /if \[ "\$RUNTIME_DELIVERY_MODE" = "ossfs-release" \] \|\| \[ "\$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" \]; then\n  TEACHING_PROJECTION_STORE_DIR="\$\{RUNTIME_CONTENT_DIR\}\/knowledge\/projection"/,
   'OSS runtime cutover must not retain a nested projection bind from the legacy runtime tree',
 );
 

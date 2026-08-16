@@ -1,0 +1,413 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
+      "activationHash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogHash": "dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogVersion": "1.0.0"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1k:relation-0489dfc78d6d6ac56efc367e",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "targetId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-13fb2421fa60bc2e2f4065b7",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-4728897b269aefffc2e8ffe1",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1k:relation-4a916aaaf78071b8a36d4275",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "targetId": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-51c2bb4f4d0b2041c616167e",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1k:relation-93dfee93fc07d3c569481fa9",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1k:relation-c887fbceaa831973d178070e",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1k:relation-caf8701877271bbca683e631",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-d059f57b5e25055d67a07149",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c",
+      "targetId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-67d5555e935df3a1d09971f1",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b3fb723e0aebb8b4dca3e23c",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "label": "名称暂不可用",
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": []
+    }
+  ]
+}

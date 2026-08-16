@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "act-runtime-external-inputs.v1",
+  "inputs": [
+    {
+      "pathPrefix": "resources/textbook-retrieval/",
+      "externalInputId": "textbook-retrieval-generated-v1"
+    },
+    {
+      "pathPrefix": "resources/textbooks/",
+      "externalInputId": "textbook-runtime-generated-v1"
+    },
+    {
+      "pathPrefix": "resources/textbooks-v2/",
+      "externalInputId": "textbook-runtime-v2-generated-v1"
+    }
+  ]
+}

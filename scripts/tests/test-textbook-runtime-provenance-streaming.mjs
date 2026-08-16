@@ -126,6 +126,37 @@ try {
     '--sidecar', sidecar,
   ]);
   assert.equal(verifyImageResult.status, 0, verifyImageResult.stderr);
+
+  const remoteProjectRoot = path.join(fixtureRoot, 'remote-project');
+  const remoteReleaseDir = path.join(remoteProjectRoot, 'scripts');
+  const remoteConfigDir = path.join(remoteProjectRoot, 'course-content', 'config');
+  const remoteHelperPath = path.join(remoteReleaseDir, 'textbook-runtime-v2-provenance.mjs');
+  fs.mkdirSync(remoteReleaseDir, { recursive: true });
+  fs.mkdirSync(remoteConfigDir, { recursive: true });
+  fs.copyFileSync(helperPath, remoteHelperPath);
+  fs.copyFileSync(
+    path.join(root, 'scripts', 'release', 'textbook-resource-set.mjs'),
+    path.join(remoteReleaseDir, 'textbook-resource-set.mjs'),
+  );
+  fs.copyFileSync(
+    path.join(root, 'course-content', 'config', 'textbook-resource-set.json'),
+    path.join(remoteConfigDir, 'textbook-resource-set.json'),
+  );
+  const remoteVerifyRuntimeResult = spawnSync(process.execPath, [
+    remoteHelperPath,
+    'verify-runtime',
+    '--runtime-root', runtimeRoot,
+    '--index-dir', indexRoot,
+    '--sidecar', sidecar,
+  ], {
+    cwd: remoteProjectRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(
+    remoteVerifyRuntimeResult.status,
+    0,
+    remoteVerifyRuntimeResult.stderr,
+  );
 } finally {
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }

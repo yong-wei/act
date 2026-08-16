@@ -9,13 +9,19 @@ const root = process.cwd();
 const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
 const tool = path.join(root, 'scripts', 'knowledge-cutover', 'production-cutover.ts');
 const revision = '58f70df257f493f7dc13b2dabfb0383b972ee017';
+const operatorSourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const imageTag = 'localhost/act-obe-platform:v0.4.0-58f70df';
-const imageTar = path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
+const imageTar = process.env.ACT_TEST_PRODUCTION_IMAGE_TAR
+  ?? path.join(root, 'deploy', 'images', 'act-obe-v0.4.0-58f70df.tar');
+const containerRuntime = process.env.ACT_TEST_CONTAINER_RUNTIME ?? null;
+const containerImage = process.env.ACT_TEST_CONTAINER_IMAGE ?? imageTag;
 const remoteActivator = path.join(root, 'scripts', 'remote-activate-knowledge-cutover.sh');
 const remoteOperator = path.join(root, 'scripts', 'knowledge-cutover', 'remote-production-cutover.sh');
+const operatorBundleHelper = path.join(root, 'scripts', 'knowledge-cutover', 'create-operator-bundle.mjs');
 const cleanupEngine = path.join(root, 'scripts', 'knowledge-cutover', 'cleanup-failed-authority-identity.cjs');
 const AUTHORITY_PREFIX = 'course-content/authoring/knowledge/authority/';
-const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v1';
+const SHARD_PREFIX = 'course-content/runtime/knowledge/authority-domain-shards/';
+const PLAN_CONTRACT = 'act-production-knowledge-cutover-plan/v2';
 
 function imageConfigDigest(archive) {
   const read = (entry) => execFileSync('tar', ['-xOf', archive, entry]);
@@ -70,15 +76,77 @@ function run(args, env = {}) {
   });
 }
 
+function runBundledContainer(action, fixtureRoot, planPath, bundleRoot, bundleManifest) {
+  assert.ok(containerRuntime, 'container runtime must be configured for bundled driver verification');
+  return spawnSync(containerRuntime, [
+    'run', '--rm', '--network', 'none', '--user', '0',
+    '-e', `APP_REVISION=${revision}`,
+    '-e', 'ACT_AUTHORITY_STORE_ROOT=/activation-root/course-content/authoring/knowledge/authority',
+    '-e', 'ACT_CONSUMER_ACTIVATION_ROOT=/activation-root/course-content/runtime/knowledge/consumer-activation',
+    '-v', `${fixtureRoot}:/activation-root:rw`,
+    '-v', `${bundleRoot}:/operator-bundle:ro`,
+    '-v', `${bundleManifest}:/operator-bundle-manifest.json:ro`,
+    '-v', `${planPath}:/activation-plan.json:ro`,
+    '--workdir', '/operator-bundle',
+    '--entrypoint', '/app/node_modules/.bin/tsx',
+    containerImage,
+    '--tsconfig', '/operator-bundle/tsconfig.json',
+    '/operator-bundle/scripts/knowledge-cutover/production-cutover.ts', action,
+    '--root', '/activation-root',
+    '--plan', '/activation-plan.json',
+    '--bundle-root', '/operator-bundle',
+    '--bundle-manifest', '/operator-bundle-manifest.json',
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+}
+
 function copyFile(relativePath, fixtureRoot) {
   const target = path.join(fixtureRoot, relativePath);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.copyFileSync(path.join(root, relativePath), target);
 }
 
-function createFixture(plan, name) {
+function fileTreeFingerprint(directory) {
+  const entries = [];
+  const visit = (current, relative) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const next = path.join(current, entry.name);
+      const nested = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) visit(next, nested);
+      else if (entry.isFile()) entries.push([nested, sha256File(next)]);
+      else throw new Error(`unsupported shard runtime entry: ${nested}`);
+    }
+  };
+  visit(directory, '');
+  return entries;
+}
+
+function createFixture(plan, name, options = {}) {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `production-cutover-${name}-`));
-  for (const file of plan.files) copyFile(file.path, fixtureRoot);
+  const shardPrefix = `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`;
+  for (const file of plan.files) {
+    if (!file.path.startsWith(shardPrefix)) copyFile(file.path, fixtureRoot);
+  }
+  if (options.shardSetSource) {
+    fs.cpSync(
+      options.shardSetSource,
+      path.join(fixtureRoot, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`),
+      { recursive: true },
+    );
+  }
+  if (options.operatorBundleSource) {
+    fs.cpSync(
+      options.operatorBundleSource,
+      path.join(fixtureRoot, 'operator-bundle'),
+      { recursive: true },
+    );
+    fs.copyFileSync(
+      options.operatorBundleManifest,
+      path.join(fixtureRoot, 'operator-bundle.manifest.json'),
+    );
+  }
   return fixtureRoot;
 }
 
@@ -101,6 +169,59 @@ function driverEnv(fixtureRoot) {
   };
 }
 
+function writePreparedReceipt(fixtureRoot, plan, overrides = {}) {
+  const receipt = {
+    contract: 'act-production-knowledge-cutover-receipt/v1',
+    transactionId: plan.transactionId,
+    planHash: plan.planHash,
+    applicationSourceRevision: plan.source.applicationSourceRevision,
+    imageConfigDigest: plan.source.imageConfigDigest,
+    imageTarSha256: plan.source.imageTarSha256,
+    imageProvenanceSha256: plan.source.imageProvenanceSha256,
+    operatorSourceRevision: plan.source.operatorSourceRevision,
+    operatorSourceTree: plan.source.operatorSourceTree,
+    captureRevision: plan.source.captureRevision,
+    status: 'PREPARED',
+    preparedAt: '2026-08-13T00:00:00.000Z',
+    ...overrides,
+  };
+  const receiptPath = path.join(
+    fixtureRoot,
+    'course-content/runtime/knowledge/production-cutover-transactions',
+    `${plan.transactionId}.json`,
+  );
+  fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  fs.writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
+}
+
+function writePreparedJournal(fixtureRoot, plan) {
+  const body = {
+    contract: 'actkg-to-act-first-activation-journal/v2',
+    transactionId: plan.transactionId,
+    createdAt: '2026-08-13T00:00:00.000Z',
+    status: 'PREPARED',
+    prestate: 'ALL_POINTERS_ABSENT',
+    steps: plan.pointers.map((pointer) => ({
+      component: pointer.component,
+      pointer: { kind: 'repo-relative', path: pointer.path },
+      target: { component: pointer.component, id: pointer.id, hash: pointer.hash },
+      status: 'PENDING',
+    })),
+    failure: null,
+  };
+  const journalPath = path.join(
+    fixtureRoot,
+    'course-content/runtime/knowledge/consumer-activation/first-activation-transactions',
+    `${plan.transactionId}.json`,
+  );
+  fs.mkdirSync(path.dirname(journalPath), { recursive: true });
+  fs.writeFileSync(
+    journalPath,
+    `${JSON.stringify({ ...body, journalHash: sha256Bytes(canonicalJson(body)) }, null, 2)}\n`,
+  );
+  return journalPath;
+}
+
 function expectFailure(result, expression, message) {
   assert.notEqual(result.status, 0, message);
   assert.match(`${result.stdout}\n${result.stderr}`, expression, message);
@@ -113,10 +234,13 @@ function writeSealedCleanupPlan(planPath, transactionId, authorityFiles) {
     createdAt: '2026-08-11T00:00:00.000Z',
     source: {
       releaseTag: 'v0.4.0',
-      imageRevision: revision,
+      applicationSourceRevision: revision,
       imageTag,
       imageConfigDigest: `sha256:${'a'.repeat(64)}`,
       imageTarSha256: 'b'.repeat(64),
+      imageProvenanceSha256: '9'.repeat(64),
+      operatorSourceRevision,
+      operatorSourceTree: '8'.repeat(40),
       captureRevision: revision,
       toolSha256: 'c'.repeat(64),
       deploymentScriptSha256: 'd'.repeat(64),
@@ -1048,6 +1172,141 @@ function testArchiveValidationOrder() {
   testConsumerStopRecoveryIntent();
 }
 
+function testApplicationImageValidationOrder() {
+  const activateBody = remoteOperatorSourceSlice();
+  const verifyCallIdx = activateBody.indexOf('\n  verify_staged_application_image\n');
+  const prepareCallIdx = activateBody.indexOf('\n  prepare_operator_bundle\n');
+  const activateDriverIdx = activateBody.indexOf('run_driver activate rw');
+  assert.ok(verifyCallIdx >= 0, 'activate must call staged image verification');
+  assert.ok(prepareCallIdx >= 0, 'activate must prepare the operator bundle');
+  assert.match(activateBody, /run_driver verify-bundle ro/u, 'operator bundle preparation must run its bundle verifier');
+  assert.ok(activateDriverIdx >= 0, 'activate must run the activation driver');
+  assert.ok(
+    verifyCallIdx < prepareCallIdx && verifyCallIdx < activateDriverIdx,
+    'staged image verification must complete before any normal target-image driver invocation',
+  );
+
+  const verifyStart = activateBody.indexOf('  verify_staged_application_image() {');
+  const verifyEnd = activateBody.indexOf('\n  exec >', verifyStart);
+  assert.ok(verifyStart >= 0 && verifyEnd > verifyStart, 'staged image verifier body must be locatable');
+  const verifyBody = activateBody.slice(verifyStart, verifyEnd);
+  const loadIdx = verifyBody.indexOf('podman load -i "$image_tar"');
+  const digestIdx = verifyBody.indexOf('podman image inspect "$image_tag" --format \'{{.Id}}\'');
+  const productProofIdx = verifyBody.indexOf('podman run --rm --network none --entrypoint /bin/sh "$image_tag"');
+  assert.ok(loadIdx >= 0 && digestIdx > loadIdx && productProofIdx > digestIdx, 'staged image verifier must load, prove identity, then prove product files');
+}
+
+function testOperatorBundleArchiveValidation() {
+  const source = fs.readFileSync(remoteOperator, 'utf8');
+  const validateStart = source.indexOf('validate_operator_bundle_archive()');
+  const validateEnd = source.indexOf('\n# Exact recursive identity', validateStart);
+  const prepareStart = source.indexOf('\n  prepare_operator_bundle()');
+  const prepareEnd = source.indexOf('\n  }\n\n  # Intent flag', prepareStart);
+  assert.ok(validateStart >= 0 && validateEnd > validateStart);
+  assert.ok(prepareStart >= 0 && prepareEnd > prepareStart);
+  const validateFunction = source.slice(validateStart, validateEnd).trim();
+  const prepareFunction = source
+    .slice(prepareStart + 1, prepareEnd + 4)
+    .replace(/^  /gmu, '')
+    .trim();
+  const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'operator-bundle-archive-harness-'));
+  try {
+    const harness = path.join(harnessDir, 'prepare.sh');
+    fs.writeFileSync(
+      harness,
+      `#!/usr/bin/env bash
+set -euo pipefail
+die() { printf 'ERROR: %s\\n' "$*" >&2; exit 1; }
+hash_file() { sha256sum "$1" | awk '{print $1}'; }
+stage="$1"
+operator_bundle_archive="\${stage}/operator-bundle.tar.gz"
+operator_bundle_manifest="\${stage}/operator-bundle.manifest.json"
+operator_bundle_root="\${stage}/operator-bundle"
+run_driver() { printf 'PRE_STOP_BUNDLE_VERIFIED action=%s access=%s\\n' "$1" "$2"; }
+${validateFunction}
+${prepareFunction}
+prepare_operator_bundle
+printf 'PRE_STOP_VALIDATION_COMPLETE\\n'
+`,
+    );
+    fs.chmodSync(harness, 0o755);
+
+    const makeArchive = (archivePath, entries) => {
+      const encodedEntries = Object.fromEntries(
+        entries.map((entry) => [entry.name, {
+          type: entry.type ?? 'file',
+          linkname: entry.linkname ?? '',
+          data: Buffer.from(entry.data ?? '').toString('base64'),
+        }]),
+      );
+      execFileSync('python3', [
+        '-c',
+        `import base64, io, json, tarfile, sys
+entries = json.loads(sys.argv[1])
+with tarfile.open(sys.argv[2], 'w:gz') as archive:
+    for name, entry in entries.items():
+        info = tarfile.TarInfo(name=name)
+        if entry['type'] == 'dir':
+            info.type = tarfile.DIRTYPE
+            info.mode = 0o755
+            archive.addfile(info)
+        elif entry['type'] == 'symlink':
+            info.type = tarfile.SYMTYPE
+            info.linkname = entry['linkname']
+            archive.addfile(info)
+        else:
+            raw = base64.b64decode(entry['data'].encode('ascii'))
+            info.size = len(raw)
+            archive.addfile(info, io.BytesIO(raw))
+`,
+        JSON.stringify(encodedEntries),
+        archivePath,
+      ], { cwd: root, encoding: 'utf8' });
+    };
+    const prepare = (name, entries) => {
+      const stage = path.join(harnessDir, name);
+      fs.mkdirSync(stage, { recursive: true });
+      const archive = path.join(stage, 'operator-bundle.tar.gz');
+      const manifest = path.join(stage, 'operator-bundle.manifest.json');
+      makeArchive(archive, entries);
+      fs.writeFileSync(manifest, '{"contract":"fixture"}\n');
+      fs.writeFileSync(
+        path.join(stage, 'plan.json'),
+        JSON.stringify({ operatorBundle: {
+          archiveSha256: sha256File(archive),
+          manifestSha256: sha256File(manifest),
+        } }),
+      );
+      return stage;
+    };
+
+    const validStage = prepare('valid', [
+      { name: './', type: 'dir' },
+      { name: './src/', type: 'dir' },
+      { name: './src/driver.ts', data: 'export {}\n' },
+    ]);
+    const valid = spawnSync('bash', [harness, validStage], { cwd: root, encoding: 'utf8' });
+    assert.equal(valid.status, 0, `${valid.stdout}\n${valid.stderr}`);
+    assert.match(valid.stdout, /PRE_STOP_BUNDLE_VERIFIED/u);
+    assert.match(valid.stdout, /PRE_STOP_VALIDATION_COMPLETE/u);
+    assert.equal(fs.readFileSync(path.join(validStage, 'operator-bundle/src/driver.ts'), 'utf8'), 'export {}\n');
+
+    for (const [name, entries, expected] of [
+      ['parent-path', [{ name: './' }, { name: '../escape.txt', data: 'escape' }], /unsafe path/u],
+      ['apple-double', [{ name: './' }, { name: './src/._metadata', data: 'metadata' }], /unsafe path/u],
+      ['ds-store', [{ name: './' }, { name: './src/.DS_Store', data: 'metadata' }], /unsafe path/u],
+      ['symlink', [{ name: './' }, { name: './src/', type: 'dir' }, { name: './src/link', type: 'symlink', linkname: '../escape' }], /symlink or non-regular/u],
+    ]) {
+      const stage = prepare(name, entries);
+      const result = spawnSync('bash', [harness, stage], { cwd: root, encoding: 'utf8' });
+      expectFailure(result, expected, `${name} operator bundle archive must fail before extraction`);
+      assert.equal(fs.existsSync(path.join(stage, 'operator-bundle')), false);
+    }
+  } finally {
+    fs.rmSync(harnessDir, { recursive: true, force: true });
+  }
+}
+
 function testConsumerStopRecoveryIntent() {
   const harnessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'consumer-stop-intent-'));
   try {
@@ -1186,7 +1445,7 @@ function remoteOperatorSourceSlice() {
 
 function main() {
   assert.ok(fs.existsSync(tsx), 'tsx runtime must be available for production cutover tests');
-  assert.ok(fs.existsSync(imageTar), 'frozen v0.4.0 OCI image tar must be available');
+  assert.ok(fs.existsSync(imageTar), 'configured OCI image tar must be available');
   const remoteActivatorSource = fs.readFileSync(remoteActivator, 'utf8');
   const remoteOperatorSource = fs.readFileSync(remoteOperator, 'utf8');
   const cleanupEngineSource = fs.readFileSync(cleanupEngine, 'utf8');
@@ -1199,6 +1458,16 @@ function main() {
     remoteActivatorSource,
     /REMOTE_OPERATOR_SCRIPT=.*remote-production-cutover\.sh/u,
     'remote activation must use the versioned remote operator transport',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /--index-dir "\$\{ROOT_DIR\}\/course-content\/runtime\/resources\/textbook-hybrid-retrieval\/bge-m3"/u,
+    'remote activation must verify the canonical BGE-M3 textbook index before production cutover',
+  );
+  assert.doesNotMatch(
+    remoteActivatorSource,
+    /course-content\/runtime\/resources\/textbook-retrieval/u,
+    'remote activation must not verify the retired textbook retrieval directory',
   );
   assert.equal(
     (remoteActivatorSource.match(/< "\$REMOTE_OPERATOR_SCRIPT"/gu) ?? []).length,
@@ -1224,6 +1493,66 @@ function main() {
     remoteOperatorSource,
     /APP_IMAGE="\$image_tag" ACT_KNOWLEDGE_DEPLOYMENT_MODE=cutover "\$deploy_script" --app-only/u,
     'cutover deployment must pass its mode directly to the deployment command',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /knowledge\/authority-domain-shards\/current\.json/u,
+    'remote operator all-ABSENT checks must include the Authority domain shard pointer',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /create-operator-bundle\.mjs/u,
+    'remote activation must build the dedicated operator bundle',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /--operator-source-revision "\$OPERATOR_SOURCE_REVISION"/u,
+    'operator bundle must be built from an explicit source revision',
+  );
+  assert.match(
+    remoteActivatorSource,
+    /--image-provenance-sha256 "\$image_provenance_sha256"/u,
+    'sealed plan must bind the application image provenance sidecar',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /operator-bundle\.tar\.gz[\s\S]*operator-bundle\.manifest\.json/u,
+    'remote staging must carry the bundle archive and manifest',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /operator_bundle_root[\s\S]*run_driver verify-bundle ro/u,
+    'remote activation must verify the extracted bundle before stopping consumers',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /verify_staged_application_image\(\)[\s\S]*active-authority-shards-product[\s\S]*consumer_stop_started=1/u,
+    'remote activation must prove the loaded image contains the active-shard product before stopping consumers',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /previous_image_digest[\s\S]*APP_IMAGE="\$previous_image_digest"/u,
+    'failure recovery must redeploy the pre-cutover immutable image identity',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /validate_operator_bundle_archive\(\)[\s\S]*tar -tvzf[\s\S]*operator_bundle_archive/u,
+    'remote activation must inspect archive entry types before extraction',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /validate_operator_bundle_archive "\$operator_bundle_archive"[\s\S]*tar --no-same-owner -xzf/u,
+    'remote activation must validate, extract, then run the bundle verifier before stop intent',
+  );
+  assert.doesNotMatch(
+    remoteOperatorSource,
+    /production-cutover\.ts:\/app\/scripts\/knowledge-cutover\/production-cutover\.ts/u,
+    'remote driver must not mount a host tool into the fixed image source path',
+  );
+  assert.match(
+    remoteOperatorSource,
+    /--workdir \/operator-bundle[\s\S]*--tsconfig \/operator-bundle\/tsconfig\.json/u,
+    'remote driver must run with the bundle tsconfig in the isolated root',
   );
   assert.doesNotMatch(
     remoteOperatorSource,
@@ -1279,7 +1608,9 @@ function main() {
     const syntax = spawnSync('bash', ['-n', scriptPath], { cwd: root, encoding: 'utf8' });
     assert.equal(syntax.status, 0, syntax.stderr);
   }
+  testApplicationImageValidationOrder();
   testArchiveValidationOrder();
+  testOperatorBundleArchiveValidation();
   testCleanupFailedAuthorityGuards();
   const ociDigestHelper = remoteActivatorSource.slice(
     remoteActivatorSource.indexOf('oci_image_config_digest()'),
@@ -1301,7 +1632,26 @@ function main() {
   const tarSha256 = sha256File(imageTar);
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'production-cutover-plan-'));
   try {
+    const sourceShardRuntimeBefore = fileTreeFingerprint(path.join(root, SHARD_PREFIX));
     const planPath = path.join(workRoot, 'plan.json');
+    const operatorBundleRoot = path.join(workRoot, 'operator-bundle');
+    const operatorBundleManifest = path.join(workRoot, 'operator-bundle.manifest.json');
+    const operatorBundleArchive = path.join(workRoot, 'operator-bundle.tar.gz');
+    const captureRevision = '1a56317aa44e46322be0b0d1ac73948c03c5c2c0';
+    execFileSync('node', [
+      operatorBundleHelper,
+      '--repo-root',
+      root,
+      '--output',
+      operatorBundleRoot,
+      '--manifest',
+      operatorBundleManifest,
+      '--operator-source-revision',
+      operatorSourceRevision,
+      '--capture-revision',
+      captureRevision,
+    ], { cwd: root, encoding: 'utf8' });
+    execFileSync('tar', ['-czf', operatorBundleArchive, '-C', operatorBundleRoot, '.'], { cwd: root });
     const transactionId = 'test-production-cutover';
     const planResult = run([
       'plan',
@@ -1313,7 +1663,7 @@ function main() {
       transactionId,
       '--release-tag',
       'v0.4.0',
-      '--image-revision',
+      '--application-source-revision',
       revision,
       '--image-tag',
       imageTag,
@@ -1321,22 +1671,218 @@ function main() {
       configDigest,
       '--image-tar-sha256',
       tarSha256,
+      '--image-provenance-sha256',
+      '9'.repeat(64),
       '--deployment-script',
       path.join(root, 'deploy', 'podman', 'deploy.sh'),
       '--cleanup-engine',
       cleanupEngine,
+      '--operator-bundle-manifest',
+      operatorBundleManifest,
+      '--operator-bundle-archive',
+      operatorBundleArchive,
     ]);
     assert.equal(planResult.status, 0, planResult.stderr);
     const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
-    assert.equal(plan.pointers.length, 4, 'plan must seal every current pointer');
+    assert.equal(plan.pointers.length, 5, 'plan must seal every current pointer');
+    assert.deepEqual(
+      plan.pointers.map((pointer) => pointer.component),
+      ['authority', 'projection', 'prerequisite', 'authority-domain-shards', 'consumer-activation'],
+      'plan must retain the shard pointer between prerequisite and consumer activation',
+    );
+    assert.ok(plan.authorityDomainShards?.shardSetId, 'plan must seal the planned shard set identity');
+    assert.deepEqual(
+      fileTreeFingerprint(path.join(root, SHARD_PREFIX)),
+      sourceShardRuntimeBefore,
+      'planning must seal Authority domain shard bytes without mutating the source runtime',
+    );
+    assert.ok(
+      plan.files.some((file) => file.path.startsWith(`${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`)),
+      'plan must seal every immutable Authority domain shard file',
+    );
     assert.equal(plan.files.length > 0, true, 'plan must seal staged artifacts');
     assert.equal(plan.source.imageConfigDigest, configDigest, 'plan must bind the exact OCI config digest');
     assert.equal(plan.source.imageTarSha256, tarSha256, 'plan must bind the frozen image tar hash');
+    assert.equal(plan.source.applicationSourceRevision, revision, 'plan must bind the application source revision');
+    assert.equal(plan.source.imageProvenanceSha256, '9'.repeat(64), 'plan must bind image provenance digest');
+    assert.equal(plan.source.operatorSourceRevision, operatorSourceRevision, 'plan must bind operator source revision separately');
+    assert.match(plan.source.operatorSourceTree, /^[a-f0-9]{40}$/u, 'plan must bind operator source tree');
     assert.equal(
       plan.source.cleanupEngineSha256,
       sha256File(cleanupEngine),
       'plan must bind the standalone failed Authority cleanup engine',
     );
+    assert.equal(plan.operatorBundle.captureRevision, captureRevision, 'plan must bind the operator bundle capture revision');
+    assert.notEqual(plan.source.operatorSourceRevision, plan.source.captureRevision, 'operator source revision must not reuse capture revision');
+    assert.ok(plan.operatorBundle.bundleSha256, 'plan must bind the operator bundle logical digest');
+    assert.ok(plan.operatorBundle.manifestSha256, 'plan must bind the operator bundle manifest digest');
+    assert.ok(plan.operatorBundle.archiveSha256, 'plan must bind the operator bundle archive digest');
+    assert.ok(
+      plan.operatorBundle.files.some((file) => file.path === 'scripts/knowledge-cutover/production-cutover.ts'),
+      'operator bundle manifest must include the production driver',
+    );
+
+    const operatorBundleFixture = createFixture(plan, 'operator-bundle', {
+      operatorBundleSource: operatorBundleRoot,
+      operatorBundleManifest,
+    });
+    try {
+      const verifiedBundle = run([
+        'verify-bundle',
+        '--root',
+        operatorBundleFixture,
+        '--plan',
+        planPath,
+        '--bundle-root',
+        path.join(operatorBundleFixture, 'operator-bundle'),
+        '--bundle-manifest',
+        path.join(operatorBundleFixture, 'operator-bundle.manifest.json'),
+      ]);
+      assert.equal(verifiedBundle.status, 0, verifiedBundle.stderr);
+
+      const sourceMismatchFixture = createFixture(plan, 'operator-bundle-source-mismatch', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const mismatchPlan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+        const mismatchedRevision = '0'.repeat(40);
+        mismatchPlan.source.operatorSourceRevision = mismatchedRevision;
+        mismatchPlan.operatorBundle.operatorSourceRevision = mismatchedRevision;
+        const bundleBody = {
+          contract: mismatchPlan.operatorBundle.contract,
+          builderVersion: mismatchPlan.operatorBundle.builderVersion,
+          operatorSourceRevision: mismatchedRevision,
+          operatorSourceTree: mismatchPlan.operatorBundle.operatorSourceTree,
+          captureRevision: mismatchPlan.operatorBundle.captureRevision,
+          files: mismatchPlan.operatorBundle.files,
+        };
+        mismatchPlan.operatorBundle.bundleSha256 = sha256Bytes(canonicalJson(bundleBody));
+        const { planHash: _ignoredPlanHash, ...mismatchBody } = mismatchPlan;
+        mismatchPlan.planHash = sha256Bytes(canonicalJson(mismatchBody));
+        const mismatchPlanPath = path.join(sourceMismatchFixture, 'mismatch-plan.json');
+        fs.writeFileSync(mismatchPlanPath, `${JSON.stringify(mismatchPlan, null, 2)}\n`);
+        const mismatchResult = run([
+          'verify-bundle', '--root', sourceMismatchFixture, '--plan', mismatchPlanPath,
+          '--bundle-root', path.join(sourceMismatchFixture, 'operator-bundle'),
+          '--bundle-manifest', path.join(sourceMismatchFixture, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(mismatchResult, /operator bundle source tree identity mismatch/u, 'operator source revision/tree mismatch must fail closed');
+      } finally {
+        fs.rmSync(sourceMismatchFixture, { recursive: true, force: true });
+      }
+
+      const missingBundle = createFixture(plan, 'operator-bundle-missing', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const missingPath = path.join(missingBundle, 'operator-bundle', plan.operatorBundle.files[0].path);
+        fs.rmSync(missingPath);
+        const result = run([
+          'verify-bundle', '--root', missingBundle, '--plan', planPath,
+          '--bundle-root', path.join(missingBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(missingBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file set differs from manifest/u, 'missing operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(missingBundle, { recursive: true, force: true });
+      }
+
+      const extraBundle = createFixture(plan, 'operator-bundle-extra', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        fs.writeFileSync(path.join(extraBundle, 'operator-bundle', 'unexpected.txt'), 'unexpected\n');
+        const result = run([
+          'verify-bundle', '--root', extraBundle, '--plan', planPath,
+          '--bundle-root', path.join(extraBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(extraBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file set differs from manifest/u, 'extra operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(extraBundle, { recursive: true, force: true });
+      }
+
+      const tamperedBundle = createFixture(plan, 'operator-bundle-tampered', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        const tamperedFile = path.join(tamperedBundle, 'operator-bundle', 'tsconfig.json');
+        fs.appendFileSync(tamperedFile, '\n');
+        const result = run([
+          'verify-bundle', '--root', tamperedBundle, '--plan', planPath,
+          '--bundle-root', path.join(tamperedBundle, 'operator-bundle'),
+          '--bundle-manifest', path.join(tamperedBundle, 'operator-bundle.manifest.json'),
+        ]);
+        expectFailure(result, /operator bundle file digest mismatch/u, 'tampered operator bundle file must fail closed');
+      } finally {
+        fs.rmSync(tamperedBundle, { recursive: true, force: true });
+      }
+    } finally {
+      fs.rmSync(operatorBundleFixture, { recursive: true, force: true });
+    }
+
+    if (containerRuntime) {
+      const imageAvailable = spawnSync(
+        containerRuntime,
+        ['image', 'inspect', containerImage],
+        { cwd: root, encoding: 'utf8' },
+      );
+      assert.equal(imageAvailable.status, 0, imageAvailable.stderr);
+      const containerFixture = createFixture(plan, 'operator-bundle-container', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        for (const action of ['activate', 'verify', 'rollback']) {
+          const result = runBundledContainer(
+            action,
+            containerFixture,
+            planPath,
+            operatorBundleRoot,
+            operatorBundleManifest,
+          );
+          assert.equal(result.status, 0, `${action} in fixed image failed: ${result.stderr}`);
+        }
+      } finally {
+        fs.rmSync(containerFixture, { recursive: true, force: true });
+      }
+
+      const recoveryFixture = createFixture(plan, 'operator-bundle-container-recover', {
+        operatorBundleSource: operatorBundleRoot,
+        operatorBundleManifest,
+      });
+      try {
+        writePreparedReceipt(recoveryFixture, plan);
+        writePreparedJournal(recoveryFixture, plan);
+        const recovered = runBundledContainer(
+          'recover',
+          recoveryFixture,
+          planPath,
+          operatorBundleRoot,
+          operatorBundleManifest,
+        );
+        assert.equal(recovered.status, 0, `recover in fixed image failed: ${recovered.stderr}`);
+      } finally {
+        fs.rmSync(recoveryFixture, { recursive: true, force: true });
+      }
+    }
+
+    const shardSeedFixture = createFixture(plan, 'shard-seed');
+    try {
+      const seed = run(
+        ['activate', '--root', shardSeedFixture, '--plan', planPath],
+        driverEnv(shardSeedFixture),
+      );
+      assert.equal(seed.status, 0, seed.stderr);
+      const shardSetSource = path.join(
+        shardSeedFixture,
+        `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`,
+      );
+      assert.equal(fs.existsSync(path.join(shardSetSource, 'manifest.json')), true);
 
     const driftFixture = createFixture(plan, 'drift');
     try {
@@ -1353,6 +1899,41 @@ function main() {
       }
     } finally {
       fs.rmSync(driftFixture, { recursive: true, force: true });
+    }
+
+    for (const [label, mutate] of [
+      ['missing-shard-immutable', (filePath) => fs.rmSync(filePath)],
+      ['tampered-shard-immutable', (filePath) => fs.appendFileSync(filePath, '\n')],
+      ['unexpected-shard-immutable', (filePath) => fs.writeFileSync(path.join(path.dirname(filePath), 'unexpected.json'), '{}\n')],
+    ]) {
+      const shardFixture = createFixture(plan, label, { shardSetSource });
+      try {
+        const shardFile = plan.files.find((file) => (
+          file.path.startsWith(`${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/`)
+            && !file.path.endsWith('/manifest.json')
+        ));
+        assert.ok(shardFile, 'plan must contain a non-manifest immutable shard file');
+        const shardPath = path.join(shardFixture, shardFile.path);
+        mutate(shardPath);
+        const result = run(
+          ['activate', '--root', shardFixture, '--plan', planPath],
+          driverEnv(shardFixture),
+        );
+        expectFailure(
+          result,
+          label.startsWith('missing')
+            ? /Authority domain shard file is missing/u
+            : label.startsWith('tampered')
+              ? /sealed artifact hash mismatch/u
+              : /Authority domain shard file set differs from manifest/u,
+          `${label} must fail before any pointer is written`,
+        );
+        for (const pointer of plan.pointers) {
+          assert.equal(fs.existsSync(path.join(shardFixture, pointer.path)), false);
+        }
+      } finally {
+        fs.rmSync(shardFixture, { recursive: true, force: true });
+      }
     }
 
     const nonAbsentFixture = createFixture(plan, 'non-absent');
@@ -1399,22 +1980,142 @@ function main() {
       const journal = JSON.parse(fs.readFileSync(journalPath, 'utf8'));
       assert.deepEqual(
         journal.steps.map((step) => step.component),
-        ['authority', 'projection', 'prerequisite', 'consumer-activation'],
+        ['authority', 'projection', 'prerequisite', 'authority-domain-shards', 'consumer-activation'],
         'production activation must retain consumer-last order',
       );
       assert.deepEqual(
         journal.steps.map((step) => step.status),
-        ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
+        ['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED', 'APPLIED'],
       );
       for (const pointer of plan.pointers) {
         assert.equal(fs.existsSync(path.join(activeFixture, pointer.path)), true);
       }
+      const shardPointer = pointerPath(activeFixture, plan, 'authority-domain-shards');
+      const shardCurrent = JSON.parse(fs.readFileSync(shardPointer, 'utf8'));
+      assert.equal(shardCurrent.shardSetId, plan.authorityDomainShards.shardSetId);
+      assert.equal(shardCurrent.shardSetHash, plan.authorityDomainShards.shardSetHash);
 
       const verified = run(
         ['verify', '--root', activeFixture, '--plan', planPath],
         env,
       );
       assert.equal(verified.status, 0, verified.stderr);
+
+      const shardSetManifest = path.join(
+        activeFixture,
+        `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`,
+      );
+      assert.equal(fs.existsSync(shardSetManifest), true, 'active cutover must retain the immutable shard set');
+
+      const activeReceiptPath = path.join(
+        activeFixture,
+        'course-content/runtime/knowledge/production-cutover-transactions',
+        `${transactionId}.json`,
+      );
+      const activeReceipt = JSON.parse(fs.readFileSync(activeReceiptPath, 'utf8'));
+      activeReceipt.transactionId = 'foreign-production-cutover';
+      fs.writeFileSync(activeReceiptPath, `${JSON.stringify(activeReceipt)}\n`);
+      const receiptDriftRollback = run(
+        ['rollback', '--root', activeFixture, '--plan', planPath],
+        env,
+      );
+      expectFailure(
+        receiptDriftRollback,
+        /production cutover receipt mismatch/u,
+        'rollback must reject a receipt that does not bind this plan before mutating any pointer',
+      );
+      for (const pointer of plan.pointers) {
+        assert.equal(fs.existsSync(path.join(activeFixture, pointer.path)), true);
+      }
+      activeReceipt.transactionId = transactionId;
+      fs.writeFileSync(activeReceiptPath, `${JSON.stringify(activeReceipt)}\n`);
+
+      const ownedSetFixture = createFixture(plan, 'owned-set');
+      try {
+        const ownedEnv = driverEnv(ownedSetFixture);
+        const ownedActivation = run(
+          ['activate', '--root', ownedSetFixture, '--plan', planPath],
+          ownedEnv,
+        );
+        assert.equal(ownedActivation.status, 0, ownedActivation.stderr);
+        const ownedRollback = run(
+          ['rollback', '--root', ownedSetFixture, '--plan', planPath],
+          ownedEnv,
+        );
+        assert.equal(ownedRollback.status, 0, ownedRollback.stderr);
+        assert.equal(
+          fs.existsSync(path.join(ownedSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}`)),
+          true,
+          'rollback must preserve immutable shard bytes because no mutable receipt authorizes deletion',
+        );
+      } finally {
+        fs.rmSync(ownedSetFixture, { recursive: true, force: true });
+      }
+
+      const retainedSetFixture = createFixture(plan, 'retained-set', { shardSetSource });
+      try {
+        const retainedEnv = driverEnv(retainedSetFixture);
+        const retainedActivation = run(
+          ['activate', '--root', retainedSetFixture, '--plan', planPath],
+          retainedEnv,
+        );
+        assert.equal(retainedActivation.status, 0, retainedActivation.stderr);
+        const retainedRollback = run(
+          ['rollback', '--root', retainedSetFixture, '--plan', planPath],
+          retainedEnv,
+        );
+        assert.equal(retainedRollback.status, 0, retainedRollback.stderr);
+        assert.equal(
+          fs.existsSync(path.join(retainedSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'rollback must retain a pre-existing sha-matching shard set',
+        );
+      } finally {
+        fs.rmSync(retainedSetFixture, { recursive: true, force: true });
+      }
+
+      const recoveredSetFixture = createFixture(plan, 'recovered-set', { shardSetSource });
+      try {
+        const recoveryEnv = driverEnv(recoveredSetFixture);
+        writePreparedReceipt(recoveredSetFixture, plan);
+        writePreparedJournal(recoveredSetFixture, plan);
+        const recovered = run(
+          ['recover', '--root', recoveredSetFixture, '--plan', planPath],
+          recoveryEnv,
+        );
+        assert.equal(recovered.status, 0, recovered.stderr);
+        assert.equal(
+          fs.existsSync(path.join(recoveredSetFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'recovery must preserve immutable shard bytes',
+        );
+      } finally {
+        fs.rmSync(recoveredSetFixture, { recursive: true, force: true });
+      }
+
+      const receiptDriftRecoveryFixture = createFixture(plan, 'receipt-drift-recovery', { shardSetSource });
+      try {
+        const recoveryEnv = driverEnv(receiptDriftRecoveryFixture);
+        writePreparedReceipt(receiptDriftRecoveryFixture, plan, { transactionId: 'foreign-production-cutover' });
+        const journalPath = writePreparedJournal(receiptDriftRecoveryFixture, plan);
+        const receiptDriftRecovery = run(
+          ['recover', '--root', receiptDriftRecoveryFixture, '--plan', planPath],
+          recoveryEnv,
+        );
+        expectFailure(
+          receiptDriftRecovery,
+          /production cutover receipt mismatch/u,
+          'recovery must reject a receipt that does not bind this plan before pointer compensation',
+        );
+        assert.equal(JSON.parse(fs.readFileSync(journalPath, 'utf8')).status, 'PREPARED');
+        assert.equal(
+          fs.existsSync(path.join(receiptDriftRecoveryFixture, `${SHARD_PREFIX}sets/${plan.authorityDomainShards.shardSetId}/manifest.json`)),
+          true,
+          'receipt drift must not delete a pre-existing immutable shard set',
+        );
+      } finally {
+        fs.rmSync(receiptDriftRecoveryFixture, { recursive: true, force: true });
+      }
 
       const markerPath = path.join(
         activeFixture,
@@ -1461,11 +2162,15 @@ function main() {
         true,
         'failed identity-constrained rollback must retain the production marker',
       );
+
     } finally {
       fs.rmSync(activeFixture, { recursive: true, force: true });
     }
 
-    process.stdout.write('production knowledge cutover transaction tests passed\n');
+      process.stdout.write('production knowledge cutover transaction tests passed\n');
+    } finally {
+      fs.rmSync(shardSeedFixture, { recursive: true, force: true });
+    }
   } finally {
     fs.rmSync(workRoot, { recursive: true, force: true });
   }

@@ -110,4 +110,14 @@ describe('AI SDK message compatibility', () => {
     expect(encoded).toContain('tool-complete-1');
   });
 
+  it('drops persisted system records from provider messages', async () => {
+    const modelMessages = await toModelMessages([
+      { id: 'context', role: 'system', content: '[控灵当前页面上下文] courseId=course-a pageId=page-a' },
+      { id: 'user', role: 'user', content: '解释稳态误差' },
+      { id: 'assistant', role: 'assistant', content: '稳态误差是……' },
+    ]);
+
+    expect(modelMessages.map((message) => message.role)).toEqual(['user', 'assistant']);
+  });
+
 });

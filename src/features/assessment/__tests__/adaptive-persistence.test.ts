@@ -1167,6 +1167,105 @@ describe('submitAnswerDurably', () => {
     expect(metadata.purpose).not.toBe('readiness-gate');
   });
 
+  it('returns the completed companion result without duplicating governed writes after a lost response', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    const continuity = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:before-result',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    let existingAnswer: Record<string, unknown> | null = null;
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'konling-continuity:continuity:before-result',
+      selectedQuestionIds: [question.id],
+      metadata: continuity,
+    });
+    db.adaptiveAssessmentAnswer.findUnique.mockImplementation(async () => existingAnswer);
+    db.adaptiveAssessmentAnswer.findMany
+      .mockResolvedValueOnce([])
+      .mockImplementation(async () => existingAnswer ? [{
+        ...existingAnswer,
+        session: { sessionKey: 'konling-continuity:continuity:before-result' },
+        questionRef: {
+          difficulty: question.difficulty,
+          questionType: question.type,
+          domains: question.domains,
+          knowledgeTags: question.knowledgeTags,
+        },
+      }] : []);
+    db.adaptiveAssessmentAnswer.upsert.mockImplementation(async (args: { create?: Record<string, unknown> }) => {
+      if (!existingAnswer) existingAnswer = { id: 'answer-existing', ...(args.create ?? {}) };
+      return existingAnswer;
+    });
+    const params = {
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+      continuity,
+    };
+
+    const first = await submitAnswerDurably(params, db);
+    const abilityWriteCount = db.adaptiveAssessmentAbilityEstimate.create.mock.calls.length;
+    const masteryWriteCount = db.adaptiveMasteryUpdate.createMany.mock.calls.length;
+    const factWriteCount = db.learningFact.createMany.mock.calls.length;
+
+    const retried = await submitAnswerDurably(params, db);
+
+    expect(retried).toEqual(first);
+    expect(db.adaptiveAssessmentAbilityEstimate.create).toHaveBeenCalledTimes(abilityWriteCount);
+    expect(db.adaptiveMasteryUpdate.createMany).toHaveBeenCalledTimes(masteryWriteCount);
+    expect(db.learningFact.createMany).toHaveBeenCalledTimes(factWriteCount);
+  });
+
+  it('returns the same selected question when companion selection is retried', async () => {
+    const db = createMockDb();
+    const continuity = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:retry',
+      targetKnowledgeId: 'control-correction',
+      structuredCauseId: null,
+    } as const;
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValueOnce({
+      id: 'durable-session-1',
+      selectedQuestionIds: [],
+      metadata: continuity,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const first = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'konling-continuity:continuity:retry',
+      goalId: continuity.targetKnowledgeId,
+      questionScope: 'practice',
+      continuity,
+    }, db);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValueOnce({
+      id: 'durable-session-1',
+      selectedQuestionIds: [first.question.id],
+      metadata: continuity,
+    });
+
+    const retried = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'konling-continuity:continuity:retry',
+      goalId: continuity.targetKnowledgeId,
+      questionScope: 'practice',
+      continuity,
+    }, db);
+
+    expect(retried.question.id).toBe(first.question.id);
+    expect(db.adaptiveAssessmentSession.updateMany).toHaveBeenCalledTimes(1);
+  });
+
   it('does not expose generated questions to the same user in a different session', async () => {
     globalThis.__adaptiveAssessmentStore = undefined;
     const db = createMockDb();
@@ -1438,6 +1537,36 @@ describe('submitAnswerDurably', () => {
       reviewerId: selectedAuthoredCheckpoint!.reviewerId,
       reviewBatchId: selectedAuthoredCheckpoint!.reviewBatchId,
     });
+  });
+
+  it('does not allow companion practice to use the in-memory fallback', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const selectedOption = question.options[0]?.text;
+    expect(selectedOption).toBeTruthy();
+    const continuity = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:persistence-required',
+      targetKnowledgeId: 'control-correction',
+      structuredCauseId: null,
+    } as const;
+    const disabled = { ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false' };
+
+    await expect(selectNextQuestionWithPersistenceFallback({
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:persistence-required',
+      goalId: continuity.targetKnowledgeId,
+      continuity,
+    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
+
+    await expect(submitAnswerWithPersistenceFallback({
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:persistence-required',
+      questionId: question.id,
+      selectedOption: selectedOption!,
+      timeSpent: 0,
+      continuity,
+    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
   });
 
   it('does not repeat authored checkpoint runtime ids while unanswered alternatives remain', async () => {

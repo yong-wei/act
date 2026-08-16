@@ -684,7 +684,12 @@ async function main(): Promise<void> {
   // Equal-timestamp spoof: different Release with the same importedAt as v0.3
   // must not reverse into a prior (strict < only).
   const v03AcceptedAt = (await db.actkgBundleReceipt.findUniqueOrThrow({
-    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: validatedV03.bundleIdentity.bundleDigest,
+      },
+    },
     select: { importedAt: true },
   })).importedAt;
   const equalTsReleaseId = 'aaa:release:equal-ts-spoof';
@@ -1039,7 +1044,12 @@ async function main(): Promise<void> {
     where: { releaseId: validatedV03.releaseIdentity.releaseId },
   })).id;
   const standardBundleId = (await db.actkgBundleReceipt.findUniqueOrThrow({
-    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: validatedV03.bundleIdentity.bundleDigest,
+      },
+    },
   })).id;
   const exactRelease = await db.actkgRelease.findUniqueOrThrow({
     where: { id: CURRENT_AGGREGATE_RELEASE_ID },

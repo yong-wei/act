@@ -98,6 +98,12 @@ describe('Arena evidence writeback persistence', () => {
         outcome: 'success',
         score: 88,
         contextJson: expect.objectContaining({
+          evidenceGovernance: {
+            evidenceQuality: 'rich',
+            profileWeight: 1,
+            skipProfileContribution: false,
+            policyReason: 'official_arena_evaluation',
+          },
           arena: expect.objectContaining({
             official: true,
             evaluationMode: 'official',

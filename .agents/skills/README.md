@@ -1,7 +1,7 @@
 # Project-local skills index
 
 状态: active
-最后更新: 2026-06-23
+最后更新: 2026-08-13
 用途: 为 ChatGPT、Codex、devspace 和其他本地代理提供 `.agents/skills/` 的人工可读索引，弥补项目内技能不会被所有工具自动完整暴露的问题。
 
 ## 使用规则
@@ -34,6 +34,7 @@
 | `refactor-safely` | `refactor-safely/SKILL.md` | 图谱辅助的安全重构、影响面评估与验证。 |
 | `review-changes` | `review-changes/SKILL.md` | 基于实际 diff 的风险优先代码审查。 |
 | `agent-evolver` | `agent-evolver/SKILL.md` | 审计、调整、扩展 `.codex/agents/*.toml` 项目子代理。 |
+| `cursor-subagent-routing` | `cursor-subagent-routing/SKILL.md` | Cursor `Task` 子代理模型路由（与 Codex TOML 分离；审查可用 fable 或 sol-medium）。 |
 
 ### 课程、互动课、作业与内容生产
 

@@ -3985,6 +3985,7 @@ model AdaptiveAssessmentSession {
   userId              String
   sessionKey          String
   selectedQuestionIds String[]  @default([])
+  metadata            Json      @default("{}")
   algorithmVersion    String
   startedAt           DateTime  @default(now())
   lastAnsweredAt      DateTime?
@@ -5392,6 +5393,9 @@ model ActkgRelease {
   bundleReceipts                  ActkgBundleReceipt[]
   projectionIdentities            ActkgProjectionIdentity[]
   linkMetadataRows                ActkgProjectionLinkMetadata[]
+  v2ProjectionProfiles            ActkgV2ProjectionProfile[]
+  v2MultilingualLabels            ActkgV2MultilingualLabel[]
+  v2AdmissionBinding              ActkgV2AdmissionBinding?
   deltaReceiptsAsBase             ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaBaseRelease")
   deltaReceiptsAsCandidate        ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaCandidateRelease")
 
@@ -5630,7 +5634,7 @@ model ActkgBundleReceipt {
   id                       String   @id
   bundleId                 String
   bundleRevision           Int
-  bundleDigest             String   @unique
+  bundleDigest             String
   bundleKind               String
   releaseStage             String
   bundleContractVersion    String
@@ -5667,8 +5671,10 @@ model ActkgBundleReceipt {
   linkMetadata             ActkgProjectionLinkMetadata[]
   deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseBundle")
   deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateBundle")
+  v2AdmissionBinding       ActkgV2AdmissionBinding?
 
   @@unique([bundleId, bundleRevision])
+  @@unique([bundleContractVersion, bundleDigest])
   @@index([releaseSetId, releaseId])
   @@index([releaseId, candidateState])
 }
@@ -5696,6 +5702,68 @@ model ActkgBundleArtifact {
   @@id([bundleReceiptId, relativePath])
   @@unique([bundleReceiptId, ordinal])
   @@index([role])
+}
+
+// V2 projection profiles are preserved as typed semantic evidence.  They are
+// intentionally separate from V1 ProjectionIdentity rows: a profile carries
+// mapping and aggregation policy that has no V1 equivalent.
+model ActkgV2ProjectionProfile {
+  releaseId              String
+  profileKey             String
+  manifestProfile        String
+  profileId              String
+  profileSha256          String
+  projectionKind         String
+  profileVersion         String
+  mappingContractVersion String
+  aggregationPolicy      String
+  payload                Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, profileKey])
+  @@unique([releaseId, profileId])
+  @@index([releaseId, manifestProfile])
+}
+
+// V2 terminology rows retain the complete multilingual assertion identity and
+// original row payload.  They are not projected into V1 semanticName fields.
+model ActkgV2MultilingualLabel {
+  releaseId              String
+  ordinal                Int
+  entityId               String
+  language               String
+  label                  String
+  labelType              String
+  terminologyAssertionId String
+  payload                Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, terminologyAssertionId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, entityId])
+  @@index([releaseId, language])
+}
+
+// Frozen registry/admission provenance for a V2 Bundle.  JSON members are
+// retained verbatim and bindingDigest binds the canonical complete object.
+model ActkgV2AdmissionBinding {
+  releaseId           String  @id
+  bundleReceiptId     String  @unique
+  protocol            String
+  provenance          String
+  verificationScope   String
+  verifiedDuringLoad  Boolean
+  registryIdentity    Json
+  upstreamRepository  Json
+  publicationRevision Json
+  sourceRevision      Json
+  bundleIdentity      Json
+  bindingDigest       String
+
+  release ActkgRelease       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  receipt ActkgBundleReceipt @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
 }
 
 // Multi-Projection identity records. Runtime Projection maps into existing

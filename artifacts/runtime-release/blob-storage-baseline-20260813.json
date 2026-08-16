@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "act-runtime-blob-storage-baseline.v1",
+  "capturedAt": "2026-08-13T06:12:59Z",
+  "captureRevision": "32352381995b178d5615ea95fb48ebf7c4943b0e",
+  "bucket": "act-course-assets",
+  "region": "cn-hangzhou",
+  "captureMethod": {
+    "kind": "read-only-ecs-and-oss-manifest",
+    "ecsRole": "act-runtime-oss-release-operator-ecs",
+    "endpoint": "oss-cn-hangzhou-internal.aliyuncs.com",
+    "manifestRead": "ossutil api get-object with EcsRamRole; parsed only canonical v1 manifest payloads",
+    "contentBodyReads": false
+  },
+  "activeHostState": {
+    "selection": {
+      "generation": 2,
+      "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+      "manifestSha256": "f38d2a088944cff658650e1aab2b920fbcf5f857d0e1cf08f18bc2ee6cf88d24",
+      "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b"
+    },
+    "activeReceiptHealthCheck": "readyz",
+    "mount": "ossfs2 read-only release prefix"
+  },
+  "releaseInventory": [
+    {
+      "role": "retainedRollbackCandidate",
+      "releaseId": "runtime-b2f0b07c428faba4317bf2f5b7ad51f0858165dee8651fcea52eb6a",
+      "sourceRevision": "3097ebc204d65b2722cfdc1423e0d1646e37d55d",
+      "fileCount": 10222,
+      "totalBytes": 5924691879,
+      "treeSha256": "2fd9eec21142994ea97bf971225b1ad24a85ee6346ec17d8ff96d2da93708133",
+      "manifestSha256": "75912510df1f3e9b89801702dea9747ce15e0af117317886dabc9965b760f326"
+    },
+    {
+      "role": "active",
+      "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+      "sourceRevision": "c0a3200e1be6f3a6be2482a35f2ce2a599987cb0",
+      "fileCount": 10228,
+      "totalBytes": 6361518627,
+      "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b",
+      "manifestSha256": "f38d2a088944cff658650e1aab2b920fbcf5f857d0e1cf08f18bc2ee6cf88d24"
+    }
+  ],
+  "contentAddressedAnalysis": {
+    "v1ReleasePrefixBytes": 12286210506,
+    "uniqueBlobCount": 10188,
+    "uniqueBlobBytes": 6359383407,
+    "duplicateBytes": 5926827099,
+    "dedupeRatio": 0.48239667520800006
+  },
+  "peakSpaceBudget": {
+    "bucketBudgetBytes": 20000000000,
+    "budgetSource": "20 GB Bucket capacity recorded in this change proposal",
+    "v1CurrentPairPlusLargestCandidateBytes": 18647729133,
+    "v1HeadroomBytes": 1352270867,
+    "v2PairPlusAllDistinctLargestCandidateBytes": 12720902034,
+    "v2HeadroomBytes": 7279097966,
+    "candidateAssumption": "The candidate is no larger than the currently active release; a larger or genuinely novel tree requires a new frozen analysis."
+  },
+  "cadenceEvidence": {
+    "observedReleaseEvidenceWindow": [
+      "2026-08-11",
+      "2026-08-12"
+    ],
+    "interpretation": "Two retained releases establish the current peak model but do not forecast future release cadence or unique-byte growth."
+  }
+}

@@ -10,7 +10,7 @@ import type { SimulationTaskAttainmentProjection } from './simulation-task-portr
 export { PORTRAIT_V2_DIMENSION_IDS } from './kaq-objective-taxonomy';
 
 export const PORTRAIT_V2_PAYLOAD_VERSION = 'learner-portrait.v2';
-export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-cumulative.v2';
+export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-cumulative.v3';
 export const PORTRAIT_V2_MIGRATION_VERSION: string = 'portrait-v2-cumulative-migration.v2';
 // Compatibility-only thresholds for legacy consumers. Canonical cumulative
 // portrait availability is evidence-backed and does not use calendar age.

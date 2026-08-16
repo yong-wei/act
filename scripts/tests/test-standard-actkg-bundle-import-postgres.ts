@@ -12,6 +12,7 @@ import { Client } from 'pg';
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   ACCEPTED_CANDIDATE_STATE,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
   AuthoritativeKnowledgeRepository,
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
@@ -415,7 +416,10 @@ async function main(): Promise<void> {
     where: { id: validatedV03.releaseIdentity.releaseId },
   }), 1);
   assert.equal(await db.actkgBundleReceipt.count({
-    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      bundleDigest: validatedV03.bundleIdentity.bundleDigest,
+    },
   }), 1);
   assert.equal(await db.actkgImportReceipt.count({
     where: { releaseId: validatedV03.releaseIdentity.releaseId },
@@ -445,11 +449,19 @@ async function main(): Promise<void> {
     ['idempotent', 'idempotent'],
   );
   assert.equal(await db.actkgBundleReceipt.count({
-    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      bundleDigest: validatedV03.bundleIdentity.bundleDigest,
+    },
   }), 1);
 
   const receipt = await db.actkgBundleReceipt.findUniqueOrThrow({
-    where: { bundleDigest: validatedV03.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: validatedV03.bundleIdentity.bundleDigest,
+      },
+    },
   });
   assert.equal(receipt.candidateState, ACCEPTED_CANDIDATE_STATE);
   assert.equal(receipt.artifactCount, validatedV03.rawArtifacts.length);
@@ -639,7 +651,10 @@ async function main(): Promise<void> {
   const modes = concurrentPackaging.map((row) => row.mode).sort();
   assert.ok(modes.includes('packaging') || modes.every((mode) => mode === 'idempotent' || mode === 'packaging'));
   assert.equal(await db.actkgBundleReceipt.count({
-    where: { bundleDigest: packagingBase.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+      bundleDigest: packagingBase.bundleIdentity.bundleDigest,
+    },
   }), 1);
   assert.deepEqual({
     entries: await db.actkgReleaseEntry.count({ where: { releaseId: validatedV03.releaseIdentity.releaseId } }),
@@ -714,10 +729,20 @@ async function main(): Promise<void> {
   assert.equal(importB.mode, 'packaging');
 
   const receiptA = await db.actkgBundleReceipt.findUniqueOrThrow({
-    where: { bundleDigest: packagingA.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: packagingA.bundleIdentity.bundleDigest,
+      },
+    },
   });
   const receiptB = await db.actkgBundleReceipt.findUniqueOrThrow({
-    where: { bundleDigest: packagingB.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: packagingB.bundleIdentity.bundleDigest,
+      },
+    },
   });
   assert.equal(receiptA.candidateState, ACCEPTED_CANDIDATE_STATE);
   assert.equal(receiptB.candidateState, ACCEPTED_CANDIDATE_STATE);

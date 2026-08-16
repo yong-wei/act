@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   orchestrateRemediation,
+  REMEDIATION_MANUAL_PRACTICE_PATH,
   refreshRemediationOrchestration,
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         status: 'UNAVAILABLE',
         unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
-        manualPracticePath: '/student/practice',
+        manualPracticePath: REMEDIATION_MANUAL_PRACTICE_PATH,
       }, { status: 409 });
     }
 

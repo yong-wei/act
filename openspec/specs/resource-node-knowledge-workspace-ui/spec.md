@@ -749,3 +749,50 @@ The knowledge workspace SHALL let every currently authorized graph user switch b
 - **WHEN** the user selects the other graph version
 - **THEN** the workspace SHALL replace the graph and detail state from the selected independent API without merging nodes
 
+### Requirement: Authority shard merge preserves workspace state
+The knowledge workspace SHALL merge version-valid Authority shards by canonical object identity and layer-aware relation identity. Shard arrival SHALL NOT duplicate multi-domain objects, remount existing nodes, reset the inspector, discard user positions or mix optional teaching data from another projection version.
+
+#### Scenario: Secondary-domain membership arrives
+- **WHEN** a later shard references an already loaded object through another reviewed domain membership
+- **THEN** the workspace SHALL reuse the existing object and add only the membership context
+- **AND** the object's selection, position and open detail state SHALL remain stable
+
+#### Scenario: Version-mismatched shard arrives
+- **WHEN** a shard does not match the established Authority, catalog or applicable teaching identity
+- **THEN** the workspace SHALL reject it before state merge
+- **AND** it SHALL request the matching shard or show a controlled unavailable state
+
+### Requirement: Authority relation controls use five human semantic groups
+The knowledge workspace SHALL present teaching order as the default group and SHALL offer structure, derivation-and-representation, application-and-analysis, and association as independently selectable groups. The controls SHALL preserve active domain, selection, cached shards, layout and inspector state.
+
+#### Scenario: User changes relation groups
+- **WHEN** one or more relation groups are enabled or disabled
+- **THEN** only eligible published edges in the active domain SHALL change visibility
+- **AND** the workspace SHALL not request the global graph, reset positions or replace exact predicates in the inspector
+
+### Requirement: Layered workspace remains usable with incomplete teaching projection
+The workspace SHALL keep domain objects, engineering filters, search, directory and node inspection available when teaching coverage is partial, empty or unavailable.
+
+#### Scenario: Teaching layer becomes unavailable after domain entry
+- **WHEN** the optional teaching shard fails while Authority and catalog shards remain valid
+- **THEN** the workspace SHALL remove or mark only the teaching layer
+- **AND** current engineering objects, selection and loaded engineering relations SHALL remain usable
+
+### Requirement: Authority inspector resolves card and infograph resources through source-owned contracts
+The knowledge workspace SHALL resolve Knowledge Card and infograph availability through their governed export and authorized media contracts. The graph client SHALL NOT construct repository paths, bypass card review status or treat an infograph as proof of an unpublished graph relation.
+
+#### Scenario: Inspector requests learning resources
+- **WHEN** a selected Authority object advertises card or infograph availability through a matching composite shard envelope
+- **THEN** the workspace SHALL use the source-owned detail and media routes
+- **AND** stale selection responses SHALL be discarded before presentation
+
+#### Scenario: Selected node has no bound Teaching content
+- **WHEN** the current composite shard envelope does not report an available, passed Teaching binding
+- **THEN** the workspace SHALL not read an independently current card or projection index
+- **AND** it SHALL keep the semantic inspector available without rendering optional media placeholders
+
+#### Scenario: Node selection changes during media load
+- **WHEN** the user selects another node before the prior card or image request completes
+- **THEN** the inspector SHALL show only the current node's detail
+- **AND** the stale response SHALL not replace content or focus state
+

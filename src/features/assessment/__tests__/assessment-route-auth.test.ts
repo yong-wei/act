@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   selectNextQuestionWithPersistenceFallback: vi.fn(),
   getDiagnosticWithPersistenceFallback: vi.fn(),
   getAbilityReportWithPersistenceFallback: vi.fn(),
+  verifyCompanionPracticeMetadata: vi.fn(),
+  verifyCompanionPracticeSubmissionMetadata: vi.fn(),
   prisma: {
     learningPath: {
       findFirst: vi.fn(),
@@ -26,6 +28,11 @@ vi.mock('@/features/assessment/adaptive-persistence', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
+}));
+
+vi.mock('@/lib/konling-continuity-assessment', () => ({
+  verifyCompanionPracticeMetadata: mocks.verifyCompanionPracticeMetadata,
+  verifyCompanionPracticeSubmissionMetadata: mocks.verifyCompanionPracticeSubmissionMetadata,
 }));
 
 import { POST as submitAnswer } from '@/app/api/assessment/submit-answer/route';
@@ -86,6 +93,8 @@ describe('assessment API auth boundaries', () => {
       },
     });
     mocks.prisma.learningPath.findFirst.mockResolvedValue(null);
+    mocks.verifyCompanionPracticeMetadata.mockResolvedValue(undefined);
+    mocks.verifyCompanionPracticeSubmissionMetadata.mockResolvedValue(undefined);
   });
 
   it('rejects unauthenticated adaptive answer submissions before persistence', async () => {
@@ -354,6 +363,97 @@ describe('assessment API auth boundaries', () => {
       goalId: 'control-correction',
       questionScope: 'practice',
     });
+  });
+
+  it('passes only server-verified companion metadata to question selection', async () => {
+    const verified = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:1',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.verifyCompanionPracticeMetadata.mockResolvedValue(verified);
+
+    const response = await nextQuestionRequest({
+      userId: 'victim-user',
+      sessionId: 'konling-continuity:continuity:1',
+      goalId: 'root-locus',
+      continuity: { ...verified, snapshotId: 'client-value-is-revalidated' },
+    });
+    expect(response.status).toBe(200);
+    expect(mocks.verifyCompanionPracticeMetadata).toHaveBeenCalledWith(expect.anything(), {
+      userId: 'student-1',
+      continuity: { ...verified, snapshotId: 'client-value-is-revalidated' },
+    });
+    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:1',
+      goalId: 'root-locus',
+      questionScope: 'practice',
+      continuity: verified,
+    });
+  });
+
+  it('uses persisted companion authority for a completed submission retry', async () => {
+    const verified = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:before-result',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.verifyCompanionPracticeSubmissionMetadata.mockResolvedValue(verified);
+
+    const response = await submitRequest({
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 10,
+      continuity: verified,
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.verifyCompanionPracticeSubmissionMetadata).toHaveBeenCalledWith(expect.anything(), {
+      userId: 'student-1',
+      sessionId: 'konling-continuity:continuity:before-result',
+      questionId: 'preset-q-01',
+      continuity: verified,
+    });
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({ continuity: verified }));
+  });
+
+  it('rejects companion practice when the session is not bound to the verified snapshot', async () => {
+    const verified = {
+      origin: 'konling-companion-practice',
+      snapshotId: 'continuity:1',
+      targetKnowledgeId: 'root-locus',
+      structuredCauseId: null,
+    } as const;
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.verifyCompanionPracticeMetadata.mockResolvedValue(verified);
+
+    const response = await nextQuestionRequest({
+      sessionId: 'practice-other-session',
+      goalId: 'attacker-controlled-goal',
+      continuity: verified,
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects reserved companion sessions when continuity metadata is omitted', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.verifyCompanionPracticeMetadata.mockResolvedValue(undefined);
+
+    const response = await nextQuestionRequest({
+      sessionId: 'konling-continuity:continuity:reserved',
+      goalId: 'attacker-controlled-goal',
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
   it('derives path next-question goal from the server-owned learning path', async () => {

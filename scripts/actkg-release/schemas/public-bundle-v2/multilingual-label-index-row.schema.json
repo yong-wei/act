@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actkg.example/schema/public-bundle/multilingual-label-index-row.schema.json",
+  "title": "ActKG Multilingual Label Index Row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "entity_id",
+    "language",
+    "label",
+    "label_type",
+    "terminology_assertion_id"
+  ],
+  "properties": {
+    "entity_id": {"type": "string", "minLength": 1},
+    "language": {"type": "string", "minLength": 2},
+    "label": {"type": "string", "minLength": 1},
+    "label_type": {
+      "enum": [
+        "preferred",
+        "alternative",
+        "source",
+        "unresolved",
+        "source_preferred",
+        "source_alternative",
+        "translation_candidate",
+        "canonical_preferred",
+        "display_short"
+      ]
+    },
+    "terminology_assertion_id": {"type": "string", "minLength": 1}
+  }
+}

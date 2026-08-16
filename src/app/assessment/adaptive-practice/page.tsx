@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   BookOpenCheck,
@@ -2573,6 +2573,7 @@ function buildChoiceBody(
 }
 
 export default function AdaptivePracticePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
@@ -2694,6 +2695,13 @@ export default function AdaptivePracticePage() {
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
   const [activeCandidateBatch, setActiveCandidateBatch] = useState<AdaptivePathCandidateBatchView | null>(null);
   const [candidateBatchLoadState, setCandidateBatchLoadState] = useState<AdaptivePathContextLoadState>('idle');
+  const [generatedCandidateBatchFailure, setGeneratedCandidateBatchFailure] = useState(false);
+  const synchronizedCandidateBatchRef = useRef<{
+    goalId: AdaptivePracticeGoalId;
+    batchId: string;
+    candidateId: string | null;
+    batch: AdaptivePathCandidateBatchView;
+  } | null>(null);
   const [focusedCandidateId, setFocusedCandidateId] = useState<string | null>(requestedCandidateId);
   const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
   const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
@@ -2866,9 +2874,9 @@ export default function AdaptivePracticePage() {
   const hasCandidateBatchContext = shouldShowCandidateComparison &&
     candidateBatchLoadState !== 'missing' &&
     candidateBatchLoadState !== 'failed';
-  const showCandidateBatchRecovery = shouldShowCandidateComparison &&
+  const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&
     (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
-  const canRenderCandidateComparison = shouldShowCandidateComparison && !showCandidateBatchRecovery;
+  const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready';
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
@@ -3386,17 +3394,35 @@ export default function AdaptivePracticePage() {
 
   useEffect(() => {
     if (!activeGoal || (!isDemoMode && authStatus !== 'authenticated') || (!shouldShowCandidateComparison && !showGenerationWorkspace)) {
+      synchronizedCandidateBatchRef.current = null;
       setActiveCandidateBatch(null);
       setCandidateBatchLoadState('idle');
+      setGeneratedCandidateBatchFailure(false);
       return;
     }
     if (requestedCandidateId && !requestedBatchId) {
+      synchronizedCandidateBatchRef.current = null;
       setActiveCandidateBatch(null);
       setCandidateBatchLoadState('missing');
+      setGeneratedCandidateBatchFailure(false);
       return;
     }
+    const synchronizedBatch = synchronizedCandidateBatchRef.current;
+    if (
+      synchronizedBatch &&
+      synchronizedBatch.goalId === activeGoal &&
+      synchronizedBatch.batchId === requestedBatchId &&
+      synchronizedBatch.candidateId === requestedCandidateId
+    ) {
+      setActiveCandidateBatch(synchronizedBatch.batch);
+      setCandidateBatchLoadState('ready');
+      setGeneratedCandidateBatchFailure(false);
+      return;
+    }
+    synchronizedCandidateBatchRef.current = null;
     let cancelled = false;
     setCandidateBatchLoadState('loading');
+    setGeneratedCandidateBatchFailure(false);
     void fetchCandidateBatch(activeGoal, requestedBatchId, requestedCandidateId).then((result) => {
       if (cancelled) return;
       if (result.status === 'loaded') {
@@ -3744,14 +3770,26 @@ export default function AdaptivePracticePage() {
           ? payload.result.candidateBatch.id
           : null;
         if (generatedBatchId && activeGoal) {
+          setGeneratedCandidateBatchFailure(false);
+          setActiveCandidateBatch(null);
+          setCandidateBatchLoadState('loading');
           const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
           if (loadedBatch.status === 'loaded') {
+            synchronizedCandidateBatchRef.current = {
+              goalId: activeGoal,
+              batchId: generatedBatchId,
+              candidateId: null,
+              batch: loadedBatch.batch,
+            };
             setActiveCandidateBatch(loadedBatch.batch);
             setCandidateBatchLoadState('ready');
             const nextUrl = new URL(window.location.href);
-            nextUrl.searchParams.set('batch', loadedBatch.batch.id);
+            nextUrl.searchParams.set('batch', generatedBatchId);
             nextUrl.searchParams.delete('candidate');
-            window.history.replaceState(window.history.state, '', nextUrl);
+            router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
+          } else {
+            setCandidateBatchLoadState(loadedBatch.status);
+            setGeneratedCandidateBatchFailure(true);
           }
         }
         await refreshLatestLearningPathAfterKonling();
@@ -3860,6 +3898,7 @@ export default function AdaptivePracticePage() {
     pathGenerationRequestStatus,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
+    router,
     routeIntent,
   ]);
 

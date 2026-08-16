@@ -2,7 +2,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   activeProjectionResponse,
   activeUnavailableResponse,
-  authorizeActiveGraph,
+  authorizeActiveFullGraphDiagnostics,
   readActiveCanvas,
 } from '../../_active-authority';
 
@@ -10,13 +10,13 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
- * Resolve only the committed engineering-graph activation.  Query parameters
- * are intentionally ignored: snapshot/release/manifest selectors are server
- * authority and cannot be supplied by the browser.
+ * Authorized diagnostics only. Product `/knowledge` interaction must use
+ * versioned domain shards and must not request this full-canvas payload.
+ * Query parameters are ignored: snapshot/release selectors stay server-side.
  */
 export async function GET(_request: Request) {
   try {
-    const authorization = await authorizeActiveGraph();
+    const authorization = await authorizeActiveFullGraphDiagnostics();
     if (!authorization.ok) return authorization.response;
     const result = readActiveCanvas();
     return activeProjectionResponse(result);

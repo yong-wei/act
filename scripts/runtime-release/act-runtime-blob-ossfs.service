@@ -1,0 +1,16 @@
+[Unit]
+Description=ACT content-addressed runtime blob mount
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=ACT_RUNTIME_BLOB_MOUNT_ROOT=/home/projects/act/data/runtime/ossfs/blobs
+Environment=ACT_RUNTIME_BLOB_OSSFS_CONFIG_DIR=/etc/act-runtime-blob-ossfs
+ExecStartPre=/usr/bin/mkdir -p ${ACT_RUNTIME_BLOB_MOUNT_ROOT}
+ExecStart=/usr/local/bin/ossfs2 mount ${ACT_RUNTIME_BLOB_MOUNT_ROOT} -c ${ACT_RUNTIME_BLOB_OSSFS_CONFIG_DIR}/blobs.conf
+ExecStop=/usr/bin/umount ${ACT_RUNTIME_BLOB_MOUNT_ROOT}
+
+[Install]
+WantedBy=multi-user.target

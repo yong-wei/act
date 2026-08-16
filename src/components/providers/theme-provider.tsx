@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 import { DEFAULT_THEME, isTheme, resolveInitialTheme, THEME_STORAGE_KEY, type ThemeMode } from '@/lib/theme-config';
 
@@ -45,6 +45,10 @@ export function ThemeProvider({
   });
   const [mounted, setMounted] = useState(false);
 
+  useLayoutEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -54,7 +58,6 @@ export function ThemeProvider({
       return;
     }
 
-    applyTheme(theme);
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [mounted, theme]);
 

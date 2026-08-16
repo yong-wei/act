@@ -6,6 +6,7 @@ import path from 'node:path';
 const PROJECT_ROOT = process.cwd();
 const RUNTIME_PREFIX = 'course-content/runtime/';
 
+export const RUNTIME_BLOB_HELPER_NAME = '.act-runtime-blobs';
 export const RUNTIME_CONTENT_ROOT = path.join(PROJECT_ROOT, 'course-content', 'runtime');
 
 export type RuntimeContentPath = {
@@ -43,6 +44,7 @@ function resolveInsideRoot(root: string, relativePath: string, errorLabel: strin
     || normalizedRelative.startsWith('../')
     || normalizedRelative === '..'
     || path.posix.isAbsolute(normalizedRelative)
+    || normalizedRelative.split('/')[0] === RUNTIME_BLOB_HELPER_NAME
   ) {
     throw new Error(`${errorLabel}: ${relativePath}`);
   }

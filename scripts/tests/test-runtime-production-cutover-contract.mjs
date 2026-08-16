@@ -39,6 +39,8 @@ assert.match(remote, /insufficient Podman storage for streamed image import/, 's
 assert.match(remote, /streamed image ID does not match the verified local image/, 'streamed image identity must match the verified local archive');
 assert.match(remote, /image_digest="sha256:\$\{BASH_REMATCH\[2\]\}"/, 'the production Podman image ID must be canonicalized because Podman may omit the sha256 prefix');
 assert.match(remote, /actual = 'sha256:' \+ actual/, 'post-activation container image checks must accept Podman IDs without a sha256 prefix');
+assert.doesNotMatch(remote, /text=True/, 'remote cutover must remain compatible with the ECS Python 3.6 runtime');
+assert.match(remote, /universal_newlines=True/, 'remote cutover must use the Python 3.6 subprocess text compatibility spelling');
 assert.match(remote, /ACT_RUNTIME_STATE_DIR/, 'post-activation verification must support an isolated runtime-state test seam while production retains its fixed default');
 assert.match(remote, /ACT_RUNTIME_DEPLOY_MODE='--runtime-cutover-app-only'/, 'remote cutover must use the fixed zero-database callback');
 assert.match(remote, /ACT_RUNTIME_APP_REVISION/, 'active receipt must bind integration revision');

@@ -40,6 +40,10 @@ runtime manifest、schema 校验、hybrid index windows/segments、manifestHash�
 
 `course-content/runtime/resources/**` 和 `.cache/textbook-hybrid-retrieval/**` 属于发布资产，由 release 流程生成和分发。PR 只提交可复现生成的代码、配置和测试。
 
+### 6. 远端 provenance 校验随 resourceSet 发布
+
+远端 `textbook-runtime-v2-provenance.mjs` 依赖同目录的 `textbook-resource-set.mjs`，并从远端仓库根目录读取 `course-content/config/textbook-resource-set.json`。`remote-deploy.sh` 必须将这三个文件作为同一原子发布单元上传，并在执行 provenance 校验前进入 `REMOTE_PROJECT_DIR`。这使首次部署和没有旧 helper 的主机同样 fail closed，而不依赖远端残留脚本或配置。
+
 ## Risks / Trade-offs
 
 - [resourceSet 内容与 authoring 实际集合不一致] → 共享 helper 校验非空、唯一和安全路径，生成/验证脚本使用同一来源。

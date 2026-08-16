@@ -19,7 +19,7 @@ const resourcesRoot = path.resolve(
     ?? 'course-content/runtime/resources',
 );
 const runtimeRoot = path.join(resourcesRoot, 'textbooks-v2');
-const indexRoot = path.join(resourcesRoot, 'textbook-retrieval');
+const indexRoot = path.join(resourcesRoot, 'textbook-hybrid-retrieval', 'bge-m3');
 const assetsRoot = path.join(resourcesRoot, 'textbooks');
 const cacheRoot = path.resolve(
   process.env.TEXTBOOK_EMBEDDING_CACHE_ROOT
@@ -178,52 +178,44 @@ export function normalizeRuntimeDirectoryPermissions(
   }
 }
 
+export function removePathSync(target, {
+  existsSync = fs.existsSync,
+  lstatSync = fs.lstatSync,
+  readdirSync = fs.readdirSync,
+  unlinkSync = fs.unlinkSync,
+  rmdirSync = fs.rmdirSync,
+  rmSync = fs.rmSync,
+} = {}) {
+  rmSync(target, { recursive: true, force: true });
+  if (!existsSync(target)) return;
+
+  const stat = lstatSync(target);
+  if (!stat.isDirectory()) {
+    unlinkSync(target);
+    return;
+  }
+  for (const entry of readdirSync(target)) {
+    removePathSync(path.join(target, entry), {
+      existsSync,
+      lstatSync,
+      readdirSync,
+      unlinkSync,
+      rmdirSync,
+      rmSync,
+    });
+  }
+  rmdirSync(target);
+}
+
 export function replaceRuntimeDirectories(
   replacements,
   {
     existsSync = fs.existsSync,
+    mkdirSync = fs.mkdirSync,
     renameSync = fs.renameSync,
+    rmSync = fs.rmSync,
   } = {},
 ) {
-  const removeDirectorySync = (directory) => {
-    let stat;
-    try {
-      stat = fs.lstatSync(directory);
-    } catch (error) {
-      if (error.code === 'ENOENT') return;
-      throw error;
-    }
-    if (stat.isDirectory() && !stat.isSymbolicLink()) {
-      for (const entry of fs.readdirSync(directory)) {
-        removeDirectorySync(path.join(directory, entry));
-      }
-      try {
-        fs.rmdirSync(directory);
-      } catch (error) {
-        if (error.code === 'ENOENT') return;
-        if (error.code === 'ENOTEMPTY') {
-          for (const entry of fs.readdirSync(directory)) {
-            removeDirectorySync(path.join(directory, entry));
-          }
-          try {
-            fs.rmdirSync(directory);
-          } catch (retryError) {
-            if (retryError.code !== 'ENOENT') throw retryError;
-          }
-          return;
-        }
-        throw error;
-      }
-      return;
-    }
-    try {
-      fs.unlinkSync(directory);
-    } catch (error) {
-      if (error.code === 'ENOENT') return;
-      throw error;
-    }
-  };
-
   normalizeRuntimeDirectoryPermissions(replacements.map(({ staged }) => staged));
   const states = replacements.map(({ staged, target }) => ({
     staged,
@@ -245,6 +237,7 @@ export function replaceRuntimeDirectories(
       }
     }
     for (const state of states) {
+      mkdirSync(path.dirname(state.target), { recursive: true });
       renameSync(state.staged, state.target);
       state.installed = true;
     }
@@ -252,8 +245,8 @@ export function replaceRuntimeDirectories(
     const rollbackErrors = [];
     for (const state of [...states].reverse()) {
       try {
-        if (state.installed) {
-          removeDirectorySync(state.target);
+        if (state.installed && existsSync(state.target)) {
+          removePathSync(state.target, { rmSync, existsSync });
         }
         if (state.backedUp && existsSync(state.previous)) {
           renameSync(state.previous, state.target);
@@ -272,7 +265,7 @@ export function replaceRuntimeDirectories(
   }
   for (const state of states) {
     if (state.backedUp) {
-      removeDirectorySync(state.previous);
+      removePathSync(state.previous, { rmSync, existsSync });
     }
   }
 }
@@ -295,7 +288,7 @@ function main() {
     path.join(resourcesRoot, '.textbook-runtime-cutover-'),
   );
   const stagedRuntime = path.join(stagingRoot, 'textbooks-v2');
-  const stagedIndex = path.join(stagingRoot, 'textbook-retrieval');
+  const stagedIndex = path.join(stagingRoot, 'textbook-hybrid-retrieval', 'bge-m3');
   const stagedAssets = path.join(stagingRoot, 'textbooks');
 
   try {
@@ -375,7 +368,7 @@ function main() {
       { staged: stagedIndex, target: indexRoot },
       { staged: stagedAssets, target: assetsRoot },
     ]);
-    fs.rmSync(stagingRoot, { recursive: true, force: true });
+    removePathSync(stagingRoot);
     process.stdout.write(`${JSON.stringify({
       sourceRevision: revision,
       inputDigest: inputSnapshot.digest,
@@ -385,7 +378,7 @@ function main() {
       assetsRoot,
     }, null, 2)}\n`);
   } catch (error) {
-    fs.rmSync(stagingRoot, { recursive: true, force: true });
+    removePathSync(stagingRoot);
     throw error;
   }
 }

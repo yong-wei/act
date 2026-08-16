@@ -199,6 +199,34 @@ describe('portrait v2 consumer adapters', () => {
     expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
   });
 
+  it('rejects pre-governance portrait calculation versions', async () => {
+    const payload = nativePortrait();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-pre-governance',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-cumulative.v2',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'student', {
+      now,
+      legacySnapshot: null,
+      featureCache: null,
+    });
+
+    expect(resolution.primaryPortrait.dimensions.every(
+      (dimension) => dimension.evidenceSummary.totalCount === 0,
+    )).toBe(true);
+    expect(resolution.limitations).toContain('persisted-portrait-v2-invalid-or-incompatible');
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+  });
+
   it('preserves the legacy vector as compatibility data alongside a native portrait', async () => {
     const payload = nativePortrait();
     const snapshot = legacySnapshot();
