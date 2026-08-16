@@ -252,10 +252,16 @@ rtk npm run test:data-governance
 
 ```bash
 rtk bash scripts/build.sh
-rtk bash scripts/remote-deploy.sh
+rtk npm run deploy:app -- --skip-build
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。部署脚本保留 `legacy-rsync` 兼容模式，并支持显式 `ossfs-release` 模式：不可变 OSS Release 经全量摘要复核后挂载到固定前缀，再以只读 bind mount 提供给应用；真实生产启用需要 RAM Role、候选挂载、性能与回退证据。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
+课程 runtime 走独立 OSS 发布，不要用应用部署脚本同步本地 tree：
+
+```bash
+rtk npm run deploy:runtime
+```
+
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`legacy-rsync` 只保留为显式兼容回退，且在已有 OSS active receipt 时失败关闭。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
 
 ## 维护入口
 

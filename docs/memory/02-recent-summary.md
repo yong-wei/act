@@ -16,6 +16,8 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-08-16 生产 runtime 已切到 OSS v2 blob-view。`deploy:app` / `remote-deploy.sh` 默认 `ossfs-blob-view`，只绑定已物化 view，不再 rsync `course-content/runtime`。runtime 内容更新走 `deploy:runtime`。`legacy-rsync` 仅显式可用，且存在 OSS active receipt 时失败关闭。
+
 - 2026-07-28 Issue #1125 `adopt-ctkg-0-2-aggregate-release-contract` 已完成实现与验证：候选权威知识底座锁定 CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`（841 release entries、744 投影节点、97 投影关系、1302 条唯一上游 crosswalk、九种谓词），候选 Repository、三项投影、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`。公共 bundle 字节级往返成立；私有 CTKGDataset 明确不可用且不得重建；CTKG 0.1 仅历史可审计；Legacy 仍是生产权威；旧 inventory/crosswalk/candidate/decision/binding 仅 historical/stale。干净 Git HEAD 上的 PostgreSQL 迁移、导入、幂等、冲突回滚、字节往返、Repository、部署 CLI 与 canonical binding shadow 全流程通过；下游 CourseCoverage/ACT crosswalk、资源教学角色、RAG/KAQ/SAR、路径、学习事实与生产切换仍受后续依赖门禁。
 
 - 2026-07-18 `openspec list --json` 中的四项 change 均已完成任务：知识图谱根节点气泡与 inspector 持久化、评估检查点资源语义、教师审核与学生反馈闭环、互动课组件样式统一。它们尚未全部归档，因此“目录仍在 `openspec/changes/`”不等于仍有未实现任务。

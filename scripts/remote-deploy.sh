@@ -16,14 +16,19 @@ REMOTE_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE:-${REMOTE_IMAGE_TAR}.provenance
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
 REMOTE_OSSFS_MOUNT_ROOT="${REMOTE_OSSFS_MOUNT_ROOT:-${REMOTE_PROJECT_DIR}/data/runtime/ossfs/releases}"
-RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+REMOTE_BLOB_VIEW_ROOT="${REMOTE_BLOB_VIEW_ROOT:-${REMOTE_PROJECT_DIR}/data/runtime/blob-views}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-ossfs-blob-view}"
 RUNTIME_RELEASE_ID="${RUNTIME_RELEASE_ID:-}"
 RUNTIME_EXPECTED_ACTIVE_RELEASE="${RUNTIME_EXPECTED_ACTIVE_RELEASE:-}"
 RUNTIME_VERIFICATION_RECEIPT="${RUNTIME_VERIFICATION_RECEIPT:-}"
 RUNTIME_OSS_RAM_ROLE="${RUNTIME_OSS_RAM_ROLE:-}"
 REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"
 REMOTE_AUTHORITY_CURRENT_POINTER="${REMOTE_AUTHORITY_CURRENT_POINTER:-${REMOTE_PROJECT_DIR}/course-content/authoring/knowledge/authority/current.json}"
-REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_RUNTIME_DIR}/knowledge/production-cutover-transactions/current.json}"
+if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
+  REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_BLOB_VIEW_ROOT}/current/knowledge/production-cutover-transactions/current.json}"
+else
+  REMOTE_PRODUCTION_CUTOVER_MARKER="${REMOTE_PRODUCTION_CUTOVER_MARKER:-${REMOTE_RUNTIME_DIR}/knowledge/production-cutover-transactions/current.json}"
+fi
 LOCAL_TEXTBOOK_V2_RUNTIME_DIR="${LOCAL_RUNTIME_DIR}/resources/textbooks-v2"
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
 LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
@@ -86,7 +91,11 @@ while [[ $# -gt 0 ]]; do
 默认行为:
   1. 调用 scripts/build.sh 本地构建镜像
   2. 上传 deploy/images/act-obe.tar 到远端
-  3. 执行远端一键部署并做验证
+  3. 绑定远端已物化的 OSS blob-view，执行应用部署并验证
+
+本脚本默认 RUNTIME_DELIVERY_MODE=ossfs-blob-view，不会 rsync
+course-content/runtime。更新 runtime 请使用 npm run deploy:runtime。
+legacy-rsync 仅在显式设置 RUNTIME_DELIVERY_MODE=legacy-rsync 时可用。
 
 选项:
   --skip-build   跳过本地构建，直接上传并部署现有镜像产物
@@ -195,6 +204,43 @@ if [ -e \"\${pointer}\" ] || [ -L \"\${pointer}\" ]; then
   echo \"ERROR: production legacy runtime must not contain host Authority current pointer: \${pointer}\" >&2
   exit 1
 fi
+'"
+}
+
+check_remote_blob_view() {
+  local view_dir="${1:-${REMOTE_BLOB_VIEW_ROOT}/current}"
+  remote "bash -lc '
+set -euo pipefail
+view=\"${view_dir}\"
+if [ ! -d \"\${view}\" ]; then
+  echo \"ERROR: ossfs-blob-view 缺少已物化 current view: \${view}\" >&2
+  echo \"ERROR: 更新 runtime 请使用 npm run deploy:runtime，不要 rsync course-content/runtime\" >&2
+  exit 1
+fi
+if [ ! -e \"\${view}/.act-runtime-release.v2.json\" ] && [ ! -L \"\${view}/.act-runtime-release.v2.json\" ]; then
+  echo \"ERROR: ossfs-blob-view 缺少 v2 身份工件: \${view}/.act-runtime-release.v2.json\" >&2
+  exit 1
+fi
+if [ ! -e \"\${view}/.act-runtime-release-materialization.v1.json\" ] && [ ! -L \"\${view}/.act-runtime-release-materialization.v1.json\" ]; then
+  echo \"ERROR: ossfs-blob-view 缺少物化 receipt: \${view}/.act-runtime-release-materialization.v1.json\" >&2
+  exit 1
+fi
+helper=\"\${view}/.act-runtime-blobs\"
+if [ ! -d \"\${helper}\" ] || [ -L \"\${helper}\" ]; then
+  echo \"ERROR: ossfs-blob-view 缺少真实 helper 目录: \${helper}\" >&2
+  exit 1
+fi
+findmnt -rn -M \"\${helper}\" -o FSTYPE | grep -Eq \"^fuse(\\.|\$)\"
+findmnt -rn -M \"\${helper}\" -o OPTIONS | grep -Eq \"(^|,)ro(,|\$)\"
+'"
+}
+
+check_container_blob_view() {
+  remote "podman exec '${APP_NAME_HINT}' sh -lc '
+set -eu
+test -e /app/course-content/runtime/.act-runtime-release.v2.json
+test -e /app/course-content/runtime/.act-runtime-release-materialization.v1.json
+test -d /app/course-content/runtime/.act-runtime-blobs
 '"
 }
 
@@ -452,14 +498,16 @@ require_cmd node
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   case "${RUNTIME_DELIVERY_MODE}" in
-    legacy-rsync)
-      require_cmd rsync
+    ossfs-blob-view)
       ;;
     ossfs-release)
       require_oss_runtime_release_inputs
       ;;
+    legacy-rsync)
+      require_cmd rsync
+      ;;
     *)
-      fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"
+      fail "RUNTIME_DELIVERY_MODE 必须为 ossfs-blob-view、ossfs-release 或显式 legacy-rsync"
       ;;
   esac
 fi
@@ -555,6 +603,12 @@ remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   case "${RUNTIME_DELIVERY_MODE}" in
+    ossfs-blob-view)
+      log "- ossfs-blob-view：不传输 runtime 内容，绑定远端已物化 view"
+      REMOTE_RUNTIME_DIR="${REMOTE_BLOB_VIEW_ROOT}/current"
+      REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
+      REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
+      ;;
     legacy-rsync)
       remote "if [ -e '${REMOTE_RUNTIME_STAGING_DIR}' ] && [ ! -d '${REMOTE_RUNTIME_STAGING_DIR}' ]; then echo 'ERROR: Legacy runtime staging path is not a directory' >&2; exit 1; fi; install -d -m 0700 '${REMOTE_RUNTIME_STAGING_DIR}'"
       runtime_rsync_args=(
@@ -587,11 +641,16 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
       REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
       ;;
     *)
-      fail "RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release"
+      fail "RUNTIME_DELIVERY_MODE 必须为 ossfs-blob-view、ossfs-release 或显式 legacy-rsync"
       ;;
   esac
 else
   log "- --app-only：保留当前 runtime 选择，不传输或变更 runtime 内容"
+fi
+
+if [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
+  log "- 预检远端已物化 blob-view，缺失时失败关闭而不是 rsync runtime"
+  check_remote_blob_view
 fi
 
 scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
@@ -707,6 +766,12 @@ remote "bash -lc 'set -euo pipefail
         --expected-active-release \"${RUNTIME_EXPECTED_ACTIVE_RELEASE}\" \\
         --verification-receipt \"${REMOTE_RUNTIME_VERIFICATION_RECEIPT}\" \\
         --ram-role \"${RUNTIME_OSS_RAM_ROLE}\"
+  elif [ \"${DEPLOY_SCOPE}\" = \"all\" ] && [ \"${RUNTIME_DELIVERY_MODE}\" = \"ossfs-blob-view\" ]; then
+    RUNTIME_DELIVERY_MODE=ossfs-blob-view \\
+      RUNTIME_CONTENT_DIR=\"${REMOTE_BLOB_VIEW_ROOT}/current\" \\
+      ${RUNTIME_OSS_RAM_ROLE:+ACT_RUNTIME_OSS_RAM_ROLE=\"${RUNTIME_OSS_RAM_ROLE}\" }\\
+      APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
+      \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   else
     APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   fi
@@ -748,19 +813,25 @@ remote "test -s '${REMOTE_IMAGE_TAR}'"
 remote "test -f '${REMOTE_PROVENANCE_FILE}'"
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  log "- 校验远端 runtime 目录"
-  remote "test -d '${REMOTE_RUNTIME_DIR}'"
-  check_remote_textbook_v2_files
-  check_remote_runtime_pointer_absence
-  check_remote_authority_current_pointer_absence
-  remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
-    --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
-    --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
-    --sidecar '${REMOTE_PROVENANCE_FILE}'"
-  if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]]; then
-    remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o FSTYPE | grep -Eq '^fuse(\\.|\$)'"
-    remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o OPTIONS | grep -Eq '(^|,)ro(,|\$)'"
-    remote "python3 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}' active --state-dir '${REMOTE_PROJECT_DIR}/data/runtime' | grep -q '\"activeReleaseId\":\"${RUNTIME_RELEASE_ID}\"'"
+  if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
+    log "- 校验远端已物化 blob-view（不按镜像 provenance 重核 runtime）"
+    check_remote_blob_view
+    check_remote_authority_current_pointer_absence
+  else
+    log "- 校验远端 runtime 目录"
+    remote "test -d '${REMOTE_RUNTIME_DIR}'"
+    check_remote_textbook_v2_files
+    check_remote_runtime_pointer_absence
+    check_remote_authority_current_pointer_absence
+    remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+      --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
+      --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
+      --sidecar '${REMOTE_PROVENANCE_FILE}'"
+    if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]]; then
+      remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o FSTYPE | grep -Eq '^fuse(\\.|\$)'"
+      remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o OPTIONS | grep -Eq '(^|,)ro(,|\$)'"
+      remote "python3 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}' active --state-dir '${REMOTE_PROJECT_DIR}/data/runtime' | grep -q '\"activeReleaseId\":\"${RUNTIME_RELEASE_ID}\"'"
+    fi
   fi
 else
   log "- --app-only：跳过 runtime release 验证"
@@ -789,8 +860,13 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
-  check_container_textbook_v2_files
+  if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
+    log "- 校验应用容器已绑定 ossfs-blob-view"
+    check_container_blob_view
+  else
+    log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
+    check_container_textbook_v2_files
+  fi
 fi
 
 log "- 校验数据库连通性"

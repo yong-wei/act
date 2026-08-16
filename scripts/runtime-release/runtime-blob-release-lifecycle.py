@@ -857,6 +857,38 @@ def verify_v1_rollback(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def resume_v2_from_v1_rollback(args: argparse.Namespace) -> Dict[str, Any]:
+    """Re-enter v2 after an explicit v1-rollback without deleting the marker."""
+    state_dir = Path(args.state_dir)
+    lock = locked(state_dir)
+    try:
+        current_marker = read_json(state_dir / MARKER_FILE, marker)
+        if not current_marker or current_marker["mode"] != "v1-rollback":
+            fail("v1 rollback authority marker is absent")
+        if args.expected_generation != current_marker["generation"]:
+            fail("expected lifecycle generation does not match current authority")
+        inputs = verified_v1_rollback_inputs(args.v1_selection_file, args.v1_active_receipt_file)
+        if inputs["v1SelectionSha256"] != current_marker["v1SelectionSha256"] or inputs["v1ActiveReceiptSha256"] != current_marker["v1ActiveReceiptSha256"]:
+            fail("v1 rollback files do not match the authority marker")
+        desired = read_identity_file(args.desired_identity) if args.desired_identity else None
+        active = read_identity_file(args.active_identity)
+        if desired and desired["releaseId"] == active["releaseId"]:
+            desired = None
+        after = {
+            "schemaVersion": LIFECYCLE_SCHEMA,
+            "generation": current_marker["generation"] + 1,
+            "transactionId": uuid.uuid4().hex,
+            "desired": desired,
+            "active": active,
+            "rollback": None,
+            "publishing": [],
+            "retained": [],
+        }
+        return transaction(state_dir, after)
+    finally:
+        lock.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest="command")
@@ -909,6 +941,13 @@ def main() -> None:
     verify_v1_parser.add_argument("--state-dir", required=True)
     verify_v1_parser.add_argument("--v1-selection-file", required=True)
     verify_v1_parser.add_argument("--v1-active-receipt-file", required=True)
+    resume_parser = commands.add_parser("resume-v2-from-v1-rollback")
+    resume_parser.add_argument("--state-dir", required=True)
+    resume_parser.add_argument("--expected-generation", required=True, type=int)
+    resume_parser.add_argument("--v1-selection-file", required=True)
+    resume_parser.add_argument("--v1-active-receipt-file", required=True)
+    resume_parser.add_argument("--active-identity", required=True)
+    resume_parser.add_argument("--desired-identity")
     protected_parser = commands.add_parser("protected-set")
     protected_parser.add_argument("--state-dir", required=True)
     inspect_parser = commands.add_parser("inspect")
@@ -951,6 +990,8 @@ def main() -> None:
         result = rollback_to_v1(args)
     elif args.command == "verify-v1-rollback":
         result = verify_v1_rollback(args)
+    elif args.command == "resume-v2-from-v1-rollback":
+        result = resume_v2_from_v1_rollback(args)
     else:
         parser.error("a command is required")
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))

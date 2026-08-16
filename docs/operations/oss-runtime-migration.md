@@ -11,6 +11,17 @@
 
 首次本地 retrieval 基准只代表主工作树源盘，不代表 ossfs：`vectors.f32`、`bodies.utf8`、`lexical-postings.bin` 的结果见 [baseline](../../artifacts/runtime-release/phase-0-main-textbook-retrieval-baseline-6ffb506f.json)。候选 ossfs 挂载必须使用同一工具重新测量后才能决定是否启用热缓存。
 
+## 当前生产部署合同
+
+生产已切到 v2 `ossfs-blob-view`。应用容器只读 bind 已物化 view，不再从 ECS 本地 `course-content/runtime` 提供课程内容。
+
+- `npm run deploy:app`（`scripts/remote-deploy.sh --app-only`）只构建/上传/装载应用镜像，并绑定当前 blob-view。
+- `npm run deploy:runtime` 只做本机 OSS 发布与 ECS 物化/选择，不得 rsync 完整 runtime，也不得构建镜像或改数据库。
+- `npm run deploy:all` 按上述顺序组合。
+- `deploy/podman/deploy.sh`（远端 `4-deploy.sh`）默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，只 bind 现有 view 与 helper FUSE；view 缺失时失败关闭。
+- `remote-deploy.sh` 默认同样是 `ossfs-blob-view`，不会把本地 `course-content/runtime` rsync 到服务器。`legacy-rsync` 必须显式设置，且存在 OSS active receipt 时禁止。
+- v1 `ossfs-release` 命令仅用于历史 prefix release，不是日常路径。
+
 ## 身份与权限
 
 Bucket `act-course-assets` 必须保持私有、阻止公共访问、标准存储与 SSE-OSS。不得将 AccessKey、Secret、STS token 或签名 URL 写入仓库、`.env`、脚本、manifest 或日志。
@@ -18,6 +29,16 @@ Bucket `act-course-assets` 必须保持私有、阻止公共访问、标准存�
 ECS 使用用户创建的受限服务角色 `act-runtime-oss-release-operator-ecs`。它的对象策略仅覆盖 `runtime/` 前缀；bridge 在 IMDS 中精确匹配该角色并以不可变 publish/verify 协议控制写入。应用仍只经只读 ossfs bind 读取 runtime，短时媒体签名不向浏览器暴露永久 Bucket URL。删除能力只可由后续独立、审查过的回收适配器在精确退役前缀上使用；当前 v2 GC 仅演练本地 mirror，不会删除 OSS 对象。
 
 角色绑定完成后，先从 ECS 只读确认 metadata endpoint 返回角色名，再验证 role 对目标 Bucket/prefix 的最小读取能力。不要以长期 AK 作为替代方案。
+
+### 长期身份分离（待当前 ECS 导入完成后实施）
+
+生产读取与运行态维护是两个独立职责。生产 ECS 应长期只绑定 `act-runtime-oss-read`：ossfs、应用容器和服务端媒体签名只使用该只读身份。`act-runtime-oss-release-operator-ecs` 仅用于已经在 ECS 上执行的受控迁移或恢复任务；在这类任务结束并完成验证后，应从实例解绑，不作为生产常驻权限。
+
+普通 RAM 角色 `act-runtime-oss-release-operator` 预留为本机或受控 CI 的维护目标角色。它只允许在 `runtime/blobs/sha256/*`、`runtime/blob-releases/*` 与明确批准的发布来源前缀内执行发布、校验和经审查的回收操作；它不授予 Bucket 级管理、生产 selector、ossfs 配置、容器或数据库权限。该角色的信任策略应限定到专用本机维护身份，例如 `act-runtime-maintainer` RAM 用户或企业 SSO/OIDC 身份；维护身份自身只拥有对该一个角色的 `sts:AssumeRole` 权限。
+
+本机维护必须通过浏览器 OAuth、CloudSSO 或 OIDC 获取短期凭证后再 AssumeRole；不得把长期 AccessKey、Secret、STS token 写入仓库、`.env`、脚本、manifest 或日志。当前 SSH publisher/bridge 只接受 ECS IMDS 的 `act-runtime-oss-release-operator-ecs`，因此上述本机角色不能直接替代现有命令；后续必须实现并审查独立的本机 publisher adapter，保持相同的不可覆盖写入、readback 哈希校验、manifest-last 和发布互斥协议。不得以 `ossutil sync` 或普通对象覆盖取代该协议。
+
+创建本机维护身份、收窄普通 operator 角色的信任策略以及配置本机短期认证，均不改变正在运行的 ECS 导入。导入期间不得变更 ECS 实例绑定、`act-runtime-oss-release-operator-ecs` 的有效权限或 ossfs 配置；也不得让本机维护通道与 ECS 导入并发执行发布、导入或回收写操作。仅在当前导入产生终止 manifest、远端复核通过并释放其发布锁后，才可启用本机写入通道。
 
 ## 发布、验证与检查
 
@@ -73,9 +94,16 @@ npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
 1. 确认 ECS 绑定 runtime RAM Role，并安装 ossfs 2.0。配置使用 `oss-cn-hangzhou-internal.aliyuncs.com`、`oss_bucket_prefix=runtime/releases/<release-id>/`、`--ro=true` 与显式 uid/gid/file/dir mode。
 2. 发布器的逐对象 upload/readback receipt 是完整内容完整性证明。以 ECS 当前 operator role 读取并严格解析 manifest、精确比对 OSS object key 集合，并读取代表性发布媒体；不为每次切换再次读取整个 Release。将 receipt 和 host tools 同步到 ECS。禁止将 runtime 内容 rsync 到 `.staging`、`current` 或 `previous`。
 3. 在候选挂载上运行：manifest、精确文件集合、全部 size 元数据与有上限的代表性内容校验、FUSE/read-only 检查、课程资源 smoke、媒体 `/api/course-runtime/assets/...` 短时重定向、`benchmark-textbook-retrieval.ts`。
-4. 只有所有候选证据合格，才以显式模式调用部署：
+4. 只有所有候选证据合格，才以显式模式调用部署。日常生产使用 blob-view，不要再走 rsync 或把 `ossfs-release` 当作默认：
 
 ```bash
+# 应用镜像
+npm run deploy:app -- --skip-build
+
+# runtime 内容
+npm run deploy:runtime
+
+# 历史 v1 prefix release（非日常路径）
 RUNTIME_DELIVERY_MODE=ossfs-release \
 RUNTIME_RELEASE_ID=<new-release-id> \
 RUNTIME_EXPECTED_ACTIVE_RELEASE=<none-or-current-release-id> \

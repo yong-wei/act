@@ -453,6 +453,47 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             )
             self.assertIn("desired-identity-file", missing_desired.stderr)
 
+    def test_resumes_v2_from_verified_v1_rollback_without_deleting_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            v1_active = self.write_identity(root, "runtime-v1", "d")
+            v2_active = self.write_identity(root, "runtime-v2", "e")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(v1_active))
+            v1_selection, v1_receipt = self.write_v1_state(root)
+            rolled = self.call(
+                "rollback-to-v1",
+                "--state-dir", str(state),
+                "--expected-generation", "1",
+                "--v1-selection-file", str(v1_selection),
+                "--v1-active-receipt-file", str(v1_receipt),
+            )
+            self.assertEqual(rolled["mode"], "v1-rollback")
+            self.assertEqual(rolled["generation"], 2)
+            resumed = self.call(
+                "resume-v2-from-v1-rollback",
+                "--state-dir", str(state),
+                "--expected-generation", "2",
+                "--v1-selection-file", str(v1_selection),
+                "--v1-active-receipt-file", str(v1_receipt),
+                "--active-identity", str(v2_active),
+            )
+            self.assertEqual(resumed["generation"], 3)
+            self.assertEqual(resumed["active"]["releaseId"], "runtime-v2")
+            marker = json.loads((state / "act-runtime-authority.v2.json").read_text(encoding="utf-8"))
+            self.assertEqual(marker["mode"], "v2")
+            self.assertEqual(marker["generation"], 3)
+            rejected = self.call(
+                "resume-v2-from-v1-rollback",
+                "--state-dir", str(state),
+                "--expected-generation", "3",
+                "--v1-selection-file", str(v1_selection),
+                "--v1-active-receipt-file", str(v1_receipt),
+                "--active-identity", str(v1_active),
+                expect_ok=False,
+            )
+            self.assertIn("v1 rollback authority marker is absent", rejected.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

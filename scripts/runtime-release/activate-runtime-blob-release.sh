@@ -85,11 +85,13 @@ require_read_only_blob_mount() {
 
 ensure_helper_mount() {
   local helper="$1"
-  if ! findmnt -rn -M "$helper" -o TARGET | grep -Fxq "$helper"; then
+  if findmnt -rn -T "$helper" -o TARGET | grep -Fxq "$helper" && findmnt -rn -T "$helper" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+    :
+  elif ! findmnt -rn -M "$helper" -o TARGET | grep -Fxq "$helper"; then
     chmod 0755 "$helper"
     mount --bind "$BLOB_ROOT" "$helper"
     mount -o remount,bind,ro "$helper"
-    chmod 0555 "$helper"
+    chmod 0555 "$helper" || true
   fi
   findmnt -rn -M "$helper" -o FSTYPE | grep -Eq '^fuse(\.|$)' || {
     echo "ERROR: runtime helper is not an ossfs FUSE bind mount: $helper" >&2
@@ -381,13 +383,13 @@ restore_runtime_consumers() {
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" --runtime-cutover-app-only
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
     elif [[ "$lifecycle_active_release" != "$release_id" ]]; then
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" --runtime-cutover-app-only
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
     fi
   fi
   cleanup_lifecycle_identity
@@ -441,7 +443,7 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
   RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
   APP_IMAGE="$rollback_app_image" \
-  "$DEPLOY_SCRIPT" --runtime-cutover-app-only
+  "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
 source "$ENV_FILE"
 wait_for_readyz
 run_candidate_consumer_smoke

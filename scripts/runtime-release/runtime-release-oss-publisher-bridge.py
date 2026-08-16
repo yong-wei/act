@@ -682,6 +682,8 @@ def list_objects_v1(bucket: str, prefix: str) -> List[Dict[str, Any]]:
 
 
 def cross_check_v1_keys(bucket: str, prefix: str, v2_objects: List[Dict[str, Any]]) -> None:
+    if _CREDENTIAL_MODE == "local":
+        return
     v2_keys = {entry["key"] for entry in v2_objects}
     v1_keys = {entry["key"] for entry in list_objects_v1(bucket, prefix)}
     if v1_keys != v2_keys:
@@ -1312,6 +1314,12 @@ def put_blob_spooled_file(
         except RuntimeError:
             detail = process.stderr.decode("utf-8", errors="replace").strip()
             fail(f"ossutil v2 conditional blob put failed for {key}: {detail}")
+    metadata = remote_blob_metadata(bucket, key)
+    if metadata is None:
+        fail(f"remote runtime blob is missing after publication: {key}")
+    if metadata.get("legacy"):
+        verified, _legacy = verify_existing_blob(bucket, key, metadata, expected_size, expected_sha)
+        return verified, False
     return assert_remote_blob_metadata(bucket, key, expected_size, expected_sha), True
 
 
@@ -1508,6 +1516,10 @@ def publish_blob_release(
                 "verifiedSha256": entry["sha256"],
                 "etag": verified.get("etag", ""),
             })
+        sys.stderr.write("runtime-release-bridge: streaming %d missing blobs after %d inherited and %d metadata checks\n" % (
+            len(missing), inherited_blob_count, metadata_check_count,
+        ))
+        sys.stderr.flush()
         write_json({"status": "stream", "missingKeys": [entry["objectKey"] for entry in missing]})
         put_count = 0
         for entry in missing:

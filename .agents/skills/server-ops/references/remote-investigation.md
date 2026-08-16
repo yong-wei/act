@@ -17,7 +17,7 @@
 边界约束：
 
 - 远端只用于运行、日志、容器和网络排查，不用于源码构建
-- 远端 `/home/projects/act` 只应保留运维脚本、环境变量文件与 `course-content/runtime`
+- 远端 `/home/projects/act` 只应保留运维脚本、环境变量文件与已物化的 OSS blob-view；不要把本地 `course-content/runtime` 当作线上内容树
 - 排障时若发现远端保留了源码目录，应先记录现状，再清理为最小运维壳层
 
 推荐顺序：
