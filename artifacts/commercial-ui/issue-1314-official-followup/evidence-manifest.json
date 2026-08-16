@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 1314,
+  "capturedAt": "2026-08-16T14:40:37.690Z",
+  "commitSha": "a663541bcbcfd04e0bf290aca76ab6ebf022223a",
+  "generator": "tests/arena-official-konling-followup-1314.spec.ts",
+  "generatorSha256": "0b2c99217fc647afe05775ca2d83fce58d10d3614e4bd6ab548dd139846d8558",
+  "representativeRoute": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+  "sourceGitBlobIds": {
+    "tests/arena-official-konling-followup-1314.spec.ts": "042962b88027fc52d4caa6e71e64155c95f442db",
+    "src/features/arena/student/konling-official-followup.ts": "ef5492af35e01cc2dc0b1510bb2f5e5369d04cbb",
+    "src/features/arena/submissions/arena-submission-panel.tsx": "adb76068d905209a88b9e4d447d887ea56998927",
+    "src/app/api/arena/evaluate/route.ts": "21ea2589bda14015fadcb10bc41bbb487d29e656",
+    "src/features/arena/workbench/arena-workbench-submission-mount.tsx": "4fb3947cf968def6df7dfa19022a2581f5d6d127"
+  },
+  "sourceSha256": {
+    "tests/arena-official-konling-followup-1314.spec.ts": "0b2c99217fc647afe05775ca2d83fce58d10d3614e4bd6ab548dd139846d8558",
+    "src/features/arena/student/konling-official-followup.ts": "ba0614b688389b928be826318375aeb4ddf3d473bc229855f033cc6671e9198f",
+    "src/features/arena/submissions/arena-submission-panel.tsx": "516aa5466165a244a28e4e9f4219a1af3491486c402a7ac4beffa5fa35a15c50",
+    "src/app/api/arena/evaluate/route.ts": "d4814fab5fbf98102d7c0df12d8b04c6677619e5bfee9395db9ca228c1ef8aaa",
+    "src/features/arena/workbench/arena-workbench-submission-mount.tsx": "bb7a744fb78f502a7f79c56362edb0858cd293c1d15286766bcee720c92319e5"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1314-official-followup/advice-desktop-1440.png",
+      "sha256": "b44d80ec09901f9b724dc09bf31e91f7a54ee66ae9a9413fd060472d3632b9e9",
+      "scenario": "advice-desktop-1440",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 1440,
+      "height": 1000,
+      "assertions": [
+        "official result panel remains reachable",
+        "follow-up card expands evidence and next step",
+        "helpfulness feedback is recorded"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1314-official-followup/revisit-desktop-1440.png",
+      "sha256": "89c1de43b68a909ff900aa02d5b3ed35e77ccba031f1b300f8c88e0ee91e7871",
+      "scenario": "revisit-desktop-1440",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 1440,
+      "height": 1000,
+      "assertions": [
+        "later official evaluation shows revisit comparison",
+        "no invented superiority claim"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1314-official-followup/advice-mobile-320.png",
+      "sha256": "f8584d190315c1084f3c51f191d87c3282ac8a20edf9e502dff9ba19c9fb7bbf",
+      "scenario": "advice-mobile-320",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 320,
+      "height": 900,
+      "assertions": [
+        "official result panel remains reachable",
+        "follow-up card expands evidence and next step",
+        "helpfulness feedback is recorded"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1314-official-followup/revisit-mobile-320.png",
+      "sha256": "66c4afc926f7ff3f9a9f52a7f9fa17b7831f840400882c60322354f4ab887d0b",
+      "scenario": "revisit-mobile-320",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 320,
+      "height": 900,
+      "assertions": [
+        "later official evaluation shows revisit comparison",
+        "no invented superiority claim"
+      ]
+    }
+  ]
+}
