@@ -1,43 +1,48 @@
 # Handoff: #1411 `publish-actkg-v018-cutover-runtime`
 
-状态: **镜像已发布到生产 app/worker；选择器仍为 v0.9；#1411 未归档**  
+状态: **认领已切到 act-dev1；镜像在生产 app/worker；选择器仍为 v0.9；3.3 shadow 未完成**  
 日期: 2026-08-16  
 工作树: `/Users/YW/.codex/worktrees/act-dev1`（`buddy.worktreealias=act-dev1`）
 
 ## 一句话
 
-认领已从 `e734` 手工改到 `act-dev1`。`scripts/build.sh` 已产出 READY runtime receipt，生产 app/worker 已切到 `localhost/act-obe-platform:v018-94d585ae63a6`。Authority / projection / prerequisites / consumer-activation 仍是 v0.9。不要认领 #1405。#1412 仍需 #1411 收尾（shadow 3.3）后再做。
+工作树从 `e734` 迁到 `act-dev1` 后，认领/进度记录已手工对齐。`#1411` 继续由本树执行。生产 app/worker 已是 `localhost/act-obe-platform:v018-94d585ae63a6`，五个选择器仍是 v0.9。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
+
+## 认领真源（手工修复后）
+
+| 项 | 值 |
+| --- | --- |
+| Issue | https://github.com/yong-wei/act/issues/1411 OPEN `status:in-progress` |
+| assignee | `yong-wei` |
+| change_id / branch | `publish-actkg-v018-cutover-runtime` |
+| 最新 Claim | `worktree_alias: act-dev1`，`agent: codex/yong-wei` |
+| 本地 alias | `git config --worktree buddy.worktreealias` = `act-dev1` |
+| 上游跟踪 | `origin/publish-actkg-v018-cutover-runtime` |
+| 旧路径 | `/Users/YW/.codex/worktrees/e734/act.just.edu.cn`（不要再写回认领） |
+
+Buddy-auto lite 若仍因历史 `e734` Claim 判 `partial`/`foreign`，按用户授权继续本树工作，不要停在脚本决策上。以最新 Claim + 本树 alias + 同一 assignee 为准。
 
 ## 已完成
 
 | 项 | 值 |
 | --- | --- |
-| PR | https://github.com/yong-wei/act/pull/1425 `MERGED` |
-| merge | `b8fd87fc94ac4d060f1c01768169702f8a6231c4` |
-| 审查 HEAD | `a3229cfe49fb5c169c91c7c101ad62d3caa427f4` |
-| 清场 | https://github.com/yong-wei/act/pull/1425#issuecomment-5303626488 |
-| threads | 9/9 resolved |
-| CI | 本仓库 PR 无检查（`statusCheckRollup: []`） |
-| Issue | https://github.com/yong-wei/act/issues/1411 OPEN `status:blocked` |
-| OpenSpec | 仍在 `openspec/changes/publish-actkg-v018-cutover-runtime/`，仅 1.1 勾选 |
+| 发布器 PR | https://github.com/yong-wei/act/pull/1425 `MERGED` `b8fd87fc94` |
+| overlay PR | https://github.com/yong-wei/act/pull/1426 `MERGED` `94d585ae63a6` |
+| 收据/镜像 PR | https://github.com/yong-wei/act/pull/1430 OPEN HEAD `5622feb523` |
+| 密封资格 | READY `1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1` |
+| overlay sha256 | `41799cf9c45cbf0d3828991ba9baed217ae09b696c9a5d5f0d0da08afb520948` |
+| imageTag | `localhost/act-obe-platform:v018-94d585ae63a6` |
+| imageTarSha256 | `bda84f7e312356a503abb751119823493f144d60594709436885a9ba075ed024` |
 
-合入代码：
+任务：1.1、1.2、2.1–2.3、3.2 已勾选。1.3、3.1（主机尚未放置 v0.18 候选树）、3.3、3.4、3.5 仍开。3.4 因 Codex P1 收回：READY 收据不能早于 3.3。
 
-- `src/lib/teaching-projection/publish/v018-runtime-release.ts`
-- `scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts`
-- `src/lib/__tests__/publish-actkg-v018-cutover-runtime.test.ts`
+## 当前必须做的事
 
-门禁：资格必须是封存字节（单次 read → hash+parse）、digest/身份绑定、blockers 为空、isolatedRollback.advanced+restored、dualRebuild.byteEquivalent、六消费者 READY、五个 v0.9 指针哈希匹配、Docker ≥ 20 GiB，然后才允许 `scripts/build.sh` 并重哈希 image tar。
-
-## 阻断原因（真实，不要绕过）
-
-历史 BLOCKED 报告（`receiptDigest=219c9232…`，文件 sha256 `fafdcf2a0644971f…`）已被正式 qualify CLI 覆盖为 READY：`receiptDigest=6b5393c5cabce980e70540142cd3dc56695319b9dc8782363faad9fefc258321`，文件 sha256 `1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1`，overlay sha256 `41799cf9c45cbf0d3828991ba9baed217ae09b696c9a5d5f0d0da08afb520948`。该 READY 来自 `admit-actkg-v018-neighborhood-zh-cn-labels`，不是手改旧报告。
-
-主要 blockers：`isolated-shard` 标签不可用、`teaching-dual-replay-trees-absent`、`isolated-five-selector-incomplete`。
-
-用已交付 resolver 复核：10 个 catalog member 可解析；邻域扩展 506 个节点中有 **25** 个非 catalog 对象 zh-CN 标签不可用（`A/D转换器`、`G(s)=1/s^2` 等被安全分类器拒绝）。已接纳 `multilingual-label-index.jsonl` 对这 25 个 ID **零行**，engineering 也没有 `preferred_labels`。本会话不能发明“已接纳”标签，也不能擅自开 OpenSpec 改分类器。Teaching 候选没有 `replay-1`/`replay-2`。
-
-因此 live CLI 返回 `status=BLOCKED`、`imageBuilt=false`、`qualification-not-ready`。这是正确失败，不是环境缺失：Docker 24/8 已配，`scripts/build.sh` 存在。
+1. 用正式 publisher 把密封 `runtime-release-receipt.json` 重写成 BLOCKED（至少含 `host-shadow-verification-incomplete`），不要手改 READY。
+2. 完成 task 3.3：生产 v0.9 行为 + 受控 v0.18 shadow（标签、教学查询、六消费者、app/worker、readyz），不改五个选择器。
+3. 3.3 通过后再封 READY 收据（3.4），补 1.3 终验，3.5 关 Docker。
+4. 新 head 推到 PR #1430，回复 Codex P1，再 `@codex review`。清场且零未解决 thread 后合并。
+5. 收尾：`openspec validate` + `openspec archive` 进同一交付单元，Issue 标 `status:archived` 并关闭。然后才认领 #1412。
 
 ## 五个生产指针（必须保持）
 
@@ -49,19 +54,10 @@
 | authority-domain-shards | `ads-6328487e…` | `9613304cbaee9c3e…` |
 | consumer-activation | `first-cutover-7f4cdd1084af-769b1a832622` | `e73ac1abd0d691c6…` |
 
-## 恢复后立刻要做的事
-
-1. 密封资格已是真实 READY。继续 `#1411` tasks 1.2–3.5（镜像/`scripts/build.sh`）仍需用户明确授权；不要把选项 1 当成构建授权。
-2. 继续时只用 `buddy-auto.mjs --issue 1411`，不要认领 `#1405`，不要无目标跑。
-3. `#1412` 还需要用户单独给出生产切换授权。没有授权就停。
-4. Prisma 曾报告 3 个未应用迁移；未在本轮执行，恢复后重新核验，不要静默 migrate。
-
 ## 明确不要做的事
 
-- 不要伪造 READY 资格或 runtime-release receipt
-- 不要在资格 BLOCKED 时跑 `scripts/build.sh` 或远端部署
+- 不要伪造 READY 资格或在 3.3 完成前写 READY runtime receipt
 - 不要改五个当前选择器
-- 不要 `openspec archive` 本 change
-- 不要把 #1411 标成 `status:archived` 或关闭
-- 不要认领或实施 #1412
+- 不要在 3.3/3.4 完成前 `openspec archive` 或关闭 #1411
+- 不要认领 parent #1405
 - 不要在永久工作树里再嵌套 worktree

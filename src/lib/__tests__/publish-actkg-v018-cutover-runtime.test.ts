@@ -46,6 +46,7 @@ describe('v0.18 runtime publication', () => {
     expect(result.imageBuilt).toBe(false);
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('provenance-missing');
+    expect(result.blockers).toContain('host-shadow-verification-incomplete');
     expect(result.blockers).not.toContain('qualification-not-ready');
     expect(existsSync(path.join(outputRoot, 'runtime-release-receipt.json'))).toBe(true);
     const report = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
@@ -64,6 +65,52 @@ describe('v0.18 runtime publication', () => {
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
     expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+  });
+
+  it('rejects a frozen application revision that is not an ancestor of HEAD', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-frozen-'));
+    roots.push(outputRoot);
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      frozenApplicationRevision: '0'.repeat(40),
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('frozen-application-revision-not-ancestor');
+    expect(result.imageBuilt).toBe(false);
+  });
+
+  it('keeps the receipt BLOCKED until host shadow verification is READY', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-host-'));
+    roots.push(outputRoot);
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:v018-94d585ae63a6',
+        provenancePath: path.join(outputRoot, 'missing-provenance.json'),
+        imageTarPath: path.join(outputRoot, 'missing-image.tar'),
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-shadow-verification-incomplete');
+    expect(result.blockers).not.toContain('qualification-not-ready');
+    const report = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
+      status: string;
+      nextAction: string;
+      hostVerification?: { status: string; blockers: string[] };
+    };
+    expect(report.status).toBe('BLOCKED');
+    expect(report.nextAction).toBe('blocked');
+    expect(report.hostVerification?.status).toBe('BLOCKED');
+    expect(report.hostVerification?.blockers).toContain('host-shadow-verification-incomplete');
   });
 
   it('does not accept a READY report whose overlay hash drifted', async () => {

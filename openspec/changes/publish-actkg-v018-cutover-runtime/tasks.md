@@ -17,12 +17,12 @@
 
 ## 3. Runtime publication with v0.9 retained
 
-- [x] 3.1 Stage the sealed v0.18 candidate and v0.9 rollback set on the host
+- [ ] 3.1 Stage the sealed v0.18 candidate and v0.9 rollback set on the host
   without writing any current pointer.
 - [x] 3.2 Refresh app and worker to the frozen cutover-capable OCI revision while
   checking all five current selectors remain byte-identical v0.9 values.
 - [ ] 3.3 Verify production v0.9 behavior and controlled v0.18 shadow label,
   teaching, six-consumer, health, worker, and readiness checks separately.
-- [x] 3.4 Seal the deployment receipt or restore the prior app runtime on failure;
+- [ ] 3.4 Seal the deployment receipt or restore the prior app runtime on failure;
   do not authorize cutover when any shadow check is blocked.
 - [ ] 3.5 Stop Docker Desktop after release verification when no other build owns it.

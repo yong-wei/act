@@ -68,6 +68,40 @@ function gitRevParse(repoRoot: string, arg: string): string {
   }).trim();
 }
 
+function resolveFrozenApplicationRevision(
+  repoRoot: string,
+  requested: string | undefined,
+  head: string,
+): { revision: string; tree: string; blockers: string[] } {
+  const revision = requested?.trim() || head;
+  if (!/^[0-9a-f]{40}$/.test(revision)) {
+    return {
+      revision: head,
+      tree: gitRevParse(repoRoot, `${head}^{tree}`),
+      blockers: ['frozen-application-revision-invalid'],
+    };
+  }
+  if (revision !== head) {
+    try {
+      execFileSync('git', ['-C', repoRoot, 'merge-base', '--is-ancestor', revision, head], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
+    } catch {
+      return {
+        revision: head,
+        tree: gitRevParse(repoRoot, `${head}^{tree}`),
+        blockers: ['frozen-application-revision-not-ancestor'],
+      };
+    }
+  }
+  return {
+    revision,
+    tree: gitRevParse(repoRoot, `${revision}^{tree}`),
+    blockers: [],
+  };
+}
+
 export function readDockerMemoryBytes(): number {
   const raw = execFileSync('docker', ['info', '--format', '{{.MemTotal}}'], {
     encoding: 'utf8',
@@ -196,8 +230,13 @@ export async function publishActKgV018CutoverRuntime(input: {
   outputRoot?: string;
   qualificationReport?: string;
   imageTag?: string;
+  frozenApplicationRevision?: string;
   readDockerMemory?: DockerMemoryReader;
   runBuild?: BuildRunner;
+  hostVerification?: {
+    status: 'READY' | 'BLOCKED';
+    blockers?: readonly string[];
+  };
 }): Promise<{
   status: 'READY' | 'BLOCKED';
   reportPath: string;
@@ -216,8 +255,15 @@ export async function publishActKgV018CutoverRuntime(input: {
 
   const pointersBefore = snapshotCurrentPointers(repoRoot);
   const blockers: string[] = [];
-  const applicationRevision = gitRevParse(repoRoot, 'HEAD');
-  const applicationTree = gitRevParse(repoRoot, 'HEAD^{tree}');
+  const headRevision = gitRevParse(repoRoot, 'HEAD');
+  const frozen = resolveFrozenApplicationRevision(
+    repoRoot,
+    input.frozenApplicationRevision,
+    headRevision,
+  );
+  blockers.push(...frozen.blockers);
+  const applicationRevision = frozen.revision;
+  const applicationTree = frozen.tree;
   const qualificationPath = path.resolve(
     input.qualificationReport
     ?? path.join(repoRoot, 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json'),
@@ -273,8 +319,22 @@ export async function publishActKgV018CutoverRuntime(input: {
     blockers.push('production-pointer-drift');
   }
   blockers.push(...assertV09Pointers(pointersAfter, repoRoot));
+  if (input.hostVerification?.status !== 'READY') {
+    blockers.push('host-shadow-verification-incomplete');
+  } else if (Array.isArray(input.hostVerification.blockers) && input.hostVerification.blockers.length > 0) {
+    blockers.push(...input.hostVerification.blockers);
+  }
 
   const uniqueBlockers = [...new Set(blockers)].sort();
+  const hostVerification = {
+    status: input.hostVerification?.status === 'READY' && uniqueBlockers.length === 0
+      ? 'READY' as const
+      : 'BLOCKED' as const,
+    blockers: uniqueBlockers.filter((code) =>
+      code === 'host-shadow-verification-incomplete'
+      || (input.hostVerification?.blockers ?? []).includes(code),
+    ),
+  };
   const body = {
     contract: V018_RUNTIME_RELEASE_CONTRACT,
     status: uniqueBlockers.length === 0 ? 'READY' as const : 'BLOCKED' as const,
@@ -290,6 +350,8 @@ export async function publishActKgV018CutoverRuntime(input: {
     dockerMemoryBytes,
     dockerMinMemoryBytes: DOCKER_MIN_MEMORY_BYTES,
     imageTag,
+    pointerHashes: V09_POINTER_HASHES,
+    hostVerification,
     predecessors: {
       authorityReleaseId: V09_RELEASE_ID,
       authoritySnapshotId: V09_SNAPSHOT,
