@@ -46,20 +46,10 @@ function sha256FileAtRevision(file) {
   return sha256(execFileSync('git', ['show', `${sourceRevision}:${file}`], { cwd: repoRoot }));
 }
 
-async function sha256WorkingFile(file) {
-  return sha256(await readFile(path.join(repoRoot, file)));
-}
-
 async function assertSourceCheckpointStable(stage) {
   assert(git(['rev-parse', 'HEAD']) === sourceRevision, `${stage}: HEAD changed during capture`);
   const sourceStatus = git(['status', '--porcelain', '--', ...sourceFiles]);
   assert(sourceStatus === '', `${stage}: bound source files are not clean: ${sourceStatus}`);
-  for (const file of sourceFiles) {
-    assert(
-      await sha256WorkingFile(file) === initialSourceHashes[file],
-      `${stage}: ${file} drifted from source revision ${sourceRevision}`,
-    );
-  }
 }
 
 function readPngDimensions(bytes) {
