@@ -94,63 +94,90 @@ ln -sfn /home/projects/act/data/runtime/blob-views/current/knowledge $REMOTE_WOR
 
 OBS_JSON="$(collect_observation)"
 printf '%s\n' "$OBS_JSON"
-APP_IMAGE="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["appImage"])')"
-APP_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["appImageId"])')"
-WORKER_IMAGE="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workerImage"])')"
-WORKER_IMAGE_ID="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workerImageId"])')"
-WORKER_HEALTH="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("workerHealth","unknown"))')"
-READYZ_JSON="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["readyz"]))')"
-FIRST_ACTIVATION="$(printf '%s' "$OBS_JSON" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin).get("firstActivation") else "false")')"
+printf '%s\n' "$OBS_JSON" | ssh -o BatchMode=yes "$SSH_TARGET" "cat > '$REMOTE_WORK/obs.json'"
 
 echo "=== sidecar $ACTION ==="
-# shellcheck disable=SC2029
-ssh_run "mkdir -p /home/projects/act/data/runtime/knowledge-cutover $REMOTE_WORK/out/predecessor-bytes
-flock -n /home/projects/act/data/runtime/knowledge-cutover/.v018-cutover.lock bash -c '
+export REMOTE_WORK IMAGE PUBLIC_URL
+python3 - <<'PY'
+import json, os, shlex
+from pathlib import Path
+remote_work = os.environ.get("REMOTE_WORK", "/tmp/v018-production-cutover")
+image = os.environ.get("IMAGE", "localhost/act-obe-platform:v018-94d585ae63a6")
+public_url = os.environ.get("PUBLIC_URL", "https://act.adapt-learn.online")
+text = f'''#!/usr/bin/env bash
 set -euo pipefail
-run_sidecar() {
-  local action=\"\$1\"
-  podman run --rm --network host --user 0:0 \
-    --entrypoint ./node_modules/.bin/tsx \
-    -v $REMOTE_WORK/src/lib/teaching-projection/publish:/app/src/lib/teaching-projection/publish:ro \
-    -v $REMOTE_WORK/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:/app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:ro \
-    -v $REMOTE_WORK/src/lib/teaching-projection/qualify:/app/src/lib/teaching-projection/qualify:ro \
-    -v $REMOTE_WORK/live/course-content/authoring/knowledge/authority:/app/course-content/authoring/knowledge/authority \
-    -v /home/projects/act/data/runtime/blob-views/current:/app/course-content/runtime \
-    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/qualification:/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18:ro \
-    -v $REMOTE_WORK/runtime-releases:/app/course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18:ro \
-    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/authority:/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18:ro \
-    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/teaching-projection:/app/course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18:ro \
-    -v $REMOTE_WORK/catalog-authoring:/app/course-content/authoring/knowledge/authority-domain-catalog:ro \
-    -v $REMOTE_WORK/accounts.mjs:/app/scripts/db/verified-test-accounts.mjs:ro \
-    -v $REMOTE_WORK/out:/out \
-    $IMAGE \
-    /app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts \"\$action\" \
-    --root /app \
-    --out /out \
-    --predecessor-source host \
-    --first-activation-committed $FIRST_ACTIVATION \
-    --marker-present $FIRST_ACTIVATION \
-    --app-image '$APP_IMAGE' \
-    --app-image-id '$APP_IMAGE_ID' \
-    --worker-image '$WORKER_IMAGE' \
-    --worker-image-id '$WORKER_IMAGE_ID' \
-    --worker-health '$WORKER_HEALTH' \
-    --readyz-json '$READYZ_JSON' \
-    --public-url '$PUBLIC_URL'
-}
-if [ \"$ACTION\" = rollback ] && [ ! -s $REMOTE_WORK/out/production-cutover-journal.json ]; then
-  cp -f $REMOTE_WORK/runtime-releases/production-cutover-journal.json $REMOTE_WORK/out/production-cutover-journal.json
-  cp -f $REMOTE_WORK/runtime-releases/predecessor-bytes/* $REMOTE_WORK/out/predecessor-bytes/ 2>/dev/null || true
-  chmod -R 0777 $REMOTE_WORK/out
+ACTION="${{1:?action}}"
+eval "$(python3 - <<'PY2'
+import json, shlex
+obs = json.load(open({json.dumps(remote_work + "/obs.json")}, encoding="utf-8"))
+mapping = {{
+  "appImage": obs["appImage"],
+  "appImageId": obs["appImageId"],
+  "workerImage": obs["workerImage"],
+  "workerImageId": obs["workerImageId"],
+  "workerHealth": obs.get("workerHealth", "unknown"),
+  "readyz": json.dumps(obs["readyz"], separators=(",", ":")),
+  "firstActivation": "true" if obs.get("firstActivation") else "false",
+}}
+for key, value in mapping.items():
+    print(f"{{key}}={{shlex.quote(str(value))}}")
+PY2
+)"
+REMOTE_WORK={shlex.quote(remote_work)}
+IMAGE={shlex.quote(image)}
+PUBLIC_URL={shlex.quote(public_url)}
+run_sidecar() {{
+  local action="$1"
+  podman run --rm --network host --user 0:0 \\
+    --entrypoint ./node_modules/.bin/tsx \\
+    -v "$REMOTE_WORK/src/lib/teaching-projection/publish:/app/src/lib/teaching-projection/publish:ro" \\
+    -v "$REMOTE_WORK/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:/app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:ro" \\
+    -v "$REMOTE_WORK/src/lib/teaching-projection/qualify:/app/src/lib/teaching-projection/qualify:ro" \\
+    -v "$REMOTE_WORK/live/course-content/authoring/knowledge/authority:/app/course-content/authoring/knowledge/authority" \\
+    -v /home/projects/act/data/runtime/blob-views/current:/app/course-content/runtime \\
+    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/qualification:/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18:ro \\
+    -v "$REMOTE_WORK/runtime-releases:/app/course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18:ro" \\
+    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/authority:/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18:ro \\
+    -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/teaching-projection:/app/course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18:ro \\
+    -v "$REMOTE_WORK/catalog-authoring:/app/course-content/authoring/knowledge/authority-domain-catalog:ro" \\
+    -v "$REMOTE_WORK/accounts.mjs:/app/scripts/db/verified-test-accounts.mjs:ro" \\
+    -v "$REMOTE_WORK/out:/out" \\
+    "$IMAGE" \\
+    /app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts "$action" \\
+    --root /app \\
+    --out /out \\
+    --predecessor-source host \\
+    --first-activation-committed "$firstActivation" \\
+    --marker-present "$firstActivation" \\
+    --app-image "$appImage" \\
+    --app-image-id "$appImageId" \\
+    --worker-image "$workerImage" \\
+    --worker-image-id "$workerImageId" \\
+    --worker-health "$workerHealth" \\
+    --readyz-json "$readyz" \\
+    --public-url "$PUBLIC_URL"
+}}
+if [ "$ACTION" = rollback ] && [ ! -s "$REMOTE_WORK/out/production-cutover-journal.json" ]; then
+  cp -f "$REMOTE_WORK/runtime-releases/production-cutover-journal.json" "$REMOTE_WORK/out/production-cutover-journal.json"
+  cp -f "$REMOTE_WORK/runtime-releases/predecessor-bytes/"* "$REMOTE_WORK/out/predecessor-bytes/" 2>/dev/null || true
+  chmod -R 0777 "$REMOTE_WORK/out"
 fi
-run_sidecar \"$ACTION\"
-post_worker=\"\$(podman inspect -f '{{.State.Health.Status}}' act-obe-worker 2>/dev/null || echo unknown)\"
-printf '%s\\n' \"\$post_worker\" > $REMOTE_WORK/out/post-worker-health.txt
-if [ \"$ACTION\" = activate ] && [ \"\$post_worker\" != healthy ] && [ \"\$post_worker\" != running ]; then
-  echo \"post-switch worker not healthy: \$post_worker; journaled rollback\" >&2
+run_sidecar "$ACTION"
+post_worker=$(podman inspect -f '{{{{.State.Health.Status}}}}' act-obe-worker 2>/dev/null || echo unknown)
+printf '%s\\n' "$post_worker" > "$REMOTE_WORK/out/post-worker-health.txt"
+if [ "$ACTION" = activate ] && [ "$post_worker" != healthy ] && [ "$post_worker" != running ]; then
+  echo "post-switch worker not healthy: $post_worker; journaled rollback" >&2
   run_sidecar rollback
   exit 2
 fi
-'"
+'''
+text = text.replace('{{{{.State.Health.Status}}}}', '{{.State.Health.Status}}')
+Path('/tmp/v018-run-sidecar.sh').write_text(text)
+print('wrote /tmp/v018-run-sidecar.sh')
+PY
+rsync -a /tmp/v018-run-sidecar.sh "$SSH_TARGET:$REMOTE_WORK/run-sidecar.sh"
+ssh_run "chmod +x '$REMOTE_WORK/run-sidecar.sh'
+mkdir -p /home/projects/act/data/runtime/knowledge-cutover '$REMOTE_WORK/out/predecessor-bytes'
+flock -n /home/projects/act/data/runtime/knowledge-cutover/.v018-cutover.lock '$REMOTE_WORK/run-sidecar.sh' '$ACTION'"
 
 echo "=== done ==="

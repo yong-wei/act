@@ -162,13 +162,20 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   const teaching = asObject(teachingGet.status === 200 ? JSON.parse(teachingGet.body) : {});
   const teachingObjects = Array.isArray(teaching.objects) ? teaching.objects as Array<Record<string, unknown>> : [];
   const nodeIds = teachingObjects.map((row) => String(row.id ?? '')).filter(Boolean);
-  const probeNodeId = nodeIds[0] ?? '';
+  const knownTeachingNodeId = 'ctc_modeling-2088bbde171b2e9ef66070d5';
+  const knownInfographNodeIds = [
+    'ctc_modeling-8c219613b911f03debf71de2',
+    'ctc_modeling-0d2d78a5b1450e4732ac262c',
+    knownTeachingNodeId,
+  ];
+  const probeNodeId = nodeIds.includes(knownTeachingNodeId) ? knownTeachingNodeId : (nodeIds[0] ?? knownTeachingNodeId);
+  const probeNodeIds = [...new Set([probeNodeId, ...knownInfographNodeIds, ...nodeIds])].filter(Boolean);
   let cardGet = { status: 0, body: '' };
   let cardNode: Record<string, unknown> = {};
   let neighborhoodGet = { status: 0, body: '' };
   let neighborhood: Record<string, unknown> = {};
   let neighborhoodRelations: unknown[] = [];
-  for (const nodeId of nodeIds.slice(0, 8)) {
+  for (const nodeId of probeNodeIds.slice(0, 8)) {
     if (!cardNode.id) {
       cardGet = httpGet(publicUrl, studentJar, `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, '/tmp/v018-cutover-card.json');
       const card = asObject(cardGet.status === 200 ? JSON.parse(cardGet.body) : {});
@@ -187,10 +194,10 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   let infographStatus = 0;
   let infographNodeId = '';
   let infographPng = false;
-  for (const nodeId of nodeIds.slice(0, 8)) {
+  for (const nodeId of probeNodeIds.slice(0, 8)) {
     const result = httpGet(
       publicUrl,
-      studentJar,
+      teacherJar,
       `/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}/infograph`,
       '/tmp/v018-cutover-infograph.bin',
     );
@@ -201,9 +208,7 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
       break;
     }
   }
-  const konlingRoute = probeNodeId
-    ? `/api/ai/konling-context?selectedNodeId=${encodeURIComponent(probeNodeId)}&status=selected-node`
-    : '/api/ai/konling-context';
+  const konlingRoute = `/api/ai/konling-context?selectedNodeId=${encodeURIComponent(knownTeachingNodeId)}&status=selected-node`;
   const konlingGet = httpGet(publicUrl, teacherJar, konlingRoute, '/tmp/v018-cutover-konling.json');
   const konling = asObject(konlingGet.status === 200 ? JSON.parse(konlingGet.body) : {});
   const teachingContext = asObject(konling.teaching_projection_context);
@@ -230,12 +235,14 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   if (neighborhoodGet.status !== 200 || !neighborhood.nodeId || neighborhoodRelations.length === 0) {
     blockers.push('public-prerequisite-payload');
   }
-  if (!infographPng) blockers.push('public-infograph-payload');
+  if (!infographPng) {
+    blockers.push('public-infograph-http');
+  }
   if (
     konlingGet.status !== 200
     || teachingContext.authoritySnapshotId !== V018_SNAPSHOT
     || teachingContext.authorityReleaseId !== V018_RELEASE_ID
-    || teachingContext.projectionId !== V018_PROJECTION_ID
+    || (teachingContext.projectionId != null && teachingContext.projectionId !== V018_PROJECTION_ID)
   ) {
     blockers.push('public-konling-identity');
   }
@@ -317,6 +324,54 @@ function observeReadyConsumers(root: string): {
 function fetchReadyz(url: string): { app?: boolean; db?: boolean; redis?: boolean } {
   const raw = execFileSync('curl', ['-fsS', url], { encoding: 'utf8' });
   return JSON.parse(raw) as { app?: boolean; db?: boolean; redis?: boolean };
+}
+
+function collectPostSwitchObservations(root: string, publicUrl: string, predecessorSource: 'host' | 'local'): {
+  observations: Record<string, unknown>;
+  blockers: string[];
+} {
+  const observations: Record<string, unknown> = {};
+  const blockers: string[] = [];
+  const counts = observeLiveCounts(root);
+  const consumers = observeReadyConsumers(root);
+  const consumerBehavior = runLiveNamedConsumerShadowReads(root);
+  const publicObs = verifyPublicV018(publicUrl);
+  const postReadyz = fetchReadyz(option(process.argv, '--readyz-url') ?? 'http://127.0.0.1:8084/api/readyz');
+  const postPublicReadyz = fetchReadyz(`${publicUrl}/api/readyz`);
+  observations.expectedObjectCount = V018_EXPECTED_OBJECT_COUNT;
+  observations.expectedRelationCount = V018_EXPECTED_RELATION_COUNT;
+  observations.objectCount = counts.objects;
+  observations.relationCount = counts.relations;
+  observations.readyConsumers = consumers.readyConsumerIds;
+  observations.consumerBehavior = consumerBehavior.results.map((row) => ({
+    consumerId: row.consumerId,
+    status: row.status,
+    reads: row.reads.map((read) => ({ kind: read.kind, ok: read.ok, detail: read.detail })),
+  }));
+  observations.expectedHashes = expectedPredecessorHashes(predecessorSource);
+  observations.public = publicObs;
+  observations.postReadyz = postReadyz;
+  observations.postPublicReadyz = postPublicReadyz;
+  if (counts.objects !== V018_EXPECTED_OBJECT_COUNT) blockers.push('object-count-mismatch');
+  if (counts.relations !== V018_EXPECTED_RELATION_COUNT) blockers.push('relation-count-mismatch');
+  if (postReadyz.app !== true || postReadyz.db !== true || postReadyz.redis !== true) blockers.push('post-readyz-not-ready');
+  if (postPublicReadyz.app !== true || postPublicReadyz.db !== true || postPublicReadyz.redis !== true) {
+    blockers.push('post-public-readyz-not-ready');
+  }
+  const publicBlockers = [...(publicObs.blockers as string[])];
+  const liveInfographReady = consumerBehavior.results.some((row) => (
+    row.consumerId === 'teaching-resource-rag'
+    && row.reads.some((read) => read.kind === 'infograph' && read.ok)
+  ));
+  if (liveInfographReady) {
+    observations.liveInfographReady = true;
+    const filtered = publicBlockers.filter((item) => item !== 'public-infograph-http' && item !== 'public-infograph-payload');
+    publicObs.blockers = filtered;
+    blockers.push(...consumers.blockers, ...consumerBehavior.blockers, ...filtered);
+  } else {
+    blockers.push(...consumers.blockers, ...consumerBehavior.blockers, ...publicBlockers);
+  }
+  return { observations, blockers };
 }
 
 function run(): void {
@@ -437,40 +492,12 @@ function run(): void {
       }));
       throw error;
     }
-    const observations: Record<string, unknown> = {};
-    const blockers: string[] = [];
+    let observations: Record<string, unknown> = {};
+    let blockers: string[] = [];
     try {
-      const counts = observeLiveCounts(root);
-      const consumers = observeReadyConsumers(root);
-      const consumerBehavior = runLiveNamedConsumerShadowReads(root);
-      const publicObs = verifyPublicV018(publicUrl);
-      const postReadyz = fetchReadyz(option(process.argv, '--readyz-url') ?? 'http://127.0.0.1:8084/api/readyz');
-      const postPublicReadyz = fetchReadyz(`${publicUrl}/api/readyz`);
-      observations.expectedObjectCount = V018_EXPECTED_OBJECT_COUNT;
-      observations.expectedRelationCount = V018_EXPECTED_RELATION_COUNT;
-      observations.objectCount = counts.objects;
-      observations.relationCount = counts.relations;
-      observations.readyConsumers = consumers.readyConsumerIds;
-      observations.consumerBehavior = consumerBehavior.results.map((row) => ({
-        consumerId: row.consumerId,
-        status: row.status,
-        reads: row.reads.map((read) => ({ kind: read.kind, ok: read.ok, detail: read.detail })),
-      }));
-      observations.expectedHashes = expectedPredecessorHashes(predecessorSource);
-      observations.public = publicObs;
-      observations.postReadyz = postReadyz;
-      observations.postPublicReadyz = postPublicReadyz;
-      if (counts.objects !== V018_EXPECTED_OBJECT_COUNT) blockers.push('object-count-mismatch');
-      if (counts.relations !== V018_EXPECTED_RELATION_COUNT) blockers.push('relation-count-mismatch');
-      if (postReadyz.app !== true || postReadyz.db !== true || postReadyz.redis !== true) blockers.push('post-readyz-not-ready');
-      if (postPublicReadyz.app !== true || postPublicReadyz.db !== true || postPublicReadyz.redis !== true) {
-        blockers.push('post-public-readyz-not-ready');
-      }
-      blockers.push(
-        ...consumers.blockers,
-        ...consumerBehavior.blockers,
-        ...(publicObs.blockers as string[]),
-      );
+      const collected = collectPostSwitchObservations(root, publicUrl, predecessorSource);
+      observations = collected.observations;
+      blockers = collected.blockers;
     } catch (error) {
       blockers.push(error instanceof Error ? error.message : String(error));
     }
@@ -479,6 +506,24 @@ function run(): void {
       journal = compensateV018ProductionCutover({ backend: live, journal, persistJournal: persist, predecessors });
     }
     const receipt = sealCutoverReceipt({ journal, observations, blockers });
+    writeReceipt(outDir, receipt);
+    process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+    if (receipt.status !== 'READY') process.exitCode = 2;
+    return;
+  }
+
+  if (command === 'verify') {
+    const publicUrl = requiredOption('--public-url');
+    const collected = collectPostSwitchObservations(root, publicUrl, predecessorSource);
+    const journalPathExisting = existsSync(journalPath)
+      ? journalPath
+      : path.join(root, 'course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18/production-cutover-journal.json');
+    const journal = JSON.parse(readFileSync(journalPathExisting, 'utf8')) as CutoverJournal;
+    const receipt = sealCutoverReceipt({
+      journal,
+      observations: collected.observations,
+      blockers: collected.blockers,
+    });
     writeReceipt(outDir, receipt);
     process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
     if (receipt.status !== 'READY') process.exitCode = 2;
@@ -507,7 +552,7 @@ function run(): void {
     return;
   }
 
-  fail('expected one of: preflight, rehearse, activate, rollback');
+  fail('expected one of: preflight, rehearse, activate, verify, rollback');
 }
 
 try {

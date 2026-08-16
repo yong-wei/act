@@ -51,6 +51,9 @@ export const V018_EXPECTED_RELATION_COUNT = 2811;
 
 export const V018_FIRST_ACTIVATION_MARKER_RELATIVE =
   'course-content/runtime/knowledge/consumer-activation/first-activation-transactions/first-cutover-7f4cdd1084af419a3e837876.json';
+export const V09_FIRST_ACTIVATION_TRANSACTION_ID = 'first-cutover-7f4cdd1084af419a3e837876';
+export const V09_FIRST_ACTIVATION_JOURNAL_HASH =
+  'fcb5822b4cced3bf6e76102f49bc6ceb89b53823ebca86d6766521c4b463f277';
 
 export const V018_CUTOVER_POINTER_PATHS = {
   authority: 'course-content/authoring/knowledge/authority/current.json',
@@ -250,10 +253,21 @@ export function inspectFirstActivationMarker(repoRoot: string): { blockers: stri
   try {
     const journal = readFirstActivationJournal(markerPath);
     if (journal.status !== 'COMMITTED') blockers.push('production-marker-not-committed');
+    if (journal.transactionId !== V09_FIRST_ACTIVATION_TRANSACTION_ID) {
+      blockers.push('production-marker-transaction-drift');
+    }
+    if (journal.journalHash !== V09_FIRST_ACTIVATION_JOURNAL_HASH) {
+      blockers.push('production-marker-hash-drift');
+    }
     if (journal.steps.length === 0 || journal.steps.some((step) => step.status !== 'APPLIED')) {
       blockers.push('production-marker-steps-incomplete');
     }
-    if (!/^[a-f0-9]{64}$/.test(journal.journalHash)) blockers.push('production-marker-hash-invalid');
+    for (const step of journal.steps) {
+      const expected = V09_PREDECESSOR_IDENTITIES[step.component as keyof typeof V09_PREDECESSOR_IDENTITIES];
+      if (!expected || step.target.id !== expected.id || step.target.hash !== expected.hash) {
+        blockers.push(`production-marker-target-drift:${step.component}`);
+      }
+    }
   } catch {
     blockers.push('production-marker-invalid');
   }

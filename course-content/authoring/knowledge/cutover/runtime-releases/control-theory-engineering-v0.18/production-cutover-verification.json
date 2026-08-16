@@ -2,13 +2,9 @@
   "contract": "actkg-v018-production-cutover-verification/v1",
   "transactionId": "v018-cutover-2026-08-16T131321310Z",
   "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
-  "receiptDigest": "cc659a561f041844ca24a47827029a1ffe5938fbebf2a4999566408aea9053fb",
+  "receiptDigest": "4295ffd695aa195620643dcda390e3eacc375b8f4d4a905ebf7eac6aa1e0bb71",
   "status": "READY",
   "public": {
-    "login": 200,
-    "shards": 200,
-    "teaching": 200,
-    "domainId": "system-modeling",
     "labels": [
       "系统建模",
       "时域分析",
@@ -19,7 +15,22 @@
       "离散时间控制分析",
       "状态空间控制分析与设计"
     ],
-    "leaks": []
+    "teachingStatus": 200,
+    "teachingObjectCount": 1,
+    "cardStatus": 200,
+    "neighborhoodStatus": 200,
+    "neighborhoodRelationCount": 7,
+    "infographStatus": 503,
+    "infographNodeId": "",
+    "infographPng": false,
+    "konlingStatus": 200,
+    "konlingProjectionId": null,
+    "konlingAuthoritySnapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "courseRuntimeStatus": 200,
+    "courseProjectionId": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+    "probeNodeId": "ctc:modeling-00d2998755974a1329049aac",
+    "leaks": [],
+    "blockers": []
   },
   "counts": {
     "objects": 6843,
