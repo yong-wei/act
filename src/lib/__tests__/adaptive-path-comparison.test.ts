@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  authorizeAdaptivePathComparisonIdentity,
   buildAdaptivePathComparisonKey,
   buildAdaptivePathComparisonVersion,
   enumerateAdaptivePathComparisonPairs,
@@ -33,5 +34,54 @@ describe('adaptive path comparison state', () => {
       pathVersion: version,
       pairKey: 'a:b',
     })).toBe('batch-1|batch-1|path-v1|a|b|a:b');
+  });
+
+  it('authorizes only the current saved-path version and server-normalized pair', () => {
+    const authorized = authorizeAdaptivePathComparisonIdentity({
+      candidateBatchId: 'batch-1',
+      candidateBatchCreatedAt: '2026-08-16T10:00:01.000Z',
+      currentPathUpdatedAt: '2026-08-16T10:00:00.000Z',
+      candidates: [
+        { optionId: 'option-a', styleId: 'style-a' },
+        { optionId: 'option-b', styleId: 'style-b' },
+      ],
+      selectedStyleId: 'style-b',
+      comparedStyleId: 'style-a',
+      requestedComparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|option-a:option-b',
+    });
+
+    expect(authorized).toEqual({
+      ok: true,
+      comparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|option-a:option-b',
+      pair: {
+        leftOptionId: 'option-a',
+        rightOptionId: 'option-b',
+        pairKey: 'option-a:option-b',
+      },
+      pathVersion: '2026-08-16T10:00:00.000Z',
+    });
+  });
+
+  it('rejects stale saved-path versions and forged comparison keys', () => {
+    const input = {
+      candidateBatchId: 'batch-1',
+      candidateBatchCreatedAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { optionId: 'option-a', styleId: 'style-a' },
+        { optionId: 'option-b', styleId: 'style-b' },
+      ],
+      selectedStyleId: 'style-a',
+      comparedStyleId: 'style-b',
+    };
+    expect(authorizeAdaptivePathComparisonIdentity({
+      ...input,
+      currentPathUpdatedAt: '2026-08-16T10:00:02.000Z',
+      requestedComparisonKey: 'batch-1|2026-08-16T10:00:02.000Z|option-a:option-b',
+    })).toEqual({ ok: false, reason: 'stale-path-version' });
+    expect(authorizeAdaptivePathComparisonIdentity({
+      ...input,
+      currentPathUpdatedAt: '2026-08-16T10:00:00.000Z',
+      requestedComparisonKey: 'forged-key',
+    })).toEqual({ ok: false, reason: 'comparison-key-mismatch' });
   });
 });

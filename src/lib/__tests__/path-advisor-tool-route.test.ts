@@ -427,10 +427,15 @@ describe('path advisor tool route readiness', () => {
       userId: 'student-1',
       goalId: 'control-correction',
       sourcePathId: 'path-1',
-      candidates: [{ styleId: 'style-a' }, { styleId: 'style-b' }],
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
     });
     mocks.learningPathFindFirst.mockResolvedValue({
       id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:00.000Z'),
       currentNodeId: 'node-1',
       nodeIds: ['node-1'],
       pathPayload: {
@@ -453,7 +458,7 @@ describe('path advisor tool route readiness', () => {
       selectedOptionId: 'path-option-a',
       compareWithOptionId: 'path-option-b',
       candidateBatchId: 'batch-1',
-      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
+      comparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|path-option-a:path-option-b',
     });
 
     expect(response.status).toBe(200);
@@ -462,8 +467,90 @@ describe('path advisor tool route readiness', () => {
       selectedStyleId: 'style-a',
       compareWithStyleId: 'style-b',
       candidateBatchId: 'batch-1',
-      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
+      comparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|path-option-a:path-option-b',
     }));
+  });
+
+  it('rejects a candidate comparison after the saved path version changes', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:02.000Z'),
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-08-16T10:00:02.000Z|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '当前学习路径已更新，请重新生成候选方案后再比较',
+    });
+  });
+
+  it('rejects a forged candidate comparison key', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:00.000Z'),
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'forged-key',
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选比较身份已失效，请重新选择比较对象',
+    });
   });
 
   it('allows empty-node path options to reach the runtime insufficient-data result', async () => {

@@ -21,7 +21,8 @@ describe('adaptive path candidate comparison UI contract', () => {
 
   it('drops late comparison responses when the batch, version, or pair changes', () => {
     expect(source).toContain('buildAdaptivePathComparisonKey({');
-    expect(source).toContain('pathVersion: pathOptionVersionKeyRef.current');
+    expect(source).toContain('pathVersion: savedPathVersionRef.current');
+    expect(source).toContain('const savedPathVersion = activePathRound?.updatedAt');
     expect(source).toContain('differenceExplanation.comparisonKey !== explanationRequestVersionKey');
     expect(source).toContain('setPathDifferenceExplanations({});');
   });
@@ -41,5 +42,12 @@ describe('adaptive path candidate comparison UI contract', () => {
     expect(source).toContain('id="learning-path-comparison-right"');
     expect(source).toContain('className="grid min-w-0 gap-3 sm:grid-cols-2"');
     expect(source).toContain('className="inline-flex w-full items-center justify-center');
+  });
+
+  it('shows terminal validation and identifies equal factual dimensions', () => {
+    expect(source).toContain('终点验证：');
+    expect(source).toContain('option.terminalValidationNodeIds.length');
+    expect(source).toContain('候选在当前维度无差异');
+    expect(source).toContain("noDifferenceLabel('terminalValidation')");
   });
 });

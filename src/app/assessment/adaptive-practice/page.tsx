@@ -221,6 +221,7 @@ interface LearningPathRoundResponse {
     alternativePayload?: unknown[] | null;
     terminalValidation?: Record<string, unknown> | null;
     lastExecutionMetadata?: Record<string, unknown> | null;
+    updatedAt?: string | null;
     executions?: Array<Record<string, unknown>>;
     deviations?: Array<Record<string, unknown>>;
     interventions?: Array<Record<string, unknown>>;
@@ -2089,6 +2090,32 @@ function CandidateBatchComparisonWorkspace({
     draft.rightOptionId,
     options.map((option) => option.optionId),
   );
+  const summaryFacts = options.map((option) => ({
+    duration: typeof option.effort.estimatedMinutes === 'number'
+      ? String(option.effort.estimatedMinutes)
+      : null,
+    readiness: option.readinessSummary.length > 0
+      ? JSON.stringify([...option.readinessSummary].sort((left, right) => left.nodeId.localeCompare(right.nodeId)))
+      : null,
+    resourceMix: Object.keys(option.resourceMix).length > 0
+      ? JSON.stringify(Object.entries(option.resourceMix).sort(([left], [right]) => left.localeCompare(right)))
+      : null,
+    checkpoints: JSON.stringify(
+      (option.nodeSummaries ?? [])
+        .filter((node) => node.pathNodeType === 'checkpoint')
+        .map((node) => node.nodeId)
+        .sort(),
+    ),
+    terminalValidation: JSON.stringify([...option.terminalValidationNodeIds].sort()),
+  }));
+  const hasNoDifference = (dimension: keyof (typeof summaryFacts)[number]) => (
+    summaryFacts.length > 1
+    && summaryFacts[0]?.[dimension] !== null
+    && summaryFacts.every((facts) => facts[dimension] === summaryFacts[0]?.[dimension])
+  );
+  const noDifferenceLabel = (dimension: keyof (typeof summaryFacts)[number]) => (
+    hasNoDifference(dimension) ? '（候选在当前维度无差异）' : ''
+  );
   return (
     <section
       className="mt-4 min-w-0 space-y-4 rounded-lg border border-primary/30 bg-primary/5 p-4"
@@ -2117,10 +2144,11 @@ function CandidateBatchComparisonWorkspace({
               <article key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-3">
                 <h4 className="break-words text-sm font-semibold text-foreground">{option.label}</h4>
                 <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
-                  <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.readinessSummary.length > 0 ? `${option.readinessSummary.length} 个节点已提供准备度` : '数据不足'}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '数据不足'}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.nodeSummaries?.filter((node) => node.pathNodeType === 'checkpoint').length ? `${option.nodeSummaries.filter((node) => node.pathNodeType === 'checkpoint').length} 个检查点` : '无'}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.readinessSummary.length > 0 ? `${option.readinessSummary.length} 个节点已提供准备度` : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '数据不足'}{noDifferenceLabel('resourceMix')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.nodeSummaries?.filter((node) => node.pathNodeType === 'checkpoint').length ? `${option.nodeSummaries.filter((node) => node.pathNodeType === 'checkpoint').length} 个检查点` : '无'}{noDifferenceLabel('checkpoints')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无'}{noDifferenceLabel('terminalValidation')}</dd></div>
                 </dl>
               </article>
             ))}
@@ -2914,17 +2942,16 @@ export default function AdaptivePracticePage() {
     [activeCandidateBatch],
   );
   const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
-  const pathOptionVersionKey = useMemo(() => [
-    activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
-    ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
-  ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
+  const savedPathVersion = activePathRound?.updatedAt
+    ?? activePathPlan?.executionStatus.updatedAt
+    ?? 'no-path-version';
   const comparisonOptionIds = useMemo(
     () => pathOptions.map((option) => option.optionId),
     [pathOptions],
   );
   const candidateBatchComparisonVersion = useMemo(
-    () => buildAdaptivePathComparisonVersion(activeCandidateBatch?.id, pathOptionVersionKey, comparisonOptionIds),
-    [activeCandidateBatch?.id, comparisonOptionIds, pathOptionVersionKey],
+    () => buildAdaptivePathComparisonVersion(activeCandidateBatch?.id, savedPathVersion, comparisonOptionIds),
+    [activeCandidateBatch?.id, comparisonOptionIds, savedPathVersion],
   );
   const candidateComparisonPairs = useMemo(
     () => enumerateAdaptivePathComparisonPairs(comparisonOptionIds),
@@ -2939,12 +2966,12 @@ export default function AdaptivePracticePage() {
   const selectedComparisonKey = selectedComparisonPair && activeCandidateBatch
     ? buildAdaptivePathComparisonKey({
         candidateBatchId: activeCandidateBatch.id,
-        pathVersion: pathOptionVersionKey,
+        pathVersion: savedPathVersion,
         pairKey: selectedComparisonPair.pairKey,
       })
     : null;
-  const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
-  pathOptionVersionKeyRef.current = pathOptionVersionKey;
+  const savedPathVersionRef = useRef(savedPathVersion);
+  savedPathVersionRef.current = savedPathVersion;
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -2981,7 +3008,7 @@ export default function AdaptivePracticePage() {
     }
   }, [
     activeCandidateBatch,
-    pathOptionVersionKey,
+    savedPathVersion,
     requestedCompareLeft,
     requestedCompareRight,
     requestedCompareVersion,
@@ -3845,10 +3872,10 @@ export default function AdaptivePracticePage() {
       ? normalizedComparisonPair && activeCandidateBatch
         ? buildAdaptivePathComparisonKey({
             candidateBatchId: activeCandidateBatch.id,
-            pathVersion: pathOptionVersionKeyRef.current,
+            pathVersion: savedPathVersionRef.current,
             pairKey: normalizedComparisonPair.pairKey,
           })
-        : pathOptionVersionKeyRef.current
+        : savedPathVersionRef.current
       : null;
     if (generationRequestId) {
       setPathGenerationRequestStatus('pending');
@@ -4040,17 +4067,17 @@ export default function AdaptivePracticePage() {
       const differenceExplanation = operation === 'explain'
         ? readPathDifferenceExplanation(payload.result?.comparison)
         : null;
-      const legacyExplanationVersionMismatch = explanationRequestVersionKey !== pathOptionVersionKeyRef.current;
+      const legacyExplanationVersionMismatch = explanationRequestVersionKey !== savedPathVersionRef.current;
       if (
         operation === 'explain'
         && (
           explanationRequestVersionKey !== (activeCandidateBatch && normalizedComparisonPair
             ? buildAdaptivePathComparisonKey({
                 candidateBatchId: activeCandidateBatch.id,
-                pathVersion: pathOptionVersionKeyRef.current,
+                pathVersion: savedPathVersionRef.current,
                 pairKey: normalizedComparisonPair.pairKey,
               })
-            : pathOptionVersionKeyRef.current)
+            : savedPathVersionRef.current)
           || (!activeCandidateBatch && legacyExplanationVersionMismatch)
           || (differenceExplanation && differenceExplanation.pathId !== currentPathId)
           || (differenceExplanation?.comparisonKey && differenceExplanation.comparisonKey !== explanationRequestVersionKey)
