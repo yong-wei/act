@@ -1,5 +1,8 @@
 /** Evaluate host/shadow evidence for the v0.18 runtime publication. */
 
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+
 import { V018_NAMED_CONSUMERS } from '../qualify/v018-qualify-contract';
 import {
   V09_ACTIVATION,
@@ -8,7 +11,6 @@ import {
   V09_RELEASE_ID,
   V09_SNAPSHOT,
 } from '../qualify/v018-shared';
-import { V09_POINTER_HASHES } from './v018-runtime-release';
 
 export const V018_HOST_SHADOW_CONTRACT = 'actkg-v018-host-shadow/v1' as const;
 export const V018_FROZEN_IMAGE_TAG = 'localhost/act-obe-platform:v018-94d585ae63a6';
@@ -20,10 +22,10 @@ export const V09_PRODUCTION_AUTHORITY_SHA256 =
   '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d';
 export const V09_HOST_POINTER_HASHES = {
   authority: V09_PRODUCTION_AUTHORITY_SHA256,
-  projection: V09_POINTER_HASHES['course-content/runtime/knowledge/projection/current.json'],
-  prerequisites: V09_POINTER_HASHES['course-content/runtime/knowledge/prerequisites/current.json'],
-  shards: V09_POINTER_HASHES['course-content/runtime/knowledge/authority-domain-shards/current.json'],
-  activation: V09_POINTER_HASHES['course-content/runtime/knowledge/consumer-activation/current.json'],
+  projection: 'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
+  prerequisites: 'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
+  shards: '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
+  activation: 'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
 } as const;
 
 export interface HostShadowObservation {
@@ -51,6 +53,90 @@ export interface HostShadowObservation {
   consumerStatuses?: ReadonlyArray<{ consumerId: string; status: string }>;
   consumerShadowSource?: 'deployed-image-staged-candidate' | 'local-qualification';
   pointersUnchangedAfterStage?: boolean;
+}
+
+const HOST_POINTER_PATHS = {
+  authority: 'course-content/authoring/knowledge/authority/current.json',
+  projection: 'course-content/runtime/knowledge/projection/current.json',
+  prerequisites: 'course-content/runtime/knowledge/prerequisites/current.json',
+  shards: 'course-content/runtime/knowledge/authority-domain-shards/current.json',
+  activation: 'course-content/runtime/knowledge/consumer-activation/current.json',
+} as const;
+
+export function expectedHostPointerHashes(): Record<string, string> {
+  return {
+    [HOST_POINTER_PATHS.authority]: V09_HOST_POINTER_HASHES.authority,
+    [HOST_POINTER_PATHS.projection]: V09_HOST_POINTER_HASHES.projection,
+    [HOST_POINTER_PATHS.prerequisites]: V09_HOST_POINTER_HASHES.prerequisites,
+    [HOST_POINTER_PATHS.shards]: V09_HOST_POINTER_HASHES.shards,
+    [HOST_POINTER_PATHS.activation]: V09_HOST_POINTER_HASHES.activation,
+  };
+}
+
+export function loadHostShadowVerificationReport(filePath: string): {
+  digest: string | null;
+  status: 'READY' | 'BLOCKED';
+  blockers: string[];
+  pointerHashes: Record<string, string>;
+} {
+  if (!existsSync(filePath)) {
+    return {
+      digest: null,
+      status: 'BLOCKED',
+      blockers: ['host-shadow-verification-incomplete'],
+      pointerHashes: {},
+    };
+  }
+  const bytes = readFileSync(filePath);
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  let record: Record<string, unknown> = {};
+  try {
+    record = JSON.parse(bytes.toString('utf8')) as Record<string, unknown>;
+  } catch {
+    return {
+      digest,
+      status: 'BLOCKED',
+      blockers: ['host-shadow-report-unreadable'],
+      pointerHashes: {},
+    };
+  }
+  const blockers: string[] = [];
+  if (record.contract !== V018_HOST_SHADOW_CONTRACT) blockers.push('host-shadow-contract-mismatch');
+  const rawHashes = record.pointerHashes && typeof record.pointerHashes === 'object'
+    ? record.pointerHashes as Record<string, unknown>
+    : {};
+  const pointerHashes: Record<string, string> = {};
+  const expected = expectedHostPointerHashes();
+  for (const [pathKey, expectedHash] of Object.entries(expected)) {
+    const actual = rawHashes[pathKey];
+    if (typeof actual === 'string' && /^[a-f0-9]{64}$/u.test(actual)) {
+      pointerHashes[pathKey] = actual;
+      if (actual !== expectedHash) blockers.push('host-pointer-hash-mismatch');
+    }
+  }
+  if (Object.keys(pointerHashes).length !== Object.keys(expected).length) {
+    blockers.push('host-pointer-hashes-incomplete');
+  }
+  if (record.observation && typeof record.observation === 'object') {
+    const observation = record.observation as HostShadowObservation;
+    const derived = hostPointerHashesFromObservation(observation);
+    const derivedKeys = Object.keys(derived).sort();
+    const sealedKeys = Object.keys(pointerHashes).sort();
+    if (derivedKeys.join(',') !== sealedKeys.join(',')
+      || derivedKeys.some((key) => derived[key] !== pointerHashes[key])) {
+      blockers.push('host-pointer-hash-observation-drift');
+    }
+    blockers.push(...evaluateV018HostShadow(observation).blockers);
+  } else {
+    blockers.push('host-shadow-observation-missing');
+  }
+  const fileBlockers = Array.isArray(record.blockers)
+    ? record.blockers.filter((value): value is string => typeof value === 'string')
+    : [];
+  blockers.push(...fileBlockers);
+  const unique = [...new Set(blockers)].sort();
+  const status = record.status === 'READY' && unique.length === 0 ? 'READY' as const : 'BLOCKED' as const;
+  return { digest, status, blockers: unique, pointerHashes };
 }
 
 export function hostPointerHashesFromObservation(

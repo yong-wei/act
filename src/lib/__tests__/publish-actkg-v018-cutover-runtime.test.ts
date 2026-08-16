@@ -4,8 +4,19 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { prepareActKgV018RuntimeRelease } from '../../../scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime';
+import {
+  prepareActKgV018RuntimeRelease,
+  resolveActKgV018RuntimeReleaseArgs,
+} from '../../../scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime';
 import { projectionDigest, projectionSha256 } from '../teaching-projection/hash';
+import {
+  expectedHostPointerHashes,
+  V018_FROZEN_IMAGE_TAG,
+  V018_HOST_SHADOW_CONTRACT,
+  V018_STAGED_AUTHORITY_RECEIPT_SHA256,
+  V018_STAGED_QUALIFICATION_SHA256,
+  type HostShadowObservation,
+} from '../teaching-projection/publish/v018-host-shadow';
 import {
   DOCKER_MIN_MEMORY_BYTES,
   V018_SEALED_QUALIFICATION_SHA256,
@@ -18,6 +29,50 @@ import {
 
 const roots: string[] = [];
 const REPO_ROOT = path.resolve(__dirname, '../../..');
+const HOST_HASHES = expectedHostPointerHashes();
+const SHARD_PATH = 'course-content/runtime/knowledge/authority-domain-shards/current.json';
+
+function readyHostObservation(overrides: Partial<HostShadowObservation> = {}): HostShadowObservation {
+  return {
+    appImage: V018_FROZEN_IMAGE_TAG,
+    workerImage: V018_FROZEN_IMAGE_TAG,
+    workerHealth: 'healthy',
+    readyz: { app: true, db: true, redis: true },
+    publicReadyzStatus: 200,
+    authorityReleaseId: 'ctr:release:control-theory-engineering-v0.9',
+    authoritySnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+    authoritySha256: '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
+    projectionId: 'proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d',
+    projectionSha256: 'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
+    prerequisitePublicationId: 'proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b',
+    prerequisiteSha256: 'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
+    activationId: 'first-cutover-7f4cdd1084af-769b1a832622',
+    activationSha256: 'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
+    shardSha256: '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
+    stagedAuthorityReceiptSha256: V018_STAGED_AUTHORITY_RECEIPT_SHA256,
+    stagedAuthorityMountedSha256: V018_STAGED_AUTHORITY_RECEIPT_SHA256,
+    stagedQualificationSha256: V018_STAGED_QUALIFICATION_SHA256,
+    activeGraphReleaseId: 'ctr:release:control-theory-engineering-v0.9',
+    activeGraphSnapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+    pointersUnchangedAfterStage: true,
+    consumerShadowSource: 'deployed-image-staged-candidate',
+    consumerStatuses: [
+      { consumerId: 'course-runtime', status: 'READY' },
+      { consumerId: 'engineering-graph', status: 'READY' },
+      { consumerId: 'engineering-rag', status: 'READY' },
+      { consumerId: 'konling', status: 'READY' },
+      { consumerId: 'learning-path', status: 'READY' },
+      { consumerId: 'teaching-resource-rag', status: 'READY' },
+    ],
+    ...overrides,
+  };
+}
+
+function writeHostReport(outputRoot: string, report: Record<string, unknown>): string {
+  const filePath = path.join(outputRoot, 'host-shadow-verification.json');
+  writeFileSync(filePath, `${JSON.stringify(report)}\n`);
+  return filePath;
+}
 
 afterEach(() => {
   while (roots.length > 0) rmSync(roots.pop()!, { recursive: true, force: true });
@@ -113,17 +168,25 @@ describe('v0.18 runtime publication', () => {
     expect(report.hostVerification?.blockers).toContain('host-shadow-verification-incomplete');
   });
 
-  it('records concrete host-shadow blockers on the sealed receipt', async () => {
+  it('records concrete host-shadow blockers from the sealed report file', async () => {
     const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-host-blockers-'));
     roots.push(outputRoot);
+    const fourHashes = { ...HOST_HASHES };
+    delete fourHashes[SHARD_PATH];
+    writeHostReport(outputRoot, {
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'BLOCKED',
+      blockers: ['host-v09-shard-selector-missing'],
+      observation: readyHostObservation({
+        shardSha256: undefined,
+        pointersUnchangedAfterStage: false,
+      }),
+      pointerHashes: fourHashes,
+    });
     const result = await publishActKgV018CutoverRuntime({
       repoRoot: REPO_ROOT,
       outputRoot,
       readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
-      hostVerification: {
-        status: 'BLOCKED',
-        blockers: ['host-v09-shard-selector-missing'],
-      },
       runBuild: async () => ({
         imageTag: 'localhost/act-obe-platform:test',
         provenancePath: null,
@@ -131,37 +194,30 @@ describe('v0.18 runtime publication', () => {
       }),
     });
     expect(result.status).toBe('BLOCKED');
-    expect(result.blockers).toContain('host-shadow-verification-incomplete');
     expect(result.blockers).toContain('host-v09-shard-selector-missing');
+    expect(result.blockers).toContain('host-pointer-hashes-incomplete');
+    expect(result.blockers).not.toContain('host-shadow-verification-incomplete');
   });
 
   it('seals host-observed pointer hashes instead of the local worktree constants', async () => {
     const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-host-hashes-'));
     roots.push(outputRoot);
-    const hostHashes = {
-      'course-content/authoring/knowledge/authority/current.json':
-        '868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d',
-      'course-content/runtime/knowledge/projection/current.json':
-        'cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703',
-      'course-content/runtime/knowledge/prerequisites/current.json':
-        'a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e',
-      'course-content/runtime/knowledge/authority-domain-shards/current.json':
-        '9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c',
-      'course-content/runtime/knowledge/consumer-activation/current.json':
-        'e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b',
-    };
+    const fourHashes = { ...HOST_HASHES };
+    delete fourHashes[SHARD_PATH];
+    writeHostReport(outputRoot, {
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'BLOCKED',
+      blockers: ['host-v09-shard-selector-missing'],
+      observation: readyHostObservation({
+        shardSha256: undefined,
+        pointersUnchangedAfterStage: false,
+      }),
+      pointerHashes: fourHashes,
+    });
     const result = await publishActKgV018CutoverRuntime({
       repoRoot: REPO_ROOT,
       outputRoot,
       readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
-      hostVerification: {
-        status: 'BLOCKED',
-        blockers: ['host-v09-shard-selector-missing'],
-        pointerHashes: {
-          ...hostHashes,
-          'course-content/runtime/knowledge/authority-domain-shards/current.json': undefined as unknown as string,
-        },
-      },
       runBuild: async () => ({
         imageTag: 'localhost/act-obe-platform:test',
         provenancePath: null,
@@ -178,6 +234,63 @@ describe('v0.18 runtime publication', () => {
     expect(report.pointerHashes['course-content/authoring/knowledge/authority/current.json']).not.toBe(
       '086f14793fbf2aa3afc8fba471503042242645122425c3018b6526e8ab2835f2',
     );
+  });
+
+  it('does not treat an injectable READY object as host-shadow evidence', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-injected-ready-'));
+    roots.push(outputRoot);
+    const sneaky = {
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      hostVerification: {
+        status: 'READY' as const,
+        blockers: [] as string[],
+        pointerHashes: HOST_HASHES,
+      },
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    };
+    const result = await publishActKgV018CutoverRuntime(
+      sneaky as unknown as Parameters<typeof publishActKgV018CutoverRuntime>[0],
+    );
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-shadow-verification-incomplete');
+  });
+
+  it('does not treat a forged READY host report with drifted hashes as complete', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-forged-ready-'));
+    roots.push(outputRoot);
+    const drifted = Object.fromEntries(Object.keys(HOST_HASHES).map((key) => [key, '0'.repeat(64)]));
+    writeHostReport(outputRoot, {
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'READY',
+      blockers: [],
+      observation: readyHostObservation({
+        authoritySha256: '0'.repeat(64),
+        projectionSha256: '0'.repeat(64),
+        prerequisiteSha256: '0'.repeat(64),
+        activationSha256: '0'.repeat(64),
+        shardSha256: '0'.repeat(64),
+      }),
+      pointerHashes: drifted,
+    });
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:test',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-pointer-hash-mismatch');
+    expect(result.blockers).not.toContain('host-shadow-verification-incomplete');
   });
 
   it('does not accept a READY report whose overlay hash drifted', async () => {
@@ -296,5 +409,19 @@ describe('v0.18 runtime publication', () => {
       '--output-root',
       path.join(REPO_ROOT, 'course-content/runtime/knowledge/projection'),
     ])).rejects.toThrow('runtime selector');
+  });
+
+  it('official CLI binds host-shadow-verification.json by default', () => {
+    const resolved = resolveActKgV018RuntimeReleaseArgs(['--repo-root', REPO_ROOT]);
+    expect(resolved.hostVerificationReport.split(path.sep).join('/')).toMatch(
+      /course-content\/authoring\/knowledge\/cutover\/runtime-releases\/control-theory-engineering-v0\.18\/host-shadow-verification\.json$/,
+    );
+    const override = resolveActKgV018RuntimeReleaseArgs([
+      '--repo-root',
+      REPO_ROOT,
+      '--host-verification-report',
+      '/tmp/custom-host-shadow.json',
+    ]);
+    expect(override.hostVerificationReport).toBe('/tmp/custom-host-shadow.json');
   });
 });

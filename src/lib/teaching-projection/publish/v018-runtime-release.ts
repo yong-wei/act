@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { reviewedNeighborhoodOverlaySha256 } from '../../authority-domain-shards/v018-reviewed-neighborhood-labels';
+import { expectedHostPointerHashes, loadHostShadowVerificationReport } from './v018-host-shadow';
 import { projectionDigest, projectionSha256 } from '../hash';
 import {
   assertV018ProductionPointersUnchanged,
@@ -233,11 +234,7 @@ export async function publishActKgV018CutoverRuntime(input: {
   frozenApplicationRevision?: string;
   readDockerMemory?: DockerMemoryReader;
   runBuild?: BuildRunner;
-  hostVerification?: {
-    status: 'READY' | 'BLOCKED';
-    blockers?: readonly string[];
-    pointerHashes?: Record<string, string>;
-  };
+  hostVerificationReport?: string;
 }): Promise<{
   status: 'READY' | 'BLOCKED';
   reportPath: string;
@@ -320,39 +317,21 @@ export async function publishActKgV018CutoverRuntime(input: {
     blockers.push('production-pointer-drift');
   }
   blockers.push(...assertV09Pointers(pointersAfter, repoRoot));
-  if (input.hostVerification?.status !== 'READY') {
-    blockers.push('host-shadow-verification-incomplete');
-    if (Array.isArray(input.hostVerification?.blockers)) {
-      blockers.push(...input.hostVerification.blockers);
-    }
-  } else if (Array.isArray(input.hostVerification.blockers) && input.hostVerification.blockers.length > 0) {
-    blockers.push(...input.hostVerification.blockers);
-  }
-
-  const observedHashes = input.hostVerification?.pointerHashes;
-  const sealedPointerHashes: Record<string, string> = {};
-  if (observedHashes) {
-    for (const key of Object.keys(V09_POINTER_HASHES)) {
-      const actual = observedHashes[key];
-      if (typeof actual === 'string' && /^[a-f0-9]{64}$/u.test(actual)) {
-        sealedPointerHashes[key] = actual;
-      }
-    }
-    if (Object.keys(sealedPointerHashes).length !== Object.keys(V09_POINTER_HASHES).length) {
-      blockers.push('host-pointer-hashes-incomplete');
-    }
-  } else if (input.hostVerification) {
-    blockers.push('host-pointer-hashes-missing');
-  }
-
+  const hostReportPath = path.resolve(
+    input.hostVerificationReport
+    ?? path.join(outputRoot, 'host-shadow-verification.json'),
+  );
+  const hostReport = loadHostShadowVerificationReport(hostReportPath);
+  blockers.push(...hostReport.blockers);
   const uniqueBlockers = [...new Set(blockers)].sort();
   const hostVerification = {
-    status: input.hostVerification?.status === 'READY' && uniqueBlockers.length === 0
+    status: hostReport.status === 'READY' && uniqueBlockers.length === 0
       ? 'READY' as const
       : 'BLOCKED' as const,
+    digest: hostReport.digest,
     blockers: uniqueBlockers.filter((code) =>
       code === 'host-shadow-verification-incomplete'
-      || (input.hostVerification?.blockers ?? []).includes(code),
+      || hostReport.blockers.includes(code),
     ),
   };
   const body = {
@@ -370,7 +349,9 @@ export async function publishActKgV018CutoverRuntime(input: {
     dockerMemoryBytes,
     dockerMinMemoryBytes: DOCKER_MIN_MEMORY_BYTES,
     imageTag,
-    pointerHashes: observedHashes ? sealedPointerHashes : V09_POINTER_HASHES,
+    pointerHashes: Object.keys(hostReport.pointerHashes).length > 0
+      ? hostReport.pointerHashes
+      : expectedHostPointerHashes(),
     hostVerification,
     predecessors: {
       authorityReleaseId: V09_RELEASE_ID,

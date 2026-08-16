@@ -1,12 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   evaluateV018HostShadow,
+  expectedHostPointerHashes,
   hostPointerHashesFromObservation,
+  loadHostShadowVerificationReport,
   V018_FROZEN_IMAGE_TAG,
+  V018_HOST_SHADOW_CONTRACT,
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   V018_STAGED_QUALIFICATION_SHA256,
 } from '../teaching-projection/publish/v018-host-shadow';
+
+const tmpRoots: string[] = [];
+
+afterEach(() => {
+  while (tmpRoots.length > 0) rmSync(tmpRoots.pop()!, { recursive: true, force: true });
+});
 
 const readyObservation = {
   appImage: V018_FROZEN_IMAGE_TAG,
@@ -92,5 +105,54 @@ describe('v0.18 host shadow evaluation', () => {
     });
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-active-graph-not-v09');
+  });
+
+  it('loads a missing host-shadow report as incomplete', () => {
+    const result = loadHostShadowVerificationReport(path.join(tmpdir(), 'missing-host-shadow.json'));
+    expect(result).toEqual({
+      digest: null,
+      status: 'BLOCKED',
+      blockers: ['host-shadow-verification-incomplete'],
+      pointerHashes: {},
+    });
+  });
+
+  it('requires observation and frozen predecessor hashes before READY', () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-host-report-'));
+    tmpRoots.push(outputRoot);
+    const readyPath = path.join(outputRoot, 'ready.json');
+    writeFileSync(readyPath, `${JSON.stringify({
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'READY',
+      blockers: [],
+      observation: readyObservation,
+      pointerHashes: expectedHostPointerHashes(),
+    })}\n`);
+    expect(loadHostShadowVerificationReport(readyPath).status).toBe('READY');
+
+    const missingObservation = path.join(outputRoot, 'no-observation.json');
+    writeFileSync(missingObservation, `${JSON.stringify({
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'READY',
+      blockers: [],
+      pointerHashes: expectedHostPointerHashes(),
+    })}\n`);
+    const missing = loadHostShadowVerificationReport(missingObservation);
+    expect(missing.status).toBe('BLOCKED');
+    expect(missing.blockers).toContain('host-shadow-observation-missing');
+
+    const driftedPath = path.join(outputRoot, 'drifted.json');
+    writeFileSync(driftedPath, `${JSON.stringify({
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'READY',
+      blockers: [],
+      observation: readyObservation,
+      pointerHashes: Object.fromEntries(
+        Object.keys(expectedHostPointerHashes()).map((key) => [key, '0'.repeat(64)]),
+      ),
+    })}\n`);
+    const drifted = loadHostShadowVerificationReport(driftedPath);
+    expect(drifted.status).toBe('BLOCKED');
+    expect(drifted.blockers).toContain('host-pointer-hash-mismatch');
   });
 });
