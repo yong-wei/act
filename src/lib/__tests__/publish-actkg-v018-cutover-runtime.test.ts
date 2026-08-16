@@ -416,6 +416,8 @@ describe('v0.18 runtime publication', () => {
     expect(resolved.hostVerificationReport.split(path.sep).join('/')).toMatch(
       /course-content\/authoring\/knowledge\/cutover\/runtime-releases\/control-theory-engineering-v0\.18\/host-shadow-verification\.json$/,
     );
+    expect(resolved.imageTag).toBe(V018_FROZEN_IMAGE_TAG);
+    expect(resolved.frozenApplicationRevision).toBe('94d585ae63a6f1839ce611c7f8a1271df945933f');
     const override = resolveActKgV018RuntimeReleaseArgs([
       '--repo-root',
       REPO_ROOT,
@@ -423,5 +425,64 @@ describe('v0.18 runtime publication', () => {
       '/tmp/custom-host-shadow.json',
     ]);
     expect(override.hostVerificationReport).toBe('/tmp/custom-host-shadow.json');
+  });
+
+  it('fails closed when a host report is BLOCKED even if its blocker list is empty', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-empty-blocked-'));
+    roots.push(outputRoot);
+    writeHostReport(outputRoot, {
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'BLOCKED',
+      blockers: [],
+      observation: readyHostObservation(),
+      pointerHashes: HOST_HASHES,
+    });
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      imageTag: V018_FROZEN_IMAGE_TAG,
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: V018_FROZEN_IMAGE_TAG,
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-shadow-not-ready');
+    const report = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
+      status: string;
+      nextAction: string;
+      hostVerification?: { status: string };
+    };
+    expect(report.status).toBe('BLOCKED');
+    expect(report.nextAction).toBe('blocked');
+    expect(report.hostVerification?.status).toBe('BLOCKED');
+  });
+
+  it('fails closed when host observation is not this build image', async () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v018-publish-other-image-'));
+    roots.push(outputRoot);
+    writeHostReport(outputRoot, {
+      contract: V018_HOST_SHADOW_CONTRACT,
+      status: 'READY',
+      blockers: [],
+      observation: readyHostObservation(),
+      pointerHashes: HOST_HASHES,
+    });
+    const result = await publishActKgV018CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      imageTag: 'localhost/act-obe-platform:v018-deadbeefdead',
+      readDockerMemory: () => DOCKER_MIN_MEMORY_BYTES + 1,
+      runBuild: async () => ({
+        imageTag: 'localhost/act-obe-platform:v018-deadbeefdead',
+        provenancePath: null,
+        imageTarPath: null,
+      }),
+    });
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('host-app-image-not-this-build');
+    expect(result.blockers).toContain('host-worker-image-not-this-build');
   });
 });

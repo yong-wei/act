@@ -14,6 +14,8 @@ import {
 
 export const V018_HOST_SHADOW_CONTRACT = 'actkg-v018-host-shadow/v1' as const;
 export const V018_FROZEN_IMAGE_TAG = 'localhost/act-obe-platform:v018-94d585ae63a6';
+export const V018_FROZEN_APPLICATION_REVISION =
+  '94d585ae63a6f1839ce611c7f8a1271df945933f';
 export const V018_STAGED_AUTHORITY_RECEIPT_SHA256 =
   'c2f22672cc4c188dfd607183eca35e74e9c727207b0439512f3180ffed130cd3';
 export const V018_STAGED_QUALIFICATION_SHA256 =
@@ -78,6 +80,8 @@ export function loadHostShadowVerificationReport(filePath: string): {
   status: 'READY' | 'BLOCKED';
   blockers: string[];
   pointerHashes: Record<string, string>;
+  observedAppImage: string | null;
+  observedWorkerImage: string | null;
 } {
   if (!existsSync(filePath)) {
     return {
@@ -85,6 +89,8 @@ export function loadHostShadowVerificationReport(filePath: string): {
       status: 'BLOCKED',
       blockers: ['host-shadow-verification-incomplete'],
       pointerHashes: {},
+      observedAppImage: null,
+      observedWorkerImage: null,
     };
   }
   const bytes = readFileSync(filePath);
@@ -98,6 +104,8 @@ export function loadHostShadowVerificationReport(filePath: string): {
       status: 'BLOCKED',
       blockers: ['host-shadow-report-unreadable'],
       pointerHashes: {},
+      observedAppImage: null,
+      observedWorkerImage: null,
     };
   }
   const blockers: string[] = [];
@@ -117,8 +125,12 @@ export function loadHostShadowVerificationReport(filePath: string): {
   if (Object.keys(pointerHashes).length !== Object.keys(expected).length) {
     blockers.push('host-pointer-hashes-incomplete');
   }
+  let observedAppImage: string | null = null;
+  let observedWorkerImage: string | null = null;
   if (record.observation && typeof record.observation === 'object') {
     const observation = record.observation as HostShadowObservation;
+    observedAppImage = typeof observation.appImage === 'string' ? observation.appImage : null;
+    observedWorkerImage = typeof observation.workerImage === 'string' ? observation.workerImage : null;
     const derived = hostPointerHashesFromObservation(observation);
     const derivedKeys = Object.keys(derived).sort();
     const sealedKeys = Object.keys(pointerHashes).sort();
@@ -136,7 +148,7 @@ export function loadHostShadowVerificationReport(filePath: string): {
   blockers.push(...fileBlockers);
   const unique = [...new Set(blockers)].sort();
   const status = record.status === 'READY' && unique.length === 0 ? 'READY' as const : 'BLOCKED' as const;
-  return { digest, status, blockers: unique, pointerHashes };
+  return { digest, status, blockers: unique, pointerHashes, observedAppImage, observedWorkerImage };
 }
 
 export function hostPointerHashesFromObservation(

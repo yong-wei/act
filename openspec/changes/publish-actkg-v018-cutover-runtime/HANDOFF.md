@@ -6,7 +6,7 @@
 
 ## 一句话
 
-`#1411` 继续由 `act-dev1` 执行。正式 `publish-actkg-v018-cutover-runtime` 读取并校验密封 `host-shadow-verification.json`，不再接受注入的 `hostVerification`。当前收据 `status=BLOCKED`，`receiptDigest=2d6df2911df63d…`，blocker 是生产缺少 shards current.json。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
+`#1411` 继续由 `act-dev1` 执行。正式入口读取密封 host-shadow 报告，非 READY 不能封出顶层 READY，主机镜像必须等于本次 `imageTag`。当前收据 `status=BLOCKED`，`receiptDigest=22ed2216640ad5…`，blocker 含生产缺少 shards current.json。不要认领 #1405。完成 3.3/3.4 后再领 #1412。
 
 ## 认领真源（手工修复后）
 

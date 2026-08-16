@@ -322,17 +322,17 @@ export async function publishActKgV018CutoverRuntime(input: {
     ?? path.join(outputRoot, 'host-shadow-verification.json'),
   );
   const hostReport = loadHostShadowVerificationReport(hostReportPath);
+  if (hostReport.status !== 'READY') blockers.push('host-shadow-not-ready');
   blockers.push(...hostReport.blockers);
+  if (hostReport.observedAppImage !== imageTag) blockers.push('host-app-image-not-this-build');
+  if (hostReport.observedWorkerImage !== imageTag) blockers.push('host-worker-image-not-this-build');
   const uniqueBlockers = [...new Set(blockers)].sort();
   const hostVerification = {
     status: hostReport.status === 'READY' && uniqueBlockers.length === 0
       ? 'READY' as const
       : 'BLOCKED' as const,
     digest: hostReport.digest,
-    blockers: uniqueBlockers.filter((code) =>
-      code === 'host-shadow-verification-incomplete'
-      || hostReport.blockers.includes(code),
-    ),
+    blockers: uniqueBlockers.filter((code) => code.startsWith('host-')),
   };
   const body = {
     contract: V018_RUNTIME_RELEASE_CONTRACT,

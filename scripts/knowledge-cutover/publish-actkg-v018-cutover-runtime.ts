@@ -10,6 +10,10 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
+  V018_FROZEN_APPLICATION_REVISION,
+  V018_FROZEN_IMAGE_TAG,
+} from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+import {
   publishActKgV018CutoverRuntime,
 } from '../../src/lib/teaching-projection/publish/v018-runtime-release';
 
@@ -22,13 +26,13 @@ export function resolveActKgV018RuntimeReleaseArgs(argv: readonly string[] = pro
   repoRoot: string;
   outputRoot?: string;
   qualificationReport?: string;
-  imageTag?: string;
+  imageTag: string;
+  frozenApplicationRevision: string;
   hostVerificationReport: string;
 } {
   const repoRoot = option(argv, '--repo-root') ?? process.cwd();
   const outputRoot = option(argv, '--output-root');
   const qualificationReport = option(argv, '--qualification-report');
-  const imageTag = option(argv, '--image-tag');
   const defaultOutputRoot = path.join(
     repoRoot,
     'course-content/authoring/knowledge/cutover/runtime-releases/control-theory-engineering-v0.18',
@@ -37,7 +41,9 @@ export function resolveActKgV018RuntimeReleaseArgs(argv: readonly string[] = pro
     repoRoot,
     outputRoot,
     qualificationReport,
-    imageTag,
+    imageTag: option(argv, '--image-tag') ?? V018_FROZEN_IMAGE_TAG,
+    frozenApplicationRevision: option(argv, '--frozen-application-revision')
+      ?? V018_FROZEN_APPLICATION_REVISION,
     hostVerificationReport: option(argv, '--host-verification-report')
       ?? path.join(outputRoot ?? defaultOutputRoot, 'host-shadow-verification.json'),
   };
@@ -57,6 +63,7 @@ export async function prepareActKgV018RuntimeRelease(
     outputRoot,
     qualificationReport,
     imageTag,
+    frozenApplicationRevision,
     hostVerificationReport,
   } = resolveActKgV018RuntimeReleaseArgs(argv);
   const result = await publishActKgV018CutoverRuntime({
@@ -64,6 +71,7 @@ export async function prepareActKgV018RuntimeRelease(
     outputRoot,
     qualificationReport,
     imageTag,
+    frozenApplicationRevision,
     hostVerificationReport,
     runBuild: async ({ repoRoot: root, imageTag: tag }) => {
       execFileSync('bash', [path.join(root, 'scripts/build.sh')], {

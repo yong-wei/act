@@ -114,6 +114,8 @@ describe('v0.18 host shadow evaluation', () => {
       status: 'BLOCKED',
       blockers: ['host-shadow-verification-incomplete'],
       pointerHashes: {},
+      observedAppImage: null,
+      observedWorkerImage: null,
     });
   });
 
