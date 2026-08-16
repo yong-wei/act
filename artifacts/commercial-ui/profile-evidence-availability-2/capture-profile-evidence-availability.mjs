@@ -35,7 +35,8 @@ function statusPaths() {
 
 async function sourceHashes() {
   return Object.fromEntries(await Promise.all(boundInputs.map(async (input) => {
-    const bytes = await readFile(join(repositoryRoot, input));
+    // Hash committed Git bytes so evidence is stable across checkout line endings.
+    const bytes = execFileSync('git', ['show', `HEAD:${input}`], { cwd: repositoryRoot });
     return [input, createHash('sha256').update(bytes).digest('hex')];
   })));
 }
