@@ -4,7 +4,8 @@ Status: **executed 2026-08-16**. Receipt digest `b2017b5339353ffc755f53a7aa4cb35
 
 Plan digest: `8fec8dc2b179e6a3b47e9f92d68325d69498ac9d2cfd8dce7ce372f25276630d`  
 Machine-readable plan: `unused-oss-runtime-retirement-plan-20260816.json`  
-Serving proof: `unused-oss-runtime-retirement-serving-proof-20260816.json`
+Serving proof: `unused-oss-runtime-retirement-serving-proof-20260816.json`  
+Execution attestation: `unused-oss-runtime-retirement-attestation-20260816.json` (executed Git revision `0b45d48399ba508c8210efb6d436265269e1ef9f`)
 
 ## Serving fence
 
@@ -49,16 +50,18 @@ The adapter still includes unreachable-blob deletion so a later execute or a lat
 
 ## Execute command that was used
 
+The production deletion ran on adapter revision `0b45d48399ba508c8210efb6d436265269e1ef9f`. That revision did not yet bind a clean Git revision or lifecycle generation/digest. Later adapter revisions must not be presented as the executor of this deletion.
+
 ```bash
-/Users/YW/.local/bin/act-runtime-publisher python3 scripts/runtime-release/retire-unused-oss-runtime.py execute \
+act-runtime-publisher python3 scripts/runtime-release/retire-unused-oss-runtime.py execute \
   --bucket act-course-assets \
   --expected-active-release runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689 \
   --expected-rollback-release runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6 \
   --serving-proof artifacts/runtime-release/unused-oss-runtime-retirement-serving-proof-20260816.json \
-  --ossutil-path /Users/YW/.local/opt/act-runtime-publisher/bin/ossutil \
+  --ossutil-path act-runtime-publisher/ossutil \
   --plan artifacts/runtime-release/unused-oss-runtime-retirement-plan-20260816.json \
   --authorize-unused-oss-runtime-deletion yes \
   --receipt-output artifacts/runtime-release/unused-oss-runtime-retirement-receipt-20260816.json
 ```
 
-Execute rebuilds the plan and refuses to delete if the live object set or serving identities drifted.
+Later adapters rebuild the plan and refuse to delete if the live object set, serving identities, lifecycle generation/digest, or clean Git revision drifted.

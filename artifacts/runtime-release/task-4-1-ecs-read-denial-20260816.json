@@ -41,12 +41,11 @@
     }
   ],
   "localPublisher": {
-    "launcher": "/Users/YW/.local/bin/act-runtime-publisher",
-    "principalArn": "acs:ram::1444654551628953:user/act-runtime-publisher-local",
-    "accountId": "1444654551628953",
-    "credentialStore": "macOS keychain via launcher; credentials are not written to the repository, .env, scripts, or release artifacts",
+    "tool": "act-runtime-publisher",
+    "principal": "act-runtime-publisher-local",
+    "credentialStore": "platform-keychain-via-launcher; credentials are not written to the repository, .env, scripts, or release artifacts",
     "ossutilSha256": "8c84259d886e131646150535935faa94ef7ac5af9c14ce7486fde41c364389f1",
     "identityCommandSha256": "7a418ea428dcbfeaab2af8760938aeda8d2f16bd77b586cbe4c75b07034df8fb",
-    "knownHosts": "/Users/YW/.local/state/act-runtime-publisher/known_hosts"
+    "knownHosts": "launcher-managed"
   }
 }

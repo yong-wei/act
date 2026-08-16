@@ -18,8 +18,8 @@
 - `plan` 是默认动作，只列举和 HEAD/GET，不删除。
 - 删除范围仅限 `runtime/releases/` 与不可达的 `runtime/blobs/sha256/<sha>`。
 - 永不删除 `runtime/blob-releases/` 的 manifest/receipt，也不删除受保护 release 能到达的 blob。
-- `plan` / `execute` 必须持有 `--state-dir` 的 lifecycle 锁，保护集只来自 desired/active/rollback/publishing/retained，并绑定 `lifecycleGeneration` 与 `lifecycleSha256`。serving proof 只证明生产仍在服务该 active/rollback，不能手填扩大或缩小保护集。
-- `execute` 必须带 `--authorize-unused-oss-runtime-deletion yes`，并与已审查 plan 的 `planSha256` 完全一致；任一身份、对象集、lifecycle 或 serving proof 漂移都失败关闭。
+- `plan` / `execute` 必须持有 `--state-dir` 的 lifecycle 锁，保护集只来自 desired/active/rollback/publishing/retained，并绑定 `lifecycleGeneration` 与 `lifecycleSha256`。serving proof、plan 与 receipt 必须捕获并校验同一干净 Git 修订；脏工作区失败关闭。serving proof 只证明生产仍在服务该 active/rollback，不能手填扩大或缩小保护集。
+- `execute` 必须带 `--authorize-unused-oss-runtime-deletion yes`，并与已审查 plan 的 `planSha256` 完全一致；任一身份、对象集、lifecycle、Git 修订或 serving proof 漂移都失败关闭。
 
 ## 当前生产部署合同
 

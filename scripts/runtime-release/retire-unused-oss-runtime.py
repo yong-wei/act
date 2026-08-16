@@ -27,6 +27,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 
 ROOT = Path(__file__).resolve().parent
+REPO_ROOT = ROOT.parent.parent
+ADAPTER_RELPATH = "scripts/runtime-release/retire-unused-oss-runtime.py"
 
 
 def load_module(name: str, filename: str):
@@ -50,6 +52,7 @@ BLOB_PREFIX = "runtime/blobs/sha256/"
 BLOB_RELEASE_PREFIX = "runtime/blob-releases/"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
+FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
 
@@ -97,6 +100,44 @@ def require_release_id(value: str, label: str) -> str:
     if not isinstance(value, str) or not RELEASE_ID.fullmatch(value):
         fail("%s is not a valid release id" % label)
     return value
+
+
+def require_git_revision(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not FULL_SHA.fullmatch(value):
+        fail("%s is missing or not a full git revision" % label)
+    return value
+
+
+def repo_root_from_args(args: argparse.Namespace) -> Path:
+    raw = getattr(args, "repo_root", None)
+    return Path(raw).resolve() if raw else REPO_ROOT
+
+
+def run_git(repo: Path, extra: Sequence[str]) -> bytes:
+    process = subprocess.run(
+        ["git", "-C", str(repo), *extra],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if process.returncode != 0:
+        fail("git %s failed: %s" % (" ".join(extra), process.stderr.decode("utf-8", errors="replace").strip()))
+    return process.stdout
+
+
+def capture_clean_git_revision(repo: Path) -> str:
+    git_dir = repo / ".git"
+    if not git_dir.exists():
+        fail("repository root is not a git worktree")
+    revision = run_git(repo, ["rev-parse", "--verify", "HEAD"]).decode("utf-8").strip()
+    require_git_revision(revision, "HEAD")
+    if run_git(repo, ["status", "--porcelain", "--untracked-files=all"]).strip():
+        fail("worktree is dirty; refuse unused-object retirement")
+    tracked = run_git(repo, ["show", "%s:%s" % (revision, ADAPTER_RELPATH)])
+    running = Path(__file__).resolve().read_bytes()
+    if hashlib.sha256(tracked).digest() != hashlib.sha256(running).digest():
+        fail("running retirement adapter does not match git revision %s" % revision)
+    return revision
 
 
 def require_key(value: str) -> str:
@@ -290,6 +331,7 @@ def parse_serving_proof(path: Path, expected_active: str, expected_rollback: str
         protected_ids = sorted({require_release_id(item, "protectedReleaseIds") for item in protected})
     if active not in protected_ids or rollback not in protected_ids:
         fail("protected release set must include active and rollback")
+    revision = require_git_revision(raw.get("gitRevision"), "serving proof.gitRevision")
     proof = {
         "schemaVersion": PROOF_SCHEMA,
         "mode": "v2",
@@ -298,6 +340,7 @@ def parse_serving_proof(path: Path, expected_active: str, expected_rollback: str
         "readyzHttpStatus": 200,
         "v1OssfsMounted": False,
         "protectedReleaseIds": protected_ids,
+        "gitRevision": revision,
     }
     return dict(proof, servingProofSha256=digest(proof))
 
@@ -372,6 +415,9 @@ def protected_lifecycle_state(state_dir: Path) -> Dict[str, Any]:
 
 def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
     proof = parse_serving_proof(Path(args.serving_proof), args.expected_active_release, args.expected_rollback_release)
+    revision = capture_clean_git_revision(repo_root_from_args(args))
+    if proof["gitRevision"] != revision:
+        fail("serving proof gitRevision does not match the clean worktree HEAD")
     state = protected_lifecycle_state(Path(args.state_dir))
     if state["rollbackReleaseId"] is None:
         fail("lifecycle has no rollback root; refuse unused-object retirement")
@@ -409,6 +455,7 @@ def build_plan(args: argparse.Namespace) -> Dict[str, Any]:
     base = {
         "schemaVersion": PLAN_SCHEMA,
         "bucket": args.bucket,
+        "gitRevision": revision,
         "expectedActiveRelease": proof["activeReleaseId"],
         "expectedRollbackRelease": proof["rollbackReleaseId"],
         "lifecycleGeneration": state["generation"],
@@ -489,9 +536,12 @@ def execute(args: argparse.Namespace) -> Dict[str, Any]:
         if missing_protected:
             fail("a protected blob is missing after deletion")
         leftover_blob_releases = transport.list_objects(BLOB_RELEASE_PREFIX)
+        if planned.get("gitRevision") != rebuilt["gitRevision"]:
+            fail("git revision drifted after the plan fence")
         base = {
             "schemaVersion": RECEIPT_SCHEMA,
             "planSha256": planned["planSha256"],
+            "gitRevision": planned["gitRevision"],
             "lifecycleGeneration": planned["lifecycleGeneration"],
             "lifecycleSha256": planned["lifecycleSha256"],
             "protectedReleaseIds": planned["protectedReleaseIds"],
@@ -515,6 +565,7 @@ def add_shared_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--expected-rollback-release", required=True)
     parser.add_argument("--serving-proof", required=True)
     parser.add_argument("--ossutil-path", required=True)
+    parser.add_argument("--repo-root", default=str(REPO_ROOT))
     parser.add_argument("--endpoint", default="oss-cn-hangzhou.aliyuncs.com")
     parser.add_argument("--region", default="cn-hangzhou")
 
@@ -547,6 +598,7 @@ def main() -> None:
         "deletedV1ObjectCount": result.get("deletedV1ObjectCount"),
         "deletedUnreachableBlobCount": result.get("deletedUnreachableBlobCount"),
         "protectedReleaseIds": result.get("protectedReleaseIds"),
+        "gitRevision": result.get("gitRevision"),
         "protectedBlobCount": result.get("protectedBlobCount") or result.get("remainingProtectedBlobCount"),
         "protectedBlobBytes": result.get("protectedBlobBytes"),
         "unreachableBlobCount": result.get("unreachableBlobCount"),
