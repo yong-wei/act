@@ -314,6 +314,7 @@ async function main() {
       `official_rows=${officialCount.rows[0]?.count}`,
       `unofficial_rows=${unofficialCount.rows[0]?.count}`,
       'order_closer=submission-earlier',
+      'lease=prisma-lockedUntil',
     ].join('\n') + '\n');
   } catch (error) {
     if (required) throw error;

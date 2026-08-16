@@ -1,0 +1,2 @@
+ALTER TABLE "ArenaOfficialSubmitReservation"
+ADD COLUMN "lockedUntil" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

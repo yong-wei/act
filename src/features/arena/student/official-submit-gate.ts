@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import pg from 'pg';
+export const OFFICIAL_SUBMIT_LEASE_TTL = '30 seconds';
+export const OFFICIAL_SUBMIT_LEASE_REFRESH_MS = 10_000;
 
 export interface OfficialSubmitGateDb {
   $executeRaw?(strings: TemplateStringsArray, ...values: unknown[]): Promise<number>;
@@ -26,10 +27,6 @@ export function officialArenaSubmitScopeKey(input: {
   return `arena-official-submit:${input.userId}:${input.taskId}:${normalizeOfficialSubmitClassId(input.classId)}`;
 }
 
-export function officialArenaSubmitLeaseKey(reservationId: string): string {
-  return `arena-official-lease:${reservationId}`;
-}
-
 export function normalizeOfficialSubmitClassId(classId?: string | null): string {
   return classId ?? '';
 }
@@ -44,51 +41,52 @@ export async function reserveOfficialArenaSubmissionOrder(input: {
   const reservation = { id: randomUUID(), submittedAt: new Date().toISOString() };
   if (typeof input.db.$transaction !== 'function') return reservation;
 
-  const lease = input.acquireLease === false
-    ? undefined
-    : await acquireOfficialSubmitReservationLease(reservation.id);
-  try {
-    const reserved = await input.db.$transaction(async (tx) => {
-      if (typeof tx.$executeRaw !== 'function' || typeof tx.$queryRaw !== 'function') {
-        return reservation;
-      }
-      const classId = normalizeOfficialSubmitClassId(input.classId);
-      await tx.$executeRaw`
-        SELECT pg_advisory_xact_lock(hashtextextended(${officialArenaSubmitScopeKey(input)}, 0))
-      `;
-      const stamped = await tx.$queryRaw<Array<{ submitted_at: Date | string }>>`
-        SELECT GREATEST(
-          date_trunc('milliseconds', clock_timestamp())::timestamp,
-          COALESCE(
-            (
-              SELECT MAX("submittedAt") + INTERVAL '1 millisecond'
-              FROM "ArenaOfficialSubmitReservation"
-              WHERE "userId" = ${input.userId}
-                AND "taskId" = ${input.taskId}
-                AND "classId" = ${classId}
-            ),
-            '-infinity'::timestamp
-          )
-        ) AS submitted_at
-      `;
-      const submittedAt = toIsoTimestamp(stamped[0]?.submitted_at);
-      await tx.$executeRaw`
-        INSERT INTO "ArenaOfficialSubmitReservation" ("id", "userId", "taskId", "classId", "submittedAt")
-        VALUES (
-          ${reservation.id},
-          ${input.userId},
-          ${input.taskId},
-          ${classId},
-          ${new Date(submittedAt)}
+  const reserved = await input.db.$transaction(async (tx) => {
+    if (typeof tx.$executeRaw !== 'function' || typeof tx.$queryRaw !== 'function') {
+      return reservation;
+    }
+    const classId = normalizeOfficialSubmitClassId(input.classId);
+    await tx.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtextextended(${officialArenaSubmitScopeKey(input)}, 0))
+    `;
+    const stamped = await tx.$queryRaw<Array<{ submitted_at: Date | string }>>`
+      SELECT GREATEST(
+        date_trunc('milliseconds', clock_timestamp())::timestamp,
+        COALESCE(
+          (
+            SELECT MAX("submittedAt") + INTERVAL '1 millisecond'
+            FROM "ArenaOfficialSubmitReservation"
+            WHERE "userId" = ${input.userId}
+              AND "taskId" = ${input.taskId}
+              AND "classId" = ${classId}
+          ),
+          '-infinity'::timestamp
         )
-      `;
-      return { id: reservation.id, submittedAt };
-    });
-    return { ...reserved, lease };
-  } catch (error) {
-    await lease?.release().catch(() => undefined);
-    throw error;
-  }
+      ) AS submitted_at
+    `;
+    const submittedAt = toIsoTimestamp(stamped[0]?.submitted_at);
+    await tx.$executeRaw`
+      INSERT INTO "ArenaOfficialSubmitReservation" (
+        "id", "userId", "taskId", "classId", "submittedAt", "lockedUntil"
+      )
+      VALUES (
+        ${reservation.id},
+        ${input.userId},
+        ${input.taskId},
+        ${classId},
+        ${new Date(submittedAt)},
+        NOW() + (${OFFICIAL_SUBMIT_LEASE_TTL}::interval)
+      )
+    `;
+    return { id: reservation.id, submittedAt };
+  });
+
+  return {
+    ...reserved,
+    lease: input.acquireLease === false
+      ? undefined
+      : startOfficialSubmitLeaseRefresh(input.db, reserved.id),
+  };
 }
 
 export async function attachOfficialArenaSubmissionReservation(input: {
@@ -129,8 +127,12 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
   submittedAt: Date | string;
 }): Promise<boolean> {
   if (typeof input.db.$queryRaw !== 'function') return false;
-  const rows = await input.db.$queryRaw<Array<{ id: string; submissionId: string | null }>>`
-    SELECT id, "submissionId"
+  const rows = await input.db.$queryRaw<Array<{
+    id: string;
+    submissionId: string | null;
+    lockedUntil: Date | string;
+  }>>`
+    SELECT id, "submissionId", "lockedUntil"
     FROM "ArenaOfficialSubmitReservation"
     WHERE "userId" = ${input.userId}
       AND "taskId" = ${input.taskId}
@@ -143,61 +145,43 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
 
   for (const row of rows) {
     if (row.submissionId) return true;
-    if (await isLiveOfficialSubmitReservation(input.db, row.id)) return true;
-  }
-  return false;
-}
-
-async function isLiveOfficialSubmitReservation(db: OfficialSubmitGateDb, reservationId: string): Promise<boolean> {
-  if (typeof db.$queryRaw !== 'function') return true;
-  const leaseKey = officialArenaSubmitLeaseKey(reservationId);
-  const lock = await db.$queryRaw<Array<{ locked?: boolean | null }>>`
-    SELECT pg_try_advisory_lock(hashtextextended(${leaseKey}, 0)) AS locked
-  `;
-  if (lock[0]?.locked !== true) return true;
-  try {
-    if (typeof db.$executeRaw === 'function') {
-      await db.$executeRaw`
+    const lockedUntil = toDate(row.lockedUntil).getTime();
+    if (!Number.isFinite(lockedUntil) || lockedUntil > Date.now()) return true;
+    if (typeof input.db.$executeRaw === 'function') {
+      await input.db.$executeRaw`
         DELETE FROM "ArenaOfficialSubmitReservation"
-        WHERE id = ${reservationId}
+        WHERE id = ${row.id}
           AND "submissionId" IS NULL
+          AND "lockedUntil" <= NOW()
       `;
     }
-  } finally {
-    await db.$queryRaw`
-      SELECT pg_advisory_unlock(hashtextextended(${leaseKey}, 0))
-    `;
   }
   return false;
 }
 
-async function acquireOfficialSubmitReservationLease(reservationId: string): Promise<OfficialSubmitReservationLease> {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required to reserve an official Arena submission.');
-  }
-  const client = new pg.Client({ connectionString: databaseUrl });
-  await client.connect();
-  try {
-    await client.query('SELECT pg_advisory_lock(hashtextextended($1, 0))', [
-      officialArenaSubmitLeaseKey(reservationId),
-    ]);
-  } catch (error) {
-    await client.end().catch(() => undefined);
-    throw error;
-  }
+function startOfficialSubmitLeaseRefresh(
+  db: OfficialSubmitGateDb,
+  reservationId: string,
+): OfficialSubmitReservationLease {
+  const refresh = async () => {
+    if (typeof db.$executeRaw !== 'function') return;
+    await db.$executeRaw`
+      UPDATE "ArenaOfficialSubmitReservation"
+      SET "lockedUntil" = NOW() + (${OFFICIAL_SUBMIT_LEASE_TTL}::interval)
+      WHERE id = ${reservationId}
+        AND "submissionId" IS NULL
+    `;
+  };
+  const timer = setInterval(() => {
+    void refresh().catch(() => undefined);
+  }, OFFICIAL_SUBMIT_LEASE_REFRESH_MS);
+  timer.unref?.();
   let released = false;
   return {
     async release() {
       if (released) return;
       released = true;
-      try {
-        await client.query('SELECT pg_advisory_unlock(hashtextextended($1, 0))', [
-          officialArenaSubmitLeaseKey(reservationId),
-        ]);
-      } finally {
-        await client.end().catch(() => undefined);
-      }
+      clearInterval(timer);
     },
   };
 }

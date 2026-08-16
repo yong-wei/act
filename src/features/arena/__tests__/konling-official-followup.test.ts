@@ -230,7 +230,11 @@ describe('Arena official Konling followup', () => {
 
   it('does not let a later persisted submission close the round while an earlier reserved successor is pending', async () => {
     const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
-    const queryRaw = vi.fn().mockResolvedValue([{ id: 'reservation-s2' }]);
+    const queryRaw = vi.fn().mockResolvedValue([{
+      id: 'reservation-s2',
+      submissionId: null,
+      lockedUntil: new Date(Date.now() + 30_000),
+    }]);
     const executeRaw = vi.fn().mockResolvedValue(1);
     const db = {
       aIIntervention: {

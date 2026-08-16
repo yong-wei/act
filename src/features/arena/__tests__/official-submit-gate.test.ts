@@ -67,7 +67,11 @@ describe('official Arena submit gate', () => {
   });
 
   it('treats an earlier pending reservation as the next official successor', async () => {
-    const queryRaw = vi.fn().mockResolvedValue([{ id: 'res-earlier' }]);
+    const queryRaw = vi.fn().mockResolvedValue([{
+      id: 'res-earlier',
+      submissionId: null,
+      lockedUntil: new Date(Date.now() + 30_000),
+    }]);
 
     await expect(hasEarlierOfficialSubmitSuccessor({
       db: { $queryRaw: queryRaw },
@@ -76,5 +80,23 @@ describe('official Arena submit gate', () => {
       baselineAt: '2026-08-17T00:00:00.000Z',
       submittedAt: '2026-08-17T00:00:02.000Z',
     })).resolves.toBe(true);
+  });
+
+  it('expires a pending reservation whose lease is no longer locked', async () => {
+    const queryRaw = vi.fn().mockResolvedValue([{
+      id: 'res-stale',
+      submissionId: null,
+      lockedUntil: new Date('2000-01-01T00:00:00.000Z'),
+    }]);
+    const executeRaw = vi.fn().mockResolvedValue(1);
+
+    await expect(hasEarlierOfficialSubmitSuccessor({
+      db: { $queryRaw: queryRaw, $executeRaw: executeRaw },
+      userId: 'student-1',
+      taskId: 'task-1',
+      baselineAt: '2026-08-17T00:00:00.000Z',
+      submittedAt: '2026-08-17T00:00:02.000Z',
+    })).resolves.toBe(false);
+    expect(executeRaw).toHaveBeenCalled();
   });
 });
