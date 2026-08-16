@@ -59,6 +59,28 @@ describe('profile portfolio evidence projections', () => {
     expect(JSON.stringify(rows)).not.toContain('trajectoryData');
   });
 
+  it('projects PID parameters from the persisted Odyssey snapshot shape', () => {
+    const rows = buildSimulationPortfolioDesigns([
+      {
+        id: 'simulation-odyssey-1',
+        controlMode: 'GAME',
+        inputParams: {
+          replaySnapshotVersion: 1,
+          pidParams: { kp: 2.4, ki: 0.15, kd: 0.8 },
+          trajectoryData: 'private-trajectory',
+        },
+        score: 91,
+        createdAt: new Date('2026-08-16T02:30:00.000Z'),
+      },
+    ]);
+
+    expect(rows[0]).toEqual(expect.objectContaining({
+      id: 'simulation-odyssey-1',
+      parameters: { kp: 2.4, ki: 0.15, kd: 0.8 },
+    }));
+    expect(JSON.stringify(rows)).not.toContain('private-trajectory');
+  });
+
   it('keeps ethics remediation state visible', () => {
     const rows = buildEthicsPortfolioCases([
       {

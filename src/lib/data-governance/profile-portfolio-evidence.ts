@@ -110,9 +110,10 @@ export function buildSimulationPortfolioDesigns(
 ): SimulationPortfolioDesign[] {
   return rows.slice(0, 5).map((row) => {
     const inputParams = record(row.inputParams);
+    const pidParams = record(inputParams.pidParams);
     const parameters = Object.fromEntries(
       SAFE_SIMULATION_PARAMETER_KEYS.flatMap((key) => {
-        const value = numberValue(inputParams[key]);
+        const value = numberValue(pidParams[key] ?? inputParams[key]);
         return value === null ? [] : [[key, value] as const];
       }),
     );
