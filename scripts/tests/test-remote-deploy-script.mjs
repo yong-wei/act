@@ -478,8 +478,28 @@ function main() {
         < script.indexOf('rsync "${runtime_rsync_args[@]}"'),
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
+  assert.match(
+    script,
+    /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n(?:  #[^\n]*\n)*  guard_no_committed_production_cutover\nfi/,
+    'cutover marker 门禁只能挡住会 rsync 删除 selector 的 legacy-rsync',
+  );
+  assert.match(
+    script,
+    /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n  check_remote_authority_current_pointer_absence\nfi/,
+    '部署前 host Authority pointer 门禁只能挡住 legacy-rsync',
+  );
+  const blobViewVerify = script.slice(
+    script.indexOf('log "- 校验远端已物化 blob-view'),
+    script.indexOf('log "- 校验远端 runtime 目录"'),
+  );
+  assert.match(blobViewVerify, /check_remote_blob_view/);
+  assert.doesNotMatch(
+    blobViewVerify,
+    /guard_no_committed_production_cutover|check_remote_authority_current_pointer_absence/,
+    '默认 ossfs-blob-view 验收不得因 Legacy cutover/authority 门禁失败',
+  );
   assert.ok(
-    (script.match(/check_remote_runtime_pointer_absence\n\s*(?:check_remote_authority_current_pointer_absence\n\s*)?remote "node /g) ?? []).length >= 2,
+    (script.match(/check_remote_runtime_pointer_absence(?:[^\n]*\n){0,6}?\s*remote "node /g) ?? []).length >= 2,
     'runtime 切换后及最终 remote runtime 验证都必须断言三个 production pointer 均不存在',
   );
 

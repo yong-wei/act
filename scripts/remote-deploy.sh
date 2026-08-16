@@ -574,10 +574,12 @@ fi
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
 log "本地 SHA256: ${LOCAL_SHA}"
 
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  # This command deliberately removes activation pointers from runtime syncs.
+if [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  # Legacy rsync deliberately removes activation pointers from runtime syncs.
   # A committed production cutover must stop here, before it opens any remote
-  # staging directory or stops an active graph consumer.
+  # staging directory or stops an active graph consumer. blob-view and
+  # ossfs-release do not rsync runtime, so this Legacy-only gate must not
+  # abort the default production path.
   guard_no_committed_production_cutover
 fi
 
@@ -592,7 +594,7 @@ fi
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
 remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
+if [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
   check_remote_authority_current_pointer_absence
 fi
 
@@ -821,13 +823,14 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
     log "- 校验远端已物化 blob-view（不按镜像 provenance 重核 runtime）"
     check_remote_blob_view
-    check_remote_authority_current_pointer_absence
   else
     log "- 校验远端 runtime 目录"
     remote "test -d '${REMOTE_RUNTIME_DIR}'"
     check_remote_textbook_v2_files
     check_remote_runtime_pointer_absence
-    check_remote_authority_current_pointer_absence
+    if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+      check_remote_authority_current_pointer_absence
+    fi
     remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
       --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
       --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
