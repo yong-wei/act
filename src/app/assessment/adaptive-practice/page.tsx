@@ -230,7 +230,19 @@ interface LearningPathRoundResponse {
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-type PathOptionView = AdaptivePathOptionWriteOption & { batchId?: string; candidateId?: string };
+type PathOptionView = AdaptivePathOptionWriteOption & {
+  batchId?: string;
+  candidateId?: string;
+  checkpointNodeIds?: string[];
+  summaryFactAvailability?: {
+    nodeIds: boolean;
+    resourceMix: boolean;
+    readinessSummary: boolean;
+    checkpointNodeIds: boolean;
+    lockedNodeIds: boolean;
+    terminalValidationNodeIds: boolean;
+  };
+};
 type PathRecommendationProvenanceEntry = NonNullable<
   AdaptivePathOptionWriteOption['recommendationProvenance']
 >['entries'][number];
@@ -1641,11 +1653,15 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     const option = getRecord(item);
     const effort = getRecord(option.effort);
     const terminalValidationStrategy = getRecord(option.terminalValidationStrategy);
+    const hasResourceMix = typeof option.resourceMix === 'object'
+      && option.resourceMix !== null
+      && !Array.isArray(option.resourceMix);
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
       nodeIds: getStringArray(option.nodeIds),
       activeNodeIds: getStringArray(option.activeNodeIds),
+      checkpointNodeIds: getStringArray(option.checkpointNodeIds),
       nodeSummaries: Array.isArray(option.nodeSummaries)
         ? option.nodeSummaries.map((item) => {
             const summary = getRecord(item);
@@ -1704,6 +1720,14 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
       recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
+      summaryFactAvailability: {
+        nodeIds: Array.isArray(option.nodeIds),
+        resourceMix: hasResourceMix,
+        readinessSummary: Array.isArray(option.readinessSummary),
+        checkpointNodeIds: Array.isArray(option.checkpointNodeIds),
+        lockedNodeIds: Array.isArray(option.lockedNodeIds),
+        terminalValidationNodeIds: Array.isArray(option.terminalValidationNodeIds),
+      },
     };
   });
 }
@@ -2094,19 +2118,24 @@ function CandidateBatchComparisonWorkspace({
     duration: typeof option.effort.estimatedMinutes === 'number'
       ? String(option.effort.estimatedMinutes)
       : null,
-    readiness: option.readinessSummary.length > 0
+    nodeCount: option.summaryFactAvailability?.nodeIds
+      ? String(option.nodeIds?.length ?? 0)
+      : null,
+    readiness: option.summaryFactAvailability?.readinessSummary
       ? JSON.stringify([...option.readinessSummary].sort((left, right) => left.nodeId.localeCompare(right.nodeId)))
       : null,
-    resourceMix: Object.keys(option.resourceMix).length > 0
+    resourceMix: option.summaryFactAvailability?.resourceMix
       ? JSON.stringify(Object.entries(option.resourceMix).sort(([left], [right]) => left.localeCompare(right)))
       : null,
-    checkpoints: JSON.stringify(
-      (option.nodeSummaries ?? [])
-        .filter((node) => node.pathNodeType === 'checkpoint')
-        .map((node) => node.nodeId)
-        .sort(),
-    ),
-    terminalValidation: JSON.stringify([...option.terminalValidationNodeIds].sort()),
+    checkpoints: option.summaryFactAvailability?.checkpointNodeIds
+      ? JSON.stringify([...(option.checkpointNodeIds ?? [])].sort())
+      : null,
+    lockedNodes: option.summaryFactAvailability?.lockedNodeIds
+      ? JSON.stringify([...option.lockedNodeIds].sort())
+      : null,
+    terminalValidation: option.summaryFactAvailability?.terminalValidationNodeIds
+      ? JSON.stringify([...option.terminalValidationNodeIds].sort())
+      : null,
   }));
   const hasNoDifference = (dimension: keyof (typeof summaryFacts)[number]) => (
     summaryFacts.length > 1
@@ -2145,10 +2174,12 @@ function CandidateBatchComparisonWorkspace({
                 <h4 className="break-words text-sm font-semibold text-foreground">{option.label}</h4>
                 <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
                   <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.readinessSummary.length > 0 ? `${option.readinessSummary.length} 个节点已提供准备度` : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '数据不足'}{noDifferenceLabel('resourceMix')}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.nodeSummaries?.filter((node) => node.pathNodeType === 'checkpoint').length ? `${option.nodeSummaries.filter((node) => node.pathNodeType === 'checkpoint').length} 个检查点` : '无'}{noDifferenceLabel('checkpoints')}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无'}{noDifferenceLabel('terminalValidation')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">路径节点数：</dt><dd className="inline">{option.summaryFactAvailability?.nodeIds ? `${option.nodeIds?.length ?? 0} 个节点` : '数据不足'}{noDifferenceLabel('nodeCount')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.summaryFactAvailability?.readinessSummary ? (option.readinessSummary.length > 0 ? `${option.readinessSummary.length} 个节点已提供准备度` : '无') : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{option.summaryFactAvailability?.resourceMix ? (Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '无') : '数据不足'}{noDifferenceLabel('resourceMix')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.summaryFactAvailability?.checkpointNodeIds ? ((option.checkpointNodeIds?.length ?? 0) > 0 ? `${option.checkpointNodeIds?.length ?? 0} 个检查点` : '无') : '数据不足'}{noDifferenceLabel('checkpoints')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">锁定节点：</dt><dd className="inline">{option.summaryFactAvailability?.lockedNodeIds ? (option.lockedNodeIds.length > 0 ? `${option.lockedNodeIds.length} 个锁定节点` : '无') : '数据不足'}{noDifferenceLabel('lockedNodes')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.summaryFactAvailability?.terminalValidationNodeIds ? (option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无') : '数据不足'}{noDifferenceLabel('terminalValidation')}</dd></div>
                 </dl>
               </article>
             ))}
@@ -2972,6 +3003,7 @@ export default function AdaptivePracticePage() {
     : null;
   const savedPathVersionRef = useRef(savedPathVersion);
   savedPathVersionRef.current = savedPathVersion;
+  const activeComparisonRequestKeyRef = useRef<string | null>(null);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -2988,6 +3020,8 @@ export default function AdaptivePracticePage() {
   const hasGeneratedPathOptions = pathOptions.length > 0;
 
   useEffect(() => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
     setPathOptionFeedback({});
     setPathDifferenceExplanations({});
     setSelectedComparisonPair(requestedComparisonPair);
@@ -3868,20 +3902,25 @@ export default function AdaptivePracticePage() {
     const normalizedComparisonPair = operation === 'explain' && activeCandidateBatch && option && comparisonOption
       ? normalizeAdaptivePathComparisonPair(option.optionId, comparisonOption.optionId, comparisonOptionIds)
       : null;
+    if (operation === 'explain' && (!activeCandidateBatch || !option || !comparisonOption || !normalizedComparisonPair)) {
+      setPathChoiceMessage('请选择两条不同的候选路径后再请求比较。');
+      return;
+    }
     const explanationRequestVersionKey = operation === 'explain'
-      ? normalizedComparisonPair && activeCandidateBatch
-        ? buildAdaptivePathComparisonKey({
-            candidateBatchId: activeCandidateBatch.id,
-            pathVersion: savedPathVersionRef.current,
-            pairKey: normalizedComparisonPair.pairKey,
-          })
-        : savedPathVersionRef.current
+      ? buildAdaptivePathComparisonKey({
+          candidateBatchId: activeCandidateBatch!.id,
+          pathVersion: savedPathVersionRef.current,
+          pairKey: normalizedComparisonPair!.pairKey,
+        })
       : null;
     if (generationRequestId) {
       setPathGenerationRequestStatus('pending');
       publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
     }
     let generationFailureIsDefinitive = false;
+    if (operation === 'explain') {
+      activeComparisonRequestKeyRef.current = explanationRequestVersionKey;
+    }
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
     if (option?.optionId) {
@@ -3932,9 +3971,7 @@ export default function AdaptivePracticePage() {
           priorRequestId: operation === 'revise' ? currentPathId ?? undefined : undefined,
           selectedOptionId: operation !== 'generate' ? option?.optionId : undefined,
           compareWithOptionId: operation === 'explain'
-            ? comparisonOption?.optionId ?? (activeCandidateBatch
-              ? undefined
-              : pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId)
+            ? comparisonOption?.optionId
             : undefined,
           candidateBatchId: operation === 'explain' ? activeCandidateBatch?.id : undefined,
           comparisonKey: operation === 'explain' ? explanationRequestVersionKey : undefined,
@@ -4067,18 +4104,19 @@ export default function AdaptivePracticePage() {
       const differenceExplanation = operation === 'explain'
         ? readPathDifferenceExplanation(payload.result?.comparison)
         : null;
-      const legacyExplanationVersionMismatch = explanationRequestVersionKey !== savedPathVersionRef.current;
       if (
         operation === 'explain'
         && (
-          explanationRequestVersionKey !== (activeCandidateBatch && normalizedComparisonPair
+          activeComparisonRequestKeyRef.current !== explanationRequestVersionKey
+          || !activeCandidateBatch
+          || !normalizedComparisonPair
+          || explanationRequestVersionKey !== (activeCandidateBatch && normalizedComparisonPair
             ? buildAdaptivePathComparisonKey({
                 candidateBatchId: activeCandidateBatch.id,
                 pathVersion: savedPathVersionRef.current,
                 pairKey: normalizedComparisonPair.pairKey,
               })
             : savedPathVersionRef.current)
-          || (!activeCandidateBatch && legacyExplanationVersionMismatch)
           || (differenceExplanation && differenceExplanation.pathId !== currentPathId)
           || (differenceExplanation?.comparisonKey && differenceExplanation.comparisonKey !== explanationRequestVersionKey)
         )
@@ -4110,6 +4148,9 @@ export default function AdaptivePracticePage() {
         }));
       }
     } catch (generationError) {
+      if (operation === 'explain' && activeComparisonRequestKeyRef.current !== explanationRequestVersionKey) {
+        return;
+      }
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
       if (generationRequestId) {
@@ -4125,7 +4166,9 @@ export default function AdaptivePracticePage() {
         setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
       }
     } finally {
-      setPathGenerationPending(null);
+      if (operation !== 'explain' || activeComparisonRequestKeyRef.current === explanationRequestVersionKey) {
+        setPathGenerationPending(null);
+      }
     }
   }, [
     activeGoal,
@@ -4154,6 +4197,8 @@ export default function AdaptivePracticePage() {
     side: 'leftOptionId' | 'rightOptionId',
     value: string,
   ) => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
     setComparisonDraft((current) => ({ ...current, [side]: value }));
     setSelectedComparisonPair(null);
     setPathDifferenceExplanations({});
@@ -4197,6 +4242,8 @@ export default function AdaptivePracticePage() {
   ]);
 
   const chooseComparisonCandidate = useCallback((optionId: string) => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
     setComparisonDraft({ leftOptionId: optionId, rightOptionId: '' });
     setSelectedComparisonPair(null);
     setPathDifferenceExplanations({});
@@ -5668,24 +5715,7 @@ export default function AdaptivePracticePage() {
                         >
                           选择比较方案
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                          aria-label={`解释${option.title}差异`}
-                          disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                          onClick={() => {
-                            const optionForWrite = option.writeOption;
-                            if (optionForWrite) {
-                              submitPathGeneration('explain', optionForWrite);
-                              return;
-                            }
-                            setPathChoiceUnavailable();
-                          }}
-                        >
-                          解释差异
-                        </button>
-                      )}
+                      ) : null}
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
@@ -5851,24 +5881,7 @@ export default function AdaptivePracticePage() {
                         >
                           选择比较方案
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                          aria-label={`解释${option.title}差异`}
-                          disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                          onClick={() => {
-                            const optionForWrite = option.writeOption;
-                            if (optionForWrite) {
-                              submitPathGeneration('explain', optionForWrite);
-                              return;
-                            }
-                            setPathChoiceUnavailable();
-                          }}
-                        >
-                          解释差异
-                        </button>
-                      )}
+                      ) : null}
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"

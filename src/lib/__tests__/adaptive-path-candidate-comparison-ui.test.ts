@@ -23,6 +23,8 @@ describe('adaptive path candidate comparison UI contract', () => {
     expect(source).toContain('buildAdaptivePathComparisonKey({');
     expect(source).toContain('pathVersion: savedPathVersionRef.current');
     expect(source).toContain('const savedPathVersion = activePathRound?.updatedAt');
+    expect(source).toContain('activeComparisonRequestKeyRef.current !== explanationRequestVersionKey');
+    expect(source).toContain("setPathGenerationPending((current) => current === 'explain' ? null : current);");
     expect(source).toContain('differenceExplanation.comparisonKey !== explanationRequestVersionKey');
     expect(source).toContain('setPathDifferenceExplanations({});');
   });
@@ -44,9 +46,14 @@ describe('adaptive path candidate comparison UI contract', () => {
     expect(source).toContain('className="inline-flex w-full items-center justify-center');
   });
 
-  it('shows terminal validation and identifies equal factual dimensions', () => {
+  it('shows every fixed factual dimension and preserves missing-data semantics', () => {
+    expect(source).toContain('路径节点数：');
+    expect(source).toContain('锁定节点：');
     expect(source).toContain('终点验证：');
-    expect(source).toContain('option.terminalValidationNodeIds.length');
+    expect(source).toContain('summaryFactAvailability');
+    expect(source).toContain("Array.isArray(option.checkpointNodeIds)");
+    expect(source).toContain("Array.isArray(option.terminalValidationNodeIds)");
+    expect(source).toContain("'数据不足'");
     expect(source).toContain('候选在当前维度无差异');
     expect(source).toContain("noDifferenceLabel('terminalValidation')");
   });

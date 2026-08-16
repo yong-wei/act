@@ -6,7 +6,8 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const evidenceRoot = 'artifacts/commercial-ui/issue-1429-candidate-comparison';
 const outputDir = path.join(repoRoot, evidenceRoot);
-const baseUrl = process.env.ADAPTIVE_PATH_EVIDENCE_BASE_URL ?? 'http://127.0.0.1:3002';
+const evidencePort = Number(process.env.ADAPTIVE_PATH_EVIDENCE_PORT ?? 33142);
+const baseUrl = `http://127.0.0.1:${evidencePort}`;
 const generator = `${evidenceRoot}/capture-evidence.mjs`;
 const testFile = 'tests/adaptive-path-candidate-comparison-1429.spec.ts';
 const sourceFiles = [
@@ -64,6 +65,14 @@ function readPngDimensions(bytes) {
 async function main() {
   await assertSourceCheckpointStable('capture start');
   const playwrightCli = path.join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js');
+  const playwrightEnv = {
+    ...process.env,
+    PLAYWRIGHT_BASE_URL: baseUrl,
+    PLAYWRIGHT_PORT: String(evidencePort),
+    NEXTAUTH_URL: baseUrl,
+    ISSUE_1429_WRITE_EVIDENCE: '1',
+  };
+  delete playwrightEnv.PLAYWRIGHT_SKIP_WEB_SERVER;
   const playwright = spawnSync(
     process.execPath,
     [
@@ -76,12 +85,7 @@ async function main() {
     {
       cwd: repoRoot,
       encoding: 'utf8',
-      env: {
-        ...process.env,
-        PLAYWRIGHT_BASE_URL: baseUrl,
-        PLAYWRIGHT_SKIP_WEB_SERVER: '1',
-        ISSUE_1429_WRITE_EVIDENCE: '1',
-      },
+      env: playwrightEnv,
     },
   );
   process.stdout.write(playwright.stdout ?? '');
@@ -122,6 +126,11 @@ async function main() {
     generatorSha256: initialSourceHashes[generator],
     sourceSha256: initialSourceHashes,
     baseUrl,
+    server: {
+      managedByPlaywright: true,
+      reuseExistingServer: false,
+      port: evidencePort,
+    },
     browserEvidence: {
       authenticatedSession: 'real NextAuth credentials callback using the seeded demo student',
       candidateProjection: 'deterministic route fixtures exercised against the current-head page',

@@ -23,6 +23,7 @@ function candidateOption(optionId: string, styleId: string, label: string, minut
       estimatedTimeMinutes: minutes,
       status: 'ready',
     }],
+    checkpointNodeIds: [nodeId],
     lockedNodeIds: [],
     readinessSummary: [{ nodeId, state: 'ready', message: '可开始' }],
     targetDeficits: [],
@@ -272,7 +273,16 @@ for (const viewport of [
 
     await choosePair(page, 'option-a', 'option-b', true);
     await page.getByLabel('方案二').selectOption('option-c');
+    const staleResponse = page.waitForResponse((response) => (
+      response.url().includes('/api/adaptive/path-advisor-tool')
+      && response.request().postDataJSON()?.selectedOptionId === 'option-a'
+      && response.request().postDataJSON()?.compareWithOptionId === 'option-b'
+    ));
     releaseFirst();
+    await staleResponse;
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
     await expect(page.getByText('正在比较：方案 A ↔ 方案 B')).toHaveCount(0);
 
     await expect(page.getByRole('button', { name: '比较这两条路径' })).toBeEnabled();
