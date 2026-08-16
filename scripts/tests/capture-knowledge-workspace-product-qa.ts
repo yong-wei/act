@@ -3468,7 +3468,11 @@ async function main() {
       studentSession.storageState,
     );
     const authenticatedRoleEvidence = await captureAuthenticatedRoleEvidence(browser, sessions);
-    const afterBrowserCapture = assertCaptureRevisionUnchanged(captureRevision, 'after-browser-capture');
+    const afterBrowserCapture = assertCaptureRevisionUnchanged(
+      captureRevision,
+      'after-browser-capture',
+      captureOutputPrefixes,
+    );
     const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
     const changedSourceFiles = sourceFiles.filter((file) => sourceSha256Before[file] !== currentSourceSha256[file]);
     if (changedSourceFiles.length > 0) {
