@@ -2,9 +2,8 @@
   "schemaVersion": "act-runtime-task-4-1-denial.v1",
   "recordedAt": "2026-08-16T07:34:25Z",
   "ecs": {
-    "host": "121.40.124.135",
-    "imdsRole": "act-runtime-oss-read",
-    "ossutil": "/opt/act-ops/ossutil-2.3.0/ossutil",
+    "role": "act-runtime-oss-read",
+    "ossutil": "act-ops-ossutil",
     "endpoint": "oss-cn-hangzhou-internal.aliyuncs.com",
     "region": "cn-hangzhou",
     "bucket": "act-course-assets",
@@ -31,7 +30,8 @@
       "httpStatus": 404,
       "errorCode": "NoSuchUpload",
       "requestId": "6A816801D8209B3332A0C1EB",
-      "note": "Invalid upload id returned NoSuchUpload rather than AccessDenied; Put/Delete on the v2 namespace are denied."
+      "denialVerified": false,
+      "note": "Invalid upload id returned NoSuchUpload. This is not AbortMultipartUpload denial evidence. 4.1 write-denial is established only by PutObject and DeleteObject 403 AccessDenied."
     },
     {
       "operation": "HeadObject",

@@ -508,12 +508,15 @@ class RetireUnusedOssRuntimeTests(unittest.TestCase):
             (artifacts / "task-4-1-ecs-read-denial-20260816.json").read_text(encoding="utf-8"),
             (artifacts / "unused-oss-runtime-retirement-review-20260816.md").read_text(encoding="utf-8"),
             (artifacts / "unused-oss-runtime-retirement-attestation-20260816.json").read_text(encoding="utf-8"),
+            (artifacts / "v1-retirement-checklist-20260816.md").read_text(encoding="utf-8"),
         ]
         for text in texts:
             self.assertNotIn("/Users/", text)
+            self.assertNotIn("/opt/", text)
             self.assertNotIn("1444654551628953", text)
             self.assertNotIn("acs:ram::", text)
             self.assertNotIn("known_hosts", text)
+            self.assertNotIn("121.40.124.135", text)
 
 
 if __name__ == "__main__":
