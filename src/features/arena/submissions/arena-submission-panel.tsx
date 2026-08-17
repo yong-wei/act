@@ -18,6 +18,7 @@ import {
 } from './workbench-preview';
 import { sendArenaCoreEvent } from '../telemetry';
 import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
+import type { ArenaKonlingSuggestion } from '../student/konling-official-followup';
 import { useArenaPathSubmissionCompletion } from '../arena-path-journey-control';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
@@ -114,6 +115,11 @@ export function ArenaSubmissionPanel({
   );
   const [status, setStatus] = useState<string | null>(null);
   const [preview, setPreview] = useState<ArenaWorkbenchPreview | null>(null);
+  const [konlingFollowup, setKonlingFollowup] = useState<{
+    id: string | null;
+    classId?: string | null;
+    suggestion: Partial<ArenaKonlingSuggestion> & { revisit?: string | null };
+  } | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
   const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(
     preferredControllerMethod && evaluableMethods.includes(preferredControllerMethod)
@@ -249,7 +255,15 @@ export function ArenaSubmissionPanel({
         ? JSON.stringify({ taskId: task.id, artifact, publicationId })
         : JSON.stringify({ taskId: task.id, artifact }),
     });
-    const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
+    const payload = await response.json() as {
+      submission?: ArenaSubmissionRecord;
+      error?: string;
+      konlingFollowup?: {
+        id: string | null;
+        classId?: string | null;
+        suggestion: Partial<ArenaKonlingSuggestion> & { revisit?: string | null };
+      } | null;
+    };
 
     if (!response.ok || !payload.submission) {
       setStatus(payload.error ?? '提交失败');
@@ -257,6 +271,7 @@ export function ArenaSubmissionPanel({
     }
 
     setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
+    setKonlingFollowup(payload.konlingFollowup ?? null);
     setStatus(payload.submission.reusedEvaluation ? '重复控制器已复用官方评测结果。' : '官方评测已完成。');
     await completeArenaPath(payload.submission.id);
     void sendArenaCoreEvent('arena_evaluation_complete', {
@@ -475,6 +490,7 @@ export function ArenaSubmissionPanel({
           officialOnlyMetricIds={officialOnlyMetricIds}
         />
       ) : null}
+      {konlingFollowup ? <ArenaKonlingFollowupCard followup={konlingFollowup} /> : null}
       <div className="mt-4 grid gap-2">
         {leaderboard.entries.slice(0, 4).map((entry) => (
           <div key={entry.submissionId} className="flex items-center justify-between rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm">
@@ -729,5 +745,49 @@ function NumberInput({
         className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
       />
     </label>
+  );
+}
+
+function ArenaKonlingFollowupCard({
+  followup,
+}: {
+  followup: {
+    id: string | null;
+    classId?: string | null;
+    suggestion: Partial<ArenaKonlingSuggestion> & { revisit?: string | null };
+  };
+}) {
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  async function rate(wasHelpful: boolean) {
+    if (!followup.id) return;
+    const response = await fetch('/api/ai/intervention/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interventionId: followup.id, classId: followup.classId, wasHelpful }),
+    });
+    setFeedback(response.ok ? (wasHelpful ? '已记录为有帮助。' : '已记录为需要改进。') : '反馈暂未保存。');
+  }
+
+  return (
+    <details className="mt-4 rounded-lg border border-sky-500/35 bg-sky-500/5 p-3 text-sm" data-konling-official-followup>
+      <summary className="cursor-pointer font-medium text-foreground">控灵建议：{followup.suggestion.title ?? '正式评测回访'}</summary>
+      <div className="mt-2">
+      {followup.suggestion.evidence?.length ? (
+        <ul className="mt-2 space-y-1 text-xs leading-5 text-subtle">
+          {followup.suggestion.evidence.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      ) : null}
+      {followup.suggestion.nextStep ? <p className="mt-2 text-xs leading-5 text-foreground">{followup.suggestion.nextStep}</p> : null}
+      {followup.suggestion.revisit ? <p className="mt-2 text-xs leading-5 text-subtle">{followup.suggestion.revisit}</p> : null}
+      {followup.id ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button type="button" className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => void rate(true)}>有帮助</button>
+          <button type="button" className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => void rate(false)}>需要改进</button>
+          {feedback ? <span className="text-xs text-subtle">{feedback}</span> : null}
+        </div>
+      ) : null}
+      </div>
+    </details>
   );
 }
