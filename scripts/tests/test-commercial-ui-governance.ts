@@ -136,6 +136,21 @@ function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file:
   }
 }
 
+export function knowledgeWorkspaceProductQaSourceHashProblems({
+  repositoryRoot,
+  revision,
+  currentSourceSha256,
+}: {
+  repositoryRoot: string;
+  revision: string;
+  currentSourceSha256: Record<string, string>;
+}) {
+  return Object.entries(currentSourceSha256).flatMap(([sourcePath, recordedSha256]) => {
+    const committedSha256 = gitBlobSha256AtRevision(repositoryRoot, revision, sourcePath);
+    return committedSha256 === recordedSha256 ? [] : [`${sourcePath}:sha-mismatch`];
+  });
+}
+
 export function knowledgeWorkspaceProductQaCaptureRevisionProblems({
   repositoryRoot,
   captureCommitSha,
@@ -2973,11 +2988,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
     )),
-    ...Object.entries(sourceHashes).map(([sourcePath, recordedSha256]) => (
-      existsSync(path.join(repoRoot, sourcePath)) && recordedSha256 === fileSha256(sourcePath)
-        ? null
-        : `${sourcePath}:sha-mismatch`
-    )),
+    ...knowledgeWorkspaceProductQaSourceHashProblems({
+      repositoryRoot: repoRoot,
+      revision: captureCommitSha,
+      currentSourceSha256,
+    }),
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
     sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',

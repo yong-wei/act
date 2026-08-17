@@ -38,6 +38,7 @@ import {
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
   knowledgeWorkspaceProductQaCaptureRevisionProblems,
+  knowledgeWorkspaceProductQaSourceHashProblems,
 } from '../../../scripts/tests/test-commercial-ui-governance';
 import {
   resolveSimulationSceneThemeMode,
@@ -4815,6 +4816,27 @@ describe('commercial UI governance', () => {
       currentSourceSha256: { [ancestorSource]: capturedSourceSha256 },
       productQaSourcePaths: [ancestorSource],
     })).toContain(`capture-revision:source-changed:${ancestorSource}`);
+  });
+
+  it('validates captured product QA source hashes against committed bytes, not CRLF checkout bytes', () => {
+    const repo = initTempGitRepo('knowledge-product-qa-crlf-');
+    const sourcePath = 'src/features/knowledge/source.ts';
+    const captureCommitSha = commitTempFile(
+      repo,
+      sourcePath,
+      'export const source = 1;\n',
+      'capture source',
+    );
+    const captureTreeSha = runTempGit(repo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+    const committedHash = tempFileSha256(repo, sourcePath);
+
+    writeFileSync(join(repo, sourcePath), 'export const source = 1;\r\n');
+
+    expect(knowledgeWorkspaceProductQaSourceHashProblems({
+      repositoryRoot: repo,
+      revision: captureCommitSha,
+      currentSourceSha256: { [sourcePath]: committedHash },
+    })).toEqual([]);
   });
 
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {
