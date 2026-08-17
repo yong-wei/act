@@ -2466,6 +2466,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }

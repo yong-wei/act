@@ -4404,7 +4404,10 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("'src/app/simulations/_components/simulation-shell.tsx'");
     expect(scriptSource).toContain("'src/resources/simulations/components/simulation-ui.tsx'");
     expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
+    expect(scriptSource).toContain("'src/lib/evidence-artifact-path.ts'");
     expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
+    expect(scriptSource).toContain("gitBlobSha256AtRevision(repoRoot, 'HEAD', sourcePath) ?? fileSha256(sourcePath)");
+    expect(governanceSource).toContain("'src/lib/evidence-artifact-path.ts'");
     expect(governanceSource).toContain('bottomToolsWithinViewport');
     expect(governanceSource).toContain('themeApplied');
     expect(governanceSource).toContain('bottomToolSegmentRoles');
@@ -4416,6 +4419,10 @@ describe('commercial UI governance', () => {
     expect(simulationCaptureScriptSource).toContain("change: 'unify-simulation-chrome-and-camera-views'");
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
     expect(simulationCaptureScriptSource).toContain("import { execFileSync } from 'node:child_process';");
+    expect(simulationCaptureScriptSource).toContain('evidenceCaptureRevisionProblems,');
+    expect(simulationCaptureScriptSource).toContain("from '../../src/lib/evidence-capture-guard';");
+    expect(simulationCaptureScriptSource).toContain('function readCleanCaptureRevision()');
+    expect(simulationCaptureScriptSource).toContain('assertCaptureRevisionUnchanged(captureRevision,');
     expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
     expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
     expect(simulationCaptureScriptSource).toContain('root.classList.contains(expectedTheme) && root.style.colorScheme === expectedTheme');

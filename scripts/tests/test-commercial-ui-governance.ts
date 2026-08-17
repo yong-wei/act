@@ -283,6 +283,12 @@ function hasUncommittedPathChange(file: string) {
     || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
 }
 
+function currentCommittedOrWorkingSha256(relativePath: string) {
+  if (!existsSync(path.join(repoRoot, relativePath))) return undefined;
+  if (hasUncommittedPathChange(relativePath)) return fileSha256(relativePath);
+  return gitBlobSha256AtRevision(repoRoot, 'HEAD', relativePath) ?? fileSha256(relativePath);
+}
+
 function lines(output: string) {
   return output.split('\n').map((line) => line.trim()).filter(Boolean);
 }
@@ -1126,6 +1132,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -1134,7 +1141,7 @@ function commandDeckGeometryCurrentSourceSha256(routeFile: string) {
   return Object.fromEntries(
     commandDeckGeometrySourcePaths(routeFile)
       .filter((sourcePath) => sourcePath.length > 0 && existsSync(path.join(repoRoot, sourcePath)))
-      .map((sourcePath) => [sourcePath, fileSha256(sourcePath)]),
+      .map((sourcePath) => [sourcePath, gitBlobSha256AtRevision(repoRoot, 'HEAD', sourcePath) ?? fileSha256(sourcePath)]),
   );
 }
 
@@ -1204,11 +1211,11 @@ export function hydrateInteractiveLearningProductQaEvidence(
     change: evidence.change ?? 'govern-interactive-learning-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
@@ -1219,7 +1226,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       return {
         ...report,
         currentReportSha256: typeof report.report === 'string'
-          ? simulationViewportArtifact(report.report)?.sha256
+          ? currentCommittedOrWorkingSha256(report.report)
           : undefined,
         reportFinalResult: typeof report.report === 'string'
           ? parseInteractiveLearningDesignQaResult(report.report)
@@ -1230,7 +1237,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
@@ -1431,20 +1438,20 @@ export function hydrateAdaptivePathProductQaEvidence(
     change: evidence.change ?? 'govern-adaptive-path-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     captureManifest: evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    currentCaptureManifestSha256: simulationViewportArtifact(
+    currentCaptureManifestSha256: currentCommittedOrWorkingSha256(
       evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    )?.sha256,
+    ),
     visualSignals: evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    currentVisualSignalsSha256: simulationViewportArtifact(
+    currentVisualSignalsSha256: currentCommittedOrWorkingSha256(
       evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    )?.sha256,
+    ),
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
     childChangeValidations,
@@ -1462,7 +1469,7 @@ export function hydrateAdaptivePathProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),

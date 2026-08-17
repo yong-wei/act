@@ -6,12 +6,21 @@ import path from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright';
 
 import { toRepositoryArtifactPath } from '../../src/lib/evidence-artifact-path';
+import {
+  evidenceCaptureRevisionProblems,
+  type EvidenceCaptureRevision,
+} from '../../src/lib/evidence-capture-guard';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-command-deck-535');
 const fullMatrixOutputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-full-matrix-qa-537');
 const fullMatrixReviewReport = 'artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md';
 const baseUrl = process.env.SIMULATION_COMMAND_DECK_QA_BASE_URL ?? 'http://127.0.0.1:3001';
+const captureOutputPrefixes = [
+  'artifacts/commercial-ui/evidence.json',
+  'artifacts/commercial-ui/simulation-command-deck-535/',
+  'artifacts/commercial-ui/simulation-full-matrix-qa-537/',
+] as const;
 
 type Theme = 'light' | 'dark';
 type RectEvidence = { left: number; top: number; right: number; bottom: number; width: number; height: number };
@@ -156,6 +165,57 @@ function gitSha256(relativePath: string) {
     ['show', `HEAD:${relativePath}`],
     { cwd: repoRoot, maxBuffer: 32 * 1024 * 1024 },
   )).digest('hex');
+}
+
+function readGitCaptureState() {
+  const status = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const dirtyPaths = status
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((entry) => entry.slice(3).split(' -> ').at(-1) ?? entry)
+    .map((entry) => entry.replace(/^"|"$/gu, '').replace(/\\/gu, '/'));
+  return {
+    revision: {
+      commitSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{commit}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+      treeSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{tree}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+    } satisfies EvidenceCaptureRevision,
+    dirtyPaths,
+  };
+}
+
+function readCleanCaptureRevision() {
+  const state = readGitCaptureState();
+  if (state.dirtyPaths.length > 0) {
+    throw new Error(
+      `simulation command-deck QA capture requires a clean Git worktree; commit or remove these changes first:\n${state.dirtyPaths.join('\n')}`,
+    );
+  }
+  return state.revision;
+}
+
+function assertCaptureRevisionUnchanged(expected: EvidenceCaptureRevision, phase: string) {
+  const actual = readGitCaptureState();
+  const problems = evidenceCaptureRevisionProblems(
+    expected,
+    actual.revision,
+    actual.dirtyPaths,
+    captureOutputPrefixes,
+  );
+  if (problems.length > 0) {
+    throw new Error(`simulation command-deck QA capture ${phase} failed closed: ${problems.join(', ')}`);
+  }
 }
 
 function artifactSha256(relativePath: string | undefined) {
@@ -627,6 +687,7 @@ function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], gen
 }
 
 async function main() {
+  const captureRevision = readCleanCaptureRevision();
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const generatedAt = new Date().toISOString();
@@ -655,14 +716,17 @@ async function main() {
     await browser.close();
   }
   attachCruiseComparison(routeEvidence);
+  assertCaptureRevisionUnchanged(captureRevision, 'before manifest write');
   const manifest = {
     generatedAt,
+    captureRevision,
     change: 'unify-simulation-chrome-and-camera-views',
     baseUrl,
     routes: routeEvidence,
   };
   writeFileSync(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   updateCommercialEvidence(routeEvidence, generatedAt);
+  assertCaptureRevisionUnchanged(captureRevision, 'after manifest write');
 }
 
 main().catch((error) => {
