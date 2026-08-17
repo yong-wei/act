@@ -4415,6 +4415,7 @@ describe('commercial UI governance', () => {
     expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
     expect(simulationCaptureScriptSource).toContain("change: 'unify-simulation-chrome-and-camera-views'");
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
+    expect(simulationCaptureScriptSource).toContain("import { execFileSync } from 'node:child_process';");
     expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
     expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
     expect(simulationCaptureScriptSource).toContain('root.classList.contains(expectedTheme) && root.style.colorScheme === expectedTheme');
