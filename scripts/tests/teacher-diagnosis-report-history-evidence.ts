@@ -1,4 +1,5 @@
 export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
+  'scripts/tests/teacher-diagnosis-report-history-evidence.ts',
   'src/app/teacher/layout.tsx',
   'src/app/teacher/classes/[classId]/page.tsx',
   'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx',
