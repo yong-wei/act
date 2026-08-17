@@ -14,7 +14,7 @@
   any difference. Then validate the mirror through the reused v2 adapter and
   record explicit v0.22 registration, validation, and admission receipts under
   the `(bundleContractVersion, bundleDigest)` identity.
-  当前结果：镜像与 schema 哈希门禁通过；复用 v2 适配器对 `projection-link-metadata.jsonl` 中 121 条非契约行 fail closed（自 index 2892 起，缺少 `release_tier` 等必填字段），因此尚未写出候选 admission 收据。
+  当前结果：已改 pin 到修复发布 `control-theory-engineering-v0.22-r2` / source-r5。Schema 哈希仍与 v0.18 相同；`projection-link-metadata.jsonl` 3013 行均符合 `actkg-projection-link-metadata/1`。
 
 ## 2. Candidate import and impact evidence
 
