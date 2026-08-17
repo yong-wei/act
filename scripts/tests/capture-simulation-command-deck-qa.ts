@@ -149,6 +149,14 @@ function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
 }
 
+function gitSha256(relativePath: string) {
+  return createHash('sha256').update(execFileSync(
+    'git',
+    ['show', `HEAD:${relativePath}`],
+    { cwd: repoRoot, maxBuffer: 32 * 1024 * 1024 },
+  )).digest('hex');
+}
+
 function artifactSha256(relativePath: string | undefined) {
   return relativePath && existsSync(path.join(repoRoot, relativePath)) ? sha256(relativePath) : undefined;
 }
@@ -207,6 +215,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -215,7 +224,7 @@ function commandDeckGeometrySourceSha256(routeFile: string) {
   return Object.fromEntries(
     commandDeckGeometrySourcePaths(routeFile)
       .filter((sourcePath) => existsSync(path.join(repoRoot, sourcePath)))
-      .map((sourcePath) => [sourcePath, sha256(sourcePath)]),
+      .map((sourcePath) => [sourcePath, gitSha256(sourcePath)]),
   );
 }
 

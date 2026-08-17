@@ -64,6 +64,7 @@ const sourceFiles = [
   'src/components/shared/page-floating-controls.tsx',
   'src/app/globals.css',
   'src/lib/konling-agent-runtime.ts',
+  'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
@@ -231,6 +232,14 @@ type RoleSession = {
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function gitSha256(relativePath: string) {
+  return createHash('sha256').update(execFileSync(
+    'git',
+    ['show', `HEAD:${relativePath}`],
+    { cwd: repoRoot, maxBuffer: 32 * 1024 * 1024 },
+  )).digest('hex');
 }
 
 function readGitCaptureState() {
@@ -2970,7 +2979,7 @@ function writeKnowledgeGraphGovernanceEvidence(
 
 async function main() {
   const captureRevision = readCleanCaptureRevision();
-  const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
+  const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
   ensureOutputDir();
   const sessions = new Map<KnowledgeRole, RoleSession>();
   for (const role of ['student', 'teacher', 'admin'] as const) {
@@ -3473,7 +3482,7 @@ async function main() {
       'after-browser-capture',
       captureOutputPrefixes,
     );
-    const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)]));
+    const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
     const changedSourceFiles = sourceFiles.filter((file) => sourceSha256Before[file] !== currentSourceSha256[file]);
     if (changedSourceFiles.length > 0) {
       throw new Error(

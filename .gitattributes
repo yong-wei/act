@@ -1,8 +1,2 @@
 *.pdf binary
 *.ppm binary
-
-# Immutable domain shard files are sealed by their exact byte hashes.
-course-content/runtime/knowledge/authority-domain-shards/** -text
-
-# Controlled knowledge-release files are verified against raw-byte manifests.
-course-content/authoring/knowledge/releases/** -text
