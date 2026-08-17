@@ -228,6 +228,46 @@ describe('Arena official Konling followup', () => {
     await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
   });
 
+  it('waits for an earlier in-flight reservation to abandon before claiming the next persisted submission', async () => {
+    const later = submission({ id: 's2', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80, metrics: { settlingTime: 2 } });
+    const queryRaw = vi.fn()
+      .mockResolvedValueOnce([{
+        id: 'res-a',
+        submissionId: null,
+        lockedUntil: new Date(Date.now() + 30_000),
+      }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          outcome: null,
+          evidence: {
+            sourceSubmission: {
+              score: 60,
+              submittedAt: '2026-08-01T00:00:00.000Z',
+              metrics: { settlingTime: 3 },
+              hardConstraintResults: [{ id: '稳定性', label: '稳定性', passed: false }],
+            },
+          },
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      $queryRaw: queryRaw,
+      $executeRaw: vi.fn().mockResolvedValue(1),
+    };
+
+    await expect(readArenaOfficialRevisit({
+      db,
+      submission: later,
+      waitMs: 80,
+    })).resolves.toContain('调节时间 -1');
+    expect(queryRaw).toHaveBeenCalledTimes(3);
+  });
+
   it('does not let a later persisted submission close the round while an earlier reserved successor is pending', async () => {
     const later = submission({ id: 's3', submittedAt: '2026-08-03T00:00:00.000Z', valid: true, score: 80 });
     const queryRaw = vi.fn().mockResolvedValue([{

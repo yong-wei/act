@@ -1,6 +1,9 @@
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { formatArenaMetric } from '../display-labels';
-import { hasEarlierOfficialSubmitSuccessor } from './official-submit-gate';
+import {
+  hasEarlierOfficialSubmitSuccessor,
+  waitForEarlierOfficialSubmitReservations,
+} from './official-submit-gate';
 
 export type ArenaKonlingSuggestionKind = 'stagnation' | 'continuous-failure' | 'constraint-violation';
 
@@ -93,6 +96,7 @@ export async function readArenaOfficialRevisit(input: {
   db: ArenaKonlingFollowupDb;
   submission: ArenaSubmissionRecord;
   history?: readonly ArenaSubmissionRecord[];
+  waitMs?: number;
 }): Promise<string | null> {
   const previous = await input.db.aIIntervention.findFirst({
     where: {
@@ -109,6 +113,17 @@ export async function readArenaOfficialRevisit(input: {
   if (!baseline) return null;
   const baselineAt = Date.parse(baseline.submittedAt ?? previous.createdAt.toISOString());
   if (!isEarliestSuccessor(input.submission, baselineAt, input.history ?? [])) return null;
+  if (input.submission.userId) {
+    await waitForEarlierOfficialSubmitReservations({
+      db: input.db,
+      userId: input.submission.userId,
+      taskId: input.submission.taskId,
+      classId: input.submission.classId,
+      baselineAt,
+      submittedAt: input.submission.submittedAt,
+      waitMs: input.waitMs,
+    });
+  }
   if (!await claimOfficialRevisit(input.db, {
     interventionId: previous.id,
     submission: input.submission,

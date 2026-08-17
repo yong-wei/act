@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 
 export const OFFICIAL_SUBMIT_LEASE_TTL = '30 seconds';
 export const OFFICIAL_SUBMIT_LEASE_REFRESH_MS = 10_000;
+export const OFFICIAL_SUBMIT_RESERVATION_WAIT_MS = 120_000;
+export const OFFICIAL_SUBMIT_RESERVATION_POLL_MS = 50;
 
 export interface OfficialSubmitGateDb {
   $executeRaw?(strings: TemplateStringsArray, ...values: unknown[]): Promise<number>;
@@ -116,6 +118,25 @@ export async function abandonOfficialArenaSubmissionReservation(input: {
 
 export async function releaseOfficialSubmitReservation(reservation: OfficialSubmitReservation): Promise<void> {
   await reservation.lease?.release();
+}
+
+export async function waitForEarlierOfficialSubmitReservations(input: {
+  db: OfficialSubmitGateDb;
+  userId: string;
+  taskId: string;
+  classId?: string | null;
+  baselineAt: Date | string | number;
+  submittedAt: Date | string;
+  waitMs?: number;
+  pollMs?: number;
+}): Promise<void> {
+  const waitMs = input.waitMs ?? (process.env.VITEST ? 0 : OFFICIAL_SUBMIT_RESERVATION_WAIT_MS);
+  const pollMs = input.pollMs ?? OFFICIAL_SUBMIT_RESERVATION_POLL_MS;
+  const deadline = Date.now() + Math.max(0, waitMs);
+  while (await hasEarlierOfficialSubmitSuccessor(input)) {
+    if (Date.now() >= deadline) return;
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
 }
 
 export async function hasEarlierOfficialSubmitSuccessor(input: {
