@@ -331,7 +331,7 @@ function classifyAuthorityLabel(
   if (typeof value !== 'string' || value.length === 0) return 'empty';
   if (DISALLOWED_CONTROL.test(value)) return 'control';
   const trustedFormula = canonicalType === 'Formula' && trustedRuntimeProfile;
-  if (/\r(?!\n)/u.test(value) || (!trustedFormula && /[\n]/u.test(value))) return 'line-break';
+  if (/\r(?!\n)/u.test(value) || (!trustedFormula && /[\r\n]/u.test(value))) return 'line-break';
   const normalized = text(value);
   if (!normalized) return 'empty';
   if (/^[a-f0-9]{32,}$/iu.test(normalized)) return 'identity';
