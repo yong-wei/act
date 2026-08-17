@@ -55,21 +55,15 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
   });
 
-  it('admits the repaired v0.22-r2 envelope through the existing v2 adapter', async () => {
+  it('accepts repaired v0.22-r2 link-metadata and still fail-closes nested label rows', async () => {
     const captureRevision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    const bundle = await loadAndValidateRegisteredPublicBundleV2({
+    await expect(loadAndValidateRegisteredPublicBundleV2({
       root: process.cwd(),
       bundlePath: V022_ACT_CONTROLLED_PATH,
       gitRoot: process.cwd(),
       captureRevision,
       registry: REVIEWED_V0_22_V2_REGISTRY,
-    });
-    expect(bundle.protocol).toBe(PUBLIC_BUNDLE_V2_CONTRACT_VERSION);
-    expect(bundle.schemaIdentity.rawSha256).toBe(CTKG_SCHEMA_V2_RAW_SHA256);
-    expect(bundle.bundleIdentity.bundleRevision).toBe(2);
-    expect(bundle.statistics.projectionNodes).toBeGreaterThan(0);
-    expect(bundle.runtimeLinkMetadata.length).toBeGreaterThan(0);
-    assertV022CandidateBundleCounts(bundle);
+    })).rejects.toThrow(/multilingual-label-index\[0\].*required property 'language'/);
   });
 
   it('refuses unresolved membership instead of hard-coding v0.18 counts', () => {

@@ -14,7 +14,7 @@
   any difference. Then validate the mirror through the reused v2 adapter and
   record explicit v0.22 registration, validation, and admission receipts under
   the `(bundleContractVersion, bundleDigest)` identity.
-  当前结果：已改 pin 到修复发布 `control-theory-engineering-v0.22-r2` / source-r5。Schema 哈希仍与 v0.18 相同；`projection-link-metadata.jsonl` 3013 行均符合 `actkg-projection-link-metadata/1`。
+  当前结果：已改 pin 到修复发布 `control-theory-engineering-v0.22-r2` / source-r5。Schema 哈希仍与 v0.18 相同；`projection-link-metadata.jsonl` 3013 行均符合 `/1`。`multilingual-label-index.jsonl` 69 行全部是嵌套 `label` 对象，与仍声明的 `/1` 扁平契约（及 ActKG 仓库内同一份 schema）矛盾，适配器 fail closed，候选尚未写出。
 
 ## 2. Candidate import and impact evidence
 
