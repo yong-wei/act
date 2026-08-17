@@ -959,7 +959,7 @@ describe('portrait v2 incremental updates', () => {
       ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
       startedAt: new Date('2026-05-01T00:00:00.000Z'),
     };
-    const { db, stateCreate } = cumulativeMaterializationDb(
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
       previous,
       [existing],
       1,
@@ -972,8 +972,10 @@ describe('portrait v2 incremental updates', () => {
     });
 
     expect(result.rebuildRequired).toBe(true);
+    expect(snapshotCreate).toHaveBeenCalled();
     expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
+        snapshotId: 'portrait-incremental',
         trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
         trustedFactIds: [existing.id],
       }),

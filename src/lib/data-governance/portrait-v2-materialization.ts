@@ -343,7 +343,9 @@ export async function materializeIncrementalPortraitV2(
       taskProjection.evidenceAsOf,
       now,
     );
-    const comparisonPayload = rebuildRequired && current
+    const trustedPolicyChanged = current !== null
+      && current.stateVersion.trustedFactPolicyVersion !== TRUSTED_LEARNING_FACT_POLICY_VERSION;
+    const comparisonPayload = rebuildRequired && current && !trustedPolicyChanged
       ? buildPortraitFromFacts(userId, currentReduction.activeFacts as PortraitRiskFactDelta[])
       : currentPayload;
     const updated = foldPortraitEvidence(
@@ -389,7 +391,7 @@ export async function materializeIncrementalPortraitV2(
       });
     }
     const existingSnapshotId = current?.stateVersion.snapshot?.id;
-    const persisted = meaningfulStateChange || !existingSnapshotId
+    const persisted = meaningfulStateChange || trustedPolicyChanged || !existingSnapshotId
       ? await writePortraitV2Snapshot(transactionDb, projectedPayload, { now })
       : { id: existingSnapshotId };
     return publishState(transactionDb, {
