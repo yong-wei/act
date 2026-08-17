@@ -15,6 +15,14 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'scripts/runtime-release/configure-runtime-blob-ossfs.sh'), 'utf8');
 const service = fs.readFileSync(path.join(root, 'scripts/runtime-release/act-runtime-blob-ossfs.service'), 'utf8');
+const helperService = fs.readFileSync(
+  path.join(root, 'scripts/runtime-release/act-runtime-blob-view-helper.service'),
+  'utf8',
+);
+const helperBind = fs.readFileSync(
+  path.join(root, 'scripts/runtime-release/bind-runtime-blob-view-helper.sh'),
+  'utf8',
+);
 
 for (const invariant of [
   '--manifest',
@@ -179,6 +187,30 @@ for (const invariant of [
 assert.doesNotMatch(config, /ACCESS_KEY|SECRET/i, 'blob ossfs config must not persist access keys');
 assert.match(service, /ossfs2 mount/, 'blob ossfs service must mount ossfs2');
 assert.match(service, /RemainAfterExit=yes/, 'blob ossfs service must track its mount state');
+assert.match(
+  helperService,
+  /Requires=act-runtime-blob-ossfs\.service/,
+  'helper bind unit must start only after the shared blob FUSE is up',
+);
+assert.match(
+  helperService,
+  /ExecStart=\/home\/projects\/act\/scripts\/runtime-release\/bind-runtime-blob-view-helper\.sh/,
+  'helper bind unit must call the host bind script',
+);
+assert.match(helperService, /RemainAfterExit=yes/, 'helper bind unit must track its bind mount state');
+assert.doesNotMatch(helperService, /ACCESS_KEY|SECRET/i, 'helper bind unit must not persist access keys');
+assert.match(helperBind, /mount --bind "\$BLOB_ROOT" "\$helper"/, 'helper bind script must bind the shared blob root');
+assert.match(
+  helperBind,
+  /mount -o remount,bind,ro "\$helper"/,
+  'helper bind script must remount the view helper read-only',
+);
+assert.match(
+  helperBind,
+  /findmnt -rn -M "\$BLOB_ROOT" -o OPTIONS/,
+  'helper bind script must refuse a writable blob root',
+);
+assert.doesNotMatch(helperBind, /systemctl /, 'helper bind script must not change systemd units');
 
 for (const invariant of [
   'build-manifest',

@@ -1,0 +1,16 @@
+[Unit]
+Description=ACT runtime blob-view helper bind
+After=network-online.target act-runtime-blob-ossfs.service
+Requires=act-runtime-blob-ossfs.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=ACT_RUNTIME_BLOB_ROOT=/home/projects/act/data/runtime/ossfs/blobs
+Environment=ACT_RUNTIME_BLOB_VIEW_CURRENT=/home/projects/act/data/runtime/blob-views/current
+ExecStart=/home/projects/act/scripts/runtime-release/bind-runtime-blob-view-helper.sh
+ExecStop=/bin/sh -c 'view=$(readlink -f /home/projects/act/data/runtime/blob-views/current); helper="$view/.act-runtime-blobs"; if findmnt -rn -M "$helper" >/dev/null; then umount "$helper"; fi'
+
+[Install]
+WantedBy=multi-user.target
