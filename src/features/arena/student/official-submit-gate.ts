@@ -154,7 +154,14 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
         AND "submissionId" IS NULL
         AND "lockedUntil" <= NOW()
     `;
-    if (deleted !== 1) return true;
+    if (deleted === 1) continue;
+    const remaining = await input.db.$queryRaw<Array<{ id: string }>>`
+      SELECT id
+      FROM "ArenaOfficialSubmitReservation"
+      WHERE id = ${row.id}
+      LIMIT 1
+    `;
+    if (Array.isArray(remaining) && remaining.length > 0) return true;
   }
   return false;
 }

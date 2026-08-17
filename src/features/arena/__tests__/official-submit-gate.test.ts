@@ -101,11 +101,13 @@ describe('official Arena submit gate', () => {
   });
 
   it('keeps a reservation live when an overlapping heartbeat prevents cleanup', async () => {
-    const queryRaw = vi.fn().mockResolvedValue([{
-      id: 'res-renewed',
-      submissionId: null,
-      lockedUntil: new Date('2000-01-01T00:00:00.000Z'),
-    }]);
+    const queryRaw = vi.fn()
+      .mockResolvedValueOnce([{
+        id: 'res-renewed',
+        submissionId: null,
+        lockedUntil: new Date('2000-01-01T00:00:00.000Z'),
+      }])
+      .mockResolvedValueOnce([{ id: 'res-renewed' }]);
     const executeRaw = vi.fn().mockResolvedValue(0);
 
     await expect(hasEarlierOfficialSubmitSuccessor({
@@ -115,5 +117,24 @@ describe('official Arena submit gate', () => {
       baselineAt: '2026-08-17T00:00:00.000Z',
       submittedAt: '2026-08-17T00:00:02.000Z',
     })).resolves.toBe(true);
+  });
+
+  it('lets the next submission claim after a concurrent abandon removed the stale reservation', async () => {
+    const queryRaw = vi.fn()
+      .mockResolvedValueOnce([{
+        id: 'res-abandoned',
+        submissionId: null,
+        lockedUntil: new Date('2000-01-01T00:00:00.000Z'),
+      }])
+      .mockResolvedValueOnce([]);
+    const executeRaw = vi.fn().mockResolvedValue(0);
+
+    await expect(hasEarlierOfficialSubmitSuccessor({
+      db: { $queryRaw: queryRaw, $executeRaw: executeRaw },
+      userId: 'student-1',
+      taskId: 'task-1',
+      baselineAt: '2026-08-17T00:00:00.000Z',
+      submittedAt: '2026-08-17T00:00:02.000Z',
+    })).resolves.toBe(false);
   });
 });
