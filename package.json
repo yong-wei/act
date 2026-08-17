@@ -112,6 +112,8 @@
     "test:standard-actkg-bundle-import-postgres": "tsx ./scripts/tests/test-standard-actkg-bundle-import-postgres.ts",
     "test:micro-intervention-migration-postgres": "tsx ./scripts/tests/test-micro-intervention-migration-postgres.ts",
     "test:diagnosis-generation-migration-postgres": "tsx ./scripts/tests/test-diagnosis-generation-migration-postgres.ts",
+    "test:trusted-portrait-migration-postgres": "tsx ./scripts/tests/test-trusted-portrait-migration-postgres.ts",
+    "test:trusted-portrait-migration-pglite": "tsx ./scripts/tests/test-trusted-portrait-migration-postgres.ts --pglite",
     "test:actkg-release-set-delta-postgres": "tsx ./scripts/tests/test-actkg-release-set-delta-postgres.ts",
     "test:aggregate-governance-postgres": "tsx ./scripts/tests/test-aggregate-governance-postgres.ts",
     "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",

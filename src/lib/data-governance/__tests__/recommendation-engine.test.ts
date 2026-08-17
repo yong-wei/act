@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CompetencyVector } from '../competency-model';
+import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
 
 const mocks = vi.hoisted(() => ({
   prisma: {
@@ -22,6 +23,18 @@ const mocks = vi.hoisted(() => ({
     userProgress: {
       count: vi.fn(),
     },
+    learnerPortraitCurrentState: {
+      findUnique: vi.fn(),
+    },
+    cumulativePortraitCutoverFence: {
+      findUnique: vi.fn(),
+    },
+    cumulativePortraitMigrationRun: {
+      findUnique: vi.fn(),
+    },
+    learningMaterializationRebuildRequest: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -35,8 +48,8 @@ import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import {
   createPortraitV2Payload,
   PORTRAIT_V2_CALCULATION_VERSION,
+  type PortraitV2Payload,
 } from '../portrait-v2-model';
-import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
 
 const strongSnapshotVector: CompetencyVector = {
   controlModeling: { score: 86, trend: 'stable', confidence: 0.82, evidenceCount: 6, lastUpdated: '2026-05-18T00:00:00.000Z' },
@@ -335,6 +348,78 @@ function evidenceCache(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function fencedTrustedSnapshotDb(portrait: PortraitV2Payload) {
+  process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+  const evidencedDimensionIds = portrait.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .map((dimension) => dimension.id);
+  const missingDimensionIds = portrait.dimensions
+    .filter((dimension) => dimension.evidenceSummary.totalCount === 0)
+    .map((dimension) => dimension.id);
+
+  mocks.prisma.cumulativePortraitCutoverFence.findUnique.mockResolvedValue({
+    fence: BigInt(1),
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    learnerGeneration: BigInt(1),
+    queueGeneration: BigInt(1),
+    activeMigrationRunId: 'migration-1',
+  });
+  mocks.prisma.cumulativePortraitMigrationRun.findUnique.mockResolvedValue({
+    id: 'migration-1',
+    mode: 'APPLY',
+    status: 'COMPLETED',
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    learnerGeneration: BigInt(1),
+    queueGeneration: BigInt(1),
+    cutoverFence: BigInt(1),
+  });
+  mocks.prisma.learningMaterializationRebuildRequest.findFirst.mockResolvedValue(null);
+  mocks.prisma.learnerPortraitCurrentState.findUnique.mockResolvedValue({
+    userId: 'student-1',
+    stateVersionId: 'state-trusted',
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    generation: BigInt(1),
+    queueGeneration: BigInt(1),
+    stateWatermark: BigInt(1),
+    taskInputDigest: 'task-input-digest',
+    cutoverFence: BigInt(1),
+    stateVersion: {
+      id: 'state-trusted',
+      userId: 'student-1',
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: BigInt(1),
+      queueGeneration: BigInt(1),
+      stateWatermark: BigInt(1),
+      taskInputDigest: 'task-input-digest',
+      stateKind: 'SNAPSHOT',
+      snapshotId: 'snapshot-trusted',
+      overallScore: 85,
+      dimensionCoverage: {
+        evidencedDimensionIds,
+        missingDimensionIds,
+      },
+      evidenceAsOf: new Date(portrait.dimensions[0]?.freshness.asOf ?? portrait.generatedAt),
+      confidence: 0.82,
+      lastTrend: 'stable',
+      lastRisk: [],
+      availabilityReason: 'available',
+      generatedAt: new Date(portrait.generatedAt),
+      cutoverFence: BigInt(1),
+      migrationRunId: 'migration-1',
+      snapshot: {
+        id: 'snapshot-trusted',
+        userId: 'student-1',
+        snapshotAt: new Date(portrait.generatedAt),
+        payloadVersion: portrait.payloadVersion,
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        migrationVersion: portrait.migrationVersion,
+        derivationKind: 'native',
+        payload: portrait,
+      },
+    },
+  });
+}
+
 function previewOnlySimulationArenaFeature() {
   return {
     recent30d: {
@@ -433,6 +518,10 @@ describe('generateRecommendations', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
     vi.clearAllMocks();
+    mocks.prisma.learnerPortraitCurrentState.findUnique.mockReset();
+    mocks.prisma.cumulativePortraitCutoverFence.findUnique.mockReset();
+    mocks.prisma.cumulativePortraitMigrationRun.findUnique.mockReset();
+    mocks.prisma.learningMaterializationRebuildRequest.findFirst.mockReset();
     delete process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED;
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
       competencyVector: strongSnapshotVector,
@@ -463,8 +552,7 @@ describe('generateRecommendations', () => {
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations.length).toBeGreaterThan(0);
-    expect(recommendations.every((item) => item.rationale.evidenceCount === 0)).toBe(true);
+    expect(recommendations).toEqual([]);
   });
 
   it('does not let context-only facts create activity coverage or a learning streak', async () => {
@@ -534,10 +622,8 @@ describe('generateRecommendations', () => {
     });
 
     const recommendations = await generateRecommendations('student-1');
-    const project = recommendations.find((item) => item.id.startsWith('self-directed-project-'));
 
-    expect(project?.rationale.evidenceCount).toBe(7);
-    expect(project).toBeDefined();
+    expect(recommendations).toEqual([]);
     expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
       cursor: { id: 'context-only-49' },
       select: { id: true, startedAt: true, contextJson: true },
@@ -564,12 +650,20 @@ describe('generateRecommendations', () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(v4Cache);
 
     const recommendations = await generateRecommendations('student-1');
-    expect(recommendations.length).toBeGreaterThan(0);
+    expect(recommendations).toEqual([]);
     const cacheBacked = recommendations.filter(
       (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
     );
-    expect(cacheBacked).toEqual([]);
-    expect(mocks.prisma.studentCompetencySnapshot.findFirst).toHaveBeenCalled();
+    expect(cacheBacked).toHaveLength(0);
+    for (const item of cacheBacked) {
+      expect(item.rationale.confidence.state).toBe('partial');
+      expect(item.rationale.confidence.markers).toEqual(
+        expect.arrayContaining(['mixed-knowledge-identity', 'partial']),
+      );
+      // Must not present undiagnosed multi-era merge as ready single-version evidence.
+      expect(item.rationale.confidence.state).not.toBe('ready');
+      expect(item.rationale.confidence.level === 'high').toBe(false);
+    }
   });
 
   it('consumes identity diagnostics from persisted features JSON (not only top-level)', async () => {
@@ -588,7 +682,8 @@ describe('generateRecommendations', () => {
     const cacheBacked = recommendations.filter(
       (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
     );
-    expect(cacheBacked.length).toBeGreaterThan(0);
+    expect(recommendations).toEqual([]);
+    expect(cacheBacked).toHaveLength(0);
     for (const item of cacheBacked) {
       // With features-only diagnostics present, single-version path remains usable.
       expect(item.rationale.confidence.state).not.toBe('partial');
@@ -707,32 +802,8 @@ describe('generateRecommendations', () => {
     const cacheBacked = recommendations.filter(
       (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
     );
-    expect(cacheBacked.length).toBeGreaterThan(0);
-
-    for (const item of cacheBacked) {
-      // No false mixed marker solely because LearningFact coverage is empty.
-      expect(item.rationale.confidence.markers).not.toEqual(
-        expect.arrayContaining(['mixed-knowledge-identity']),
-      );
-      // Identity emptiness must not force partial + low confidence cap.
-      expect(item.rationale.confidence.state).not.toBe('partial');
-      expect(item.rationale.confidence.level).toBe('medium');
-      expect(item.rationale.confidence.score).toBe(0.72);
-      expect(item.rationale.confidence.level === 'low').toBe(false);
-    }
-
-    // Path-only evidence remains usable and is not identity-degraded.
-    const withPath = cacheBacked.find((item) => (item.rationale as any).pathExecution);
-    expect(withPath).toBeDefined();
-    expect((withPath?.rationale as any).pathExecution).toMatchObject({
-      readiness: 'ready',
-      featureGroup: 'pathExecution',
-      evidenceCount: 3,
-      confidence: {
-        level: 'medium',
-        lowConfidenceCount: 0,
-      },
-    });
+    expect(recommendations).toEqual([]);
+    expect(cacheBacked).toHaveLength(0);
   });
 
   it('still fails closed for non-empty mixed-version LearningFact identity coverage', async () => {
@@ -766,7 +837,8 @@ describe('generateRecommendations', () => {
     const cacheBacked = recommendations.filter(
       (item) => item.rationale.evidenceBasis === 'student-evidence-feature-cache',
     );
-    expect(cacheBacked.length).toBeGreaterThan(0);
+    expect(recommendations).toEqual([]);
+    expect(cacheBacked).toHaveLength(0);
     for (const item of cacheBacked) {
       expect(item.rationale.confidence.state).toBe('partial');
       expect(item.rationale.confidence.markers).toEqual(
@@ -785,28 +857,7 @@ describe('generateRecommendations', () => {
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
     });
-    expect(recommendations.map((item) => item.title)).toContain('提升迁移整合与应用能力');
-    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
-    expect(weakDimension?.rationale).toMatchObject({
-      reasonCode: 'weak-dimension-practice',
-      evidenceBasis: 'student-evidence-feature-cache',
-      evidenceRole: 'direct',
-      evidenceCount: 7,
-      evidenceWindow: {
-        firstStartedAt: '2026-05-01T00:00:00.000Z',
-        lastStartedAt: '2026-05-18T00:00:00.000Z',
-      },
-      sourceCoverage: {
-        LearningFact: 'available',
-        StudentCompetencySnapshot: 'available',
-        StudentProfileSummary: 'available',
-      },
-      confidence: {
-        state: 'ready',
-        level: 'medium',
-        score: 0.66,
-      },
-    });
+    expect(recommendations).toEqual([]);
   });
 
   it('does not consume a pre-governance v5 cache for direct recommendation rules', async () => {
@@ -840,16 +891,7 @@ describe('generateRecommendations', () => {
     const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-1',
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const recommendations = await generateRecommendations('student-1');
     const titles = recommendations.map((item) => item.title);
@@ -876,16 +918,7 @@ describe('generateRecommendations', () => {
   it('keeps portrait v2 as the rationale source when a legacy feature cache also exists', async () => {
     const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-with-cache',
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const expert = (await generateRecommendations('student-1'))
       .find((item) => item.title === '挑战专家级任务');
@@ -915,16 +948,7 @@ describe('generateRecommendations', () => {
     };
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-rule-scoped-rationale',
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const ethics = (await generateRecommendations('student-1'))
       .find((item) => item.title === '伦理决策挑战');
@@ -960,7 +984,7 @@ describe('generateRecommendations', () => {
     expect(titles).not.toContain('挑战专家级任务');
   });
 
-  it('runs a legacy rule when its required dimension has evidence', async () => {
+  it('does not run legacy rules without a trusted cumulative portrait', async () => {
     const partialEvidenceVector = Object.fromEntries(Object.entries(strongSnapshotVector).map(([key, value]) => [
       key,
       { ...value, score: key === 'engineeringDecision' ? 40 : value.score, evidenceCount: key === 'engineeringDecision' ? 2 : 0 },
@@ -974,7 +998,7 @@ describe('generateRecommendations', () => {
 
     const titles = (await generateRecommendations('student-1')).map((item) => item.title);
 
-    expect(titles).toContain('工程决策训练');
+    expect(titles).not.toContain('工程决策训练');
     expect(titles).not.toContain('挑战专家级任务');
   });
 
@@ -1022,7 +1046,7 @@ describe('generateRecommendations', () => {
     expect(titles).not.toContain('提升反思改进与 AI 协作能力');
   });
 
-  it('falls back to governed cache recommendations when portrait v2 evidence is non-current', async () => {
+  it('does not fall back to governed cache recommendations when portrait v2 evidence is non-current', async () => {
     vi.setSystemTime(new Date('2026-06-20T00:00:00.000Z'));
     const portrait = strongNativePortrait(
       new Set(PORTRAIT_V2_DIMENSIONS.map(({ id }) => id)),
@@ -1042,12 +1066,8 @@ describe('generateRecommendations', () => {
     });
 
     const recommendations = await generateRecommendations('student-1');
-    const titles = recommendations.map((item) => item.title);
 
-    expect(titles).not.toContain('挑战专家级任务');
-    expect(titles).not.toContain('伦理决策挑战');
-    expect(recommendations.find((item) => item.title === '提升迁移整合与应用能力')?.rationale)
-      .toMatchObject({ evidenceBasis: 'student-evidence-feature-cache' });
+    expect(recommendations).toEqual([]);
   });
 
   it('does not use future-dated portrait v2 evidence for direct recommendations', async () => {
@@ -1091,8 +1111,7 @@ describe('generateRecommendations', () => {
     const direct = (await generateRecommendations('student-1'))
       .filter((item) => item.rationale.evidenceRole === 'direct');
 
-    expect(direct.length).toBeGreaterThan(0);
-    expect(direct.every((item) => item.rationale.evidenceBasis !== 'portrait-v2')).toBe(true);
+    expect(direct).toHaveLength(0);
   });
 
   it('selects the weakest valid dimension when a lower portrait dimension is partial', async () => {
@@ -1115,11 +1134,7 @@ describe('generateRecommendations', () => {
     });
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-mixed-quality', userId: 'student-1', snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion, calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion, derivationKind: portrait.derivation.kind, payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const weak = (await generateRecommendations('student-1'))
       .find((item) => item.rationale.reasonCode === 'weak-dimension-practice');
@@ -1127,7 +1142,7 @@ describe('generateRecommendations', () => {
     expect(weak?.rationale.portraitV2?.weakDimensionId).toBe(validId);
   });
 
-  it('keeps a migrated portrait authoritative over conflicting legacy evidence', async () => {
+  it('fails closed for migrated portrait snapshots without a trusted current state', async () => {
     const portrait = buildMigratedPortraitPayload({
       id: 'legacy-portrait-source',
       userId: 'student-1',
@@ -1146,12 +1161,12 @@ describe('generateRecommendations', () => {
       payload: portrait,
     });
 
-    const titles = (await generateRecommendations('student-1')).map((item) => item.title);
+    const recommendations = await generateRecommendations('student-1');
 
-    expect(titles).toEqual(expect.arrayContaining(['挑战专家级任务', '伦理决策挑战', '参数优化大师']));
+    expect(recommendations).toEqual([]);
   });
 
-  it('falls back to governed legacy evidence when a native portrait has no evidence', async () => {
+  it('fails closed when a native portrait has no trusted current state', async () => {
     const portrait = strongNativePortrait(new Set());
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
@@ -1165,16 +1180,12 @@ describe('generateRecommendations', () => {
       payload: portrait,
     });
 
-    const recommendation = (await generateRecommendations('student-1'))
-      .find((item) => item.title === '提升迁移整合与应用能力');
+    const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendation?.rationale).toMatchObject({
-      evidenceBasis: 'student-evidence-feature-cache',
-      evidenceCount: 7,
-    });
+    expect(recommendations).toEqual([]);
   });
 
-  it('preserves partial freshness when zero-evidence portrait falls back to legacy evidence', async () => {
+  it('fails closed when a zero-evidence portrait has no trusted current state', async () => {
     const portrait = strongNativePortrait(new Set());
     const partialVector: CompetencyVector = {
       ...cacheVector,
@@ -1206,16 +1217,12 @@ describe('generateRecommendations', () => {
       payload: portrait,
     });
 
-    const recommendation = (await generateRecommendations('student-1'))
-      .find((item) => item.title === '提升迁移整合与应用能力');
+    const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendation?.rationale.portraitV2?.freshness).toMatchObject({
-      state: 'partial',
-      asOf: '2026-04-01T00:00:00.000Z',
-    });
+    expect(recommendations).toEqual([]);
   });
 
-  it('uses a current migrated portrait dimension for weak-dimension practice', async () => {
+  it('does not use migrated portrait dimensions for weak-dimension practice', async () => {
     const weakVector: CompetencyVector = {
       ...strongSnapshotVector,
       engineeringDecision: { ...strongSnapshotVector.engineeringDecision, score: 40 },
@@ -1234,13 +1241,9 @@ describe('generateRecommendations', () => {
       migrationVersion: portrait.migrationVersion, derivationKind: portrait.derivation.kind, payload: portrait,
     });
 
-    const weak = (await generateRecommendations('student-1'))
-      .find((item) => item.rationale.reasonCode === 'weak-dimension-practice');
+    const recommendations = await generateRecommendations('student-1');
 
-    expect(weak?.rationale.portraitV2).toMatchObject({
-      weakDimensionId: 'engineeringConstraintSafety',
-      derivationKind: 'migrated',
-    });
+    expect(recommendations).toEqual([]);
   });
 
   it('does not interpret missing portrait v2 dimensions as low competency scores', async () => {
@@ -1251,16 +1254,7 @@ describe('generateRecommendations', () => {
     );
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-partial',
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const recommendations = await generateRecommendations('student-1');
     const titles = recommendations.map((item) => item.title);
@@ -1281,16 +1275,7 @@ describe('generateRecommendations', () => {
       .filter((id) => id !== missingId));
     const portrait = strongNativePortrait(evidencedIds);
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: `portrait-v2-missing-${missingId}`,
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const titles = (await generateRecommendations('student-1')).map((item) => item.title);
 
@@ -1302,7 +1287,7 @@ describe('generateRecommendations', () => {
     }
   });
 
-  it('keeps the source legacy vector ahead of its compatibility-derived portrait', async () => {
+  it('does not use the source legacy vector without a trusted cumulative portrait', async () => {
     const divergentVector: CompetencyVector = {
       ...strongSnapshotVector,
       inquiryReflection: { ...strongSnapshotVector.inquiryReflection, score: 50 },
@@ -1317,31 +1302,20 @@ describe('generateRecommendations', () => {
 
     const titles = (await generateRecommendations('student-1')).map((item) => item.title);
 
-    expect(titles).toContain('优化提示词设计');
+    expect(titles).not.toContain('优化提示词设计');
   });
 
-  it('marks recommendation rationale as missing when the feature cache is absent', async () => {
+  it('keeps non-vector context recommendations when no trusted cumulative portrait exists', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.userProgress.count.mockResolvedValue(0);
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations.length).toBeGreaterThan(0);
-    expect(recommendations.every((item) => item.rationale.confidence.state === 'missing')).toBe(true);
-    const contextOnly = recommendations.find((item) => item.title === '探索知识图谱');
-    expect(contextOnly?.rationale).toMatchObject({
-      reasonCode: 'knowledge-graph-exploration',
-      evidenceRole: 'context',
-      contextOnly: true,
-      confidence: {
-        state: 'missing',
-        level: 'low',
-      },
-    });
-    expect(contextOnly?.rationale).not.toHaveProperty('portraitV2');
+    expect(recommendations.map((item) => item.title)).toContain('探索知识图谱');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
   });
 
-  it('exposes simulation and Arena rationale without treating preview-only context as high-confidence competency evidence', async () => {
+  it('keeps preview-only simulation Arena rationale without promoting it to competency evidence', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       confidenceMarkers: {
         level: 'high',
@@ -1370,27 +1344,12 @@ describe('generateRecommendations', () => {
     mocks.prisma.userProgress.count.mockResolvedValue(0);
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
-    const contextOnly = recommendations.find((item) => item.title === '探索知识图谱');
+    const knowledgeGraph = recommendations
+      .find((item) => item.title === '探索知识图谱');
 
-    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
-      readiness: 'low-confidence',
-      evidenceKinds: ['preview-only', 'standalone'],
-      weakMetrics: [
-        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.32 },
-      ],
-      replayConfidence: {
-        average: 0.39,
-        lowConfidenceCount: 2,
-      },
-      qualityMarkers: ['low-confidence', 'preview-only', 'standalone-only'],
-    });
-    expect(contextOnly?.rationale.contextOnly).toBe(true);
-    expect(contextOnly?.rationale.confidence.level).toBe('medium');
-    expect((contextOnly?.rationale as any).simulationArena).toMatchObject({
-      readiness: 'low-confidence',
-      evidenceKinds: ['preview-only', 'standalone'],
-    });
+    expect(knowledgeGraph?.rationale.contextOnly).toBe(true);
+    expect(knowledgeGraph?.rationale.simulationArena?.readiness).toBe('low-confidence');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
   });
 
   it('cites governed path execution features without raw execution scans or model-authored text', async () => {
@@ -1458,7 +1417,6 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
@@ -1467,36 +1425,10 @@ describe('generateRecommendations', () => {
       where: expect.objectContaining({ userId: 'student-1' }),
     }));
     expect(mocks.prisma).not.toHaveProperty('learningPathExecution');
-    expect((weakDimension?.rationale as any).pathExecution).toMatchObject({
-      readiness: 'partial',
-      featureGroup: 'pathExecution',
-      evidenceCount: 4,
-      evidenceWindow: {
-        firstStartedAt: '2026-06-04T10:00:00.000Z',
-        lastStartedAt: '2026-06-04T10:20:00.000Z',
-      },
-      sourceCoverage: {
-        completion: 'available',
-        terminalValidation: 'available',
-        interventionOutcome: 'available',
-      },
-      confidence: {
-        level: 'medium',
-        lowConfidenceCount: 1,
-      },
-      sourceReferences: [
-        expect.objectContaining({
-          sourceType: 'LearningPathExecution',
-          sourceId: 'exec-1',
-        }),
-      ],
-    });
-    expect((weakDimension?.rationale as any).pathExecution.sourceReferences).toHaveLength(1);
-    expect(JSON.stringify((weakDimension?.rationale as any).pathExecution)).not.toContain('suggestedAction');
-    expect(JSON.stringify((weakDimension?.rationale as any).pathExecution)).not.toContain('int-1');
+    expect(recommendations).toEqual([]);
   });
 
-  it('keeps stale evidence state ahead of simulation Arena low-confidence downgrade', async () => {
+  it('fails closed when stale feature-cache evidence has no trusted cumulative portrait', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       refreshedAt: new Date('2026-04-01T00:00:00.000Z'),
       confidenceMarkers: {
@@ -1525,18 +1457,11 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
-    expect(weakDimension?.rationale.confidence).toMatchObject({
-      state: 'stale',
-      level: 'high',
-    });
-    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
-      readiness: 'low-confidence',
-    });
+    expect(recommendations).toEqual([]);
   });
 
-  it('downgrades top-level rationale state when simulation Arena evidence is partial', async () => {
+  it('fails closed when partial simulation Arena evidence has no trusted cumulative portrait', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       confidenceMarkers: {
         level: 'high',
@@ -1600,20 +1525,15 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
-    expect(weakDimension?.rationale.confidence).toMatchObject({
-      state: 'partial',
-      level: 'high',
-    });
-    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
-      readiness: 'partial',
-    });
+    expect(recommendations).toEqual([]);
   });
 
   it('uses server learner state as the authoritative vector when the service is enabled', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+    const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
+    fencedTrustedSnapshotDb(portrait);
 
     const recommendations = await generateRecommendations('student-1');
 
@@ -1625,16 +1545,7 @@ describe('generateRecommendations', () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
-      id: 'portrait-v2-with-learner-state',
-      userId: 'student-1',
-      snapshotAt: new Date(portrait.generatedAt),
-      payloadVersion: portrait.payloadVersion,
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      migrationVersion: portrait.migrationVersion,
-      derivationKind: portrait.derivation.kind,
-      payload: portrait,
-    });
+    fencedTrustedSnapshotDb(portrait);
 
     const expert = (await generateRecommendations('student-1'))
       .find((item) => item.title === '挑战专家级任务');
@@ -1669,6 +1580,7 @@ describe('generateRecommendations', () => {
 
   it('falls back from learner state to the feature cache when direct personalization evidence is weak', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+    const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       statusMarkers: ['low-confidence'],
       confidenceMarkers: {
@@ -1678,10 +1590,11 @@ describe('generateRecommendations', () => {
         sourceCompleteness: 0.86,
       },
     }));
+    fencedTrustedSnapshotDb(portrait);
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations.map((item) => item.title)).toContain('提升迁移整合与应用能力');
-    expect(recommendations.map((item) => item.title)).not.toContain('挑战专家级任务');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
+    expect(recommendations.map((item) => item.title)).toContain('挑战专家级任务');
   });
 });

@@ -35,7 +35,10 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
-import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  hasAuthoritativePortraitV2Evidence,
+  summarizePortraitV2,
+} from '@/lib/data-governance/portrait-v2-consumer';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
@@ -4755,6 +4758,8 @@ function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): Ada
     knowledgeMastery: {
       tags,
     },
+    primaryPortraitState: 'NO_EVIDENCE',
+    primaryPortraitAvailability: 'no-eligible-evidence',
     evidence: {
       confidence: {
         level: 'low',
@@ -4783,6 +4788,8 @@ function normalizeAdaptivePathLearnerStateForPlanner(
   const vector = learnerState.primaryCompetencies?.vector ?? {};
   return {
     ...learnerState,
+    primaryPortraitState: learnerState.primaryPortraitState,
+    primaryPortraitAvailability: learnerState.primaryPortraitAvailability,
     primaryCompetencies: {
       ...learnerState.primaryCompetencies,
       vector: Object.fromEntries(Object.entries(vector).map(([key, value]) => [
@@ -9683,12 +9690,23 @@ function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Part
   };
 }
 
+function hasTrustedPortraitForKonling(state: AdaptiveLearnerState | null): boolean {
+  return Boolean(
+    state
+      && state.primaryPortraitState === 'SNAPSHOT'
+      && state.primaryPortraitAvailability === 'available'
+      && state.primaryPortrait
+      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
+  );
+}
+
 function buildServerOwnedUserProfile(input: {
   userId: string;
   name: string;
   learnerState: AdaptiveLearnerState | null;
 }): UserProfile {
-  const portraitPayload = input.learnerState?.primaryPortrait;
+  const trustedPortrait = hasTrustedPortraitForKonling(input.learnerState);
+  const portraitPayload = trustedPortrait ? input.learnerState?.primaryPortrait : null;
   const portraitV2 = portraitPayload && Array.isArray(portraitPayload.dimensions)
     ? summarizePortraitV2(portraitPayload)
     : undefined;
@@ -9703,6 +9721,7 @@ function buildServerOwnedUserProfile(input: {
 }
 
 function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
+  if (!hasTrustedPortraitForKonling(state)) return 3;
   const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
     ? state.primaryPortrait.dimensions
     : [];
@@ -9714,11 +9733,7 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
   )
     ? portraitDimensions.map((entry) => entry.score)
     : [];
-  const values = portraitValues.length > 0
-    ? portraitValues
-    : Object.values(state?.primaryCompetencies.vector ?? {}) // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cold-start fallback only.
-      .map((entry) => typeof entry?.score === 'number' ? entry.score : null)
-      .filter((value): value is number => value !== null);
+  const values = portraitValues;
   if (values.length === 0) return 3;
   const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
   if (avg >= 85) return 5;
@@ -9730,7 +9745,10 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
 
 function toLegacyAbilityVector(state: AdaptiveLearnerState | null): AbilityVector {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: AIContext still exposes this legacy field.
-  const vector = (state?.primaryCompetencies.vector ?? {}) as Record<string, { score?: number } | undefined>;
+  const trustedState = state && hasTrustedPortraitForKonling(state) ? state : null;
+  const vector = trustedState
+    ? trustedState.primaryCompetencies.vector as unknown as Record<string, { score?: number } | undefined>
+    : {};
   return {
     computational: normalizeScore(vector.controlModeling?.score),
     crossDomain: normalizeScore(vector.crossDomainTransfer?.score),
