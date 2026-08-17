@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-08-17 Issue #1379 `deduplicate-runtime-releases-with-content-blobs` 已完成 4.4 验证并归档。生产默认 `ossfs-blob-view`，active `runtime-3dcc716…`，rollback `runtime-e47451…`；`deploy:app` 不再 rsync runtime。
 - 2026-08-16 生产 runtime 已切到 OSS v2 blob-view。`deploy:app` / `remote-deploy.sh` 默认 `ossfs-blob-view`，只绑定已物化 view，不再 rsync `course-content/runtime`。runtime 内容更新走 `deploy:runtime`。`legacy-rsync` 仅显式可用，且存在 OSS active receipt 时失败关闭。
 - 2026-08-16 `dev1` 永久工作树已从 `~/.codex/worktrees/e734/act.just.edu.cn` 迁到 `/Users/YW/.codex/worktrees/act-dev1`。Buddy 认领真源是最新 Claim 的 `worktree_alias: act-dev1` 加 `git config --worktree buddy.worktreealias`。用户要求手工修复认领/进度并按参考流程继续，不要被 lite 的 partial-claim 脚本决策挡住。
 - 2026-08-16 用户授权选项 1 后，v0.18 邻域 25 个对象通过 snapshot 绑定 overlay 获得分类器安全 zh-CN preferred。密封 `multilingual-label-index.jsonl` 仍是 1909 行。正式 qualify CLI 写出真实 READY（文件 sha256 `1444318cc2…`），发布器 pin 已改到该哈希。五个生产选择器仍是 v0.9。用户随后授权完成 #1405 系列（含 #1411/#1412），仍不要认领 parent `#1405`。

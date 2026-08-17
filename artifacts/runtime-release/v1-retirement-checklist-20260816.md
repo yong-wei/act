@@ -26,6 +26,19 @@ Status: **executed 2026-08-16**. Hybrid Git-source v2 is active; imported-equiva
 - Did not delete `runtime/blob-releases/` manifests or receipts.
 - Did not GC active, rollback, or publishing blobs.
 
+## 4.4 closeout verification (2026-08-17)
+
+Recorded on `origin/integration` at `f122c02e7` after PR #1434.
+
+- Typecheck: `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck` passed.
+- Runtime Python suites: 66 tests passed (lifecycle, materialization, GC, activation, host-state, unused retirement).
+- Runtime/deploy Node suites passed: remote-deploy, blob-view/runtime-only/externalized deploy contracts, release CLI/activation/legacy retirement, OSS publisher bridge, server-ops, docker readiness, cutover-aware refresh, cutover app-only.
+- Build: `NODE_MAX_OLD_SPACE_SIZE=12288 npm run build` passed (wasm reuse, prisma generate, Next production compile).
+- Lint on current integration: 0 errors, 4 pre-existing `react-hooks/exhaustive-deps` warnings in `profile/portfolio` and `active-authority-graph` (outside this change).
+- `npm test` smoke/arena/smart-courseware passed; commercial-ui-governance failed on unrelated knowledge/adaptive-path visual-evidence drift.
+
+Production-selection and v1-retirement authorization already executed 2026-08-16. This file is that checklist.
+
 ## Still not authorized
 
 - Deleting unused Podman images (optional disk reclaim, separate authorization).
