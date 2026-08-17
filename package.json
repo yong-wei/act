@@ -115,6 +115,8 @@
     "test:diagnosis-generation-migration-postgres": "tsx ./scripts/tests/test-diagnosis-generation-migration-postgres.ts",
     "test:trusted-portrait-migration-postgres": "tsx ./scripts/tests/test-trusted-portrait-migration-postgres.ts",
     "test:trusted-portrait-migration-pglite": "tsx ./scripts/tests/test-trusted-portrait-migration-postgres.ts --pglite",
+    "actkg:mirror-v022": "tsx ./scripts/actkg-release/actkg-v022-release-mirror.ts",
+    "actkg:prepare-v022-candidate": "tsx ./scripts/knowledge-cutover/prepare-actkg-v022-authority-candidate.ts",
     "test:actkg-release-set-delta-postgres": "tsx ./scripts/tests/test-actkg-release-set-delta-postgres.ts",
     "test:aggregate-governance-postgres": "tsx ./scripts/tests/test-aggregate-governance-postgres.ts",
     "db:run-aggregate-course-resource-governance": "tsx ./scripts/db/run-aggregate-course-resource-governance.ts",

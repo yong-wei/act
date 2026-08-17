@@ -162,6 +162,7 @@ export interface PublicBundleV2Registry {
   schemaVersion: typeof CTKG_SCHEMA_V2_VERSION;
   schemaRawSha256: typeof CTKG_SCHEMA_V2_RAW_SHA256;
   expectedCounts: PublicBundleV2ExpectedCounts;
+  discoverCounts?: boolean;
   components: readonly ReviewedV2ComponentIdentity[];
   projectionProfiles: readonly ReviewedV2ProjectionProfileIdentity[];
   artifactContracts: readonly ArtifactContractRegistrationV2[];
