@@ -1,4 +1,7 @@
+import { execFileSync } from 'node:child_process';
+
 import { describe, expect, it } from 'vitest';
+import { loadAndValidateRegisteredPublicBundleV2 } from '../../../scripts/actkg-release/public-bundle-v2';
 
 import {
   CTKG_SCHEMA_V2_RAW_SHA256,
@@ -50,6 +53,17 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     );
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V018_BASELINE_DEFAULT_PATH);
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
+  });
+
+  it('fails closed when v0.22 metadata rows violate the admitted v2 contract', async () => {
+    const captureRevision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    await expect(loadAndValidateRegisteredPublicBundleV2({
+      root: process.cwd(),
+      bundlePath: V022_ACT_CONTROLLED_PATH,
+      gitRoot: process.cwd(),
+      captureRevision,
+      registry: REVIEWED_V0_22_V2_REGISTRY,
+    })).rejects.toThrow(/metadata\[2892\].*required property 'release_tier'/);
   });
 
   it('refuses unresolved membership instead of hard-coding v0.18 counts', () => {

@@ -1,19 +1,20 @@
 ## 1. Immutable composite envelope mirror
 
-- [ ] 1.1 Extend the tag-tree mirror tooling to resolve the pinned
+- [x] 1.1 Extend the tag-tree mirror tooling to resolve the pinned
   `control-theory-engineering-v0.22` publication and record its publication and
   source commits, Git objects, file modes, raw hashes, Component Manifest, and
   envelope digest.
-- [ ] 1.2 Mirror the complete envelope — the Aggregate plus every
+- [x] 1.2 Mirror the complete envelope — the Aggregate plus every
   manifest-locked component (Integration v0.20, Chinese terminology v0.5,
   Schema, Projection Profile, tag index, and the remaining declared
   components) — into a controlled immutable ACT release directory and reject
   working-tree, undeclared, or non-manifest inputs.
-- [ ] 1.3 Verify the declared protocol is `actkg-public-bundle/2` and Schema
+- [x] 1.3 Verify the declared protocol is `actkg-public-bundle/2` and Schema
   `0.3.0` with a schema hash equal to the admitted v0.18 hash; fail closed on
   any difference. Then validate the mirror through the reused v2 adapter and
   record explicit v0.22 registration, validation, and admission receipts under
   the `(bundleContractVersion, bundleDigest)` identity.
+  当前结果：镜像与 schema 哈希门禁通过；复用 v2 适配器对 `projection-link-metadata.jsonl` 中 121 条非契约行 fail closed（自 index 2892 起，缺少 `release_tier` 等必填字段），因此尚未写出候选 admission 收据。
 
 ## 2. Candidate import and impact evidence
 
