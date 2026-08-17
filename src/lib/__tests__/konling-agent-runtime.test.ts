@@ -3,9 +3,13 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  derivePortraitV2Compatibility,
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
   projectPortraitV2ForConsumer,
 } from '@/lib/data-governance/portrait-v2-model';
+import type { CompetencyDimension } from '@/lib/data-governance/competency-model';
+import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
@@ -297,6 +301,7 @@ function createCompleteGraphContext(
 function createGraphLearnerState(
   userId: string,
   score = 0.72,
+  vectorOverrides: Partial<Record<CompetencyDimension, number>> = {},
 ): NonNullable<KonlingRuntimeContext['learnerState']> {
   const evidenceRef = {
     sourceType: 'StudentEvidenceFeatureCache' as const,
@@ -318,14 +323,27 @@ function createGraphLearnerState(
     evidenceCount: 1,
     source: 'primary-competency-derived',
   };
+  const defaultScore = Math.round(score * 100);
   const vector = {
-    controlModeling: competencyScore,
-    parameterDesign: competencyScore,
-    crossDomainTransfer: competencyScore,
-    engineeringDecision: competencyScore,
-    inquiryReflection: competencyScore,
-    selfDirectedLearning: competencyScore,
+    controlModeling: { ...competencyScore, score: vectorOverrides.controlModeling ?? defaultScore },
+    parameterDesign: { ...competencyScore, score: vectorOverrides.parameterDesign ?? defaultScore },
+    crossDomainTransfer: { ...competencyScore, score: vectorOverrides.crossDomainTransfer ?? defaultScore },
+    engineeringDecision: { ...competencyScore, score: vectorOverrides.engineeringDecision ?? defaultScore },
+    inquiryReflection: { ...competencyScore, score: vectorOverrides.inquiryReflection ?? defaultScore },
+    selfDirectedLearning: { ...competencyScore, score: vectorOverrides.selfDirectedLearning ?? defaultScore },
   };
+  const portraitScores: Record<PortraitV2DimensionId, number> = {
+    controlModelingRepresentation: vector.controlModeling.score,
+    systemAnalysisInterpretation: vector.controlModeling.score,
+    controllerDesignSynthesis: vector.parameterDesign.score,
+    simulationValidationEvidence: vector.crossDomainTransfer.score,
+    engineeringConstraintSafety: vector.engineeringDecision.score,
+    transferIntegratedApplication: vector.crossDomainTransfer.score,
+    reflectionImprovementAiCollab: Math.round(
+      (vector.inquiryReflection.score + vector.selfDirectedLearning.score) / 2,
+    ),
+  };
+  const portraitNow = '2026-06-21T00:00:00.000Z';
 
   return {
     userId,
@@ -347,15 +365,38 @@ function createGraphLearnerState(
       authoritative: false,
       reason: 'client-hints-non-authoritative',
     },
-    primaryPortrait: projectPortraitV2ForConsumer(
-      derivePortraitV2Compatibility({
-        userId,
-        snapshotAt: '2026-06-21T00:00:00.000Z',
-        sourceFamily: 'StudentEvidenceFeatureCache',
-        vector,
-      }),
-      'student',
-    ),
+    primaryPortraitState: 'SNAPSHOT',
+    primaryPortraitAvailability: 'available',
+    primaryPortrait: projectPortraitV2ForConsumer(createPortraitV2Payload({
+      userId,
+      generatedAt: portraitNow,
+      now: portraitNow,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+        id,
+        score: portraitScores[id],
+        confidence: 0.8,
+        trend: 'stable' as const,
+        freshness: {
+          state: 'current' as const,
+          asOf: portraitNow,
+          evidenceAgeDays: 0,
+        },
+        evidenceSummary: {
+          totalCount: 1,
+          sourceFamilyCounts: { LearningFact: 1 },
+        },
+        lastPositiveEvidenceAt: portraitNow,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [{
+          kind: 'evidence-family' as const,
+          ref: 'LearningFact',
+          privacyScope: 'student-visible' as const,
+        }],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    }), 'student'),
     primaryCompetencies: {
       authority: 'legacy-compatibility-only',
       source: 'feature-cache',
@@ -709,23 +750,14 @@ describe('konling agent runtime', () => {
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
     clearPendingChanges();
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
-      userId: 'student-1',
-      authority: 'server-owned',
-      primaryCompetencies: {
-        vector: {
-          controlModeling: { score: 88 },
-          parameterDesign: { score: 72 },
-          crossDomainTransfer: { score: 64 },
-          engineeringDecision: { score: 50 },
-          inquiryReflection: { score: 40 },
-          selfDirectedLearning: { score: 66 },
-        },
-      },
-      risks: {
-        activeFlags: [],
-      },
-    });
+    mocks.readAdaptiveLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+      controlModeling: 88,
+      parameterDesign: 72,
+      crossDomainTransfer: 64,
+      engineeringDecision: 50,
+      inquiryReflection: 40,
+      selfDirectedLearning: 66,
+    }));
   });
 
   it('separates canonical intent values from source terms used to consume clauses', () => {
@@ -3152,7 +3184,7 @@ describe('konling agent runtime', () => {
   it.each([
     {
       invalidity: 'missing evidence',
-      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+      invalidate: (dimension: NonNullable<NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']>['dimensions'][number]) => ({
         ...dimension,
         score: 0,
         confidence: 0,
@@ -3164,23 +3196,25 @@ describe('konling agent runtime', () => {
     },
     {
       invalidity: 'stale freshness',
-      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+      invalidate: (dimension: NonNullable<NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']>['dimensions'][number]) => ({
         ...dimension,
         freshness: { state: 'stale' as const, asOf: '2026-01-01T00:00:00.000Z', evidenceAgeDays: 171 },
       }),
     },
     {
       invalidity: 'non-finite score',
-      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+      invalidate: (dimension: NonNullable<NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']>['dimensions'][number]) => ({
         ...dimension,
         score: Number.NaN,
       }),
     },
   ])('falls back to the whole compatibility vector for portrait $invalidity', async ({ invalidate }) => {
     const learnerState = createGraphLearnerState('student-1', 0.6);
+    const primaryPortrait = learnerState.primaryPortrait;
+    if (!primaryPortrait) throw new Error('expected trusted portrait');
     learnerState.primaryPortrait = {
-      ...learnerState.primaryPortrait,
-      dimensions: learnerState.primaryPortrait.dimensions.map((dimension, index) => {
+      ...primaryPortrait,
+      dimensions: primaryPortrait.dimensions.map((dimension, index) => {
         const highPortraitDimension = {
           ...dimension,
           score: 90,
@@ -3212,9 +3246,11 @@ describe('konling agent runtime', () => {
 
   it('uses portrait scores when every portrait dimension is usable', async () => {
     const learnerState = createGraphLearnerState('student-1', 0.6);
+    const primaryPortrait = learnerState.primaryPortrait;
+    if (!primaryPortrait) throw new Error('expected trusted portrait');
     learnerState.primaryPortrait = {
-      ...learnerState.primaryPortrait,
-      dimensions: learnerState.primaryPortrait.dimensions.map((dimension) => ({
+      ...primaryPortrait,
+      dimensions: primaryPortrait.dimensions.map((dimension) => ({
         ...dimension,
         score: 90,
         confidence: 0.8,
@@ -11962,7 +11998,10 @@ describe('konling agent runtime', () => {
       db,
       scope: createScope({ pageId: 'adaptive-path-center' }),
       agentSessionId: 'agent-session-1',
-      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+        learnerState: createGraphLearnerState('student-1'),
+      }),
     });
 
     const result = await runtime.generateLearningPath({
@@ -12930,6 +12969,39 @@ describe('konling agent runtime', () => {
     }));
     expect(JSON.stringify(db.learningPathIntervention.create.mock.calls)).not.toContain('rawDialogue');
     expect(db.evidenceOutbox.createMany).toHaveBeenCalled();
+  });
+
+  it('does not write learning-path outcomes for Arena official follow-up feedback', async () => {
+    const scope = createScope();
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'advice-followup-1',
+          sessionId: 'arena-official:task-1:submission-1',
+          interventionType: 'guidance',
+          content: '先使当前未通过的硬约束达标。',
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn(),
+      },
+      learningPathIntervention: {
+        create: vi.fn(),
+      },
+    };
+
+    await expect(recordKonlingInterventionFeedback(db as never, {
+      scope,
+      interventionId: 'advice-followup-1',
+      feedback: 'rated',
+      helpful: true,
+    })).resolves.toMatchObject({ success: true });
+    expect(db.learningPath.findMany).not.toHaveBeenCalled();
+    expect(db.learningPathIntervention.create).not.toHaveBeenCalled();
   });
 
   it('persists intervention feedback for a recently completed path node after the active node advances', async () => {

@@ -15,6 +15,14 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'scripts/runtime-release/configure-runtime-blob-ossfs.sh'), 'utf8');
 const service = fs.readFileSync(path.join(root, 'scripts/runtime-release/act-runtime-blob-ossfs.service'), 'utf8');
+const helperService = fs.readFileSync(
+  path.join(root, 'scripts/runtime-release/act-runtime-blob-view-helper.service'),
+  'utf8',
+);
+const helperBind = fs.readFileSync(
+  path.join(root, 'scripts/runtime-release/bind-runtime-blob-view-helper.sh'),
+  'utf8',
+);
 
 for (const invariant of [
   '--manifest',
@@ -157,7 +165,17 @@ assert.match(podmanDeploy, /ossfs-blob-view\)/, 'Podman deployment must recogniz
 assert.match(podmanDeploy, /\.act-runtime-release\.v2\.json/, 'v2 blob views must require their manifest');
 assert.match(podmanDeploy, /\.act-runtime-release-materialization\.v1\.json/, 'v2 blob views must require their local receipt');
 assert.match(podmanDeploy, /findmnt -rn -M "\$helper_root" -o OPTIONS/, 'v2 blob helper mount must be checked read-only');
+assert.match(
+  podmanDeploy,
+  /if \[ ! -f "\$pointer" \] && \[ ! -L "\$pointer" \]; then/,
+  'cutover activation pointers must accept blob-view leaf symlinks that root cannot follow through FUSE',
+);
 assert.match(podmanDeploy, /-v "\$\{RUNTIME_CONTENT_DIR\}:\/app\/course-content\/runtime:ro"/, 'application runtime bind must remain read-only');
+assert.match(
+  podmanDeploy,
+  /-v "\$\{RUNTIME_CONTENT_DIR\}\/\.act-runtime-blobs:\/app\/course-content\/runtime\/\.act-runtime-blobs:ro"/,
+  'v2 blob helper FUSE must be bind-mounted into the app; a parent directory bind does not propagate the nested mount',
+);
 
 for (const invariant of [
   '--oss_bucket_prefix=runtime/blobs/sha256/',
@@ -169,11 +187,38 @@ for (const invariant of [
 assert.doesNotMatch(config, /ACCESS_KEY|SECRET/i, 'blob ossfs config must not persist access keys');
 assert.match(service, /ossfs2 mount/, 'blob ossfs service must mount ossfs2');
 assert.match(service, /RemainAfterExit=yes/, 'blob ossfs service must track its mount state');
+assert.match(
+  helperService,
+  /Requires=act-runtime-blob-ossfs\.service/,
+  'helper bind unit must start only after the shared blob FUSE is up',
+);
+assert.match(
+  helperService,
+  /ExecStart=\/home\/projects\/act\/scripts\/runtime-release\/bind-runtime-blob-view-helper\.sh/,
+  'helper bind unit must call the host bind script',
+);
+assert.match(helperService, /RemainAfterExit=yes/, 'helper bind unit must track its bind mount state');
+assert.doesNotMatch(helperService, /ACCESS_KEY|SECRET/i, 'helper bind unit must not persist access keys');
+assert.match(helperBind, /mount --bind "\$BLOB_ROOT" "\$helper"/, 'helper bind script must bind the shared blob root');
+assert.match(
+  helperBind,
+  /mount -o remount,bind,ro "\$helper"/,
+  'helper bind script must remount the view helper read-only',
+);
+assert.match(
+  helperBind,
+  /findmnt -rn -M "\$BLOB_ROOT" -o OPTIONS/,
+  'helper bind script must refuse a writable blob root',
+);
+assert.doesNotMatch(helperBind, /systemctl /, 'helper bind script must not change systemd units');
 
 for (const invariant of [
   'build-manifest',
   'publish-streaming',
   '--parent-manifest',
+  '--external-bundle',
+  '--external-bundle-root',
+  '--generated-resources-root',
   '--expected-active-release',
   'publisher-verification.json',
   'source-provenance-proof.json',
@@ -205,6 +250,21 @@ assert.match(
   runtimeDeploy,
   /publish_args\+=\(--parent-manifest "\$parent_manifest"\)/,
   'runtime deploy must pass the parent manifest to publish-streaming so inherited Git blobs remain body-read and HEAD free',
+);
+assert.match(
+  runtimeDeploy,
+  /publish_args\+=\(--external-bundle "\$external_bundle"\)/,
+  'runtime deploy must pass the declared external bundle to publish-streaming',
+);
+assert.match(
+  runtimeDeploy,
+  /build_args\+=\(--external-bundle "\$external_bundle"\)/,
+  'runtime deploy must bind the declared external bundle while planning the Git-source manifest',
+);
+assert.match(
+  runtimeDeploy,
+  /publish_args\+=\(--blob-parent-release-id "\$ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" --blob-parent-manifest-sha256 "\$ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256"\)/,
+  'runtime deploy may inherit content-addressed blobs from an existing v2 release without a Git-source parent',
 );
 assert.match(
   runtimeDeploy,
@@ -245,7 +305,14 @@ assert.match(deployAll, /deploy-runtime-blob-release\.sh" "\$@"/, 'combined depl
 assert.match(deployAll, /remote-deploy\.sh" --app-only/, 'combined deployment must run application deployment without a runtime pipeline');
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
+assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');
 assert.match(appDeploy, /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then/, 'legacy runtime synchronization must be gated to the full deployment scope');
+assert.match(
+  appDeploy,
+  /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n(?:  #[^\n]*\n)*  guard_no_committed_production_cutover\nfi/,
+  'default blob-view deploys must not inherit the Legacy cutover marker abort',
+);
+assert.match(appDeploy, /ossfs-blob-view：不传输 runtime 内容/, 'full application deployment must retain the existing blob view instead of rsync');
 assert.match(appDeploy, /--app-only：跳过 runtime release 验证/, 'application deployment must skip runtime release verification');
 for (const forbidden of [
   'scripts/build.sh',

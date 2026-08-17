@@ -1,6 +1,7 @@
 /** Real per-consumer shadow reads against the isolated or staged candidate. */
 
-
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 
 import {
   REGISTERED_PEER_DOMAIN_IDS,
@@ -11,6 +12,10 @@ import type {
   AuthoritySnapshotManifest,
 } from '@/lib/authoritative-knowledge/authority-snapshot';
 import {
+  resolveAuthorityStorePaths,
+  type AuthorityStorePaths,
+} from '@/lib/authoritative-knowledge/authority-store';
+import {
   resolveEngineeringGraphAuthority,
   resolveEngineeringRagAuthority,
 } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
@@ -19,14 +24,15 @@ import {
   runEngineeringRagQuery,
   runTeachingResourceRagQuery,
 } from '@/lib/canonical-rag/domain-composition';
-import type { AuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
   ENGINEERING_RELATION_FAMILIES,
+  loadActiveShardContext,
   loadDomainDefaultShard,
   loadNodeDetailShard,
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
   loadRootShard,
+  resolveAuthorityDomainShardPaths,
   type AuthorityDomainShardPaths,
   type LoadedAuthorityShardContext,
 } from '@/lib/authority-domain-shards';
@@ -34,11 +40,17 @@ import {
   createAuthorityLabelResolverContext,
   resolveAuthorityLabel,
 } from '@/lib/authority-domain-shards/labels';
-import { loadPrerequisitePublication, type PrerequisiteStorePaths } from '../prerequisites/store';
-import type { StagedTeachingProjectionFiles, TeachingProjectionStorePaths } from '../store';
+import { loadPrerequisitePublication, resolvePrerequisiteStorePaths, type PrerequisiteStorePaths } from '../prerequisites/store';
+import {
+  loadStagedTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+  type StagedTeachingProjectionFiles,
+  type TeachingProjectionStorePaths,
+} from '../store';
 import { resolveCoursePageLayeredGraphContext } from '@/lib/layered-graph/course-page-context';
 import {
   resolveConsumerActivation,
+  resolveConsumerActivationStorePaths,
   resolveCourseRuntimeProductionSelection,
   resolveEngineeringRagProductionSelection,
   resolveKonlingProductionSelection,
@@ -47,7 +59,12 @@ import {
 } from '@/lib/versioned-knowledge-activation';
 
 import { V018_NAMED_CONSUMERS } from './v018-qualify-contract';
-import { leakInDisplay } from './v018-shared';
+import {
+  V018_RELEASE_ID,
+  V018_SNAPSHOT,
+  leakInDisplay,
+  readJson,
+} from './v018-shared';
 
 export interface ConsumerShadowRead {
   kind: string;
@@ -472,4 +489,90 @@ export function runNamedConsumerShadowReads(
       reads,
     };
   });
+}
+
+function countInfographNodes(repoRoot: string): number {
+  const candidates = [
+    'course-content/runtime/knowledge/infographs/nodes',
+    'course-content/authoring/knowledge/infographs/authority/nodes',
+  ];
+  for (const relative of candidates) {
+    const dir = path.join(repoRoot, relative);
+    if (!existsSync(dir)) continue;
+    const count = readdirSync(dir).filter((name) => !name.startsWith('.')).length;
+    if (count > 0) return count;
+  }
+  return 0;
+}
+
+export function runLiveNamedConsumerShadowReads(repoRoot: string): {
+  results: ConsumerShadowResult[];
+  blockers: string[];
+} {
+  const blockers: string[] = [];
+  try {
+    const authorityPaths = resolveAuthorityStorePaths(
+      path.join(repoRoot, 'course-content/authoring/knowledge/authority'),
+    );
+    const projectionPaths = resolveTeachingProjectionStorePaths(
+      path.join(repoRoot, 'course-content/runtime/knowledge/projection'),
+    );
+    const prerequisitePaths = resolvePrerequisiteStorePaths(
+      path.join(repoRoot, 'course-content/runtime/knowledge/prerequisites'),
+    );
+    const activationPaths = resolveConsumerActivationStorePaths(
+      path.join(repoRoot, 'course-content/runtime/knowledge/consumer-activation'),
+    );
+    const shardPaths = resolveAuthorityDomainShardPaths(repoRoot);
+    const authorityPointer = readJson(authorityPaths.currentPointer);
+    const authorityManifest = readJson(path.join(
+      authorityPaths.releasesDir,
+      String(authorityPointer.snapshotId),
+      'manifest.json',
+    )) as unknown as AuthoritySnapshotManifest;
+    const engineering = readJson(path.join(
+      authorityPaths.releasesDir,
+      String(authorityPointer.snapshotId),
+      'engineering.json',
+    )) as unknown as AuthorityEngineeringBody;
+    if (authorityManifest.snapshotId !== V018_SNAPSHOT || authorityManifest.releaseId !== V018_RELEASE_ID) {
+      blockers.push('live-authority-not-v018');
+    }
+    const projectionPointer = readJson(projectionPaths.currentPointer);
+    const loadedProjection = loadStagedTeachingProjection(projectionPaths, String(projectionPointer.projectionId));
+    const prerequisitePointer = readJson(prerequisitePaths.currentPointer);
+    const shardContext = loadActiveShardContext({
+      repoRoot,
+      shardPaths,
+      authorityPaths,
+      activationPaths,
+    });
+    const results = runNamedConsumerShadowReads({
+      authorityManifest,
+      engineering,
+      loadedProjection,
+      catalog: null,
+      shardContext,
+      shardPaths,
+      authorityPaths,
+      activationPaths,
+      projectionPaths,
+      prerequisitePaths,
+      publicationId: String(prerequisitePointer.publicationId),
+      infographCount: countInfographNodes(repoRoot),
+    });
+    if (results.length !== V018_NAMED_CONSUMERS.length) blockers.push('consumer-shadow-reads-incomplete');
+    for (const row of results) {
+      if (row.status !== 'READY' || row.presentationLeak) {
+        blockers.push(`consumer-behavior-blocked:${row.consumerId}`);
+      }
+      for (const read of row.reads) {
+        if (!read.ok) blockers.push(`consumer-read-failed:${row.consumerId}:${read.kind}`);
+      }
+    }
+    return { results, blockers: [...new Set(blockers)].sort() };
+  } catch (error) {
+    blockers.push(error instanceof Error ? error.message : String(error));
+    return { results: [], blockers: [...new Set(blockers)].sort() };
+  }
 }

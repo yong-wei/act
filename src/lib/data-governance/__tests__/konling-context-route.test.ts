@@ -64,6 +64,8 @@ describe('Konling context route learner-state integration', () => {
     mocks.readAdaptiveLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
       primaryCompetencies: {
         source: 'latest-snapshot',
       },
@@ -110,9 +112,44 @@ describe('Konling context route learner-state integration', () => {
       input.portraitConsumer === 'konling')).toBe(true);
     expect(body.learner_state_context).toMatchObject({
       authority: 'server-owned',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
       primaryCompetencies: {
         source: 'latest-snapshot',
       },
+    });
+  });
+
+  it('returns the legacy competency vector only when learner state has a trusted snapshot portrait', async () => {
+    const response = await request();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentCompetencySnapshot.findFirst).toHaveBeenCalledTimes(1);
+    expect(body.competency_vector).toEqual({ controlModeling: { score: 72 } });
+  });
+
+  it('blocks legacy competency vector fallback when learner state is NO_EVIDENCE', async () => {
+    mocks.readAdaptiveLearnerState.mockResolvedValue({
+      userId: 'student-1',
+      authority: 'server-owned',
+      primaryPortraitState: 'NO_EVIDENCE',
+      primaryPortraitAvailability: 'no-trusted-evidence',
+      primaryCompetencies: {
+        source: 'latest-snapshot',
+        vector: { controlModeling: { score: 72 } },
+      },
+    });
+
+    const response = await request();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentCompetencySnapshot.findFirst).not.toHaveBeenCalled();
+    expect(body.competency_vector).toBeNull();
+    expect(body.learner_state_context).toMatchObject({
+      primaryPortraitState: 'NO_EVIDENCE',
+      primaryPortraitAvailability: 'no-trusted-evidence',
     });
   });
 

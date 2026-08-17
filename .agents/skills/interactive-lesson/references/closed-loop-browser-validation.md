@@ -32,12 +32,15 @@
 - 教师密码：`TestTeacher@Just2026!`
 - 学生账号：`demo`
 - 学生密码：`DemoStudent@Just2026!`
+- 管理员账号：`admin`
+- 管理员密码：`admin@Just`
 
 重要说明：
 
 - 登录页字段是"学号/工号"，不是邮箱优先。
 - 学生端应输入 `demo` 登录，不要默认使用 `demo@example.com`。
-- 若上述账号失效，先检查本地数据库种子与固定密码脚本，不要直接假设前端实现有问题。
+- 三角色账号真源是 `scripts/db/verified-test-accounts.mjs`。
+- 若上述账号失效，先运行 `npm run seed:test-accounts` 或生产脚本 `scripts/db/ensure-production-test-accounts.sh`，不要直接假设前端实现有问题。
 
 ## 启动方式
 

@@ -1,0 +1,294 @@
+{
+  "contract": "actkg-v018-production-cutover-receipt/v1",
+  "transactionId": "v018-cutover-2026-08-16T131321310Z",
+  "status": "READY",
+  "ready": true,
+  "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
+  "nextAction": "retain-v09-rollback",
+  "observations": {
+    "expectedObjectCount": 6843,
+    "expectedRelationCount": 2811,
+    "objectCount": 6843,
+    "relationCount": 2811,
+    "readyConsumers": [
+      "course-runtime",
+      "engineering-graph",
+      "engineering-rag",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "consumerBehavior": [
+      {
+        "consumerId": "course-runtime",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "course-runtime-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "course-runtime-graph",
+            "ok": true,
+            "detail": "hasTeaching=true;scope=course-package:3-8"
+          },
+          {
+            "kind": "course-runtime",
+            "ok": true,
+            "detail": "scope=course-package:3-8"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      },
+      {
+        "consumerId": "engineering-graph",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "engineering-graph-authority",
+            "ok": true,
+            "detail": "objects=6843"
+          },
+          {
+            "kind": "graph-root",
+            "ok": true,
+            "detail": "root"
+          },
+          {
+            "kind": "graph-domain",
+            "ok": true,
+            "detail": "objects=1"
+          },
+          {
+            "kind": "graph-family",
+            "ok": true,
+            "detail": "relations=0"
+          },
+          {
+            "kind": "graph-neighborhood",
+            "ok": true,
+            "detail": "node=ctc:modeling-00d2998755974a1329049aac"
+          },
+          {
+            "kind": "graph-detail",
+            "ok": true,
+            "detail": "detail=增益"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      },
+      {
+        "consumerId": "engineering-rag",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "engineering-rag-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "engineering-rag-query",
+            "ok": true,
+            "detail": "shadow"
+          },
+          {
+            "kind": "engineering-rag",
+            "ok": true,
+            "detail": "objects=6843"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      },
+      {
+        "consumerId": "konling",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "konling-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "konling",
+            "ok": true,
+            "detail": "card=ctc_modeling-2088bbde171b2e9ef66070d5"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      },
+      {
+        "consumerId": "learning-path",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "prerequisite",
+            "ok": true,
+            "detail": "edges=4"
+          },
+          {
+            "kind": "learning-path",
+            "ok": true,
+            "detail": "edge-present"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      },
+      {
+        "consumerId": "teaching-resource-rag",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "teaching-resource-rag-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "teaching-resource-rag",
+            "ok": true,
+            "detail": "resource=act:step:3-8:step-04;availability=shadow"
+          },
+          {
+            "kind": "card",
+            "ok": true,
+            "detail": "card=ctc_modeling-2088bbde171b2e9ef66070d5"
+          },
+          {
+            "kind": "infograph",
+            "ok": true,
+            "detail": "infographCount=161"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=8;fallback=0;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=0"
+          }
+        ]
+      }
+    ],
+    "expectedHashes": {
+      "authority": "868c233461d89c6ae1267eca50e80383ef94e36cc769d91cf14532bf8d37af0d",
+      "projection": "cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703",
+      "prerequisite": "a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e",
+      "authority-domain-shards": "9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c",
+      "consumer-activation": "e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b"
+    },
+    "public": {
+      "labels": [
+        "系统建模",
+        "时域分析",
+        "稳定性分析",
+        "频域分析",
+        "根轨迹",
+        "经典控制设计",
+        "离散时间控制分析",
+        "状态空间控制分析与设计"
+      ],
+      "teachingStatus": 200,
+      "teachingObjectCount": 1,
+      "cardStatus": 200,
+      "neighborhoodStatus": 200,
+      "neighborhoodRelationCount": 7,
+      "infographStatus": 503,
+      "infographNodeId": "",
+      "infographPng": false,
+      "konlingStatus": 200,
+      "konlingProjectionId": null,
+      "konlingAuthoritySnapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "courseRuntimeStatus": 200,
+      "courseProjectionId": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "probeNodeId": "ctc:modeling-00d2998755974a1329049aac",
+      "leaks": [],
+      "blockers": []
+    },
+    "postReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true,
+      "mathDocumentGradingWorker": {
+        "required": false,
+        "ready": true,
+        "configReady": true,
+        "capabilities": null,
+        "missing": []
+      },
+      "timestamp": "2026-08-16T15:06:17.015Z",
+      "version": "unknown"
+    },
+    "postPublicReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true,
+      "mathDocumentGradingWorker": {
+        "required": false,
+        "ready": true,
+        "configReady": true,
+        "capabilities": null,
+        "missing": []
+      },
+      "timestamp": "2026-08-16T15:06:17.062Z",
+      "version": "unknown"
+    },
+    "liveInfographReady": true,
+    "livePointers": {
+      "authority": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "projection": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "prerequisite": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+      "shards": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+      "activation": "v018-cutover-1b64a853dda5-17f00f669b22"
+    },
+    "postWorkerHealth": "healthy"
+  },
+  "blockers": [],
+  "receiptDigest": "4295ffd695aa195620643dcda390e3eacc375b8f4d4a905ebf7eac6aa1e0bb71"
+}

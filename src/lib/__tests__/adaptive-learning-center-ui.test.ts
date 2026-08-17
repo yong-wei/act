@@ -94,6 +94,8 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
       }),
       'student',
     ),
+    primaryPortraitState: 'SNAPSHOT',
+    primaryPortraitAvailability: 'available',
     primaryCompetencies: {
       authority: 'legacy-compatibility-only',
       source: 'latest-snapshot',
@@ -1065,8 +1067,8 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");
-    expect(source).toContain('{!showPathContextRecovery && (showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
-    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ||');
+    expect(source).toContain('{!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (');
+    expect(source).toContain('{showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (');
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');
     expect(source).toContain('<AdaptivePathTimeline');

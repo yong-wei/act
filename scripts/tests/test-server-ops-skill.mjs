@@ -109,11 +109,30 @@ for (const invariant of [
   '不同 transactionId 的历史 journal/receipt 是 Legacy 部署保留的 release 审计证据',
   '只有已提升 engine 与 `.tmp` 都是普通文件且 SHA-256 等于 sealed hash',
   'committed receipt、current marker、四个 selector、app/worker 镜像 OCI digest',
+  'deploy:app',
+  'ossfs-blob-view',
+  '不要把本地 `course-content/runtime` 当作部署同步内容',
 ]) {
   assert.ok(
     deployReferenceSource.includes(invariant),
     `server-ops 必须保留生产图谱切换恢复不变量: ${invariant}`,
   );
 }
+
+assert.match(
+  skillSource,
+  /已物化的 OSS runtime view/,
+  'server-ops 不得再把本地 course-content/runtime 列为远端必需部署内容',
+);
+assert.match(
+  skillSource,
+  /npm run deploy:app/,
+  'server-ops 必须把应用部署与 runtime 发布分开',
+);
+assert.match(
+  ossRuntimeSource,
+  /remote-deploy\.sh` 不再默认 rsync/,
+  'OSS 运行时参考必须禁止默认 rsync runtime',
+);
 
 console.log('server-ops skill contract passed');

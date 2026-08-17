@@ -483,7 +483,20 @@ async function main() {
         const { snapshot, receipt: planningReceipt } = planning;
         const expectedReleaseId = deriveRuntimeReleaseId(snapshot.manifest.sourceRevision, snapshot.manifest.treeSha256);
         if (releaseId !== expectedReleaseId) throw new Error(`Release id does not bind this runtime source identity. Run plan and use: ${expectedReleaseId}`);
-        const outcome = await publishRuntimeBlobReleaseLocallyWithMetrics({ snapshot, manifest: snapshot.manifest, planningReceipt, local: localPublisherOptions() });
+        const blobParentReleaseId = argument('--blob-parent-release-id');
+        const blobParentManifestSha256 = argument('--blob-parent-manifest-sha256');
+        if ((blobParentReleaseId == null) !== (blobParentManifestSha256 == null)) {
+          throw new Error('Blob parent inheritance requires both --blob-parent-release-id and --blob-parent-manifest-sha256.');
+        }
+        const outcome = await publishRuntimeBlobReleaseLocallyWithMetrics({
+          snapshot,
+          manifest: snapshot.manifest,
+          planningReceipt,
+          local: localPublisherOptions(),
+          ...(blobParentReleaseId && blobParentManifestSha256 ? {
+            blobParentRelease: { releaseId: blobParentReleaseId, manifestSha256: blobParentManifestSha256 },
+          } : {}),
+        });
         const dailyReportOutput = argument('--daily-report-output');
         if (dailyReportOutput) {
           const report = await readDailyPublicationPlan(dailyReportOutput, snapshot.manifest, planning.proof.proofSha256);

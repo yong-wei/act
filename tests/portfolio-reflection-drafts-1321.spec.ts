@@ -44,9 +44,56 @@ async function installPortfolioFixture(page: Page) {
   let draft: Draft | null = null;
   const now = '2026-08-11T08:00:00.000Z';
 
-  await page.route('**/api/simulation/cruise-summary-insight', (route) => route.fulfill({ json: { designs: [] } }));
-  await page.route('**/api/evaluation/prompt-history/**', (route) => route.fulfill({ json: { prompts: [] } }));
-  await page.route('**/api/ethics/violation', (route) => route.fulfill({ json: { violations: [] } }));
+  await page.route('**/api/auth/session**', (route) => route.fulfill({
+    json: {
+      user: {
+        id: 'portfolio-draft-browser-student',
+        email: 'portfolio-draft-browser-student@example.test',
+        name: 'Portfolio Draft Browser Student',
+        role: 'STUDENT',
+      },
+      expires: new Date(Date.now() + 3600_000).toISOString(),
+    },
+  }));
+  await page.route('**/api/profile/portfolio-evidence', (route) => route.fulfill({
+    json: {
+      classroom: {
+        state: 'available',
+        total: 1,
+        items: [{
+          id: 'classroom-evidence-1321',
+          title: 'unit-5-3 路 step-03',
+          type: '课堂提交',
+          content: '已提交课堂步骤 step-03，得分 92 分。',
+          createdAt: now,
+          sessionName: '控制系统辨识',
+        }],
+      },
+      simulations: {
+        state: 'available',
+        total: 1,
+        items: [{
+          id: 'simulation-evidence-1321',
+          name: 'PID 仿真设计',
+          score: 86,
+          parameters: { kp: 1.2, ki: 0.4, kd: 2.1 },
+          createdAt: now,
+        }],
+      },
+      ethics: {
+        state: 'available',
+        total: 1,
+        items: [{
+          id: 'ethics-evidence-1321',
+          violationType: 'COLLISION_RISK',
+          description: '存在碰撞风险',
+          remediationAction: '我会先减速并重新规划航向。',
+          isResolved: true,
+          createdAt: now,
+        }],
+      },
+    },
+  }));
   await page.route('**/api/profile/portfolio-reflection-drafts**', async (route) => {
     const request = route.request();
     const method = request.method();
@@ -104,6 +151,14 @@ async function captureEvidenceScreenshot(page: Page, filename: string) {
   await page.screenshot({ path: join(outputDirectory, filename), fullPage: true });
 }
 
+async function capturePortfolioEvidenceScreenshot(page: Page, filename: string) {
+  const outputDirectory = process.env.PORTFOLIO_EVIDENCE_CAPTURE_DIR;
+  if (!outputDirectory) return;
+
+  await mkdir(outputDirectory, { recursive: true });
+  await page.screenshot({ path: join(outputDirectory, filename), fullPage: true });
+}
+
 test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection draft across desktop and mobile layouts', async ({
   context,
   page,
@@ -129,7 +184,21 @@ test('Issue 1321 persists, reopens, edits, and discards a portfolio reflection d
   await expectNoHorizontalOverflow(page);
   await captureEvidenceScreenshot(page, 'portfolio-reflection-draft-1440.png');
 
+  await page.goto('/profile/portfolio');
+  await expect(page.getByText('unit-5-3 路 step-03', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /仿真设计/ }).click();
+  await expect(page.getByText('PID 仿真设计', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /伦理整改/ }).click();
+  await expect(page.getByText('存在碰撞风险', { exact: true })).toBeVisible();
+  await capturePortfolioEvidenceScreenshot(page, 'portfolio-evidence-1440.png');
+
   await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto('/profile/portfolio');
+  await expectNoHorizontalOverflow(page);
+  await page.getByRole('button', { name: /课堂作品/ }).click();
+  await expect(page.getByText('unit-5-3 路 step-03', { exact: true })).toBeVisible();
+  await capturePortfolioEvidenceScreenshot(page, 'portfolio-evidence-320.png');
+
   await page.goto('/profile/portfolio?category=reflection&intent=create&source=portfolio&taskIntent=create-portfolio-reflection');
   const mobileEditor = page.locator('[data-portfolio-reflection-draft-editor]');
   await expect(mobileEditor).toBeVisible();

@@ -1,25 +1,38 @@
 # 测试账号核对与修复
 
-常用账号：
+三角色验证账号真源是 `scripts/db/verified-test-accounts.mjs`。本地开发与生产都写入同一组登录名和密码。
 
-- 学生：`demo` / `DemoStudent@Just2026!`
-- 教师：`test_teacher` / `TestTeacher@Just2026!`
+登录字段使用“学号/工号”，不是邮箱：
 
-登录字段：
+| 角色 | 登录名 | 密码 | 邮箱 |
+| --- | --- | --- | --- |
+| 学生 | `demo` | `DemoStudent@Just2026!` | `demo@example.com` |
+| 教师 | `test_teacher` | `TestTeacher@Just2026!` | `test_teacher@example.com` |
+| 管理员 | `admin` | `admin@Just` | `admin` |
 
-- 使用“学号/工号”字段，不是邮箱
+本地写入：
 
-校验账号是否存在：
 ```bash
-ssh root@121.40.124.135 "podman exec act-obe-postgres psql -U act_user -d act_obe -c \"SELECT email, role, \\\"passwordHash\\\" IS NOT NULL as has_password FROM \\\"User\\\" WHERE email IN ('demo@example.com', 'test_teacher@example.com');\""
+npm run seed:test-accounts
+# 或 npm run seed:demo / npm run seed:admin / npm run seed:fixed-passwords
 ```
 
-如需生成新密码哈希：
+生产写入并做 HTTP 登录验收：
+
 ```bash
-ssh root@121.40.124.135 "podman exec -i act-obe-app node -e '
-const bcrypt=require(\"bcryptjs\");
-console.log(bcrypt.hashSync(\"DemoStudent@Just2026!\", 10));
-'"
+bash scripts/db/ensure-production-test-accounts.sh
 ```
 
-如需重建测试账号，可参考 `.claude/skills/server-ops/README.md` 中的 SQL 模板。
+只验收登录：
+
+```bash
+node scripts/db/verify-test-account-login.mjs --base-url https://act.adapt-learn.online
+```
+
+核对生产身份：
+
+```bash
+ssh root@121.40.124.135 "podman exec act-obe-postgres psql -U act_user -d act_obe -c \"SELECT u.email, u.role, u.\\\"employeeNumber\\\", p.\\\"studentNumber\\\" FROM \\\"User\\\" u LEFT JOIN \\\"StudentProfile\\\" p ON p.\\\"userId\\\" = u.id WHERE u.email IN ('demo@example.com', 'test_teacher@example.com', 'admin');\""
+```
+
+`test_teacher` 工号必须唯一。若另有同名工号行，生产脚本会清空冲突工号，只保留 `test_teacher@example.com`。

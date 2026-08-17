@@ -260,6 +260,8 @@ function classOverlayLearnerStates(): AdaptiveLearnerState[] {
         }),
         'student',
       ),
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
       primaryCompetencies: {
         authority: 'legacy-compatibility-only',
         source: 'fallback-empty',

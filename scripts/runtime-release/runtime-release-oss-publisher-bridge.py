@@ -682,6 +682,8 @@ def list_objects_v1(bucket: str, prefix: str) -> List[Dict[str, Any]]:
 
 
 def cross_check_v1_keys(bucket: str, prefix: str, v2_objects: List[Dict[str, Any]]) -> None:
+    if _CREDENTIAL_MODE == "local":
+        return
     v2_keys = {entry["key"] for entry in v2_objects}
     v1_keys = {entry["key"] for entry in list_objects_v1(bucket, prefix)}
     if v1_keys != v2_keys:
@@ -1508,6 +1510,10 @@ def publish_blob_release(
                 "verifiedSha256": entry["sha256"],
                 "etag": verified.get("etag", ""),
             })
+        sys.stderr.write("runtime-release-bridge: streaming %d missing blobs after %d inherited and %d metadata checks\n" % (
+            len(missing), inherited_blob_count, metadata_check_count,
+        ))
+        sys.stderr.flush()
         write_json({"status": "stream", "missingKeys": [entry["objectKey"] for entry in missing]})
         put_count = 0
         for entry in missing:
