@@ -279,6 +279,9 @@ for (const viewport of [
     await expect(workspace.getByRole('heading', { name: '方案 B', exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '方案 C', exact: true })).toBeVisible();
     await expect(workspace.getByText('终点验证：', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('节奏：', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('中等', { exact: false }).first()).toBeVisible();
+    await expect(workspace.getByText('可开始 1', { exact: false }).first()).toBeVisible();
     await expect(workspace.getByText('候选在当前维度无差异', { exact: false }).first()).toBeVisible();
 
     await choosePair(page, 'option-a', 'option-b', true);

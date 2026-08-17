@@ -28,6 +28,10 @@ const screenshotDefinitions = [
     viewport: { width: 320, height: 900 },
   },
 ];
+const allowedOutputPaths = [
+  `${evidenceRoot}/evidence-manifest.json`,
+  ...screenshotDefinitions.map(({ file }) => file),
+];
 const sourceRevision = git(['rev-parse', 'HEAD']);
 const initialSourceHashes = Object.fromEntries(sourceFiles.map((file) => [file, sha256FileAtRevision(file)]));
 
@@ -49,8 +53,18 @@ function sha256FileAtRevision(file) {
 
 async function assertSourceCheckpointStable(stage) {
   assert(git(['rev-parse', 'HEAD']) === sourceRevision, `${stage}: HEAD changed during capture`);
-  const sourceStatus = git(['status', '--porcelain', '--', ...sourceFiles]);
-  assert(sourceStatus === '', `${stage}: bound source files are not clean: ${sourceStatus}`);
+  const worktreeStatus = git([
+    'status',
+    '--porcelain=v1',
+    '--untracked-files=all',
+    '--',
+    '.',
+    ...allowedOutputPaths.map((file) => `:(exclude)${file}`),
+  ]);
+  assert(
+    worktreeStatus === '',
+    `${stage}: worktree contains changes outside the allowed evidence outputs: ${worktreeStatus}`,
+  );
 }
 
 function readPngDimensions(bytes) {
@@ -154,10 +168,7 @@ async function main() {
       headUnchanged: true,
       boundSourcesUnchanged: true,
       sourceRevisionRequired: true,
-      allowedOutputPaths: [
-        `${evidenceRoot}/evidence-manifest.json`,
-        ...screenshotDefinitions.map(({ file }) => file),
-      ],
+      allowedOutputPaths,
     },
   };
   await writeFile(

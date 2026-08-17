@@ -237,6 +237,7 @@ type PathOptionView = AdaptivePathOptionWriteOption & {
   summaryFactAvailability?: {
     nodeIds: boolean;
     resourceMix: boolean;
+    rhythm: boolean;
     readinessSummary: boolean;
     checkpointNodeIds: boolean;
     lockedNodeIds: boolean;
@@ -1724,6 +1725,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       summaryFactAvailability: {
         nodeIds: Array.isArray(option.nodeIds),
         resourceMix: hasResourceMix,
+        rhythm: typeof effort.relative === 'string',
         readinessSummary: Array.isArray(option.readinessSummary),
         checkpointNodeIds: Array.isArray(option.checkpointNodeIds),
         lockedNodeIds: Array.isArray(option.lockedNodeIds),
@@ -1953,6 +1955,26 @@ function formatReadinessState(state: string): string {
   return '待确认';
 }
 
+function formatPathRhythm(relative?: string): string {
+  if (relative === 'short') return '较短';
+  if (relative === 'medium') return '中等';
+  if (relative === 'long') return '较长';
+  return '数据不足';
+}
+
+function formatReadinessDistribution(
+  readinessSummary: Array<{ state: string }>,
+): string {
+  const counts = new Map<string, number>();
+  for (const item of readinessSummary) {
+    counts.set(item.state, (counts.get(item.state) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([state, count]) => `${formatReadinessState(state)} ${count}`)
+    .join('、');
+}
+
 function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDifferenceExplanation }) {
   const [left, right] = explanation.options;
   if (!left || !right) return null;
@@ -2119,6 +2141,7 @@ function CandidateBatchComparisonWorkspace({
     duration: typeof option.effort.estimatedMinutes === 'number'
       ? String(option.effort.estimatedMinutes)
       : null,
+    rhythm: typeof option.effort.relative === 'string' ? option.effort.relative : null,
     nodeCount: option.summaryFactAvailability?.nodeIds
       ? String(option.nodeIds?.length ?? 0)
       : null,
@@ -2176,7 +2199,8 @@ function CandidateBatchComparisonWorkspace({
                 <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
                   <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">路径节点数：</dt><dd className="inline">{option.summaryFactAvailability?.nodeIds ? `${option.nodeIds?.length ?? 0} 个节点` : '数据不足'}{noDifferenceLabel('nodeCount')}</dd></div>
-                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.summaryFactAvailability?.readinessSummary ? (option.readinessSummary.length > 0 ? `${option.readinessSummary.length} 个节点已提供准备度` : '无') : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">节奏：</dt><dd className="inline">{option.summaryFactAvailability?.rhythm ? formatPathRhythm(option.effort.relative) : '数据不足'}{noDifferenceLabel('rhythm')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.summaryFactAvailability?.readinessSummary ? (option.readinessSummary.length > 0 ? formatReadinessDistribution(option.readinessSummary) : '无') : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{option.summaryFactAvailability?.resourceMix ? (Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '无') : '数据不足'}{noDifferenceLabel('resourceMix')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.summaryFactAvailability?.checkpointNodeIds ? ((option.checkpointNodeIds?.length ?? 0) > 0 ? `${option.checkpointNodeIds?.length ?? 0} 个检查点` : '无') : '数据不足'}{noDifferenceLabel('checkpoints')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">锁定节点：</dt><dd className="inline">{option.summaryFactAvailability?.lockedNodeIds ? (option.lockedNodeIds.length > 0 ? `${option.lockedNodeIds.length} 个锁定节点` : '无') : '数据不足'}{noDifferenceLabel('lockedNodes')}</dd></div>

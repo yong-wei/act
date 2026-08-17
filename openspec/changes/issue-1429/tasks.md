@@ -17,3 +17,4 @@
 - [x] 3.2 Run targeted tests, typecheck, relevant ESLint, strict OpenSpec validation, and `git diff --check`.
 - [x] 3.3 Run the Issue branch browser evidence flow at desktop and 320px widths, then record the verified behavior before opening the PR.
 - [x] 3.4 Fix comparison requests when the candidate batch source path differs from the currently active path, and add a regression test for the separate read-only comparison context.
+- [x] 3.5 Close review findings by enforcing whole-worktree evidence drift checks and exposing candidate rhythm and readiness distributions in the factual summary.

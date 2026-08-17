@@ -50,6 +50,7 @@ describe('adaptive path candidate comparison UI contract', () => {
 
   it('shows every fixed factual dimension and preserves missing-data semantics', () => {
     expect(source).toContain('路径节点数：');
+    expect(source).toContain('节奏：');
     expect(source).toContain('锁定节点：');
     expect(source).toContain('终点验证：');
     expect(source).toContain('summaryFactAvailability');
@@ -58,5 +59,17 @@ describe('adaptive path candidate comparison UI contract', () => {
     expect(source).toContain("'数据不足'");
     expect(source).toContain('候选在当前维度无差异');
     expect(source).toContain("noDifferenceLabel('terminalValidation')");
+    expect(source).toContain("noDifferenceLabel('rhythm')");
+    expect(source).toContain('formatReadinessDistribution');
+  });
+
+  it('fails closed when evidence capture sees unrelated worktree changes', () => {
+    const captureSource = readFileSync(
+      join(repoRoot, 'artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs'),
+      'utf8',
+    );
+    expect(captureSource).toContain("'--untracked-files=all'");
+    expect(captureSource).toContain('allowedOutputPaths.map((file) => `:(exclude)${file}`)');
+    expect(captureSource).toContain('worktree contains changes outside the allowed evidence outputs');
   });
 });
