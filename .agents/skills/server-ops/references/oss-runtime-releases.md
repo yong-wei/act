@@ -25,6 +25,10 @@
 
 - 使用 ossfs 2.0、ECS read RAM Role 与同地域内网 endpoint。v2 只读挂载 `runtime/blobs/sha256/` 到独立 blob 根，由本地目录与相对符号链接组成 release view，再以一个只读 bind mount 提供给容器中的 `/app/course-content/runtime`。
 - ossfs 配置中的 `--ram_role` 必须与 ECS IMDS 当前唯一 read role 名完全一致；角色具备 `GetObject` 并不足够，名称不一致时 FUSE 仍可能显示为 `ro`，但目录无法读取。角色切换或 ossfs 重挂载会使已存在的 Podman bind 挂载变为 `Socket not connected`，必须通过受管 stack 的正常启动路径重建 app/worker 容器，再核验容器内 runtime 条目、release manifest 与 `/api/readyz`。
+- 切换 ECS read role 前，先以新角色对目标 release 执行只读 `ListObjectsV2` 和读取 release manifest 的验证；两项都成功后才停止旧 ossfs mount。`ossfs2` 的挂载 credential 校验本身调用 `ListObjects`，因此 `oss:GetBucketInfo` 不能替代 bucket 资源上的 `oss:ListObjects`。前缀策略至少应允许 `runtime/releases`、`runtime/releases/`、`runtime/releases/*`，并在对象资源上允许 `runtime/releases/*` 的 `oss:GetObject`；不得借此加入任何写入或删除操作。
+- 若角色切换期间 runtime mount 已失效，先恢复目标只读 mount，再通过 `deploy/podman/deploy.sh --runtime-cutover-app-only` 重建 app/worker。该命令依赖既有 PostgreSQL 与 Redis 容器；若它们是此前受控停机而非异常退出，可先仅启动相同名称的既有容器，禁止创建替代容器、删除卷或重建数据库。最终必须复核 IMDS 角色名、FUSE `ro`、容器的只读 runtime bind、`/api/readyz` 和媒体的短时重定向。
+- v2 `ossfs-blob-view` 的开机依赖是一对 oneshot：`act-runtime-blob-ossfs.service` 挂 `/home/projects/act/data/runtime/ossfs/blobs`，`act-runtime-blob-view-helper.service` 再把该根 bind+ro 到 current view 的 `.act-runtime-blobs`。只 enable blob 根不够，`4-deploy.sh` 检查的是 helper 是否为 FUSE。生产 stack 的 `20-runtime-ossfs.conf` 必须 `Requires=` 这两个单元，而不是 v1 的 `act-runtime-ossfs@<release-id>.service`。旧 drop-in 在重启后只会挂回 rollback prefix，helper 变成普通空目录，公网 502。恢复顺序：先 start 两个单元，再 `--app-only` 用现有镜像重建 app/worker。
+- v0.18 生产选择器是写在 blob-view 上的普通 `current.json`，不是 Git 树里的 v0.9 叶链接。`deploy:runtime` 按 Git tree 重放物化会把这些指针冲回 v0.9；在没有选择器保留事务前，禁止对已 cutover 的生产 view 做增量 rematerialize。
 - ossfs 2.0 的配置文件使用 `ossfs2 mount <mount-root>/<release-id> -c <release-id>.conf`；必须显式写入 `--ro=true`、`--allow_other=true`、目标 uid/gid、`--file_mode=0644` 与 `--dir_mode=0755`。不要依赖 ossfs 默认权限，也不要在配置文件中写 AccessKey/Secret。
 - 不得将现有 `.staging`、`current`、`previous` 的 rsync/rename 发布算法直接运行在 ossfs 挂载点；OSS runtime Release 永远不依赖目录 rename 原子性。
 - 当 ECS 无法同时容纳完整 image tar 与 Podman 解包层时，不得以磁盘 staging、手工管道或删除现有镜像绕过容量。受控流式导入必须先从本地已验证 tar 固定 config image ID、OCI revision 与 layer 字节总量；远端 `GraphRoot` 可用空间必须不少于 layer 总量加 1 GiB。通过该门禁后，同一 SSH stdin 只能同时送入 SHA-256 与 `podman load`，二者结束并精确核对 tar 摘要、image ID 和 revision 后才能激活；空间不足时停止并先扩容。
@@ -34,7 +38,8 @@
 ## v2 日常增量发布
 
 - `deploy:runtime` 只处理 Git-tree 增量规划、本机发布、ECS view 物化、runtime consumer restart 与 smoke；不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
-- `deploy:app` 只处理应用镜像与应用部署，保留当前 runtime selection；`deploy:all` 仅在两者都变化时按顺序组合。不要让 runtime-only 修改进入 image/database 发布链路。
+- `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
+- `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 必须显式设置，且一旦存在 OSS active receipt 就必须失败关闭。`deploy:all` 仅在两者都变化时按顺序组合。不要让 runtime-only 修改进入 image/database 发布链路。
 - 目标 revision 必须可从 `origin/integration` 到达。Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
 - sample/full audit 是独立只读命令。sample 采用稳定样本，full 读取所有唯一 Blob；失败冻结发布和 GC。日常 selection 不得将这两类 audit 重新纳入部署关键路径。
 

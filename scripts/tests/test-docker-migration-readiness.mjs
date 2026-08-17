@@ -114,7 +114,7 @@ function main() {
   );
   assert.ok(
     (remoteDeployScript.match(/check_remote_authority_current_pointer_absence/g) ?? []).length >= 3,
-    'remote deploy 必须在部署前与部署后检查 host Authority current pointer 不存在',
+    'legacy-rsync 必须在部署前与部署后检查 host Authority current pointer 不存在',
   );
   assert.match(
     dockerfile,

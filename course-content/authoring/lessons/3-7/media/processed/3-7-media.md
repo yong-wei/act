@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=463f68f860167e7a4d6fda446318d81d&v=1775572316112&puid=26652392&enc=80b189f5a803484e821da9bc4d96f949&wps=01afdaeaa376aa4c364a8829cbe488d8d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-7-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-7-audio.m4a
 
 - 型别与稳态误差

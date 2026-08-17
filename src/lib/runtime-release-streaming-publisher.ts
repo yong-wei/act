@@ -1013,6 +1013,7 @@ async function publishRuntimeBlobReleaseStream(input: {
   planningReceipt: ActRuntimeBlobReleaseReceipt;
   bridge: { command: string; args: readonly string[] };
   spawn?: RuntimeReleaseSshPublisherDependencies['spawn'];
+  blobParentRelease?: { releaseId: string; manifestSha256: string };
 }) {
   try {
     assertContentAddressedRuntimeReleaseId(input.manifest);
@@ -1050,10 +1051,13 @@ async function publishRuntimeBlobReleaseStream(input: {
     receiptWireBase64: receiptWireBytes.toString('base64url'),
     sourceProvenanceProofSha256: planningReceipt.sourceProvenanceProofSha256,
     ...(input.snapshot.externalBundle ? { sourceIdentityMode: 'strict-bundle' } : {}),
-    ...(input.snapshot.parentManifest ? {
-      parentRelease: {
-        releaseId: input.snapshot.parentManifest.releaseId,
-        manifestSha256: input.snapshot.parentManifest.manifestSha256,
+    ...((input.blobParentRelease ?? (input.snapshot.parentManifest ? {
+      releaseId: input.snapshot.parentManifest.releaseId,
+      manifestSha256: input.snapshot.parentManifest.manifestSha256,
+    } : undefined)) ? {
+      parentRelease: input.blobParentRelease ?? {
+        releaseId: input.snapshot.parentManifest!.releaseId,
+        manifestSha256: input.snapshot.parentManifest!.manifestSha256,
       },
     } : {}),
   };
@@ -1122,8 +1126,12 @@ async function publishRuntimeBlobReleaseStream(input: {
     }
   } catch (error) {
     if (child.exitCode === null && child.signalCode === null) child.kill();
-    if (error instanceof RuntimeReleaseStreamingPublisherError) throw error;
-    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', 'Blob publish bridge process failed.', { cause: error });
+    const stderr = (await stderrPromise.catch(() => Buffer.alloc(0))).toString('utf8').trim();
+    if (error instanceof RuntimeReleaseStreamingPublisherError) {
+      if (stderr) throw new RuntimeReleaseStreamingPublisherError(error.code, `${error.message} ${stderr}`.trim(), { cause: error });
+      throw error;
+    }
+    throw new RuntimeReleaseStreamingPublisherError('runtime-release-ssh-child-failed', `Blob publish bridge process failed.${stderr ? ` ${stderr}` : ''}`, { cause: error });
   } finally {
     reader.close();
   }
@@ -1186,6 +1194,7 @@ export async function publishRuntimeBlobReleaseLocallyWithMetrics(input: {
   planningReceipt: ActRuntimeBlobReleaseReceipt;
   local: RuntimeReleaseLocalPublisherConfig;
   dependencies?: RuntimeReleaseSshPublisherDependencies;
+  blobParentRelease?: { releaseId: string; manifestSha256: string };
 }) {
   return publishRuntimeBlobReleaseStream({
     snapshot: input.snapshot,
@@ -1196,6 +1205,7 @@ export async function publishRuntimeBlobReleaseLocallyWithMetrics(input: {
       args: buildRuntimeReleaseLocalPublisherArgv(input.local, runtimeBlobReleasePrefix(input.manifest.releaseId)),
     },
     spawn: input.dependencies?.spawn,
+    blobParentRelease: input.blobParentRelease,
   });
 }
 

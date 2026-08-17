@@ -8,6 +8,7 @@ import {
   updatePortraitV2Incrementally,
 } from '../portrait-v2-incremental-update';
 import { materializeIncrementalPortraitV2 } from '../portrait-v2-materialization';
+import { TRUSTED_LEARNING_FACT_POLICY_VERSION } from '../trusted-learning-fact-filter';
 import { buildGovernedTaskEvidence } from '../simulation-task-evidence';
 import {
   buildSimulationTaskInputIdentity,
@@ -952,6 +953,35 @@ describe('portrait v2 incremental updates', () => {
     expect(result.rebuildRequired).toBe(true);
   });
 
+  it('requires a full rebuild when only the trusted fact policy version changes', async () => {
+    const previous = baseline();
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
+      previous,
+      [existing],
+      1,
+      BigInt(7),
+      'trusted-learning-fact-policy.v0',
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-01T00:00:01.000Z'),
+    });
+
+    expect(result.rebuildRequired).toBe(true);
+    expect(snapshotCreate).toHaveBeenCalled();
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        snapshotId: 'portrait-incremental',
+        trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
+        trustedFactIds: [existing.id],
+      }),
+    }));
+  });
+
   it('folds an ordinary multi-fact materialization like consecutive single-fact updates', async () => {
     const previous = baseline();
     const existing = {
@@ -1104,6 +1134,9 @@ function governedContext(context: Record<string, unknown> = {}) {
 function fact(id: string, contribution: Record<string, number>, contextJson: Record<string, unknown>) {
   return {
     id,
+    sourceEventId: `adaptive-assessment:${id}`,
+    sourceLogId: `governed-log:${id}`,
+    knowledgeRevisionRef: null,
     startedAt: new Date('2026-05-02T00:00:00.000Z'),
     outcome: 'success',
     score: 1,
@@ -1118,6 +1151,7 @@ function cumulativeMaterializationDb(
   facts: ReturnType<typeof fact>[],
   processedFactCount = 1,
   currentGeneration = BigInt(7),
+  trustedFactPolicyVersion: string = TRUSTED_LEARNING_FACT_POLICY_VERSION,
 ) {
   const journal = facts.slice(0, processedFactCount).map((item, index) => ({
     id: `transition-${item.id}`,
@@ -1152,6 +1186,7 @@ function cumulativeMaterializationDb(
       lastTrend: 'stable',
       lastRisk: null,
       stateKind: 'SNAPSHOT',
+      trustedFactPolicyVersion,
       snapshot: { id: 'portrait-existing', payload: structuredClone(previous) },
     },
   };

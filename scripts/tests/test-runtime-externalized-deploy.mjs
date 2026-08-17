@@ -807,7 +807,12 @@ assert.equal(
     (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||
       remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
   true,
-  '远端部署脚本应先同步并验证 staging，再持锁停消费者并替换正式目录',
+  '显式 legacy-rsync 路径应先同步并验证 staging，再持锁停消费者并替换正式目录',
+);
+assert.match(
+  remoteDeployScript,
+  /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/,
+  '远端部署默认必须使用 ossfs-blob-view，不得默认 rsync runtime',
 );
 
 const remotePreflightIndex = remoteDeployScript.indexOf(

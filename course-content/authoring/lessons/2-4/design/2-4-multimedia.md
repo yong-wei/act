@@ -1,8 +1,8 @@
 # 多模态资源设计 | 单元 2-4：Nyquist图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别
 
 > **资源总数**：16 项正式媒体 + 1 项验证脚本
-> **当前完成**：12 项正式媒体（封面图、信息图、`fd-01` 至 `fd-10`）
-> **待补齐**：4 项课程级交付（`2-4-slides.pdf`、`2-4-intro-video.mp4`、`2-4-course.mp4`、`2-4-audio.m4a`）
+> **当前完成**：13 项正式媒体（封面图、信息图、导入视频、`fd-01` 至 `fd-10`）
+> **待补齐**：3 项课程级交付（`2-4-slides.pdf`、`2-4-course.mp4`、`2-4-audio.m4a`）
 > **本轮重点**：按新骨架重排 `2-4` 的资源采用逻辑，使媒体真正服务 `Nyquist` 图入口、频域指标入口和最小反向识别，而不再回头重讲 `2-3` 已完成的 Bode 基础。
 > **验证约定**：讲义正文中新增的数值结论统一以 `Octave + control` 为真值来源；已有成图暂保留当前产物，后续如需重生，优先迁移到 `Octave + control` 链路。
 
@@ -45,7 +45,7 @@
 | 1 | `2-4-cover-comic.png` | 讲义封面图 | 已完成 | `handout.md` 首页导入 |
 | 2 | `2-4-info.png` | 讲义信息图 | 已完成 | `handout.md` 附录前总结 |
 | 3 | `2-4-slides.pdf` | 生成式课件 | 待制作 | 课堂投屏 / 课件归档 |
-| 4 | `2-4-intro-video.mp4` | 导入视频 | 待制作 | 课堂开场 / 互动课首页 |
+| 4 | `2-4-intro-video.mp4` | 导入视频 | 已完成 | 课堂开场 / 互动课首页 |
 | 5 | `2-4-course.mp4` | 课程内容视频 | 待制作 | 课程视频归档 |
 | 6 | `2-4-audio.m4a` | 课程音频播客 | 待制作 | 音频归档 / 播客分发 |
 | 7 | `2-4-fd-01-bode-dual-view-overview.png` | 线框概念图 | 已完成 | 备用：解释双图结构 |
@@ -70,13 +70,13 @@
 |---|---|---|---|
 | 封面漫画 | `media/raw/2-4-cover-comic-prompt.md` | `media/processed/2-4-cover-comic.png` | 首页导入图，负责建立“从两张图看同一对象”的问题情境 |
 | 信息图 | 无独立提示词文件 | `media/processed/2-4-info.png` | 总结本讲四条主线：Nyquist 入口、纯极点读图、频域指标、最小反识别 |
+| 导入视频 | `media/raw/2-4-intro-video-prompt.md` | `media/processed/2-4-intro-video.mp4` | 闲聊自控 Remotion 导入片，2026-08-17 发布 |
 
 ### 4.2 待制作
 
 | 资源 | 正式文件名 | 当前说明 |
 |---|---|---|
 | 生成式课件 | `media/processed/2-4-slides.pdf` | 待按新版 handout / teacher-handout 统一口径生成 |
-| 导入视频 | `media/processed/2-4-intro-video.mp4` | 待围绕“为什么同一条频率特性还要换一张图看”制作 |
 | 课程视频 | `media/processed/2-4-course.mp4` | 待课堂录制或生成式课件旁白稳定后制作 |
 | 音频播客 | `media/processed/2-4-audio.m4a` | 待课程视频脚本稳定后导出 |
 

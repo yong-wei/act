@@ -263,7 +263,6 @@ def inherited_v2_paths(parent_runtime_root: Optional[Path], manifest: dict, mate
         return set()
     parent_root = materializer.require_real_directory(Path(parent_runtime_root), "parent mounted runtime root")
     parent_manifest, _ = materializer.parse_manifest(parent_root / materializer.LOCAL_MANIFEST)
-    materializer.verify_view_structure(parent_root, parent_manifest["releaseId"])
     parent_by_path = {entry["path"]: entry for entry in parent_manifest["files"]}
     return {
         entry["path"]

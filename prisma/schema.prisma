@@ -4652,6 +4652,20 @@ model ArenaSubmission {
   @@index([artifactHash])
 }
 
+model ArenaOfficialSubmitReservation {
+  id           String    @id
+  userId       String
+  taskId       String
+  classId      String    @default("")
+  submittedAt  DateTime
+  submissionId String?
+  lockedUntil  DateTime
+  createdAt    DateTime  @default(now())
+
+  @@unique([userId, taskId, classId, submittedAt])
+  @@index([submissionId])
+}
+
 model ArenaBlackBoxExperiment {
   id          String   @id @default(cuid())
   userId      String
@@ -4872,6 +4886,9 @@ model LearnerPortraitStateVersion {
   queueGeneration    BigInt
   stateWatermark     BigInt
   taskInputDigest    String                   @default("")
+  trustedFactIds     Json                     @default("[]")
+  trustedFactPolicyVersion String              @default("")
+  trustedInputDigest String                    @default("")
   stateKind          LearnerPortraitStateKind
   snapshotId         String?
   overallScore       Float?

@@ -1,0 +1,57 @@
+{
+  "change": "project-profile-evidence-projection",
+  "capturedAt": "2026-08-16T11:07:22.134Z",
+  "captureRevision": "15cdab3ff3f06ac1977c3c2631636876fddf5dee",
+  "generator": "artifacts/commercial-ui/profile-evidence-availability-2/capture-profile-evidence-availability.mjs",
+  "sourceHashes": {
+    "artifacts/commercial-ui/profile-evidence-availability-2/capture-profile-evidence-availability.mjs": "ea50d9c04165f4cd41b3e629e9c7a76458d6ae71cdbfb7dfcbb93daeb16aa2e2",
+    "tests/portfolio-reflection-drafts-1321.spec.ts": "e0b6fe997472e70e1fe0a3cf38ecdfc270d09b577e7887711f9cb22aebc269ff",
+    "src/app/(main)/profile/portfolio/page.tsx": "beaed93f22c21b43d6ef69510ede9014bb0613dd00b5d3682e91c9c7a033fab5",
+    "src/app/api/profile/portfolio-evidence/route.ts": "10bae3eba0a3806c68d1a3add7f3ae0238246539cddc85619bac5b9ea032c439",
+    "src/lib/data-governance/profile-portfolio-evidence.ts": "06d2d0eecd8f7fe322e2f7eb86d403dd37ce7090b671e85eb576ff037ec4b185"
+  },
+  "routes": [
+    "/profile/portfolio"
+  ],
+  "screenshots": [
+    {
+      "screenshot": "artifacts/commercial-ui/profile-evidence-availability-2/portfolio-evidence-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "1088e82b5f387ee6193865ccee2a67d41415936ebe5e4a15cc3d530dacac452f",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/profile-evidence-availability-2/portfolio-evidence-320.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "sha256": "b3ac7094a9468b69f2a0055500bdbae9e31f6198342e1c7d671d1ee7574a3939",
+      "dimensions": {
+        "width": 320,
+        "height": 1030
+      }
+    }
+  ],
+  "assertions": [
+    "authenticated portfolio displays classroom, simulation, and ethics evidence",
+    "desktop and 320px portfolio layouts have no horizontal overflow",
+    "portfolio evidence tabs remain navigable in the authenticated browser flow"
+  ],
+  "drift": {
+    "cleanCaptureStart": true,
+    "headUnchanged": true,
+    "boundSourcesUnchanged": true,
+    "allowedOutputPaths": [
+      "artifacts/commercial-ui/profile-evidence-availability-2/browser-evidence.json",
+      "artifacts/commercial-ui/profile-evidence-availability-2/portfolio-evidence-1440.png",
+      "artifacts/commercial-ui/profile-evidence-availability-2/portfolio-evidence-320.png"
+    ]
+  }
+}

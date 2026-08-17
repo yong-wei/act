@@ -2,6 +2,8 @@
 
 - 高保真模型中的完整控制器设计闭环
 
+本地成品已发布：`media/processed/4-7-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-7-slides.pdf
 
 - 航向掌控：从传统PID到遗传算法的进化之旅

@@ -47,7 +47,24 @@ function rebuildRequestDb() {
 
 describe('derived learning materialization revocation', () => {
   it('derives each class only from that class facts and suppresses unscoped diagnostics', () => {
-    const fact = (id: string, userId: string, score: number) => ({ id, userId, factType: 'document_rubric_grading', startedAt: new Date(), competencyContribution: { controlModeling: score / 100 }, contextJson: { rubricWeight: 1 }, score, outcome: score >= 60 ? 'success' : 'failure' });
+    const fact = (id: string, userId: string, score: number) => ({
+      id,
+      userId,
+      factType: 'document_rubric_grading',
+      startedAt: new Date(),
+      competencyContribution: { controlModeling: score / 100 },
+      contextJson: {
+        rubricWeight: 1,
+        evidenceGovernance: {
+          evidenceQuality: 'rich',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'rich_objective_evidence',
+        },
+      },
+      score,
+      outcome: score >= 60 ? 'success' : 'failure',
+    });
     const classA = buildClassScopedStudentProjections(['student-1', 'student-2'], [fact('a-low', 'student-1', 20)] as any);
     const classB = buildClassScopedStudentProjections(['student-1', 'student-2'], [fact('b-high', 'student-1', 90), fact('b-other', 'student-2', 80)] as any);
     expect(classA.get('student-1')?.competencyVector.controlModeling.score).toBe(20);
