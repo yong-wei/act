@@ -1,18 +1,18 @@
 {
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
-  "capturedAt": "2026-08-16T18:26:53.468Z",
-  "sourceRevision": "95430a240bb8ce941263f1e95aa2ab3638f2adc2",
+  "capturedAt": "2026-08-17T09:23:23.730Z",
+  "sourceRevision": "0eed0725de88f648979af63a4a48518a51df8332",
   "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-selection&batch=candidate-comparison-batch-1429",
   "generator": "artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs",
-  "generatorSha256": "cd6452a79f22dfea485dc3599150205935125ce57da7b180c6a79d1fd74a46d2",
+  "generatorSha256": "cedecc76dc1b1d650b560c08df53481ce2bc9c973bcadeb34c8af2f1678b2756",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "e247818985ccc4f70609c9ec8702f972d61b14eef23eb3e300e10dbd6b4e2d86",
+    "src/app/assessment/adaptive-practice/page.tsx": "a8c058c21869105c989ddad11a228d24db4215d9296a763c0bb4f9d782339dbf",
     "src/app/api/adaptive/path-advisor-tool/route.ts": "d05b009868f40bd817c0ba98e63a2b230d7df9b8f2beb509ff229c47c632b7c5",
     "src/lib/adaptive-path-comparison.ts": "980d6904446e8dadef645473ddfcdd9ead1043f19ce5339d6249b60c7ae9b11b",
-    "src/lib/konling-agent-runtime.ts": "9eed5cf1950756c607dad39da08bc8047c3dcf61bf1dc54844a87d5e3d83c3f1",
-    "tests/adaptive-path-candidate-comparison-1429.spec.ts": "1d2dbf55e8e6859b3ba2fb47cc78654d590eb45a06eade53bc5db46aece3d619",
-    "artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs": "cd6452a79f22dfea485dc3599150205935125ce57da7b180c6a79d1fd74a46d2"
+    "src/lib/konling-agent-runtime.ts": "1f0cb6b4697bbc52a28a89aed0f02ef81e0f8e11cc01df964f5556dcb2d7613a",
+    "tests/adaptive-path-candidate-comparison-1429.spec.ts": "31127e57d687140776dd6711127b6054745a6895fb28545f57675e256570506c",
+    "artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs": "cedecc76dc1b1d650b560c08df53481ce2bc9c973bcadeb34c8af2f1678b2756"
   },
   "baseUrl": "http://127.0.0.1:33142",
   "server": {
@@ -45,9 +45,9 @@
       },
       "dimensions": {
         "width": 1440,
-        "height": 3277
+        "height": 3301
       },
-      "sha256": "7c0b02576f7ab9bc75181316c8aab25e65b208644f44c122f99441d16efc1f89"
+      "sha256": "44c08fceffa3aa4f711270a1b3bc0df1815789ba0ff20e4e4a5d05c727d9f772"
     },
     {
       "screenshot": "artifacts/commercial-ui/issue-1429-candidate-comparison/candidate-comparison-320.png",
@@ -57,9 +57,9 @@
       },
       "dimensions": {
         "width": 320,
-        "height": 7726
+        "height": 7798
       },
-      "sha256": "14692d52ce74d94410cb7e1c58d8a78a852a81b4143b2d523f960163c8635cc1"
+      "sha256": "17f947e082bedd181e4ade3ad23fcab5d49bab7a6b9828c3512a8b5cf6a2c30e"
     }
   ],
   "drift": {

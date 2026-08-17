@@ -10,7 +10,7 @@ Date: 2026-08-17
 - Database: temporary local PGlite PostgreSQL-compatible instance with the current Prisma schema and demo student profile.
 - Candidate facts: deterministic browser route fixtures for the three-candidate batch; server identity and authorization behavior is covered separately by the route and runtime tests.
 
-## Command
+## Commands
 
 ```powershell
 $env:PLAYWRIGHT_BASE_URL='http://127.0.0.1:3002'
@@ -20,26 +20,29 @@ npx playwright test tests/adaptive-path-candidate-comparison-1429.spec.ts --repo
 
 Result: 2 tests passed.
 
+The auditable capture repeated the same desktop and 320px flows with a Playwright-managed, non-reused server on port 33142. Result: 2 tests passed.
+
 ## Auditable visual capture
 
-- Capture source revision: `eee4eff112519f70ac2df3289f2ceb96693f7c88`
+- Capture source revision: `0eed0725de88f648979af63a4a48518a51df8332`
+- Integration baseline merged into the source revision: `d3b0a13f54908162dfc59c61083290357ae2d54d`
 - Capture command: `node artifacts/commercial-ui/issue-1429-candidate-comparison/capture-evidence.mjs`
 - Manifest: `artifacts/commercial-ui/issue-1429-candidate-comparison/evidence-manifest.json`
 - Desktop screenshot: `artifacts/commercial-ui/issue-1429-candidate-comparison/candidate-comparison-1440.png`
   - Viewport: 1440 × 1000
-  - Full-page dimensions: 1440 × 3229
-  - SHA-256: `f8a7459ac41ef08375c63930797012e8170d1691db4c6fb585a51451c43e3d07`
+  - Full-page dimensions: 1440 × 3301
+  - SHA-256: `44c08fceffa3aa4f711270a1b3bc0df1815789ba0ff20e4e4a5d05c727d9f772`
 - Mobile screenshot: `artifacts/commercial-ui/issue-1429-candidate-comparison/candidate-comparison-320.png`
   - Viewport: 320 × 900
-  - Full-page dimensions: 320 × 7402
-  - SHA-256: `04777a8dced7804d7e0b155cf6ac83488ee7990ebae9297586d74f3189ff9369`
-- The capture fails closed when HEAD changes, bound source files are dirty, Playwright fails, a screenshot is missing, or the PNG width does not match its declared viewport.
+  - Full-page dimensions: 320 × 7798
+  - SHA-256: `17f947e082bedd181e4ade3ad23fcab5d49bab7a6b9828c3512a8b5cf6a2c30e`
+- The capture fails closed when HEAD changes, any worktree path outside the three declared evidence outputs is dirty or untracked, Playwright fails, a screenshot is missing, or the PNG width does not match its declared viewport.
 - The manifest records source hashes, generator hash, screenshot hashes, authentication mode, projection-fixture boundary, keyboard focus, pair coverage, stale-response rejection, and horizontal-overflow assertions.
 
 ## Verified behavior
 
 - Desktop at 1440 × 1000 and mobile at 320 × 900 render the authenticated candidate-batch comparison workspace without page-level horizontal overflow.
-- The batch summary exposes all three candidates, the terminal-validation dimension, and the explicit no-difference marker for equal facts.
+- The batch summary exposes all three candidates, including rhythm, readiness-state distribution, terminal validation, and the explicit no-difference marker for equal facts.
 - A-B, A-C, and B-C are all selectable; B-A restores the same normalized A-B result identity.
 - The confirmation control works by keyboard Enter.
 - A delayed A-B response cannot replace the newly selected A-C state.
