@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=c7227837470be73f2f708cd41a9e7d98&v=1775572412743&puid=26652392&enc=44c3a42df4d994cfec977af4e0c71efe&wps=84b07348fc5e3117397e33ca4d26ac38d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-8-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-8-audio.m4a
 
 - 机械臂为何颤抖

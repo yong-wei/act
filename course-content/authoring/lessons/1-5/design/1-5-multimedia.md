@@ -136,13 +136,13 @@ $$
 
 `media/processed/1-5-media.md` 已保留五个标准节名：
 
-- `1-5-intro-video.mp4`
+- `1-5-intro-video.mp4`（已完成）
 - `1-5-slides.pdf`
 - `1-5-course.mp4`
 - `1-5-audio.m4a`
 - `1-5-handout.md`
 
-本次不覆盖该文件已有结构。课程级音视频与课件尚未提供成品时，节名保持空白，不写占位摘要或虚构链接。
+导入视频成品已落在 `media/processed/1-5-intro-video.mp4`。其余课程级音视频与课件尚未提供成品时，节名保持空白，不写占位摘要或虚构链接。
 
 ## 出版与审查要求
 

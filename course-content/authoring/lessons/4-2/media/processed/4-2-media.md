@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=0b53d1124d755e54d9c542ba3e4b1aa4&v=1776580246189&puid=26652392&enc=86281ea19610387f15967661f2f7d9f0&wps=d6714a0e584af5fa73f7d829490dbd9cd70d687fb84ea7b5
 
+本地成品已发布：`media/processed/4-2-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-2-audio.m4a
 
 - PID调参底层逻辑

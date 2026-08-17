@@ -86,8 +86,8 @@
 ### 即梦导入视频
 
 - 文件：`media/raw/2-3-intro-video-prompt.md`
-- 成品：`media/processed/2-3-intro-video.mp4`
-- 用途：课堂开场或互动课首页导入
+- 成品：`media/processed/2-3-intro-video.mp4`（已完成）
+- 用途：课堂开场或互动课首页导入；当前成片为闲聊自控 Remotion 导入片
 
 ---
 

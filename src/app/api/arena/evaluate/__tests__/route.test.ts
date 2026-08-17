@@ -7,6 +7,13 @@ const mocks = vi.hoisted(() => ({
   requestRealtimeSimulationTaskReconciliation: vi.fn(),
   getArenaPlantAdapterForOfficialEvaluationTaskId: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
+  listSubmissions: vi.fn(),
+  createArenaOfficialKonlingFollowup: vi.fn(),
+  readArenaOfficialRevisit: vi.fn(),
+  reserveOfficialArenaSubmissionOrder: vi.fn(),
+  attachOfficialArenaSubmissionReservation: vi.fn(),
+  abandonOfficialArenaSubmissionReservation: vi.fn(),
+  releaseOfficialSubmitReservation: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -20,6 +27,18 @@ vi.mock('@/features/arena/submissions/persistence', () => ({
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: { marker: 'store' },
+}));
+
+vi.mock('@/features/arena/student/konling-official-followup', () => ({
+  createArenaOfficialKonlingFollowup: mocks.createArenaOfficialKonlingFollowup,
+  readArenaOfficialRevisit: mocks.readArenaOfficialRevisit,
+}));
+
+vi.mock('@/features/arena/student/official-submit-gate', () => ({
+  reserveOfficialArenaSubmissionOrder: mocks.reserveOfficialArenaSubmissionOrder,
+  attachOfficialArenaSubmissionReservation: mocks.attachOfficialArenaSubmissionReservation,
+  abandonOfficialArenaSubmissionReservation: mocks.abandonOfficialArenaSubmissionReservation,
+  releaseOfficialSubmitReservation: mocks.releaseOfficialSubmitReservation,
 }));
 
 vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
@@ -139,6 +158,16 @@ describe('POST /api/arena/evaluate', () => {
       learningFactCreated: !submission.reusedEvaluation,
     }));
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
+    mocks.listSubmissions.mockImplementation(async () => []);
+    mocks.readArenaOfficialRevisit.mockResolvedValue(null);
+    mocks.createArenaOfficialKonlingFollowup.mockResolvedValue(null);
+    mocks.reserveOfficialArenaSubmissionOrder.mockImplementation(async () => ({
+      id: 'reservation-1',
+      submittedAt: '2026-08-17T00:00:00.000Z',
+    }));
+    mocks.attachOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
+    mocks.abandonOfficialArenaSubmissionReservation.mockResolvedValue(undefined);
+    mocks.releaseOfficialSubmitReservation.mockResolvedValue(undefined);
   });
 
   it('requires an authenticated user', async () => {
@@ -159,6 +188,11 @@ describe('POST /api/arena/evaluate', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('Unknown arena task');
+    expect(mocks.abandonOfficialArenaSubmissionReservation).toHaveBeenCalledWith({
+      db: expect.anything(),
+      reservationId: 'reservation-1',
+    });
+    expect(mocks.attachOfficialArenaSubmissionReservation).not.toHaveBeenCalled();
   });
 
   it('requests realtime reconciliation for new and duplicate accepted Arena evidence', async () => {
@@ -380,10 +414,16 @@ describe('POST /api/arena/evaluate', () => {
     expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       studentLabel: '学生甲',
+      submittedAt: '2026-08-17T00:00:00.000Z',
       store: { marker: 'store' },
       blackBoxExperimentStore: { marker: 'blackbox-store' },
       identificationModelStore: { marker: 'blackbox-store' },
     }));
+    expect(mocks.attachOfficialArenaSubmissionReservation).toHaveBeenLastCalledWith({
+      db: expect.anything(),
+      reservationId: 'reservation-1',
+      submissionId: 'submission-artifact-route-b',
+    });
   });
 
   it('maps unsupported official evaluation adapter modes to 400 before persistence', async () => {
@@ -460,5 +500,33 @@ describe('POST /api/arena/evaluate', () => {
 
     expect(response.status).toBe(403);
     expect(mocks.createPersistedArenaSubmission).not.toHaveBeenCalled();
+  });
+
+  it('returns a persisted Konling followup derived from formal evaluation history', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.listSubmissions.mockResolvedValueOnce([]);
+    mocks.readArenaOfficialRevisit.mockResolvedValueOnce('与建议触发时相比，得分变化 +10。');
+    mocks.createArenaOfficialKonlingFollowup.mockResolvedValueOnce({
+      id: 'intervention-1',
+      suggestion: {
+        kind: 'constraint-violation',
+        title: '本次正式评测存在硬约束违规',
+        evidence: ['稳定性：未通过'],
+        nextStep: '先使当前未通过的硬约束达标。',
+      },
+    });
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.createArenaOfficialKonlingFollowup).toHaveBeenCalledWith(expect.objectContaining({
+      submission: expect.objectContaining({ id: 'submission-artifact-route-a' }),
+      history: [],
+    }));
+    expect(payload.konlingFollowup).toMatchObject({
+      id: 'intervention-1',
+      suggestion: { kind: 'constraint-violation', revisit: '与建议触发时相比，得分变化 +10。' },
+    });
   });
 });

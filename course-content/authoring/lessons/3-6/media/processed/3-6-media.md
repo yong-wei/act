@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=1b0f33577d86c92e9662263a5223be01&v=1775535826423&puid=26652392&enc=2057b5b720b6c521003e7a98e3cb4933&wps=0857deed225a308383efe1d56a41f26fd70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-6-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-6-audio.m4a
 
 - 自控系统校正设计地图

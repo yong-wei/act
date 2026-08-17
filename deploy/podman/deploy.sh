@@ -285,8 +285,12 @@ if [ "$MODE" = "--runtime-cutover-app-only" ]; then
   RUNTIME_CUTOVER_APP_ONLY=1
   RUN_MIGRATIONS_ON_START=0
 fi
-RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
-RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-ossfs-blob-view}"
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
+  RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/data/runtime/blob-views/current}"
+else
+  RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
+fi
 ACT_RUNTIME_OSS_RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-}"
 ACT_RUNTIME_OSS_BUCKET="${ACT_RUNTIME_OSS_BUCKET:-act-course-assets}"
 ACT_RUNTIME_OSS_REGION="${ACT_RUNTIME_OSS_REGION:-oss-cn-hangzhou}"
@@ -458,7 +462,10 @@ require_actkg_activation_store_pointers() {
         "${RUNTIME_CONTENT_DIR}/knowledge/prerequisites/current.json"
       )
       for pointer in "${cutover_pointers[@]}"; do
-        if [ ! -f "$pointer" ]; then
+        # Blob views keep these pointers as leaf symlinks into the read-only
+        # helper. `test -f` follows the target and fails when the host root
+        # cannot stat a FUSE object owned by the container uid.
+        if [ ! -f "$pointer" ] && [ ! -L "$pointer" ]; then
           echo "ERROR: production cutover 缺少 activation 指针: $pointer" >&2
           missing=1
         fi
@@ -1260,6 +1267,13 @@ if [ "$RUNTIME_CUTOVER_APP_ONLY" != "1" ] && [[ "${MATH_DOCUMENT_GRADING_WORKER_
   podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
 fi
 
+RUNTIME_HELPER_MOUNT_ARGS=()
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
+  RUNTIME_HELPER_MOUNT_ARGS+=(
+    -v "${RUNTIME_CONTENT_DIR}/.act-runtime-blobs:/app/course-content/runtime/.act-runtime-blobs:ro"
+  )
+fi
+
 echo "- 启动应用容器: $APP_CONTAINER"
 run_detached_container "$APP_CONTAINER" podman run -d \
   --name "$APP_CONTAINER" \
@@ -1268,6 +1282,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   --entrypoint /bin/sh \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
+  ${RUNTIME_HELPER_MOUNT_ARGS[@]+"${RUNTIME_HELPER_MOUNT_ARGS[@]}"} \
   -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \

@@ -125,11 +125,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get latest competency snapshot for full vector
-    const snapshot = await prisma.studentCompetencySnapshot.findFirst({
-      where: { userId },
-      orderBy: { snapshotAt: 'desc' },
-    });
+    // PORTRAIT_V2_TRUSTED_BOUNDARY: legacy competency vector is compatibility-only
+    // and must not surface when the current trusted portrait is NO_EVIDENCE or unavailable.
+    const hasTrustedPortraitForLegacyVector = Boolean(
+      learnerState?.primaryPortraitState === 'SNAPSHOT'
+      && learnerState?.primaryPortraitAvailability === 'available'
+    );
+    const snapshot = hasTrustedPortraitForLegacyVector
+      ? await prisma.studentCompetencySnapshot.findFirst({
+          where: { userId },
+          orderBy: { snapshotAt: 'desc' },
+        })
+      : null;
 
     const response = {
       student_profile_context: {

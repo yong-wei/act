@@ -5,6 +5,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { reviewedNeighborhoodOverlaySha256 } from '../../authority-domain-shards/v018-reviewed-neighborhood-labels';
+import {
+  expectedHostPointerHashes,
+  loadHostShadowVerificationReport,
+  V018_FROZEN_IMAGE_TAG,
+  V018_SEALED_IMAGE_CONFIG_SHA256,
+  V018_SEALED_IMAGE_TAR_SHA256,
+} from './v018-host-shadow';
 import { projectionDigest, projectionSha256 } from '../hash';
 import {
   assertV018ProductionPointersUnchanged,
@@ -27,6 +34,10 @@ export const V018_RUNTIME_RELEASE_CONTRACT = 'actkg-v018-runtime-release/v1' as 
 export const V018_QUALIFICATION_CONTRACT = 'actkg-v018-cutover-qualification/v1' as const;
 export const V018_SEALED_QUALIFICATION_SHA256 =
   '1444318cc2a62b10bc1c5f358592da59d2c6706d0677c898c7bc54486c5cc3b1';
+export const V018_SEALED_RUNTIME_RECEIPT_DIGEST =
+  'af084fd21d032f3370d85297f311b46a7114fe64510a9d3b29eef7e15688786f';
+export const V018_SEALED_RUNTIME_RECEIPT_SHA256 =
+  'b239f33d8880dd4752127a442cb9f03aed037bd19c47458e074193a432fd4d11';
 export const DOCKER_MIN_MEMORY_BYTES = 20 * 1024 * 1024 * 1024;
 export const V09_POINTER_HASHES = {
   'course-content/authoring/knowledge/authority/current.json':
@@ -66,6 +77,40 @@ function gitRevParse(repoRoot: string, arg: string): string {
   return execFileSync('git', ['-C', repoRoot, 'rev-parse', arg], {
     encoding: 'utf8',
   }).trim();
+}
+
+function resolveFrozenApplicationRevision(
+  repoRoot: string,
+  requested: string | undefined,
+  head: string,
+): { revision: string; tree: string; blockers: string[] } {
+  const revision = requested?.trim() || head;
+  if (!/^[0-9a-f]{40}$/.test(revision)) {
+    return {
+      revision: head,
+      tree: gitRevParse(repoRoot, `${head}^{tree}`),
+      blockers: ['frozen-application-revision-invalid'],
+    };
+  }
+  if (revision !== head) {
+    try {
+      execFileSync('git', ['-C', repoRoot, 'merge-base', '--is-ancestor', revision, head], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
+    } catch {
+      return {
+        revision: head,
+        tree: gitRevParse(repoRoot, `${head}^{tree}`),
+        blockers: ['frozen-application-revision-not-ancestor'],
+      };
+    }
+  }
+  return {
+    revision,
+    tree: gitRevParse(repoRoot, `${revision}^{tree}`),
+    blockers: [],
+  };
 }
 
 export function readDockerMemoryBytes(): number {
@@ -169,6 +214,48 @@ function verifyQualificationBinding(
   return blockers;
 }
 
+function readDockerArchiveIdentity(imageTarPath: string): { repoTags: string[]; configSha256: string } | null {
+  try {
+    const raw = execFileSync('tar', ['-xOf', imageTarPath, 'manifest.json'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const manifest = JSON.parse(raw) as unknown;
+    const first = Array.isArray(manifest) ? asRecord(manifest[0]) : {};
+    const repoTags = Array.isArray(first.RepoTags)
+      ? first.RepoTags.filter((value): value is string => typeof value === 'string')
+      : [];
+    const config = String(first.Config ?? '');
+    const match = /(?:^|\/)([a-f0-9]{64})$/.exec(config);
+    if (!match) return null;
+    return { repoTags, configSha256: match[1] };
+  } catch {
+    return null;
+  }
+}
+
+export function resolveSealedFrozenImage(input: {
+  repoRoot: string;
+  applicationRevision: string;
+}): { imageTag: string; provenancePath: string; imageTarPath: string; configSha256: string } | null {
+  const repoRoot = path.resolve(input.repoRoot);
+  const provenancePath = path.join(repoRoot, 'deploy/images/act-obe.tar.provenance.json');
+  const imageTarPath = path.join(repoRoot, 'deploy/images/act-obe.tar');
+  if (!existsSync(provenancePath) || !existsSync(imageTarPath)) return null;
+  const provenance = asRecord(readJson(provenancePath));
+  if (String(provenance.appRevision ?? '') !== input.applicationRevision) return null;
+  if (String(provenance.imageTarSha256 ?? '') !== V018_SEALED_IMAGE_TAR_SHA256) return null;
+  const oci = readDockerArchiveIdentity(imageTarPath);
+  if (!oci || !oci.repoTags.includes(V018_FROZEN_IMAGE_TAG)) return null;
+  if (oci.configSha256 !== V018_SEALED_IMAGE_CONFIG_SHA256) return null;
+  return {
+    imageTag: V018_FROZEN_IMAGE_TAG,
+    provenancePath,
+    imageTarPath,
+    configSha256: oci.configSha256,
+  };
+}
+
 function verifyProvenance(
   built: { provenancePath: string | null; imageTarPath: string | null },
   applicationRevision: string,
@@ -196,8 +283,10 @@ export async function publishActKgV018CutoverRuntime(input: {
   outputRoot?: string;
   qualificationReport?: string;
   imageTag?: string;
+  frozenApplicationRevision?: string;
   readDockerMemory?: DockerMemoryReader;
   runBuild?: BuildRunner;
+  hostVerificationReport?: string;
 }): Promise<{
   status: 'READY' | 'BLOCKED';
   reportPath: string;
@@ -216,8 +305,15 @@ export async function publishActKgV018CutoverRuntime(input: {
 
   const pointersBefore = snapshotCurrentPointers(repoRoot);
   const blockers: string[] = [];
-  const applicationRevision = gitRevParse(repoRoot, 'HEAD');
-  const applicationTree = gitRevParse(repoRoot, 'HEAD^{tree}');
+  const headRevision = gitRevParse(repoRoot, 'HEAD');
+  const frozen = resolveFrozenApplicationRevision(
+    repoRoot,
+    input.frozenApplicationRevision,
+    headRevision,
+  );
+  blockers.push(...frozen.blockers);
+  const applicationRevision = frozen.revision;
+  const applicationTree = frozen.tree;
   const qualificationPath = path.resolve(
     input.qualificationReport
     ?? path.join(repoRoot, 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18/qualification-readiness.json'),
@@ -273,8 +369,23 @@ export async function publishActKgV018CutoverRuntime(input: {
     blockers.push('production-pointer-drift');
   }
   blockers.push(...assertV09Pointers(pointersAfter, repoRoot));
-
+  const hostReportPath = path.resolve(
+    input.hostVerificationReport
+    ?? path.join(outputRoot, 'host-shadow-verification.json'),
+  );
+  const hostReport = loadHostShadowVerificationReport(hostReportPath);
+  if (hostReport.status !== 'READY') blockers.push('host-shadow-not-ready');
+  blockers.push(...hostReport.blockers);
+  if (hostReport.observedAppImage !== imageTag) blockers.push('host-app-image-not-this-build');
+  if (hostReport.observedWorkerImage !== imageTag) blockers.push('host-worker-image-not-this-build');
   const uniqueBlockers = [...new Set(blockers)].sort();
+  const hostVerification = {
+    status: hostReport.status === 'READY' && uniqueBlockers.length === 0
+      ? 'READY' as const
+      : 'BLOCKED' as const,
+    digest: hostReport.digest,
+    blockers: uniqueBlockers.filter((code) => code.startsWith('host-')),
+  };
   const body = {
     contract: V018_RUNTIME_RELEASE_CONTRACT,
     status: uniqueBlockers.length === 0 ? 'READY' as const : 'BLOCKED' as const,
@@ -290,6 +401,10 @@ export async function publishActKgV018CutoverRuntime(input: {
     dockerMemoryBytes,
     dockerMinMemoryBytes: DOCKER_MIN_MEMORY_BYTES,
     imageTag,
+    pointerHashes: Object.keys(hostReport.pointerHashes).length > 0
+      ? hostReport.pointerHashes
+      : expectedHostPointerHashes(),
+    hostVerification,
     predecessors: {
       authorityReleaseId: V09_RELEASE_ID,
       authoritySnapshotId: V09_SNAPSHOT,

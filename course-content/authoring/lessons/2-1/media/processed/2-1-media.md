@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6f944597c1bc96903ae733fdba8be76c&v=1775441123459&puid=26652392&enc=93c945dddf969644aad33c03d7c1ef34&wps=c5d9d56b07c2b278fdf1054ddaf0a3bcd70d687fb84ea7b5
 
+本地成品已发布：`media/processed/2-1-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 2-1-audio.m4a
 
 - 梅森公式与传函

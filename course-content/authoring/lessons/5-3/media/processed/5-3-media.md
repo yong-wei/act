@@ -2,6 +2,8 @@
 
 - 一张单回路控制图逐步展开为感知、估计、规划、控制与执行链路，突出控制在 MASS 复杂自主系统中的真实位置。
 
+本地成品已发布：`media/processed/5-3-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 5-3-slides.pdf
 
 - MASS：AI船长的控制论大冒险

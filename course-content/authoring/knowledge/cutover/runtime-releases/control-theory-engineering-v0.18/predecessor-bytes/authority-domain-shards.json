@@ -1,0 +1,13 @@
+{
+  "contract": "act-authority-domain-shard-current/v1",
+  "shardSetId": "ads-6328487edecd02ed5da3c7c66b80f458a1bce59e5b26c6cc06a8f611636a6196",
+  "shardSetHash": "6328487edecd02ed5da3c7c66b80f458a1bce59e5b26c6cc06a8f611636a6196",
+  "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+  "releaseId": "ctr:release:control-theory-engineering-v0.9",
+  "catalogId": "adc-dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+  "catalogHash": "dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+  "teachingProjectionId": null,
+  "teachingProjectionHash": null,
+  "activatedAt": "2026-08-13T00:00:00.000Z"
+}

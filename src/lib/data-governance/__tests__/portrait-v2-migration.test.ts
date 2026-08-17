@@ -208,11 +208,11 @@ describe('portrait v2 legacy migration', () => {
     expect(JSON.stringify(report)).not.toContain('native-user');
   });
 
-  it('keeps the canonical Yang Fan fixture complete after the normal worker recomputation path', async () => {
+  it('does not turn Yang Fan fixture facts into a trusted native portrait', async () => {
     const facts = buildYangFanPortraitV2FixtureFacts('canonical-yangfan', new Date('2026-07-10T22:00:00.000Z'))
       .map((fact) => ({ ...fact, createdAt: fact.createdAt as Date }));
     let written: any = null;
-    await materializeIncrementalPortraitV2({
+    const result = await materializeIncrementalPortraitV2({
       learningFact: { findMany: async () => facts },
       studentPortraitV2Snapshot: {
         findFirst: async () => null,
@@ -220,8 +220,9 @@ describe('portrait v2 legacy migration', () => {
       },
     }, 'canonical-yangfan', { now });
 
-    expect(written.payload.dimensions.map((item: any) => item.id)).toEqual(PORTRAIT_V2_DIMENSION_IDS);
-    expect(written.payload.dimensions.every((item: any) => item.freshness.state !== 'missing')).toBe(true);
+    expect(result.written).toBe(false);
+    expect(result.evidenceCount).toBe(0);
+    expect(written).toBeNull();
     expect(auditPortraitMigrationCompleteness({
       now,
       legacySnapshots: [],
@@ -230,9 +231,11 @@ describe('portrait v2 legacy migration', () => {
         canonicalUserId: 'canonical-yangfan',
         duplicateNameOnlyCount: 2,
         workerStable: true,
-        portrait: { id: 'yangfan-v2', userId: 'canonical-yangfan', snapshotAt: now, derivationKind: 'native', payload: written.payload },
       },
-    }).fixtureBlockers).toEqual([]);
+    }).fixtureBlockers).toEqual(expect.arrayContaining([
+      'canonical-fixture-seven-dimension-coverage-missing',
+      'canonical-fixture-evidence-lineage-missing',
+    ]));
   });
 
   it('resolves Yang Fan only when canonical email and student number match one account', () => {

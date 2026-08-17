@@ -23,6 +23,9 @@ BUCKET="${ACT_OSS_BUCKET:-act-course-assets}"
 
 source_revision=""
 parent_manifest=""
+external_bundle=""
+external_bundle_root=""
+generated_resources_root=""
 artifact_dir=""
 expected_active_release=""
 matching_parent_release_id=""
@@ -34,6 +37,9 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --source-revision) source_revision="$2"; shift 2 ;;
     --parent-manifest) parent_manifest="$2"; shift 2 ;;
+    --external-bundle) external_bundle="$2"; shift 2 ;;
+    --external-bundle-root) external_bundle_root="$2"; shift 2 ;;
+    --generated-resources-root) generated_resources_root="$2"; shift 2 ;;
     --artifact-dir) artifact_dir="$2"; shift 2 ;;
     --expected-active-release) expected_active_release="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
@@ -46,6 +52,12 @@ done
 [[ "$expected_active_release" == "none" || "$expected_active_release" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo "ERROR: invalid --expected-active-release" >&2; exit 1; }
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid --ram-role" >&2; exit 1; }
 [[ -z "$parent_manifest" || -f "$parent_manifest" ]] || { echo "ERROR: --parent-manifest does not exist" >&2; exit 1; }
+[[ -z "$external_bundle" || -f "$external_bundle" ]] || { echo "ERROR: --external-bundle does not exist" >&2; exit 1; }
+[[ -z "$external_bundle_root" || -d "$external_bundle_root" ]] || { echo "ERROR: --external-bundle-root does not exist" >&2; exit 1; }
+[[ -z "$generated_resources_root" || -d "$generated_resources_root" ]] || { echo "ERROR: --generated-resources-root does not exist" >&2; exit 1; }
+if [[ -n "$external_bundle_root" || -n "$generated_resources_root" ]]; then
+  [[ -n "$external_bundle" ]] || { echo "ERROR: generated/bundle roots require --external-bundle" >&2; exit 1; }
+fi
 [[ -n "$KNOWN_HOSTS_FILE" && -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
 [[ "$BUCKET" =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]] || { echo "ERROR: invalid ACT_OSS_BUCKET" >&2; exit 1; }
 for remote_path in \
@@ -102,6 +114,15 @@ build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_re
 build_args+=(--daily-report-output "$daily_report")
 if [[ -n "$parent_manifest" ]]; then
   build_args+=(--parent-manifest "$parent_manifest")
+fi
+if [[ -n "$external_bundle" ]]; then
+  build_args+=(--external-bundle "$external_bundle")
+fi
+if [[ -n "$external_bundle_root" ]]; then
+  build_args+=(--external-bundle-root "$external_bundle_root")
+fi
+if [[ -n "$generated_resources_root" ]]; then
+  build_args+=(--generated-resources-root "$generated_resources_root")
 fi
 npx tsx "$CLI" "${build_args[@]}" >/dev/null
 build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
@@ -255,8 +276,21 @@ publish_args=(
 if [[ -n "$parent_manifest" ]]; then
   publish_args+=(--parent-manifest "$parent_manifest")
 fi
+if [[ -n "$external_bundle" ]]; then
+  publish_args+=(--external-bundle "$external_bundle")
+fi
+if [[ -n "$external_bundle_root" ]]; then
+  publish_args+=(--external-bundle-root "$external_bundle_root")
+fi
+if [[ -n "$generated_resources_root" ]]; then
+  publish_args+=(--generated-resources-root "$generated_resources_root")
+fi
 if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
   publish_args+=(--credential-profile "$ACT_RUNTIME_CREDENTIAL_PROFILE")
+fi
+if [[ -n "${ACT_RUNTIME_BLOB_PARENT_RELEASE_ID:-}" ]]; then
+  [[ -n "${ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256:-}" ]] || { echo "ERROR: ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256 is required with ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" >&2; exit 1; }
+  publish_args+=(--blob-parent-release-id "$ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" --blob-parent-manifest-sha256 "$ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256")
 fi
 set +e
 npx tsx "$CLI" "${publish_args[@]}" >/dev/null

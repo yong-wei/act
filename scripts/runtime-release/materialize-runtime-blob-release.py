@@ -488,7 +488,7 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
                 if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
                     fail("declared cache entry is not a regular file: %s" % relative)
             elif not os.path.islink(str(absolute)):
-                fail("materialized view contains a non-symlink logical file: %s" % relative)
+                fail("materialized view contains a non-symlink logical file: %s (mode=%s)" % (relative, oct(os.lstat(str(absolute)).st_mode)))
             actual_paths.add(relative)
     if actual_paths != expected_paths:
         fail("materialized view file set differs from manifest")
@@ -523,8 +523,16 @@ def with_lock(view_root: Path):
 
 
 def parent_entries(view: Path) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Any]]:
-    receipt, manifest = verify_view_structure(view, manifest_release_id(view))
-    return {entry["path"]: entry for entry in manifest["files"]}, receipt
+    # Imported-equivalent views may contain regular logical files. Parent
+    # inheritance only needs the parent manifest identity, not a symlink-forest
+    # re-verification of that older view.
+    require_real_directory(view, "parent materialized view")
+    manifest, wire = parse_manifest(view / LOCAL_MANIFEST)
+    receipt_path = view / LOCAL_RECEIPT
+    require_regular(receipt_path, "parent materialization receipt")
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
+    return {entry["path"]: entry for entry in manifest["files"]}, expected_receipt
 
 
 def manifest_release_id(view: Path) -> str:
@@ -651,7 +659,13 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         )
     finally:
         if temporary and temporary.exists():
-            shutil.rmtree(str(temporary))
+            try:
+                with open("/tmp/act-failed-materialize-view.txt", "w") as handle:
+                    handle.write("%s\n" % temporary)
+            except OSError:
+                pass
+            if os.environ.get("ACT_RUNTIME_KEEP_FAILED_VIEW") != "1":
+                shutil.rmtree(str(temporary))
         lock.close()
 
 

@@ -1,0 +1,57 @@
+{
+  "contract": "actkg-v018-production-cutover-verification/v1",
+  "transactionId": "v018-cutover-2026-08-16T131321310Z",
+  "journalHash": "d4ce69bf9e011521962971aa01400e2950929673f27368ecea6a8212984a46a5",
+  "receiptDigest": "4295ffd695aa195620643dcda390e3eacc375b8f4d4a905ebf7eac6aa1e0bb71",
+  "status": "READY",
+  "public": {
+    "labels": [
+      "系统建模",
+      "时域分析",
+      "稳定性分析",
+      "频域分析",
+      "根轨迹",
+      "经典控制设计",
+      "离散时间控制分析",
+      "状态空间控制分析与设计"
+    ],
+    "teachingStatus": 200,
+    "teachingObjectCount": 1,
+    "cardStatus": 200,
+    "neighborhoodStatus": 200,
+    "neighborhoodRelationCount": 7,
+    "infographStatus": 503,
+    "infographNodeId": "",
+    "infographPng": false,
+    "konlingStatus": 200,
+    "konlingProjectionId": null,
+    "konlingAuthoritySnapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "courseRuntimeStatus": 200,
+    "courseProjectionId": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+    "probeNodeId": "ctc:modeling-00d2998755974a1329049aac",
+    "leaks": [],
+    "blockers": []
+  },
+  "counts": {
+    "objects": 6843,
+    "relations": 2811
+  },
+  "consumersReady": [
+    "course-runtime",
+    "engineering-graph",
+    "engineering-rag",
+    "konling",
+    "learning-path",
+    "teaching-resource-rag"
+  ],
+  "livePointers": {
+    "authority": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+    "projection": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+    "prerequisite": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+    "shards": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+    "activation": "v018-cutover-1b64a853dda5-17f00f669b22"
+  },
+  "postWorkerHealth": "healthy",
+  "v09Retained": true,
+  "imageTag": "localhost/act-obe-platform:v018-94d585ae63a6"
+}

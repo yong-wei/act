@@ -1,0 +1,65 @@
+{
+  "authority": {
+    "path": "/home/projects/act/course-content/authoring/knowledge/authority/current.json",
+    "sha256": "d0a3dd3de9f176cdd185302d91a67d2c3406fdfb271fea75bd583c3127e8cd9d",
+    "json": {
+      "contract": "actkg-engineering-authority-current/v1",
+      "snapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "snapshotHash": "1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "releaseId": "ctr:release:control-theory-engineering-v0.18",
+      "releaseSetId": "actkg-authority-candidate-v018-9caf1083ae7a13c5122546e7ff7cbf8b6b0f463438444088d9c80227624866cd",
+      "activationReceiptId": "v018-cutover-authority",
+      "activatedAt": "2026-08-16T00:00:00.000Z"
+    }
+  },
+  "projection": {
+    "path": "/home/projects/act/data/runtime/blob-views/current/knowledge/projection/current.json",
+    "sha256": "53cc566e0e590b4127b121291aceeb847e38aa16449767d3c8db3e951f79e812",
+    "json": {
+      "contract": "act-teaching-projection-current/v1",
+      "projectionId": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "projectionHash": "17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+      "activatedAt": "2026-08-16T00:00:00.000Z"
+    }
+  },
+  "prerequisites": {
+    "path": "/home/projects/act/data/runtime/blob-views/current/knowledge/prerequisites/current.json",
+    "sha256": "ee266789e779bce9c7bec07d87809f550fb241deebecffb25f250e2467df6db2",
+    "json": {
+      "contract": "act-teaching-prerequisite-current/v1",
+      "publicationId": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+      "publicationHash": "0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+      "activatedAt": "1970-01-01T00:00:00.000Z"
+    }
+  },
+  "shards": {
+    "path": "/home/projects/act/data/runtime/blob-views/current/knowledge/authority-domain-shards/current.json",
+    "sha256": "b128456356799c4382d8e4ccd4c13b28ec7b95f40079389e728fad017892b3b6",
+    "json": {
+      "contract": "act-authority-domain-shard-current/v1",
+      "shardSetId": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+      "shardSetHash": "30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+      "snapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "snapshotHash": "1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+      "releaseId": "ctr:release:control-theory-engineering-v0.18",
+      "catalogId": "adc-45d7ac82f8c36fccc01b0e545444fe5f9a89866449445f23ddf9ff2c7b9fe149",
+      "catalogHash": "45d7ac82f8c36fccc01b0e545444fe5f9a89866449445f23ddf9ff2c7b9fe149",
+      "teachingProjectionId": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "teachingProjectionHash": "17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+      "activatedAt": "2026-08-16T00:00:00.000Z"
+    }
+  },
+  "activation": {
+    "path": "/home/projects/act/data/runtime/blob-views/current/knowledge/consumer-activation/current.json",
+    "sha256": "8e0a7a69124afcd9d9d6baa324db297c4f4e479bbeca6cc658881fe5b353e881",
+    "json": {
+      "contract": "act-versioned-knowledge-consumer-activation-current/v1",
+      "activationId": "v018-cutover-1b64a853dda5-17f00f669b22",
+      "activationHash": "b88996b578fbb2afaa822cf055af634871b796011efda3ccc0755f7cc0184300",
+      "activationReceiptId": "v018-cutover-consumers",
+      "activatedAt": "2026-08-16T00:00:00.000Z"
+    }
+  }
+}
