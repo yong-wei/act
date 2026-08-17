@@ -3,9 +3,9 @@
 结论：PASS
 
 - 复核者：codex-manual-visual-review。
-- 捕获绑定：commit de8bc2ae6d549c92c77e7e15934829292b20d4db，tree bac6f6ec9fd12c393039f17827d5015eefab140d。
-- 捕获时间：2026-08-17T13:35:20.280Z。
-- 截图绑定：stateMatrix 29 个状态与 activeAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前截图一致。
+- 捕获绑定：commit b174f6c7d696274c87ba3737aa214f1dc325a0cd，tree 5cc9652582063e8d2ca66c53d3a05ac61aa42c29。
+- 捕获时间：2026-08-17T17:06:06.238Z。
+- 截图绑定：stateMatrix 29 个状态与 activeAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前 33 张截图一致。
 - 源码绑定：36 个受检路径记录 SHA-256；复核映射与当前源码一致。
 
 人工抽查覆盖 1440px Active Authority、320px Active Authority、1440px Legacy 图谱和 320px 节点检查器。代表截图未见横向溢出、面板遮挡、焦点提示缺失或角色边界泄露。
