@@ -256,6 +256,7 @@ interface AdaptivePathCandidateBatchView {
   id: string;
   goalId: string;
   sourcePathId: string;
+  sourcePathVersion: string;
   candidates: Array<{
     id: string;
     styleId: string;
@@ -2973,16 +2974,14 @@ export default function AdaptivePracticePage() {
     [activeCandidateBatch],
   );
   const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
-  const savedPathVersion = activePathRound?.updatedAt
-    ?? activePathPlan?.executionStatus.updatedAt
-    ?? 'no-path-version';
+  const comparisonPathVersion = activeCandidateBatch?.sourcePathVersion ?? 'no-comparison-path-version';
   const comparisonOptionIds = useMemo(
     () => pathOptions.map((option) => option.optionId),
     [pathOptions],
   );
   const candidateBatchComparisonVersion = useMemo(
-    () => buildAdaptivePathComparisonVersion(activeCandidateBatch?.id, savedPathVersion, comparisonOptionIds),
-    [activeCandidateBatch?.id, comparisonOptionIds, savedPathVersion],
+    () => buildAdaptivePathComparisonVersion(activeCandidateBatch?.id, comparisonPathVersion, comparisonOptionIds),
+    [activeCandidateBatch?.id, comparisonOptionIds, comparisonPathVersion],
   );
   const candidateComparisonPairs = useMemo(
     () => enumerateAdaptivePathComparisonPairs(comparisonOptionIds),
@@ -2997,12 +2996,12 @@ export default function AdaptivePracticePage() {
   const selectedComparisonKey = selectedComparisonPair && activeCandidateBatch
     ? buildAdaptivePathComparisonKey({
         candidateBatchId: activeCandidateBatch.id,
-        pathVersion: savedPathVersion,
+        pathVersion: comparisonPathVersion,
         pairKey: selectedComparisonPair.pairKey,
       })
     : null;
-  const savedPathVersionRef = useRef(savedPathVersion);
-  savedPathVersionRef.current = savedPathVersion;
+  const comparisonPathVersionRef = useRef(comparisonPathVersion);
+  comparisonPathVersionRef.current = comparisonPathVersion;
   const activeComparisonRequestKeyRef = useRef<string | null>(null);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
@@ -3042,7 +3041,7 @@ export default function AdaptivePracticePage() {
     }
   }, [
     activeCandidateBatch,
-    savedPathVersion,
+    comparisonPathVersion,
     requestedCompareLeft,
     requestedCompareRight,
     requestedCompareVersion,
@@ -3891,7 +3890,12 @@ export default function AdaptivePracticePage() {
       return;
     }
     const currentPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
-    if (operation !== 'generate' && !currentPathId) {
+    const comparisonPathId = activeCandidateBatch?.sourcePathId;
+    if (operation === 'explain' && !comparisonPathId) {
+      setPathChoiceMessage('候选路径批次已失效，请重新生成候选方案后再比较。');
+      return;
+    }
+    if (operation !== 'generate' && operation !== 'explain' && !currentPathId) {
       setPathChoiceMessage('请先生成路径后再请求调整或解释。');
       return;
     }
@@ -3909,7 +3913,7 @@ export default function AdaptivePracticePage() {
     const explanationRequestVersionKey = operation === 'explain'
       ? buildAdaptivePathComparisonKey({
           candidateBatchId: activeCandidateBatch!.id,
-          pathVersion: savedPathVersionRef.current,
+          pathVersion: comparisonPathVersionRef.current,
           pairKey: normalizedComparisonPair!.pairKey,
         })
       : null;
@@ -3950,7 +3954,9 @@ export default function AdaptivePracticePage() {
           operation,
           generationRequestId,
           goalId: pathGenerationPanel.goalId,
-          pathId: operation !== 'generate' ? currentPathId : undefined,
+          pathId: operation === 'explain'
+            ? comparisonPathId
+            : operation !== 'generate' ? currentPathId : undefined,
           routeIntent,
           timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
           difficultyRhythm: pathGenerationPanel.difficultyRhythm,
@@ -4113,11 +4119,11 @@ export default function AdaptivePracticePage() {
           || explanationRequestVersionKey !== (activeCandidateBatch && normalizedComparisonPair
             ? buildAdaptivePathComparisonKey({
                 candidateBatchId: activeCandidateBatch.id,
-                pathVersion: savedPathVersionRef.current,
+                pathVersion: comparisonPathVersionRef.current,
                 pairKey: normalizedComparisonPair.pairKey,
               })
-            : savedPathVersionRef.current)
-          || (differenceExplanation && differenceExplanation.pathId !== currentPathId)
+            : comparisonPathVersionRef.current)
+          || (differenceExplanation && differenceExplanation.pathId !== comparisonPathId)
           || (differenceExplanation?.comparisonKey && differenceExplanation.comparisonKey !== explanationRequestVersionKey)
         )
       ) {

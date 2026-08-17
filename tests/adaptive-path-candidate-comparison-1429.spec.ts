@@ -4,9 +4,11 @@ import path from 'node:path';
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
 const goalId = 'control-correction';
+const activePathId = 'existing-active-path-1429';
 const pathId = 'candidate-comparison-path-1429';
 const batchId = 'candidate-comparison-batch-1429';
 const pathUpdatedAt = '2026-08-16T10:00:00.000Z';
+const candidatePathUpdatedAt = '2026-08-16T10:00:00.500Z';
 
 function candidateOption(optionId: string, styleId: string, label: string, minutes: number) {
   const nodeId = `${optionId}-node`;
@@ -49,6 +51,7 @@ const candidateBatch = {
   classId: 'demo-class',
   generationRequestId: 'candidate-comparison-generation-1429',
   sourcePathId: pathId,
+  sourcePathVersion: candidatePathUpdatedAt,
   plannerVersion: 'candidate-comparison-1429',
   status: 'succeeded',
   createdAt: '2026-08-16T10:00:01.000Z',
@@ -64,7 +67,7 @@ const candidateBatch = {
 
 const activePath = {
   path: {
-    id: pathId,
+    id: activePathId,
     userId: 'demo-student',
     title: '候选比较路径',
     goalId,
@@ -108,10 +111,10 @@ const learnerState = {
   pathContext: {
     activePathCount: 1,
     bookmarkedPathCount: 0,
-    recentPathIds: [pathId],
+      recentPathIds: [activePathId],
     activeControlCorrectionPath: {
       state: 'active',
-      pathId,
+      pathId: activePathId,
       status: 'active',
       currentNodeId: options[0]!.nodeIds[0],
       terminalValidationState: null,
@@ -193,6 +196,13 @@ async function installRoutes(page: Page, releaseFirstExplain: Promise<void>) {
     const requestBody = route.request().postDataJSON() as Record<string, unknown>;
     if (requestBody.operation !== 'explain') {
       await route.fulfill({ status: 400, json: { error: 'Unexpected operation' } });
+      return;
+    }
+    if (
+      requestBody.pathId !== pathId
+      || !String(requestBody.comparisonKey).includes(candidatePathUpdatedAt)
+    ) {
+      await route.fulfill({ status: 403, json: { error: '候选比较对象不属于当前学习路径批次' } });
       return;
     }
     explainCount += 1;

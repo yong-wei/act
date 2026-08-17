@@ -21,8 +21,10 @@ describe('adaptive path candidate comparison UI contract', () => {
 
   it('drops late comparison responses when the batch, version, or pair changes', () => {
     expect(source).toContain('buildAdaptivePathComparisonKey({');
-    expect(source).toContain('pathVersion: savedPathVersionRef.current');
-    expect(source).toContain('const savedPathVersion = activePathRound?.updatedAt');
+    expect(source).toContain('pathVersion: comparisonPathVersionRef.current');
+    expect(source).toContain("const comparisonPathVersion = activeCandidateBatch?.sourcePathVersion ?? 'no-comparison-path-version';");
+    expect(source).toContain('const comparisonPathId = activeCandidateBatch?.sourcePathId;');
+    expect(source).toContain('differenceExplanation.pathId !== comparisonPathId');
     expect(source).toContain('activeComparisonRequestKeyRef.current !== explanationRequestVersionKey');
     expect(source).toContain("setPathGenerationPending((current) => current === 'explain' ? null : current);");
     expect(source).toContain('differenceExplanation.comparisonKey !== explanationRequestVersionKey');
