@@ -36,3 +36,9 @@ The surface SHALL compare a report only with its immediately older persisted rep
 - **WHEN** an earlier stable finding has no matching current structured finding
 - **THEN** the surface SHALL NOT label the disappearance as an improvement
 - **AND** it SHALL limit improvement and downgrade claims to comparable severity transitions.
+
+#### Scenario: A matched finding lacks a risk severity
+
+- **WHEN** either report omits the severity of a matched stable finding
+- **THEN** the surface SHALL identify that finding as unavailable for severity-transition comparison
+- **AND** it SHALL NOT count it as a risk escalation, risk downgrade, or improvement.

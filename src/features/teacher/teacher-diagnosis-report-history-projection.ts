@@ -33,6 +33,7 @@ export interface ReportComparison {
   improved?: number;
   riskEscalated?: number;
   riskDowngraded?: number;
+  incomparableSeverityTransitions?: number;
 }
 
 export interface ReportHistoryCardProjection {
@@ -265,6 +266,7 @@ export function compareAdjacentReports(
   let persistent = 0;
   let riskEscalated = 0;
   let riskDowngraded = 0;
+  let incomparableSeverityTransitions = 0;
   for (const [key, currentFinding] of current) {
     const baselineFinding = baseline.get(key);
     if (!baselineFinding) {
@@ -272,31 +274,50 @@ export function compareAdjacentReports(
       continue;
     }
     persistent += 1;
+    if (currentFinding.severity === null || baselineFinding.severity === null) {
+      incomparableSeverityTransitions += 1;
+      continue;
+    }
     if (currentFinding.severity > baselineFinding.severity) riskEscalated += 1;
     if (currentFinding.severity < baselineFinding.severity) riskDowngraded += 1;
   }
 
   return {
     state: 'ready',
-    description: '仅比较同一范围、对象与诊断结构的相邻报告；摘要文字变化不会被视为学情变化。',
+    description: comparisonDescription(incomparableSeverityTransitions),
     additions,
     persistent,
     improved: riskDowngraded,
     riskEscalated,
     riskDowngraded,
+    incomparableSeverityTransitions,
   };
 }
 
 function comparableFindings(report: DiagnosisReportApiItem) {
-  const findings = new Map<string, { severity: number }>();
+  const findings = new Map<string, { severity: number | null }>();
   for (const finding of report.reportBody.findings) {
     const key = stableFindingKey(finding);
     if (!key) continue;
-    const severity = finding.severity ? SEVERITY_RANK[finding.severity] : 0;
+    const severity = finding.severity ? SEVERITY_RANK[finding.severity] : null;
     const current = findings.get(key);
-    if (!current || severity > current.severity) findings.set(key, { severity });
+    if (!current) {
+      findings.set(key, { severity });
+      continue;
+    }
+    if (severity === null) {
+      current.severity = null;
+      continue;
+    }
+    if (current.severity !== null && severity > current.severity) current.severity = severity;
   }
   return findings;
+}
+
+function comparisonDescription(incomparableSeverityTransitions: number) {
+  const description = '仅比较同一范围、对象与诊断结构的相邻报告；摘要文字变化不会被视为学情变化。';
+  if (incomparableSeverityTransitions === 0) return description;
+  return `${description} 其中 ${incomparableSeverityTransitions} 项匹配发现缺少风险等级，未计算风险升级、降级或改善。`;
 }
 
 function stableFindingKey(finding: DiagnosisReportApiItem['reportBody']['findings'][number]) {

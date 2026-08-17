@@ -16,7 +16,7 @@ Reasons come from source coverage, known limitation codes, missing knowledge-nod
 
 The only comparison candidate is the immediately older entry. It must have the same scope type, scope id, class id, target user, and generator/diagnostic structure version. Stable comparison keys use knowledge-node and risk type, falling back to governed evidence references only when no node exists; titles and summaries never participate. If no stable key exists, the UI says comparison is unavailable.
 
-Severity transitions are the only supported improvement or escalation signal. A disappeared finding is not called an improvement because current report structure cannot distinguish real resolution from omitted model output.
+Severity transitions are the only supported improvement or escalation signal, and require a present severity on both matched findings. A missing severity remains explicitly incomparable; it cannot be collapsed to a lowest-risk value. A disappeared finding is not called an improvement because current report structure cannot distinguish real resolution from omitted model output.
 
 ### Existing access and interaction boundaries remain unchanged
 

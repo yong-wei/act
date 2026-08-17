@@ -204,4 +204,35 @@ describe('TeacherDiagnosisReportHistoryView', () => {
     expect(html).toContain('改善／风险降级');
     expect(html).toContain('风险降级');
   });
+
+  it('marks missing severity as a comparison limit instead of a risk downgrade', () => {
+    const currentReport: DiagnosisReportApiItem = {
+      ...report,
+      id: 'report-current-missing-severity',
+      reportBody: {
+        ...report.reportBody,
+        findings: [{ ...report.reportBody.findings[0], severity: undefined }],
+      },
+    };
+    const olderReport: DiagnosisReportApiItem = {
+      ...report,
+      id: 'report-older-high-severity',
+      generatedAt: '2026-07-24T08:05:00.000Z',
+      reportBody: {
+        ...report.reportBody,
+        findings: [{ ...report.reportBody.findings[0], severity: 'high' }],
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[currentReport, olderReport]}
+        selectedReportId={currentReport.id}
+        subjectLabel="控制 1 班 · 班级范围"
+      />,
+    );
+
+    expect(html).toContain('缺少风险等级，未计算风险升级、降级或改善。');
+  });
 });

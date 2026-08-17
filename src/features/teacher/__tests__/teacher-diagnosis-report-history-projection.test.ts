@@ -118,4 +118,29 @@ describe('teacher diagnosis report history projection', () => {
     });
     expect(compareAdjacentReports(lowerRisk)).toMatchObject({ state: 'no-baseline' });
   });
+
+  it('does not report a downgrade or improvement when a matched finding lacks severity', () => {
+    const current: DiagnosisReportApiItem = {
+      ...baseline,
+      id: 'report-missing-severity',
+      reportBody: {
+        ...baseline.reportBody,
+        findings: [{
+          ...baseline.reportBody.findings[0],
+          severity: undefined,
+        }],
+      },
+    };
+
+    expect(compareAdjacentReports(current, baseline)).toMatchObject({
+      state: 'ready',
+      additions: 0,
+      persistent: 1,
+      improved: 0,
+      riskEscalated: 0,
+      riskDowngraded: 0,
+      incomparableSeverityTransitions: 1,
+    });
+    expect(compareAdjacentReports(current, baseline).description).toContain('缺少风险等级');
+  });
 });
