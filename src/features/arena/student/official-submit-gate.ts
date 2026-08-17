@@ -133,10 +133,21 @@ export async function waitForEarlierOfficialSubmitReservations(input: {
   const waitMs = input.waitMs ?? (process.env.VITEST ? 0 : OFFICIAL_SUBMIT_RESERVATION_WAIT_MS);
   const pollMs = input.pollMs ?? OFFICIAL_SUBMIT_RESERVATION_POLL_MS;
   const deadline = Date.now() + Math.max(0, waitMs);
-  while (await hasEarlierOfficialSubmitSuccessor(input)) {
+  while (await hasEarlierLivePendingOfficialReservation(input)) {
     if (Date.now() >= deadline) return;
     await new Promise((resolve) => setTimeout(resolve, pollMs));
   }
+}
+
+export async function hasEarlierLivePendingOfficialReservation(input: {
+  db: OfficialSubmitGateDb;
+  userId: string;
+  taskId: string;
+  classId?: string | null;
+  baselineAt: Date | string | number;
+  submittedAt: Date | string;
+}): Promise<boolean> {
+  return hasEarlierOfficialSubmitSuccessor({ ...input, pendingOnly: true });
 }
 
 export async function hasEarlierOfficialSubmitSuccessor(input: {
@@ -146,6 +157,7 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
   classId?: string | null;
   baselineAt: Date | string | number;
   submittedAt: Date | string;
+  pendingOnly?: boolean;
 }): Promise<boolean> {
   if (typeof input.db.$queryRaw !== 'function') return false;
   const rows = await input.db.$queryRaw<Array<{
@@ -165,7 +177,10 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
   if (!Array.isArray(rows) || rows.length === 0) return false;
 
   for (const row of rows) {
-    if (row.submissionId) return true;
+    if (row.submissionId) {
+      if (input.pendingOnly) continue;
+      return true;
+    }
     const lockedUntil = toDate(row.lockedUntil).getTime();
     if (!Number.isFinite(lockedUntil) || lockedUntil > Date.now()) return true;
     if (typeof input.db.$executeRaw !== 'function') return true;

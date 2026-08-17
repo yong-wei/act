@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   abandonOfficialArenaSubmissionReservation,
   attachOfficialArenaSubmissionReservation,
+  hasEarlierLivePendingOfficialReservation,
   hasEarlierOfficialSubmitSuccessor,
   officialArenaSubmitScopeKey,
   reserveOfficialArenaSubmissionOrder,
@@ -112,6 +113,29 @@ describe('official Arena submit gate', () => {
 
     await expect(hasEarlierOfficialSubmitSuccessor({
       db: { $queryRaw: queryRaw, $executeRaw: executeRaw },
+      userId: 'student-1',
+      taskId: 'task-1',
+      baselineAt: '2026-08-17T00:00:00.000Z',
+      submittedAt: '2026-08-17T00:00:02.000Z',
+    })).resolves.toBe(true);
+  });
+
+  it('does not treat an already persisted earlier reservation as an in-flight wait', async () => {
+    const queryRaw = vi.fn().mockResolvedValue([{
+      id: 'res-bound',
+      submissionId: 'submission-earlier',
+      lockedUntil: new Date(Date.now() + 30_000),
+    }]);
+
+    await expect(hasEarlierLivePendingOfficialReservation({
+      db: { $queryRaw: queryRaw },
+      userId: 'student-1',
+      taskId: 'task-1',
+      baselineAt: '2026-08-17T00:00:00.000Z',
+      submittedAt: '2026-08-17T00:00:02.000Z',
+    })).resolves.toBe(false);
+    await expect(hasEarlierOfficialSubmitSuccessor({
+      db: { $queryRaw: queryRaw },
       userId: 'student-1',
       taskId: 'task-1',
       baselineAt: '2026-08-17T00:00:00.000Z',
