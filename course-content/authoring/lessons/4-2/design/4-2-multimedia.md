@@ -70,6 +70,7 @@
 
 - **封面提示词**：`media/raw/4-2-cover-comic-prompt.md`
 - **导入视频提示词**：`media/raw/4-2-intro-video-prompts.md`
+- **导入视频成品**：`media/processed/4-2-intro-video.mp4`（已完成）
 - **用途**：
   - 统一封面漫画、导入视频和课程入口的叙事口径；
   - 保持“结构工具箱 + 参数初算 + 多指标复核”的视觉主线。

@@ -33,13 +33,13 @@
 
 - `5-6-cover-comic.png` 和 `5-6-info.png` 为保留资产文件名，代码直出脚本不得覆盖。
 - `5-6-cover-comic-prompt.md` 用于后续生成或复核封面漫画；画面应采用冷链仓库、评审台、温度曲线和方案卡，不使用可识别影视动漫角色。
-- `5-6-intro-video-prompts.md` 已完成，后续成品文件名为 `5-6-intro-video.mp4`。
+- `5-6-intro-video.mp4` 已发布到 `media/processed/`。原提示词仍保留为原料。
 
 ## 课堂与资料使用方式
 
 | 使用环节 | 推荐媒体 | 使用方式 |
 | --- | --- | --- |
-| 导入 | `5-6-intro-video-prompts.md` 生成的视频 | 用 15 秒工程评审场景提出路线选择问题 |
+| 导入 | `5-6-intro-video.mp4` | 用闲聊自控导入片提出路线选择问题 |
 | 模型解释 | `5-6-two-state-thermal-model.png` | 先读空气温度，再读货品核心温度，最后读压缩机作用路径 |
 | 三路线比较 | `5-6-three-route-comparison.png` | 重点读 E2 中恢复时间、能耗、切换和路线验证负担 |
 | 方法选择 | `5-6-risk-verification-matrix.png` | 说明证据要求等级不是标准控制性能指标，而是方法迁移证据维度 |

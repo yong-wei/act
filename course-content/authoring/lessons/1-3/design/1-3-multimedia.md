@@ -66,7 +66,7 @@
 ## 媒体链接文档维护
 
 `media/processed/1-3-media.md` 需保留以下课程级资源节名：
-- `1-3-intro-video.mp4`（待制作）
+- `1-3-intro-video.mp4`（已完成）
 - `1-3-slides.pdf`（待制作）
 - `1-3-course.mp4`（待制作）
 - `1-3-audio.m4a`（待制作）

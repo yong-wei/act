@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6d9f8cb8c6e4ee7857550460bb01c055&v=1775460404102&puid=26652392&enc=3f91186e51b5ec58dbb942232fa5b570&wps=dab62bb18827b96e4ebf52a46fdd65b1d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/2-3-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 2-3-audio.m4a
 
 - 控制系统挑频率

@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=63e0bb61d98966741713bf61367632a5&v=1777514426121&puid=26652392&enc=9c609b087b29832a13cf0e753f84e8ae&wps=453bff72155f83bed90c22f3c72361f1d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1071341706&timestamp=1777514426121&signature=898371a27e5ec8d889532b283d1a9b0d
 
+本地成品已发布：`media/processed/4-6-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-6-slides.pdf
 
 - 舰船自动驾驶控制系统大揭秘！

@@ -3,6 +3,9 @@
 ## 5-6-intro-video.mp4
 
 
+
+- 闲聊自控 Remotion 导入片已发布到 `media/processed/5-6-intro-video.mp4`（2026-08-17）。
+
 ## 5-6-slides.pdf
 
 - 冷盾行动：生物冷库的终极控制之战

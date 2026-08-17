@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=31c1b5d3289b308f21e286dfac71c88d&v=1776583104385&puid=26652392&enc=3e40fcac14667bc3bf432bea6fdc25f0&wps=658f65849ec7c7e238c497ad5f576878d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-2-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-2-audio.m4a
 
 - 劳斯阵列判定系统稳定性
