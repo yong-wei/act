@@ -1077,14 +1077,6 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   const domain = page.locator('[data-authority-domain-entry]').first();
   await domain.click({ timeout: 10000 });
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
-  for (const family of ['structure', 'derivation-and-representation', 'application-and-analysis', 'association']) {
-    const control = page.locator(`[data-authority-relation-family="${family}"]`);
-    if (!(await control.isVisible().catch(() => false))) {
-      throw new Error(`engineering relation filter unavailable in ${context}: ${family}`);
-    }
-    await control.click({ timeout: 10000 });
-    await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
-  }
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
     const stage = document.querySelector('[data-active-graph-stage="authority"]');

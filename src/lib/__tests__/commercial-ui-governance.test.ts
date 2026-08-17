@@ -4506,8 +4506,8 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-mobile-tools`');
     expect(scriptSource).toContain('overlaps.dockOverlapsInspector');
     expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
-    expect(captureScriptSource).toContain('async function captureFocusEvidence(browser: Browser)');
-    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
+    expect(captureScriptSource).toContain("async function captureFocusEvidence(browser: Browser, storageState: RoleSession['storageState'])");
+    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser, studentSession.storageState);');
     expect(captureScriptSource).toContain('focusEvidence,');
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
     expect(captureScriptSource).toContain("'src/app/knowledge/page.tsx'");
@@ -4632,6 +4632,8 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)');
     expect(captureScriptSource).not.toContain('parsed.stateMatrix');
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
+    expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
+    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
     expect(scriptSource).toContain("'tabletBreakpoint'");
@@ -4648,6 +4650,17 @@ describe('commercial UI governance', () => {
     expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
     expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
     expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('allows active Authority capture when optional relation-family shards are unpublished', () => {
+    const captureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8',
+    );
+
+    expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
+    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
+    expect(captureScriptSource).toContain("await page.waitForSelector('[data-active-graph-stage=\"authority\"]'");
   });
 
   it('keeps the adaptive path center default student branch free of internal status strings', () => {
