@@ -143,6 +143,7 @@ if (operation === 'api') {
     }
     if (process.env.FAKE_LOG) await writeFile(process.env.FAKE_LOG, key + '\\n', { flag: 'a' });
     await copyFile(body.replace('file://', ''), target);
+    if (process.env.FAKE_DROP_PUT_METADATA === '1') process.exit(0);
     const metadata = await readMetadata();
     for (let index = 0; index < args.length; index += 1) {
       if (args[index] !== '--metadata') continue;
@@ -744,6 +745,13 @@ try {
   const legacyVerification = await verify(legacyBlobState, { env: { FAKE_GET_LOG: legacyVerifyGetLog } });
   assert.equal(legacyVerification.schemaVersion, 'runtime-release-verification.v2');
   assert.equal((await readFile(legacyVerifyGetLog, 'utf8')).split('\n').filter(Boolean).includes(legacyBlobState.files[0].objectKey), true, 'remote verify must read every legacy blob body');
+
+  const metadataLessPut = buildBlobState('8'.repeat(40), [Buffer.from('new upload without metadata'), Buffer.from('new upload without metadata')]);
+  await assert.rejects(
+    () => publishBlob({ data: metadataLessPut, env: { FAKE_DROP_PUT_METADATA: '1' } }),
+    /blob bridge (failed before state|publish failed)/,
+  );
+  await rm(path.join(ossRoot, metadataLessPut.prefix), { recursive: true, force: true });
 
   const rejectLegacyCandidate = async (revision, body, metadata, env = {}) => {
     const candidate = buildBlobState(revision, [body, body]);

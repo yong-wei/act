@@ -33,7 +33,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 本地镜像打包必须使用本机 Docker 守护进程执行 `scripts/build.sh` 中的 `docker buildx build`；若 Docker 未运行，应先启动 Docker 并验证 `docker info`，不得擅自切换到 Colima、Podman、Lima 或其他构建运行时，也不得用旧镜像包替代本次构建。
 - 发布构建固定使用 Docker Desktop 24 GiB 内存、8 GiB Swap 和 `NODE_MAX_OLD_SPACE_SIZE=12288`；`docker info --format '{{.MemTotal}}'` 低于 20 GiB 时必须停止，不能在不足内存的 VM 中反复降低或试探 Node heap。
 - 当前构建必须自然结束后才能重启或退出 Docker Desktop；远端部署及最终验收完成、确认没有其他获授权的本地构建后，必须退出 Docker Desktop 释放 VM 内存，不能只停止 builder 容器。
-- 远端 `/home/projects/act` 只允许保留运维脚本、环境变量文件与 `course-content/runtime`；不得上传业务源码、测试、文档、记忆文件或其他代码目录。
+- 远端 `/home/projects/act` 只允许保留运维脚本、环境变量文件，以及已物化的 OSS runtime view（`data/runtime/blob-views` 与只读 ossfs helper）。不得把本地 `course-content/runtime` 作为部署内容 rsync 到服务器，也不得上传业务源码、测试、文档、记忆文件或其他代码目录。
 - 禁止在远端执行 `podman build`、`docker build`、`npm run build`、`next build` 或任何等价的源码构建命令。
 - 若发现远端已有源码残留，应优先清理为最小运维壳层，再继续后续排障或部署。
 - 若需要更新部署逻辑，只能修改本地仓库中的运维脚本与文档，并通过既定的本机构建流程产出镜像，再按既定方式部署。
@@ -62,7 +62,8 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 先做只读检查，再执行变更
 - 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
-- 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与 `course-content/runtime/`
+- 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与已物化的 OSS blob-view；不要恢复或同步一份本地 `course-content/runtime` 作为部署内容
+- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run deploy:runtime`，禁止默认 rsync
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要

@@ -129,6 +129,7 @@ function verifyCutoverFailureGate() {
         encoding: 'utf8',
         env: {
           ...baseEnv,
+          RUNTIME_DELIVERY_MODE: 'legacy-rsync',
           LOCAL_IMAGE_TAR: imageTar,
           LOCAL_PROVENANCE_FILE: provenance,
           LOCAL_RUNTIME_DIR: runtimeRoot,
@@ -173,6 +174,7 @@ function verifyCutoverFailureGate() {
         encoding: 'utf8',
         env: {
           ...baseEnv,
+          RUNTIME_DELIVERY_MODE: 'legacy-rsync',
           LOCAL_IMAGE_TAR: imageTar,
           LOCAL_PROVENANCE_FILE: provenance,
           LOCAL_RUNTIME_DIR: runtimeRoot,
@@ -208,6 +210,7 @@ function verifyCutoverFailureGate() {
         encoding: 'utf8',
         env: {
           ...baseEnv,
+          RUNTIME_DELIVERY_MODE: 'legacy-rsync',
           CUTOVER_MARKER_PRESENT: '1',
           LOCAL_IMAGE_TAR: imageTar,
           LOCAL_PROVENANCE_FILE: provenance,
@@ -236,6 +239,75 @@ function verifyCutoverFailureGate() {
   }
 }
 
+function verifyDefaultDoesNotRsync() {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-blob-view-default-'));
+  try {
+    const fakeBin = path.join(fixtureRoot, 'bin');
+    const rsyncLog = path.join(fixtureRoot, 'rsync.log');
+    fs.mkdirSync(fakeBin);
+    const bashEnvFile = path.join(fixtureRoot, 'bash-env.sh');
+    fs.writeFileSync(bashEnvFile, `export PATH="${toBashPath(fakeBin)}:$PATH"\n`, 'utf8');
+    writeExecutable(fakeBin, 'ssh', '#!/usr/bin/env bash\nexit 0\n');
+    for (const command of ['scp', 'curl']) {
+      writeExecutable(fakeBin, command, '#!/usr/bin/env bash\nexit 0\n');
+    }
+    writeExecutable(fakeBin, 'node', [
+      '#!/usr/bin/env bash',
+      'field=""',
+      'while [[ "$#" -gt 0 ]]; do',
+      '  if [[ "$1" == "--field" ]]; then field="$2"; break; fi',
+      '  shift',
+      'done',
+      'case "$field" in',
+      '  appRevision|runtimeSourceRevision|indexSourceRevision)',
+      '    printf "%s\\n" "1111111111111111111111111111111111111111"',
+      '    ;;',
+      '  runtimeDigest|indexDigest)',
+      '    printf "%s\\n" "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
+      '    ;;',
+      'esac',
+      'exit 0',
+      '',
+    ].join('\n'));
+    writeExecutable(fakeBin, 'rsync', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(rsyncLog)}`,
+      'exit 73',
+      '',
+    ].join('\n'));
+    const imageTar = path.join(fixtureRoot, 'image.tar');
+    const provenance = `${imageTar}.provenance.json`;
+    fs.writeFileSync(imageTar, 'fixture-image');
+    fs.writeFileSync(provenance, '{}\n');
+    const result = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          PATH: `${fakeBin}:${process.env.PATH}`,
+          BASH_ENV: bashEnvFile,
+          SKIP_BUILD: '1',
+          SSH_TARGET: 'fixture.invalid',
+          REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
+          LOCAL_IMAGE_TAR: imageTar,
+          LOCAL_PROVENANCE_FILE: provenance,
+        },
+      },
+    );
+    assert.notEqual(result.status, 0, '默认 blob-view 在夹具中应失败关闭');
+    assert.equal(
+      fs.existsSync(rsyncLog),
+      false,
+      '默认 RUNTIME_DELIVERY_MODE 不得调用 rsync 传输 runtime',
+    );
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
 function verifyLegacyRemoteTransactionQuoting(script) {
   const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
   const end = script.indexOf('\n\nlog\nif [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]', start);
@@ -252,6 +324,7 @@ APP_NAME_HINT=app
 WORKER_NAME_HINT=worker
 GC_NAME_HINT=gc
 REMOTE_RUNTIME_DIR=/tmp/act/course-content/runtime
+REMOTE_BLOB_VIEW_ROOT=/tmp/act/data/runtime/blob-views
 REMOTE_RUNTIME_STAGING_DIR=/tmp/act/course-content/runtime.staging.sha
 REMOTE_PROVENANCE_HELPER=/tmp/act/provenance.mjs
 REMOTE_TEXTBOOK_V2_RUNTIME_DIR=/tmp/act/course-content/runtime/resources/textbooks-v2
@@ -304,7 +377,19 @@ function main() {
     /test ! -e '\$\{REMOTE_RUNTIME_STAGING_DIR\}'/,
     'same-SHA retries must not be permanently blocked by a stale staging directory',
   );
+  verifyDefaultDoesNotRsync();
   verifyLegacyRemoteTransactionQuoting(script);
+  assert.match(
+    script,
+    /RUNTIME_DELIVERY_MODE=legacy-rsync \\\\\n      RUNTIME_CONTENT_DIR=\\"\$\{REMOTE_RUNTIME_DIR\}\\"/,
+    'explicit legacy-rsync must pass mode and the rsync’d runtime tree into 4-deploy',
+  );
+
+  assert.match(
+    script,
+    /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/,
+    '远端部署默认必须绑定已物化 OSS blob-view，而不是 rsync runtime',
+  );
 
   assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),
@@ -393,8 +478,28 @@ function main() {
         < script.indexOf('rsync "${runtime_rsync_args[@]}"'),
     'Legacy 部署必须在远端 runtime 同步和停止消费者之前拒绝已提交切换',
   );
+  assert.match(
+    script,
+    /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n(?:  #[^\n]*\n)*  guard_no_committed_production_cutover\nfi/,
+    'cutover marker 门禁只能挡住会 rsync 删除 selector 的 legacy-rsync',
+  );
+  assert.match(
+    script,
+    /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n  check_remote_authority_current_pointer_absence\nfi/,
+    '部署前 host Authority pointer 门禁只能挡住 legacy-rsync',
+  );
+  const blobViewVerify = script.slice(
+    script.indexOf('log "- 校验远端已物化 blob-view'),
+    script.indexOf('log "- 校验远端 runtime 目录"'),
+  );
+  assert.match(blobViewVerify, /check_remote_blob_view/);
+  assert.doesNotMatch(
+    blobViewVerify,
+    /guard_no_committed_production_cutover|check_remote_authority_current_pointer_absence/,
+    '默认 ossfs-blob-view 验收不得因 Legacy cutover/authority 门禁失败',
+  );
   assert.ok(
-    (script.match(/check_remote_runtime_pointer_absence\n\s*(?:check_remote_authority_current_pointer_absence\n\s*)?remote "node /g) ?? []).length >= 2,
+    (script.match(/check_remote_runtime_pointer_absence(?:[^\n]*\n){0,6}?\s*remote "node /g) ?? []).length >= 2,
     'runtime 切换后及最终 remote runtime 验证都必须断言三个 production pointer 均不存在',
   );
 

@@ -20,13 +20,13 @@
 - [x] 3.1 Implement parent-view clone plus manifest-delta application, receipt-bound idempotent view reuse, local atomic rename and changed hot-cache update.
 - [x] 3.2 Replace repeated prepare/select/host body verification with manifest/receipt, topology, helper mount, changed-blob and representative-read checks; keep `audit --sample` and `audit --full` as independent read-only commands.
 - [x] 3.3 Implement `deploy:runtime`, `deploy:app` and `deploy:all`; ensure runtime-only deployment cannot build images, transfer image tar, manipulate database, Prisma, Nginx/systemd or copy a full runtime tree.
-- [ ] 3.4 Prove candidate filesystem/route/media/knowledge/textbook/worker compatibility, helper-path 404, one runtime bind, cold/warm/concurrent index behavior and rollback from a small v2 increment.
+- [x] 3.4 Prove candidate filesystem/route/media/knowledge/textbook/worker compatibility, helper-path 404, one runtime bind, cold/warm/concurrent index behavior and rollback from a small v2 increment.
 
 ## 4. Operational safety and handoff
 
 - [x] 4.5 Record Sol DECIDE B: admit a current-runtime external bundle only when a precise Git declaration and output source identity bind it; keep this change candidate-only with no selection or deletion.
 
-- [ ] 4.1 Keep ECS on `act-runtime-oss-read` for normal serving; verify its Put/Delete/Abort denial and record the separate local publisher credential-provider setup without committing credentials.
+- [x] 4.1 Keep ECS on `act-runtime-oss-read` for normal serving; verify its Put/Delete/Abort denial and record the separate local publisher credential-provider setup without committing credentials.
 - [x] 4.2 Produce daily, sample and full audit reports with release identity, parent identity, changed counts, body bytes hashed, metadata requests, uploaded bytes, materialization/smoke timing and capacity projection.
 - [x] 4.3 Update runtime deployment and server-ops runbooks with local-publisher/ECS-reader separation, recovery, GC, audit and rollback evidence.
 - [ ] 4.4 Run targeted tests, typecheck, lint, runtime/deploy suites and build; prepare a separate production-selection and v1-retirement checklist for explicit authorization.

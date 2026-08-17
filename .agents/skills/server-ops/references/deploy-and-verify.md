@@ -10,7 +10,7 @@
 
 - 只允许本机构建镜像或镜像包，再在远端加载和部署；禁止远端 `podman build`、`docker build`、`npm run build`、`next build`
 - 本地镜像构建必须走 Docker：使用本机 Docker 守护进程运行 `bash scripts/build.sh`，由脚本内的 `docker buildx build` 导出镜像包；若 Docker 未运行，先启动 Docker 并用 `docker info` 验证后再构建，不得自行改用 Colima、Podman、Lima 或其他 builder
-- 远端 `/home/projects/act` 不得保存源码；只保留运维脚本、环境变量文件和 `course-content/runtime`
+- 远端 `/home/projects/act` 不得保存源码；只保留运维脚本、环境变量文件和已物化的 OSS blob-view。不要把本地 `course-content/runtime` 当作部署同步内容
 - 不得通过上传源码、常驻远端代码目录或临时改造部署模式来绕过本机构建
 - 本次构建失败时不得直接沿用旧的 `deploy/images/act-obe.tar` 部署；必须先完成新的 Docker 构建并记录新的 SHA256
 - 若本次修改涉及 `deploy/podman/` 下的部署脚本，先确认这些文件已经被显式纳入 Git 版本控制；本仓库根级 `.gitignore` 默认忽略 `deploy/`，不要只在本地修改未跟踪脚本后直接执行远端部署
@@ -58,20 +58,40 @@ rtk bash scripts/build.sh
 镜像构建只在容器内 Next 编译、TypeScript、镜像导出和 provenance 全部成功时成立。构建完成后记录 tar SHA-256，并核对 provenance 中的 `appRevision`、`runtimeSourceRevision`、`indexSourceRevision`、runtime/index digest；任何 revision 混合或旧 tar 复用都应 fail closed。
 
 4. 远端部署
+
+日常应用更新只走镜像路径：
+
 ```bash
-rtk bash scripts/remote-deploy.sh --skip-build
+rtk npm run deploy:app -- --skip-build
+# 等价于
+rtk bash scripts/remote-deploy.sh --app-only --skip-build
+```
+
+runtime 内容变更走 OSS 发布与物化，不得 rsync：
+
+```bash
+rtk npm run deploy:runtime
+```
+
+两者都变时：
+
+```bash
+rtk npm run deploy:all
 ```
 
 说明：
 
-- `scripts/remote-deploy.sh` 只允许同步运维脚本、环境变量与 runtime，并在远端加载本地已构建好的镜像
+- `deploy:app` / `remote-deploy.sh --app-only` 只上传并装载应用镜像，绑定远端已物化的 `ossfs-blob-view`
+- `remote-deploy.sh` 默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，不会同步本地 `course-content/runtime`
+- 更新课程 runtime 只能用 `deploy:runtime`；`legacy-rsync` 仅在显式设置且不存在 OSS active receipt 时可用
+- `4-deploy.sh` 只 bind 现有 view，不负责发布或复制 runtime
 - 若发现远端存在 `src/`、`prisma/`、`package.json` 等源码残留，先清理到最小运维壳层，再继续部署
 - 若 `deploy/podman/deploy.sh` 已使用 `--add-host` 为 `app/worker` 注入数据库与 Redis 的静态主机映射，`deploy/podman/configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only`，不要再用 `podman start` 复用旧的 `app/worker` 容器；否则数据库或 Redis 重启后 IP 改变，旧容器内静态映射会立刻失效
 - 当前生产环境中的应用与 worker 容器应统一使用：
   - `DATABASE_URL=postgresql://...@act-obe-postgres.dns.podman:5432/...&connection_limit=10&pool_timeout=20`
   - `REDIS_URL=redis://act-obe-redis.dns.podman:6379`
   - `POSTGRES_HOST=act-obe-postgres.dns.podman`
-- 若只是更新远端运维脚本、systemd 行为或 runtime 资源，而本地镜像内容未变，优先执行 `bash scripts/remote-deploy.sh --skip-build`；不要反复全量构建镜像
+- 若只是更新远端运维脚本或 systemd 行为，而本地镜像内容未变，优先执行 `bash scripts/remote-deploy.sh --app-only --skip-build`；不要反复全量构建镜像，也不要为此 rsync runtime
 - runner 镜像可以有意不包含 Git。需要解析 capture revision 时，只允许 Git 可执行文件 `ENOENT` 回退到受信任的 `.app-revision`；其他 Git 错误、revision 不一致或脏捕获证据仍须失败
 - 大型 Canonical inventory 的首次持久化可能超过 Prisma 默认 5 秒 interactive transaction timeout；使用仓库当前限定于该事务的 30 秒超时，不要扩大为全局事务默认值
 - 远端 shell 程序若由单引号包裹，不得再嵌套单引号 grep pattern；部署前运行静态脚本测试，避免 quoting 错误在切换期间才出现
@@ -111,7 +131,7 @@ rtk ssh root@121.40.124.135 "curl -k -s https://act.adapt-learn.online/api/ready
 - BullMQ repeat jobs 已注册
 - worker 日志能看到队列消费或快照创建
 - 公网首页、认证接口与 `readyz` 全部正常
-- 容器内 runtime 文件为 `0644` 仍不足以证明可读；必须确认从 runtime 根到叶目录均允许容器用户遍历，例如 `find /home/projects/act/course-content/runtime -type d ! -perm -0005 -print -quit` 无输出，并在容器内实际读取 runtime 与索引
+- 容器内 runtime 必须来自已物化 blob-view 的只读 bind，而不是 ECS 本地 `course-content/runtime` 副本。确认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`、`RUNTIME_CONTENT_DIR` 指向 `data/runtime/blob-views/current`，helper `.act-runtime-blobs` 为只读 FUSE，并在容器内实际读取 runtime 与索引
 - 图谱发布需同时报告迁移数量、导入/verify-only 结果、Shadow inventory 计数、`cutoverReady` 和当前 authority；`LEGACY` authority 下 Shadow 导入成功不代表已切换
 - 若为了验证脚本多次连续执行 `remote-deploy.sh --skip-build` 后触发 Podman/runc 级别异常，例如 `unable to freeze` 或 worker 停在 `Created`，优先做最小恢复：
   - 先确认 `readyz` 是否仍为 `app=true, db=true, redis=true`
