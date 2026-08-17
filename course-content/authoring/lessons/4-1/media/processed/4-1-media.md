@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=666a45a0389a8e6cf6b370b104d0e59a&v=1776040982464&puid=26652392&enc=c1b6799a834183df19f57f7336b56a43&wps=2608fa917452405667b9d4ff7489867fd70d687fb84ea7b5
 
+本地成品已发布：`media/processed/4-1-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-1-audio.m4a
 
 - 别再盲目修改K值了

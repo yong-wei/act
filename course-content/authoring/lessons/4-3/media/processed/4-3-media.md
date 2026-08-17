@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=9751bd3139e1a1b6f1eef8de5d40c843&v=1776647180094&puid=26652392&enc=855d2cc15c628c558903cf868554d3b7&wps=91af2b6160facc15b17df270ff1589b4d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/4-3-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-3-slides.pdf
 
 - 从单结构候选缺口、经典复合控制边界、前馈与反馈分工到实现层保护，梳理初始方案落地的完整判断链。

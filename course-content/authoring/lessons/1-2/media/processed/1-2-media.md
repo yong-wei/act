@@ -1,5 +1,8 @@
 # 1-2-intro-video.mp4
 
+
+- 闲聊自控 Remotion 导入片已发布到 `media/processed/1-2-intro-video.mp4`（2026-08-17）。
+
 # 1-2-audio.m4a
 
 - 极点看透系统脾气

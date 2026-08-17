@@ -96,3 +96,7 @@
 - `4-1-intro-video-prompts.md`
 - 课堂录音脚本
 - 教师版 PDF 导出产物
+## 7. 课程导入视频
+
+- 成品：`media/processed/4-1-intro-video.mp4`（已完成）
+- 原提示词：`4-1-intro-video-prompts.md` 仍保留为原料。

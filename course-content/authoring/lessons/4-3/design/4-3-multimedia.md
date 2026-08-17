@@ -50,7 +50,7 @@
 
 - **封面图**：`media/processed/4-3-cover-comic.png`
 - **信息图**：`media/processed/4-3-info.png`
-- **导入视频**：`media/processed/4-3-intro-video.mp4`
+- **导入视频**：`media/processed/4-3-intro-video.mp4`（已完成）
 - **课程视频**：`media/processed/4-3-course.mp4`
 - **课件**：`media/processed/4-3-slides.pdf`
 - **音频**：`media/processed/4-3-audio.m4a`

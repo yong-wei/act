@@ -4,7 +4,7 @@
 
 `3-1` 现有的 6 张代码直出主图，已经足以支撑讲义、教案与互动课程的核心证据链。本课更需要做的，不是继续扩充意义相近的“同义图”，而是把现有图像用在准确的位置，并把后续制作重心转向课件、导入视频与课程级音频视频。
 
-目前共有 12 项正式媒体规划，其中 8 项已经完成、4 项仍待补齐。现阶段已完成的是 `3-1-cover-comic.png`、`3-1-info.png` 与 `3-1-pp-01` 至 `3-1-pp-06` 六张主图；尚待补齐的是 `3-1-slides.pdf`、`3-1-intro-video.mp4`、`3-1-course.mp4`、`3-1-audio.m4a`。
+目前共有 12 项正式媒体规划，其中 9 项已经完成、3 项仍待补齐。现阶段已完成的是 `3-1-cover-comic.png`、`3-1-info.png`、`3-1-intro-video.mp4` 与 `3-1-pp-01` 至 `3-1-pp-06` 六张主图；尚待补齐的是 `3-1-slides.pdf`、`3-1-course.mp4`、`3-1-audio.m4a`。
 
 本课所有控制图继续以 `Octave + control` 为真值来源，优先复用已经完成验证的 `.m + .svg/.pdf` 成对产物。
 
@@ -31,9 +31,9 @@
   - `3-1-pp-06-convolution-step-from-impulse`
 - 讲义封面图为 `3-1-cover-comic.png`。
 - 讲义信息图为 `3-1-info.png`。
+- 课程级导入视频已发布：`3-1-intro-video.mp4`。
 - 课程级待制媒体为：
   - `3-1-slides.pdf`
-  - `3-1-intro-video.mp4`
   - `3-1-course.mp4`
   - `3-1-audio.m4a`
 - 原料目录固定为 `media/raw/`，成品目录固定为 `media/processed/`。
@@ -45,7 +45,7 @@
 | 1 | `3-1-cover-comic.png` | 讲义封面图 | 已完成 | `handout.md` 首页导入 |
 | 2 | `3-1-info.png` | 讲义信息图 | 已完成 | `handout.md` 正文结束前；`interactive-page` 步骤 15 可复用 |
 | 3 | `3-1-slides.pdf` | 生成式课件 | 待制作 | 课堂投屏 / 课件归档 |
-| 4 | `3-1-intro-video.mp4` | 导入视频 | 待制作 | 课堂开场 / 互动课首页 |
+| 4 | `3-1-intro-video.mp4` | 导入视频 | 已完成 | 课堂开场 / 互动课首页 |
 | 5 | `3-1-course.mp4` | 课程内容视频 | 待制作 | 课程视频归档 |
 | 6 | `3-1-audio.m4a` | 课程音频播客 | 待制作 | 音频归档 / 播客分发 |
 | 7 | `3-1-pp-01-stability-half-plane.svg` | 代码直出图 | 已完成 | `handout` §2.1 / `interactive-page` 步骤 5 / `boppps` 导入段 |
@@ -76,13 +76,13 @@
 |---|---|---|---|
 | 封面漫画 | `media/raw/3-1-cover-comic-prompt.md` | `media/processed/3-1-cover-comic.png` | 首页导入图，用来建立“同一套极点语言为何能支撑高阶系统理解”的问题情境 |
 | 信息图 | `media/raw/3-1-info-source.svg` | `media/processed/3-1-info.png` | 用于概括本讲五条主线：稳定底线、模态语言、时域近似、频域近似、卷积收束 |
+| 导入视频 | `media/raw/3-1-intro-video-prompt.md` | `media/processed/3-1-intro-video.mp4` | 闲聊自控 Remotion 导入片，2026-08-17 发布 |
 
 ### 5.2 待制作
 
 | 资源 | 正式文件名 | 当前说明 |
 |---|---|---|
 | 生成式课件 | `media/processed/3-1-slides.pdf` | 待按新版 `handout` 与 `teacher-handout` 的统一口径生成 |
-| 导入视频 | `media/raw/3-1-intro-video-prompt.md` → `media/processed/3-1-intro-video.mp4` | 更适合围绕“同主导极点却不同响应”的冲突情境来制作 |
 | 课程视频 | `media/processed/3-1-course.mp4` | 由 NotebookLM 生成课程级复习视频，不单独维护提示词文件 |
 | 音频播客 | `media/processed/3-1-audio.m4a` | 由 NotebookLM 生成音频复习材料，不单独维护脚本文件 |
 
@@ -99,10 +99,10 @@
 - `3-1-pp-01` 至 `3-1-pp-06`
 - `3-1-cover-comic.png`
 - `3-1-info.png`
+- `3-1-intro-video.mp4`
 
 ### 第二层：建议尽快补齐
 
-- `3-1-intro-video.mp4`
 - `3-1-slides.pdf`
 
 ### 第三层：待课程脚本稳定后再制作
@@ -114,5 +114,5 @@
 
 - `handout.md` 已经完成主图回写，这次不再重复改动。
 - `interactive-page.md` 直接复用现有 6 张主图与 `3-1-info.png` 即可，不必新增占位型图片。
-- 若后续开始制作 `3-1-intro-video.mp4`，它适合同时挂在互动课入口页与课堂开场两处。
+- `3-1-intro-video.mp4` 已发布，适合同时挂在互动课入口页与课堂开场两处。
 - 教师投屏课件生成时，最值得优先保留的三张关键图依次是 `pp-03`、`pp-05`、`pp-06`；其余图像承担解释支撑作用，不需要平均分配时长。

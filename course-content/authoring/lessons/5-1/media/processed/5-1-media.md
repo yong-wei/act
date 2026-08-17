@@ -2,8 +2,7 @@
 
 ## 5-1-intro-video.mp4
 
-状态：待外部制作回写。
-提示词来源：`../raw/5-1-intro-video-prompts.md`。
+- 闲聊自控 Remotion 导入片已发布到 `media/processed/5-1-intro-video.mp4`（2026-08-17）。
 
 ## 5-1-slides.pdf
 
@@ -32,13 +31,3 @@ https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=2d48f437cfa
 建议依据：教师版讲义的课堂主线和 BOPPPS 收束语。
 学生讲义源文件：`../../design/5-1-handout.md`。
 正式 PDF：`../../design/5-1-handout.pdf`。
-
-# 5-1-intro-video.mp4
-
-# 5-1-slides.pdf
-
-# 5-1-course.mp4
-
-# 5-1-audio.m4a
-
-# 5-1-handout.md

@@ -18,7 +18,7 @@
 | h-10 | 示例根轨迹 | `1-1-example-root-locus.png` / `.pdf` | Octave `rlocus` | 已生成 |
 | h-11 | 示例 Bode 图 | `1-1-example-bode.png` / `.pdf` | Octave `bode` / `margin` | 已生成 |
 | h-12 | 示例校正三联图 | `1-1-example-correction-triptych.png` / `.pdf` | Octave | 已生成 |
-| c-media | 课程级媒体链接文档 | `1-1-media.md` | 手工维护 | 已生成，课件/课程视频/音频已外链关联，导入视频待关联 |
+| c-media | 课程级媒体链接文档 | `1-1-media.md` | 手工维护 | 已生成，课件/课程视频/音频已外链关联，导入视频已落盘 |
 
 ## 封面图制作规格
 
@@ -103,12 +103,12 @@ G = tf(1, [1 2 0]);  % G(s)=1/[s(s+2)]
 
 ## 课程级默认媒体占位
 
-`media/processed/1-1-media.md` 必须保留以下节名。以下名称是资源节名，不表示当前仓库已经存在对应视频、音频或课件实体：
+`media/processed/1-1-media.md` 必须保留以下节名：
 
-- 1-1-intro-video.mp4
+- 1-1-intro-video.mp4（已完成）
 - 1-1-slides.pdf
 - 1-1-course.mp4
 - 1-1-audio.m4a
 - 1-1-handout.md
 
-当前仓库尚未落盘 `mp4`、`m4a` 与课程课件 PDF 实体文件；若资源已通过网盘预览地址关联，应在媒体链接文档中写入标题与 URL，并保持文件名节名不变。尚未关联的资源继续标注“待关联”，不得写成已落盘完成。
+导入视频成品已落在 `media/processed/1-1-intro-video.mp4`。课件、课程视频与音频若尚未落盘，仍只在媒体链接文档中保留节名；已通过网盘预览地址关联的资源继续写标题与 URL，不得把未落盘资源写成已完成。
