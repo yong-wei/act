@@ -166,10 +166,18 @@ export function requiresFullLearnerRebuild(input: {
   currentWatermark: bigint;
   currentCalculationVersion: string | null;
   targetCalculationVersion: string;
+  currentTrustedFactPolicyVersion?: string | null;
+  targetTrustedFactPolicyVersion?: string;
   currentLatestOccurredAt?: Date | null;
   currentLatestFactId?: string | null;
 }): boolean {
   if (input.currentCalculationVersion !== input.targetCalculationVersion) return true;
+  if (
+    input.targetTrustedFactPolicyVersion !== undefined &&
+    input.currentTrustedFactPolicyVersion !== input.targetTrustedFactPolicyVersion
+  ) {
+    return true;
+  }
   const appended = orderTransitions(input.transitions)
     .filter((transition) => transition.sequence > input.currentWatermark);
   if (appended.some((transition) =>

@@ -244,6 +244,8 @@ export async function materializeIncrementalPortraitV2(
       currentWatermark: current?.stateWatermark ?? BigInt(0),
       currentCalculationVersion: current?.calculationVersion ?? null,
       targetCalculationVersion: expectation.calculationVersion,
+      currentTrustedFactPolicyVersion: current?.stateVersion.trustedFactPolicyVersion ?? null,
+      targetTrustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
       currentLatestOccurredAt: currentReduction.latestOccurredAt,
       currentLatestFactId: currentReduction.latestFactId,
     });
