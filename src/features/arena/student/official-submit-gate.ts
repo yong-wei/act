@@ -147,14 +147,14 @@ export async function hasEarlierOfficialSubmitSuccessor(input: {
     if (row.submissionId) return true;
     const lockedUntil = toDate(row.lockedUntil).getTime();
     if (!Number.isFinite(lockedUntil) || lockedUntil > Date.now()) return true;
-    if (typeof input.db.$executeRaw === 'function') {
-      await input.db.$executeRaw`
-        DELETE FROM "ArenaOfficialSubmitReservation"
-        WHERE id = ${row.id}
-          AND "submissionId" IS NULL
-          AND "lockedUntil" <= NOW()
-      `;
-    }
+    if (typeof input.db.$executeRaw !== 'function') return true;
+    const deleted = await input.db.$executeRaw`
+      DELETE FROM "ArenaOfficialSubmitReservation"
+      WHERE id = ${row.id}
+        AND "submissionId" IS NULL
+        AND "lockedUntil" <= NOW()
+    `;
+    if (deleted !== 1) return true;
   }
   return false;
 }
