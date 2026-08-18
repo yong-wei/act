@@ -55,21 +55,15 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
   });
 
-  it('admits the repaired v0.22-r4 envelope through the existing v2 adapter', async () => {
+  it('fail-closes v0.22-r4 when validation-report relation_type_count disagrees with projection predicates', async () => {
     const captureRevision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    const bundle = await loadAndValidateRegisteredPublicBundleV2({
+    await expect(loadAndValidateRegisteredPublicBundleV2({
       root: process.cwd(),
       bundlePath: V022_ACT_CONTROLLED_PATH,
       gitRoot: process.cwd(),
       captureRevision,
       registry: REVIEWED_V0_22_V2_REGISTRY,
-    });
-    expect(bundle.protocol).toBe(PUBLIC_BUNDLE_V2_CONTRACT_VERSION);
-    expect(bundle.schemaIdentity.rawSha256).toBe(CTKG_SCHEMA_V2_RAW_SHA256);
-    expect(bundle.bundleIdentity.bundleRevision).toBe(4);
-    expect(bundle.multilingualLabels).toHaveLength(2148);
-    expect(bundle.runtimeLinkMetadata.length).toBeGreaterThan(0);
-    assertV022CandidateBundleCounts(bundle);
+    })).rejects.toThrow(/Validation Report statistic relation_type_count does not match recalculation/);
   });
 
   it('refuses unresolved membership instead of hard-coding v0.18 counts', () => {
