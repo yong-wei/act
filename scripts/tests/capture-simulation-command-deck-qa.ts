@@ -10,6 +10,14 @@ import {
   evidenceCaptureRevisionProblems,
   type EvidenceCaptureRevision,
 } from '../../src/lib/evidence-capture-guard';
+import {
+  CAPTURE_REVISION_SOURCE_FILES,
+  assertRuntimeCaptureRevisionProofMatches,
+  computeCaptureRevisionProof,
+  createRuntimeCaptureRevisionProbeUrl,
+  fetchRuntimeCaptureRevisionProof,
+  type CaptureRevisionProof,
+} from '../../src/lib/commercial-ui-capture-revision';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-command-deck-535');
@@ -94,6 +102,7 @@ type CommandDeckRouteEvidence = {
     change: 'unify-simulation-chrome-and-camera-views';
     generatedAt: string;
     sourceSha256: Record<string, string>;
+    runtimeRevisionProof?: RuntimeRevisionProofEvidence;
     viewports: CommandDeckViewportEvidence[];
     cruiseComparison?: {
       comparedRoutes: string[];
@@ -103,6 +112,12 @@ type CommandDeckRouteEvidence = {
       mobileSceneFirst: boolean;
     };
   };
+};
+type RuntimeRevisionProofEvidence = {
+  endpoint: string;
+  expected: CaptureRevisionProof;
+  beforeCapture: CaptureRevisionProof;
+  afterCapture: CaptureRevisionProof;
 };
 type ExistingRouteVisualQa = {
   sceneThemeParameters?: {
@@ -203,6 +218,18 @@ function readCleanCaptureRevision() {
     );
   }
   return state.revision;
+}
+
+function readRuntimeCaptureRevision(allowedDirtyPrefixes: readonly string[] = []): CaptureRevisionProof {
+  const proof = computeCaptureRevisionProof(
+    repoRoot,
+    CAPTURE_REVISION_SOURCE_FILES,
+    allowedDirtyPrefixes,
+  );
+  if (!proof.clean) {
+    throw new Error('simulation command-deck QA runtime revision requires a clean source worktree.');
+  }
+  return proof;
 }
 
 function assertCaptureRevisionUnchanged(expected: EvidenceCaptureRevision, phase: string) {
@@ -644,7 +671,11 @@ function buildSimulationFullMatrixVisualQa(
   };
 }
 
-function writeSimulationFullMatrixManifest(fullMatrixVisualQa: Record<string, unknown>, generatedAt: string) {
+function writeSimulationFullMatrixManifest(
+  fullMatrixVisualQa: Record<string, unknown>,
+  generatedAt: string,
+  runtimeRevisionProof: RuntimeRevisionProofEvidence,
+) {
   mkdirSync(fullMatrixOutputDir, { recursive: true });
   writeFileSync(
     path.join(fullMatrixOutputDir, 'manifest.json'),
@@ -652,12 +683,17 @@ function writeSimulationFullMatrixManifest(fullMatrixVisualQa: Record<string, un
       generatedAt,
       change: 'govern-simulation-full-matrix-visual-qa',
       baseUrl,
+      runtimeRevisionProof,
       simulationFullMatrixVisualQa: fullMatrixVisualQa,
     }, null, 2)}\n`,
   );
 }
 
-function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], generatedAt: string) {
+function updateCommercialEvidence(
+  routeEvidence: CommandDeckRouteEvidence[],
+  generatedAt: string,
+  runtimeRevisionProof: RuntimeRevisionProofEvidence,
+) {
   const evidencePath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(evidencePath)) return;
   const manifest = JSON.parse(readFileSync(evidencePath, 'utf8')) as {
@@ -665,7 +701,7 @@ function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], gen
   };
   const routesFromEvidence = manifest.routes ?? [];
   const fullMatrixVisualQa = buildSimulationFullMatrixVisualQa(routeEvidence, routesFromEvidence, generatedAt);
-  writeSimulationFullMatrixManifest(fullMatrixVisualQa, generatedAt);
+  writeSimulationFullMatrixManifest(fullMatrixVisualQa, generatedAt, runtimeRevisionProof);
   const evidenceByHref = new Map(routeEvidence.map((entry) => [entry.href, entry.commandDeckGeometry]));
   manifest.routes = (manifest.routes ?? []).map((route) => {
     if (route.href === '/simulations') {
@@ -688,6 +724,13 @@ function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], gen
 
 async function main() {
   const captureRevision = readCleanCaptureRevision();
+  const initialLocalRuntimeProof = readRuntimeCaptureRevision();
+  const initialServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+  assertRuntimeCaptureRevisionProofMatches(
+    initialLocalRuntimeProof,
+    initialServiceRuntimeProof,
+    'simulation command-deck target service revision proof before capture',
+  );
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const generatedAt = new Date().toISOString();
@@ -717,15 +760,37 @@ async function main() {
   }
   attachCruiseComparison(routeEvidence);
   assertCaptureRevisionUnchanged(captureRevision, 'before manifest write');
+  const finalLocalRuntimeProof = readRuntimeCaptureRevision(captureOutputPrefixes);
+  assertRuntimeCaptureRevisionProofMatches(
+    initialLocalRuntimeProof,
+    finalLocalRuntimeProof,
+    'simulation command-deck local runtime revision proof after capture',
+  );
+  const finalServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+  assertRuntimeCaptureRevisionProofMatches(
+    finalLocalRuntimeProof,
+    finalServiceRuntimeProof,
+    'simulation command-deck target service revision proof after capture',
+  );
+  const runtimeRevisionProof: RuntimeRevisionProofEvidence = {
+    endpoint: createRuntimeCaptureRevisionProbeUrl(baseUrl),
+    expected: finalLocalRuntimeProof,
+    beforeCapture: initialServiceRuntimeProof,
+    afterCapture: finalServiceRuntimeProof,
+  };
+  for (const routeEvidenceEntry of routeEvidence) {
+    routeEvidenceEntry.commandDeckGeometry.runtimeRevisionProof = runtimeRevisionProof;
+  }
   const manifest = {
     generatedAt,
     captureRevision,
     change: 'unify-simulation-chrome-and-camera-views',
     baseUrl,
+    runtimeRevisionProof,
     routes: routeEvidence,
   };
   writeFileSync(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-  updateCommercialEvidence(routeEvidence, generatedAt);
+  updateCommercialEvidence(routeEvidence, generatedAt, runtimeRevisionProof);
   assertCaptureRevisionUnchanged(captureRevision, 'after manifest write');
 }
 

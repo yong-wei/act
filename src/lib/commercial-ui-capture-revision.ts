@@ -45,6 +45,15 @@ export type CaptureRevisionProof = {
   clean: boolean;
 };
 
+export type RuntimeCaptureRevisionProbeFetcher = (
+  input: string,
+  init?: RequestInit,
+) => Promise<Pick<Response, 'status' | 'json'>>;
+
+const REVISION_SHA_PATTERN = /^[0-9a-f]{40}$/u;
+const SOURCE_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/u;
+const REVISION_PROOF_KEYS = ['clean', 'commitSha', 'sourceFingerprint', 'treeSha'] as const;
+
 function gitOutput(repositoryRoot: string, args: string[]) {
   return execFileSync('git', args, {
     cwd: repositoryRoot,
@@ -85,6 +94,98 @@ function sourceFingerprint(repositoryRoot: string, sourceFiles: readonly string[
     hash.update('\0');
   }
   return hash.digest('hex');
+}
+
+export function createRuntimeCaptureRevisionProbeUrl(baseUrl: string) {
+  let target: URL;
+  try {
+    target = new URL(baseUrl);
+  } catch {
+    throw new Error(`Runtime capture revision probe requires a valid base URL: ${baseUrl}`);
+  }
+  return new URL(REVISION_PROBE_PATH, `${target.toString().replace(/\/+$/u, '')}/`).toString();
+}
+
+export function parseRuntimeCaptureRevisionProof(payload: unknown): CaptureRevisionProof {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('Runtime capture revision probe returned a malformed proof.');
+  }
+
+  const record = payload as Record<string, unknown>;
+  const actualKeys = Object.keys(record).sort();
+  const expectedKeys = [...REVISION_PROOF_KEYS].sort();
+  if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index])) {
+    throw new Error('Runtime capture revision probe returned a proof with unexpected fields.');
+  }
+  if (
+    typeof record.commitSha !== 'string'
+    || !REVISION_SHA_PATTERN.test(record.commitSha)
+    || typeof record.treeSha !== 'string'
+    || !REVISION_SHA_PATTERN.test(record.treeSha)
+    || typeof record.sourceFingerprint !== 'string'
+    || !SOURCE_FINGERPRINT_PATTERN.test(record.sourceFingerprint)
+    || typeof record.clean !== 'boolean'
+  ) {
+    throw new Error('Runtime capture revision probe returned a proof with invalid fields.');
+  }
+
+  return {
+    commitSha: record.commitSha,
+    treeSha: record.treeSha,
+    sourceFingerprint: record.sourceFingerprint,
+    clean: record.clean,
+  };
+}
+
+export async function fetchRuntimeCaptureRevisionProof(
+  baseUrl: string,
+  fetcher: RuntimeCaptureRevisionProbeFetcher = fetch,
+) {
+  const probeUrl = createRuntimeCaptureRevisionProbeUrl(baseUrl);
+  let response: Pick<Response, 'status' | 'json'>;
+  try {
+    response = await fetcher(probeUrl, {
+      cache: 'no-store',
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`Runtime capture revision probe is unreachable: ${probeUrl} (${detail})`);
+  }
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(`Runtime capture revision probe failed: ${probeUrl} HTTP ${response.status}`);
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`Runtime capture revision probe returned invalid JSON: ${probeUrl}`);
+  }
+  const proof = parseRuntimeCaptureRevisionProof(payload);
+  if (!proof.clean) {
+    throw new Error(`Runtime capture revision probe reported a dirty service: ${probeUrl}`);
+  }
+  return proof;
+}
+
+export function assertRuntimeCaptureRevisionProofMatches(
+  expected: CaptureRevisionProof,
+  actual: CaptureRevisionProof,
+  label = 'runtime capture revision proof',
+) {
+  if (!expected.clean) {
+    throw new Error(`${label} expected proof is dirty; refusing to accept capture evidence.`);
+  }
+  if (!actual.clean) {
+    throw new Error(`${label} is dirty; refusing to accept capture evidence.`);
+  }
+  for (const field of ['commitSha', 'treeSha', 'sourceFingerprint'] as const) {
+    if (actual[field] !== expected[field]) {
+      throw new Error(`${label} mismatch: ${field} expected=${expected[field]} actual=${actual[field]}`);
+    }
+  }
 }
 
 export function computeCaptureRevisionProof(

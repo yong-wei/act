@@ -16,6 +16,14 @@ import {
   evidenceCaptureRevisionProblems,
   type EvidenceCaptureRevision,
 } from '../../src/lib/evidence-capture-guard';
+import {
+  CAPTURE_REVISION_SOURCE_FILES,
+  assertRuntimeCaptureRevisionProofMatches,
+  computeCaptureRevisionProof,
+  createRuntimeCaptureRevisionProbeUrl,
+  fetchRuntimeCaptureRevisionProof,
+  type CaptureRevisionProof,
+} from '../../src/lib/commercial-ui-capture-revision';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
@@ -29,6 +37,7 @@ const captureOutputPrefixes = [
   'artifacts/knowledge-graph-semantic-map-486/',
   'artifacts/commercial-ui/knowledge-graph-governance-462/',
 ] as const;
+const captureArtifactPrefixes = [...captureOutputPrefixes, 'artifacts/commercial-ui/evidence.json'] as const;
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
@@ -278,6 +287,18 @@ function readCleanCaptureRevision() {
     );
   }
   return state.revision;
+}
+
+function readRuntimeCaptureRevision(allowedDirtyPrefixes: readonly string[] = []): CaptureRevisionProof {
+  const proof = computeCaptureRevisionProof(
+    repoRoot,
+    CAPTURE_REVISION_SOURCE_FILES,
+    allowedDirtyPrefixes,
+  );
+  if (!proof.clean) {
+    throw new Error('knowledge workspace product QA runtime revision requires a clean source worktree.');
+  }
+  return proof;
 }
 
 function assertCaptureRevisionUnchanged(
@@ -2971,6 +2992,13 @@ function writeKnowledgeGraphGovernanceEvidence(
 
 async function main() {
   const captureRevision = readCleanCaptureRevision();
+  const initialLocalRuntimeProof = readRuntimeCaptureRevision();
+  const initialServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+  assertRuntimeCaptureRevisionProofMatches(
+    initialLocalRuntimeProof,
+    initialServiceRuntimeProof,
+    'knowledge workspace target service revision proof before capture',
+  );
   const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
   ensureOutputDir();
   const sessions = new Map<KnowledgeRole, RoleSession>();
@@ -3474,6 +3502,24 @@ async function main() {
       'after-browser-capture',
       captureOutputPrefixes,
     );
+    const finalLocalRuntimeProof = readRuntimeCaptureRevision(captureArtifactPrefixes);
+    assertRuntimeCaptureRevisionProofMatches(
+      initialLocalRuntimeProof,
+      finalLocalRuntimeProof,
+      'knowledge workspace local runtime revision proof after capture',
+    );
+    const finalServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+    assertRuntimeCaptureRevisionProofMatches(
+      finalLocalRuntimeProof,
+      finalServiceRuntimeProof,
+      'knowledge workspace target service revision proof after capture',
+    );
+    const runtimeRevisionProof = {
+      endpoint: createRuntimeCaptureRevisionProbeUrl(baseUrl),
+      expected: finalLocalRuntimeProof,
+      beforeCapture: initialServiceRuntimeProof,
+      afterCapture: finalServiceRuntimeProof,
+    };
     const currentSourceSha256 = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
     const changedSourceFiles = sourceFiles.filter((file) => sourceSha256Before[file] !== currentSourceSha256[file]);
     if (changedSourceFiles.length > 0) {
@@ -3501,6 +3547,7 @@ async function main() {
         allowedOutputPrefixes: [...captureOutputPrefixes, 'artifacts/commercial-ui/evidence.json'],
       },
       baseUrl,
+      runtimeRevisionProof,
       selectedNodeConfigured: Boolean(selectedNodeId),
       designSourceOfTruth: {
         handoff: 'artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md',
@@ -3575,7 +3622,7 @@ async function main() {
     assertCaptureRevisionUnchanged(
       captureRevision,
       'after-artifact-write',
-      [...captureOutputPrefixes, 'artifacts/commercial-ui/evidence.json'],
+      captureArtifactPrefixes,
     );
     console.log(`captured ${stateMatrix.length} knowledge workspace QA states at ${path.relative(repoRoot, outputDir)}`);
   } finally {
