@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 import { loadAndValidateRegisteredPublicBundleV2 } from '../../../scripts/actkg-release/public-bundle-v2';
@@ -19,8 +20,12 @@ import { V022_ACT_CONTROLLED_PATH } from '../../../scripts/actkg-release/actkg-v
 import {
   assertV022CandidateBundleCounts,
   V022_CANDIDATE_CAPTURE_PATHS,
+  type V022AuthorityCandidateReceipt,
 } from '../../../scripts/knowledge-cutover/prepare-actkg-v022-authority-candidate';
 import type { ValidatedActKGBundleV2 } from '../../../scripts/actkg-release/public-bundle-types';
+
+const V022_CANDIDATE_RECEIPT_PATH =
+  'course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.22/candidate-receipt.json';
 
 describe('actkg v0.22 authority candidate boundaries', () => {
   it('reuses the admitted v0.18 schema identity and v2 protocol', () => {
@@ -73,6 +78,31 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     expect(bundle.multilingualLabels).toHaveLength(2148);
     expect(bundle.runtimeLinkMetadata.length).toBeGreaterThan(0);
     assertV022CandidateBundleCounts(bundle);
+  });
+
+  it('records discovered v0.22 membership from the staged candidate receipt', () => {
+    const receipt = JSON.parse(readFileSync(V022_CANDIDATE_RECEIPT_PATH, 'utf8')) as V022AuthorityCandidateReceipt;
+    expect(receipt.status).toBe('staged');
+    expect(receipt.mode).toBe('local-disposable-non-activation');
+    expect(receipt.nonActivation).toBe(true);
+    expect(receipt.replayByteEquivalent).toBe(true);
+    expect(receipt.impactByteEquivalent).toBe(true);
+    expect(receipt.pointers.unchanged).toBe(true);
+    expect(receipt.validated.bundleDigest).toBe(REVIEWED_V0_22_IDENTITIES.bundleDigest);
+    expect(receipt.validated.releaseNodes).toBe(7300);
+    expect(receipt.validated.runtimeProjectionNodes).toBe(7082);
+    expect(receipt.validated.runtimeProjectionLinks).toBe(2932);
+    expect(receipt.validated.multilingualLabels).toBe(2148);
+    expect(receipt.replays).toHaveLength(2);
+    expect(receipt.replays[0]?.snapshotId).toBe(receipt.replays[1]?.snapshotId);
+    expect(receipt.replays[0]?.snapshotHash).toBe(receipt.replays[1]?.snapshotHash);
+    expect(receipt.replays[1]?.idempotentImport.mode).toBe('idempotent');
+    expect(receipt.impact.directDenominator).toBe('complete-v0.18-snapshot');
+    expect(receipt.impact.upstreamDiffStatus).toBe('DISAGREED');
+    const authority = receipt.pointers.after.find((pointer) => (
+      pointer.relativePath === 'course-content/authoring/knowledge/authority/current.json'
+    ));
+    expect(authority?.sha256).toBe('086f14793fbf2aa3afc8fba471503042242645122425c3018b6526e8ab2835f2');
   });
 
   it('refuses unresolved membership instead of hard-coding v0.18 counts', () => {
