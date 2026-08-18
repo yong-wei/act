@@ -273,6 +273,54 @@ capture_rollback_image() {
   rollback_app_image="sha256:${BASH_REMATCH[2]}"
 }
 
+# Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
+# as regular files on the active view. Rematerialize rebuilds the Git/blob
+# forest and would otherwise replace those pointers with the Git v0.9 leaves.
+# Copy the parent view's regular files after verify-mounted so production
+# authority stays put. This does not change the immutable OSS release.
+restore_parent_host_overlays() {
+  local parent="$1"
+  local candidate="$2"
+  [[ -n "$parent" && -d "$parent" && ! -L "$parent" ]] || return 0
+  [[ -n "$candidate" && -d "$candidate" && ! -L "$candidate" ]] || {
+    echo "ERROR: candidate view is missing for overlay restore" >&2
+    return 1
+  }
+  python3 - "$parent" "$candidate" <<'PY'
+import os
+import shutil
+import stat
+import sys
+
+parent, candidate = sys.argv[1], sys.argv[2]
+skip_dirs = {".act-runtime-blobs"}
+skip_files = {
+    ".act-runtime-release.v2.json",
+    ".act-runtime-release-materialization.v1.json",
+}
+copied = 0
+for root, dirs, files in os.walk(parent):
+    dirs[:] = [name for name in dirs if name not in skip_dirs]
+    for name in files:
+        if name in skip_files:
+            continue
+        source = os.path.join(root, name)
+        details = os.lstat(source)
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        relative = os.path.relpath(source, parent)
+        destination = os.path.join(candidate, relative)
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        if os.path.lexists(destination):
+            os.unlink(destination)
+        shutil.copy2(source, destination)
+        copied += 1
+if copied == 0:
+    raise SystemExit("ERROR: parent view had no regular overlay files to restore")
+print(copied)
+PY
+}
+
 write_lifecycle_identity() {
   local mounted_manifest="$1"
   lifecycle_identity="$(mktemp "$STATE_DIR/.act-runtime-blob-identity.XXXXXX")"
@@ -429,6 +477,9 @@ if [[ -n "$parent_view" ]]; then
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
+if [[ -n "${parent_view:-}" ]]; then
+  restore_parent_host_overlays "$parent_view" "$candidate_view"
+fi
 stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
