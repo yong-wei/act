@@ -14,7 +14,7 @@
   any difference. Then validate the mirror through the reused v2 adapter and
   record explicit v0.22 registration, validation, and admission receipts under
   the `(bundleContractVersion, bundleDigest)` identity.
-  当前结果：已改 pin 到修复发布 `control-theory-engineering-v0.22-r3` / source-r6。Schema 哈希仍与 v0.18 相同；link-metadata 3013 行与 label-index 2148 行均符合各自 `/1` 扁平契约。
+  当前结果：已 pin `control-theory-engineering-v0.22-r3` / source-r6。Schema 哈希与 v0.18 相同；link-metadata 3013 行与 label-index 2148 行形状均符合 `/1`。适配器仍因 2 条标签未写入对应 runtime 节点的 `terminology_assertion_ids` 而 fail closed：`ctkg:v3e-object-12adc6c4a5cec1500fbecee9`、`ctkg:v3e-object-32414075116d9d29b65fba45`。候选尚未写出。
 
 ## 2. Candidate import and impact evidence
 

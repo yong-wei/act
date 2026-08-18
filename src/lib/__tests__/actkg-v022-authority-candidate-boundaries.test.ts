@@ -55,21 +55,15 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
   });
 
-  it('admits the repaired v0.22-r3 envelope through the existing v2 adapter', async () => {
+  it('fail-closes two v0.22-r3 labels that are not bound on their runtime nodes', async () => {
     const captureRevision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    const bundle = await loadAndValidateRegisteredPublicBundleV2({
+    await expect(loadAndValidateRegisteredPublicBundleV2({
       root: process.cwd(),
       bundlePath: V022_ACT_CONTROLLED_PATH,
       gitRoot: process.cwd(),
       captureRevision,
       registry: REVIEWED_V0_22_V2_REGISTRY,
-    });
-    expect(bundle.protocol).toBe(PUBLIC_BUNDLE_V2_CONTRACT_VERSION);
-    expect(bundle.schemaIdentity.rawSha256).toBe(CTKG_SCHEMA_V2_RAW_SHA256);
-    expect(bundle.bundleIdentity.bundleRevision).toBe(3);
-    expect(bundle.multilingualLabels.length).toBeGreaterThan(0);
-    expect(bundle.runtimeLinkMetadata.length).toBeGreaterThan(0);
-    assertV022CandidateBundleCounts(bundle);
+    })).rejects.toThrow(/label ctkg:v3e-object-12adc6c4a5cec1500fbecee9 is not bound to its terminology assertion on the runtime node/);
   });
 
   it('refuses unresolved membership instead of hard-coding v0.18 counts', () => {
