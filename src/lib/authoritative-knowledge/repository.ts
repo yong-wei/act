@@ -99,6 +99,8 @@ export interface AuthoritativeKnowledgeDatabase {
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT = /^[a-f0-9]{40}$/u;
+const V018_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.18';
+const V018_V2_MULTILINGUAL_LABEL_COUNT = 1909;
 /** Reserved public package files that must appear on every accepted standard packaging receipt. */
 const RESERVED_PUBLIC_BUNDLE_PATHS = ['bundle-manifest.json', 'SHA256SUMS'] as const;
 /**
@@ -166,7 +168,13 @@ function buildV2Evidence(input: {
   if (sha256(canonicalJson(bindingPayload)) !== binding.bindingDigest) {
     throw new Error('V2 admission binding digest mismatch');
   }
-  if (profiles.length !== 3 || labels.length !== 1909) {
+  const expectedLabelCount = input.releaseId === V018_AUTHORITY_RELEASE_ID
+    ? V018_V2_MULTILINGUAL_LABEL_COUNT
+    : null;
+  if (
+    profiles.length !== 3
+    || (expectedLabelCount === null ? labels.length <= 0 : labels.length !== expectedLabelCount)
+  ) {
     throw new Error(`V2 typed evidence count mismatch: profiles=${profiles.length}, labels=${labels.length}`);
   }
   for (const row of profiles) {

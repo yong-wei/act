@@ -35,6 +35,8 @@ export const DEFAULT_AUTHORITY_ROOT_RELATIVE =
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT_SHA = /^[a-f0-9]{40}$/u;
+const V018_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.18';
+const V018_V2_MULTILINGUAL_LABEL_COUNT = 1909;
 
 export type AuthoritySnapshotLifecycle =
   | 'staged'
@@ -364,6 +366,34 @@ function normalizePayload(payload: unknown): unknown {
   return payload;
 }
 
+function assertV2EvidenceCounts(
+  profileCount: number,
+  labelCount: number,
+  releaseId?: string,
+): void {
+  if (profileCount !== 3) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3, got ${profileCount}`,
+    );
+  }
+  if (releaseId === V018_AUTHORITY_RELEASE_ID) {
+    if (labelCount !== V018_V2_MULTILINGUAL_LABEL_COUNT) {
+      throw new AuthoritySnapshotError(
+        'count-mismatch',
+        `V2 evidence counts must be profiles=3 and multilingualLabels=1909, got ${profileCount}/${labelCount}`,
+      );
+    }
+    return;
+  }
+  if (labelCount <= 0) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3 and a recorded multilingual label set, got ${profileCount}/${labelCount}`,
+    );
+  }
+}
+
 function normalizeV2Evidence(
   value: AuthoritativeV2Evidence | null | undefined,
   expectedReleaseId?: string,
@@ -384,12 +414,11 @@ function normalizeV2Evidence(
       payload: normalizePayload(row.payload),
     }))
     .sort((left, right) => left.ordinal - right.ordinal || left.terminologyAssertionId.localeCompare(right.terminologyAssertionId));
-  if (profiles.length !== 3 || multilingualLabels.length !== 1909) {
-    throw new AuthoritySnapshotError(
-      'count-mismatch',
-      `V2 evidence counts must be profiles=3 and multilingualLabels=1909, got ${profiles.length}/${multilingualLabels.length}`,
-    );
-  }
+  assertV2EvidenceCounts(
+    profiles.length,
+    multilingualLabels.length,
+    expectedReleaseId ?? profiles[0]?.releaseId,
+  );
   assertUniqueIds(profiles.map((row) => row.profileKey), 'V2 profiles');
   assertUniqueIds(profiles.map((row) => row.profileId), 'V2 profile IDs');
   assertUniqueIds(

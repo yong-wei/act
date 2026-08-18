@@ -84,9 +84,7 @@ export const V022_CANDIDATE_CAPTURE_PATHS = [
   'scripts/knowledge-cutover/prepare-actkg-cutover-authority-candidate.ts',
   'scripts/actkg-release/actkg-v022-release-mirror.ts',
   'scripts/actkg-release/actkg-v022-impact.ts',
-  'scripts/actkg-release/bundle-compatibility-registry-v2.ts',
   'scripts/actkg-release/bundle-compatibility-registry-v022.ts',
-  'scripts/actkg-release/public-bundle-v2.ts',
   'scripts/actkg-release/public-bundle-v2-import.ts',
   'scripts/actkg-release/release-set-delta-compute.ts',
   'scripts/actkg-release/release-set-delta-types.ts',
@@ -972,7 +970,7 @@ async function materializeReplay(input: {
       repositorySnapshot: candidate.snapshot,
       captureRevision: input.captureRevision,
       stagedAt: input.stagedAt,
-      receiptId: `stage-v018-${sha256(`${identity.bundleDigest}:${input.stagedAt}`)}`,
+      receiptId: `stage-v022-${sha256(`${identity.bundleDigest}:${input.stagedAt}`)}`,
     });
     if (staged.manifest.lifecycle !== 'staged' || staged.stageReceipt.stagedAt !== input.stagedAt) {
       fail(`${input.replayName} Authority Snapshot was not staged at the fixed time`);

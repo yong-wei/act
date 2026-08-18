@@ -53,6 +53,7 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     );
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V018_BASELINE_DEFAULT_PATH);
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
+    expect(new Set(V022_CANDIDATE_CAPTURE_PATHS).size).toBe(V022_CANDIDATE_CAPTURE_PATHS.length);
   });
 
   it('admits the repaired v0.22-r5 envelope through the existing v2 adapter', async () => {
