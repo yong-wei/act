@@ -134,6 +134,7 @@ const missingBatchId = 'path-candidate-batch_issue1327-missing';
 const failedBatchId = 'path-candidate-batch_issue1327-failed';
 const unauthorizedBatchId = 'path-candidate-batch_issue1349-unauthorized';
 const candidateIds = ['path-candidate_foundation', 'path-candidate_sprint'];
+const candidateFingerprints = ['a'.repeat(64), 'b'.repeat(64)];
 
 const planNode = {
   nodeId: 'node-phase-margin',
@@ -190,9 +191,10 @@ const candidateBatch = {
   plannerVersion: 'candidate-batch-e2e',
   status: 'succeeded',
   createdAt: '2026-08-03T00:00:00.000Z',
+  metadata: {},
   candidates: [
-    { id: candidateIds[0], ordinal: 0, styleId: 'foundation', policyFamily: 'foundation', label: 'Foundation candidate', snapshot: option('foundation', 'Foundation candidate', 35) },
-    { id: candidateIds[1], ordinal: 1, styleId: 'sprint', policyFamily: 'simulation', label: 'Simulation sprint', snapshot: option('sprint', 'Simulation sprint', 50) },
+    { id: candidateIds[0], fingerprint: candidateFingerprints[0], ordinal: 0, styleId: 'foundation', policyFamily: 'foundation', label: 'Foundation candidate', snapshot: option('foundation', 'Foundation candidate', 35) },
+    { id: candidateIds[1], fingerprint: candidateFingerprints[1], ordinal: 1, styleId: 'sprint', policyFamily: 'simulation', label: 'Simulation sprint', snapshot: option('sprint', 'Simulation sprint', 50) },
   ],
 };
 
@@ -224,6 +226,7 @@ const activePath = {
     executions: [],
     deviations: [],
     interventions: [],
+    updatedAt: '2026-08-18T08:00:00.000Z',
   },
 };
 
@@ -488,6 +491,32 @@ test('does not write an unauthorized generated batch to the URL', async ({ conte
   await expect(page).not.toHaveURL(/batch=unauthorized-generated/);
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
+
+for (const viewport of [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const) {
+  test(`${viewport.name} exposes persisted candidate adjustment without hiding the active path`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await installRoutes(page);
+
+    const query = new URLSearchParams({
+      demo: '1',
+      goal: 'control-correction',
+      intent: 'contextual-recommendation',
+      batch: batchId,
+    });
+    await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    const adjustAction = page.getByRole('button', { name: '请控灵调整Foundation candidate' })
+      .filter({ visible: true })
+      .first();
+    await expect(adjustAction).toBeEnabled();
+    await assertNoHorizontalOverflow(page);
+  });
+}
 
 async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
   const query = new URLSearchParams({

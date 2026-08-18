@@ -217,12 +217,24 @@ interface LearningPathRoundResponse {
     executions?: Array<Record<string, unknown>>;
     deviations?: Array<Record<string, unknown>>;
     interventions?: Array<Record<string, unknown>>;
+    updatedAt?: string;
   } | null;
 }
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-type PathOptionView = AdaptivePathOptionWriteOption & { batchId?: string; candidateId?: string };
+type PathOptionView = AdaptivePathOptionWriteOption & {
+  batchId?: string;
+  candidateId?: string;
+  candidateFingerprint?: string;
+};
+
+function isPersistedCandidatePathOption(
+  option: AdaptivePathOptionWriteOption | null | undefined,
+): option is PathOptionView {
+  const candidate = option as PathOptionView | null | undefined;
+  return Boolean(candidate?.batchId && candidate.candidateId && candidate.candidateFingerprint);
+}
 type PathRecommendationProvenanceEntry = NonNullable<
   AdaptivePathOptionWriteOption['recommendationProvenance']
 >['entries'][number];
@@ -238,6 +250,7 @@ interface AdaptivePathCandidateBatchView {
   sourcePathId: string;
   candidates: Array<{
     id: string;
+    fingerprint: string;
     styleId: string;
     label: string;
     snapshot: Record<string, unknown>;
@@ -1508,6 +1521,12 @@ function getRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function readPathProgressVersion(value: unknown): string | null {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+  return null;
+}
+
 function getStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
@@ -1723,7 +1742,12 @@ function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | nu
       panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
     } as ControlCorrectionLearningCenterView)[0];
     return projected && projected.optionId !== 'unknown-option'
-      ? [{ ...projected, batchId: batch.id, candidateId: candidate.id }]
+      ? [{
+          ...projected,
+          batchId: batch.id,
+          candidateId: candidate.id,
+          candidateFingerprint: candidate.fingerprint,
+        }]
       : [];
   });
 }
@@ -2714,6 +2738,7 @@ export default function AdaptivePracticePage() {
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
   const pathGenerationRequestLifecycleRef = useRef(INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE);
+  const activePathAdjustmentRequestIdRef = useRef<string | null>(null);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
@@ -2777,6 +2802,25 @@ export default function AdaptivePracticePage() {
   ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
   pathOptionVersionKeyRef.current = pathOptionVersionKey;
+  const pathAdjustmentContextVersionKey = useMemo(() => [
+    activeGoal ?? 'no-goal',
+    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? 'no-path',
+    readPathProgressVersion(activePathRound?.updatedAt) ?? 'no-progress',
+    activeCandidateBatch?.id ?? 'no-batch',
+    ...candidatePathOptions.map((option) => (
+      `${option.candidateId ?? 'no-candidate'}:${option.candidateFingerprint ?? 'no-fingerprint'}`
+    )),
+  ].join('|'), [
+    activeCandidateBatch?.id,
+    activeGoal,
+    activePathId,
+    activePathPlan?.id,
+    activePathRound?.id,
+    activePathRound?.updatedAt,
+    candidatePathOptions,
+  ]);
+  const pathAdjustmentContextVersionKeyRef = useRef(pathAdjustmentContextVersionKey);
+  pathAdjustmentContextVersionKeyRef.current = pathAdjustmentContextVersionKey;
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -3643,12 +3687,27 @@ export default function AdaptivePracticePage() {
       return;
     }
     if (operation === 'generate' && pathGenerationRequestStatus === 'pending') return;
+    const activeProgressVersion = readPathProgressVersion(activePathRound?.updatedAt);
+    if (
+      operation === 'revise' &&
+      (!option?.batchId || !option.candidateId || !option.candidateFingerprint || !activeProgressVersion)
+    ) {
+      setPathChoiceMessage('候选路径来源或当前进度已更新，请刷新后重新调整。');
+      return;
+    }
     const generationRequestId = operation === 'generate'
       ? requestedGenerationRequestId ?? crypto.randomUUID()
       : undefined;
+    const adjustmentRequestId = operation === 'revise' ? crypto.randomUUID() : undefined;
+    const adjustmentRequestVersionKey = operation === 'revise'
+      ? pathAdjustmentContextVersionKeyRef.current
+      : null;
     const explanationRequestVersionKey = operation === 'explain'
       ? pathOptionVersionKeyRef.current
       : null;
+    if (adjustmentRequestId) {
+      activePathAdjustmentRequestIdRef.current = adjustmentRequestId;
+    }
     if (generationRequestId) {
       setPathGenerationRequestStatus('pending');
       publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
@@ -3694,21 +3753,37 @@ export default function AdaptivePracticePage() {
                 .filter((node) => node.status === 'skipped' || node.status === 'blocked')
                 .map((node) => node.nodeId)
             : [],
-          preferredOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          preferredOptionId: operation === 'explain' ? option?.optionId : undefined,
+          sourceBatchId: operation === 'revise' ? option?.batchId : undefined,
+          sourceCandidateId: operation === 'revise' ? option?.candidateId : undefined,
+          sourceCandidateFingerprint: operation === 'revise' ? option?.candidateFingerprint : undefined,
+          activeProgressVersion: operation === 'revise' ? activeProgressVersion : undefined,
           requestedAt: new Date().toISOString(),
           modeContextToken,
           graphNodeId,
           agentSessionId: pathAdvisorAgentSessionId ?? undefined,
           priorRequestId: operation === 'revise' ? currentPathId ?? undefined : undefined,
-          selectedOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          selectedOptionId: operation === 'explain' ? option?.optionId : undefined,
           compareWithOptionId: operation === 'explain'
             ? pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId
             : undefined,
           rejectedOptionIds: undefined,
-          idempotencyKey: generationRequestId ?? `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
+          idempotencyKey: generationRequestId
+            ? `path-generation-request:${generationRequestId}`
+            : adjustmentRequestId
+              ? `path-adjustment-request:${adjustmentRequestId}`
+              : `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
         }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (
+        operation === 'revise' && (
+          adjustmentRequestId !== activePathAdjustmentRequestIdRef.current ||
+          adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current
+        )
+      ) {
+        return;
+      }
       if (!response.ok) {
         if (payload.generationRequest?.status === 'failed') {
           generationFailureIsDefinitive = true;
@@ -3765,8 +3840,18 @@ export default function AdaptivePracticePage() {
         }
         return;
       }
+      if (operation === 'revise' && payload.result?.generationStatus === 'no_material_difference') {
+        const noDifferenceMessage = typeof payload.result?.comparison?.message === 'string'
+          ? payload.result.comparison.message
+          : '调整后的方案与原候选没有实质差异，请修改调整条件后重试。';
+        setPathChoiceMessage(noDifferenceMessage);
+        if (option?.optionId) {
+          setPathOptionFeedback((current) => ({ ...current, [option.optionId]: noDifferenceMessage }));
+        }
+        return;
+      }
       if (operation !== 'explain') {
-        const generatedBatchId = operation === 'generate' && typeof payload.result?.candidateBatch?.id === 'string'
+        const generatedBatchId = typeof payload.result?.candidateBatch?.id === 'string'
           ? payload.result.candidateBatch.id
           : null;
         if (generatedBatchId && activeGoal) {
@@ -3864,6 +3949,14 @@ export default function AdaptivePracticePage() {
         }));
       }
     } catch (generationError) {
+      if (
+        operation === 'revise' && (
+          adjustmentRequestId !== activePathAdjustmentRequestIdRef.current ||
+          adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current
+        )
+      ) {
+        return;
+      }
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
       if (generationRequestId) {
@@ -3879,7 +3972,12 @@ export default function AdaptivePracticePage() {
         setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
       }
     } finally {
-      setPathGenerationPending(null);
+      if (operation !== 'revise' || adjustmentRequestId === activePathAdjustmentRequestIdRef.current) {
+        if (operation === 'revise') {
+          activePathAdjustmentRequestIdRef.current = null;
+        }
+        setPathGenerationPending(null);
+      }
     }
   }, [
     activeGoal,
@@ -5332,10 +5430,11 @@ export default function AdaptivePracticePage() {
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
                         aria-label={`请控灵调整${option.title}`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        title={!isPersistedCandidatePathOption(option.writeOption) ? '请先生成候选路径后再调整' : undefined}
+                        disabled={!isPersistedCandidatePathOption(option.writeOption) || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
+                          if (isPersistedCandidatePathOption(optionForWrite)) {
                             submitPathGeneration('revise', optionForWrite);
                             return;
                           }
@@ -5503,10 +5602,11 @@ export default function AdaptivePracticePage() {
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
                         aria-label={`请控灵调整${option.title}`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        title={!isPersistedCandidatePathOption(option.writeOption) ? '请先生成候选路径后再调整' : undefined}
+                        disabled={!isPersistedCandidatePathOption(option.writeOption) || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
+                          if (isPersistedCandidatePathOption(optionForWrite)) {
                             submitPathGeneration('revise', optionForWrite);
                             return;
                           }

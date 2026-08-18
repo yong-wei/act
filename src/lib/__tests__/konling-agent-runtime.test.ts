@@ -140,6 +140,7 @@ import {
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
 import { retrieveSourcePack } from '@/lib/source-pack';
+import { fingerprintAdaptivePathCandidateSnapshot } from '@/lib/adaptive-path-candidate-batches';
 
 function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
   expect(typeof value, `${label} should be an object`).toBe('object');
@@ -11555,7 +11556,7 @@ describe('konling agent runtime', () => {
     }));
   });
 
-  it('records adaptive path revision as governed switch activity', async () => {
+  it('persists adaptive path revision as a derived batch without switch evidence', async () => {
     const revisedRun = {
       id: 'tool-run-revise-1',
       ownerUserId: 'student-1',
@@ -11575,6 +11576,17 @@ describe('konling agent runtime', () => {
       completedAt: null,
       latencyMs: null,
     };
+    const activeProgressVersion = '2026-08-18T00:00:00.000Z';
+    let sourceSnapshot: Record<string, unknown> = {
+      optionId: 'path-option-1',
+      nodeIds: ['source-node'],
+      estimatedMinutes: 45,
+      resourceMix: { knowledge_card: 1 },
+      checkpointNodeIds: [],
+      terminalValidationNodeIds: [],
+    };
+    const sourceCandidateFingerprint = fingerprintAdaptivePathCandidateSnapshot(sourceSnapshot);
+    let derivedBatch: Record<string, unknown> | null = null;
     const db = {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
@@ -11598,7 +11610,9 @@ describe('konling agent runtime', () => {
             id: 'path-1',
             userId: 'student-1',
             goalId: 'control-correction',
+            classId: 'class-1',
             pathStatus: 'active',
+            updatedAt: new Date(activeProgressVersion),
             pathPayload: {
               policyBundle: {
                 status: 'ready',
@@ -11615,6 +11629,44 @@ describe('konling agent runtime', () => {
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
         update: vi.fn().mockResolvedValue({ id: 'path-1' }),
       },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn(async ({ where }: { where: { id?: string; generationRequestId?: string } }) => {
+          if (where.id === 'source-batch-1') {
+            return {
+              id: 'source-batch-1',
+              userId: 'student-1',
+              goalId: 'control-correction',
+              classId: 'class-1',
+              generationRequestId: 'source-request-1',
+              sourcePathId: 'source-path-1',
+              plannerVersion: 'stage-1-rules-graph',
+              status: 'succeeded',
+              createdAt: new Date('2026-08-17T00:00:00.000Z'),
+              metadata: {},
+              candidates: [{
+                id: 'source-candidate-1',
+                ordinal: 0,
+                styleId: 'arena-simulation-sprint',
+                policyFamily: 'simulation-driven',
+                label: '仿真冲刺',
+                snapshot: sourceSnapshot,
+              }],
+            };
+          }
+          return where.generationRequestId && derivedBatch?.generationRequestId === where.generationRequestId
+            ? derivedBatch
+            : null;
+        }),
+        findFirst: vi.fn(),
+        create: vi.fn(async ({ data }: { data: Record<string, any> }) => {
+          derivedBatch = {
+            ...data,
+            createdAt: new Date('2026-08-18T00:05:00.000Z'),
+            candidates: data.candidates.create,
+          };
+          return derivedBatch;
+        }),
+      },
       learningFact: {
         createMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
@@ -11629,6 +11681,7 @@ describe('konling agent runtime', () => {
       nextNodeIds: [],
       recentPathIds: ['path-1'],
       completedNodeIds: [],
+      progressVersion: activeProgressVersion,
       status: 'available',
     };
     const runtime = buildKonlingToolRuntime({
@@ -11652,6 +11705,10 @@ describe('konling agent runtime', () => {
       naturalLanguageIntent: '优先完成仿真和 Arena。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
+      sourceBatchId: 'source-batch-1',
+      sourceCandidateId: 'source-candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
     });
     expect(result).toMatchObject({
       operation: 'revised',
@@ -11665,7 +11722,7 @@ describe('konling agent runtime', () => {
     });
     expect((result as { pathOptions: unknown[] }).pathOptions).toHaveLength(1);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
-    expect(revisedCreate.pathStatus).not.toBe('candidate');
+    expect(revisedCreate.pathStatus).toBe('candidate');
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
     expect(revisedCreate.pathPayload.pathOptions).toHaveLength(1);
     expect(revisedCreate.pathPayload.policyBundle.fallbackReasons).toEqual(
@@ -11684,23 +11741,90 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'path-1' },
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        pathPayload: expect.objectContaining({
-          selectionHistory: [
-            expect.objectContaining({
-              id: 'control-correction-path:choice:path-1:revise-path-1:revision',
-              type: 'switch',
-              selectedStyleId: 'arena-simulation-sprint',
-              rejectedStyleIds: ['foundation-remediation'],
-            }),
-          ],
+        metadata: expect.objectContaining({
+          derivation: expect.objectContaining({
+            sourceBatchId: 'source-batch-1',
+            sourceCandidateId: 'source-candidate-1',
+            sourceCandidateFingerprint,
+            activeProgressVersion,
+          }),
         }),
       }),
     }));
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('control-correction-path:choice');
     expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('优先完成仿真和 Arena');
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('优先完成仿真和 Arena');
+
+    sourceSnapshot = ((derivedBatch as unknown as { candidates: Array<{ snapshot: Record<string, unknown> }> })
+      .candidates[0]!.snapshot);
+    const matchingSourceFingerprint = fingerprintAdaptivePathCandidateSnapshot(sourceSnapshot);
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...revisedRun, id: 'tool-run-revise-no-difference' });
+    const noDifferenceResult = await runtime.reviseLearningPathOptions({
+      idempotencyKey: 'revise-path-no-difference',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      timeBudgetMinutes: 90,
+      difficultyRhythm: 'challenge',
+      checkpointPreference: 'dense',
+      naturalLanguageIntent: '优先完成仿真和 Arena。',
+      rejectedStyleIds: ['foundation-remediation'],
+      selectedStyleId: 'arena-simulation-sprint',
+      sourceBatchId: 'source-batch-1',
+      sourceCandidateId: 'source-candidate-1',
+      sourceCandidateFingerprint: matchingSourceFingerprint,
+      activeProgressVersion,
+    });
+    expect(noDifferenceResult).toMatchObject({
+      operation: 'revised',
+      generationStatus: 'no_material_difference',
+      pathId: null,
+      candidateBatch: null,
+      pathOptions: [],
+      comparison: {
+        optionCount: 0,
+        message: '调整后的方案与原候选没有实质差异，请修改调整条件后重试。',
+      },
+    });
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
+
+    db.learningPath.findFirst.mockImplementation(async ({ where }: { where?: { id?: string } } = {}) => {
+      if (where?.id && where.id !== 'path-1') return null;
+      return {
+        id: 'path-1',
+        userId: 'student-1',
+        goalId: 'control-correction',
+        classId: 'class-1',
+        pathStatus: 'active',
+        updatedAt: new Date('2026-08-18T00:30:00.000Z'),
+        pathPayload: {
+          policyBundle: { status: 'ready', paths: [] },
+          selectionHistory: [],
+          activity: [],
+        },
+      };
+    });
+    db.agentToolRun.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...revisedRun, id: 'tool-run-revise-stale-progress' });
+    await expect(runtime.reviseLearningPathOptions({
+      idempotencyKey: 'revise-path-stale-progress',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      sourceBatchId: 'source-batch-1',
+      sourceCandidateId: 'source-candidate-1',
+      sourceCandidateFingerprint: matchingSourceFingerprint,
+      activeProgressVersion,
+    })).rejects.toMatchObject({
+      status: 409,
+      message: '学习路径进度已更新，请基于最新进度重新调整。',
+    });
+    expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledOnce();
   });
 
   it('rejects adaptive path generation when client hints try to expand the scoped goal', async () => {
@@ -12183,6 +12307,17 @@ describe('konling agent runtime', () => {
       completedAt: null,
       latencyMs: null,
     };
+    const activeProgressVersion = '2026-08-18T01:00:00.000Z';
+    const sourceSnapshot = {
+      optionId: 'path-option-1',
+      nodeIds: ['source-frequency-node'],
+      estimatedMinutes: 30,
+      resourceMix: { knowledge_card: 1 },
+      checkpointNodeIds: [],
+      terminalValidationNodeIds: [],
+    };
+    const sourceCandidateFingerprint = fingerprintAdaptivePathCandidateSnapshot(sourceSnapshot);
+    let derivedBatch: Record<string, unknown> | null = null;
     const db = {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
@@ -12198,24 +12333,65 @@ describe('konling agent runtime', () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'frequency-path-1',
-          userId: 'student-1',
-          goalId: 'frequency-response-foundations',
-          pathPayload: {
-            policyBundle: {
-              status: 'ready',
-              paths: [{
-                styleId: 'recommended',
-                nodeIds: ['frequency-precheck'],
-              }],
+        findFirst: vi.fn(async ({ where }: { where?: { id?: string } } = {}) => {
+          if (where?.id && where.id !== 'frequency-path-1') return null;
+          return {
+            id: 'frequency-path-1',
+            userId: 'student-1',
+            goalId: 'frequency-response-foundations',
+            classId: 'class-1',
+            updatedAt: new Date(activeProgressVersion),
+            pathPayload: {
+              policyBundle: {
+                status: 'ready',
+                paths: [{
+                  styleId: 'recommended',
+                  nodeIds: ['frequency-precheck'],
+                }],
+              },
+              selectionHistory: [],
+              activity: [],
             },
-            selectionHistory: [],
-            activity: [],
-          },
+          };
         }),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
         update: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
+      },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn(async ({ where }: { where: { id?: string; generationRequestId?: string } }) => {
+          if (where.id === 'frequency-source-batch') {
+            return {
+              id: 'frequency-source-batch',
+              userId: 'student-1',
+              goalId: 'frequency-response-foundations',
+              classId: 'class-1',
+              generationRequestId: 'frequency-source-request',
+              sourcePathId: 'frequency-source-path',
+              plannerVersion: 'stage-1-rules-graph',
+              status: 'succeeded',
+              createdAt: new Date('2026-08-17T00:00:00.000Z'),
+              metadata: {},
+              candidates: [{
+                id: 'frequency-source-candidate',
+                ordinal: 0,
+                styleId: 'recommended',
+                policyFamily: null,
+                label: '频域基础路径',
+                snapshot: sourceSnapshot,
+              }],
+            };
+          }
+          return where.generationRequestId && derivedBatch ? derivedBatch : null;
+        }),
+        findFirst: vi.fn(),
+        create: vi.fn(async ({ data }: { data: Record<string, any> }) => {
+          derivedBatch = {
+            ...data,
+            createdAt: new Date('2026-08-18T01:05:00.000Z'),
+            candidates: data.candidates.create,
+          };
+          return derivedBatch;
+        }),
       },
       learningFact: {
         createMany: vi.fn().mockResolvedValue({ count: 1 }),
@@ -12236,6 +12412,7 @@ describe('konling agent runtime', () => {
           nextNodeIds: [],
           recentPathIds: ['frequency-path-1'],
           completedNodeIds: [],
+          progressVersion: activeProgressVersion,
           status: 'available',
         },
       }),
@@ -12247,6 +12424,10 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       difficultyRhythm: 'challenge',
       selectedStyleId: 'recommended',
+      sourceBatchId: 'frequency-source-batch',
+      sourceCandidateId: 'frequency-source-candidate',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
     })).resolves.toMatchObject({
       operation: 'revised',
       scope: expect.objectContaining({

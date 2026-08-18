@@ -48,6 +48,7 @@ import {
 } from '@/lib/control-correction-path-rounds';
 import {
   AdaptivePathCandidateBatchConflictError,
+  buildAdaptivePathCandidateDifferenceSummary,
   persistAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatchByGenerationRequest,
@@ -1631,6 +1632,7 @@ export interface KonlingPlanContext {
   nextNodeIds: string[];
   recentPathIds: string[];
   completedNodeIds: string[];
+  progressVersion?: string;
   pathOptions?: KonlingPathOptionContext[];
   pathOptionFallback?: KonlingPathOptionFallbackContext | null;
   selectionHistory?: KonlingPathSelectionContext[];
@@ -2727,6 +2729,10 @@ const reviseLearningPathOptionsParameters = generateLearningPathParameters.exten
   priorRequestId: z.string().min(1).optional(),
   rejectedStyleIds: z.array(z.string().min(1)).max(8).optional(),
   selectedStyleId: z.string().min(1).optional(),
+  sourceBatchId: z.string().min(1),
+  sourceCandidateId: z.string().min(1),
+  sourceCandidateFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  activeProgressVersion: z.string().min(1),
 });
 
 const selectLearningPathParameters = adaptivePathToolBaseParameters.extend({
@@ -4070,13 +4076,28 @@ function applySmartLessonCollectionPatches(
 async function buildAdaptivePathToolOutput(
   input: KonlingToolRuntimeInput,
   operation: 'generated' | 'revised',
-  args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+  rawArgs: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
 ) {
-  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const goalId = resolveScopedAdaptivePathGoalId(input, rawArgs.goalId);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goalId);
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
+  const revisedArgs = operation === 'revised'
+    ? reviseLearningPathOptionsParameters.parse(rawArgs)
+    : null;
+  const adjustmentSource = revisedArgs
+    ? await resolveAdaptivePathAdjustmentSource(input, goalId, revisedArgs)
+    : null;
+  const effectiveRevisionArgs = adjustmentSource && revisedArgs
+    ? {
+        ...revisedArgs,
+        priorRequestId: adjustmentSource.batch.generationRequestId,
+        preferredStyleId: adjustmentSource.candidate.styleId,
+        selectedStyleId: adjustmentSource.candidate.styleId,
+      }
+    : null;
+  const args = effectiveRevisionArgs ?? generateLearningPathParameters.parse(rawArgs);
   const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   // Use the legacy bounded generation cap when the learner omitted one. This
   // cap only controls candidate generation; the minimum executable duration is
@@ -4233,15 +4254,20 @@ async function buildAdaptivePathToolOutput(
     candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
-  const persistedPlan = operation === 'generated'
-    ? {
-        ...plan,
-        id: `${plan.id}:candidate_${createHash('sha256')
-          .update(args.idempotencyKey)
-          .digest('hex')
-          .slice(0, 24)}`,
-      }
-    : plan;
+  const differenceSummary = adjustmentSource && hasPersistablePath
+    ? buildAdaptivePathCandidateDifferenceSummary(adjustmentSource.candidate, plan)
+    : null;
+  if (effectiveRevisionArgs) {
+    await assertAdaptivePathAdjustmentProgressStillCurrent(input, goalId, effectiveRevisionArgs);
+  }
+  const hasMaterialPath = hasPersistablePath && (!differenceSummary || differenceSummary.material);
+  const persistedPlan = {
+    ...plan,
+    id: `${plan.id}:candidate_${createHash('sha256')
+      .update(args.idempotencyKey)
+      .digest('hex')
+      .slice(0, 24)}`,
+  };
   const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
     .map((source) => source.reason)
     .filter((reason): reason is string => Boolean(reason));
@@ -4252,7 +4278,7 @@ async function buildAdaptivePathToolOutput(
   };
   const persistSourcePath = (db: any) => persistLearningPathRound(db, {
     plan: persistedPlan,
-    pathStatus: operation === 'generated' ? 'candidate' : undefined,
+    pathStatus: 'candidate',
     classId: input.scope.classId ?? null,
     learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
     inputSnapshot: {
@@ -4275,10 +4301,12 @@ async function buildAdaptivePathToolOutput(
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
-  const canPersistCandidateBatch = operation === 'generated'
-    && candidateBatchStore
+  const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
+  if (operation === 'revised' && !canPersistCandidateBatch) {
+    throw new KonlingRuntimeScopeError(409, '候选路径调整暂不可用，请稍后重试。');
+  }
   if (canPersistCandidateBatch) {
     const readExistingBatch = async () => {
       const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
@@ -4296,7 +4324,7 @@ async function buildAdaptivePathToolOutput(
       return existingBatch;
     };
     candidateBatch = await readExistingBatch();
-    if (!candidateBatch && hasPersistablePath) {
+    if (!candidateBatch && hasMaterialPath) {
       try {
         candidateBatch = await runWithLearningPathWriteFence(
           input.db as any,
@@ -4322,11 +4350,30 @@ async function buildAdaptivePathToolOutput(
                 'Candidate source path exists without its immutable candidate batch',
               );
             }
+            if (effectiveRevisionArgs) {
+              await assertAdaptivePathAdjustmentProgressStillCurrent(
+                input,
+                goalId,
+                effectiveRevisionArgs,
+                tx,
+              );
+            }
             await persistSourcePath(tx);
             return persistAdaptivePathCandidateBatch(tx as any, {
               generationRequestId: args.idempotencyKey,
               plan: persistedPlan,
               classId: input.scope.classId ?? null,
+              ...(adjustmentSource && differenceSummary ? {
+                derivation: {
+                  kind: 'adjustment' as const,
+                  sourceBatchId: adjustmentSource.batch.id,
+                  sourceCandidateId: adjustmentSource.candidate.id,
+                  sourceCandidateFingerprint: adjustmentSource.candidate.fingerprint,
+                  activeProgressVersion: effectiveRevisionArgs!.activeProgressVersion,
+                  requestSnapshot: readRecord(requestSnapshot),
+                  differenceSummary,
+                },
+              } : {}),
             });
           },
           { requireWritable: false },
@@ -4336,35 +4383,16 @@ async function buildAdaptivePathToolOutput(
         if (!candidateBatch) throw error;
       }
     }
-  } else if (hasPersistablePath) {
+  } else if (hasMaterialPath) {
     await persistSourcePath(input.db as any);
   }
-  if (operation === 'revised' && hasPersistablePath) {
-    await recordPathChoiceEvidence(input.db as any, {
-      pathId: args.pathId ?? input.context.planContext?.currentPathId ?? plan.id,
-      userId: input.scope.targetUserId,
-      goalId,
-      action: 'switch',
-      selectedStyleId: 'selectedStyleId' in args ? args.selectedStyleId ?? null : null,
-      rejectedStyleIds: 'rejectedStyleIds' in args ? args.rejectedStyleIds ?? [] : [],
-      resourceMix: buildPathResourceMix(plan.mainPath),
-      rationaleMetadata: {
-        outcome: 'revised',
-        priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
-        checkpointPreference: args.checkpointPreference ?? null,
-        graphNodeId: args.graphNodeId ?? null,
-        intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
-        excludedNodeIds: args.excludedNodeIds ?? [],
-        preferredStyleId: args.preferredStyleId ?? null,
-        requestedAt: args.requestedAt ?? null,
-      },
-      idempotencyKey: `${args.idempotencyKey}:revision`,
-      actorUserId: input.scope.authenticatedUserId,
-      actorRole: input.scope.role,
-    });
-  }
-  const hasPersistedOutput = hasPersistablePath || Boolean(candidateBatch);
-  const pathOptions = candidateBatch
+  const noMaterialDifference = operation === 'revised'
+    && !candidateBatch
+    && differenceSummary?.material === false;
+  const hasPersistedOutput = hasMaterialPath || Boolean(candidateBatch);
+  const pathOptions = noMaterialDifference
+    ? []
+    : candidateBatch
     ? candidateBatch.candidates.map((candidate) => ({
           ...buildStudentSafeCandidatePathOption(candidate.snapshot),
           candidateId: candidate.id,
@@ -4384,7 +4412,9 @@ async function buildAdaptivePathToolOutput(
   return {
     operation,
     scope: toolScope,
-    generationStatus: hasPersistedOutput ? 'persisted' : 'blocked',
+    generationStatus: noMaterialDifference
+      ? 'no_material_difference'
+      : hasPersistedOutput ? 'persisted' : 'blocked',
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -4401,7 +4431,7 @@ async function buildAdaptivePathToolOutput(
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: candidateBatch?.sourcePathId ?? (hasPersistablePath ? persistedPlan.id : null),
+    pathId: candidateBatch?.sourcePathId ?? (hasPersistedOutput ? persistedPlan.id : null),
     candidateBatch: candidateBatch ? {
       id: candidateBatch.id,
       generationRequestId: candidateBatch.generationRequestId,
@@ -4413,13 +4443,19 @@ async function buildAdaptivePathToolOutput(
     ),
     comparison: {
       optionCount: pathOptions.length,
-      message: hasPersistablePath
+      message: noMaterialDifference
+        ? '调整后的方案与原候选没有实质差异，请修改调整条件后重试。'
+        : hasPersistablePath
         ? singleOptionDiversityUnavailable
           ? '当前资源只能形成单一推荐方案。'
           : '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
-    limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
+    limitations: uniqueStringList([
+      ...fallbackReasons,
+      ...candidatePoolLimitationCodes,
+      ...(noMaterialDifference ? ['no-material-difference'] : []),
+    ]),
     candidatePoolLimited,
     diagnostics: {
       candidatePool: candidatePoolDiagnostics,
@@ -4430,6 +4466,63 @@ async function buildAdaptivePathToolOutput(
       ...(timeBudget.insufficient ? [`当前学习时长不足以覆盖必需验证，至少需要 ${timeBudget.minimumMinutes} 分钟。`] : []),
     ],
   };
+}
+
+async function resolveAdaptivePathAdjustmentSource(
+  input: KonlingToolRuntimeInput,
+  goalId: string,
+  args: z.infer<typeof reviseLearningPathOptionsParameters>,
+) {
+  const batch = await readAdaptivePathCandidateBatch(input.db as any, args.sourceBatchId);
+  if (!batch) {
+    throw new KonlingRuntimeScopeError(404, '调整基线候选不存在，请刷新后重试。');
+  }
+  if (
+    batch.userId !== input.scope.targetUserId ||
+    batch.goalId !== goalId ||
+    (input.scope.classId && batch.classId !== input.scope.classId)
+  ) {
+    throw new KonlingRuntimeScopeError(403, '调整基线候选不属于当前学习范围。');
+  }
+  const candidate = batch.candidates.find((item) => item.id === args.sourceCandidateId);
+  if (!candidate) {
+    throw new KonlingRuntimeScopeError(404, '调整基线候选不属于指定批次。');
+  }
+  if (candidate.fingerprint !== args.sourceCandidateFingerprint) {
+    throw new KonlingRuntimeScopeError(409, '候选路径版本已更新，请刷新后重新调整。');
+  }
+  const progressVersion = input.context.planContext?.progressVersion;
+  if (!progressVersion || progressVersion !== args.activeProgressVersion) {
+    throw new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。');
+  }
+  return { batch, candidate };
+}
+
+async function assertAdaptivePathAdjustmentProgressStillCurrent(
+  input: KonlingToolRuntimeInput,
+  goalId: string,
+  args: z.infer<typeof reviseLearningPathOptionsParameters>,
+  db: unknown = input.db,
+) {
+  const pathId = args.pathId ?? input.context.planContext?.currentPathId;
+  if (!pathId) {
+    throw new KonlingRuntimeScopeError(409, '当前学习路径不存在，请刷新后重新调整。');
+  }
+  const current = await (db as any).learningPath?.findFirst?.({
+    where: {
+      id: pathId,
+      userId: input.scope.targetUserId,
+      goalId,
+      ...(input.scope.classId ? { classId: input.scope.classId } : {}),
+    },
+    select: { updatedAt: true },
+  });
+  const currentVersion = current?.updatedAt instanceof Date
+    ? current.updatedAt.toISOString()
+    : typeof current?.updatedAt === 'string' ? current.updatedAt : '';
+  if (!currentVersion || currentVersion !== args.activeProgressVersion) {
+    throw new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。');
+  }
 }
 
 function toStudentConfigurationFulfillment(

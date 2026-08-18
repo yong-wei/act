@@ -26,6 +26,7 @@ import {
   type AdaptiveGenerationReadiness,
 } from '@/lib/adaptive-generation-readiness';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -115,7 +116,13 @@ export async function POST(request: Request) {
       }, { status: scopeResult.status });
     }
 
-    const requestedToolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    const requestedToolInput = await buildPathAdvisorToolInput(
+      body,
+      goalId,
+      session.user.id,
+      classId,
+      operation,
+    );
     if (generationRequestId) {
       requestedToolInput.idempotencyKey = `path-generation-request:${generationRequestId}`;
     }
@@ -342,7 +349,13 @@ function buildPathExecutionCitation(id: string, goalId: string): KonlingCitation
   };
 }
 
-async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: string, userId: string) {
+async function buildPathAdvisorToolInput(
+  body: Record<string, unknown>,
+  goalId: string,
+  userId: string,
+  classId: string,
+  operation: PathAdvisorToolOperation,
+) {
   const pathId = typeof body.pathId === 'string' && body.pathId.length > 0 ? body.pathId : undefined;
   const pathOptionLookup = pathId
     ? await readPathOptionStyleLookup(pathId, goalId, userId)
@@ -358,10 +371,16 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
         .filter((item): item is string => typeof item === 'string' && item.length > 0)
         .map((optionId) => resolveCurrentPathStyleId(pathOptionLookup, optionId, 'rejectedOptionIds'))
     : [];
-  const selectedStyleId = resolveOptionalCurrentPathStyleId(pathOptionLookup, body.selectedStyleId, body.selectedOptionId, 'selectedOptionId');
-  const compareWithStyleId = resolveOptionalCurrentPathStyleId(pathOptionLookup, body.compareWithStyleId, body.compareWithOptionId, 'compareWithOptionId');
-  const preferredStyleId = resolveOptionalCurrentPathStyleId(pathOptionLookup, body.preferredStyleId, body.preferredOptionId, 'preferredOptionId')
-    ?? selectedStyleId;
+  const selectedStyleId = operation === 'revise'
+    ? undefined
+    : resolveOptionalCurrentPathStyleId(pathOptionLookup, body.selectedStyleId, body.selectedOptionId, 'selectedOptionId');
+  const compareWithStyleId = operation === 'explain'
+    ? resolveOptionalCurrentPathStyleId(pathOptionLookup, body.compareWithStyleId, body.compareWithOptionId, 'compareWithOptionId')
+    : undefined;
+  const preferredStyleId = operation === 'revise'
+    ? undefined
+    : resolveOptionalCurrentPathStyleId(pathOptionLookup, body.preferredStyleId, body.preferredOptionId, 'preferredOptionId')
+      ?? selectedStyleId;
   const excludedNodeIds = Array.isArray(body.excludedNodeIds)
     ? body.excludedNodeIds.filter((item): item is string => typeof item === 'string' && item.length > 0)
     : undefined;
@@ -376,6 +395,41 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
     body.checkpointPreference === 'light' || body.checkpointPreference === 'standard' || body.checkpointPreference === 'dense'
       ? body.checkpointPreference
       : undefined;
+  const sourceBatchId = typeof body.sourceBatchId === 'string' && body.sourceBatchId.length > 0
+    ? body.sourceBatchId
+    : undefined;
+  const sourceCandidateId = typeof body.sourceCandidateId === 'string' && body.sourceCandidateId.length > 0
+    ? body.sourceCandidateId
+    : undefined;
+  const sourceCandidateFingerprint = typeof body.sourceCandidateFingerprint === 'string'
+    ? body.sourceCandidateFingerprint
+    : undefined;
+  const activeProgressVersion = typeof body.activeProgressVersion === 'string' && body.activeProgressVersion.length > 0
+    ? body.activeProgressVersion
+    : undefined;
+  let adjustmentSourceStyleId: string | undefined;
+  if (operation === 'revise') {
+    if (!sourceBatchId || !sourceCandidateId || !sourceCandidateFingerprint || !activeProgressVersion) {
+      throw new KonlingRuntimeScopeError(400, '候选路径调整缺少稳定的来源或进度版本。');
+    }
+    const sourceBatch = await readAdaptivePathCandidateBatch(prisma as any, sourceBatchId);
+    if (
+      !sourceBatch ||
+      sourceBatch.userId !== userId ||
+      sourceBatch.goalId !== goalId ||
+      sourceBatch.classId !== classId
+    ) {
+      throw new KonlingRuntimeScopeError(403, '候选路径调整来源不属于当前学习范围。');
+    }
+    const sourceCandidate = sourceBatch.candidates.find((candidate) => candidate.id === sourceCandidateId);
+    if (!sourceCandidate) {
+      throw new KonlingRuntimeScopeError(404, '候选路径调整来源不属于指定批次。');
+    }
+    if (sourceCandidate.fingerprint !== sourceCandidateFingerprint) {
+      throw new KonlingRuntimeScopeError(409, '候选路径版本已更新，请刷新后重新调整。');
+    }
+    adjustmentSourceStyleId = sourceCandidate.styleId;
+  }
   return {
     idempotencyKey: typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0
       ? body.idempotencyKey
@@ -393,13 +447,17 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
       : undefined,
     graphNodeId,
     priorRequestId: typeof body.priorRequestId === 'string' && body.priorRequestId.length > 0 ? body.priorRequestId : undefined,
-    selectedStyleId,
-    styleId: selectedStyleId,
+    selectedStyleId: adjustmentSourceStyleId ?? selectedStyleId,
+    styleId: adjustmentSourceStyleId ?? selectedStyleId,
     compareWithStyleId,
     excludedNodeIds,
-    preferredStyleId,
+    preferredStyleId: adjustmentSourceStyleId ?? preferredStyleId,
     requestedAt: typeof body.requestedAt === 'string' && body.requestedAt.length > 0 ? body.requestedAt : new Date().toISOString(),
     rejectedStyleIds: [...(rejectedStyleIds ?? []), ...rejectedOptionStyleIds],
+    sourceBatchId: sourceBatchId ?? '',
+    sourceCandidateId: sourceCandidateId ?? '',
+    sourceCandidateFingerprint: sourceCandidateFingerprint ?? '',
+    activeProgressVersion: activeProgressVersion ?? '',
   };
 }
 
@@ -422,6 +480,7 @@ async function readPathAdvisorPlanContext(
       nodeIds: true,
       pathPayload: true,
       lastExecutionMetadata: true,
+      updatedAt: true,
     },
   });
   if (!path) return null;
@@ -450,6 +509,9 @@ async function readPathAdvisorPlanContext(
     nextNodeIds,
     recentPathIds: [readString(path.id) ?? pathId],
     completedNodeIds,
+    progressVersion: path.updatedAt instanceof Date
+      ? path.updatedAt.toISOString()
+      : String(path.updatedAt ?? ''),
     status: 'available',
   };
 }
