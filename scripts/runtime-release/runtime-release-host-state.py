@@ -112,7 +112,7 @@ def write_atomic(path: Path, value: Any) -> None:
     payload = (json.dumps(value, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
     descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
-        os.fchmod(descriptor, 0o600)
+        os.fchmod(descriptor, 0o644 if path.name == ACTIVE_RECEIPT_FILE else 0o600)
         with os.fdopen(descriptor, "wb", closefd=True) as handle:
             handle.write(payload)
             handle.flush()

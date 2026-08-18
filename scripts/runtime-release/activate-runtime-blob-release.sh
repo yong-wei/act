@@ -477,15 +477,15 @@ if [[ -n "$parent_view" ]]; then
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
-if [[ -n "${parent_view:-}" ]]; then
-  restore_parent_host_overlays "$parent_view" "$candidate_view"
-fi
 stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+if [[ -n "${parent_view:-}" ]]; then
+  restore_parent_host_overlays "$parent_view" "$candidate_view"
+fi
 
 trap restore_runtime_consumers ERR
 candidate_deploy_attempted=1
