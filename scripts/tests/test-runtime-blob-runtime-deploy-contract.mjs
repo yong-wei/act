@@ -68,6 +68,26 @@ assert.ok(
   'v2 desired lifecycle state must be staged before the legacy selector changes',
 );
 assert.ok(
+  activation.lastIndexOf('trap restore_runtime_consumers ERR') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'ERR recovery must be installed before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"') <
+    activation.lastIndexOf('restore_parent_host_overlays "$parent_view" "$candidate_view"'),
+  'parent overlay restore must happen after current view selection',
+);
+assert.match(
+  activation,
+  /candidate_current_selected=1[\s\S]*restore_parent_host_overlays "\$parent_view" "\$candidate_view"/,
+  'current-view selection must be durable before overlay restore can fail',
+);
+assert.match(
+  activation,
+  /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
+  'ERR recovery must revert current even when consumers were not switched',
+);
+assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
   'v2 cross-state activation must complete before clearing rollback handling',
 );
@@ -306,11 +326,11 @@ assert.match(deployAll, /remote-deploy\.sh" --app-only/, 'combined deployment mu
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
 assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');
-assert.match(appDeploy, /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then/, 'legacy runtime synchronization must be gated to the full deployment scope');
-assert.match(
-  appDeploy,
-  /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n(?:  #[^\n]*\n)*  guard_no_committed_production_cutover\nfi/,
-  'default blob-view deploys must not inherit the Legacy cutover marker abort',
+assert.match(appDeploy, /legacy-rsync 已退役/, 'legacy-rsync must fail closed instead of synchronizing runtime');
+assert.equal(
+  appDeploy.includes('rsync "${runtime_rsync_args[@]}"'),
+  false,
+  'application deployment must not retain a leftover runtime rsync implementation',
 );
 assert.match(appDeploy, /ossfs-blob-view：不传输 runtime 内容/, 'full application deployment must retain the existing blob view instead of rsync');
 assert.match(appDeploy, /--app-only：跳过 runtime release 验证/, 'application deployment must skip runtime release verification');

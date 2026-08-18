@@ -29,7 +29,7 @@
 - `npm run deploy:runtime` 只做本机 OSS 发布与 ECS 物化/选择，不得 rsync 完整 runtime，也不得构建镜像或改数据库。
 - `npm run deploy:all` 按上述顺序组合。
 - `deploy/podman/deploy.sh`（远端 `4-deploy.sh`）默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，只 bind 现有 view 与 helper FUSE；view 缺失时失败关闭。
-- `remote-deploy.sh` 默认同样是 `ossfs-blob-view`，不会把本地 `course-content/runtime` rsync 到服务器。`legacy-rsync` 必须显式设置，且存在 OSS active receipt 时禁止。
+- `remote-deploy.sh` 默认同样是 `ossfs-blob-view`，不会把本地 `course-content/runtime` rsync 到服务器。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。
 - v1 `ossfs-release` 命令仅用于历史 prefix release，不是日常路径。
 
 ## 身份与权限

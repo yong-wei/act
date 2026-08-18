@@ -29,6 +29,7 @@ ram_role=""
 old_active="none"
 parent_view=""
 rollback_app_image=""
+candidate_current_selected=0
 candidate_deploy_attempted=0
 lifecycle_identity=""
 lifecycle_generation=""
@@ -273,6 +274,54 @@ capture_rollback_image() {
   rollback_app_image="sha256:${BASH_REMATCH[2]}"
 }
 
+# Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
+# as regular files on the active view. Rematerialize rebuilds the Git/blob
+# forest and would otherwise replace those pointers with the Git v0.9 leaves.
+# Copy the parent view's regular files after verify-mounted so production
+# authority stays put. This does not change the immutable OSS release.
+restore_parent_host_overlays() {
+  local parent="$1"
+  local candidate="$2"
+  [[ -n "$parent" && -d "$parent" && ! -L "$parent" ]] || return 0
+  [[ -n "$candidate" && -d "$candidate" && ! -L "$candidate" ]] || {
+    echo "ERROR: candidate view is missing for overlay restore" >&2
+    return 1
+  }
+  python3 - "$parent" "$candidate" <<'PY'
+import os
+import shutil
+import stat
+import sys
+
+parent, candidate = sys.argv[1], sys.argv[2]
+skip_dirs = {".act-runtime-blobs"}
+skip_files = {
+    ".act-runtime-release.v2.json",
+    ".act-runtime-release-materialization.v1.json",
+}
+copied = 0
+for root, dirs, files in os.walk(parent):
+    dirs[:] = [name for name in dirs if name not in skip_dirs]
+    for name in files:
+        if name in skip_files:
+            continue
+        source = os.path.join(root, name)
+        details = os.lstat(source)
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        relative = os.path.relpath(source, parent)
+        destination = os.path.join(candidate, relative)
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        if os.path.lexists(destination):
+            os.unlink(destination)
+        shutil.copy2(source, destination)
+        copied += 1
+if copied == 0:
+    raise SystemExit("ERROR: parent view had no regular overlay files to restore")
+print(copied)
+PY
+}
+
 write_lifecycle_identity() {
   local mounted_manifest="$1"
   lifecycle_identity="$(mktemp "$STATE_DIR/.act-runtime-blob-identity.XXXXXX")"
@@ -375,9 +424,12 @@ restore_runtime_consumers() {
       lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
     fi
   fi
+  if [[ "$candidate_current_selected" == "1" && "$lifecycle_active_release" != "$release_id" && -n "$parent_view" && "$old_active" != "none" ]]; then
+    python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null || \
+      echo "ERROR: candidate current view could not be restored to the previous release" >&2
+  fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
-      python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
       RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
@@ -434,9 +486,12 @@ python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
-python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
-
 trap restore_runtime_consumers ERR
+python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+candidate_current_selected=1
+if [[ -n "${parent_view:-}" ]]; then
+  restore_parent_host_overlays "$parent_view" "$candidate_view"
+fi
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \

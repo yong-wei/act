@@ -112,9 +112,10 @@ function main() {
     /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,
     'remote deploy 必须固定检查远端 host authoring Authority current pointer',
   );
-  assert.ok(
-    (remoteDeployScript.match(/check_remote_authority_current_pointer_absence/g) ?? []).length >= 3,
-    'legacy-rsync 必须在部署前与部署后检查 host Authority current pointer 不存在',
+  assert.match(
+    remoteDeployScript,
+    /legacy-rsync 已退役/,
+    'legacy-rsync 已退役后不得再作为可执行 runtime 同步路径',
   );
   assert.match(
     dockerfile,
