@@ -29,6 +29,7 @@ ram_role=""
 old_active="none"
 parent_view=""
 rollback_app_image=""
+candidate_current_selected=0
 candidate_deploy_attempted=0
 lifecycle_identity=""
 lifecycle_generation=""
@@ -423,9 +424,12 @@ restore_runtime_consumers() {
       lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
     fi
   fi
+  if [[ "$candidate_current_selected" == "1" && "$lifecycle_active_release" != "$release_id" && -n "$parent_view" && "$old_active" != "none" ]]; then
+    python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null || \
+      echo "ERROR: candidate current view could not be restored to the previous release" >&2
+  fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
-      python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
       RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
@@ -482,12 +486,12 @@ python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
+trap restore_runtime_consumers ERR
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+candidate_current_selected=1
 if [[ -n "${parent_view:-}" ]]; then
   restore_parent_host_overlays "$parent_view" "$candidate_view"
 fi
-
-trap restore_runtime_consumers ERR
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
