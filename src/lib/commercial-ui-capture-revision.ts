@@ -54,12 +54,13 @@ const REVISION_SHA_PATTERN = /^[0-9a-f]{40}$/u;
 const SOURCE_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/u;
 const REVISION_PROOF_KEYS = ['clean', 'commitSha', 'sourceFingerprint', 'treeSha'] as const;
 
-function gitOutput(repositoryRoot: string, args: string[]) {
-  return execFileSync('git', args, {
+function gitOutput(repositoryRoot: string, args: string[], trim = true) {
+  const output = execFileSync('git', args, {
     cwd: repositoryRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
+  });
+  return trim ? output.trim() : output;
 }
 
 function pathIsWithin(candidate: string, parent: string) {
@@ -68,7 +69,7 @@ function pathIsWithin(candidate: string, parent: string) {
 }
 
 function dirtyStatusPaths(repositoryRoot: string, ignoredPaths: readonly string[]) {
-  return gitOutput(repositoryRoot, ['status', '--porcelain', '--untracked-files=all'])
+  return gitOutput(repositoryRoot, ['status', '--porcelain', '--untracked-files=all'], false)
     .split(/\r?\n/u)
     .map((line) => line.trimEnd())
     .filter(Boolean)
