@@ -354,6 +354,82 @@ describe('adaptive path candidate batches', () => {
     expect(create).toHaveBeenCalledOnce();
   });
 
+  it('rejects adjustment idempotency reuse for a different governed source', async () => {
+    const source = buildCandidateSnapshots(plan(), 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths[0].nodeIds = ['node-adjusted'];
+    adjusted.policyBundle!.paths[0].planNodes = [node('node-adjusted')];
+    const differenceSummary = buildAdaptivePathCandidateDifferenceSummary(source, adjusted);
+    const { db } = dbFixture();
+    const derivation = {
+      kind: 'adjustment' as const,
+      sourceBatchId: 'source-batch',
+      sourceCandidateId: source.id,
+      sourceCandidateFingerprint: source.fingerprint,
+      activeProgressVersion: '2026-08-18T00:00:00.000Z',
+      requestSnapshot: { difficultyRhythm: 'challenge', resourcePreference: ['simulation'] },
+      differenceSummary,
+    };
+
+    await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-source-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation,
+    });
+
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-source-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation: {
+        ...derivation,
+        sourceCandidateId: 'another-candidate',
+      },
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+  });
+
+  it('rejects adjustment idempotency reuse for a different normalized request or class', async () => {
+    const source = buildCandidateSnapshots(plan(), 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths[0].nodeIds = ['node-adjusted'];
+    adjusted.policyBundle!.paths[0].planNodes = [node('node-adjusted')];
+    const differenceSummary = buildAdaptivePathCandidateDifferenceSummary(source, adjusted);
+    const { db } = dbFixture();
+    const derivation = {
+      kind: 'adjustment' as const,
+      sourceBatchId: 'source-batch',
+      sourceCandidateId: source.id,
+      sourceCandidateFingerprint: source.fingerprint,
+      activeProgressVersion: '2026-08-18T00:00:00.000Z',
+      requestSnapshot: { difficultyRhythm: 'challenge', resourcePreference: ['simulation'] },
+      differenceSummary,
+    };
+
+    await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation,
+    });
+
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation: {
+        ...derivation,
+        requestSnapshot: { resourcePreference: ['simulation'], difficultyRhythm: 'steady' },
+      },
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-2',
+      derivation,
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+  });
+
   it('reports no material difference for cosmetic candidate changes', () => {
     const original = plan();
     const source = buildCandidateSnapshots(original, 'source-batch')[0]!;

@@ -39,6 +39,13 @@ export interface AdaptivePathCandidateBatchDerivation {
   differenceSummary: AdaptivePathCandidateDifferenceSummary;
 }
 
+export interface AdaptivePathCandidateBatchPersistenceInput {
+  generationRequestId: string;
+  plan: AdaptiveLearningPathPlan;
+  classId?: string | null;
+  derivation?: AdaptivePathCandidateBatchDerivation;
+}
+
 export interface AdaptivePathCandidateDifferenceSummary {
   sourceCandidateId: string;
   sourceCandidateFingerprint: string;
@@ -91,12 +98,7 @@ export class AdaptivePathCandidateBatchValidationError extends Error {}
 
 export async function persistAdaptivePathCandidateBatch(
   db: AdaptivePathCandidateBatchDb,
-  input: {
-    generationRequestId: string;
-    plan: AdaptiveLearningPathPlan;
-    classId?: string | null;
-    derivation?: AdaptivePathCandidateBatchDerivation;
-  },
+  input: AdaptivePathCandidateBatchPersistenceInput,
 ): Promise<AdaptivePathCandidateBatchView> {
   validatePersistenceInput(input.generationRequestId, input.plan);
   const existing = await findByGenerationRequest(db, input.generationRequestId);
@@ -124,7 +126,13 @@ export async function persistAdaptivePathCandidateBatch(
           policyFamily: input.plan.policyFamily,
           confidence: input.plan.confidence,
           excludedPolicyFamilies: input.plan.excludedPolicyFamilies,
-          ...(input.derivation ? { derivation: input.derivation } : {}),
+          ...(input.derivation ? {
+            derivation: {
+              ...input.derivation,
+              requestSnapshot: jsonSnapshot(input.derivation.requestSnapshot),
+              requestFingerprint: fingerprintAdjustmentRequestSnapshot(input.derivation.requestSnapshot),
+            },
+          } : {}),
         }),
         candidates: {
           create: candidates.map((candidate) => ({
@@ -339,37 +347,69 @@ function isAmbiguousSelectionIntent(value: string): boolean {
 
 function assertMatchingExisting(
   record: CandidateBatchRecord,
-  input: {
-    generationRequestId: string;
-    plan: AdaptiveLearningPathPlan;
-    classId?: string | null;
-    derivation?: AdaptivePathCandidateBatchDerivation;
-  },
+  input: AdaptivePathCandidateBatchPersistenceInput,
 ): AdaptivePathCandidateBatchView {
+  assertAdaptivePathCandidateBatchMatchesInput(record, input);
+  return toBatchView(record);
+}
+
+export function assertAdaptivePathCandidateBatchMatchesInput(
+  record: Pick<
+    AdaptivePathCandidateBatchView,
+    'userId' | 'goalId' | 'classId' | 'generationRequestId' | 'sourcePathId'
+  > & { metadata: unknown },
+  input: AdaptivePathCandidateBatchPersistenceInput,
+): void {
   if (
+    record.generationRequestId !== input.generationRequestId ||
     record.userId !== input.plan.userId ||
     record.goalId !== input.plan.goal.id ||
+    record.classId !== (input.classId ?? null) ||
     record.sourcePathId !== input.plan.id
   ) {
     throw new AdaptivePathCandidateBatchConflictError(
       'Generation request identity is already bound to another candidate batch',
     );
   }
-  if (input.derivation) {
-    const existingDerivation = jsonSnapshot(record.metadata).derivation;
-    const existing = jsonSnapshot(existingDerivation);
-    if (
-      existing.sourceBatchId !== input.derivation.sourceBatchId ||
-      existing.sourceCandidateId !== input.derivation.sourceCandidateId ||
-      existing.sourceCandidateFingerprint !== input.derivation.sourceCandidateFingerprint ||
-      existing.activeProgressVersion !== input.derivation.activeProgressVersion
-    ) {
-      throw new AdaptivePathCandidateBatchConflictError(
-        'Adjustment request identity is already bound to another candidate source',
-      );
-    }
+  const existing = jsonSnapshot(jsonSnapshot(record.metadata).derivation);
+  if (!input.derivation && Object.keys(existing).length === 0) return;
+  const requestFingerprint = input.derivation
+    ? fingerprintAdjustmentRequestSnapshot(input.derivation.requestSnapshot)
+    : null;
+  const existingRequestFingerprint = typeof existing.requestFingerprint === 'string'
+    ? existing.requestFingerprint
+    : null;
+  const existingSnapshotFingerprint = fingerprintAdjustmentRequestSnapshot(existing.requestSnapshot);
+  if (
+    !input.derivation ||
+    existing.kind !== input.derivation.kind ||
+    existing.sourceBatchId !== input.derivation.sourceBatchId ||
+    existing.sourceCandidateId !== input.derivation.sourceCandidateId ||
+    existing.sourceCandidateFingerprint !== input.derivation.sourceCandidateFingerprint ||
+    existing.activeProgressVersion !== input.derivation.activeProgressVersion ||
+    !existingRequestFingerprint ||
+    existingRequestFingerprint !== existingSnapshotFingerprint ||
+    existingRequestFingerprint !== requestFingerprint
+  ) {
+    throw new AdaptivePathCandidateBatchConflictError(
+      'Adjustment request identity is already bound to another candidate source or request',
+    );
   }
-  return toBatchView(record);
+}
+
+function fingerprintAdjustmentRequestSnapshot(snapshot: unknown): string {
+  return createHash('sha256').update(stableJson(snapshot)).digest('hex');
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${stableJson(nested)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
 }
 
 function validatePersistenceInput(generationRequestId: string, plan: AdaptiveLearningPathPlan): void {

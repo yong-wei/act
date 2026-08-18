@@ -48,6 +48,7 @@ import {
 } from '@/lib/control-correction-path-rounds';
 import {
   AdaptivePathCandidateBatchConflictError,
+  assertAdaptivePathCandidateBatchMatchesInput,
   buildAdaptivePathCandidateDifferenceSummary,
   persistAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatch,
@@ -4304,6 +4305,22 @@ async function buildAdaptivePathToolOutput(
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
+  const candidateBatchInput = {
+    generationRequestId: args.idempotencyKey,
+    plan: persistedPlan,
+    classId: input.scope.classId ?? null,
+    ...(adjustmentSource && differenceSummary ? {
+      derivation: {
+        kind: 'adjustment' as const,
+        sourceBatchId: adjustmentSource.batch.id,
+        sourceCandidateId: adjustmentSource.candidate.id,
+        sourceCandidateFingerprint: adjustmentSource.candidate.fingerprint,
+        activeProgressVersion: effectiveRevisionArgs!.activeProgressVersion,
+        requestSnapshot: readRecord(requestSnapshot),
+        differenceSummary,
+      },
+    } : {}),
+  };
   if (operation === 'revised' && !canPersistCandidateBatch) {
     throw new KonlingRuntimeScopeError(409, '候选路径调整暂不可用，请稍后重试。');
   }
@@ -4313,14 +4330,7 @@ async function buildAdaptivePathToolOutput(
         input.db as any,
         args.idempotencyKey,
       );
-      if (
-        existingBatch
-        && (existingBatch.userId !== persistedPlan.userId || existingBatch.goalId !== persistedPlan.goal.id)
-      ) {
-        throw new AdaptivePathCandidateBatchConflictError(
-          'Generation request identity is bound to a different learner or goal',
-        );
-      }
+      if (existingBatch) assertAdaptivePathCandidateBatchMatchesInput(existingBatch, candidateBatchInput);
       return existingBatch;
     };
     candidateBatch = await readExistingBatch();
@@ -4335,14 +4345,7 @@ async function buildAdaptivePathToolOutput(
               args.idempotencyKey,
             );
             if (existingBatch) {
-              if (
-                existingBatch.userId !== persistedPlan.userId
-                || existingBatch.goalId !== persistedPlan.goal.id
-              ) {
-                throw new AdaptivePathCandidateBatchConflictError(
-                  'Generation request identity is bound to a different learner or goal',
-                );
-              }
+              assertAdaptivePathCandidateBatchMatchesInput(existingBatch, candidateBatchInput);
               return existingBatch;
             }
             if (existingPath) {
@@ -4359,22 +4362,7 @@ async function buildAdaptivePathToolOutput(
               );
             }
             await persistSourcePath(tx);
-            return persistAdaptivePathCandidateBatch(tx as any, {
-              generationRequestId: args.idempotencyKey,
-              plan: persistedPlan,
-              classId: input.scope.classId ?? null,
-              ...(adjustmentSource && differenceSummary ? {
-                derivation: {
-                  kind: 'adjustment' as const,
-                  sourceBatchId: adjustmentSource.batch.id,
-                  sourceCandidateId: adjustmentSource.candidate.id,
-                  sourceCandidateFingerprint: adjustmentSource.candidate.fingerprint,
-                  activeProgressVersion: effectiveRevisionArgs!.activeProgressVersion,
-                  requestSnapshot: readRecord(requestSnapshot),
-                  differenceSummary,
-                },
-              } : {}),
-            });
+            return persistAdaptivePathCandidateBatch(tx as any, candidateBatchInput);
           },
           { requireWritable: false },
         );
