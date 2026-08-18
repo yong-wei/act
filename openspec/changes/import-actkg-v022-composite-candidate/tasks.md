@@ -14,7 +14,7 @@
   any difference. Then validate the mirror through the reused v2 adapter and
   record explicit v0.22 registration, validation, and admission receipts under
   the `(bundleContractVersion, bundleDigest)` identity.
-  当前结果：已 pin `control-theory-engineering-v0.22-r4` / source-r7。Schema 哈希与 v0.18 相同；link-metadata 3013 行与 label-index 2148 行均符合 `/1`，且 2148 条标签均绑定 runtime 节点。v2 适配器按三个投影 `links[].relation_type` 并集重算为 9（与 v0.18/v0.19 及 r4 三个投影文件一致：association、used_to_analyze、applies_to、is_a、has_formula、derived_from、part_of、has_representation、has_component），但 `validation-report.statistics.relation_type_count` 从 v0.20 起写成 3、v0.21/v0.22/r4 写成 4，准入 fail closed。未改适配器，候选 snapshot 未写出。
+  当前结果：已 pin `control-theory-engineering-v0.22-r5` / source-r8（bundle digest `98f2d5b183…`）。Schema 哈希与 v0.18 相同；r5 只刷新 validation-report / manifest / SHA256SUMS，`relation_type_count=9` 与三个投影谓词并集一致。v2 适配器 shadow admission 通过。生产选择器未改，候选 snapshot 尚未写出。
 
 ## 2. Candidate import and impact evidence
 

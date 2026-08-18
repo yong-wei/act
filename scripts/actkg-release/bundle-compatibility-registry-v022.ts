@@ -151,15 +151,15 @@ export const REVIEWED_V0_22_PROJECTION_PROFILES = [
 ] as const satisfies readonly ReviewedV2ProjectionProfileIdentity[];
 
 export const REVIEWED_V0_22_IDENTITIES = {
-  publicationTag: 'control-theory-engineering-v0.22-r4',
-  publicationCommit: '7841d042299a26023bdb421c8ae533853eb32eeb',
-  sourceTag: 'control-theory-engineering-v0.22-source-r7',
-  sourceCommit: '9414c4c90c658d8628f2540ee08dfdef36644676',
-  bundleId: 'ctb:control-theory-engineering-v0.22:r4',
-  bundleRevision: 4,
-  bundleDigest: '33ac3d25decb1ae90c68b7d3beafb736d2cb5471dcd9958bd44b6c530a18d4dc',
-  manifestRawSha256: 'd6c1c82c8756ff913a38f2ae4ec86c37efa050da1ec66c96cb37ace12d23fd76',
-  sha256sumsRawSha256: '2fd52b57bbdd2418254de10987aa6d325c8592a9ec848f97c326ba0e608a32f7',
+  publicationTag: 'control-theory-engineering-v0.22-r5',
+  publicationCommit: '62d2a837a25158ae371bebca41b420afac51ecd1',
+  sourceTag: 'control-theory-engineering-v0.22-source-r8',
+  sourceCommit: '60b9000f44849fab4fcd6b8546c678ab49180461',
+  bundleId: 'ctb:control-theory-engineering-v0.22:r5',
+  bundleRevision: 5,
+  bundleDigest: '98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854',
+  manifestRawSha256: '4c3f021782623d05795c370f5676de87b79848d99ccc4acd9935fe7727b54d9e',
+  sha256sumsRawSha256: 'eb137eb5dfcb0feac9340396faae0d9a7d2d2d1b5d8a8f44e58e442b56210b56',
   releaseId: 'ctr:release:control-theory-engineering-v0.22',
   releaseVersion: 'control-theory-engineering-v0.22',
   releaseHash: '3b858d5a36c3d3c1f2d073d63cfd815da8eea77c574b2523a4ac487bd916d8ac',
@@ -168,7 +168,7 @@ export const REVIEWED_V0_22_IDENTITIES = {
 
 export const REVIEWED_V0_22_V2_REGISTRY: PublicBundleV2Registry = deepFreeze({
   bundleContractVersion: PUBLIC_BUNDLE_V2_CONTRACT_VERSION,
-  registryIdentity: 'actkg-public-bundle-v2:control-theory-engineering-v0.22:r4',
+  registryIdentity: 'actkg-public-bundle-v2:control-theory-engineering-v0.22:r5',
   upstreamRepository: {
     repositoryId: 'github.com/yong-wei/ActKG',
     remoteUrl: 'https://github.com/yong-wei/ActKG.git',

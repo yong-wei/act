@@ -29,9 +29,9 @@ import { admitPublicBundleV2 } from './public-bundle-v2-admission';
 import { canonicalJson, sha256 } from './authoritative-release';
 
 export const V022_PUBLICATION_PATH =
-  'releases/control-theory-engineering-v0.22-r4' as const;
+  'releases/control-theory-engineering-v0.22-r5' as const;
 export const V022_ACT_CONTROLLED_PATH =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.22-r4' as const;
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.22-r5' as const;
 
 const COMMIT = /^[a-f0-9]{40}$/u;
 const SAFE_RELATIVE = /^[A-Za-z0-9._/-]+$/u;
