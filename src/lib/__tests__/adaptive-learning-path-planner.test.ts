@@ -288,7 +288,7 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
         id: 'bode-card',
         label: '伯德图知识卡',
         type: 'INTERACTIVE_COMP',
-        renderTarget: '/teacher/resources',
+        renderTarget: '/interactive-learning/resources/bode-card',
         knowledgeNodeIds: ['kn-bode'],
       },
       {
@@ -751,6 +751,24 @@ describe('adaptive learning path planner', () => {
     ]));
   });
 
+  it('excludes nodes whose launch target fails the shared destination contract', () => {
+    const input = plannerInput();
+    const blockedResource = input.registry.nodes.find((node) => node.id === 'registry:bode-card');
+    expect(blockedResource).toBeDefined();
+    blockedResource!.launchTarget = '/simulations/bode-card';
+
+    const plan = buildAdaptiveLearningPathPlan(input);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('registry:bode-card');
+    expect(plan.alternatives).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'registry:bode-card',
+        blocked: true,
+        reasonCodes: expect.arrayContaining(['destination-contract-blocked']),
+      }),
+    ]));
+  });
+
   it('generates path nodes from PlanningUnit projections instead of retrieval chunks', () => {
     const input = plannerInput();
     const sourceNode = input.registry.nodes.find((node) => node.id === 'registry:bode-card');
@@ -773,7 +791,7 @@ describe('adaptive learning path planner', () => {
       effort: 'medium',
       launchBinding: {
         kind: 'resource-node',
-        target: '/teacher/resources',
+        target: '/interactive-learning/resources/bode-card',
         sourceRef: { kind: 'resource_registry', ref: 'bode-card' },
       },
       evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
@@ -7063,21 +7081,21 @@ describe('adaptive learning path planner', () => {
           id: 'alpha-card-a',
           label: '目标 A 知识卡 A',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/alpha-a',
+        renderTarget: '/interactive-learning/resources/alpha-card-a',
           knowledgeNodeIds: ['kn-alpha'],
         },
         {
           id: 'alpha-card-b',
           label: '目标 A 知识卡 B',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/alpha-b',
+        renderTarget: '/interactive-learning/resources/alpha-card-b',
           knowledgeNodeIds: ['kn-alpha'],
         },
         {
           id: 'beta-card',
           label: '目标 B 知识卡',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/beta',
+        renderTarget: '/interactive-learning/resources/beta-card',
           knowledgeNodeIds: ['kn-beta'],
         },
       ],
@@ -7138,14 +7156,14 @@ describe('adaptive learning path planner', () => {
           id: 'alpha-card',
           label: '目标 A 知识卡',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/alpha',
+        renderTarget: '/interactive-learning/resources/alpha-card',
           knowledgeNodeIds: ['kn-alpha'],
         },
         {
           id: 'beta-card',
           label: '目标 B 知识卡',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/beta',
+        renderTarget: '/interactive-learning/resources/beta-card',
           knowledgeNodeIds: ['kn-beta'],
         },
       ],

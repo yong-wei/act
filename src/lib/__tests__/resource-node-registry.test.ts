@@ -1112,6 +1112,28 @@ describe('resource node registry', () => {
     expect(unlockedSimulations).toEqual([]);
   });
 
+  it('derives lesson13 physics builder as an interactive lesson step for both source projections', () => {
+    const registeredResources = getAllRegisteredResourceMetadata();
+    const registry = buildResourceNodeRegistry({
+      registeredResources,
+      teachingResources: [{
+        id: 'lesson13-physics-builder-simple',
+        title: '阻尼调节实验',
+        type: 'INTERACTIVE_COMP',
+        registryId: 'lesson13-physics-builder-simple',
+        knowledgeNodeIds: ['对象化三域验证_3_56cb3a4e'],
+      }],
+    });
+
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson13-physics-builder-simple')).toMatchObject({
+      type: 'lesson_step',
+    });
+    expect(registry.nodes.find((node) => node.id === 'teaching-resource:lesson13-physics-builder-simple')).toMatchObject({
+      type: 'lesson_step',
+      launchTarget: '/interactive-learning/resources/lesson13-physics-builder-simple',
+    });
+  });
+
   it('registers textbook sections as path-plannable resources without turning textbook containers into path nodes', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [
