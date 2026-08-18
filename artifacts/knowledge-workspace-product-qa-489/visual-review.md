@@ -3,8 +3,8 @@
 结论：PASS
 
 - 复核者：codex-manual-visual-review。
-- 捕获绑定：commit b174f6c7d696274c87ba3737aa214f1dc325a0cd，tree 5cc9652582063e8d2ca66c53d3a05ac61aa42c29。
-- 捕获时间：2026-08-17T17:06:06.238Z。
+- 捕获绑定：commit 5b1887ac02c9bff247ae69fcbd564678f49d641d，tree 6010396f05d361b011047528af80c1b5d36c226e。
+- 捕获时间：2026-08-18T07:42:15.075Z。
 - 截图绑定：stateMatrix 29 个状态与 activeAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前 33 张截图一致。
 - 源码绑定：36 个受检路径记录 SHA-256；复核映射与当前源码一致。
 
