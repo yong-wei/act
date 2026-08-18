@@ -210,6 +210,17 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertIn("deployment proof is incomplete", incomplete.stderr)
 
+    def test_active_receipt_is_world_readable_for_container_bind(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            receipt = self.receipt(root, "runtime-a", "a" * 64)
+            self.call("select", "--state-dir", str(state), "--expected-active-release", "none", "--verification-receipt", str(receipt))
+            self.assertEqual(os.stat(state / "act-runtime-selection.json").st_mode & 0o777, 0o600)
+            self.call("mark-active", "--state-dir", str(state), "--release-id", "runtime-a")
+            self.assertEqual(os.stat(state / "act-runtime-active-receipt.json").st_mode & 0o777, 0o644)
+            self.assertEqual(os.stat(state / "act-runtime-selection.json").st_mode & 0o777, 0o600)
+
     def test_verifies_mounted_file_set_and_representative_content_against_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

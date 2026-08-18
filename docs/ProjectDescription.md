@@ -261,7 +261,7 @@ rtk npm run deploy:app -- --skip-build
 rtk npm run deploy:runtime
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`legacy-rsync` 只保留为显式兼容回退，且在已有 OSS active receipt 时失败关闭。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
 
 ## 维护入口
 
