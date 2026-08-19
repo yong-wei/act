@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "issue": 1440,
+  "baseRevision": "8620484d081fec8a53a1b8ff2fcf72611b7ce65f",
+  "captureCommand": "DIAGNOSIS_REPORT_DELIVERY_EVIDENCE_CAPTURE=1 PLAYWRIGHT_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=http://localhost:3219 playwright test tests/diagnosis-report-delivery-evidence.spec.ts --project=chromium --workers=1",
+  "sourceBindings": {
+    "tests/diagnosis-report-delivery-evidence.spec.ts": "b42829583d1aa182a1f36be494fcd8312262533313d1eeaaef7c89a9808d8cd2",
+    "src/features/teacher/diagnosis-report-delivery-view.tsx": "a87765100bb2f11d3ce237031e2035ec3208b026e380f2c954155c9c1765bfa1",
+    "src/lib/diagnosis-report-delivery-projection.ts": "0efd867ea108dab5d27dc15af56a86508bdbf69ac731c1d9e4309089f111ce43",
+    "src/lib/diagnosis-report-delivery.ts": "c009cc8541b99f01b40500799ea34145c66ecbc039118b92cbdf12ee680612e5",
+    "src/lib/diagnosis-report-pdf.ts": "09efef4fb1f5bd95051e0044d6756e823e146c9a78386200e2b11dcc33d6c9d6"
+  },
+  "captures": [
+    {
+      "file": "playwright/teacher-delivery-1440-light.png",
+      "sha256": "795bc9ddd208c2bb7a9fed05f97b44135be00adb59d2c800c3eb9db93a4e4140",
+      "viewport": { "width": 1440, "height": 1050 },
+      "assertions": ["teacher projection visible", "bounded evidence visible", "registered action visible", "disposition recorded", "no horizontal overflow"]
+    },
+    {
+      "file": "playwright/teacher-export-failure-1440-light.png",
+      "sha256": "66809752fa4d9caf441445bdf3233ca9636e608732b7588c29c6ef6ed430b028",
+      "viewport": { "width": 1440, "height": 900 },
+      "assertions": ["explicit PDF failure", "recoverable retry guidance"]
+    },
+    {
+      "file": "playwright/student-safe-delivery-320-dark.png",
+      "sha256": "71f796a6c5570483569f8860caac8491bdd6722b87ef1ca3ccc8a9a0508bc668",
+      "viewport": { "width": 320, "height": 844 },
+      "assertions": ["student-safe projection visible", "teacher controls absent", "force reason absent", "no horizontal overflow"]
+    }
+  ],
+  "result": "passed"
+}

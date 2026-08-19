@@ -38,6 +38,7 @@ interface TeacherDiagnosisReportHistoryProps {
 }
 
 interface TeacherDiagnosisReportHistoryViewProps {
+  classId?: string;
   state: ReportHistoryState;
   reports: DiagnosisReportApiItem[];
   selectedReportId?: string | null;
@@ -200,7 +201,8 @@ export function TeacherDiagnosisReportHistory({
   }, [generationJob, loadReports]);
 
   return (
-    <TeacherDiagnosisReportHistoryView
+      <TeacherDiagnosisReportHistoryView
+        classId={classId}
       state={state}
       reports={reports}
       selectedReportId={selectedReportId}
@@ -221,6 +223,7 @@ export function TeacherDiagnosisReportHistory({
 }
 
 export function TeacherDiagnosisReportHistoryView({
+  classId,
   state,
   reports,
   selectedReportId,
@@ -324,6 +327,7 @@ export function TeacherDiagnosisReportHistoryView({
             onSelectReport={onSelectReport}
           />
           <ReportDetail
+            classId={classId}
             report={selectedReport}
             adjacentOlderReport={reports[reports.findIndex((report) => report.id === selectedReport.id) + 1]}
           />
@@ -550,9 +554,11 @@ function ReportIndex({
 }
 
 function ReportDetail({
+  classId,
   report,
   adjacentOlderReport,
 }: {
+  classId?: string;
   report: DiagnosisReportApiItem;
   adjacentOlderReport?: DiagnosisReportApiItem;
 }) {
@@ -585,6 +591,27 @@ function ReportDetail({
           <Metric label="诊断结构版本" value={report.generatorVersion} mono />
         </dl>
       </div>
+
+      {classId ? (
+        <div className="mt-5 flex flex-wrap gap-2" data-diagnosis-delivery-entry>
+          <Link
+            href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}`}
+            className="btn-themed rounded-lg px-3 py-2 text-sm"
+          >
+            打开教师交付版
+          </Link>
+          {report.scopeType === 'student' ? (
+            <Link
+              href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}?role=student`}
+              className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"
+            >
+              预览学生安全版
+            </Link>
+          ) : (
+            <span className="px-1 py-2 text-xs text-subtle">班级报告不生成学生安全版</span>
+          )}
+        </div>
+      ) : null}
 
       <section className="mt-6 rounded-xl border border-sky-500/25 bg-sky-500/5 p-4" data-report-availability={projection.availability.label}>
         <h3 className="text-sm font-semibold text-foreground">报告状态：{projection.availability.label}</h3>
