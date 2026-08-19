@@ -1,9 +1,9 @@
 {
   "schemaVersion": "teacher-diagnosis-report-history-evidence.v1",
   "captureRevision": {
-    "commitSha": "f0780f05834b30289243e12a9b5be1872a58c5c1",
-    "treeSha": "28e9ebb67e69b19b963b334944f1d2f806660ea2",
-    "capturedAt": "2026-08-19T04:02:20.000Z"
+    "commitSha": "6775e94b2345817070bd8b493ca5cb06f8388f61",
+    "treeSha": "f15b72f28f68ad92f243e0ed19674ffa1f076e00",
+    "capturedAt": "2026-08-19T05:41:59.000Z"
   },
   "generator": {
     "path": "tests/teacher-diagnosis-report-history-evidence.spec.ts",
@@ -33,8 +33,8 @@
     "src/app/api/teacher/classes/[classId]/diagnosis-reports/preflight/route.ts": "906435da636b3cad55d39ecc47853503985aa48bd25ff586c83ed7078bcf23b9",
     "src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts": "eae91054475cd4762684ff41ab6ef4f4a0e5b729f70970d54c9b2797c478650e",
     "src/lib/auth.ts": "1410b7ed41d586dcff30985920b8e8308b7bc665ba58895beb7b192256172f77",
-    "src/lib/diagnosis-generation.ts": "f24dedf88b7a0f0b425dc0ba9f0fec3df156a633165a328c245bc2a9ae3ad5f0",
-    "src/lib/diagnosis-generation-preflight.ts": "6646b17bb9b7ec85f9946a416bad473439a42c2c5aa84a469080637722aa7b47",
+    "src/lib/diagnosis-generation.ts": "51932826ff5b9429e3eb56ba84cef9e72d2ba1d43026257c2f71197b7a3b0c04",
+    "src/lib/diagnosis-generation-preflight.ts": "02136c1a652940068f8f1050f261787cc6af96c42e44b0fe1c2e77fcf5bb06d4",
     "src/lib/diagnosis-persistence.ts": "afc38da5c0b731b46a7f7bf960c1255328f3db69f76bcf7861673919a92acf69"
   },
   "assertions": {
@@ -64,7 +64,7 @@
         "height": 1100
       },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-history-1440-light.png",
-      "screenshotSha256": "8596859932d6ba4630aad342f205455fc9f45fa5d7a33bf6027ddb5141c87409",
+      "screenshotSha256": "310f5653a404e7bbd478a788194b2b980f868b71d2e1080c03309c7ed179b202",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -107,7 +107,7 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-preflight-no-change-1440-light.png",
-      "screenshotSha256": "5e6d51c2b6840ec92d29b7c4da9bfee9ab9c21894f67d1966a32714aacac97a6",
+      "screenshotSha256": "d33a874259c74c9c1a47e225e6dfe1985a1ea70458716952d68f294097ab705f",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
