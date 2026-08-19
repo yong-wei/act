@@ -61,6 +61,20 @@ describe('adaptive path destination contract', () => {
     ).disposition).toBe('blocked');
   });
 
+  it.each([
+    ['simulation', '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system', 'unsupported-resource-type'],
+    ['project', '/missions?project=goal', 'non-student-visible-target'],
+    ['reflection', '/profile/growth?prompt=reflect', 'unsupported-resource-type'],
+    ['ai_intervention', '/ai/private-hint', 'non-student-visible-target'],
+    ['checkpoint', '/assessment/checkpoints/bode-after-external', 'unsupported-resource-type'],
+    ['lesson_step', '/teacher/resources/assigned-card', 'non-student-visible-target'],
+  ])('fails closed for unsupported %s destination %s', (resourceType, target, reason) => {
+    expect(resolveAdaptivePathDestinationContract(resourceType, target)).toMatchObject({
+      disposition: 'blocked',
+      reason,
+    });
+  });
+
   it('preserves path-center and external destination rules', () => {
     expect(resolveAdaptivePathDestinationContract(
       'textbook_section',

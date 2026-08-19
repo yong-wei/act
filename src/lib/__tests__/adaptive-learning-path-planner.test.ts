@@ -39,6 +39,7 @@ import {
   applyCoreResourcePathReadinessDispositions,
   buildResourceNodeRegistry,
   buildResourceSemanticProjection,
+  type ResourceNodeRegistry,
 } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
@@ -441,6 +442,46 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     now,
     ...overrides,
     learnerState: mergeLearnerState(trustedLearnerState, overrides.learnerState),
+  };
+}
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? {
+          ...node,
+          launchTarget: `/simulations/${node.sourceRef}`,
+        }
+      : node),
+  };
+}
+
+function withLegalReflectionDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'reflection' && node.renderTarget?.startsWith('/profile/growth')
+      ? {
+          ...node,
+          renderTarget: '/assessment/adaptive-practice',
+        }
+      : node),
+  };
+}
+
+function withLegalAdaptiveDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  const normalized = withLegalReflectionDestinations(withLegalSimulationDestinations(registry));
+  return {
+    ...normalized,
+    nodes: normalized.nodes.map((node) => {
+      if (node.type === 'ai_intervention' && node.renderTarget?.startsWith('/ai/')) {
+        return { ...node, renderTarget: '/assessment/adaptive-practice' };
+      }
+      if (node.type === 'checkpoint' && node.launchTarget?.startsWith('/assessment/checkpoints/')) {
+        return { ...node, launchTarget: '/assessment/adaptive-practice' };
+      }
+      return node;
+    }),
   };
 }
 
@@ -2991,7 +3032,7 @@ describe('adaptive learning path planner', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       learnerState: null,
-      registry: buildControlCorrectionResourceNodeRegistry(),
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],
@@ -3214,7 +3255,8 @@ describe('adaptive learning path planner', () => {
   });
 
   it('records whether requested resource, difficulty, and checkpoint preferences affect path selection', () => {
-    const preferredSimulation = buildAdaptiveLearningPathPlan(plannerInput({
+    const preferredSimulation = buildAdaptiveLearningPathPlan({
+      ...plannerInput({
       resourcePreferences: ['simulation', 'arena_task'],
       resourcePreferenceSource: 'request',
       difficultyRhythm: 'challenge',
@@ -3223,12 +3265,14 @@ describe('adaptive learning path planner', () => {
         { key: 'resource-preferences', source: 'request', value: ['simulation', 'arena_task'] },
         { key: 'difficulty-rhythm', source: 'request', value: 'challenge' },
       ],
-    }));
+      }),
+      registry: withLegalAdaptiveDestinations(plannerInput().registry),
+    });
     const denseCheckpoint = buildAdaptiveLearningPathPlan({
       studentId: 'student-1',
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       learnerState: null,
-      registry: buildControlCorrectionResourceNodeRegistry(),
+      registry: withLegalAdaptiveDestinations(buildControlCorrectionResourceNodeRegistry()),
       constraints: {
         timeBudgetMinutes: 120,
         privacyScopes: ['student-visible'],
@@ -3368,7 +3412,7 @@ describe('adaptive learning path planner', () => {
             id: 'assigned-card',
             label: '教师指定基础卡',
             type: 'INTERACTIVE_COMP',
-            renderTarget: '/teacher/resources/assigned-card',
+            renderTarget: '/interactive-learning/resources/assigned-card',
             knowledgeNodeIds: ['kn-bode', 'kn-cruise'],
             planningOverride: {
               teacherPolicy: 'teacher-assigned',
@@ -3476,7 +3520,10 @@ describe('adaptive learning path planner', () => {
   });
 
   it('compares bundle policies against an explicit primary policy family', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const baseInput = plannerInput();
+    const plan = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      registry: withLegalReflectionDestinations(baseInput.registry),
       policyFamily: 'foundation-remediation',
       constraints: {
         timeBudgetMinutes: 90,
@@ -3488,7 +3535,7 @@ describe('adaptive learning path planner', () => {
         families: ['sprint-correction'],
         overlapThreshold: 0.9,
       },
-    }));
+    });
 
     expect(plan.policyBundle?.families).toEqual(['foundation-remediation', 'sprint-correction']);
     expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
@@ -3536,7 +3583,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('builds a control-correction three-style bundle with explainable option contracts', () => {
-    const controlRegistry = buildControlCorrectionResourceNodeRegistry();
+    const controlRegistry = withLegalAdaptiveDestinations(buildControlCorrectionResourceNodeRegistry());
     const externalRegistry = buildResourceNodeRegistry({
       externalResources: [{
         id: 'control-ocw',
@@ -3974,7 +4021,7 @@ describe('adaptive learning path planner', () => {
 
   it('generates a feasible 90-minute control-correction path from audited seed nodes', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
-      registry: buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true }),
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true })),
       goal: {
         id: 'control-correction',
         title: '控制系统校正设计',
@@ -4035,7 +4082,7 @@ describe('adaptive learning path planner', () => {
 
   it('records bounded constraint repair coverage in path artifacts', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
-      registry: buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true }),
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true })),
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       constraints: {
         timeBudgetMinutes: 90,
@@ -6071,7 +6118,11 @@ describe('adaptive learning path planner', () => {
   });
 
   it('keeps blocked resources out of graph edges while exposing map, timeline, and evidence payloads', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const baseInput = plannerInput();
+    const plan = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      registry: withLegalReflectionDestinations(baseInput.registry),
+    });
     const mainIds = plan.mainPath.map((node) => node.nodeId);
 
     expect(plan.visualization.map.mainPathNodeIds).toEqual(mainIds);
@@ -6081,7 +6132,7 @@ describe('adaptive learning path planner', () => {
       expect.objectContaining({
         nodeId: 'restricted:1',
         title: '受限资源',
-        reasonCodes: ['privacy-scope-blocked'],
+        reasonCodes: expect.arrayContaining(['privacy-scope-blocked']),
       }),
     );
     expect(JSON.stringify(plan.visualization)).not.toContain('registry:hidden-admin');
@@ -6148,7 +6199,10 @@ describe('adaptive learning path planner', () => {
   });
 
   it('returns executable starter options with checkpoints for cold-start registered goals', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const baseInput = plannerInput();
+    const plan = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      registry: withLegalReflectionDestinations(baseInput.registry),
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       learnerState: null,
       constraints: {
@@ -6157,7 +6211,7 @@ describe('adaptive learning path planner', () => {
         device: 'desktop',
       },
       now: new Date('2026-06-14T08:00:00.000Z'),
-    }));
+    });
 
     expect(plan.status).toBe('fallback');
     expect(plan.confidence.level).toBe('low');
@@ -6197,7 +6251,7 @@ describe('adaptive learning path planner', () => {
         requiredEvidenceRefs: ['external_resource.accessed'],
         remediationBehavior: 'retry-prerequisite-node',
         reviewState: 'pending',
-        launchTarget: '/assessment/checkpoints/bode-after-external',
+        launchTarget: '/assessment/adaptive-practice',
         knowledgeNodeIds: ['kn-bode'],
         prerequisiteNodeIds: ['external-resource:ocw-bode'],
       }],
@@ -6391,16 +6445,17 @@ describe('adaptive learning path planner', () => {
         {
           id: 'private-hint',
           title: '教师私有提示',
-          renderTarget: '/ai/private-hint',
+          renderTarget: '/assessment/adaptive-practice',
           knowledgeNodeIds: ['kn-pre'],
           teacherOnly: true,
         },
       ],
-      projects: [
+      registeredResources: [
         {
           id: 'public-project',
           title: '公开项目',
-          launchTarget: '/missions?project=public',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/public-project',
           knowledgeNodeIds: ['kn-goal'],
           prerequisiteNodeIds: ['ai_intervention:private-hint'],
         },
@@ -6423,7 +6478,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.status).toBe('fallback');
     expect(plan.mainPath).toEqual([]);
     expect(plan.explanations.fallbackReasons).toContain('feasible-goal-path-missing');
-    expect(plan.alternatives.find((item) => item.nodeId === 'project:public-project')).toEqual(
+    expect(plan.alternatives.find((item) => item.nodeId === 'registry:public-project')).toEqual(
       expect.objectContaining({
         blocked: true,
         reasonCodes: ['infeasible-prerequisite-chain'],
@@ -6435,7 +6490,7 @@ describe('adaptive learning path planner', () => {
       nodeId: null,
       createdAt: '2026-05-27T10:30:00.000Z',
     });
-    expect(updated.corrections[0].nodeIds).not.toContain('project:public-project');
+    expect(updated.corrections[0].nodeIds).not.toContain('registry:public-project');
     expect(JSON.stringify(plan)).not.toContain('private-hint');
     expect(JSON.stringify(plan)).not.toContain('教师私有提示');
   });
@@ -6446,7 +6501,7 @@ describe('adaptive learning path planner', () => {
         {
           id: 'teacher-only-hint',
           title: '教师专用提示',
-          renderTarget: '/ai/teacher-only-hint',
+          renderTarget: '/assessment/adaptive-practice',
           knowledgeNodeIds: ['kn-teacher-only'],
           teacherOnly: true,
         },
@@ -6489,14 +6544,16 @@ describe('adaptive learning path planner', () => {
           knowledgeNodeIds: ['kn-pre'],
         },
       ],
-      projects: [
+      registeredResources: [
         {
           id: 'goal',
           title: '目标项目',
-          launchTarget: '/missions?project=goal',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/goal',
           knowledgeNodeIds: ['kn-goal'],
           prerequisiteNodeIds: ['simulation:pre'],
           planningOverride: {
+            estimatedTimeMinutes: 60,
             readiness: {
               minimumCompetency: {},
               minimumEvidenceCount: 0,
@@ -6526,7 +6583,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.status).toBe('fallback');
     expect(plan.mainPath).toEqual([]);
     expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
-    expect(plan.alternatives.find((item) => item.nodeId === 'project:goal')).toEqual(
+    expect(plan.alternatives.find((item) => item.nodeId === 'registry:goal')).toEqual(
       expect.objectContaining({
         blocked: true,
         reasonCodes: ['time-budget-insufficient'],
@@ -6538,7 +6595,7 @@ describe('adaptive learning path planner', () => {
       nodeId: null,
       createdAt: '2026-05-27T10:45:00.000Z',
     });
-    expect(updated.corrections[0].nodeIds).not.toContain('project:goal');
+    expect(updated.corrections[0].nodeIds).not.toContain('registry:goal');
   });
 
   it('uses completed prerequisites outside the main path when evaluating alternatives', () => {
@@ -6551,6 +6608,18 @@ describe('adaptive learning path planner', () => {
           renderTarget: '/interactive-learning/resources/main-card',
           knowledgeNodeIds: ['kn-goal'],
         },
+        {
+          id: 'alt',
+          label: '替代项目',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre'],
+          planningOverride: {
+            estimatedTimeMinutes: 60,
+            terminalConstraints: ['terminal-node'],
+          },
+        },
       ],
       simulations: [
         {
@@ -6558,15 +6627,6 @@ describe('adaptive learning path planner', () => {
           title: '替代路径前置',
           launchTarget: '/simulations/pre',
           knowledgeNodeIds: ['kn-pre'],
-        },
-      ],
-      projects: [
-        {
-          id: 'alt',
-          title: '替代项目',
-          launchTarget: '/missions?project=alt',
-          knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['simulation:pre'],
         },
       ],
     });
@@ -6586,11 +6646,11 @@ describe('adaptive learning path planner', () => {
       },
     }));
 
-    const alternative = plan.alternatives.find((item) => item.nodeId === 'project:alt');
+    const alternative = plan.alternatives.find((item) => item.nodeId === 'registry:alt');
     expect(alternative).toEqual(
       expect.objectContaining({
         blocked: false,
-        nodeIds: ['project:alt'],
+        nodeIds: ['registry:alt'],
       }),
     );
   });
@@ -6605,6 +6665,18 @@ describe('adaptive learning path planner', () => {
           renderTarget: '/interactive-learning/resources/main-card',
           knowledgeNodeIds: ['kn-goal'],
         },
+        {
+          id: 'alt',
+          label: '替代项目',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre'],
+          planningOverride: {
+            estimatedTimeMinutes: 60,
+            terminalConstraints: ['terminal-node'],
+          },
+        },
       ],
       simulations: [
         {
@@ -6612,15 +6684,6 @@ describe('adaptive learning path planner', () => {
           title: '替代路径前置',
           launchTarget: '/simulations/pre',
           knowledgeNodeIds: ['kn-pre'],
-        },
-      ],
-      projects: [
-        {
-          id: 'alt',
-          title: '替代项目',
-          launchTarget: '/missions?project=alt',
-          knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['simulation:pre'],
         },
       ],
     });
@@ -6645,14 +6708,14 @@ describe('adaptive learning path planner', () => {
       createdAt: '2026-05-27T11:00:00.000Z',
     });
 
-    expect(plan.alternatives.find((item) => item.nodeId === 'project:alt')).toEqual(
+    expect(plan.alternatives.find((item) => item.nodeId === 'registry:alt')).toEqual(
       expect.objectContaining({
         blocked: false,
-        nodeIds: ['simulation:pre', 'project:alt'],
+        nodeIds: ['simulation:pre', 'registry:alt'],
       }),
     );
     expect(updated.corrections[0].nodeIds).toEqual(
-      expect.arrayContaining(['simulation:pre', 'project:alt']),
+      expect.arrayContaining(['simulation:pre', 'registry:alt']),
     );
   });
 
@@ -6666,6 +6729,18 @@ describe('adaptive learning path planner', () => {
           renderTarget: '/interactive-learning/resources/main-card',
           knowledgeNodeIds: ['kn-goal'],
         },
+        {
+          id: 'alt',
+          label: '替代项目',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre'],
+          planningOverride: {
+            estimatedTimeMinutes: 60,
+            terminalConstraints: ['terminal-node'],
+          },
+        },
       ],
       simulations: [
         {
@@ -6673,15 +6748,6 @@ describe('adaptive learning path planner', () => {
           title: '替代路径前置',
           launchTarget: '/simulations/pre',
           knowledgeNodeIds: ['kn-pre'],
-        },
-      ],
-      projects: [
-        {
-          id: 'alt',
-          title: '替代项目',
-          launchTarget: '/missions?project=alt',
-          knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['simulation:pre'],
         },
       ],
     });
@@ -6699,8 +6765,8 @@ describe('adaptive learning path planner', () => {
         privacyScopes: ['student-visible'],
       },
     }));
-    expect(plan.alternatives.find((item) => item.nodeId === 'project:alt')?.nodeIds)
-      .toEqual(['simulation:pre', 'project:alt']);
+    expect(plan.alternatives.find((item) => item.nodeId === 'registry:alt')?.nodeIds)
+      .toEqual(['simulation:pre', 'registry:alt']);
 
     const updated = recordLearningPathFeedback(plan, {
       id: 'feedback-alternative-prereq',
@@ -6723,6 +6789,24 @@ describe('adaptive learning path planner', () => {
           renderTarget: '/interactive-learning/resources/main-card',
           knowledgeNodeIds: ['kn-goal'],
         },
+        {
+          id: 'alt-a',
+          label: '替代项目 A',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt-a',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre-a'],
+          planningOverride: { estimatedTimeMinutes: 60, terminalConstraints: ['terminal-node'] },
+        },
+        {
+          id: 'alt-b',
+          label: '替代项目 B',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt-b',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre-b'],
+          planningOverride: { estimatedTimeMinutes: 60, terminalConstraints: ['terminal-node'] },
+        },
       ],
       simulations: [
         {
@@ -6736,22 +6820,6 @@ describe('adaptive learning path planner', () => {
           title: '替代路径前置 B',
           launchTarget: '/simulations/pre-b',
           knowledgeNodeIds: ['kn-pre-b'],
-        },
-      ],
-      projects: [
-        {
-          id: 'alt-a',
-          title: '替代项目 A',
-          launchTarget: '/missions?project=alt-a',
-          knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['simulation:pre-a'],
-        },
-        {
-          id: 'alt-b',
-          title: '替代项目 B',
-          launchTarget: '/missions?project=alt-b',
-          knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['simulation:pre-b'],
         },
       ],
     });
@@ -6831,20 +6899,22 @@ describe('adaptive learning path planner', () => {
           renderTarget: '/interactive-learning/resources/main-card',
           knowledgeNodeIds: ['kn-goal'],
         },
-      ],
-      projects: [
         {
           id: 'pre-project',
           title: '前置终端项目',
-          launchTarget: '/missions?project=pre',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/pre-project',
           knowledgeNodeIds: ['kn-pre'],
+          planningOverride: { terminalConstraints: ['terminal-node'] },
         },
         {
           id: 'alt-project',
           title: '替代终端项目',
-          launchTarget: '/missions?project=alt',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alt-project',
           knowledgeNodeIds: ['kn-goal'],
-          prerequisiteNodeIds: ['project:pre-project'],
+          prerequisiteNodeIds: ['registry:pre-project'],
+          planningOverride: { terminalConstraints: ['terminal-node'] },
         },
       ],
     });
@@ -6869,14 +6939,14 @@ describe('adaptive learning path planner', () => {
       createdAt: '2026-05-27T11:20:00.000Z',
     });
 
-    expect(plan.alternatives.find((item) => item.nodeId === 'project:alt-project')).toEqual(
+    expect(plan.alternatives.find((item) => item.nodeId === 'registry:alt-project')).toEqual(
       expect.objectContaining({
         blocked: true,
         reasonCodes: ['terminal-constraint-blocked'],
       }),
     );
-    expect(updated.corrections[0].nodeIds).not.toContain('project:pre-project');
-    expect(updated.corrections[0].nodeIds).not.toContain('project:alt-project');
+    expect(updated.corrections[0].nodeIds).not.toContain('registry:pre-project');
+    expect(updated.corrections[0].nodeIds).not.toContain('registry:alt-project');
   });
 
   it('falls back when prerequisite chains contain cycles', () => {
@@ -6987,14 +7057,16 @@ describe('adaptive learning path planner', () => {
           knowledgeNodeIds: ['kn-pre'],
         },
       ],
-      projects: [
+      registeredResources: [
         {
           id: 'goal',
           title: '目标项目',
-          launchTarget: '/missions?project=goal',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/goal',
           knowledgeNodeIds: ['kn-goal'],
           prerequisiteNodeIds: ['simulation:pre'],
           planningOverride: {
+            estimatedTimeMinutes: 60,
             readiness: {
               minimumCompetency: {},
               minimumEvidenceCount: 0,
@@ -7025,7 +7097,7 @@ describe('adaptive learning path planner', () => {
 
     expect(plan.status).toBe('ready');
     expect(plan.mainPath.find((node) => node.nodeId === 'simulation:pre')?.status).toBe('completed');
-    expect(plan.mainPath.find((node) => node.nodeId === 'project:goal')?.status).toBe('current');
+    expect(plan.mainPath.find((node) => node.nodeId === 'registry:goal')?.status).toBe('current');
     expect(plan.score.objectives.constraintSatisfaction).toBe(1);
     expect(serializeLearningPathPlan(plan).estimatedTime).toBe(60);
     expect(plan.visualization.timeline.windows[2].estimatedMinutes).toBe(60);
@@ -7226,7 +7298,7 @@ describe('adaptive learning path planner', () => {
           id: 'beta-card',
           label: '目标 B 知识卡',
           type: 'INTERACTIVE_COMP',
-          renderTarget: '/interactive-learning/resources/beta',
+          renderTarget: '/interactive-learning/resources/beta-card',
           knowledgeNodeIds: ['kn-beta'],
         },
       ],
@@ -7234,7 +7306,7 @@ describe('adaptive learning path planner', () => {
         {
           id: 'alpha-risk-reflection',
           title: '目标 A 风险反思',
-          renderTarget: '/profile/growth?prompt=alpha-risk-reflection',
+          renderTarget: '/assessment/adaptive-practice',
           knowledgeNodeIds: ['kn-alpha'],
         },
       ],
@@ -7297,7 +7369,7 @@ describe('adaptive learning path planner', () => {
         {
           id: 'participation-risk',
           title: '参与风险反思',
-          renderTarget: '/profile/growth?prompt=participation-risk',
+          renderTarget: '/assessment/adaptive-practice',
           knowledgeNodeIds: ['kn-risk-support'],
         },
       ],
@@ -7655,7 +7727,7 @@ describe('adaptive learning path planner', () => {
         {
           id: 'reflect',
           title: '后续反思',
-          renderTarget: '/profile/growth?prompt=reflect',
+          renderTarget: '/assessment/adaptive-practice',
           knowledgeNodeIds: ['kn-reflect'],
           prerequisiteNodeIds: ['simulation:locked-sim'],
         },
