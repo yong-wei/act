@@ -19,5 +19,5 @@
 ## 4. Verification and evidence
 
 - [x] 4.1 Add focused projection, PDF, persistence, authorization, privacy, idempotency, and migration tests.
-- [ ] 4.2 Capture 1440px and 320px browser evidence for teacher, student-safe, export failure, and disposition states with a source-bound manifest.
-- [ ] 4.3 Pass Prisma validation/generation, affected tests, typecheck, ESLint, OpenSpec strict validation, and commit/push verification.
+- [x] 4.2 Capture 1440px and 320px browser evidence for teacher, student-safe, export failure, and disposition states with a source-bound manifest.
+- [x] 4.3 Pass Prisma validation/generation, affected tests, typecheck, ESLint, OpenSpec strict validation, and commit/push verification.
