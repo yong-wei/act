@@ -244,6 +244,7 @@ export interface DocumentRubricEvidenceWriteback {
     finishedAt: Date;
     competencyContribution: Record<string, number>;
     sourceEventId: string;
+    sourceLogId: string;
     contextJson: {
       gradingRunId: string;
       feedbackSource: 'document-feedback';
@@ -908,6 +909,7 @@ export async function writeApprovedGradingEvidence(input: {
   rubric: RubricDefinition;
   studentId: string;
   goalContext: DocumentRubricGoalContext;
+  sourceLogId: string;
   now?: Date;
 }): Promise<DocumentRubricEvidenceWriteback> {
   if (input.run.status !== 'approved') {
@@ -965,6 +967,7 @@ export function previewApprovedGradingEvidence(input: {
   rubric: RubricDefinition;
   studentId: string;
   goalContext: DocumentRubricGoalContext;
+  sourceLogId: string;
   now?: Date;
 }): DocumentRubricEvidenceWritebackPreview {
   if (input.run.status !== 'approved') {
@@ -1090,8 +1093,13 @@ function buildApprovedGradingEvidenceFacts(input: {
   rubric: RubricDefinition;
   studentId: string;
   goalContext: DocumentRubricGoalContext;
+  sourceLogId: string;
   now?: Date;
 }): DocumentRubricEvidenceWriteback['facts'] {
+  const sourceLogId = input.sourceLogId.trim();
+  if (!sourceLogId) {
+    throw new Error('document-rubric-grading-source-log-required');
+  }
   const now = input.now ?? new Date();
   return input.run.approvedGrades.map((grade) => {
     const competencyDimension = normalizeDocumentRubricGoalDimension(
@@ -1107,7 +1115,10 @@ function buildApprovedGradingEvidenceFacts(input: {
       competencyContribution: {
         [competencyDimension]: grade.profileWritebackCandidate.contribution,
       },
-      sourceEventId: `${input.run.id}:${grade.criterionId}:${input.run.rubricVersion}`,
+      sourceEventId: `grading:${[input.run.id, grade.criterionId, input.rubric.version]
+        .map((value) => encodeURIComponent(String(value)))
+        .join(':')}`,
+      sourceLogId,
       contextJson: {
         gradingRunId: input.run.id,
         feedbackSource: 'document-feedback',

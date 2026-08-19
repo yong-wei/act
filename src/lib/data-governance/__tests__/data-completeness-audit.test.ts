@@ -7,8 +7,48 @@ import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-re
 import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
+  type DataCompletenessDocumentRubricDraftInput,
+  type DataCompletenessLearningFactInput,
 } from '../data-completeness-audit';
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
+
+function workbenchSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
+  return `grading:${[runId, criterionId, rubricVersion].map(encodeURIComponent).join(':')}`;
+}
+
+function approvedWorkbenchDraft(
+  overrides: Partial<DataCompletenessDocumentRubricDraftInput> = {},
+): DataCompletenessDocumentRubricDraftInput {
+  return {
+    id: 'draft-approved-1',
+    ownerUserId: 'student-1',
+    reviewerState: 'approved',
+    runId: 'run-1',
+    rubricId: 'rubric-1',
+    rubricVersion: 'rubric-v1',
+    approvedCriterionIds: ['criterion-1'],
+    ...overrides,
+  };
+}
+
+function workbenchFact(
+  overrides: Partial<DataCompletenessLearningFactInput> = {},
+): DataCompletenessLearningFactInput {
+  return {
+    id: 'workbench-fact-1',
+    userId: 'student-1',
+    factType: 'document_rubric_grading',
+    sourceEventId: workbenchSourceEventId('run-1', 'criterion-1', 'rubric-v1'),
+    sourceLogId: 'draft-approved-1',
+    contextJson: {
+      gradingRunId: 'run-1',
+      rubricId: 'rubric-1',
+      rubricVersion: 'rubric-v1',
+      criterionId: 'criterion-1',
+    },
+    ...overrides,
+  };
+}
 
 describe('data completeness audit', () => {
   it('accepts governed document-rubric grading source events without dangling lineage', () => {
@@ -30,6 +70,32 @@ describe('data completeness audit', () => {
       });
       expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(1);
     }
+  });
+
+  it.each([
+    ['accepts an approved workbench draft anchor', [approvedWorkbenchDraft()], workbenchFact(), 0],
+    ['rejects a missing workbench draft', [], workbenchFact(), 1],
+    ['rejects a mismatched workbench sourceLogId', [approvedWorkbenchDraft()], workbenchFact({ sourceLogId: 'draft-forged-1' }), 1],
+    ['rejects a workbench draft owned by another learner', [approvedWorkbenchDraft({ ownerUserId: 'student-2' })], workbenchFact(), 1],
+    ['rejects a workbench draft that is not approved', [approvedWorkbenchDraft({ reviewerState: 'pending' })], workbenchFact(), 1],
+    ['rejects a mismatched workbench criterion', [approvedWorkbenchDraft()], workbenchFact({
+      sourceEventId: workbenchSourceEventId('run-1', 'criterion-2', 'rubric-v1'),
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-1', rubricVersion: 'rubric-v1', criterionId: 'criterion-2' },
+    }), 1],
+    ['rejects a mismatched workbench rubric', [approvedWorkbenchDraft()], workbenchFact({
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-forged', rubricVersion: 'rubric-v1', criterionId: 'criterion-1' },
+    }), 1],
+    ['rejects a mismatched workbench rubric version', [approvedWorkbenchDraft()], workbenchFact({
+      sourceEventId: workbenchSourceEventId('run-1', 'criterion-1', 'rubric-v2'),
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-1', rubricVersion: 'rubric-v2', criterionId: 'criterion-1' },
+    }), 1],
+  ])('%s', (_label, documentRubricDrafts, learningFact, expectedDanglingEvents) => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [learningFact],
+      documentRubricDrafts,
+    });
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(expectedDanglingEvents);
   });
 
   it('reports graph, resource, citation, path, lineage, and learner readiness separately', () => {
