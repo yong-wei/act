@@ -27,6 +27,7 @@ interface StoredPromptAssessment {
   promptContent: string;
   structuredData: unknown;
   auditTaskContext: unknown;
+  assessmentResult: unknown;
   consistencyResult: unknown;
   overallScore: number;
   completenessScore: number;
@@ -144,6 +145,22 @@ const suggestionSchema = z.object({
   example: z.string().optional(),
 }).strict();
 
+const assessmentResultSchema = z.object({
+  overallScore: z.number().finite(),
+  dimensionScores: z.object({
+    completeness: z.number().finite(),
+    precision: z.number().finite(),
+    structurization: z.number().finite(),
+    executability: z.number().finite(),
+  }).strict(),
+  suggestions: z.array(suggestionSchema),
+  metaPromptAnalysis: z.object({
+    detectedIntent: z.string(),
+    missingElements: z.array(z.string()),
+    improvementPotential: z.number().finite(),
+  }).strict(),
+}).strict();
+
 const consistencyResultSchema = z.object({
   consistencyScore: z.number(),
   alignmentAnalysis: z.object({
@@ -197,17 +214,12 @@ function toInputJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
 
-function toStructuredData(value: unknown): Record<string, string> | undefined {
-  const parsed = structuredDataSchema.safeParse(value);
-  return parsed.success ? parsed.data : undefined;
-}
-
 function toAssessment(record: StoredPromptAssessment): AssessPromptResponse {
-  const recalculated = assessPromptQuality({
-    prompt: record.promptContent,
-    structuredData: toStructuredData(record.structuredData),
-    context: { taskType: 'system-analysis', difficulty: 'intermediate' },
-  });
+  const storedResult = assessmentResultSchema.safeParse(record.assessmentResult);
+  if (storedResult.success) {
+    return storedResult.data;
+  }
+
   const suggestions = z.array(suggestionSchema).safeParse(record.suggestions);
 
   return {
@@ -219,7 +231,11 @@ function toAssessment(record: StoredPromptAssessment): AssessPromptResponse {
       executability: record.executabilityScore,
     },
     suggestions: suggestions.success ? suggestions.data : [],
-    metaPromptAnalysis: recalculated.metaPromptAnalysis,
+    metaPromptAnalysis: {
+      detectedIntent: 'unavailable',
+      missingElements: [],
+      improvementPotential: 0,
+    },
   };
 }
 
@@ -287,6 +303,7 @@ export async function createPromptAssessmentAttempt({
         structurizationScore: assessment.dimensionScores.structurization,
         executabilityScore: assessment.dimensionScores.executability,
         suggestions: assessment.suggestions.map(toInputJson),
+        assessmentResult: toInputJson(assessment),
         version: (latest?.version ?? 0) + 1,
       },
     });

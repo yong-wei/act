@@ -8,6 +8,11 @@ The system SHALL persist each production prompt-quality evaluation in `PromptAss
 - **THEN** the system SHALL create exactly one `PromptAssessment` record owned by that student
 - **AND** the returned quality result SHALL correspond to the persisted record
 
+#### Scenario: Evaluator behavior changes after an assessment is stored
+- **WHEN** a later deployment changes intent detection, completeness analysis, or improvement-potential logic
+- **THEN** reading an existing prompt assessment version SHALL return its quality-result snapshot written at evaluation time
+- **AND** it SHALL NOT recompute that historical result with the later evaluator
+
 #### Scenario: Client supplies another user identity
 - **WHEN** an authenticated student submits a prompt-quality evaluation containing a different `userId`
 - **THEN** the system SHALL persist the record for the authenticated student only

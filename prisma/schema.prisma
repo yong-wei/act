@@ -4354,6 +4354,7 @@ model PromptAssessment {
   structurizationScore Float
   executabilityScore   Float
   suggestions          Json[]
+  assessmentResult     Json?
   auditTaskContext     Json?
   consistencyResult    Json?
   version              Int

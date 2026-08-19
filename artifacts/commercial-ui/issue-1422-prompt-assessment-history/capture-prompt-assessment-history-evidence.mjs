@@ -28,6 +28,9 @@ const boundInputs = [
   'src/app/api/evaluation/track-consistency/route.ts',
   'src/app/api/evaluation/prompt-history/[userId]/route.ts',
   'src/features/evaluation/prompt-assessment-history.ts',
+  'src/features/evaluation/prompt-quality.ts',
+  'prisma/schema.prisma',
+  'prisma/migrations/20260819124500_add_prompt_assessment_result_snapshot/migration.sql',
   'src/components/platform/app-shell.tsx',
   'src/lib/platform-role-navigation.ts',
 ];
@@ -74,7 +77,16 @@ async function writeCommercialRouteEvidence(routeEvidence) {
 }
 
 const captureRevision = git(['rev-parse', 'HEAD']);
+const captureBranch = git(['symbolic-ref', '--quiet', '--short', 'HEAD']);
+const remoteCaptureRef = `refs/heads/${captureBranch}`;
+const remoteCaptureRevision = git(['ls-remote', '--exit-code', '--heads', 'origin', remoteCaptureRef])
+  .split(/\s+/)[0];
 assert.deepEqual(statusPaths(), [], 'Commercial UI capture must start from a clean worktree');
+assert.equal(
+  remoteCaptureRevision,
+  captureRevision,
+  'Commercial UI capture revision must already be the remote branch tip',
+);
 const initialSourceHashes = await sourceHashes();
 
 await mkdir(outputDirectory, { recursive: true });
@@ -209,6 +221,11 @@ await writeFile(join(outputDirectory, 'browser-evidence.json'), JSON.stringify({
   change: 'persist-governed-prompt-assessment-history',
   capturedAt: new Date().toISOString(),
   captureRevision,
+  remoteCapture: {
+    branch: captureBranch,
+    ref: remoteCaptureRef,
+    revision: remoteCaptureRevision,
+  },
   generator: 'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
   sourceHashes: initialSourceHashes,
   route: '/evaluation/prompt-assessment',

@@ -9,7 +9,7 @@ This change must preserve the learning-process boundary: an evaluation is useful
 **Goals:**
 
 - Make authenticated session identity the only authority for evaluation writes and history reads.
-- Persist each prompt-quality evaluation with a stable student/session/version identity.
+- Persist each prompt-quality evaluation with a stable student/session/version identity and immutable quality-result snapshot.
 - Attach a consistency result to one owned persisted evaluation attempt.
 - Preserve prompt assessment history across process restart and multiple application instances.
 - Keep the evaluation page and client-only demo behavior compatible.
@@ -24,7 +24,7 @@ This change must preserve the learning-process boundary: an evaluation is useful
 ## Decisions
 
 1. **Use `PromptAssessment` as the single persisted attempt record.**
-   Add nullable JSON columns for bounded audit task context and consistency result, plus a unique `(userId, sessionId, version)` constraint. This extends the model already designed for prompt-quality evidence and avoids splitting one attempt across an unrelated `DesignSession` aggregate.
+   Add nullable JSON columns for the complete quality-result snapshot, bounded audit task context, and consistency result, plus a unique `(userId, sessionId, version)` constraint. History reads return the stored quality snapshot rather than rerunning the evaluator, so a later evaluator deployment cannot rewrite an earlier learner-facing result.
 
    Alternatives considered:
    - A separate `PromptConsistencyAssessment` table: rejected because consistency has a one-to-one lifecycle with a prompt attempt and does not need an independent activity feed.
@@ -59,7 +59,7 @@ This change must preserve the learning-process boundary: an evaluation is useful
 
 ## Migration Plan
 
-1. Apply an additive migration for the two JSON fields and the user/session/version unique index after checking the target database for duplicate triples.
+1. Apply additive migrations for the quality-result, audit-task-context, and consistency-result JSON fields and the user/session/version unique index after checking the target database for duplicate triples.
 2. Deploy route and persistence code after the schema is available.
 3. Verify authenticated create, owned history read, consistency attachment, restart-safe read, and the absence of `LearningFact` writes.
 4. Roll back application code if needed; added columns and unique index remain inert. Do not reconstruct process-local historical records.

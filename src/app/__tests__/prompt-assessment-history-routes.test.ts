@@ -68,6 +68,21 @@ const databaseRecord = {
   promptContent: assessmentBody.prompt,
   structuredData: assessmentBody.structuredData,
   auditTaskContext: assessmentBody.auditTaskContext,
+  assessmentResult: {
+    overallScore: 85,
+    dimensionScores: {
+      completeness: 100,
+      precision: 85,
+      structurization: 75,
+      executability: 80,
+    },
+    suggestions: [],
+    metaPromptAnalysis: {
+      detectedIntent: 'stored-controller-design',
+      missingElements: ['stored-verification-target'],
+      improvementPotential: 11,
+    },
+  },
   consistencyResult: null,
   overallScore: 85,
   completenessScore: 100,
@@ -125,6 +140,9 @@ describe('prompt assessment history routes', () => {
         userId: 'student-1',
         sessionId: assessmentBody.sessionId,
         version: 1,
+        assessmentResult: expect.objectContaining({
+          metaPromptAnalysis: expect.any(Object),
+        }),
       }),
     }));
   });
@@ -210,17 +228,30 @@ describe('prompt assessment history routes', () => {
     expect(mocks.prisma.promptAssessment.findMany).not.toHaveBeenCalled();
   });
 
-  it('returns only the authenticated student persisted history without learning-fact writes', async () => {
+  it('returns the stored quality snapshot for an authenticated student history entry', async () => {
     const response = await getHistory(
       new Request('http://localhost/api/evaluation/prompt-history/student-1'),
       historyContext('student-1'),
     );
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ total: 1 });
+    const body = await response.json();
+
+    expect(body).toMatchObject({ total: 1 });
     expect(mocks.prisma.promptAssessment.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { userId: 'student-1' },
     }));
+    expect(body).toMatchObject({
+      history: [{
+        assessment: {
+          metaPromptAnalysis: {
+            detectedIntent: 'stored-controller-design',
+            missingElements: ['stored-verification-target'],
+            improvementPotential: 11,
+          },
+        },
+      }],
+    });
     expect(Object.keys(mocks.prisma)).toEqual(['$transaction', 'promptAssessment']);
   });
 });

@@ -54,6 +54,8 @@ async function main() {
     assert.deepEqual(history.map((record) => record.version), [1, 2]);
     assert.equal(history[0]?.auditTaskContext?.source, 'prompt-assessment');
     assert.equal(history[0]?.promptContent, assessmentRequest.prompt);
+    assert.equal(history[0]?.assessment.metaPromptAnalysis.detectedIntent, first.assessment.metaPromptAnalysis.detectedIntent);
+    assert.deepEqual(history[0]?.assessment.metaPromptAnalysis, first.assessment.metaPromptAnalysis);
 
     const consistency = await attachPromptConsistencyResult({
       userId,
