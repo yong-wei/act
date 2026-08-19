@@ -3,16 +3,35 @@ import { z } from 'zod';
 
 import {
   assertTeacherClassScope,
-  DIAGNOSIS_REPORT_GENERATOR_VERSION,
   DiagnosisReportScopeError,
   persistDiagnosisReport,
   type DiagnosisReportBody,
 } from '@/lib/diagnosis-persistence';
+import {
+  preflightDiagnosisGeneration,
+} from '@/lib/diagnosis-generation-preflight';
 
 export const diagnosisGenerationRequestSchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(200),
   targetStudentId: z.string().trim().min(1).max(200).optional(),
-}).strict();
+  force: z.boolean().optional().default(false),
+  forceReason: z.string().trim().min(8).max(1_000).optional(),
+}).strict().superRefine((value, context) => {
+  if (value.force && !value.forceReason) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['forceReason'],
+      message: 'force reason is required',
+    });
+  }
+  if (!value.force && value.forceReason) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['forceReason'],
+      message: 'force reason requires force intent',
+    });
+  }
+});
 
 export const diagnosisGenerationRetrySchema = z.object({
   action: z.literal('retry'),
@@ -56,6 +75,10 @@ const publicJobSelect = {
   state: true,
   evidenceCutoff: true,
   generatorVersion: true,
+  ruleVersion: true,
+  generationReason: true,
+  forceReason: true,
+  previousReportId: true,
   failureCode: true,
   failureMessage: true,
   retryable: true,
@@ -77,6 +100,10 @@ export function projectDiagnosisGenerationJob(job: PublicJobRow) {
     state: job.state,
     evidenceCutoff: job.evidenceCutoff.toISOString(),
     generatorVersion: job.generatorVersion,
+    ...(job.ruleVersion ? { ruleVersion: job.ruleVersion } : {}),
+    ...(job.generationReason ? { generationReason: job.generationReason } : {}),
+    ...(job.forceReason ? { forceReason: job.forceReason } : {}),
+    ...(job.previousReportId ? { previousReportId: job.previousReportId } : {}),
     failureCode: job.failureCode,
     failureMessage: job.failureMessage,
     retryable: job.retryable,
@@ -100,6 +127,8 @@ export async function startDiagnosisGenerationJob(
     classId: string;
     targetStudentId?: string | null;
     idempotencyKey: string;
+    force?: boolean;
+    forceReason?: string | null;
     now?: Date;
   },
 ) {
@@ -109,6 +138,13 @@ export async function startDiagnosisGenerationJob(
     targetStudentId: input.targetStudentId,
     requireActive: true,
   });
+  const forceReason = input.forceReason?.trim() ?? '';
+  if (input.force && (forceReason.length < 8 || forceReason.length > 1_000)) {
+    throw new DiagnosisGenerationError('diagnosis-generation-force-reason-required', 400);
+  }
+  if (!input.force && forceReason) {
+    throw new DiagnosisGenerationError('diagnosis-generation-force-reason-without-force', 400);
+  }
   const scopeKey = activeScopeKey(input.teacherId, input.classId, input.targetStudentId);
   const existing = await db.diagnosisGenerationJob.findUnique({
     where: { userId_idempotencyKey: { userId: input.teacherId, idempotencyKey: input.idempotencyKey } },
@@ -120,6 +156,29 @@ export async function startDiagnosisGenerationJob(
     select: publicJobSelect,
   });
   if (active) return active;
+  const preflight = await preflightDiagnosisGeneration(db, {
+    teacherId: input.teacherId,
+    classId: input.classId,
+    targetStudentId: input.targetStudentId,
+    now: input.now,
+  });
+  if (preflight.status === 'UNAVAILABLE') {
+    throw new DiagnosisGenerationError('diagnosis-generation-unavailable', 409);
+  }
+  if (preflight.status === 'ACTIVE_JOB') {
+    const racedActive = await db.diagnosisGenerationJob.findUnique({
+      where: { activeScopeKey: scopeKey },
+      select: publicJobSelect,
+    });
+    if (racedActive) return racedActive;
+    throw new DiagnosisGenerationError('diagnosis-generation-active-job-conflict', 409);
+  }
+  if (input.force && !preflight.canForce) {
+    throw new DiagnosisGenerationError('diagnosis-generation-force-not-required', 409);
+  }
+  if (!input.force && !preflight.canGenerate) {
+    throw new DiagnosisGenerationError('diagnosis-generation-no-effective-change', 409);
+  }
   try {
     return await db.diagnosisGenerationJob.create({
       data: {
@@ -130,8 +189,15 @@ export async function startDiagnosisGenerationJob(
         scopeId: input.targetStudentId ?? input.classId,
         activeScopeKey: scopeKey,
         idempotencyKey: input.idempotencyKey,
-        evidenceCutoff: input.now ?? new Date(),
-        generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+        evidenceCutoff: preflight.evidenceCutoff,
+        generatorVersion: preflight.generatorVersion,
+        ruleVersion: preflight.ruleVersion,
+        generationReason: input.force ? 'teacher-forced' : preflight.generationReason,
+        forceReason: input.force ? forceReason : null,
+        previousReportId: preflight.previousReport?.id ?? null,
+        inputSummary: preflight.inputSummary,
+        inputDigest: preflight.inputDigest,
+        ordinaryGenerationIdentity: input.force ? null : preflight.ordinaryGenerationIdentity,
       },
       select: publicJobSelect,
     });
@@ -142,6 +208,9 @@ export async function startDiagnosisGenerationJob(
         OR: [
           { userId: input.teacherId, idempotencyKey: input.idempotencyKey },
           { activeScopeKey: scopeKey },
+          ...(!input.force
+            ? [{ ordinaryGenerationIdentity: preflight.ordinaryGenerationIdentity }]
+            : []),
         ],
       },
       select: publicJobSelect,
@@ -301,6 +370,13 @@ export async function completeDiagnosisGenerationJob(
       targetStudentId: job.targetUserId,
       reportBody: input.reportBody,
       generationJobId: job.id,
+      generatorVersion: job.generatorVersion,
+      ruleVersion: job.ruleVersion,
+      generationReason: job.generationReason,
+      forceReason: job.forceReason,
+      previousReportId: job.previousReportId,
+      inputSummary: job.inputSummary,
+      inputDigest: job.inputDigest,
     }, tx as never);
     await tx.diagnosisGenerationAttempt.update({
       where: { id: input.attemptId },

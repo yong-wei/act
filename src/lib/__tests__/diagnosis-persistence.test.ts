@@ -143,6 +143,45 @@ describe('diagnosis report persistence', () => {
     });
   });
 
+  it('binds generation governance audit metadata to the formal report', async () => {
+    const db = createDb();
+    const inputSummary = {
+      schemaVersion: 'teacher-diagnosis-input-summary.v1',
+      categories: {
+        learningBehavior: { currentCount: 1, itemDigests: ['digest-1'] },
+      },
+    };
+
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody,
+      generationJobId: 'job-1',
+      generatorVersion: 'teacher-diagnosis.v2',
+      ruleVersion: 'teacher-diagnosis-preflight.v1',
+      generationReason: 'teacher-forced',
+      forceReason: '用于本周教学复盘会议留档',
+      previousReportId: 'report-previous',
+      inputSummary,
+      inputDigest: 'input-digest',
+    }, db);
+
+    expect(db.diagnosisReport.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'teacher-1',
+        generationJobId: 'job-1',
+        generatorVersion: 'teacher-diagnosis.v2',
+        ruleVersion: 'teacher-diagnosis-preflight.v1',
+        generationReason: 'teacher-forced',
+        forceReason: '用于本周教学复盘会议留档',
+        previousReportId: 'report-previous',
+        inputSummary,
+        inputDigest: 'input-digest',
+      }),
+    });
+  });
+
   it('rejects a teacher outside the class and a student outside the roster', async () => {
     const foreignClassDb = createDb({
       class: {

@@ -24,6 +24,7 @@ const authSecret = 'teacher-diagnosis-evidence-secret';
 type GenerationFixture = {
   start: 'QUEUED' | 'TIMED_OUT';
   poll?: 'COMPLETED';
+  preflight?: 'NEW_EVIDENCE' | 'NO_EFFECTIVE_CHANGE';
 };
 
 test.skip(!captureEnabled, 'run with TEACHER_DIAGNOSIS_REPORT_EVIDENCE_CAPTURE=1');
@@ -93,10 +94,46 @@ test('shows queued generation and refreshes history after completion on the clas
 
   await page.goto(`/teacher/classes/${EVIDENCE_CLASS_ID}`, { waitUntil: 'networkidle' });
   await page.locator('[data-diagnosis-generation-action="generate"]').click();
+  await expect(page.locator('[data-diagnosis-preflight-status="NEW_EVIDENCE"]')).toBeVisible();
+  await page.locator('[data-diagnosis-generation-action="confirm"]').click();
   await expect(page.locator('[data-diagnosis-generation-state="QUEUED"]')).toBeVisible();
   await page.screenshot({ path: path.join(artifactDirectory, 'class-generation-queued-1440-light.png'), fullPage: true });
   await expect(page.locator('[data-diagnosis-generation-state="COMPLETED"]')).toBeVisible({ timeout: 6_000 });
   await page.screenshot({ path: path.join(artifactDirectory, 'class-generation-completed-1440-light.png'), fullPage: true });
+  await expectNoHorizontalOverflow(page);
+  expect(diagnostics.consoleErrors).toEqual([]);
+  expect(diagnostics.pageErrors).toEqual([]);
+});
+
+test('requires an audited reason to force generation without effective changes', async ({ page }) => {
+  await installTeacherSession(page);
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  const diagnostics = collectDiagnostics(page);
+  await installAuthorizedFixture(page, 'class', 'ready', 0, {
+    start: 'QUEUED',
+    preflight: 'NO_EFFECTIVE_CHANGE',
+  });
+
+  await page.goto(`/teacher/classes/${EVIDENCE_CLASS_ID}`, { waitUntil: 'networkidle' });
+  await page.locator('[data-diagnosis-generation-action="generate"]').click();
+  await expect(page.locator('[data-diagnosis-preflight-status="NO_EFFECTIVE_CHANGE"]')).toBeVisible();
+  await expect(page.locator('[data-diagnosis-generation-action="force"]')).toBeDisabled();
+  await page.getByLabel('强制生成理由').fill('用于本周教学复盘会议留档');
+  await page.screenshot({
+    path: path.join(artifactDirectory, 'class-generation-preflight-no-change-1440-light.png'),
+    fullPage: true,
+  });
+  const generationRequest = page.waitForRequest((request) => (
+    request.method() === 'POST'
+    && new URL(request.url()).pathname === `/api/teacher/classes/${EVIDENCE_CLASS_ID}/diagnosis-reports`
+  ));
+  await page.locator('[data-diagnosis-generation-action="force"]').click();
+  expect((await generationRequest).postDataJSON()).toMatchObject({
+    force: true,
+    forceReason: '用于本周教学复盘会议留档',
+  });
+  await expect(page.locator('[data-diagnosis-generation-state="QUEUED"]')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   expect(diagnostics.consoleErrors).toEqual([]);
   expect(diagnostics.pageErrors).toEqual([]);
@@ -144,6 +181,8 @@ test('shows timeout and permits a retry on the 320px student production route', 
 
   await page.goto(`/teacher/classes/${EVIDENCE_CLASS_ID}/students/${EVIDENCE_STUDENT_ID}`, { waitUntil: 'networkidle' });
   await page.locator('[data-diagnosis-generation-action="generate"]').click();
+  await expect(page.locator('[data-diagnosis-preflight-status="NEW_EVIDENCE"]')).toBeVisible();
+  await page.locator('[data-diagnosis-generation-action="confirm"]').click();
   await expect(page.locator('[data-diagnosis-generation-state="TIMED_OUT"]')).toBeVisible();
   await page.screenshot({ path: path.join(artifactDirectory, 'student-generation-timeout-320-dark.png'), fullPage: true });
   await page.locator('[data-diagnosis-generation-action="retry"]').click();
@@ -179,6 +218,9 @@ async function installAuthorizedFixture(
     if (pathname === `/api/teacher/classes/${EVIDENCE_CLASS_ID}/students/${EVIDENCE_STUDENT_ID}/insights`) {
       return fulfill(route, studentInsightsFixture);
     }
+    if (pathname === `/api/teacher/classes/${EVIDENCE_CLASS_ID}/diagnosis-reports/preflight`) {
+      return fulfill(route, { preflight: generationPreflight(generation?.preflight ?? 'NEW_EVIDENCE') });
+    }
     if (pathname === `/api/teacher/classes/${EVIDENCE_CLASS_ID}/diagnosis-reports`) {
       if (route.request().method() === 'POST' && generation) {
         return fulfill(route, { job: generationJob(generation.start) });
@@ -196,6 +238,30 @@ async function installAuthorizedFixture(
     return route.abort('blockedbyclient');
   });
   return requests;
+}
+
+function generationPreflight(status: 'NEW_EVIDENCE' | 'NO_EFFECTIVE_CHANGE') {
+  return {
+    status,
+    canGenerate: status === 'NEW_EVIDENCE',
+    canForce: status === 'NO_EFFECTIVE_CHANGE',
+    evidenceCutoff: '2026-08-08T08:00:00.000Z',
+    generatorVersion: 'teacher-diagnosis.v1',
+    ruleVersion: 'teacher-diagnosis-preflight.v1',
+    previousReport: {
+      id: 'report-class-latest',
+      evidenceCutoff: '2026-08-01T07:00:00.000Z',
+      generatedAt: '2026-08-01T07:05:00.000Z',
+    },
+    activeJob: null,
+    categories: {
+      assignment: { availability: 'unavailable', currentCount: null, changedCount: null },
+      assessment: { availability: 'unavailable', currentCount: null, changedCount: null },
+      learningBehavior: { availability: 'available', currentCount: 24, changedCount: status === 'NEW_EVIDENCE' ? 2 : 0 },
+      risk: { availability: 'available', currentCount: 3, changedCount: 0 },
+      eligibility: { availability: 'available', currentCount: 30, changedCount: 0 },
+    },
+  };
 }
 
 function generationJob(state: 'QUEUED' | 'TIMED_OUT' | 'COMPLETED') {

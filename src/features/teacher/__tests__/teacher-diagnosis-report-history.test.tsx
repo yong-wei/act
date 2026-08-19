@@ -175,6 +175,71 @@ describe('TeacherDiagnosisReportHistoryView', () => {
     expect(failedHtml).toContain('模型响应超时');
   });
 
+  it('renders deterministic preflight states and keeps completed feedback collapsed', () => {
+    const preflightHtml = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[report]}
+        subjectLabel="控制 1 班 · 班级范围"
+        generationPreflight={{
+          status: 'NO_EFFECTIVE_CHANGE',
+          canGenerate: false,
+          canForce: true,
+          evidenceCutoff: '2026-08-19T03:00:00.000Z',
+          generatorVersion: 'teacher-diagnosis.v1',
+          ruleVersion: 'teacher-diagnosis-preflight.v1',
+          previousReport: {
+            id: 'report-1',
+            evidenceCutoff: '2026-07-30T08:00:00.000Z',
+            generatedAt: '2026-07-30T08:05:00.000Z',
+          },
+          activeJob: null,
+          categories: {
+            assignment: { availability: 'unavailable', currentCount: null, changedCount: null },
+            assessment: { availability: 'unavailable', currentCount: null, changedCount: null },
+            learningBehavior: { availability: 'available', currentCount: 4, changedCount: 0 },
+            risk: { availability: 'available', currentCount: 1, changedCount: 0 },
+            eligibility: { availability: 'available', currentCount: 30, changedCount: 0 },
+          },
+        }}
+      />,
+    );
+    const completedHtml = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[report]}
+        subjectLabel="控制 1 班 · 班级范围"
+        generationJob={{
+          id: 'job-completed',
+          classId: 'class-1',
+          targetStudentId: null,
+          scopeType: 'class',
+          scopeId: 'class-1',
+          state: 'COMPLETED',
+          evidenceCutoff: '2026-08-19T03:00:00.000Z',
+          generatorVersion: 'teacher-diagnosis.v1',
+          generationReason: 'new-evidence',
+          failureCode: null,
+          failureMessage: null,
+          retryable: false,
+          reportId: 'report-2',
+          createdAt: '2026-08-19T03:00:00.000Z',
+          startedAt: '2026-08-19T03:00:01.000Z',
+          completedAt: '2026-08-19T03:00:10.000Z',
+        }}
+      />,
+    );
+
+    expect(preflightHtml).toContain('data-diagnosis-preflight-status="NO_EFFECTIVE_CHANGE"');
+    expect(preflightHtml).toContain('没有有效变化');
+    expect(preflightHtml).toContain('强制生成理由');
+    expect(preflightHtml).toContain('作业');
+    expect(preflightHtml).toContain('未接入');
+    expect(completedHtml).toContain('<details');
+    expect(completedHtml).not.toContain('<details open=""');
+    expect(completedHtml).toContain('诊断生成完成，报告历史已更新');
+  });
+
   it('renders only a compatible adjacent-report comparison and keeps generated prose out of the comparison key', () => {
     const olderReport: DiagnosisReportApiItem = {
       ...report,
