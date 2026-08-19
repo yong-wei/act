@@ -25,6 +25,11 @@ const projection: TeacherDiagnosisDeliveryProjection = {
     },
     hasPreparationEntry: true,
   }],
+  suggestions: [{
+    targetKey: 'finding:1',
+    source: 'finding',
+    text: '建议围绕“稳定裕度判断薄弱”复核关联知识点，并完成一次针对性练习后查看新的诊断。',
+  }],
   confidence: 'medium',
   limitations: ['作业证据未接入。'],
   evidenceCutoff: '2026-08-19T08:00:00.000Z',
@@ -61,6 +66,8 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('查看允许的证据摘要');
     expect(html).toContain('导出 PDF');
     expect(html).toContain('标记已安排干预');
+    expect(html).toContain('学习建议');
+    expect(html).toContain('完成一次针对性练习');
     expect(html).toContain('处置不会清除风险');
     expect(html).toContain('报告版本：report-1');
   });

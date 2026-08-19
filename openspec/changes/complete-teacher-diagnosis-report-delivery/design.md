@@ -44,6 +44,10 @@ Each finding exposes counts grouped by allowlisted evidence source family plus r
 
 Resolving and displaying underlying evidence rows was rejected because the current report contract does not define a safe per-source public projection.
 
+### Derive suggestions from the fixed report, not a new generation
+
+Each delivery projection derives one suggestion per persisted structured finding in its stable stored order. The template references only the already-delivered finding title and whether it has a governed knowledge-node binding; a report without findings receives one report-summary recovery suggestion. Suggestions therefore remain deterministic, auditable through their `targetKey` and `source`, and safe to include in teacher JSON, student-safe JSON, HTML, and PDF without invoking a model or changing the diagnosis record.
+
 ### Resolve action destinations on the server
 
 Student and preparation links derive from the authorized report scope and existing routes. Remediation links require a `TeachingResource` owned by the teacher, bound to the finding knowledge node, and backed by an existing registry entry or safe content URL. The API returns no remediation action when this proof is absent.
@@ -59,6 +63,7 @@ Student and preparation links derive from the authorized report scope and existi
 - [Legacy reports contain weakly structured findings] → Projection validation shows unavailable evidence/action states and never infers student or remediation identity.
 - [A resource is removed after an artifact is created] → The fixed artifact remains auditable; live action links are resolved on current authorization and may become unavailable.
 - [Concurrent first export or repeated disposition] → Unique identities plus transaction-safe create-or-read behavior prevent duplicate artifacts and idempotent events.
+- [Evidence screenshot comes from another worktree or stale service] → The dedicated capture service is non-reusable; the runner compares the actual service's revision proof before and after capture with the clean local commit, tree, and fixed source fingerprint before publishing evidence.
 
 ## Migration Plan
 

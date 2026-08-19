@@ -65,10 +65,28 @@ describe('diagnosis report delivery projection', () => {
     expect(projection.role).toBe('student');
     expect(projection.audienceUserId).toBe('student-1');
     expect(projection.findings[0].hasPreparationEntry).toBe(false);
+    expect(projection.suggestions).toEqual([{
+      targetKey: 'finding:1',
+      source: 'finding',
+      text: '建议围绕“稳定裕度判断薄弱”复核关联知识点，并完成一次针对性练习后查看新的诊断。',
+    }]);
     expect(serialized).not.toContain('教师内部复盘原因');
     expect(serialized).not.toContain('riskSummary');
     expect(serialized).not.toContain('generationReason');
     expect(serialized).not.toContain('evidenceRefs');
+    expect(serialized).not.toContain('risk-secret');
+  });
+
+  it('derives a deterministic report-level suggestion when no structured finding exists', () => {
+    const projection = projectStudentSafeDiagnosisReport({
+      ...report,
+      reportBody: { ...report.reportBody, findings: [] },
+    });
+    expect(projection.suggestions).toEqual([{
+      targetKey: 'report',
+      source: 'summary',
+      text: '建议根据当前诊断摘要复核已学内容，并在补充可核验证据后查看新的诊断。',
+    }]);
   });
 
   it('fails closed when a class report requests a student projection', () => {

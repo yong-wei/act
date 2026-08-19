@@ -201,7 +201,14 @@ export function DiagnosisReportDeliveryView({
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold">限制与建议</h2>
+              <h2 className="text-lg font-semibold">学习建议</h2>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-subtle">
+                {projection.suggestions.map((suggestion) => <li key={`${suggestion.targetKey}:${suggestion.text}`}>• {suggestion.text}</li>)}
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold">报告限制</h2>
               {projection.limitations.length > 0 ? (
                 <ul className="mt-3 space-y-2 text-sm leading-6 text-subtle">
                   {projection.limitations.map((limitation) => <li key={limitation}>• {limitation}</li>)}

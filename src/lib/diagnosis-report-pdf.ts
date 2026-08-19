@@ -100,6 +100,8 @@ function projectionBlocks(projection: DiagnosisDeliveryProjection) {
       color: [0.25, 0.32, 0.4],
     });
   });
+  blocks.push({ text: '学习建议', size: 14, gapBefore: 14 });
+  projection.suggestions.forEach((suggestion) => blocks.push({ text: `• ${suggestion.text}`, size: BODY_SIZE, gapBefore: 3 }));
   blocks.push({ text: '限制与说明', size: 14, gapBefore: 14 });
   if (projection.limitations.length === 0) {
     blocks.push({ text: '当前报告未声明额外限制。', size: BODY_SIZE, gapBefore: 4 });

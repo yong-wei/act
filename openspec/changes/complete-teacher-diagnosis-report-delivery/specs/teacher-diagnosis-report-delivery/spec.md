@@ -31,9 +31,12 @@ The system SHALL authorize teacher detail, print, PDF, evidence, and action read
 ### Requirement: Student delivery is an independent safe projection
 The student-safe projection SHALL be available only for a student-scoped report. It SHALL contain the target student's personal conclusions, evidence summary, limitations, suggestions, cutoff, and version, and SHALL exclude peer data, class distributions, teacher-only explanation, force reasons, internal disposition, raw answers, private dialogue, hidden assessment content, and opaque evidence references.
 
+Suggestions SHALL be a deterministic, auditable projection of persisted structured findings. Each suggestion SHALL expose its stable report/finding target and a source marker, and it SHALL NOT invoke a model, mutate the diagnosis report, or expose raw evidence references.
+
 #### Scenario: Student reads their own report
 - **WHEN** the authenticated target student requests the student-safe page or PDF
 - **THEN** the server SHALL return only that report's student-safe projection.
+- **AND** each delivered suggestion SHALL be stable for the persisted report version and contain no opaque evidence identifier.
 
 #### Scenario: Teacher previews a student-safe report
 - **WHEN** the owning teacher requests a student-safe projection for a current class member

@@ -40,6 +40,12 @@ export type DiagnosisDeliveryFinding = {
   hasPreparationEntry: boolean;
 };
 
+export type DiagnosisDeliverySuggestion = {
+  targetKey: string;
+  source: 'finding' | 'summary';
+  text: string;
+};
+
 type DiagnosisDeliveryBase = {
   reportId: string;
   projectionVersion: typeof DIAGNOSIS_DELIVERY_PROJECTION_VERSION;
@@ -51,6 +57,7 @@ type DiagnosisDeliveryBase = {
   title: string;
   summary: string;
   findings: DiagnosisDeliveryFinding[];
+  suggestions: DiagnosisDeliverySuggestion[];
   confidence: 'high' | 'medium' | 'low' | 'unavailable';
   limitations: string[];
   evidenceCutoff: string;
@@ -151,6 +158,7 @@ function projectBase(source: DeliverySource, roleVersion: string, audienceUserId
       evidence: summarizeEvidence(finding.evidenceRefs),
       hasPreparationEntry: Boolean(finding.knowledgeNodeId),
     })),
+    suggestions: projectSuggestions(parsed.data.findings),
     confidence: parsed.data.confidence,
     limitations: [...parsed.data.limitations],
     evidenceCutoff: source.evidenceCutoff.toISOString(),
@@ -159,6 +167,25 @@ function projectBase(source: DeliverySource, roleVersion: string, audienceUserId
     ruleVersion: source.ruleVersion,
     privacyNotice: '',
   };
+}
+
+function projectSuggestions(
+  findings: Array<{ title: string; knowledgeNodeId?: string }>,
+): DiagnosisDeliverySuggestion[] {
+  if (findings.length === 0) {
+    return [{
+      targetKey: 'report',
+      source: 'summary',
+      text: '建议根据当前诊断摘要复核已学内容，并在补充可核验证据后查看新的诊断。',
+    }];
+  }
+  return findings.map((finding, index) => ({
+    targetKey: `finding:${index + 1}`,
+    source: 'finding' as const,
+    text: finding.knowledgeNodeId
+      ? `建议围绕“${finding.title}”复核关联知识点，并完成一次针对性练习后查看新的诊断。`
+      : `建议围绕“${finding.title}”复核当前学习过程，并补充可核验证据后查看新的诊断。`,
+  }));
 }
 
 function summarizeEvidence(refs: string[]): DiagnosisEvidenceSummary {
