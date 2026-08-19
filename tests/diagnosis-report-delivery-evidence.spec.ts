@@ -20,7 +20,9 @@ const profile = process.env.ACT_LOCAL_QA_CAPTURE_PROFILE;
 const repositoryRoot = process.cwd();
 const artifactDirectory = path.resolve(repositoryRoot, 'artifacts/commercial-ui/diagnosis-report-delivery-1440/playwright');
 const stagingDirectory = path.join(os.tmpdir(), `act-diagnosis-report-delivery-evidence-${process.pid}`);
-const authSecret = 'diagnosis-delivery-evidence-secret';
+const authSecret = process.env.NEXTAUTH_SECRET
+  ?? process.env.AUTH_SECRET
+  ?? 'playwright-local-auth-secret-at-least-32-bytes';
 const classId = 'class-evidence';
 const reportId = 'report-student-evidence';
 
