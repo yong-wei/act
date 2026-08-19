@@ -1,13 +1,13 @@
 {
   "schemaVersion": "teacher-diagnosis-report-history-evidence.v1",
   "captureRevision": {
-    "commitSha": "df0d8ad8e7a455e83be79a5ec05a886894a800a4",
-    "treeSha": "c08a723da0cd2bcc347282e52f2d4c841043cf99",
-    "capturedAt": "2026-08-17T10:54:56.000Z"
+    "commitSha": "f0780f05834b30289243e12a9b5be1872a58c5c1",
+    "treeSha": "28e9ebb67e69b19b963b334944f1d2f806660ea2",
+    "capturedAt": "2026-08-19T04:02:20.000Z"
   },
   "generator": {
     "path": "tests/teacher-diagnosis-report-history-evidence.spec.ts",
-    "sha256": "4f2e8245b59bfc96d958e8f127624da709fc903aa316e95e4b856ff224acec5a"
+    "sha256": "259d738e48b73b2a88b0e897cb5bc1e42905ca110570978cd8a0e0c30bb2bda8"
   },
   "fixture": {
     "path": "tests/fixtures/teacher-diagnosis-report-history.ts",
@@ -17,23 +17,25 @@
   "runtime": {
     "browserChannel": "chrome",
     "server": "Next.js development server started with the evidence session secret",
-    "baseUrl": "http://127.0.0.1:3218"
+    "baseUrl": "http://127.0.0.1:3219"
   },
   "sourceSha256": {
-    "scripts/tests/teacher-diagnosis-report-history-evidence.ts": "e826b24b75abdd6e384151e946b5f2ecdd943360c43554ac52936a476826d1a1",
+    "scripts/tests/teacher-diagnosis-report-history-evidence.ts": "2a40f495c55d4abda0df8ad8f813d1d2c8f72888b5a9ced0b812d7ff711ff82a",
     "src/app/teacher/layout.tsx": "713be37cd244ed9fa857a392774e5404202e14d8e41c492b22eec686869cda2e",
     "src/app/teacher/classes/[classId]/page.tsx": "eac4e6878d146c16fcf8ed41d96a6e9cfdb4e266a509b49021a488e3ea0bc1a4",
     "src/app/teacher/classes/[classId]/students/[studentId]/page.tsx": "bbd49ed8e3c668a31ed32aa282c53670e792801d8dd71165cf50b0d4ba7ed28b",
     "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
     "src/components/platform/role-workspace-shell.tsx": "00bb6dc82079a500c3a09ccd835a0963c98f0077e111cc53e0825683eb6b7412",
     "src/features/adaptive/diagnosis-surface-panel.tsx": "7e0bf13fef73cf3e230c8d000ffd12c53275f1d1c934874a87c1d47500553743",
-    "src/features/teacher/teacher-diagnosis-report-history.tsx": "298e0457fe9e61916b6a16f359bd1e9d4a1a85857e268dc48c10ac2669ba043a",
-    "src/features/teacher/teacher-diagnosis-report-history-projection.ts": "ca3abfb6ddd01773abc4ca928d5304d33b76fc69118e39dfa9c96a2d53ec54cb",
-    "src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts": "9e2873b70061b8e018146c58466d4df2f206f5174792f4aa81db4612e7b4d6cc",
+    "src/features/teacher/teacher-diagnosis-report-history.tsx": "9f33aff959e3caca82a6b081b7aca39394f849e8ef1af7af047e8fde130ec708",
+    "src/features/teacher/teacher-diagnosis-report-history-projection.ts": "883b24947bc4b1a2d01173f555302959dd7ebc78d889cf98a7c7ab8c1dce680f",
+    "src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts": "66ca45996a8bd91a746540d73ef1da363f54a619f19c0d955a2b32a9bd27467e",
+    "src/app/api/teacher/classes/[classId]/diagnosis-reports/preflight/route.ts": "906435da636b3cad55d39ecc47853503985aa48bd25ff586c83ed7078bcf23b9",
     "src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts": "eae91054475cd4762684ff41ab6ef4f4a0e5b729f70970d54c9b2797c478650e",
     "src/lib/auth.ts": "1410b7ed41d586dcff30985920b8e8308b7bc665ba58895beb7b192256172f77",
-    "src/lib/diagnosis-generation.ts": "bcf2d65b874df0995530a6d094a065e66d94d8d170d4b987447d5159bda67695",
-    "src/lib/diagnosis-persistence.ts": "3b5f333f15086ae1a2896698333e5ab0db421dc397de14f77e22cb2b320b2363"
+    "src/lib/diagnosis-generation.ts": "f24dedf88b7a0f0b425dc0ba9f0fec3df156a633165a328c245bc2a9ae3ad5f0",
+    "src/lib/diagnosis-generation-preflight.ts": "6646b17bb9b7ec85f9946a416bad473439a42c2c5aa84a469080637722aa7b47",
+    "src/lib/diagnosis-persistence.ts": "afc38da5c0b731b46a7f7bf960c1255328f3db69f76bcf7861673919a92acf69"
   },
   "assertions": {
     "authorizedClassScope": true,
@@ -49,7 +51,9 @@
     "generationQueued": true,
     "generationCompleted": true,
     "generationTimedOut": true,
-    "generationRetry": true
+    "generationRetry": true,
+    "generationPreflight": true,
+    "forcedGenerationReason": true
   },
   "captures": [
     {
@@ -60,7 +64,7 @@
         "height": 1100
       },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-history-1440-light.png",
-      "screenshotSha256": "d0d6f0b9152d12f2cb6d9e6e34efa3d795dca2c8c6521f2f624cb58acd4c3e84",
+      "screenshotSha256": "8596859932d6ba4630aad342f205455fc9f45fa5d7a33bf6027ddb5141c87409",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -83,7 +87,7 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-queued-1440-light.png",
-      "screenshotSha256": "25836106edcd51e2d70f7618da65ffc840b0911bf7fa9b37d03cf259443efd3d",
+      "screenshotSha256": "039e5595d10e4486b6f5b60d3eb8c7cf1aecfe1cca3601c3472c711771b7f8a4",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -93,7 +97,17 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-completed-1440-light.png",
-      "screenshotSha256": "bb2e491d61938f4b656baa1e10e2a25d9f3bf3d46644a0c2b65a9ebc997f2f38",
+      "screenshotSha256": "f12728e9ce0c7e37fff24b07e4683a64e05795f2597a3e0dbf09b12798f49960",
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "horizontalOverflow": false
+    },
+    {
+      "name": "class-generation-preflight-no-change-1440-light",
+      "routePath": "/teacher/classes/class-evidence",
+      "viewport": { "width": 1440, "height": 1100 },
+      "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-preflight-no-change-1440-light.png",
+      "screenshotSha256": "5e6d51c2b6840ec92d29b7c4da9bfee9ab9c21894f67d1966a32714aacac97a6",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -113,7 +127,7 @@
       "routePath": "/teacher/classes/class-evidence/students/student-evidence",
       "viewport": { "width": 320, "height": 844 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-generation-retry-320-dark.png",
-      "screenshotSha256": "319d6a5f9f0f77d8242cd5bbc5047de84f3d933edd9bd3a4bd2a0b2d6e2108a0",
+      "screenshotSha256": "49ee6b911a0c7e0798f2c92909572d9ae50606e1d665d9477c714c2a83d6eeae",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
