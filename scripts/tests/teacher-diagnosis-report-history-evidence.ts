@@ -1,4 +1,5 @@
 export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
+  'scripts/tests/teacher-diagnosis-report-history-evidence.ts',
   'src/app/teacher/layout.tsx',
   'src/app/teacher/classes/[classId]/page.tsx',
   'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx',
@@ -6,6 +7,7 @@ export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
   'src/components/platform/role-workspace-shell.tsx',
   'src/features/adaptive/diagnosis-surface-panel.tsx',
   'src/features/teacher/teacher-diagnosis-report-history.tsx',
+  'src/features/teacher/teacher-diagnosis-report-history-projection.ts',
   'src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts',
   'src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts',
   'src/lib/auth.ts',
