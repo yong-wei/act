@@ -5,7 +5,6 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { encode } from 'next-auth/jwt';
 
 import {
   computeCaptureRevisionProof,
@@ -20,9 +19,6 @@ const profile = process.env.ACT_LOCAL_QA_CAPTURE_PROFILE;
 const repositoryRoot = process.cwd();
 const artifactDirectory = path.resolve(repositoryRoot, 'artifacts/commercial-ui/diagnosis-report-delivery-1440/playwright');
 const stagingDirectory = path.join(os.tmpdir(), `act-diagnosis-report-delivery-evidence-${process.pid}`);
-const authSecret = process.env.NEXTAUTH_SECRET
-  ?? process.env.AUTH_SECRET
-  ?? 'playwright-local-auth-secret-at-least-32-bytes';
 const classId = 'class-evidence';
 const reportId = 'report-student-evidence';
 
@@ -94,7 +90,6 @@ test.afterAll(async () => {
 });
 
 test('captures teacher delivery, evidence, registered action and disposition at 1440px', async ({ page }) => {
-  await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 1440, height: 1050 });
   await installFixture(page, 'teacher');
   await page.goto(`/teacher/classes/${classId}/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
@@ -111,7 +106,6 @@ test('captures teacher delivery, evidence, registered action and disposition at 
 });
 
 test('captures an explicit PDF recovery state', async ({ page }) => {
-  await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 1440, height: 900 });
   await installFixture(page, 'pdf-failure');
   await page.goto(`/teacher/classes/${classId}/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
@@ -123,7 +117,6 @@ test('captures an explicit PDF recovery state', async ({ page }) => {
 });
 
 test('captures the student-safe report without teacher controls at 320px', async ({ page }) => {
-  await installSession(page, 'STUDENT', 'student-evidence');
   await page.setViewportSize({ width: 320, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
   await installFixture(page, 'student');
@@ -231,11 +224,6 @@ function teacherActions() {
     { kind: 'preparation', label: '进入备课工作台', href: '/teacher/preparation?knowledgeNodeId=node-margin', targetKey: 'finding:1' },
     { kind: 'remediation', label: '已注册补练资源：稳定裕度补练', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
   ];
-}
-
-async function installSession(page: Page, role: 'TEACHER' | 'STUDENT', id: string) {
-  const token = await encode({ secret: authSecret, maxAge: 3600, token: { id, sub: id, role, name: '证据用户', email: `${id}@example.invalid` } });
-  await page.context().addCookies([{ name: 'next-auth.session-token', value: token, url: baseUrl, httpOnly: true, sameSite: 'Lax' }]);
 }
 
 function fulfill(route: Route, json: unknown, status = 200) {
