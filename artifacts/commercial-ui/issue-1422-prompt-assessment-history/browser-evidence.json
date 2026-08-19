@@ -1,19 +1,27 @@
 {
   "change": "persist-governed-prompt-assessment-history",
-  "capturedAt": "2026-08-15T13:44:57.320Z",
-  "captureRevision": "45682d511a95a27ab6dacd58024b471f37a7b33c",
+  "capturedAt": "2026-08-19T04:55:26.280Z",
+  "captureRevision": "42b1bf38d1776a441c74d23d7e1da6b54a09a9d6",
+  "remoteCapture": {
+    "branch": "codex/prompt-history-integrity-implementation",
+    "ref": "refs/heads/codex/prompt-history-integrity-implementation",
+    "revision": "42b1bf38d1776a441c74d23d7e1da6b54a09a9d6"
+  },
   "generator": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs",
   "sourceHashes": {
-    "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs": "d7d90bb88df487481bd2228f9587c7087e878e7e8d4f7a91333207860570fb43",
-    "playwright.config.ts": "b018b276d1730700560d0b2a673e100e89873632e8756dc913122c412497bbc9",
+    "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs": "3f62f5e08cb0a3bc5b41c8f9fd909152fe0b1607c905245afd85d34002b855f6",
+    "playwright.config.ts": "411b577db20b3a547ae454e61e38cad4c1736206e14097076b52c27e9542f551",
     "tests/prompt-assessment-history-1422.spec.ts": "563a1426d9d1dcb15577f7cdfa3bb138d29a3b98a4782d53f7ca5783e598a7a7",
-    "src/app/evaluation/prompt-assessment/page.tsx": "aee50a5f3a69bfe310cdf3a759ce210aea047f754d7498cfaf6e496021a8cc8d",
-    "src/app/api/evaluation/assess-prompt/route.ts": "89bb8d31ce80424face9371aff8596cbf6a4990a123a1dcc301ae6fdbaa78e99",
-    "src/app/api/evaluation/track-consistency/route.ts": "0920d91b6fa1cce964dc8146890b9f25cb452ef4c1c58359d6303bd59c6a68f7",
-    "src/app/api/evaluation/prompt-history/[userId]/route.ts": "ede64e28b5e01501941ac53452062adabb5f1c4499ac9680515a882e01c71897",
-    "src/features/evaluation/prompt-assessment-history.ts": "4caa7913b9690ee661d9c6eda594a8041017fafb6c3e0196733600e5d9b60799",
+    "src/app/evaluation/prompt-assessment/page.tsx": "264efeda572d0f1e47c6f5c9b026c2117f2d528b02806326adb6bac4120b4698",
+    "src/app/api/evaluation/assess-prompt/route.ts": "0b3586ed94858b1070c7bc9ea13d3728c6d0c6978e75e3f4f3cba350ca0ba406",
+    "src/app/api/evaluation/track-consistency/route.ts": "ae5f9a8bfdc6b41ad63c227bab1c78c2db80ffa6105abf3457e5a3a6bd6d2a46",
+    "src/app/api/evaluation/prompt-history/[userId]/route.ts": "3341d88d105130656cd1233c17579bbd6dce2f7f627ca2953ff8eba09e61b4b3",
+    "src/features/evaluation/prompt-assessment-history.ts": "28f87d6df7e8b4c9bbaaa8bc23ddf560da47703d4a7c1550988c54a820518535",
+    "src/features/evaluation/prompt-quality.ts": "ad955b6549e2539af9d2e16e7e160e368623acdc9854ae5c2698f94240bcc36d",
+    "prisma/schema.prisma": "783063046cdc9f0a08416ac60457342be39c33bbde944966e38339fc2e882857",
+    "prisma/migrations/20260819124500_add_prompt_assessment_result_snapshot/migration.sql": "869d8d3d21c87881d587abf51f50cdbeeb477901a829cf129574289dbad578c2",
     "src/components/platform/app-shell.tsx": "90bdc8a63bd678c8e3f5137dac536d0ede88c92b2f9263d82f7ce97acdbf5036",
-    "src/lib/platform-role-navigation.ts": "b5046663b1be181bd4648117e6d04345391a2a81b62b9d482ee83a2fa6327bd8"
+    "src/lib/platform-role-navigation.ts": "a89f941628f5d68c40010dd861e4396b429b609173ff9e12fde3c4ef685ef1e8"
   },
   "route": "/evaluation/prompt-assessment",
   "fixtures": "Authenticated NextAuth student session with browser-local evaluation API fixtures; database persistence is verified separately by scripts/tests/test-prompt-assessment-history-postgres.ts.",
@@ -24,7 +32,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "8326d5f468e0bbd5ab5f8688f696e8677049381eb89609ed49e4b0acb874623f",
+      "sha256": "d6549eda5b429999408d2c60c31f36ca0b793dceebf3270ce63b637c8eb99e98",
       "dimensions": {
         "width": 1440,
         "height": 1423
@@ -36,7 +44,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "682233497ccc6c02e6f3a959c9eeea18162bd7c4b6e06ddaebdc7f6cdb6b5d94",
+      "sha256": "d29d060139b23a1575b61842f773363a72e21b18013fd3cb0cf8bc59b6c07d86",
       "dimensions": {
         "width": 1440,
         "height": 1423
@@ -48,7 +56,7 @@
         "width": 320,
         "height": 900
       },
-      "sha256": "77267bc5fead3f08ed76f571829791d528b4cede28c2ba8007773b69a42f6e3f",
+      "sha256": "d215d77a5da90fcb3a884bcff7450e8b30c615a81f3a442ea322b4c112d81253",
       "dimensions": {
         "width": 320,
         "height": 2842
@@ -60,7 +68,7 @@
         "width": 320,
         "height": 900
       },
-      "sha256": "e00ff95babd41ae12d7d872397430a5be3b6ba84b0e6c86eb8600ffd765a5770",
+      "sha256": "b0ef9ba9b716ec8abc73401b829bbfc26b758a04ec6f6a72d6740d028ed3dff9",
       "dimensions": {
         "width": 320,
         "height": 2842
@@ -72,7 +80,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "97ce26e5d463baa66f7811f1f8e42339daa6224ad9a9d1234403257aaef38d71",
+      "sha256": "bad1e949bc76addd2067b6662e76ece0b41664749cdb3a4900560f7b079596f8",
       "dimensions": {
         "width": 1440,
         "height": 1287
@@ -84,7 +92,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "00f2aabc0e6b37c678763a9b7bd7771fb5464297c8992ddcefd5774e2130d949",
+      "sha256": "d56e5ba15f927be1edcc6b44fb06c2ef96270f4c45c838a81bf13c41b40b725b",
       "dimensions": {
         "width": 1440,
         "height": 1287
