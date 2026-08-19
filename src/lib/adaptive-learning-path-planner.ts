@@ -13,7 +13,6 @@ import {
   type PortraitV2DimensionId,
 } from './data-governance/kaq-objective-taxonomy';
 import type { PortraitV2ProjectedPayload } from './data-governance/portrait-v2-model';
-import { hasAuthoritativePortraitV2Evidence } from './data-governance/portrait-v2-consumer';
 import type {
   ExpandedGoalSubgraph,
   GoalSubgraphLimitation,
@@ -333,8 +332,6 @@ export interface AdaptiveLearningPathLearnerState {
     }>;
   };
   primaryPortrait?: PortraitV2ProjectedPayload;
-  primaryPortraitState?: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
-  primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
   };
@@ -357,18 +354,6 @@ export interface AdaptiveLearningPathLearnerState {
       severity: string;
     }>;
   };
-}
-
-export function hasTrustedPortraitForPersonalization(
-  state: AdaptiveLearningPathLearnerState | null | undefined,
-): boolean {
-  return Boolean(
-    state
-      && state.primaryPortraitState === 'SNAPSHOT'
-      && state.primaryPortraitAvailability === 'available'
-      && state.primaryPortrait
-      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
-  );
 }
 
 export interface AdaptiveLearningPathConstraints {
@@ -925,6 +910,15 @@ interface CandidateOption {
   chain: CandidateChain;
   goalTargets: string[];
   includesRiskIntervention: boolean;
+}
+
+interface PolicyFamilyRetryState {
+  excludedCanonicalCoreRefs: ReadonlySet<string>;
+  parentKey: string;
+}
+
+interface PolicyFamilyRetryContext {
+  excludedCanonicalCoreRefs: ReadonlySet<string>;
 }
 
 interface SelectionState {
@@ -1957,6 +1951,7 @@ export function buildControlCorrectionThreeStylePathBundle(
 function buildAdaptiveLearningPathPlanInternal(
   input: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
+  retryContext?: PolicyFamilyRetryContext,
 ): AdaptiveLearningPathPlan {
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
@@ -2056,6 +2051,7 @@ function buildAdaptiveLearningPathPlanInternal(
         ]),
       };
     })
+    .filter((entry) => !isRetryExcludedCoreCandidate(entry.node, retryContext))
     .sort((left, right) =>
       configurationSelectionPriority(right.node, preferenceContext, input.constraints) -
         configurationSelectionPriority(left.node, preferenceContext, input.constraints) ||
@@ -2082,13 +2078,20 @@ function buildAdaptiveLearningPathPlanInternal(
     input.constraints,
     input.learnerState,
   );
+  const requiredPrerequisiteNodeIds = new Set(repairEntries.flatMap((entry) =>
+    planningUnitForNode(entry.node)?.prerequisites ?? []
+  ));
+  const retryRepairEntries = repairEntries.filter((entry) =>
+    !isRetryExcludedCoreCandidate(entry.node, retryContext) ||
+    requiredPrerequisiteNodeIds.has(entry.node.id)
+  );
   const checkpointResourceTypes = new Set<ResourceNode['type']>(
     registeredGoal?.checkpointPolicy.checkpointResourceTypes ?? []
   );
   const forcedCheckpointNodeIds = new Set(
     selectRepairCheckpointNodeIds(mainPathNodes, registeredGoal)
   );
-  const repairCandidates = repairEntries.map((entry) =>
+  const repairCandidates = retryRepairEntries.map((entry) =>
     toRepairCandidate(
       entry,
       requestedCompletedNodeIds,
@@ -2118,7 +2121,7 @@ function buildAdaptiveLearningPathPlanInternal(
       repairVersion: PATH_CONSTRAINT_REPAIR_VERSION,
     },
   });
-  const scoredByNodeId = new Map(repairEntries.map((entry) => [entry.node.id, entry]));
+  const scoredByNodeId = new Map(retryRepairEntries.map((entry) => [entry.node.id, entry]));
   const repairedEntries = constraintRepair.repairedNodeIds
     .map((nodeId) => scoredByNodeId.get(nodeId))
     .filter((entry): entry is ScoredNode => Boolean(entry));
@@ -2511,6 +2514,7 @@ function inferDeficits(
   learnerState: AdaptiveLearningPathLearnerState | null,
 ): AdaptiveLearningPathDeficit[] {
   const knowledgeTags = learnerState?.knowledgeMastery?.tags ?? {};
+  const competencies = learnerState?.primaryCompetencies?.vector ?? {};
   return [
     ...goal.knowledgeTargets
       .map((targetId) => {
@@ -2529,17 +2533,18 @@ function inferDeficits(
       .filter((item) => item.value < 0.85),
     ...(goal.competencyTargets ?? [])
       .map((targetId) => {
+        const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
         const value = portraitScores.length > 0
           ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : 0;
+          : normalizeCompetencyScore(competency?.score ?? 0);
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
-          : 0;
+          : competency?.confidence ?? 0;
         const evidenceCount = portraitScores.length > 0
           ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
-          : 0;
+          : competency?.evidenceCount ?? 0;
         return {
           targetId,
           kind: 'competency' as const,
@@ -2548,7 +2553,9 @@ function inferDeficits(
           evidenceCount,
           reasonCode: value < 0.7 ? 'competency-deficit' : 'competency-maintenance',
           portraitDimensionIds,
-          eventReferences: eventReferencesForDeficit(undefined),
+          eventReferences: eventReferencesForDeficit(
+            portraitScores.length > 0 ? undefined : competency?.eventReferences,
+          ),
         };
       })
       .filter((item) => item.value < 0.85),
@@ -2760,7 +2767,11 @@ function buildCapabilityEvidence(
             confidence: value.confidence,
             evidenceCount: value.evidenceSummary.totalCount,
           }));
-        return portraitValues;
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use legacy values only when portrait v2 has no usable evidence.
+        const legacyValue = learnerState?.primaryCompetencies?.vector?.[dimension];
+        return portraitValues.length > 0
+          ? portraitValues
+          : legacyValue ? [legacyValue] : [];
       });
     const competencyScore = competencies.length > 0
       ? round(competencies.reduce((sum, competency) => sum + (competency.score ?? 0), 0) / competencies.length, 2)
@@ -4142,21 +4153,20 @@ function learnerCompetencyScore(
   learnerState: AdaptiveLearningPathLearnerState | null,
   dimension: string,
 ): number {
-  if (!hasTrustedPortraitForPersonalization(learnerState)) return 0;
   const portraitScores = usablePortraitDimensionsForTarget(learnerState, dimension)
     .map((item) => item.score)
     .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
   if (portraitScores.length > 0) {
     return normalizeCompetencyScore(portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length);
   }
-  return 0;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use the legacy vector only as a fallback.
+  return normalizeCompetencyScore(learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0);
 }
 
 function usablePortraitDimensionsForTarget(
   learnerState: AdaptiveLearningPathLearnerState | null,
   targetId: string,
 ): PortraitV2ProjectedPayload['dimensions'] {
-  if (!hasTrustedPortraitForPersonalization(learnerState)) return [];
   return portraitDimensionIdsForTarget(targetId)
     .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
     .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
@@ -4180,17 +4190,20 @@ function learnerEvidenceCount(
   learnerState: AdaptiveLearningPathLearnerState | null,
   readiness: ResourceNodeReadinessMetadata,
 ): number {
-  if (!hasTrustedPortraitForPersonalization(learnerState)) return 0;
+  const competencyEvidence = Object.keys(readiness.minimumCompetency)
+    .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
   const portraitCompetencyEvidence = Object.keys(readiness.minimumCompetency)
     .flatMap((dimension) => portraitDimensionIdsForTarget(dimension))
     .map((portraitDimensionId) =>
       learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === portraitDimensionId)
         ?.evidenceSummary.totalCount ?? 0,
     );
-  const overallTrustedEvidence = Object.keys(readiness.minimumCompetency).length === 0
-    ? learnerState?.primaryPortrait?.dimensions.map((dimension) => dimension.evidenceSummary.totalCount) ?? []
-    : [];
-  return Math.max(...portraitCompetencyEvidence, ...overallTrustedEvidence, 0);
+  return Math.max(
+    learnerState?.evidence?.confidence?.evidenceCount ?? 0,
+    ...competencyEvidence,
+    ...portraitCompetencyEvidence,
+    0,
+  );
 }
 
 function readStringArray(value: unknown): string[] {
@@ -4276,11 +4289,6 @@ function buildFallbackReasons(input: {
     activeGraphContext,
   );
   if (!input.learnerState) reasons.push('learner-state-missing');
-  if (input.learnerState?.primaryPortraitState === 'NO_EVIDENCE') {
-    reasons.push('trusted-portrait-no-evidence');
-  } else if (input.learnerState && !hasTrustedPortraitForPersonalization(input.learnerState)) {
-    reasons.push('trusted-portrait-unavailable');
-  }
   if ((confidence?.score ?? 0) < 0.35 || (confidence?.evidenceCount ?? 0) === 0) reasons.push('learner-evidence-low-confidence');
   if (input.deficits.length === 0) reasons.push('learner-deficit-not-detected');
   const hasGraphStarterPath = input.hasGraphCandidateCoverage
@@ -4623,6 +4631,22 @@ function canonicalSourceRefForNode(node: ResourceNode): string {
   return `${node.sourceKind}:${node.sourceRef}`;
 }
 
+function isRetryExcludedCoreCandidate(
+  node: ResourceNode,
+  retryContext?: PolicyFamilyRetryContext,
+): boolean {
+  if (!retryContext || retryContext.excludedCanonicalCoreRefs.size === 0) return false;
+  const canonicalRef = canonicalSourceRefForNode(node);
+  if (!retryContext.excludedCanonicalCoreRefs.has(canonicalRef)) return false;
+  const disposition = node.planningMetadata.pathDisposition?.kind;
+  if (disposition === 'supporting-citation' || disposition === 'embedded-asset') return false;
+  if (node.checkpoint || node.type === 'checkpoint') return false;
+  if (node.planningMetadata.terminalConstraints.some((constraint) =>
+    constraint === 'terminal-validation' || constraint === 'terminal-node'
+  )) return false;
+  return true;
+}
+
 function isStructuralPolicySharedNode(
   node: AdaptiveLearningPathPlanNode,
   registry: ResourceNodeRegistry,
@@ -4633,6 +4657,7 @@ function isStructuralPolicySharedNode(
   if (node.reasonCodes.includes('required-prerequisite')) return true;
   if (requiredPrerequisiteNodeIds.has(node.nodeId)) return true;
   if (node.reasonCodes.some((code) => code.startsWith('policy-') && code.endsWith('-support'))) return true;
+  if (node.sourceKind === 'ai_intervention') return true;
   if (node.terminalConstraints.some((constraint) =>
     constraint === 'terminal-validation' || constraint === 'terminal-node'
   )) return true;
@@ -4683,96 +4708,166 @@ function buildPolicyBundle(
   const omittedPolicyReasons: string[] = [];
   const avoidedDifferentiableCoreRefs = new Set<string>();
   const retainedCoreRefs = new Set<string>();
-  const basePaths = families.reduce<AdaptiveLearningPathPolicyBundle['paths']>((paths, policyFamily) => {
-    const diversityAvoidNodeIds = unique([
-      ...(input.excludedNodeIds ?? []),
-      ...input.registry.nodes
-        .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
-        .map((node) => node.id),
-    ]);
-    const plan = buildAdaptiveLearningPathPlanInternal(
-      {
-        ...input,
-        policyFamily,
-        policyBundle: undefined,
-        diversityAvoidNodeIds,
-      },
-      false,
-    );
-    const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
-    const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);
-    if (mainPath.length === 0) {
-      omittedPolicyReasons.push(paths.length > 0 ? 'policy-option-diversity-unavailable' : 'policy-path-resource-missing');
-      return paths;
-    }
-    const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
-    if (paths.length > 0 && !hasNewCoreRef) {
-      omittedPolicyReasons.push('policy-option-diversity-unavailable');
-      return paths;
-    }
-    const pairwiseCoreOverlapExceedsThreshold = paths.some((existingPath) =>
-      resourceOverlap(
+  const basePaths: AdaptiveLearningPathPolicyBundle['paths'] = [];
+  for (const policyFamily of families) {
+    const retryQueue: PolicyFamilyRetryState[] = [{
+      excludedCanonicalCoreRefs: new Set<string>(),
+      parentKey: '',
+    }];
+    const seenRetryStateKeys = new Set<string>([retryStateKey(new Set<string>())]);
+    const seenCoreSetKeys = new Set<string>();
+    let attempts = 0;
+    let familyAccepted = false;
+    let ordinaryPlannerFailure = false;
+
+    const enqueueRetryState = (
+      excludedCanonicalCoreRefs: ReadonlySet<string>,
+      parentKey: string,
+    ) => {
+      const stateKey = retryStateKey(excludedCanonicalCoreRefs);
+      if (seenRetryStateKeys.has(stateKey)) return;
+      seenRetryStateKeys.add(stateKey);
+      retryQueue.push({ excludedCanonicalCoreRefs: new Set(excludedCanonicalCoreRefs), parentKey });
+    };
+
+    const enqueueRetryBranches = (
+      refs: string[],
+      currentExcludedCanonicalCoreRefs: ReadonlySet<string>,
+      parentKey: string,
+      options: { combinedFirst?: boolean } = {},
+    ) => {
+      const uniqueRefs = unique(refs).sort((left, right) => left.localeCompare(right));
+      if (options.combinedFirst && uniqueRefs.length > 1) {
+        enqueueRetryState(new Set([
+          ...currentExcludedCanonicalCoreRefs,
+          ...uniqueRefs,
+        ]), parentKey);
+      }
+      for (const ref of uniqueRefs) {
+        enqueueRetryState(new Set([
+          ...currentExcludedCanonicalCoreRefs,
+          ref,
+        ]), parentKey);
+      }
+    };
+
+    while (attempts < 3 && retryQueue.length > 0) {
+      const retryState = retryQueue.shift()!;
+      attempts += 1;
+      const diversityAvoidNodeIds = unique([
+        ...(input.excludedNodeIds ?? []),
+        ...input.registry.nodes
+          .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
+          .map((node) => node.id),
+      ]);
+      const plan = buildAdaptiveLearningPathPlanInternal(
+        {
+          ...input,
+          policyFamily,
+          policyBundle: undefined,
+          diversityAvoidNodeIds,
+        },
+        false,
+        { excludedCanonicalCoreRefs: retryState.excludedCanonicalCoreRefs },
+      );
+      const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
+      const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);
+      if (mainPath.length === 0) {
+        ordinaryPlannerFailure = true;
+        continue;
+      }
+      const coreSetKey = retryStateKey(new Set(coreRefs));
+      if (seenCoreSetKeys.has(coreSetKey)) continue;
+      seenCoreSetKeys.add(coreSetKey);
+      const retryExcludedCoreRefs = coreRefs.filter((ref) =>
+        retryState.excludedCanonicalCoreRefs.has(ref)
+      );
+      if (retryExcludedCoreRefs.length > 0) {
+        enqueueRetryBranches(retryExcludedCoreRefs, retryState.excludedCanonicalCoreRefs, coreSetKey);
+        continue;
+      }
+      const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
+      if (basePaths.length > 0 && !hasNewCoreRef) {
+        enqueueRetryBranches(coreRefs, retryState.excludedCanonicalCoreRefs, coreSetKey);
+        continue;
+      }
+      const overlapConflicts = pathsWithCoreOverlapAboveThreshold(
+        basePaths,
         coreRefs,
-        differentiablePolicyCoreRefs(existingPath.planNodes ?? [], input.registry),
-      ) >= overlapThreshold,
-    );
-    if (pairwiseCoreOverlapExceedsThreshold) {
-      omittedPolicyReasons.push('policy-option-diversity-unavailable');
-      return paths;
-    }
-    coreRefs.forEach((ref) => {
-      retainedCoreRefs.add(ref);
-      avoidedDifferentiableCoreRefs.add(ref);
-    });
-    const modalityMix = buildModalityMix(mainPath);
-    const terminalValidationNodeIds = mainPath
-      .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-      .map((node) => node.nodeId);
-    const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
-    const targetDeficits = deficitsForPath(mainPath, deficits);
-    paths.push({
-      styleId: styleIdForPolicyFamily(policyFamily),
-      policyFamily,
-      label: styleLabelForPolicyFamily(policyFamily),
-      nodeIds: mainPath.map((node) => node.nodeId),
-      activeNodeIds: activePolicyNodeIds(mainPath),
-      lockedNodeIds: lockedPolicyNodeIds(mainPath),
-      readinessSummary: policyReadinessSummary(mainPath),
-      unlockMessages: policyUnlockMessages(mainPath),
-      planNodes: mainPath,
-      nodeSummaries: mainPath.map(toPathOptionNodeSummary),
-      targetDeficits,
-      recommendationProvenance: buildAdaptivePathRecommendationProvenance({
-        path: mainPath,
-        deficits: targetDeficits,
-        confidence: plan.confidence.level,
-      }),
-      evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
-      estimatedMinutes: remainingEstimatedMinutes(mainPath),
-      modalityMix,
-      resourceMix: modalityMix,
-      overlap: {
-        maxWithOtherOptions: 0,
-      },
-      effort: {
+        input.registry,
+        overlapThreshold,
+      );
+      if (overlapConflicts.length > 0) {
+        enqueueRetryBranches(
+          unique(overlapConflicts.flatMap((conflict) => conflict.conflictingRefs)),
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
+        continue;
+      }
+      coreRefs.forEach((ref) => {
+        retainedCoreRefs.add(ref);
+        avoidedDifferentiableCoreRefs.add(ref);
+      });
+      const modalityMix = buildModalityMix(mainPath);
+      const terminalValidationNodeIds = mainPath
+        .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+        .map((node) => node.nodeId);
+      const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
+      const targetDeficits = deficitsForPath(mainPath, deficits);
+      basePaths.push({
+        styleId: styleIdForPolicyFamily(policyFamily),
+        policyFamily,
+        label: styleLabelForPolicyFamily(policyFamily),
+        nodeIds: mainPath.map((node) => node.nodeId),
+        activeNodeIds: activePolicyNodeIds(mainPath),
+        lockedNodeIds: lockedPolicyNodeIds(mainPath),
+        readinessSummary: policyReadinessSummary(mainPath),
+        unlockMessages: policyUnlockMessages(mainPath),
+        planNodes: mainPath,
+        nodeSummaries: mainPath.map(toPathOptionNodeSummary),
+        targetDeficits,
+        recommendationProvenance: buildAdaptivePathRecommendationProvenance({
+          path: mainPath,
+          deficits: targetDeficits,
+          confidence: plan.confidence.level,
+        }),
+        evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
         estimatedMinutes: remainingEstimatedMinutes(mainPath),
-        relative: effortLabel(remainingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
-      },
-      expectedTargetLift: round(plan.score.objectives.learningGain, 3),
-      terminalValidationNodeIds,
-      terminalValidationStrategy: {
-        nodeIds: terminalValidationNodeIds,
-        summary: terminalValidationRequired
-          ? terminalValidationNodeIds.length > 0
-            ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-            : 'terminal validation unavailable'
-          : '阶段检查点用于学习反馈',
-      },
-      checkpointNodeIds,
-      limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
-    });
-    return paths;
-  }, []);
+        modalityMix,
+        resourceMix: modalityMix,
+        overlap: {
+          maxWithOtherOptions: 0,
+        },
+        effort: {
+          estimatedMinutes: remainingEstimatedMinutes(mainPath),
+          relative: effortLabel(remainingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
+        },
+        expectedTargetLift: round(plan.score.objectives.learningGain, 3),
+        terminalValidationNodeIds,
+        terminalValidationStrategy: {
+          nodeIds: terminalValidationNodeIds,
+          summary: terminalValidationRequired
+            ? terminalValidationNodeIds.length > 0
+              ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+              : 'terminal validation unavailable'
+            : '阶段检查点用于学习反馈',
+        },
+        checkpointNodeIds,
+        limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
+      });
+      familyAccepted = true;
+      break;
+    }
+    if (!familyAccepted && attempts > 0) {
+      omittedPolicyReasons.push(
+        ordinaryPlannerFailure && basePaths.length === 0
+          ? 'policy-path-resource-missing'
+          : 'policy-option-diversity-unavailable',
+      );
+    }
+  }
   const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths, input.registry);
   const paths = basePaths.map((path) => ({
     ...path,
@@ -5276,6 +5371,35 @@ function buildPairwiseResourceOverlap(
   return overlaps;
 }
 
+function retryStateKey(refs: ReadonlySet<string>): string {
+  return Array.from(refs).sort((left, right) => left.localeCompare(right)).join('|');
+}
+
+function pathsWithCoreOverlapAboveThreshold(
+  paths: AdaptiveLearningPathPolicyBundle['paths'],
+  candidateCoreRefs: string[],
+  registry: ResourceNodeRegistry,
+  overlapThreshold: number,
+): Array<{ path: AdaptiveLearningPathPolicyBundle['paths'][number]; conflictingRefs: string[]; overlap: number }> {
+  return paths
+    .map((path) => {
+      const retainedCoreRefs = differentiablePolicyCoreRefs(path.planNodes ?? [], registry);
+      const overlap = resourceOverlap(candidateCoreRefs, retainedCoreRefs);
+      return {
+        path,
+        overlap,
+        conflictingRefs: candidateCoreRefs
+          .filter((ref) => retainedCoreRefs.includes(ref))
+          .sort((left, right) => left.localeCompare(right)),
+      };
+    })
+    .filter((item) => item.overlap >= overlapThreshold && item.conflictingRefs.length > 0)
+    .sort((left, right) =>
+      right.overlap - left.overlap ||
+      left.path.policyFamily.localeCompare(right.path.policyFamily)
+    );
+}
+
 function buildPairwiseModalityDistance(
   paths: AdaptiveLearningPathPolicyBundle['paths'],
   registry: ResourceNodeRegistry,
@@ -5500,13 +5624,6 @@ function buildTimelinePayload(
 }
 
 function resolvePlanConfidence(learnerState: AdaptiveLearningPathLearnerState | null): AdaptiveLearningPathPlan['confidence'] {
-  if (!hasTrustedPortraitForPersonalization(learnerState)) {
-    return {
-      level: 'low',
-      score: 0,
-      sourceCoverage: 0,
-    };
-  }
   const confidence = learnerState?.evidence?.confidence;
   const score = confidence?.score ?? 0;
   const sourceCoverage = confidence?.sourceCompleteness ?? 0;

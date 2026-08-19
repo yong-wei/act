@@ -20,7 +20,6 @@ import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/p
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import { createEmptyCompetencyVector } from '../data-governance/competency-model';
-import type { PortraitV2DimensionId } from '../data-governance/kaq-objective-taxonomy';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
@@ -33,6 +32,7 @@ import {
   createPortraitV2Payload,
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
+  type PortraitV2DimensionId,
 } from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
@@ -481,7 +481,17 @@ describe('policy bundle core diversity fixture', () => {
 
   it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
-    const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));
+    let plannerInvocationCount = 0;
+    const observedNow = {
+      toISOString: () => {
+        plannerInvocationCount += 1;
+        return '2026-05-27T08:00:00.000Z';
+      },
+    } as Date;
+    const plan = buildAdaptiveLearningPathPlan({
+      ...buildDiversityFixtureInput(registry),
+      now: observedNow,
+    });
     const paths = plan.policyBundle?.paths ?? [];
 
     expect(plan.policyBundle?.status).toBe('ready');
@@ -518,63 +528,144 @@ describe('policy bundle core diversity fixture', () => {
         overlap: 0.333,
       }),
     ]);
+    expect(plannerInvocationCount).toBe(4);
   });
 
-  it('rejects a policy option whose core refs are new but pairwise core overlap still exceeds the threshold', () => {
+  it('retries a policy option whose first core combination exceeds the overlap threshold', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
     const input = buildDiversityFixtureInput(registry);
+    let plannerInvocationCount = 0;
+    const observedNow = {
+      toISOString: () => {
+        plannerInvocationCount += 1;
+        return '2026-05-27T08:00:00.000Z';
+      },
+    } as Date;
     const plan = buildAdaptiveLearningPathPlan({
       ...input,
+      now: observedNow,
       policyBundle: {
         ...input.policyBundle!,
         overlapThreshold: 0.2,
       },
     });
     const paths = plan.policyBundle?.paths ?? [];
-
     expect(paths.map((path) => path.policyFamily)).toEqual([
       'foundation-remediation',
       'simulation-driven',
+      'preference-matched',
     ]);
     expect(paths.every((path) => path.nodeIds.includes('registry:correction-precheck'))).toBe(true);
     expect(paths.every((path) => path.nodeIds.includes('arena-task:task-second-order-lead-pid'))).toBe(true);
-    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
-    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.policyBundle?.status).toBe('ready');
+    expect(plan.policyBundle?.fallbackReasons).not.toContain('policy-option-diversity-unavailable');
     expect(plan.policyBundle?.fallbackReasons).not.toContain('path-diversity-insufficient');
-    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap.every(({ overlap }) => overlap <= 0.2)).toBe(true);
+    expect(plannerInvocationCount).toBeGreaterThan(3);
     expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
       expect.objectContaining({
         left: 'foundation-remediation',
         right: 'simulation-driven',
         overlap: 0,
       }),
+      expect.objectContaining({
+        left: 'foundation-remediation',
+        right: 'preference-matched',
+        overlap: 0,
+      }),
+      expect.objectContaining({
+        left: 'simulation-driven',
+        right: 'preference-matched',
+        overlap: 0,
+      }),
     ]);
   });
 
-  it('rejects a policy option whose pairwise core overlap equals the configured threshold', () => {
+  it('retries instead of keeping a policy option whose pairwise core overlap equals the configured threshold', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
-    const input = buildDiversityFixtureInput(registry);
     const plan = buildAdaptiveLearningPathPlan({
-      ...input,
+      ...buildDiversityFixtureInput(registry),
       policyBundle: {
-        ...input.policyBundle!,
+        ...buildDiversityFixtureInput(registry).policyBundle!,
         overlapThreshold: 0.333,
       },
     });
     const paths = plan.policyBundle?.paths ?? [];
-
     expect(paths.map((path) => path.policyFamily)).toEqual([
       'foundation-remediation',
       'simulation-driven',
+      'preference-matched',
     ]);
-    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
-    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.policyBundle?.status).toBe('ready');
     expect(plan.policyBundle?.diversity.pairwiseResourceOverlap.every(({ overlap }) => overlap < 0.333)).toBe(true);
   });
 
-  it('does not count teaching-resource and registry resources with the same canonical sourceRef as distinct core options', () => {
+  it('keeps request configuration and execution constraints on a retried policy option', () => {
+    const registry = buildAlternativeCoreFixtureRegistry();
+    const input = buildDiversityFixtureInput(registry);
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      resourcePreferences: ['knowledge_card'],
+      resourcePreferenceSource: 'request',
+      difficultyRhythm: 'challenge',
+      difficultyRhythmSource: 'intent',
+      checkpointPreference: 'standard',
+      checkpointPreferenceSource: 'intent',
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'request', value: ['knowledge_card'] },
+        { key: 'difficulty-rhythm', source: 'intent', value: 'challenge' },
+        { key: 'checkpoint-preference', source: 'intent', value: 'standard' },
+      ],
+      policyBundle: {
+        ...input.policyBundle!,
+        overlapThreshold: 0.2,
+      },
+    });
+    const paths = plan.policyBundle?.paths ?? [];
+    const preferencePath = paths.find((path) => path.policyFamily === 'preference-matched');
+
+    expect(plan.policyBundle?.status).toBe('ready');
+    expect(preferencePath?.nodeIds).toEqual(expect.arrayContaining([
+      'registry:correction-precheck',
+      'arena-task:task-second-order-lead-pid',
+    ]));
+    expect(preferencePath?.terminalValidationNodeIds).toEqual(['arena-task:task-second-order-lead-pid']);
+    expect(paths.every((path) => path.estimatedMinutes <= input.constraints.timeBudgetMinutes)).toBe(true);
+    expect(paths.flatMap((path) => path.nodeIds).some((nodeId) => nodeId.startsWith('external-resource:'))).toBe(false);
+    if (!preferencePath?.planNodes) {
+      throw new Error('preference-matched path must include plan nodes');
+    }
+    expect(preferencePath.planNodes.some((node) =>
+      node.knowledgeCoverage.includes('control-correction:time-domain-targets')
+    )).toBe(true);
+    expect(paths.every((path) => {
+      if (!path.planNodes) return false;
+      return path.planNodes.every((node) =>
+        node.prerequisiteNodeIds.every((prerequisiteId) => path.nodeIds.includes(prerequisiteId))
+      );
+    })).toBe(true);
+    expect(paths.flatMap((path) => path.nodeIds).every((nodeId) =>
+      registry.nodes.find((node) => node.id === nodeId)?.eligibility.pathEligible !== false
+    )).toBe(true);
+    expect(plan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'request' }),
+      expect.objectContaining({ key: 'difficulty-rhythm', source: 'intent' }),
+      expect.objectContaining({ key: 'checkpoint-preference', source: 'intent' }),
+    ]));
+  });
+
+  it('exhausts same-source retry candidates without accepting cosmetic policy options', () => {
     const registry = buildCanonicalDuplicateFixtureRegistry();
-    const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));
+    let plannerInvocationCount = 0;
+    const observedNow = {
+      toISOString: () => {
+        plannerInvocationCount += 1;
+        return '2026-05-27T08:00:00.000Z';
+      },
+    } as Date;
+    const plan = buildAdaptiveLearningPathPlan({
+      ...buildDiversityFixtureInput(registry),
+      now: observedNow,
+    });
 
     const teachingNode = registry.nodes.find((node) => node.id === 'teaching-resource:teacher-core');
     expect(teachingNode?.sourceRefs).toEqual(expect.arrayContaining([
@@ -584,6 +675,7 @@ describe('policy bundle core diversity fixture', () => {
     expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual(['foundation-remediation']);
     expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
     expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([]);
+    expect(plannerInvocationCount).toBeLessThanOrEqual(10);
   });
 });
 
@@ -631,37 +723,7 @@ function createPlannerPortrait(
   }), 'planner', { now });
 }
 
-function createEmptyPlannerPortrait(now: Date) {
-  return projectPortraitV2ForConsumer(createPortraitV2Payload({
-    userId: 'student-1',
-    generatedAt: now.toISOString(),
-    now,
-    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
-      id,
-      score: 0,
-      confidence: 0,
-      trend: 'stable' as const,
-      freshness: {
-        state: 'missing' as const,
-        asOf: null,
-        evidenceAgeDays: null,
-      },
-      evidenceSummary: {
-        totalCount: 0,
-        sourceFamilyCounts: {},
-      },
-      lastPositiveEvidenceAt: null,
-      lastNegativeEvidenceAt: null,
-      rationale: 'No safe legacy mapping exists.',
-      limitations: ['missing-native-portrait-v2-evidence'],
-      sourceLineage: [],
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-    })),
-  }), 'planner', { now });
-}
-
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
-  const now = new Date('2026-05-27T08:00:00.000Z');
   const registry = buildResourceNodeRegistry({
     registeredResources: [
       {
@@ -755,53 +817,6 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     };
   }
 
-  const primaryPortrait = createPlannerPortrait(now, {
-    engineeringConstraintSafety: { score: 60 },
-    transferIntegratedApplication: { score: 60 },
-    controllerDesignSynthesis: { score: 35 },
-    simulationValidationEvidence: { score: 35 },
-  });
-
-  const trustedLearnerState: NonNullable<AdaptiveLearningPathPlannerInput['learnerState']> = {
-    primaryPortraitState: 'SNAPSHOT',
-    primaryPortraitAvailability: 'available',
-    primaryPortrait,
-    knowledgeMastery: {
-      tags: {
-        'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
-        'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
-      },
-    },
-    primaryCompetencies: {
-      vector: {
-        parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 5 },
-        engineeringDecision: { score: 0.62, confidence: 0.6, evidenceCount: 4 },
-      },
-    },
-    resourcePreference: {
-      preferredModalities: ['simulation', 'video'],
-    },
-    evidence: {
-      confidence: {
-        level: 'medium',
-        score: 0.72,
-        evidenceCount: 8,
-        sourceCompleteness: 0.7,
-      },
-      sourceCoverage: {
-        LearningFact: 'available',
-        StudentCompetencySnapshot: 'available',
-        StudentProfileSummary: 'partial',
-      },
-    },
-    risks: {
-      riskLevel: 'medium',
-      activeFlags: [
-        { type: 'participation', severity: 'medium' },
-      ],
-    },
-  };
-
   return {
     studentId: 'student-1',
     goal: {
@@ -809,6 +824,42 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
       title: '补齐伯德图与横摇控制',
       knowledgeTargets: ['kn-bode', 'kn-cruise'],
       competencyTargets: ['parameterDesign'],
+    },
+    learnerState: {
+      knowledgeMastery: {
+        tags: {
+          'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
+          'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
+        },
+      },
+      primaryCompetencies: {
+        vector: {
+          parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 5 },
+          engineeringDecision: { score: 0.62, confidence: 0.6, evidenceCount: 4 },
+        },
+      },
+      resourcePreference: {
+        preferredModalities: ['simulation', 'video'],
+      },
+      evidence: {
+        confidence: {
+          level: 'medium',
+          score: 0.72,
+          evidenceCount: 8,
+          sourceCompleteness: 0.7,
+        },
+        sourceCoverage: {
+          LearningFact: 'available',
+          StudentCompetencySnapshot: 'available',
+          StudentProfileSummary: 'partial',
+        },
+      },
+      risks: {
+        riskLevel: 'medium',
+        activeFlags: [
+          { type: 'participation', severity: 'medium' },
+        ],
+      },
     },
     registry,
     constraints: {
@@ -818,23 +869,8 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
       timelineWindowDays: 7,
       completedNodeIds: ['registry:bode-card'],
     },
-    now,
+    now: new Date('2026-05-27T08:00:00.000Z'),
     ...overrides,
-    learnerState: mergeLearnerState(trustedLearnerState, overrides.learnerState),
-  };
-}
-
-function mergeLearnerState(
-  trusted: NonNullable<AdaptiveLearningPathPlannerInput['learnerState']>,
-  override: AdaptiveLearningPathPlannerInput['learnerState'] | undefined,
-): AdaptiveLearningPathPlannerInput['learnerState'] {
-  if (override === undefined) return trusted;
-  if (override === null) return null;
-  return {
-    ...override,
-    primaryPortraitState: override.primaryPortraitState ?? trusted.primaryPortraitState,
-    primaryPortraitAvailability: override.primaryPortraitAvailability ?? trusted.primaryPortraitAvailability,
-    primaryPortrait: override.primaryPortrait ?? trusted.primaryPortrait,
   };
 }
 
@@ -2061,6 +2097,8 @@ describe('adaptive learning path planner', () => {
             'kn-planner-readiness': { posteriorMastery: 0.35, confidence: 0.7, evidenceCount: 2 },
           },
         },
+        primaryPortraitState: 'SNAPSHOT',
+        primaryPortraitAvailability: 'available',
         primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
           controlModelingRepresentation: { score: 35, totalCount: 2 },
           systemAnalysisInterpretation: { score: 35, totalCount: 2 },
@@ -3929,10 +3967,6 @@ describe('adaptive learning path planner', () => {
         competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
       },
       learnerState: {
-        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
-          transferIntegratedApplication: { score: 28, totalCount: 3 },
-          engineeringConstraintSafety: { score: 42, totalCount: 3 },
-        }),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
@@ -4165,11 +4199,6 @@ describe('adaptive learning path planner', () => {
         competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
       },
       learnerState: {
-        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
-          controlModelingRepresentation: { score: 60, totalCount: 3 },
-          systemAnalysisInterpretation: { score: 60, totalCount: 3 },
-          controllerDesignSynthesis: { score: 50, totalCount: 3 },
-        }),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
@@ -4544,12 +4573,6 @@ describe('adaptive learning path planner', () => {
             'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
           },
         },
-        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
-          controlModelingRepresentation: { score: 60, totalCount: 3 },
-          systemAnalysisInterpretation: { score: 60, totalCount: 3 },
-          controllerDesignSynthesis: { score: 60, totalCount: 3 },
-          engineeringConstraintSafety: { score: 60, totalCount: 3 },
-        }),
         primaryCompetencies: {
           vector: {
             controlModeling: { score: 0.6, confidence: 0.7, evidenceCount: 4 },
@@ -5686,7 +5709,7 @@ describe('adaptive learning path planner', () => {
     }));
   });
 
-  it('fails closed when portrait v2 has no authoritative evidence', () => {
+  it('falls back to the compatibility vector when the portrait dimension has no usable evidence', () => {
     const portraitNow = new Date('2026-05-27T08:00:00.000Z');
     const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
       userId: 'student-1',
@@ -5752,9 +5775,14 @@ describe('adaptive learning path planner', () => {
     }));
     const node = plan.mainPath.find((item) => item.nodeId === 'simulation:compatibility-readiness-fallback');
 
-    expect(node).toBeUndefined();
-    expect(plan.explanations.fallbackReasons).toContain('trusted-portrait-unavailable');
-    expect(plan.visualization.evidence.capabilityEvidence).not.toEqual(expect.arrayContaining([
+    expect(node?.readiness).toMatchObject({
+      state: 'ready',
+      missingCompetencies: [],
+    });
+    expect(plan.visualization.evidence.learnerStateDeficits).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ targetId: 'parameterDesign' }),
+    ]));
+    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
       expect.objectContaining({
         target: expect.objectContaining({ id: 'compatibility-readiness-capability' }),
         observedEvidence: expect.objectContaining({
@@ -8096,7 +8124,6 @@ describe('adaptive learning path planner', () => {
       },
       learnerState: {
         ...plannerInput().learnerState!,
-        primaryPortrait: createEmptyPlannerPortrait(new Date('2026-05-27T08:00:00.000Z')),
         evidence: {
           confidence: { evidenceCount: 0 },
         },
