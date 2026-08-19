@@ -8,7 +8,7 @@
 
 - [x] 2.1 Extend request validation for explicit force intent and bounded teacher reason while rejecting browser-authored audit or factual fields.
 - [x] 2.2 Recompute preflight in job creation, suppress unchanged ordinary requests, arbitrate concurrent ordinary identities, and preserve active-job/idempotency behavior.
-- [x] 2.3 Copy immutable audit fields into the formal report in the completion transaction and preserve them across retry and timeout recovery.
+- [x] 2.3 Persist the canonical governed input, require the provider to verify and consume that frozen snapshot, copy immutable audit fields into the formal report, and preserve them across retry and timeout recovery.
 - [x] 2.4 Add generation tests for ordinary duplicate suppression, force audit, concurrency races, failure exclusion, and retry identity retention.
 
 ## 3. API and teacher interface
@@ -21,5 +21,5 @@
 ## 4. Verification and evidence
 
 - [x] 4.1 Generate Prisma client and run targeted diagnosis generation, route, persistence, and component tests.
-- [x] 4.2 Run typecheck, affected lint, strict OpenSpec validation, and migration validation.
+- [x] 4.2 Run typecheck, affected lint, strict OpenSpec validation, and the real PostgreSQL migration/constraint smoke.
 - [x] 4.3 Refresh teacher diagnosis browser evidence and verify governed-source/evidence manifests when source paths require it.

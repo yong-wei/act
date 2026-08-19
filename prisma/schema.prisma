@@ -5244,6 +5244,7 @@ model DiagnosisGenerationJob {
   forceReason                String?
   previousReportId           String?
   inputSummary               Json?
+  governedInput              Json?
   inputDigest                String?
   ordinaryGenerationIdentity String?                      @unique
   failureCode                String?

@@ -46,6 +46,15 @@ export interface DiagnosisInputSummary extends Prisma.JsonObject {
   categories: StoredCategories;
 }
 
+export interface DiagnosisGovernedInput extends Prisma.JsonObject {
+  schemaVersion: 'teacher-diagnosis-governed-input.v1';
+  classId: string;
+  studentIds: string[];
+  riskFlags: Prisma.JsonArray;
+  competencySnapshots: Prisma.JsonArray;
+  knowledgeProgress: Prisma.JsonArray;
+}
+
 export interface DiagnosisPreflightCategory {
   availability: CategoryAvailability;
   currentCount: number | null;
@@ -71,6 +80,7 @@ export interface DiagnosisGenerationPreflight {
   } | null;
   categories: Record<CategoryName, DiagnosisPreflightCategory>;
   inputSummary: DiagnosisInputSummary;
+  governedInput: DiagnosisGovernedInput;
   inputDigest: string;
   ordinaryGenerationIdentity: string;
   generationReason: Exclude<DiagnosisGenerationReason, 'teacher-forced'> | null;
@@ -78,6 +88,18 @@ export interface DiagnosisGenerationPreflight {
 
 function sha256(value: string) {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function canonicalizeJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeJson);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, child]) => [key, canonicalizeJson(child)]));
+}
+
+export function digestDiagnosisGovernedInput(value: unknown) {
+  return sha256(JSON.stringify(canonicalizeJson(value)));
 }
 
 function itemDigests(rows: unknown[]) {
@@ -292,7 +314,7 @@ export async function preflightDiagnosisGeneration(
               },
             }),
       ]);
-  const riskItems = itemDigests(riskRows.map((row) => ({
+  const riskInput = riskRows.map((row) => ({
     id: row.id,
     userId: row.userId,
     type: row.flagType,
@@ -301,8 +323,8 @@ export async function preflightDiagnosisGeneration(
     evidenceSummary: projectRiskEvidenceSummary(row.evidenceJson),
     triggeredAt: row.triggeredAt.toISOString(),
     observedAt: row.evidenceObservedAt.toISOString(),
-  })));
-  const progressItems = itemDigests(progressRows.map((row) => ({
+  }));
+  const progressInput = progressRows.map((row) => ({
     id: row.id,
     userId: row.userId,
     nodeId: row.nodeId,
@@ -310,7 +332,25 @@ export async function preflightDiagnosisGeneration(
     progress: row.progress,
     timeSpent: row.timeSpent,
     lastVisited: row.lastVisited.toISOString(),
-  })));
+  }));
+  const competencyInput = competencyRows.map((row) => ({
+    id: row.id,
+    userId: row.userId,
+    snapshotAt: row.snapshotAt.toISOString(),
+    // portrait-v2-legacy-compatibility-adapter: frozen non-sovereign provider input.
+    competencyVector: row.competencyVector,
+    calculationVersion: row.calculationVersion,
+  }));
+  const governedInput: DiagnosisGovernedInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1',
+    classId: input.classId,
+    studentIds,
+    riskFlags: riskInput,
+    competencySnapshots: competencyInput,
+    knowledgeProgress: progressInput,
+  };
+  const riskItems = itemDigests(riskInput);
+  const progressItems = itemDigests(progressInput);
   const competencyByStudent = new Map(competencyRows.map((row) => [row.userId, row]));
   const eligibilityItems = itemDigests(studentIds.map((userId) => {
     const row = competencyByStudent.get(userId);
@@ -350,7 +390,7 @@ export async function preflightDiagnosisGeneration(
       },
     },
   };
-  const inputDigest = sha256(JSON.stringify(inputSummary));
+  const inputDigest = digestDiagnosisGovernedInput(governedInput);
   const ordinaryGenerationIdentity = sha256(JSON.stringify({
     teacherId: input.teacherId,
     classId: input.classId,
@@ -402,6 +442,7 @@ export async function preflightDiagnosisGeneration(
     activeJob,
     categories: publicCategories(inputSummary, previousSummary),
     inputSummary,
+    governedInput,
     inputDigest,
     ordinaryGenerationIdentity,
     generationReason,

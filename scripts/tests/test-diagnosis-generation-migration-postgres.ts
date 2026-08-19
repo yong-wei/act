@@ -22,6 +22,14 @@ async function main() {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();
   try {
+    const governedInputColumn = await client.query(`
+      SELECT data_type FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'DiagnosisGenerationJob'
+        AND column_name = 'governedInput'
+    `);
+    assert(governedInputColumn.rows[0]?.data_type === 'jsonb', 'governed input snapshot column is missing');
+
     const indexes = await client.query(`
       SELECT indexname FROM pg_indexes WHERE indexname IN (
         'DiagnosisGenerationJob_activeScopeKey_key',
@@ -114,7 +122,7 @@ async function main() {
         "id", "scopeType", "scopeId", "classId", "userId", "reportBody", "evidenceCutoff", "generatorVersion", "generationJobId"
       ) VALUES ('report-duplicate', 'class', 'class-1', 'class-1', 'teacher-1', '{}', CURRENT_TIMESTAMP, 'teacher-diagnosis.v1', 'job-active')
     `, '23505');
-    await expectSqlState(client, 'DELETE FROM "DiagnosisGenerationJob" WHERE "id" = \'job-active\'', '23503');
+    await expectSqlState(client, 'DELETE FROM "DiagnosisGenerationJob" WHERE "id" = \'job-active\'', '23001');
 
     await client.query(`
       UPDATE "DiagnosisGenerationJob"
@@ -130,7 +138,7 @@ async function main() {
         'FAILED', CURRENT_TIMESTAMP, 'teacher-diagnosis.v1', 'ordinary-input-1', CURRENT_TIMESTAMP
       )
     `, '23505');
-    await expectSqlState(client, 'DELETE FROM "DiagnosisReport" WHERE "id" = \'report-1\'', '23503');
+    await expectSqlState(client, 'DELETE FROM "DiagnosisReport" WHERE "id" = \'report-1\'', '23001');
 
     await client.query(`
       UPDATE "DiagnosisGenerationJob"

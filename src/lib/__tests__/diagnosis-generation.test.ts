@@ -15,10 +15,33 @@ import {
   startDiagnosisGenerationJob,
 } from '@/lib/diagnosis-generation';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
+import {
+  generateGovernedDiagnosisReport,
+} from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
-import { preflightDiagnosisGeneration } from '@/lib/diagnosis-generation-preflight';
+import {
+  digestDiagnosisGovernedInput,
+  preflightDiagnosisGeneration,
+} from '@/lib/diagnosis-generation-preflight';
 
 const now = new Date('2026-08-08T08:00:00.000Z');
+const governedInput = {
+  schemaVersion: 'teacher-diagnosis-governed-input.v1',
+  classId: 'class-1',
+  studentIds: ['student-1'],
+  riskFlags: [],
+  competencySnapshots: [],
+  knowledgeProgress: [{
+    id: 'progress-1',
+    userId: 'student-1',
+    nodeId: 'node-1',
+    status: 'IN_PROGRESS',
+    progress: 50,
+    timeSpent: 120,
+    lastVisited: now.toISOString(),
+  }],
+};
+const governedInputDigest = digestDiagnosisGovernedInput(governedInput);
 
 function publicJob(overrides: Record<string, unknown> = {}) {
   return {
@@ -97,6 +120,8 @@ function workerDbFixture() {
         targetUserId: null,
         evidenceCutoff: now,
         generatorVersion: 'teacher-diagnosis.v1',
+        governedInput,
+        inputDigest: governedInputDigest,
       }),
       update: vi.fn().mockResolvedValue({ id: 'job-1' }),
     },
@@ -117,6 +142,39 @@ function workerDbFixture() {
 }
 
 describe('teacher diagnosis generation contracts', () => {
+  it('fails closed before database or provider access when the frozen input digest is altered', async () => {
+    const db = { class: { findUnique: vi.fn() } };
+
+    await expect(generateGovernedDiagnosisReport(db as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: '0'.repeat(64),
+    })).rejects.toMatchObject({
+      code: 'diagnosis-governed-input-digest-mismatch',
+    });
+    expect(db.class.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('passes the immutable preflight input to the provider after mutable evidence changes', async () => {
+    const { db } = workerDbFixture();
+    const providerUnavailable = new Error('provider unavailable');
+    const generate = vi.fn().mockRejectedValue(providerUnavailable);
+
+    await expect(processDiagnosisGenerationJob(db as never, 'job-1', undefined, generate))
+      .rejects.toBe(providerUnavailable);
+
+    expect(generate).toHaveBeenCalledWith(db, expect.objectContaining({
+      governedInput,
+      inputDigest: governedInputDigest,
+    }));
+  });
+
   it('records malformed provider output as non-retryable and stops the worker', async () => {
     const parsed = diagnosisReportBodySchema.safeParse({
       summary: 'Malformed diagnosis output.',

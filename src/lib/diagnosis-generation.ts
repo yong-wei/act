@@ -196,6 +196,7 @@ export async function startDiagnosisGenerationJob(
         forceReason: input.force ? forceReason : null,
         previousReportId: preflight.previousReport?.id ?? null,
         inputSummary: preflight.inputSummary,
+        governedInput: preflight.governedInput,
         inputDigest: preflight.inputDigest,
         ordinaryGenerationIdentity: input.force ? null : preflight.ordinaryGenerationIdentity,
       },

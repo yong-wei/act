@@ -4,6 +4,7 @@ ALTER TABLE "DiagnosisGenerationJob"
   ADD COLUMN "forceReason" TEXT,
   ADD COLUMN "previousReportId" TEXT,
   ADD COLUMN "inputSummary" JSONB,
+  ADD COLUMN "governedInput" JSONB,
   ADD COLUMN "inputDigest" TEXT,
   ADD COLUMN "ordinaryGenerationIdentity" TEXT;
 

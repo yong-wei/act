@@ -21,7 +21,7 @@ The existing generation path already owns authorization, fixed cutoffs, durable 
 
 ### 1. Canonical input snapshot and digest
 
-Preflight authorizes the scope, fixes a cutoff, resolves current class membership, and reads the same eligible rows as the provider: active supported risk flags, the latest competency snapshot per member for class scope, and knowledge-progress rows. The competency snapshot remains the provider's explicit non-sovereign portrait-v2 compatibility input; preflight does not promote it to a primary learner portrait. It serializes only stable identities, timestamps, and diagnosis-relevant values in a canonical order, then computes a SHA-256 digest.
+Preflight authorizes the scope, fixes a cutoff, resolves current class membership, and reads the provider's eligible rows: active supported risk flags, the latest competency snapshot per member for class scope, and knowledge-progress rows. The competency snapshot remains the provider's explicit non-sovereign portrait-v2 compatibility input; preflight does not promote it to a primary learner portrait. It serializes only stable identities, timestamps, and diagnosis-relevant values in a canonical order, persists that governed input on the job, and computes its SHA-256 digest. The worker passes the persisted snapshot to the provider, which verifies the digest before any model call and never rereads mutable evidence rows for that job.
 
 The public summary contains category availability and aggregate counts only. The private canonical snapshot is not returned or persisted. This is preferred over comparing report citations because model citations can be a subset of available governed input and would misclassify unchanged inputs.
 
