@@ -22,6 +22,7 @@ import type {
   DiagnosisReportsPayload,
 } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
+import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
 import {
   projectReportHistoryCard,
   type EvidenceCoverageGroup,
@@ -48,6 +49,10 @@ interface TeacherDiagnosisReportHistoryViewProps {
   generationError?: string | null;
   onGenerate?: () => void;
   onRetryGeneration?: () => void;
+  generationPreflight?: DiagnosisGenerationPreflightApiItem | null;
+  preflightLoading?: boolean;
+  onClosePreflight?: () => void;
+  onConfirmGeneration?: (forceReason?: string) => void;
 }
 
 const CONFIDENCE_LABELS = {
@@ -89,6 +94,8 @@ export function TeacherDiagnosisReportHistory({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [generationJob, setGenerationJob] = useState<DiagnosisGenerationJobApiItem | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationPreflight, setGenerationPreflight] = useState<DiagnosisGenerationPreflightApiItem | null>(null);
+  const [preflightLoading, setPreflightLoading] = useState(false);
 
   const loadReports = useCallback(async () => {
     setState('loading');
@@ -124,7 +131,32 @@ export function TeacherDiagnosisReportHistory({
     void loadReports();
   }, [loadReports]);
 
-  const submitGeneration = useCallback(async (retry = false) => {
+  const loadPreflight = useCallback(async () => {
+    setGenerationError(null);
+    setPreflightLoading(true);
+    try {
+      const searchParams = new URLSearchParams();
+      if (targetStudentId) searchParams.set('studentId', targetStudentId);
+      const query = searchParams.size > 0 ? `?${searchParams.toString()}` : '';
+      const response = await fetch(
+        `/api/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/preflight${query}`,
+      );
+      const payload = await response.json().catch(() => null) as {
+        preflight?: DiagnosisGenerationPreflightApiItem;
+        error?: string;
+      } | null;
+      if (!response.ok || !payload?.preflight) {
+        throw new Error(payload?.error || '读取诊断生成预检失败');
+      }
+      setGenerationPreflight(payload.preflight);
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : '读取诊断生成预检失败');
+    } finally {
+      setPreflightLoading(false);
+    }
+  }, [classId, targetStudentId]);
+
+  const submitGeneration = useCallback(async (retry = false, forceReason?: string) => {
     setGenerationError(null);
     try {
       const response = retry && generationJob
@@ -139,11 +171,13 @@ export function TeacherDiagnosisReportHistory({
             body: JSON.stringify({
               idempotencyKey: crypto.randomUUID(),
               ...(targetStudentId ? { targetStudentId } : {}),
+              ...(forceReason ? { force: true, forceReason } : {}),
             }),
           });
       const payload = await response.json().catch(() => null) as { job?: DiagnosisGenerationJobApiItem; error?: string } | null;
       if (!payload?.job) throw new Error(payload?.error || '创建诊断生成任务失败');
       setGenerationJob(payload.job);
+      setGenerationPreflight(null);
       if (!response.ok) setGenerationError(payload.error || '诊断生成任务投递失败');
     } catch (error) {
       setGenerationError(error instanceof Error ? error.message : '创建诊断生成任务失败');
@@ -176,7 +210,11 @@ export function TeacherDiagnosisReportHistory({
       onSelectReport={setSelectedReportId}
       generationJob={generationJob}
       generationError={generationError}
-      onGenerate={() => void submitGeneration(false)}
+      generationPreflight={generationPreflight}
+      preflightLoading={preflightLoading}
+      onGenerate={() => void loadPreflight()}
+      onClosePreflight={() => setGenerationPreflight(null)}
+      onConfirmGeneration={(forceReason) => void submitGeneration(false, forceReason)}
       onRetryGeneration={() => void submitGeneration(true)}
     />
   );
@@ -194,6 +232,10 @@ export function TeacherDiagnosisReportHistoryView({
   generationError,
   onGenerate,
   onRetryGeneration,
+  generationPreflight,
+  preflightLoading,
+  onClosePreflight,
+  onConfirmGeneration,
 }: TeacherDiagnosisReportHistoryViewProps) {
   const selectedReport = useMemo(
     () => reports.find((report) => report.id === selectedReportId) ?? reports[0] ?? null,
@@ -229,13 +271,15 @@ export function TeacherDiagnosisReportHistoryView({
             type="button"
             data-diagnosis-generation-action="generate"
             onClick={onGenerate}
-            disabled={generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
+            disabled={preflightLoading || generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
             className="btn-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
           >
-            {generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'
+            {preflightLoading || generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'
               ? <Loader2 className="h-4 w-4 animate-spin" />
               : <BookOpenCheck className="h-4 w-4" />}
-            {generationJob?.state === 'QUEUED'
+            {preflightLoading
+              ? '检查生成条件'
+              : generationJob?.state === 'QUEUED'
               ? '等待生成'
               : generationJob?.state === 'RUNNING'
                 ? '正在生成'
@@ -252,6 +296,14 @@ export function TeacherDiagnosisReportHistoryView({
           </button>
         </div>
       </header>
+
+      {generationPreflight ? (
+        <GenerationPreflight
+          preflight={generationPreflight}
+          onClose={onClosePreflight}
+          onConfirm={onConfirmGeneration}
+        />
+      ) : null}
 
       {generationJob || generationError ? (
         <GenerationStatus
@@ -291,6 +343,19 @@ function GenerationStatus({
   onRetry?: () => void;
 }) {
   const failed = job?.state === 'FAILED' || job?.state === 'TIMED_OUT';
+  if (job?.state === 'COMPLETED' && !error) {
+    return (
+      <details
+        className="relative border-b border-emerald-500/20 bg-emerald-500/5 px-5 py-3 text-sm sm:px-6"
+        data-diagnosis-generation-state="COMPLETED"
+      >
+        <summary className="cursor-pointer font-medium text-foreground">
+          诊断生成完成，报告历史已更新
+        </summary>
+        <p className="mt-2 text-xs text-subtle">证据截止：{formatReportTime(job.evidenceCutoff)}</p>
+      </details>
+    );
+  }
   return (
     <div
       className={`relative flex flex-col gap-2 border-b px-5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
@@ -321,6 +386,101 @@ function GenerationStatus({
           重试原任务
         </button>
       ) : null}
+    </div>
+  );
+}
+
+function GenerationPreflight({
+  preflight,
+  onClose,
+  onConfirm,
+}: {
+  preflight: DiagnosisGenerationPreflightApiItem;
+  onClose?: () => void;
+  onConfirm?: (forceReason?: string) => void;
+}) {
+  const [forceReason, setForceReason] = useState('');
+  const statusCopy = {
+    FIRST_GENERATION: ['首次生成', '当前范围尚无正式诊断报告。'],
+    NEW_EVIDENCE: ['存在新的诊断依据', '受治理输入已发生有效变化。'],
+    VERSION_CHANGE: ['生成版本已变化', '生成器或确定性预检规则已更新。'],
+    NO_EFFECTIVE_CHANGE: ['没有有效变化', '与上一份正式报告相比，当前受治理输入和版本均未变化。'],
+    ACTIVE_JOB: ['已有生成任务', '当前范围已有排队或运行中的诊断任务。'],
+    UNAVAILABLE: ['暂不可生成', '当前范围没有生成器可读取的合格受治理输入。'],
+  } as const;
+  const [title, description] = statusCopy[preflight.status];
+  const categoryLabels = {
+    assignment: '作业',
+    assessment: '测验',
+    learningBehavior: '学习行为',
+    risk: '风险',
+    eligibility: '诊断资格',
+  } as const;
+  return (
+    <div className="relative border-b border-sky-500/20 bg-sky-500/5 px-5 py-4 sm:px-6" data-diagnosis-preflight-status={preflight.status}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="font-medium text-foreground">{title}</p>
+          <p className="mt-1 text-sm text-subtle">{description}</p>
+          {preflight.previousReport ? (
+            <p className="mt-1 text-xs text-subtle">
+              上一份报告证据截止：{formatReportTime(preflight.previousReport.evidenceCutoff)}
+            </p>
+          ) : null}
+          <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {Object.entries(preflight.categories).map(([name, category]) => (
+              <div key={name} className="rounded-lg border border-border/60 bg-card/60 px-3 py-2">
+                <dt className="text-xs text-subtle">{categoryLabels[name as keyof typeof categoryLabels]}</dt>
+                <dd className="mt-1 text-sm font-medium text-foreground">
+                  {category.availability === 'unavailable'
+                    ? '未接入'
+                    : `${category.changedCount ?? 0} 项变化`}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {preflight.canForce ? (
+            <label className="mt-3 block max-w-xl text-sm text-foreground">
+              强制生成理由
+              <textarea
+                value={forceReason}
+                onChange={(event) => setForceReason(event.target.value)}
+                minLength={8}
+                maxLength={1_000}
+                rows={2}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                placeholder="说明为什么在证据未变化时仍需形成新的正式报告（至少 8 个字符）"
+              />
+            </label>
+          ) : null}
+        </div>
+        <div className="flex flex-none gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost-themed rounded-lg px-3 py-2 text-sm">
+            取消
+          </button>
+          {preflight.canGenerate ? (
+            <button
+              type="button"
+              data-diagnosis-generation-action="confirm"
+              onClick={() => onConfirm?.()}
+              className="btn-themed rounded-lg px-3 py-2 text-sm"
+            >
+              确认生成
+            </button>
+          ) : null}
+          {preflight.canForce ? (
+            <button
+              type="button"
+              data-diagnosis-generation-action="force"
+              disabled={forceReason.trim().length < 8}
+              onClick={() => onConfirm?.(forceReason.trim())}
+              className="btn-themed rounded-lg px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              强制生成
+            </button>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

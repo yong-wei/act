@@ -81,7 +81,7 @@ export function projectReportHistoryCard(
     scopeLabel: report.scopeType === 'student' ? '学生范围' : '班级范围',
     includedStudentsLabel: includedStudentsLabel(report),
     evidenceCutoffLabel: formatShortDate(report.evidenceCutoff),
-    generationReason: '教师请求后，按固定证据快照生成',
+    generationReason: formatGenerationReason(report),
     mainWeaknessLabel: mainWeaknessLabel(report),
     availability: buildAvailability(report, confidenceReasons),
     evidenceGroups,
@@ -90,6 +90,23 @@ export function projectReportHistoryCard(
     declaredLimitations,
     attributionLimited,
   };
+}
+
+function formatGenerationReason(report: DiagnosisReportApiItem) {
+  switch (report.generationReason) {
+    case 'first-generation':
+      return '首次形成该范围的正式诊断';
+    case 'new-evidence':
+      return '受治理诊断依据发生有效变化';
+    case 'version-change':
+      return '生成器或确定性预检规则升级后重新生成';
+    case 'teacher-forced':
+      return report.forceReason
+        ? `教师强制生成：${report.forceReason}`
+        : '教师填写理由后强制生成';
+    default:
+      return '教师请求后，按固定证据快照生成';
+  }
 }
 
 function buildEvidenceGroups(report: DiagnosisReportApiItem): EvidenceCoverageGroup[] {

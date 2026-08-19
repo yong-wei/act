@@ -9,9 +9,11 @@ export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
   'src/features/teacher/teacher-diagnosis-report-history.tsx',
   'src/features/teacher/teacher-diagnosis-report-history-projection.ts',
   'src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts',
+  'src/app/api/teacher/classes/[classId]/diagnosis-reports/preflight/route.ts',
   'src/app/api/teacher/diagnosis-generation-jobs/[jobId]/route.ts',
   'src/lib/auth.ts',
   'src/lib/diagnosis-generation.ts',
+  'src/lib/diagnosis-generation-preflight.ts',
   'src/lib/diagnosis-persistence.ts',
 ] as const;
 
@@ -51,6 +53,8 @@ export interface TeacherDiagnosisReportHistoryEvidenceManifest {
     generationCompleted: boolean;
     generationTimedOut: boolean;
     generationRetry: boolean;
+    generationPreflight: boolean;
+    forcedGenerationReason: boolean;
   };
   captures: EvidenceCapture[];
 }
@@ -85,6 +89,8 @@ const REQUIRED_ASSERTIONS = [
   'generationCompleted',
   'generationTimedOut',
   'generationRetry',
+  'generationPreflight',
+  'forcedGenerationReason',
 ] as const;
 
 export function teacherDiagnosisReportHistoryEvidenceProblems(
@@ -145,6 +151,9 @@ export function teacherDiagnosisReportHistoryEvidenceProblems(
   });
   verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'class-generation-completed-1440-light'), context, {
     name: 'class-generation-completed-1440-light', route: /^\/teacher\/classes\/[^/]+$/, width: 1440,
+  });
+  verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'class-generation-preflight-no-change-1440-light'), context, {
+    name: 'class-generation-preflight-no-change-1440-light', route: /^\/teacher\/classes\/[^/]+$/, width: 1440,
   });
   verifyCapture(problems, manifest.captures.find((capture) => capture.name === 'student-generation-timeout-320-dark'), context, {
     name: 'student-generation-timeout-320-dark', route: /^\/teacher\/classes\/[^/]+\/students\/[^/]+$/, width: 320,

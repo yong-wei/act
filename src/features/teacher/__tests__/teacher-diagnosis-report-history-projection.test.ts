@@ -70,6 +70,19 @@ describe('teacher diagnosis report history projection', () => {
     expect(projection.declaredLimitations).toContain('没有可用的知识点学习进度证据。');
   });
 
+  it('projects the governed generation reason instead of generic model prose', () => {
+    expect(projectReportHistoryCard({
+      ...baseline,
+      generationReason: 'version-change',
+      ruleVersion: 'teacher-diagnosis-preflight.v1',
+    }).generationReason).toContain('预检规则升级');
+    expect(projectReportHistoryCard({
+      ...baseline,
+      generationReason: 'teacher-forced',
+      forceReason: '用于教学复盘会议留档',
+    }).generationReason).toContain('用于教学复盘会议留档');
+  });
+
   it('does not treat generated prose changes as learning changes when governed structure is unchanged', () => {
     const current: DiagnosisReportApiItem = {
       ...baseline,

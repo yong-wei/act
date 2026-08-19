@@ -21,10 +21,20 @@ export const dynamic = 'force-dynamic';
 
 export type DiagnosisReportApiItem = Omit<
   DiagnosisReportReadModel,
-  'evidenceCutoff' | 'generatedAt'
+  | 'evidenceCutoff'
+  | 'generatedAt'
+  | 'inputSummary'
+  | 'ruleVersion'
+  | 'generationReason'
+  | 'forceReason'
+  | 'previousReportId'
 > & {
   evidenceCutoff: string;
   generatedAt: string;
+  ruleVersion?: string | null;
+  generationReason?: string | null;
+  forceReason?: string | null;
+  previousReportId?: string | null;
 };
 
 export interface DiagnosisReportsPayload {
@@ -70,11 +80,15 @@ export async function GET(
       limit,
     });
     const payload: DiagnosisReportsPayload = {
-      reports: reports.map((report) => ({
-        ...report,
-        evidenceCutoff: report.evidenceCutoff.toISOString(),
-        generatedAt: report.generatedAt.toISOString(),
-      })),
+      reports: reports.map((report) => {
+        const { inputSummary, ...publicReport } = report;
+        void inputSummary;
+        return {
+          ...publicReport,
+          evidenceCutoff: report.evidenceCutoff.toISOString(),
+          generatedAt: report.generatedAt.toISOString(),
+        };
+      }),
     };
     return NextResponse.json(payload);
   } catch (error) {
@@ -110,6 +124,8 @@ export async function POST(
       classId,
       targetStudentId: input.targetStudentId ?? null,
       idempotencyKey: input.idempotencyKey,
+      force: input.force,
+      forceReason: input.forceReason ?? null,
     });
     const delivery = job.state === 'QUEUED'
       ? await enqueueDiagnosisGenerationJob(prisma, job.id)
