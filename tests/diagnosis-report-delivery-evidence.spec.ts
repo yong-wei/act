@@ -123,7 +123,7 @@ test('captures an explicit PDF recovery state', async ({ page }) => {
 });
 
 test('captures the student-safe report without teacher controls at 320px', async ({ page }) => {
-  await installSession(page, 'STUDENT', 'student-evidence');
+  await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 320, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
   await installFixture(page, 'student', 'STUDENT');
