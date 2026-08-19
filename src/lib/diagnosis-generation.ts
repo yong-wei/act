@@ -120,6 +120,15 @@ function activeScopeKey(teacherId: string, classId: string, targetStudentId?: st
   return `${teacherId}:${classId}:${targetStudentId ?? 'class'}`;
 }
 
+async function lockDiagnosisGenerationScope(
+  tx: Pick<Prisma.TransactionClient, '$executeRaw'>,
+  scopeKey: string,
+) {
+  await tx.$executeRaw(Prisma.sql`
+    SELECT pg_advisory_xact_lock(hashtext(${`diagnosis-generation:${scopeKey}`}))
+  `);
+}
+
 export async function startDiagnosisGenerationJob(
   db: PrismaClient,
   input: {
@@ -180,27 +189,48 @@ export async function startDiagnosisGenerationJob(
     throw new DiagnosisGenerationError('diagnosis-generation-no-effective-change', 409);
   }
   try {
-    return await db.diagnosisGenerationJob.create({
-      data: {
-        userId: input.teacherId,
-        classId: input.classId,
-        targetUserId: input.targetStudentId ?? null,
-        scopeType: input.targetStudentId ? 'student' : 'class',
-        scopeId: input.targetStudentId ?? input.classId,
-        activeScopeKey: scopeKey,
-        idempotencyKey: input.idempotencyKey,
-        evidenceCutoff: preflight.evidenceCutoff,
-        generatorVersion: preflight.generatorVersion,
-        ruleVersion: preflight.ruleVersion,
-        generationReason: input.force ? 'teacher-forced' : preflight.generationReason,
-        forceReason: input.force ? forceReason : null,
-        previousReportId: preflight.previousReport?.id ?? null,
-        inputSummary: preflight.inputSummary,
-        governedInput: preflight.governedInput,
-        inputDigest: preflight.inputDigest,
-        ordinaryGenerationIdentity: input.force ? null : preflight.ordinaryGenerationIdentity,
-      },
-      select: publicJobSelect,
+    return await db.$transaction(async (tx) => {
+      await lockDiagnosisGenerationScope(tx, scopeKey);
+      const activeAfterLock = await tx.diagnosisGenerationJob.findUnique({
+        where: { activeScopeKey: scopeKey },
+        select: publicJobSelect,
+      });
+      if (activeAfterLock) return activeAfterLock;
+      const latestReport = await tx.diagnosisReport.findFirst({
+        where: {
+          classId: input.classId,
+          ...(input.targetStudentId
+            ? { targetUserId: input.targetStudentId }
+            : { targetUserId: null }),
+        },
+        orderBy: { generatedAt: 'desc' },
+        select: { id: true },
+      });
+      if ((latestReport?.id ?? null) !== (preflight.previousReport?.id ?? null)) {
+        throw new DiagnosisGenerationError('diagnosis-generation-predecessor-changed', 409);
+      }
+      return tx.diagnosisGenerationJob.create({
+        data: {
+          userId: input.teacherId,
+          classId: input.classId,
+          targetUserId: input.targetStudentId ?? null,
+          scopeType: input.targetStudentId ? 'student' : 'class',
+          scopeId: input.targetStudentId ?? input.classId,
+          activeScopeKey: scopeKey,
+          idempotencyKey: input.idempotencyKey,
+          evidenceCutoff: preflight.evidenceCutoff,
+          generatorVersion: preflight.generatorVersion,
+          ruleVersion: preflight.ruleVersion,
+          generationReason: input.force ? 'teacher-forced' : preflight.generationReason,
+          forceReason: input.force ? forceReason : null,
+          previousReportId: preflight.previousReport?.id ?? null,
+          inputSummary: preflight.inputSummary,
+          governedInput: preflight.governedInput,
+          inputDigest: preflight.inputDigest,
+          ordinaryGenerationIdentity: input.force ? null : preflight.ordinaryGenerationIdentity,
+        },
+        select: publicJobSelect,
+      });
     });
   } catch (error) {
     if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') throw error;
@@ -357,7 +387,9 @@ export async function completeDiagnosisGenerationJob(
   },
 ) {
   return db.$transaction(async (tx) => {
-    const job = await tx.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: input.jobId } });
+    let job = await tx.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: input.jobId } });
+    await lockDiagnosisGenerationScope(tx, activeScopeKey(job.userId, job.classId, job.targetUserId));
+    job = await tx.diagnosisGenerationJob.findUniqueOrThrow({ where: { id: input.jobId } });
     if (job.state === 'COMPLETED') return tx.diagnosisReport.findUniqueOrThrow({ where: { generationJobId: job.id } });
     if (job.state !== 'RUNNING') throw new DiagnosisGenerationError('diagnosis-generation-state-conflict', 409);
     const attempt = await tx.diagnosisGenerationAttempt.findFirst({

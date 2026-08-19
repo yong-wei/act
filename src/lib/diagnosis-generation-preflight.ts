@@ -268,7 +268,7 @@ export async function preflightDiagnosisGeneration(
             flagType: { in: [...CURRENT_RISK_FLAG_TYPES] },
             evidenceObservedAt: { lte: evidenceCutoff },
           },
-          orderBy: { triggeredAt: 'desc' },
+          orderBy: [{ triggeredAt: 'desc' }, { id: 'asc' }],
           take: 500,
           select: {
             id: true,
@@ -283,7 +283,7 @@ export async function preflightDiagnosisGeneration(
         }),
         db.knowledgeProgress.findMany({
           where: { userId: { in: studentIds }, lastVisited: { lte: evidenceCutoff } },
-          orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
+          orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }, { id: 'asc' }],
           take: 1_000,
           select: {
             id: true,
@@ -301,7 +301,7 @@ export async function preflightDiagnosisGeneration(
               // portrait-v2-legacy-compatibility-adapter: mirror the current
               // provider's non-sovereign compatibility input until it migrates.
               where: { userId: { in: studentIds }, snapshotAt: { lte: evidenceCutoff } },
-              orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
+              orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'asc' }],
               distinct: ['userId'],
               take: Math.max(studentIds.length, 1),
               select: {
@@ -323,7 +323,8 @@ export async function preflightDiagnosisGeneration(
     evidenceSummary: projectRiskEvidenceSummary(row.evidenceJson),
     triggeredAt: row.triggeredAt.toISOString(),
     observedAt: row.evidenceObservedAt.toISOString(),
-  }));
+  })).sort((left, right) => right.triggeredAt.localeCompare(left.triggeredAt)
+    || left.id.localeCompare(right.id));
   const progressInput = progressRows.map((row) => ({
     id: row.id,
     userId: row.userId,
@@ -332,7 +333,9 @@ export async function preflightDiagnosisGeneration(
     progress: row.progress,
     timeSpent: row.timeSpent,
     lastVisited: row.lastVisited.toISOString(),
-  }));
+  })).sort((left, right) => left.userId.localeCompare(right.userId)
+    || right.lastVisited.localeCompare(left.lastVisited)
+    || left.id.localeCompare(right.id));
   const competencyInput = competencyRows.map((row) => ({
     id: row.id,
     userId: row.userId,
@@ -340,7 +343,9 @@ export async function preflightDiagnosisGeneration(
     // portrait-v2-legacy-compatibility-adapter: frozen non-sovereign provider input.
     competencyVector: row.competencyVector,
     calculationVersion: row.calculationVersion,
-  }));
+  })).sort((left, right) => left.userId.localeCompare(right.userId)
+    || right.snapshotAt.localeCompare(left.snapshotAt)
+    || left.id.localeCompare(right.id));
   const governedInput: DiagnosisGovernedInput = {
     schemaVersion: 'teacher-diagnosis-governed-input.v1',
     classId: input.classId,

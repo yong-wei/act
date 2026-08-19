@@ -193,6 +193,35 @@ describe('diagnosis generation preflight', () => {
     expect(result.categories.risk.changedCount).toBe(0);
   });
 
+  it('keeps the canonical digest stable when tied evidence rows arrive in a different order', async () => {
+    const tiedAt = new Date('2026-08-19T02:00:00.000Z');
+    const progressRows = [
+      {
+        id: 'progress-b', userId: 'student-1', nodeId: 'node-b', status: 'IN_PROGRESS',
+        progress: 40, timeSpent: 90, lastVisited: tiedAt,
+      },
+      {
+        id: 'progress-a', userId: 'student-1', nodeId: 'node-a', status: 'IN_PROGRESS',
+        progress: 60, timeSpent: 120, lastVisited: tiedAt,
+      },
+    ];
+    db.knowledgeProgress.findMany.mockResolvedValueOnce(progressRows);
+    const first = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1', classId: 'class-1', now,
+    });
+    db.knowledgeProgress.findMany.mockResolvedValueOnce([...progressRows].reverse());
+
+    const second = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1', classId: 'class-1', now,
+    });
+
+    expect(second.inputDigest).toBe(first.inputDigest);
+    expect(second.governedInput).toEqual(first.governedInput);
+    expect(db.knowledgeProgress.findMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }, { id: 'asc' }],
+    }));
+  });
+
   it('permits one migration report for legacy audit metadata', async () => {
     db.diagnosisReport.findFirst.mockResolvedValue({
       id: 'legacy-report',

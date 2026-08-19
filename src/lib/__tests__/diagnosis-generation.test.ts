@@ -65,7 +65,7 @@ function publicJob(overrides: Record<string, unknown> = {}) {
 }
 
 function dbFixture() {
-  return {
+  const db = {
     class: {
       findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1', isActive: true }),
     },
@@ -105,12 +105,16 @@ function dbFixture() {
       count: vi.fn(),
       create: vi.fn(),
     },
+    $executeRaw: vi.fn().mockResolvedValue(1),
     $transaction: vi.fn(),
   };
+  db.$transaction.mockImplementation(async (callback: (client: unknown) => unknown) => callback(db));
+  return db;
 }
 
 function workerDbFixture() {
   const tx = {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     diagnosisGenerationJob: {
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       findUniqueOrThrow: vi.fn().mockResolvedValue({
@@ -411,6 +415,40 @@ describe('teacher diagnosis generation contracts', () => {
     expect(db.studentRiskFlag.findMany).toHaveBeenCalledTimes(2);
     expect(db.studentRiskFlag).not.toHaveProperty('update');
     expect(db.knowledgeProgress).not.toHaveProperty('update');
+  });
+
+  it('rejects a forced job when the latest predecessor changes before the locked insert', async () => {
+    const db = dbFixture();
+    const baseline = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1', classId: 'class-1', now,
+    });
+    const report = {
+      id: 'report-1', evidenceCutoff: now, generatedAt: now,
+      generatorVersion: baseline.generatorVersion,
+      ruleVersion: baseline.ruleVersion,
+      inputSummary: baseline.inputSummary,
+      inputDigest: baseline.inputDigest,
+    };
+    db.diagnosisReport.findFirst.mockReset();
+    db.diagnosisReport.findFirst
+      .mockResolvedValueOnce(report)
+      .mockResolvedValueOnce({ id: 'report-2' });
+
+    await expect(startDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      idempotencyKey: 'request-stale-forced',
+      force: true,
+      forceReason: '用于本周教学复盘会议留档',
+      now,
+    })).rejects.toMatchObject({
+      code: 'diagnosis-generation-predecessor-changed',
+      status: 409,
+    });
+    expect(db.$executeRaw).toHaveBeenCalledOnce();
+    expect(db.$executeRaw.mock.invocationCallOrder[0])
+      .toBeLessThan(db.diagnosisReport.findFirst.mock.invocationCallOrder[1]!);
+    expect(db.diagnosisGenerationJob.create).not.toHaveBeenCalled();
   });
 
   it('returns the ordinary job that wins the deterministic identity race', async () => {
