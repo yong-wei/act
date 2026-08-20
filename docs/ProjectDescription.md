@@ -212,6 +212,8 @@ AI 能力嵌入多个教学场景：
 - `src/features/ai/companion`：仿真与学习过程中的伴学和干预。
 - 管理员 `/admin/config`：AI 供应商、模型、启用状态与响应测试。
 
+统一教材阅读器的 `resource-coach` 入口只绑定 runtime v2 结构单元及其已登记公式/图/表锚点。可信上下文由服务端按 `resourceId + bookId + edition + sourceRevision + unitId + contentHash`（可选 `anchorId`）重读并原子固定；客户端 URL、选区和正文不得扩大权限或引用。回答引用只能使用服务端版本绑定导航句柄，活动新版 reader URL 不能冒充旧会话。普通 TeachingResource、KnowledgeCard、`/knowledge`、PDF、视频时间轴和外部网页仍不提供该入口。
+
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
 ## 权威知识候选与 ActKG 协议变基
