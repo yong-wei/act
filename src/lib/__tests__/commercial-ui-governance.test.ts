@@ -406,15 +406,40 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
 function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
   const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
   if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  const captureRevision = {
+    commitSha: 'a'.repeat(40),
+    treeSha: 'b'.repeat(40),
+  } as const;
+  const runtimeRevisionProof = {
+    endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
+    expected: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+    beforeCapture: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+    afterCapture: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+  } as const;
   const commandDeckGeometry = scenario.requiresNonblankScene
     ? {
         change: 'normalize-simulation-command-deck-layout' as const,
         generatedAt: '2026-06-15T00:00:00.000Z',
+        captureRevision,
+        runtimeRevisionProof,
         sourceSha256: Object.fromEntries([
           scenario.routeFile,
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
           'src/resources/simulations/components/camera-view-switcher.tsx',
+          'src/lib/evidence-artifact-path.ts',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         currentSourceSha256: Object.fromEntries([
@@ -422,6 +447,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
           'src/resources/simulations/components/camera-view-switcher.tsx',
+          'src/lib/evidence-artifact-path.ts',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         viewports: scenario.requiredThemes.flatMap((theme) => commandDeckGeometryWidths.map((width) => {
@@ -585,6 +611,31 @@ function simulationFullMatrixVisualQa() {
   return {
     change: 'govern-simulation-full-matrix-visual-qa' as const,
     generatedAt: '2026-06-15T00:00:00.000Z',
+    captureRevision: {
+      commitSha: 'a'.repeat(40),
+      treeSha: 'b'.repeat(40),
+    },
+    runtimeRevisionProof: {
+      endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
+      expected: {
+        commitSha: 'a'.repeat(40),
+        treeSha: 'b'.repeat(40),
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+      beforeCapture: {
+        commitSha: 'a'.repeat(40),
+        treeSha: 'b'.repeat(40),
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+      afterCapture: {
+        commitSha: 'a'.repeat(40),
+        treeSha: 'b'.repeat(40),
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+    },
     activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene' as const,
     routeCount: 7 as const,
     requiredThemes: ['light', 'dark'] as const,
