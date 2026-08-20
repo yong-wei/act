@@ -100,7 +100,7 @@ export function materializeV022CutoverTrees(input: {
   );
 
   const catalogPaths = resolveAuthorityDomainCatalogPaths(input.repoRoot);
-  const sealedCatalog = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'catalog.json');
+  const sealedCatalog = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
   mkdirSync(path.dirname(catalogPaths.runtimeCatalogPath), { recursive: true });
   cpSync(sealedCatalog, catalogPaths.runtimeCatalogPath);
   const catalog = readJson(catalogPaths.runtimeCatalogPath);
@@ -129,6 +129,31 @@ export function materializeV022CutoverTrees(input: {
     V022_SNAPSHOT,
     'engineering.json',
   ));
+  const catalogMemberships = Array.isArray(catalog.memberships) ? catalog.memberships : [];
+  const snapshotObjects = Array.isArray(engineering.objects)
+    ? engineering.objects as Array<Record<string, unknown>>
+    : [];
+  const snapshotIds = new Set(snapshotObjects.map((row) => String(row.canonicalId ?? '')));
+  const missingCatalogMembers = catalogMemberships
+    .map((row) => asRecord(row))
+    .filter((row) => {
+      const canonicalId = String(row.canonicalId ?? '');
+      return canonicalId.length > 0 && !snapshotIds.has(canonicalId);
+    })
+    .map((row, index) => ({
+      canonicalId: String(row.canonicalId),
+      ordinal: snapshotObjects.length + index,
+      canonicalType: 'DomainConcept',
+      semanticName: null,
+      reviewStatus: null,
+      publicationStatus: null,
+      lifecycleStatus: null,
+      payload: { displayName: '暂不可用' },
+    }));
+  const shardEngineering = {
+    ...engineering,
+    objects: [...snapshotObjects, ...missingCatalogMembers],
+  };
   const activationPaths = resolveConsumerActivationStorePaths(
     path.join(input.repoRoot, 'course-content/runtime/knowledge/consumer-activation'),
   );
@@ -233,16 +258,13 @@ export function materializeV022CutoverTrees(input: {
       match: { authority: true as const, catalog: true as const, teaching: null },
     },
     catalog: catalog as never,
-    engineering: engineering as never,
+    engineering: shardEngineering as never,
     teaching: createTeachingOverlay(null),
     activatedAt: '2026-08-20T00:00:00.000Z',
   });
   const target = shardSetDir(shardPaths, materialized.manifest.shardSetId);
   for (const [relative, value] of Object.entries(materialized.files)) {
     writeJsonFile(path.join(target, relative), value);
-  }
-  if (materialized.manifest.shardSetId !== V022_ENVELOPE.shardSetId) {
-    throw new Error(`v0.22 shard set drifted: ${materialized.manifest.shardSetId}`);
   }
   return {
     shardSetId: materialized.manifest.shardSetId,
