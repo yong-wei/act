@@ -414,7 +414,7 @@ export async function attributeWrongAnswerEvidence(input: {
     contentHash: evidence.catalogContentHash,
     selectedOptionKey: answer.selectedOptionKey,
     correctOptionKey: answer.correctOptionKey,
-    reviewSourceHash: evidence.reviewSourceHash,
+    itemReviewSourceHash: evidence.reviewSourceHash,
     reviewedLearningGoalIds: evidence.reviewedLearningGoalIds,
     reviewedKnowledgeNodeIds: evidence.reviewedKnowledgeNodeIds,
     reviewedMisconceptionTags: evidence.reviewedMisconceptionTags,

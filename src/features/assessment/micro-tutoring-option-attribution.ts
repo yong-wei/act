@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
 
 export interface MicroTutoringOptionAttribution {
@@ -8,7 +10,12 @@ export interface MicroTutoringOptionAttribution {
   misconceptionTag: string;
   knowledgeNodeId: string;
   version: string;
+  itemReviewSourceHash: string;
   reviewSourceHash: string;
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  reviewBatchId: string;
   evidenceSummary: string;
   limitations: string[];
 }
@@ -25,6 +32,23 @@ function nonEmptyString(value: unknown): value is string {
 
 function nonEmptyStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && value.every(nonEmptyString);
+}
+
+function canonicalizeReviewSourceValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeReviewSourceValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .filter(([, entryValue]) => entryValue !== undefined)
+    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+    .map(([key, entryValue]) => [key, canonicalizeReviewSourceValue(entryValue)]));
+}
+
+export function microTutoringOptionAttributionReviewSourceHash(
+  attribution: Omit<MicroTutoringOptionAttribution, 'reviewSourceHash'> & { reviewSourceHash?: string },
+): string {
+  const { reviewSourceHash: _reviewSourceHash, ...hashInput } = attribution;
+  const canonicalJson = JSON.stringify(canonicalizeReviewSourceValue(hashInput));
+  return `sha256:${createHash('sha256').update(canonicalJson).digest('hex')}`;
 }
 
 export function optionAttributionKey(
@@ -47,9 +71,17 @@ export function isMicroTutoringOptionAttribution(
     nonEmptyString(attribution.misconceptionTag) &&
     nonEmptyString(attribution.knowledgeNodeId) &&
     nonEmptyString(attribution.version) &&
+    /^sha256:[a-f0-9]{64}$/.test(String(attribution.itemReviewSourceHash ?? '')) &&
     /^sha256:[a-f0-9]{64}$/.test(String(attribution.reviewSourceHash ?? '')) &&
+    nonEmptyString(attribution.reviewerId) &&
+    nonEmptyString(attribution.reviewerRole) &&
+    nonEmptyString(attribution.reviewedAt) &&
+    nonEmptyString(attribution.reviewBatchId) &&
     nonEmptyString(attribution.evidenceSummary) &&
-    nonEmptyStringArray(attribution.limitations);
+    nonEmptyStringArray(attribution.limitations) &&
+    attribution.reviewSourceHash === microTutoringOptionAttributionReviewSourceHash(
+      attribution as unknown as MicroTutoringOptionAttribution,
+    );
 }
 
 export function defaultMicroTutoringOptionAttributions(): unknown[] {
@@ -63,31 +95,57 @@ export function findMicroTutoringOptionAttribution(input: {
   contentHash: string;
   selectedOptionKey: string;
   correctOptionKey: string;
-  reviewSourceHash: string;
+  itemReviewSourceHash: string;
   reviewedLearningGoalIds: string[];
   reviewedKnowledgeNodeIds: string[];
   reviewedMisconceptionTags: string[];
 }): MicroTutoringOptionAttribution | null {
   if (input.selectedOptionKey === input.correctOptionKey) return null;
-  const matches = (input.entries ?? defaultMicroTutoringOptionAttributions())
-    .filter(isMicroTutoringOptionAttribution)
-    .filter((attribution) => optionAttributionKey(
-      attribution.catalogItemId,
-      attribution.contentHash,
-      attribution.optionKey,
-    ) === optionAttributionKey(
-      input.catalogItemId,
-      input.contentHash,
-      input.selectedOptionKey,
-    ));
+  const targetKey = optionAttributionKey(
+    input.catalogItemId,
+    input.contentHash,
+    input.selectedOptionKey,
+  );
+  const entries = input.entries ?? defaultMicroTutoringOptionAttributions();
+  const identityMatches = entries
+    .filter((value) => {
+      const attribution = record(value);
+      return attribution &&
+        nonEmptyString(attribution.catalogItemId) &&
+        nonEmptyString(attribution.contentHash) &&
+        nonEmptyString(attribution.optionKey) &&
+        optionAttributionKey(
+          attribution.catalogItemId,
+          attribution.contentHash,
+          attribution.optionKey,
+        ) === targetKey;
+    });
+  if (identityMatches.length !== 1) return null;
+
+  const matches = identityMatches.filter(isMicroTutoringOptionAttribution);
   if (matches.length !== 1) return null;
 
   const [attribution] = matches;
+  const reusesSiblingEvidence = entries
+    .filter(isMicroTutoringOptionAttribution)
+    .some((candidate) =>
+      candidate.catalogItemId === attribution.catalogItemId &&
+      candidate.contentHash === attribution.contentHash &&
+      candidate.optionKey !== attribution.optionKey &&
+      (
+        candidate.misconceptionTag === attribution.misconceptionTag ||
+        candidate.reviewSourceHash === attribution.reviewSourceHash ||
+        candidate.evidenceSummary === attribution.evidenceSummary
+      ));
   if (
-    attribution.reviewSourceHash !== input.reviewSourceHash ||
+    reusesSiblingEvidence ||
+    attribution.itemReviewSourceHash !== input.itemReviewSourceHash ||
     !input.reviewedLearningGoalIds.includes(attribution.learningGoalId) ||
     !input.reviewedKnowledgeNodeIds.includes(attribution.knowledgeNodeId) ||
-    !input.reviewedMisconceptionTags.includes(attribution.misconceptionTag)
+    (
+      !input.reviewedMisconceptionTags.includes(attribution.misconceptionTag) &&
+      !attribution.misconceptionTag.startsWith(`misconception:${attribution.learningGoalId}:`)
+    )
   ) {
     return null;
   }

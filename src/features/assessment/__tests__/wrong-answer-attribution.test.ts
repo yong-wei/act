@@ -4,6 +4,7 @@ import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-asse
 
 import { resolveAdaptiveDiagnosisContext } from '../adaptive-diagnosis-context';
 import { adaptiveAssessmentItemContentHash } from '../adaptive-assessment-item-content-hash';
+import { microTutoringOptionAttributionReviewSourceHash } from '../micro-tutoring-option-attribution';
 import { attributeWrongAnswerEvidence } from '../wrong-answer-attribution';
 
 const RAW_PROMPT = 'RAW_PRIVATE_PROMPT';
@@ -146,18 +147,26 @@ function rehashItemContent(row: any) {
 function optionAttributionsFor(row: ReturnType<typeof answer>, overrides: Record<string, unknown> = {}) {
   const metadata = row.questionRef.metadata as any;
   const item = metadata.adaptiveAssessmentItemRef;
-  return [{
+  const attribution = {
     catalogItemId: item.catalogItemId,
     contentHash: item.contentHash,
     optionKey: row.selectedOptionKey,
     learningGoalId: item.semanticRefs.learningGoalIds[0],
     misconceptionTag: item.semanticRefs.misconceptionTags[0],
     knowledgeNodeId: item.semanticRefs.graphNodeIds[0],
-    version: 'micro-tutoring-option-attribution.v1',
-    reviewSourceHash: item.reviewDecision.reviewSourceHash,
+    version: 'micro-tutoring-option-attribution.v2',
+    itemReviewSourceHash: item.reviewDecision.reviewSourceHash,
+    reviewerId: 'assessment-content-reviewer:test',
+    reviewerRole: 'assessment-content-reviewer',
+    reviewedAt: '2026-08-20T00:00:00.000Z',
+    reviewBatchId: 'micro-tutoring-option-attribution-review.test',
     evidenceSummary: 'Reviewed option attribution.',
     limitations: ['content-hash-bound'],
     ...overrides,
+  };
+  return [{
+    ...attribution,
+    reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(attribution),
   }];
 }
 

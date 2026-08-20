@@ -37,6 +37,7 @@ export type MicroTutoringOptionAttributionIssueReason =
   | 'ATTRIBUTION_RECORD_CONTENT_HASH_DRIFT'
   | 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION'
   | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID'
+  | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_REUSED'
   | 'ATTRIBUTION_RECORD_DUPLICATE';
 
 export interface MicroTutoringPracticeBaseline {
@@ -303,6 +304,16 @@ function auditOptionAttributions(input: {
 
   input.optionAttributions.forEach((value, index) => {
     const attribution = attributionRecord(value);
+    if (attribution && hasAttributionIdentity(attribution)) {
+      const optionKey = optionAttributionKey(
+        attribution.catalogItemId,
+        attribution.contentHash,
+        attribution.optionKey,
+      );
+      const indexes = recordIndexesByOption.get(optionKey) ?? [];
+      indexes.push(index);
+      recordIndexesByOption.set(optionKey, indexes);
+    }
     if (!attribution || !hasAttributionIdentity(attribution) || !attributionHasRequiredFields(attribution)) {
       issueByRecord.set(index, ['ATTRIBUTION_RECORD_MALFORMED']);
       return;
@@ -329,28 +340,63 @@ function auditOptionAttributions(input: {
     if (
       !reviewDecision ||
       reviewDecision.sourceContentHash !== attribution.contentHash ||
-      reviewDecision.reviewSourceHash !== attribution.reviewSourceHash ||
+      reviewDecision.reviewSourceHash !== attribution.itemReviewSourceHash ||
       !reviewDecision.selectedLearningGoalIds.includes(attribution.learningGoalId) ||
       !reviewDecision.selectedGraphNodeIds.includes(attribution.knowledgeNodeId) ||
-      !reviewDecision.misconceptionRefs.includes(attribution.misconceptionTag)
+      !attribution.misconceptionTag.startsWith(`misconception:${attribution.learningGoalId}:`)
     ) {
       issueByRecord.set(index, ['ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID']);
       return;
     }
-    const indexes = recordIndexesByOption.get(optionKey) ?? [];
-    indexes.push(index);
-    recordIndexesByOption.set(optionKey, indexes);
     const rows = rowsByOption.get(optionKey) ?? [];
     rows.push(attribution);
     rowsByOption.set(optionKey, rows);
   });
 
-  for (const indexes of recordIndexesByOption.values()) {
+  for (const [optionKey, indexes] of recordIndexesByOption) {
     if (indexes.length < 2) continue;
+    rowsByOption.delete(optionKey);
     for (const index of indexes) {
       const reasons = issueByRecord.get(index) ?? [];
       reasons.push('ATTRIBUTION_RECORD_DUPLICATE');
       issueByRecord.set(index, reasons);
+    }
+  }
+
+  const reviewedIndexesByItem = new Map<string, number[]>();
+  input.optionAttributions.forEach((value, index) => {
+    if (!isMicroTutoringOptionAttribution(value) || issueByRecord.has(index)) return;
+    const itemKey = optionAttributionKey(value.catalogItemId, value.contentHash, '');
+    const indexes = reviewedIndexesByItem.get(itemKey) ?? [];
+    indexes.push(index);
+    reviewedIndexesByItem.set(itemKey, indexes);
+  });
+  for (const indexes of reviewedIndexesByItem.values()) {
+    for (let leftIndex = 0; leftIndex < indexes.length; leftIndex += 1) {
+      const leftRecordIndex = indexes[leftIndex];
+      const left = input.optionAttributions[leftRecordIndex] as MicroTutoringOptionAttribution;
+      for (let rightIndex = leftIndex + 1; rightIndex < indexes.length; rightIndex += 1) {
+        const rightRecordIndex = indexes[rightIndex];
+        const right = input.optionAttributions[rightRecordIndex] as MicroTutoringOptionAttribution;
+        if (
+          left.misconceptionTag !== right.misconceptionTag &&
+          left.reviewSourceHash !== right.reviewSourceHash &&
+          left.evidenceSummary !== right.evidenceSummary
+        ) continue;
+        for (const [recordIndex, attribution] of [
+          [leftRecordIndex, left],
+          [rightRecordIndex, right],
+        ] as const) {
+          const reasons = issueByRecord.get(recordIndex) ?? [];
+          reasons.push('ATTRIBUTION_RECORD_REVIEW_EVIDENCE_REUSED');
+          issueByRecord.set(recordIndex, reasons);
+          rowsByOption.delete(optionAttributionKey(
+            attribution.catalogItemId,
+            attribution.contentHash,
+            attribution.optionKey,
+          ));
+        }
+      }
     }
   }
 
