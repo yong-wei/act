@@ -22,6 +22,10 @@ import {
   type KonlingSmartPreparationConfirmedDecision,
   type KonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-agent-runtime';
+import {
+  loadTextbookCoachContext,
+  type StructuredTextbookUnitIdentity,
+} from '@/lib/textbook-resource-coach';
 
 interface SignedModeContextPayload {
   mode: string;
@@ -151,6 +155,7 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   scope: KonlingRuntimeScope;
   runtimeContext?: KonlingRuntimeContext | null;
   clientContextHints?: Record<string, unknown> | null;
+  pinnedTextbookIdentity?: StructuredTextbookUnitIdentity | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
   const signedPayload = verifySignedModeContext(input.clientContextHints, {
@@ -167,7 +172,11 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   } : input.clientContextHints;
 
   if (mode.id === 'resource-coach') {
-    return resolveResourceCoachModeContext(input);
+    return resolveResourceCoachModeContext({
+      ...input,
+      clientContextHints: input.clientContextHints,
+      pinnedTextbookIdentity: input.pinnedTextbookIdentity ?? null,
+    });
   }
   const adaptiveAttemptAnswerId = stringHint(input.clientContextHints, 'answerId');
   if (mode.id === 'diagnosis-explainer' && adaptiveAttemptAnswerId) {
@@ -688,7 +697,32 @@ function stringHint(hints: Record<string, unknown> | null | undefined, key: stri
 async function resolveResourceCoachModeContext(input: {
   db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
+  clientContextHints?: Record<string, unknown> | null;
+  pinnedTextbookIdentity?: StructuredTextbookUnitIdentity | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
+  const declaredKind = stringHint(input.clientContextHints, 'resourceKind');
+  const wantsTextbook = Boolean(
+    input.pinnedTextbookIdentity
+    || declaredKind === 'structured-textbook-unit'
+    || stringHint(input.clientContextHints, 'sourceRevision')
+    || stringHint(input.clientContextHints, 'unitId')
+    || stringHint(input.clientContextHints, 'contentHash'),
+  );
+  if (wantsTextbook) {
+    const loaded = await loadTextbookCoachContext({
+      actorUserId: input.scope.authenticatedUserId,
+      declared: input.clientContextHints,
+      pinned: input.pinnedTextbookIdentity ?? null,
+      selectionHint: input.clientContextHints?.selectionHint,
+    });
+    if (loaded.status !== 'ready') {
+      return { textbookCoachFailure: loaded.reason } as KonlingTeachingAssistantServerModeContext;
+    }
+    return {
+      'resource-node': true,
+      structuredTextbook: loaded,
+    } as KonlingTeachingAssistantServerModeContext;
+  }
   if (!input.scope.resourceId || !input.db.teachingResource) return {};
   const resource = await input.db.teachingResource.findUnique({
     where: { id: input.scope.resourceId },

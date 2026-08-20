@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { extractVersionBoundHandle } from '@/lib/textbook-resource-coach/href';
 
 type CitationConfidence = 'none' | 'low' | 'medium' | 'high';
 type PresentationConfidence = 'unknown' | 'low' | 'medium' | 'high';
@@ -413,6 +414,57 @@ function limitationLabel(value: string | null) {
   return value.replace(/-/g, ' ');
 }
 
+function TextbookCitationLink({
+  href,
+  citationKey,
+  children,
+}: {
+  href: string;
+  citationKey: string;
+  children: React.ReactNode;
+}) {
+  const [notice, setNotice] = useState<string | null>(null);
+  const handle = extractVersionBoundHandle(href);
+
+  const onClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!handle) return;
+    event.preventDefault();
+    const response = await fetch(`/api/textbooks/version-bound-target?handle=${encodeURIComponent(handle)}`);
+    const payload = await response.json().catch(() => ({ ok: false, reason: 'unverified-citation' }));
+    if (!response.ok || !payload?.ok || typeof payload.href !== 'string') {
+      setNotice(payload?.reason === 'unauthorized'
+        ? '权限已变化，无法打开原引用。'
+        : payload?.reason === 'anchor-unavailable'
+          ? '定位不可用。'
+          : payload?.reason === 'revision-unavailable' || payload?.reason === 'hash-drift' || payload?.reason === 'version-changed'
+            ? '版本已变化，定位不可用。'
+            : '引用未能核验。');
+      return;
+    }
+    window.location.assign(payload.href);
+  };
+
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <a
+        href={href}
+        onClick={onClick}
+        className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100 hover:border-emerald-400"
+        data-konling-citation-chip
+        data-citation-key={citationKey}
+        data-citation-target={href}
+      >
+        {children}
+      </a>
+      {notice ? (
+        <span role="status" className="text-[11px] text-muted-foreground" data-textbook-citation-click-blocked="true">
+          {notice}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function citationPanelTitle(status: KonlingCitationPresentationStatus) {
   if (status === 'verified') return '已验证引用';
   if (status === 'limited') return '部分引用未能核验';
@@ -447,16 +499,13 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
             );
             if (citation.href && !citation.limitation) {
               return (
-                <a
+                <TextbookCitationLink
                   key={citation.key}
                   href={citation.href}
-                  className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100 hover:border-emerald-400"
-                  data-konling-citation-chip
-                  data-citation-key={citation.key}
-                  data-citation-target={citation.href}
+                  citationKey={citation.key}
                 >
                   {body}
-                </a>
+                </TextbookCitationLink>
               );
             }
             return (
