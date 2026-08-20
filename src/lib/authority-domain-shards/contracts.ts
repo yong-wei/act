@@ -53,8 +53,8 @@ export type AuthorityRelationLayer =
 
 export const AUTHORITY_SHARD_PAYLOAD_BUDGETS = {
   root: 64 * 1024,
-  'domain-default': 256 * 1024,
-  'relation-family': 256 * 1024,
+  'domain-default': 2 * 1024 * 1024,
+  'relation-family': 2 * 1024 * 1024,
   'node-neighborhood': 128 * 1024,
   'node-detail': 64 * 1024,
 } as const;

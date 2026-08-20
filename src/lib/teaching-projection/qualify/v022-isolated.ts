@@ -116,21 +116,6 @@ function writeBytes(filePath: string, bytes: Buffer): void {
   writeFileSync(filePath, bytes);
 }
 
-function reboundAuthoring(
-  authoring: AuthorityDomainCatalogAuthoring,
-  authorityManifest: AuthoritySnapshotManifest,
-): AuthorityDomainCatalogAuthoring {
-  return {
-    ...authoring,
-    authorityBinding: {
-      snapshotId: authorityManifest.snapshotId,
-      snapshotHash: authorityManifest.snapshotHash,
-      releaseId: authorityManifest.releaseId,
-      releaseSetId: authorityManifest.releaseSetId,
-    },
-  };
-}
-
 export function rehearseIsolatedFiveSelectorActivation(input: {
   repoRoot: string;
   outputRoot: string;
@@ -232,10 +217,15 @@ export function rehearseIsolatedFiveSelectorActivation(input: {
       authoringRelative: catalogAuthoringRel,
       runtimeRelative: catalogRuntimeRel,
     });
-    const candidateAuthoring = reboundAuthoring(
-      readJson(path.join(input.repoRoot, CATALOG_CANDIDATE_RELATIVE, 'catalog.json')) as unknown as AuthorityDomainCatalogAuthoring,
-      input.authorityManifest,
-    );
+    const catalogAuthoringPath = path.join(input.repoRoot, CATALOG_CANDIDATE_RELATIVE, 'catalog.json');
+    const catalogReceipt = readJson(path.join(input.repoRoot, CATALOG_CANDIDATE_RELATIVE, 'candidate-receipt.json'));
+    const declaredCatalog = (Array.isArray(catalogReceipt.outputs) ? catalogReceipt.outputs : [])
+      .map((row) => asRecord(row))
+      .find((row) => String(row.path ?? '') === CATALOG_CANDIDATE_RELATIVE + '/catalog.json');
+    if (!declaredCatalog?.sha256 || shaFile(catalogAuthoringPath) !== String(declaredCatalog.sha256)) {
+      throw new V022QualificationError('isolated-catalog-hash-mismatch', 'candidate catalog bytes drifted from the admitted receipt');
+    }
+    const candidateAuthoring = readJson(catalogAuthoringPath) as unknown as AuthorityDomainCatalogAuthoring;
     if (candidateAuthoring.authorityBinding.releaseId !== input.authorityManifest.releaseId
       || candidateAuthoring.authorityBinding.snapshotId !== input.authorityManifest.snapshotId) {
       throw new V022QualificationError('isolated-catalog-authority-mix', 'candidate catalog is not bound to the v0.22 envelope');
@@ -264,20 +254,9 @@ export function rehearseIsolatedFiveSelectorActivation(input: {
         labeledIds.has(row.sourceId) && labeledIds.has(row.targetId)
       )),
     };
-    const labeledMemberships = candidateAuthoring.memberships.filter((row) => labeledIds.has(row.canonicalId));
-    const perDomain = new Map<string, number>();
-    const boundedMemberships = [...labeledMemberships]
-      .sort((left, right) => left.canonicalId.localeCompare(right.canonicalId))
-      .filter((row) => {
-        const domainId = row.preferredDomainId;
-        const count = perDomain.get(domainId) ?? 0;
-        if (count >= 80) return false;
-        perDomain.set(domainId, count + 1);
-        return true;
-      });
     const shardAuthoring: AuthorityDomainCatalogAuthoring = {
       ...candidateAuthoring,
-      memberships: boundedMemberships,
+      memberships: candidateAuthoring.memberships.filter((row) => labeledIds.has(row.canonicalId)),
     };
     writeJsonFile(isolatedCatalogPaths.authoringCatalogPath, shardAuthoring);
     catalog = buildAuthorityDomainCatalog(

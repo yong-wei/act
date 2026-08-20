@@ -8,6 +8,8 @@ import type {
   AuthoritySnapshotManifest,
 } from '../../authoritative-knowledge/authority-snapshot';
 import { loadPinnedV022Envelope } from '../../actkg-v022-display-projections';
+import { buildAuthorityDomainCatalog } from '../../authority-domain-catalog';
+import type { AuthorityDomainCatalogAuthoring } from '../../authority-domain-catalog';
 import { projectionDigest } from '../hash';
 import {
   CTKG_SCHEMA_V2_RAW_SHA256,
@@ -155,6 +157,31 @@ export async function qualifyActKgV022CutoverCandidate(input: {
   }
   if (catalogReceipt.nonActivation !== true || catalogReceipt.status !== 'staged') {
     blockers.push('catalog-candidate-not-inactive');
+  }
+  const catalogAuthoringPath = path.join(repoRoot, CATALOG_CANDIDATE_RELATIVE, 'catalog.json');
+  const catalogRuntimePath = path.join(repoRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
+  const declaredOutputs = Array.isArray(catalogReceipt.outputs) ? catalogReceipt.outputs : [];
+  for (const relative of [catalogAuthoringPath, catalogRuntimePath].map((item) => path.relative(repoRoot, item).split(path.sep).join('/'))) {
+    const declared = declaredOutputs.find((row) => asRecord(row).path === relative);
+    const expectedSha = String(asRecord(declared).sha256 ?? '');
+    if (!expectedSha) blockers.push(`catalog-output-hash-missing:${relative}`);
+    else if (shaFile(path.join(repoRoot, relative)) !== expectedSha) blockers.push(`catalog-output-hash-mismatch:${relative}`);
+  }
+  const catalogAuthoring = readJson(catalogAuthoringPath) as unknown as AuthorityDomainCatalogAuthoring;
+  if (catalogAuthoring.authorityBinding.releaseId !== V022_RELEASE_ID
+    || catalogAuthoring.authorityBinding.snapshotId !== V022_SNAPSHOT) {
+    blockers.push('selector-catalog-authority-mix');
+  }
+  const rebuiltCatalog = buildAuthorityDomainCatalog(
+    catalogAuthoring,
+    catalogAuthoring.memberships.map((row) => ({ canonicalId: row.canonicalId })),
+  );
+  const catalogRuntime = readJson(catalogRuntimePath);
+  if (rebuiltCatalog.catalogHash !== String(catalogRuntime.catalogHash ?? '')) {
+    blockers.push('catalog-rebuild-hash-drift');
+  }
+  if (rebuiltCatalog.memberships.length !== Number(catalogReceipt.membershipCount ?? -1)) {
+    blockers.push('catalog-membership-incomplete');
   }
 
   if (authorityReceipt.status !== 'staged' || authorityReceipt.nonActivation !== true) blockers.push('authority-candidate-not-inactive');
