@@ -11,6 +11,7 @@ import {
   FORBIDDEN_DEBRIEF_PHRASES,
   canEmitCruiseCompletionTelemetry,
   debriefContainsForbiddenPhrase,
+  hasFiniteRequiredCruisePerformance,
   projectCruiseControlEffectDebrief,
   resolveCruiseDebriefTaskContract,
 } from '../simulations/cruise/control-effect-debrief';
@@ -124,6 +125,28 @@ describe('cruise control-effect debrief projector', () => {
       emittedRunId: null,
       summary: summaryFrom(),
     })).toBe(false);
+  });
+
+  it('rejects non-finite overshoot or settling time before summary normalization', () => {
+    const nonFiniteLive = projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: 'cruise-run-1',
+      isCompleted: true,
+      isPaused: false,
+      liveSummary: hasFiniteRequiredCruisePerformance({ overshoot: Number.NaN, settlingTime: 40 })
+        ? summaryFrom({ performance: { overshoot: Number.NaN, settlingTime: 40, accel: 0.08, settled: true } })
+        : null,
+      isBoundCourseTask: true,
+      acceptanceFixtureId: null,
+      nodeEnv: 'production',
+    }));
+
+    expect(hasFiniteRequiredCruisePerformance({ overshoot: Number.NaN, settlingTime: 40 })).toBe(false);
+    expect(hasFiniteRequiredCruisePerformance({ overshoot: 8, settlingTime: Number.POSITIVE_INFINITY })).toBe(false);
+    expect(hasFiniteRequiredCruisePerformance({ overshoot: 8, settlingTime: 40 })).toBe(true);
+    expect(nonFiniteLive.status).toBe('unavailable');
+    expect(nonFiniteLive.thresholds).toEqual([]);
+    expect(JSON.stringify(nonFiniteLive)).not.toContain('0% ≤ 10%');
+    expect(JSON.stringify(nonFiniteLive)).not.toContain('要求已满足');
   });
 
   it('keeps finite response facts with units and does not relabel heading error as steady-state error', () => {
@@ -241,6 +264,8 @@ describe('cruise control-effect debrief isolation', () => {
     expect(acceptance).toContain("nodeEnv !== 'production'");
     expect(scene).toContain('canEmitCruiseCompletionTelemetry');
     expect(scene).toContain('isCompleted={state.isCompleted}');
+    expect(scene).toContain('hasFiniteRequiredCruisePerformance(runtimePerformance)');
+    expect(scene).toContain('hasFiniteRequiredCruisePerformance(performance)');
     expect(scene).toContain("searchParams.get('courseMode') === CRUISE_COURSE_MODE");
     expect(scene).toContain('searchParams.get(CRUISE_DEBRIEF_ACCEPTANCE_QUERY)');
     expect(scene).toContain('isBoundCourseTask');

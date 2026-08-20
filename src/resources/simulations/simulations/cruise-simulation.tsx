@@ -91,6 +91,7 @@ import {
 } from './cruise/telemetry-bridge';
 import {
   canEmitCruiseCompletionTelemetry,
+  hasFiniteRequiredCruisePerformance,
   projectCruiseControlEffectDebrief,
 } from './cruise/control-effect-debrief';
 import {
@@ -1602,7 +1603,7 @@ function TelemetryBridge({
   }, [runId]);
 
   useEffect(() => {
-    if (!isCompleted || !hasRuntimeData || !performance) {
+    if (!isCompleted || !hasRuntimeData || !hasFiniteRequiredCruisePerformance(performance)) {
       return;
     }
 
@@ -2156,7 +2157,7 @@ export default function CruiseSimulation() {
   }, [runtimePerformance, state.targetForm]);
 
   const debrief = useMemo(() => {
-    const liveSummary = hasRuntimeData && runtimePerformance
+    const liveSummary = hasRuntimeData && hasFiniteRequiredCruisePerformance(runtimePerformance)
       ? buildCruiseTelemetryBridgeSummary({
         runId: telemetryRunIdRef.current,
         startedAt: telemetryStartedAtRef.current,

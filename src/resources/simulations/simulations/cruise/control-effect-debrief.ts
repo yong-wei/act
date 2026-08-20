@@ -173,6 +173,16 @@ export function resolveCruiseDebriefTaskContract(isBoundCourseTask: boolean): Cr
   return isBoundCourseTask ? CRUISE_COMFORT_COURSE_TURN_TASK : null;
 }
 
+export function hasFiniteRequiredCruisePerformance<T extends { overshoot: number; settlingTime: number }>(
+  performance: T | null | undefined,
+): performance is T {
+  return Boolean(
+    performance
+    && Number.isFinite(performance.overshoot)
+    && Number.isFinite(performance.settlingTime)
+  );
+}
+
 export function canEmitCruiseCompletionTelemetry(input: {
   isCompleted: boolean;
   runId: string;
