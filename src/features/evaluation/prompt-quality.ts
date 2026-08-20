@@ -1,6 +1,4 @@
 export interface AssessPromptRequest {
-  userId?: string;
-  sessionId?: string;
   prompt: string;
   structuredData?: Record<string, string>;
   auditTaskContext?: PromptAuditTaskContext;
@@ -39,9 +37,6 @@ export interface AssessPromptResponse {
 }
 
 export interface TrackConsistencyRequest {
-  userId: string;
-  designSessionId: string;
-  promptVersion: number;
   promptContent: string;
   auditTaskContext?: PromptAuditTaskContext;
   designActions: Array<{
@@ -71,35 +66,6 @@ export interface TrackConsistencyResponse {
     convergencePattern: 'steady' | 'oscillating' | 'diverging';
     explorationBreadth: number;
   };
-}
-
-interface PromptHistoryRecord {
-  userId: string;
-  sessionId: string;
-  promptContent: string;
-  auditTaskContext?: PromptAuditTaskContext;
-  assessment: AssessPromptResponse;
-  consistency?: TrackConsistencyResponse;
-  version: number;
-  createdAt: number;
-}
-
-interface PromptStore {
-  historyByUser: Map<string, PromptHistoryRecord[]>;
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __promptAssessmentStore: PromptStore | undefined;
-}
-
-function getStore(): PromptStore {
-  if (!globalThis.__promptAssessmentStore) {
-    globalThis.__promptAssessmentStore = {
-      historyByUser: new Map<string, PromptHistoryRecord[]>(),
-    };
-  }
-  return globalThis.__promptAssessmentStore;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -248,22 +214,6 @@ export function assessPromptQuality(request: AssessPromptRequest): AssessPromptR
     },
   };
 
-  const store = getStore();
-  const userId = request.userId ?? 'demo-user';
-  const sessionId = request.sessionId ?? `session-${userId}`;
-  const current = store.historyByUser.get(userId) ?? [];
-
-  current.push({
-    userId,
-    sessionId,
-    promptContent: prompt,
-    auditTaskContext: request.auditTaskContext,
-    assessment: result,
-    version: current.length + 1,
-    createdAt: Date.now(),
-  });
-
-  store.historyByUser.set(userId, current);
   return result;
 }
 
@@ -347,18 +297,5 @@ export function trackConsistency(request: TrackConsistencyRequest): TrackConsist
     },
   };
 
-  const store = getStore();
-  const existing = store.historyByUser.get(request.userId) ?? [];
-  const current = existing[existing.length - 1];
-  if (current) {
-    current.consistency = result;
-    current.auditTaskContext = request.auditTaskContext ?? current.auditTaskContext;
-  }
-
   return result;
-}
-
-export function getPromptHistory(userId: string) {
-  const store = getStore();
-  return store.historyByUser.get(userId) ?? [];
 }

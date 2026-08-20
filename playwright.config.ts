@@ -1,4 +1,7 @@
 import { defineConfig } from '@playwright/test';
+import { config } from 'dotenv';
+
+config({ path: process.env.DOTENV_CONFIG_PATH ?? '.env.local' });
 
 const noProxyHosts = '127.0.0.1,localhost';
 process.env.NO_PROXY = process.env.NO_PROXY ? `${process.env.NO_PROXY},${noProxyHosts}` : noProxyHosts;

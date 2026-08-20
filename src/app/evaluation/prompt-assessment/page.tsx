@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { ActionStatusPanel } from '@/components/platform/action-status';
+import { AppShell } from '@/components/platform/app-shell';
 import { buildAiAuditTaskState, getAiAuditTaskContract } from '@/lib/ai-task-boundary-contracts';
+import {
+  nextPromptAssessmentSessionVersion,
+  selectPromptAssessmentSessionHistory,
+} from '@/features/evaluation/prompt-assessment-session-history';
 
 interface AssessResponse {
   overallScore: number;
@@ -234,7 +239,11 @@ export default function PromptAssessmentPage() {
     return sections.join('\n');
   }, [structured, freeText]);
 
-  const latestHistory = useMemo(() => historyRecords.slice(-6), [historyRecords]);
+  const activeSessionHistory = useMemo(
+    () => selectPromptAssessmentSessionHistory(historyRecords, activeSessionId),
+    [activeSessionId, historyRecords],
+  );
+  const latestHistory = useMemo(() => activeSessionHistory.slice(-6), [activeSessionHistory]);
   const latestRecord = latestHistory[latestHistory.length - 1] ?? null;
   const consistencyScores = latestHistory
     .map((record) => record.consistency?.consistencyScore)
@@ -245,6 +254,11 @@ export default function PromptAssessmentPage() {
       return;
     }
     if (autoDemo) {
+      setAbilityReport(null);
+      return;
+    }
+    if (!currentUserId) {
+      setHistoryRecords([]);
       setAbilityReport(null);
       return;
     }
@@ -285,7 +299,7 @@ export default function PromptAssessmentPage() {
     if (autoDemo) {
       setLastPromptAction('assessment');
       setError(null);
-      const version = historyRecords.length + 1;
+      const version = nextPromptAssessmentSessionVersion(historyRecords, activeSessionId);
       const demoAssessment = buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
       setAssessment(demoAssessment);
       setLastPromptDisposition('completed');
@@ -304,6 +318,10 @@ export default function PromptAssessmentPage() {
       ].slice(-6));
       return;
     }
+    if (!currentUserId) {
+      setError('请先登录后再使用提示词评价。');
+      return;
+    }
 
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -316,7 +334,6 @@ export default function PromptAssessmentPage() {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: activeUserId,
           sessionId: activeSessionId,
           prompt: compiledPrompt,
           structuredData: structured,
@@ -350,7 +367,7 @@ export default function PromptAssessmentPage() {
     if (autoDemo) {
       setLastPromptAction('consistency');
       setError(null);
-      const version = historyRecords.length + 1;
+      const version = nextPromptAssessmentSessionVersion(historyRecords, activeSessionId);
       const demoAssessment = assessment ?? buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
       const demoConsistency = buildDemoConsistency(Math.min(version - 1, 2));
       setAssessment(demoAssessment);
@@ -371,6 +388,14 @@ export default function PromptAssessmentPage() {
       ].slice(-6));
       return;
     }
+    if (!currentUserId) {
+      setError('请先登录后再使用过程一致性校验。');
+      return;
+    }
+    if (!latestRecord) {
+      setError('请先完成一次提示词评价，再进行过程一致性校验。');
+      return;
+    }
 
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -384,9 +409,8 @@ export default function PromptAssessmentPage() {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: activeUserId,
           designSessionId: activeSessionId,
-          promptVersion: latestRecord?.version ?? 1,
+          promptVersion: latestRecord.version,
           promptContent: compiledPrompt,
           auditTaskContext: promptAuditTaskContext,
           designActions: [
@@ -530,22 +554,26 @@ export default function PromptAssessmentPage() {
   }, [autoDemo, autoSeeded, seedDemoHistory]);
 
   return (
-    <div
-      className="surface-page px-4 py-6 md:px-8"
-      data-ai-local-task-surface="prompt-evaluation"
-      data-ai-task-focus-mode="local-first"
-      data-task-workspace-archetype="ai-local-task"
+    <AppShell
+      viewerRole="student"
+      title="学习过程陪伴"
+      subtitle="通过结构化提示词评价和过程一致性校验，支持控制策略的迭代反思。"
+      activeHref="/evaluation/prompt-assessment"
+      sidebarMode="collapsible"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '学习过程陪伴' },
+      ]}
+      className="surface-page"
     >
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div
+        className="space-y-6"
+        data-ai-local-task-surface="prompt-evaluation"
+        data-ai-task-focus-mode="local-first"
+        data-task-workspace-archetype="ai-local-task"
+      >
         <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-amber-400">Structure Evaluated</p>
-          <h1 className="mt-1 text-2xl font-semibold">元提示词评价与过程一致性</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。
-          </p>
-          <div className="mt-4">
-            <ActionStatusPanel state={promptTaskState} />
-          </div>
+          <ActionStatusPanel state={promptTaskState} />
           <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-slate-400">
             模式：{mode} · 来源：{promptAuditTaskContext.source ?? 'page-local'} · 任务：{promptAuditTaskContext.assignment ?? 'prompt-assessment'} · 意图：{promptAuditTaskContext.intent} · 输出：{promptTaskContract.outputTarget} · 写回：{promptTaskContract.writebackBehavior}
           </div>
@@ -753,7 +781,7 @@ export default function PromptAssessmentPage() {
                   <div className="grid gap-3 md:grid-cols-4">
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">提示词版本数</div>
-                      <div className="mt-1 text-xl font-semibold text-violet-300">{historyRecords.length}</div>
+                      <div className="mt-1 text-xl font-semibold text-primary">{activeSessionHistory.length}</div>
                     </div>
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">最近提示词得分</div>
@@ -837,6 +865,6 @@ export default function PromptAssessmentPage() {
           </main>
         </section>
       </div>
-    </div>
+    </AppShell>
   );
 }
