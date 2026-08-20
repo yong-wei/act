@@ -332,6 +332,8 @@ export interface AdaptiveLearningPathLearnerState {
     }>;
   };
   primaryPortrait?: PortraitV2ProjectedPayload;
+  primaryPortraitState?: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
+  primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
   };

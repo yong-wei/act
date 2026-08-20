@@ -32,7 +32,6 @@ import {
   createPortraitV2Payload,
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
-  type PortraitV2DimensionId,
 } from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
@@ -681,7 +680,7 @@ describe('policy bundle core diversity fixture', () => {
 
 function createPlannerPortrait(
   now: Date,
-  overrides: Partial<Record<PortraitV2DimensionId, {
+  overrides: Partial<Record<(typeof PORTRAIT_V2_DIMENSION_IDS)[number], {
     score?: number;
     confidence?: number;
     totalCount?: number;
