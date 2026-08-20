@@ -37,7 +37,7 @@ interface KnowledgeNodeRow {
   isActive: boolean;
 }
 
-interface ResourceRow {
+export interface RemediationResourceRow {
   id: string;
   title: string;
   displayName: string | null;
@@ -56,7 +56,7 @@ interface ResourceRow {
   }>;
 }
 
-interface ValidationItemRow {
+export interface RemediationValidationItemRow {
   id: string;
   questionId: string;
   contentHash: string;
@@ -83,11 +83,11 @@ export interface RemediationOrchestrationDb {
     findFirst(input: any): Promise<KnowledgeNodeRow | null>;
   };
   teachingResource: {
-    findMany(input: any): Promise<ResourceRow[]>;
+    findMany(input: any): Promise<RemediationResourceRow[]>;
   };
   adaptiveAssessmentItemRef: {
-    findMany(input: any): Promise<ValidationItemRow[]>;
-    findFirst(input: any): Promise<ValidationItemRow | null>;
+    findMany(input: any): Promise<RemediationValidationItemRow[]>;
+    findFirst(input: any): Promise<RemediationValidationItemRow | null>;
   };
   remediationOrchestrationResult: {
     upsert(input: any): Promise<PersistedResultRow>;
@@ -95,7 +95,7 @@ export interface RemediationOrchestrationDb {
   };
 }
 
-interface GovernedResource {
+export interface GovernedRemediationResource {
   id: string;
   title: string;
   version: string;
@@ -104,7 +104,7 @@ interface GovernedResource {
   tier: number;
 }
 
-interface GovernedValidationItem {
+export interface GovernedRemediationValidationItem {
   id: string;
   questionId: string;
   contentHash: string;
@@ -196,7 +196,7 @@ function governedActionPath(value: unknown): string | null {
   return path?.startsWith('/') && !path.startsWith('//') ? path : null;
 }
 
-function resourceSelect() {
+export function remediationResourceSelect() {
   return {
     id: true,
     title: true,
@@ -220,11 +220,11 @@ function resourceSelect() {
 }
 
 function parseResource(
-  row: ResourceRow,
+  row: RemediationResourceRow,
   authorityNode: ResourceNode | null,
   knowledgeNodeId: string,
   misconceptionTag: string,
-): GovernedResource | null {
+): GovernedRemediationResource | null {
   const remediation = record(record(row.config)?.remediation);
   const disposition = authorityNode?.planningMetadata.pathDisposition;
   const version = nonEmptyString(disposition?.sourceVersionRef);
@@ -266,11 +266,11 @@ function parseResource(
 }
 
 function parseValidationItem(
-  row: ValidationItemRow,
+  row: RemediationValidationItemRow,
   sourceQuestionId: string,
   knowledgeNodeId: string,
   _misconceptionTag: string,
-): GovernedValidationItem | null {
+): GovernedRemediationValidationItem | null {
   const metadata = record(row.metadata);
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
@@ -318,19 +318,19 @@ function parseValidationItem(
   };
 }
 
-function orderedResources(resources: GovernedResource[]): GovernedResource[] {
+function orderedResources(resources: GovernedRemediationResource[]): GovernedRemediationResource[] {
   return [...resources].sort((left, right) =>
     left.tier - right.tier ||
     left.version.localeCompare(right.version) ||
     left.id.localeCompare(right.id));
 }
 
-function orderedValidationItems(items: GovernedValidationItem[]): GovernedValidationItem[] {
+function orderedValidationItems(items: GovernedRemediationValidationItem[]): GovernedRemediationValidationItem[] {
   return [...items].sort((left, right) =>
     left.version.localeCompare(right.version) || left.id.localeCompare(right.id));
 }
 
-function resourceAuthorityByTeachingResourceId(rows: ResourceRow[]): Map<string, ResourceNode> {
+function resourceAuthorityByTeachingResourceId(rows: RemediationResourceRow[]): Map<string, ResourceNode> {
   const registry = buildResourceNodeRegistryFromTeachingResources(
     rows,
     getAllRegisteredResourceMetadata(),
@@ -341,9 +341,9 @@ function resourceAuthorityByTeachingResourceId(rows: ResourceRow[]): Map<string,
 }
 
 function selectMinimalResourceSet(
-  resources: GovernedResource[],
+  resources: GovernedRemediationResource[],
   validationMinutes: number,
-): GovernedResource[] | null {
+): GovernedRemediationResource[] | null {
   const minimumResourceMinutes = Math.max(1, 5 - validationMinutes);
   const maximumResourceMinutes = 10 - validationMinutes;
   if (maximumResourceMinutes < minimumResourceMinutes) return null;
@@ -367,6 +367,38 @@ function selectMinimalResourceSet(
     .filter(([minutes]) => minutes >= minimumResourceMinutes && minutes <= maximumResourceMinutes)
     .sort((left, right) => left[1].length - right[1].length || compareIndexes(left[1], right[1]));
   return valid[0]?.[1].map((index) => resources[index]) ?? null;
+}
+
+export function listGovernedRemediationResources(input: {
+  rows: RemediationResourceRow[];
+  knowledgeNodeId: string;
+  misconceptionTag: string;
+}): GovernedRemediationResource[] {
+  const authorityById = resourceAuthorityByTeachingResourceId(input.rows);
+  return orderedResources(input.rows
+    .map((row) => parseResource(
+      row,
+      authorityById.get(row.id) ?? null,
+      input.knowledgeNodeId,
+      input.misconceptionTag,
+    ))
+    .filter((resource): resource is GovernedRemediationResource => resource !== null));
+}
+
+export function listGovernedRemediationValidationItems(input: {
+  rows: RemediationValidationItemRow[];
+  sourceQuestionId: string;
+  knowledgeNodeId: string;
+  misconceptionTag: string;
+}): GovernedRemediationValidationItem[] {
+  return orderedValidationItems(input.rows
+    .map((row) => parseValidationItem(
+      row,
+      input.sourceQuestionId,
+      input.knowledgeNodeId,
+      input.misconceptionTag,
+    ))
+    .filter((item): item is GovernedRemediationValidationItem => item !== null));
 }
 
 function compareIndexes(left: number[], right: number[]): number {
@@ -512,7 +544,7 @@ async function projectResult(
 
   const resources = await db.teachingResource.findMany({
     where: { id: { in: task.resources.map((resource) => resource.id) } },
-    select: resourceSelect(),
+    select: remediationResourceSelect(),
   });
   if (resources.length !== task.resources.length) return unavailableProjection(row, 'REFERENCE_DRIFT');
   const authorityById = resourceAuthorityByTeachingResourceId(resources);
@@ -710,17 +742,13 @@ async function orchestrateRemediationVersion(input: {
         { config: { path: ['remediation', 'prerequisiteKnowledgeNodeIds'], array_contains: [knowledgeNodeId] } },
       ],
     },
-    select: resourceSelect(),
+    select: remediationResourceSelect(),
   });
-  const authorityById = resourceAuthorityByTeachingResourceId(resourceRows);
-  const resources = orderedResources(resourceRows
-    .map((row) => parseResource(
-      row,
-      authorityById.get(row.id) ?? null,
-      knowledgeNodeId,
-      misconceptionTag,
-    ))
-    .filter((resource): resource is GovernedResource => resource !== null));
+  const resources = listGovernedRemediationResources({
+    rows: resourceRows,
+    knowledgeNodeId,
+    misconceptionTag,
+  });
   if (resources.length === 0) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
@@ -740,9 +768,12 @@ async function orchestrateRemediationVersion(input: {
     },
     select: { id: true, questionId: true, contentHash: true, metadata: true },
   });
-  const validations = orderedValidationItems(validationRows
-    .map((row) => parseValidationItem(row, attribution.questionId, knowledgeNodeId, misconceptionTag))
-    .filter((item): item is GovernedValidationItem => item !== null));
+  const validations = listGovernedRemediationValidationItems({
+    rows: validationRows,
+    sourceQuestionId: attribution.questionId,
+    knowledgeNodeId,
+    misconceptionTag,
+  });
   if (validations.length === 0) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
@@ -752,7 +783,10 @@ async function orchestrateRemediationVersion(input: {
     }));
   }
 
-  let selection: { resources: GovernedResource[]; validation: GovernedValidationItem } | null = null;
+  let selection: {
+    resources: GovernedRemediationResource[];
+    validation: GovernedRemediationValidationItem;
+  } | null = null;
   for (const validation of validations) {
     const selectedResources = selectMinimalResourceSet(resources, validation.estimatedMinutes);
     if (selectedResources) {
