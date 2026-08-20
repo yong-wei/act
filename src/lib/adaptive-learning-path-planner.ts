@@ -2516,7 +2516,6 @@ function inferDeficits(
   learnerState: AdaptiveLearningPathLearnerState | null,
 ): AdaptiveLearningPathDeficit[] {
   const knowledgeTags = learnerState?.knowledgeMastery?.tags ?? {};
-  const competencies = learnerState?.primaryCompetencies?.vector ?? {};
   return [
     ...goal.knowledgeTargets
       .map((targetId) => {
@@ -2535,18 +2534,17 @@ function inferDeficits(
       .filter((item) => item.value < 0.85),
     ...(goal.competencyTargets ?? [])
       .map((targetId) => {
-        const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
         const value = portraitScores.length > 0
           ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : normalizeCompetencyScore(competency?.score ?? 0);
+          : 0;
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
-          : competency?.confidence ?? 0;
+          : 0;
         const evidenceCount = portraitScores.length > 0
           ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
-          : competency?.evidenceCount ?? 0;
+          : 0;
         return {
           targetId,
           kind: 'competency' as const,
@@ -2555,9 +2553,7 @@ function inferDeficits(
           evidenceCount,
           reasonCode: value < 0.7 ? 'competency-deficit' : 'competency-maintenance',
           portraitDimensionIds,
-          eventReferences: eventReferencesForDeficit(
-            portraitScores.length > 0 ? undefined : competency?.eventReferences,
-          ),
+          eventReferences: eventReferencesForDeficit(undefined),
         };
       })
       .filter((item) => item.value < 0.85),
