@@ -15,6 +15,9 @@ export async function GET(_: Request, context: RouteContext) {
     if (!sessionUserId) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
+    if (session.user.role !== 'STUDENT') {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    }
     const { userId } = await context.params;
     if (userId !== sessionUserId) {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });

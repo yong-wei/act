@@ -6,6 +6,10 @@ import { useSearchParams } from 'next/navigation';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { AppShell } from '@/components/platform/app-shell';
 import { buildAiAuditTaskState, getAiAuditTaskContract } from '@/lib/ai-task-boundary-contracts';
+import {
+  nextPromptAssessmentSessionVersion,
+  selectPromptAssessmentSessionHistory,
+} from '@/features/evaluation/prompt-assessment-session-history';
 
 interface AssessResponse {
   overallScore: number;
@@ -235,7 +239,11 @@ export default function PromptAssessmentPage() {
     return sections.join('\n');
   }, [structured, freeText]);
 
-  const latestHistory = useMemo(() => historyRecords.slice(-6), [historyRecords]);
+  const activeSessionHistory = useMemo(
+    () => selectPromptAssessmentSessionHistory(historyRecords, activeSessionId),
+    [activeSessionId, historyRecords],
+  );
+  const latestHistory = useMemo(() => activeSessionHistory.slice(-6), [activeSessionHistory]);
   const latestRecord = latestHistory[latestHistory.length - 1] ?? null;
   const consistencyScores = latestHistory
     .map((record) => record.consistency?.consistencyScore)
@@ -291,7 +299,7 @@ export default function PromptAssessmentPage() {
     if (autoDemo) {
       setLastPromptAction('assessment');
       setError(null);
-      const version = historyRecords.length + 1;
+      const version = nextPromptAssessmentSessionVersion(historyRecords, activeSessionId);
       const demoAssessment = buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
       setAssessment(demoAssessment);
       setLastPromptDisposition('completed');
@@ -359,7 +367,7 @@ export default function PromptAssessmentPage() {
     if (autoDemo) {
       setLastPromptAction('consistency');
       setError(null);
-      const version = historyRecords.length + 1;
+      const version = nextPromptAssessmentSessionVersion(historyRecords, activeSessionId);
       const demoAssessment = assessment ?? buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
       const demoConsistency = buildDemoConsistency(Math.min(version - 1, 2));
       setAssessment(demoAssessment);
@@ -773,7 +781,7 @@ export default function PromptAssessmentPage() {
                   <div className="grid gap-3 md:grid-cols-4">
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">提示词版本数</div>
-                      <div className="mt-1 text-xl font-semibold text-violet-300">{historyRecords.length}</div>
+                      <div className="mt-1 text-xl font-semibold text-violet-300">{activeSessionHistory.length}</div>
                     </div>
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">最近提示词得分</div>

@@ -15,6 +15,9 @@ export async function POST(request: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
+    if (session.user.role !== 'STUDENT') {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    }
     const body = parsePromptAssessmentRequest(await request.json());
     if (!body) {
       return NextResponse.json({ error: 'INVALID_REQUEST' }, { status: 400 });

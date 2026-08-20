@@ -24,3 +24,7 @@
   - Evidence: `artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json` and the `artifacts/commercial-ui/evidence.json` route entry bind the same remotely resolvable checkpoint `42b1bf38d1776a441c74d23d7e1da6b54a09a9d6`; the final evidence-only commit does not modify any bound source file.
 - [x] 3.6 Persist the complete quality-result snapshot and return it for history reads, including a regression whose stored analysis differs from the current evaluator output.
 - [x] 3.7 Require browser evidence capture revisions to be the current remote branch tip before Playwright runs; recapture after the remediation code checkpoint is pushed and record the remotely resolvable revision in the manifest and PR body.
+- [x] 3.8 Reject authenticated `TEACHER` and `ADMIN` sessions at all three evaluation history routes before any evaluation or database access; add route regressions for both roles.
+- [x] 3.9 Scope prompt-assessment page history metrics, consistency targets, and local version allocation to `activeSessionId`; add a session-mixed regression.
+- [x] 3.10 Compute Commercial UI source hashes from the declared Git revision and tolerate only equivalent CRLF checkout normalization; add a fail-closed source-drift regression.
+- [ ] 3.11 After this remediation is committed and pushed, recapture the authenticated browser evidence so `browser-evidence.json` binds the remediation head and Git-blob source hashes; local capture is pending the remote-tip prerequisite and a running PostgreSQL-backed browser environment.

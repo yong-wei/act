@@ -4,11 +4,12 @@ The prompt-quality and process-consistency features are intended to help student
 
 ## What Changes
 
-- Require an authenticated student before prompt assessment, consistency tracking, or prompt-history reads touch learning data.
+- Require an authenticated session whose role is `STUDENT` before prompt assessment, consistency tracking, or prompt-history reads touch learning data.
 - Persist prompt-quality evaluations as versioned, learner-owned `PromptAssessment` records instead of a process-local map.
 - Attach process-consistency results and bounded task-context metadata to the owned assessment record.
 - Enforce a unique learner/session/version identity and safe retry behavior for concurrent creates.
 - Return a user-scoped history projection and preserve the existing client-only demonstration mode.
+- Scope page-level history metrics, consistency targets, and local demonstration versions to the active evaluation session.
 - Keep this evidence outside `LearningFact`, learner portraits, official scores, rankings, and recommendations.
 
 ## Capabilities

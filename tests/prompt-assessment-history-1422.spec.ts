@@ -105,8 +105,8 @@ function createConsistency() {
   };
 }
 
-async function installPromptAssessmentFixture(page: Page) {
-  const history: PromptHistoryEntry[] = [];
+async function installPromptAssessmentFixture(page: Page, initialHistory: PromptHistoryEntry[] = []) {
+  const history: PromptHistoryEntry[] = [...initialHistory];
 
   await page.route('**/api/assessment/ability-report/**', (route) => route.fulfill({
     json: {
@@ -127,21 +127,29 @@ async function installPromptAssessmentFixture(page: Page) {
       auditTaskContext: PromptHistoryEntry['auditTaskContext'];
     };
     expect(input).not.toHaveProperty('userId');
+    const sessionVersions = history
+      .filter((entry) => entry.sessionId === input.sessionId)
+      .map((entry) => entry.version);
     history.push({
       userId: 'prompt-assessment-browser-student',
       sessionId: input.sessionId,
       promptContent: input.prompt,
       auditTaskContext: input.auditTaskContext,
       assessment: createAssessment(),
-      version: history.length + 1,
+      version: Math.max(0, ...sessionVersions) + 1,
       createdAt: Date.now(),
     });
     await route.fulfill({ json: createAssessment() });
   });
   await page.route('**/api/evaluation/track-consistency', async (route) => {
-    const input = route.request().postDataJSON() as { promptVersion: number };
+    const input = route.request().postDataJSON() as {
+      designSessionId: string;
+      promptVersion: number;
+    };
     expect(input).not.toHaveProperty('userId');
-    const record = history.find((entry) => entry.version === input.promptVersion);
+    const record = history.find((entry) => (
+      entry.sessionId === input.designSessionId && entry.version === input.promptVersion
+    ));
     expect(record).toBeDefined();
     const consistency = createConsistency();
     if (record) {
@@ -291,4 +299,47 @@ test('Issue 1422 shows authenticated prompt evaluation history and consistency a
   await expectNoHorizontalOverflow(page);
   await expectButtonTextFits(page);
   await captureEvidenceScreenshot(page, 'prompt-assessment-history-dark-collapsed-1440.png');
+});
+
+test('Issue 1422 attaches consistency to the latest record in the active evaluation session', async ({
+  context,
+  page,
+}) => {
+  await addStudentSession(context);
+  const activeSessionId = 'report-prompt-assessment-browser-student';
+  await installPromptAssessmentFixture(page, [
+    {
+      userId: 'prompt-assessment-browser-student',
+      sessionId: activeSessionId,
+      promptContent: '当前提示词会话的第一版。',
+      auditTaskContext: {
+        source: 'prompt-assessment',
+        assignment: 'PID 参数整定',
+        intent: 'prompt-history-review',
+        outputTarget: 'prompt-history',
+      },
+      assessment: createAssessment(),
+      version: 1,
+      createdAt: 1,
+    },
+    {
+      userId: 'prompt-assessment-browser-student',
+      sessionId: 'showcase-extracurricular',
+      promptContent: '其他学习场景的较新提示词。',
+      auditTaskContext: {
+        source: 'showcase',
+        assignment: '课外展示',
+        intent: 'showcase',
+        outputTarget: 'prompt-history',
+      },
+      assessment: createAssessment(),
+      version: 8,
+      createdAt: 2,
+    },
+  ]);
+
+  await page.goto('/evaluation/prompt-assessment?source=prompt-assessment&assignment=PID%20%E5%8F%82%E6%95%B0%E6%95%B4%E5%AE%9A&intent=prompt-history-review');
+  await expect(page.getByText('V1', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '过程一致性校验', exact: true }).click();
+  await expect(page.getByText(/一致性得分：\s*88/)).toBeVisible();
 });

@@ -31,7 +31,7 @@ This change must preserve the learning-process boundary: an evaluation is useful
    - Reusing `DesignSession`: rejected because it has no unique evaluation-session identity and may describe controller work unrelated to the submitted prompt.
 
 2. **Authenticate at each route boundary and ignore client identity.**
-   The two POST routes require `getServerAuthSession().user.id` before parsing a learning record into persistence. The history route requires the same session and rejects a different route `userId` before querying. The client continues to send compatibility fields during migration, but they never choose the database scope.
+   The two POST routes require `getServerAuthSession().user.id` and `role === STUDENT` before parsing a learning record into persistence. The history route requires the same student session and rejects a different route `userId` before querying. The client continues to send compatibility fields during migration, but they never choose the database scope.
 
    Alternatives considered:
    - Allow anonymous records under a demo identity: rejected because that creates shared, non-attributable production data. The page already has a client-only demo path.

@@ -22,6 +22,11 @@ The system SHALL persist each production prompt-quality evaluation in `PromptAss
 - **WHEN** a caller without an authenticated student session requests prompt-quality evaluation
 - **THEN** the system SHALL reject the request before evaluating or persisting learning data
 
+#### Scenario: Authenticated non-student evaluates a prompt
+- **WHEN** a teacher or administrator session requests prompt-quality evaluation
+- **THEN** the system SHALL return `403`
+- **AND** it SHALL reject the request before evaluating or persisting learner-owned assessment data
+
 ### Requirement: Prompt evaluation versions remain unique under retry
 The system SHALL maintain a unique `(userId, sessionId, version)` identity for prompt assessments and SHALL allocate the next version at the persistence boundary.
 
@@ -51,6 +56,10 @@ The system SHALL persist a process-consistency result only by updating the authe
 - **WHEN** a caller without an authenticated student session requests process-consistency evaluation
 - **THEN** the system SHALL reject the request before reading or updating assessment data
 
+#### Scenario: Authenticated non-student checks consistency
+- **WHEN** a teacher or administrator session requests process-consistency evaluation
+- **THEN** the system SHALL return `403` before reading or updating assessment data
+
 ### Requirement: Prompt assessment history is user-scoped and context-only
 The system SHALL return prompt assessment history only to its authenticated owner. Prompt assessment and consistency records SHALL remain learning-process context and SHALL NOT directly create `LearningFact`, learner-portrait, official-score, leaderboard, or recommendation updates.
 
@@ -62,6 +71,10 @@ The system SHALL return prompt assessment history only to its authenticated owne
 - **WHEN** an authenticated student requests prompt history using another student's route identity
 - **THEN** the system SHALL reject the request before querying that student's assessment records
 
+#### Scenario: Authenticated non-student requests prompt history
+- **WHEN** a teacher or administrator session requests prompt history
+- **THEN** the system SHALL return `403` before querying assessment records
+
 #### Scenario: Assessment is persisted
 - **WHEN** the system persists a prompt-quality evaluation or a consistency result
 - **THEN** it SHALL NOT invoke a `LearningFact` writer, learner-portrait updater, official-score writer, leaderboard writer, or recommendation updater
@@ -69,3 +82,8 @@ The system SHALL return prompt assessment history only to its authenticated owne
 #### Scenario: Client-only demonstration mode runs
 - **WHEN** the prompt-assessment page is in its existing demonstration mode
 - **THEN** it SHALL continue to generate local demonstration records without invoking unauthenticated production evaluation routes
+
+#### Scenario: Prompt history contains multiple evaluation sessions
+- **WHEN** the prompt-assessment page displays history for its active evaluation session
+- **THEN** its latest record, consistency trend, count, and next local demonstration version SHALL use only records from that session
+- **AND** records from another session SHALL not become the consistency target

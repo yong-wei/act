@@ -5,6 +5,10 @@ import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  assertCaptureSourcesMatchRevision,
+} from './capture-source-hashes.mjs';
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, '../../..');
 const outputDirectory = scriptDirectory;
@@ -21,6 +25,7 @@ const outputRelativePaths = new Set([
 ]);
 const boundInputs = [
   'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs',
+  'artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-source-hashes.mjs',
   'playwright.config.ts',
   'tests/prompt-assessment-history-1422.spec.ts',
   'src/app/evaluation/prompt-assessment/page.tsx',
@@ -45,13 +50,6 @@ function statusPaths() {
     encoding: 'utf8',
   });
   return output.split(/\r?\n/).filter(Boolean).map((line) => line.slice(3));
-}
-
-async function sourceHashes() {
-  return Object.fromEntries(await Promise.all(boundInputs.map(async (input) => {
-    const bytes = await readFile(join(repositoryRoot, input));
-    return [input, createHash('sha256').update(bytes).digest('hex')];
-  })));
 }
 
 async function screenshotEvidence(relativePath, viewport) {
@@ -87,7 +85,11 @@ assert.equal(
   captureRevision,
   'Commercial UI capture revision must already be the remote branch tip',
 );
-const initialSourceHashes = await sourceHashes();
+const initialSourceHashes = assertCaptureSourcesMatchRevision({
+  repositoryRoot,
+  captureRevision,
+  sourcePaths: boundInputs,
+});
 
 await mkdir(outputDirectory, { recursive: true });
 await Promise.all([
@@ -113,7 +115,15 @@ execFileSync(npx, ['playwright', 'test', 'tests/prompt-assessment-history-1422.s
 });
 
 assert.equal(git(['rev-parse', 'HEAD']), captureRevision, 'Capture changed Git HEAD');
-assert.deepEqual(await sourceHashes(), initialSourceHashes, 'Capture changed a bound source file');
+assert.deepEqual(
+  assertCaptureSourcesMatchRevision({
+    repositoryRoot,
+    captureRevision,
+    sourcePaths: boundInputs,
+  }),
+  initialSourceHashes,
+  'Capture changed a bound source file',
+);
 
 const screenshots = await Promise.all([
   screenshotEvidence(

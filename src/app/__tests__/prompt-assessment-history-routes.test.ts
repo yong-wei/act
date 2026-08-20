@@ -131,6 +131,19 @@ describe('prompt assessment history routes', () => {
     expect(mocks.prisma.promptAssessment.findMany).not.toHaveBeenCalled();
   });
 
+  it.each(['TEACHER', 'ADMIN'] as const)('rejects authenticated %s requests before touching learner assessment data', async (role) => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'staff-1', role } });
+
+    expect((await assess(post('/api/evaluation/assess-prompt', assessmentBody))).status).toBe(403);
+    expect((await trackConsistency(post('/api/evaluation/track-consistency', consistencyBody))).status).toBe(403);
+    expect((await getHistory(new Request('http://localhost/api/evaluation/prompt-history/staff-1'), historyContext('staff-1'))).status).toBe(403);
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prisma.promptAssessment.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.promptAssessment.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.promptAssessment.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.promptAssessment.updateMany).not.toHaveBeenCalled();
+  });
+
   it('persists an assessment for the authenticated student instead of a forged body userId', async () => {
     const response = await assess(post('/api/evaluation/assess-prompt', assessmentBody));
 
