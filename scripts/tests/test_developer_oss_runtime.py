@@ -334,6 +334,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         self.assertNotIn("NOPASSWD: /usr/bin/mount, /usr/bin/umount", source)
         self.assertIn("/proc/self/fd/", helper)
         self.assertIn("O_NOFOLLOW", helper)
+        self.assertIn("pass_fds", helper)
 
     def test_privileged_mount_helper_rejects_arbitrary_paths(self):
         helper = DEV / "privileged-mount.py"
@@ -496,6 +497,24 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             with mock.patch("bootstrap.stop_services"), mock.patch("bootstrap.unmount", side_effect=DeveloperRuntimeError("busy")):
                 with self.assertRaises(DeveloperRuntimeError):
                     stop(checkout)
+            self.assertFalse(leftover.exists())
+
+    def test_stop_removes_ossfs_conf_when_services_fail(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            from common import checkout_state
+            state = checkout_state(checkout)
+            state.mkdir(parents=True)
+            os.chmod(state, 0o700)
+            leftover = state / "ossfs.conf"
+            leftover.write_text("secret-should-go")
+            os.chmod(leftover, 0o600)
+            with mock.patch("bootstrap.stop_services", side_effect=DeveloperRuntimeError("shutdown failed")), mock.patch("bootstrap.unmount") as unmounted:
+                with self.assertRaises(DeveloperRuntimeError):
+                    stop(checkout)
+                unmounted.assert_not_called()
             self.assertFalse(leftover.exists())
 
 

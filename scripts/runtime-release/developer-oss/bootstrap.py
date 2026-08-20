@@ -496,9 +496,13 @@ def remove_ossfs_config(state: Path) -> None:
 def stop(checkout: Path) -> None:
     lock = acquire_lock(checkout)
     try:
-        stop_services(checkout)
         state = checkout_state(checkout)
+        stop_error: DeveloperRuntimeError | None = None
         try:
+            try:
+                stop_services(checkout)
+            except DeveloperRuntimeError as error:
+                stop_error = error
             receipt = read_selection_receipt(state / "selection.json")
             runtime_root = checkout / "course-content" / "runtime"
             if receipt:
@@ -510,6 +514,8 @@ def stop(checkout: Path) -> None:
                 unmount(Path(receipt["blobMount"]))
             else:
                 sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
+            if stop_error:
+                raise stop_error
         finally:
             remove_ossfs_config(state)
     finally:

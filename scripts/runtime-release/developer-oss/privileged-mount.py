@@ -99,15 +99,23 @@ def pin_allowed_dir(raw: str) -> int:
     return fd
 
 
-def run_mount(args: list[str]) -> None:
-    completed = subprocess.run([first_executable(MOUNT_BINARIES, "mount"), *args], check=False)
+def run_mount(args: list[str], fds: tuple[int, ...]) -> None:
+    completed = subprocess.run(
+        [first_executable(MOUNT_BINARIES, "mount"), *args],
+        check=False,
+        pass_fds=fds,
+    )
     if completed.returncode != 0:
         fail("mount failed")
 
 
 def run_umount(fd: int) -> None:
     umount = first_executable(UMOUNT_BINARIES, "umount")
-    completed = subprocess.run([umount, mount_fd_path(fd)], check=False)
+    completed = subprocess.run(
+        [umount, mount_fd_path(fd)],
+        check=False,
+        pass_fds=(fd,),
+    )
     if completed.returncode != 0:
         fail("umount failed")
 
@@ -135,13 +143,19 @@ def main() -> int:
         destination_fd = -1
         try:
             destination_fd = pin_allowed_dir(args.destination)
-            run_mount(["--bind", mount_fd_path(source_fd), mount_fd_path(destination_fd)])
+            run_mount(
+                ["--bind", mount_fd_path(source_fd), mount_fd_path(destination_fd)],
+                (source_fd, destination_fd),
+            )
         finally:
             close_fds(source_fd, destination_fd)
     elif args.command == "remount-ro":
         destination_fd = pin_allowed_dir(args.destination)
         try:
-            run_mount(["-o", "remount,bind,ro", mount_fd_path(destination_fd)])
+            run_mount(
+                ["-o", "remount,bind,ro", mount_fd_path(destination_fd)],
+                (destination_fd,),
+            )
         finally:
             close_fds(destination_fd)
     elif args.command == "umount":
