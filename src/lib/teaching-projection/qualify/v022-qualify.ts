@@ -152,7 +152,10 @@ export async function qualifyActKgV022CutoverCandidate(input: {
   if (envelope.releaseId !== V022_RELEASE_ID || envelope.snapshotId !== V022_SNAPSHOT) {
     blockers.push('envelope-mismatch');
   }
-  if (catalogEnvelope.releaseId !== V022_RELEASE_ID || catalogEnvelope.snapshotId !== V022_SNAPSHOT) {
+  if (catalogEnvelope.releaseId !== V022_RELEASE_ID
+    || catalogEnvelope.snapshotId !== V022_SNAPSHOT
+    || catalogEnvelope.snapshotHash !== authorityManifest.snapshotHash
+    || catalogEnvelope.releaseSetId !== authorityManifest.releaseSetId) {
     blockers.push('selector-catalog-authority-mix');
   }
   if (catalogReceipt.nonActivation !== true || catalogReceipt.status !== 'staged') {
@@ -169,7 +172,9 @@ export async function qualifyActKgV022CutoverCandidate(input: {
   }
   const catalogAuthoring = readJson(catalogAuthoringPath) as unknown as AuthorityDomainCatalogAuthoring;
   if (catalogAuthoring.authorityBinding.releaseId !== V022_RELEASE_ID
-    || catalogAuthoring.authorityBinding.snapshotId !== V022_SNAPSHOT) {
+    || catalogAuthoring.authorityBinding.snapshotId !== V022_SNAPSHOT
+    || catalogAuthoring.authorityBinding.snapshotHash !== authorityManifest.snapshotHash
+    || catalogAuthoring.authorityBinding.releaseSetId !== authorityManifest.releaseSetId) {
     blockers.push('selector-catalog-authority-mix');
   }
   const rebuiltCatalog = buildAuthorityDomainCatalog(

@@ -33,10 +33,6 @@ import {
   type LoadedAuthorityShardContext,
 } from '../../authority-domain-shards';
 import {
-  createAuthorityLabelResolverContext,
-  resolveAuthorityLabel,
-} from '../../authority-domain-shards/labels';
-import {
   activatePrerequisitePublication,
   readCurrentPrerequisitePointer,
   resolvePrerequisiteStorePaths,
@@ -227,37 +223,29 @@ export function rehearseIsolatedFiveSelectorActivation(input: {
     }
     const candidateAuthoring = readJson(catalogAuthoringPath) as unknown as AuthorityDomainCatalogAuthoring;
     if (candidateAuthoring.authorityBinding.releaseId !== input.authorityManifest.releaseId
-      || candidateAuthoring.authorityBinding.snapshotId !== input.authorityManifest.snapshotId) {
+      || candidateAuthoring.authorityBinding.snapshotId !== input.authorityManifest.snapshotId
+      || candidateAuthoring.authorityBinding.snapshotHash !== input.authorityManifest.snapshotHash
+      || candidateAuthoring.authorityBinding.releaseSetId !== input.authorityManifest.releaseSetId) {
       throw new V022QualificationError('isolated-catalog-authority-mix', 'candidate catalog is not bound to the v0.22 envelope');
     }
-    const labelContext = createAuthorityLabelResolverContext({
-      snapshot: {
-        snapshotId: input.authorityManifest.snapshotId,
-        snapshotHash: input.authorityManifest.snapshotHash,
-        releaseId: input.authorityManifest.releaseId,
-      },
-      objects: input.engineering.objects,
-      v2Evidence: input.engineering.v2Evidence,
-    });
-    const labeledIds = new Set(
-      input.engineering.objects
-        .filter((row) => {
-          const resolved = resolveAuthorityLabel(labelContext, row.canonicalId);
-          return resolved.status === 'available' && Boolean(resolved.label);
-        })
-        .map((row) => row.canonicalId),
-    );
+    const engineeringIds = new Set(input.engineering.objects.map((row) => row.canonicalId));
+    const missingMembers = candidateAuthoring.memberships
+      .filter((row) => !engineeringIds.has(row.canonicalId))
+      .map((row, index) => ({
+        canonicalId: row.canonicalId,
+        ordinal: input.engineering.objects.length + index,
+        canonicalType: 'DomainConcept',
+        semanticName: null,
+        reviewStatus: null,
+        publicationStatus: null,
+        lifecycleStatus: null,
+        payload: { displayName: '暂不可用' },
+      }));
     const shardEngineering: AuthorityEngineeringBody = {
       ...input.engineering,
-      objects: input.engineering.objects.filter((row) => labeledIds.has(row.canonicalId)),
-      relations: input.engineering.relations.filter((row) => (
-        labeledIds.has(row.sourceId) && labeledIds.has(row.targetId)
-      )),
+      objects: [...input.engineering.objects, ...missingMembers],
     };
-    const shardAuthoring: AuthorityDomainCatalogAuthoring = {
-      ...candidateAuthoring,
-      memberships: candidateAuthoring.memberships.filter((row) => labeledIds.has(row.canonicalId)),
-    };
+    const shardAuthoring = candidateAuthoring;
     writeJsonFile(isolatedCatalogPaths.authoringCatalogPath, shardAuthoring);
     catalog = buildAuthorityDomainCatalog(
       shardAuthoring,
