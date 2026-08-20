@@ -7,7 +7,6 @@
 import {
   AUTHORITY_DOMAIN_CATALOG_BUILDER_VERSION,
   AUTHORITY_DOMAIN_CATALOG_RUNTIME_CONTRACT,
-  REGISTERED_PEER_DOMAIN_IDS,
   type AuthorityDomainCatalogAuthoring,
   type AuthorityDomainCatalogRuntime,
   type AuthorityNodeEndpoint,
@@ -79,7 +78,7 @@ export function buildAuthorityDomainCatalog(
   );
 
   const memberCounts = new Map<RegisteredPeerDomainId, number>(
-    REGISTERED_PEER_DOMAIN_IDS.map((id) => [id, 0]),
+    authoring.domains.map((domain) => [domain.domainId, 0]),
   );
   for (const membership of membershipsSorted) {
     for (const domainId of membership.domainIds) {
@@ -127,7 +126,7 @@ export function buildAuthorityDomainCatalog(
       summary: authoring.aggregate.summary,
       presentationRole: 'aggregate' as const,
       visualRole: 'aggregate' as const,
-      domainCount: REGISTERED_PEER_DOMAIN_IDS.length,
+      domainCount: authoring.domains.length,
     },
     memberships: membershipsSorted,
   };
@@ -174,20 +173,18 @@ export function verifyAuthorityDomainCatalogRuntime(
     );
   }
 
-  if (runtime.domains.length !== REGISTERED_PEER_DOMAIN_IDS.length) {
+  if (runtime.domains.length === 0) {
     throw new DomainCatalogBuildError(
       'domain-set-size-invalid',
-      `runtime must contain exactly ${REGISTERED_PEER_DOMAIN_IDS.length} peer domains`,
+      'runtime must contain at least one peer domain',
     );
   }
   const domainIds = new Set(runtime.domains.map((d) => d.domainId));
-  for (const required of REGISTERED_PEER_DOMAIN_IDS) {
-    if (!domainIds.has(required)) {
-      throw new DomainCatalogBuildError(
-        'domain-set-incomplete',
-        `runtime missing peer domain ${required}`,
-      );
-    }
+  if (domainIds.size !== runtime.domains.length) {
+    throw new DomainCatalogBuildError(
+      'domain-set-incomplete',
+      'runtime peer domain identities must be unique',
+    );
   }
   if (domainIds.has(runtime.aggregate.entryId as never)) {
     throw new DomainCatalogBuildError(
@@ -195,7 +192,7 @@ export function verifyAuthorityDomainCatalogRuntime(
       'aggregate must not appear among peer domains',
     );
   }
-  if (runtime.aggregate.domainCount !== REGISTERED_PEER_DOMAIN_IDS.length) {
+  if (runtime.aggregate.domainCount !== runtime.domains.length) {
     throw new DomainCatalogBuildError(
       'aggregate-domain-count-invalid',
       'aggregate.domainCount must equal the peer domain count',

@@ -8,7 +8,6 @@
 import { join } from 'node:path';
 
 import {
-  isRegisteredPeerDomainId,
   type DomainVisualRole,
   type RegisteredPeerDomainId,
 } from '@/lib/authority-domain-catalog/contracts';
@@ -184,7 +183,8 @@ export function resolveShardDomainKey(
   value: string,
   catalogDomains: ReadonlyArray<{ domainId: RegisteredPeerDomainId; visualRole: Exclude<DomainVisualRole, 'aggregate'> }>,
 ): RegisteredPeerDomainId {
-  if (isRegisteredPeerDomainId(value)) return value;
+  const byId = catalogDomains.find((domain) => domain.domainId === value);
+  if (byId) return byId.domainId;
   const matched = catalogDomains.find((domain) => domain.visualRole === value);
   if (matched) return matched.domainId;
   throw new AuthorityShardStoreError('domain-unknown', `unknown authority domain ${value}`);

@@ -84,7 +84,8 @@ export function selectActiveAuthorityMembership(
   activeDomainId?: string | null,
 ): AuthorityShardMembership | null {
   const ordered = [...memberships].sort((left, right) => (
-    REGISTERED_PEER_DOMAIN_IDS.indexOf(left.domainId) - REGISTERED_PEER_DOMAIN_IDS.indexOf(right.domainId)
+    (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).indexOf(left.domainId)
+    - (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).indexOf(right.domainId)
     || left.domainId.localeCompare(right.domainId)
     || left.visualRole.localeCompare(right.visualRole)
   ));
