@@ -83,6 +83,7 @@ RUN test -f src/features/knowledge/active-authority-graph.tsx \
   && test -f src/lib/authority-domain-shards/materialize.ts \
   && test -f src/app/api/knowledge/shards/active/route.ts \
   && test -f course-content/runtime/knowledge/authority-learning-content-manifest.json \
+  && test -f course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json \
   && grep -q '/api/knowledge/shards/active' src/features/knowledge/active-authority-graph.tsx \
   && printf '%s\n' "${APP_REVISION}" > /app/.active-authority-shards-product
 
@@ -148,6 +149,7 @@ COPY --from=builder /app/course-content/runtime/resource-governance/runtime-reso
 # ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT or build-time
 # packaging of current.json + releases make Konling teaching context reachable.
 COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
+COPY --from=builder /app/course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json ./course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
 COPY --from=builder /app/course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards
 COPY --from=builder /app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json
 COPY --from=builder /app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority
@@ -158,7 +160,8 @@ COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-co
 RUN rm -f \
   course-content/authoring/knowledge/authority/current.json \
   course-content/runtime/knowledge/authority-domain-shards/current.json \
-  course-content/runtime/knowledge/projection/current.json
+  course-content/runtime/knowledge/projection/current.json \
+  && test -f course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
 COPY --from=builder /app/.app-revision ./.app-revision
 COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 

@@ -91,6 +91,25 @@ export interface V022ReleaseGateAttestation {
   build: boolean;
 }
 
+export function loadV022ReleaseGateAttestation(
+  filePath: string,
+  applicationRevision: string,
+): { gates?: V022ReleaseGateAttestation; blockers: string[] } {
+  if (!existsSync(filePath)) return { blockers: ['release-gates-unattested'] };
+  const record = asRecord(JSON.parse(readFileSync(filePath, 'utf8')));
+  const blockers: string[] = [];
+  if (String(record.applicationRevision ?? '') !== applicationRevision) {
+    blockers.push('release-gate-revision-mismatch');
+  }
+  const gates = {
+    lint: record.lint === true,
+    typecheck: record.typecheck === true,
+    test: record.test === true,
+    build: record.build === true,
+  };
+  return { gates, blockers };
+}
+
 export function publishActKgV022CutoverRuntime(input: {
   repoRoot: string;
   outputRoot?: string;
@@ -100,6 +119,7 @@ export function publishActKgV022CutoverRuntime(input: {
   hostVerificationReport?: string;
   requireReleaseGates?: boolean;
   releaseGates?: V022ReleaseGateAttestation;
+  extraBlockers?: string[];
   readGitStatus?: () => string;
 }): {
   status: 'READY' | 'BLOCKED';
@@ -120,7 +140,10 @@ export function publishActKgV022CutoverRuntime(input: {
     repoRoot,
     'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.22/qualification-readiness.json',
   );
-  const blockers = qualificationBlockers(repoRoot, qualificationPath);
+  const blockers = [
+    ...qualificationBlockers(repoRoot, qualificationPath),
+    ...(input.extraBlockers ?? []),
+  ];
   const head = gitRevParse(repoRoot, 'HEAD');
   const frozen = resolveFrozenApplicationRevision(repoRoot, input.frozenApplicationRevision, head);
   blockers.push(...frozen.blockers);
