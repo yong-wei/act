@@ -4714,7 +4714,7 @@ function buildPolicyBundle(
       resourceOverlap(
         coreRefs,
         differentiablePolicyCoreRefs(existingPath.planNodes ?? [], input.registry),
-      ) > overlapThreshold,
+      ) >= overlapThreshold,
     );
     if (pairwiseCoreOverlapExceedsThreshold) {
       omittedPolicyReasons.push('policy-option-diversity-unavailable');
@@ -4803,7 +4803,7 @@ function buildPolicyBundle(
     paths.some((path) => path.terminalValidationNodeIds.length === 0);
   const fallbackReasons = unique([
     ...omittedPolicyReasons,
-    maxResourceOverlap > overlapThreshold ? 'path-diversity-insufficient' : null,
+    maxResourceOverlap >= overlapThreshold ? 'path-diversity-insufficient' : null,
     terminalValidationMissing ? 'terminal-validation-diversity-insufficient' : null,
     new Set(paths.map((path) => path.nodeIds.join('|'))).size < Math.min(paths.length, 2)
       ? 'policy-paths-identical'

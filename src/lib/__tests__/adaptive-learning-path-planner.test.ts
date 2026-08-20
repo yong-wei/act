@@ -551,6 +551,27 @@ describe('policy bundle core diversity fixture', () => {
     ]);
   });
 
+  it('rejects a policy option whose pairwise core overlap equals the configured threshold', () => {
+    const registry = buildAlternativeCoreFixtureRegistry();
+    const input = buildDiversityFixtureInput(registry);
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      policyBundle: {
+        ...input.policyBundle!,
+        overlapThreshold: 0.333,
+      },
+    });
+    const paths = plan.policyBundle?.paths ?? [];
+
+    expect(paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'simulation-driven',
+    ]);
+    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-diversity-unavailable');
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap.every(({ overlap }) => overlap < 0.333)).toBe(true);
+  });
+
   it('does not count teaching-resource and registry resources with the same canonical sourceRef as distinct core options', () => {
     const registry = buildCanonicalDuplicateFixtureRegistry();
     const plan = buildAdaptiveLearningPathPlan(buildDiversityFixtureInput(registry));
