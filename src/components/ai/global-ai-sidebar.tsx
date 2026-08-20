@@ -41,6 +41,7 @@ import {
   visibleKonlingMessages,
 } from '@/hooks/useKonlingConversationLibrary';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
+import { shouldStartTextbookCoachConversation } from '@/lib/textbook-resource-coach/session-switch';
 import { platformLayerStyle } from '@/components/platform/platform-layers';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 import { KonlingContinuityCard } from './konling-continuity-card';
@@ -170,6 +171,23 @@ export function GlobalAISidebar() {
     return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
   }, [assistantEntryPoint?.mode, effectiveServerContext?.smartTaskId]);
 
+  const textbookCoachSwitchKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!requestedAssistantBinding) return;
+    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+    const switchKey = [
+      requestedAssistantBinding.modeClientContextHints.unitId,
+      requestedAssistantBinding.modeClientContextHints.sourceRevision,
+      requestedAssistantBinding.modeClientContextHints.contentHash,
+      requestedAssistantBinding.modeClientContextHints.anchorId ?? '',
+    ].join('\u001f');
+    if (textbookCoachSwitchKeyRef.current === switchKey) return;
+    textbookCoachSwitchKeyRef.current = switchKey;
+    void createConversation(requestedAssistantBinding).catch(() => {
+      textbookCoachSwitchKeyRef.current = null;
+    });
+  }, [activeAssistantBinding, assistantEntryPoint, createConversation, requestedAssistantBinding]);
+
   useEffect(() => {
     setSmartPrepContext(null);
   }, [assistantEntryPoint]);
@@ -268,21 +286,24 @@ export function GlobalAISidebar() {
     return { state: conflict ? 'conflict' : 'failed', message };
   }
 
+  const sendAssistantBinding = requestedAssistantBinding?.modeClientContextHints?.resourceKind === 'structured-textbook-unit'
+    ? requestedAssistantBinding
+    : activeAssistantBinding;
   const chatBody = useMemo(() => ({
     pageContext,
     userProfile,
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: conversationPageId,
-    resourceId: activeAssistantBinding?.modeClientContextHints.resourceId,
-    pathNodeId: activeAssistantBinding?.modeClientContextHints.pathNodeId,
+    resourceId: sendAssistantBinding?.modeClientContextHints.resourceId,
+    pathNodeId: sendAssistantBinding?.modeClientContextHints.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
     systemPromptExtension,
-    teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId,
+    teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId,
     agentSessionId: agentSessionId ?? undefined,
-    modeClientContextHints: activeAssistantBinding?.modeClientContextHints,
-    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? activeAssistantBinding?.modeClientContextHints,
-  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, activeAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
+    modeClientContextHints: sendAssistantBinding?.modeClientContextHints,
+    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints,
+  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,

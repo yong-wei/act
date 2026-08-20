@@ -17,6 +17,8 @@ import {
   verifyTextbookVersionBoundHandle,
   type StructuredTextbookUnitIdentity,
 } from '@/lib/textbook-resource-coach';
+import { boundTextbookCoachPrompt } from '@/lib/textbook-resource-coach/prompt';
+import { shouldStartTextbookCoachConversation } from '@/lib/textbook-resource-coach/session-switch';
 import { clearTextbookReaderCache } from '@/lib/textbook-reader';
 
 const BOOK_ID = 'dorf-modern-control-systems';
@@ -381,6 +383,45 @@ describe('textbook resource coach', () => {
     expect(verifyTextbookVersionBoundHandle(expired)).toBeNull();
     const tampered = `${hydrated.href}tamper`;
     expect(resolveTextbookCitationClick({ href: tampered, pinned: loaded.identity }).ok).toBe(false);
+  });
+
+  it('starts a new textbook coach conversation when the active binding is generic or another unit', () => {
+    const requested = {
+      mode: 'resource-coach' as const,
+      serverContext: {
+        resourceKind: 'structured-textbook-unit',
+        unitId: UNIT_ID,
+        sourceRevision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        contentHash: hashTextbookMarkdown('传递函数 $G(s)$ 如图所示。\n'),
+      },
+    };
+    expect(shouldStartTextbookCoachConversation(requested, null)).toBe(true);
+    expect(shouldStartTextbookCoachConversation(requested, {
+      teachingAssistantModeId: 'generic-chat',
+      modeClientContextHints: {},
+    })).toBe(true);
+    expect(shouldStartTextbookCoachConversation(requested, {
+      teachingAssistantModeId: 'resource-coach',
+      modeClientContextHints: {
+        resourceKind: 'structured-textbook-unit',
+        unitId: 'other-unit',
+        sourceRevision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        contentHash: requested.serverContext.contentHash,
+      },
+    })).toBe(true);
+    expect(shouldStartTextbookCoachConversation(requested, {
+      teachingAssistantModeId: 'resource-coach',
+      modeClientContextHints: requested.serverContext,
+    })).toBe(false);
+  });
+
+  it('keeps a verified late selection hint when the unit body exceeds the prompt budget', () => {
+    const hint = 'TARGET_HINT_TOKEN';
+    const body = `${'前段'.repeat(2000)}${hint}${'后段'.repeat(2000)}`;
+    const bounded = boundTextbookCoachPrompt(body, hint, 400);
+    expect(bounded).toContain(hint);
+    expect(bounded).toContain('选区提示：');
+    expect(bounded.length).toBeLessThanOrEqual(400);
   });
 
   it('reads the pinned identity from conversation metadata rather than client hints', () => {

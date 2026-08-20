@@ -3,6 +3,7 @@ import type { KonlingTeachingAssistantServerModeContext } from '@/lib/konling-ag
 
 import { hydrateTextbookCoachCitation } from './citations';
 import type { TextbookCoachUnavailableReason } from './identity';
+import { boundTextbookCoachPrompt } from './prompt';
 import type { TextbookCoachContext } from './types';
 
 interface TextbookCoachServerBag {
@@ -37,17 +38,17 @@ export function applyTextbookCoachRuntimeContext(
     resolver: 'server-owned-runtime',
     citationTargetId: hydrated.citationId,
   };
-  const boundedBody = [
+  const boundedBody = boundTextbookCoachPrompt(
     bag.structuredTextbook.fragmentMarkdown ?? bag.structuredTextbook.unitMarkdown,
-    bag.structuredTextbook.selectionHint ? `选区提示：${bag.structuredTextbook.selectionHint}` : '',
-  ].filter(Boolean).join('\n');
+    bag.structuredTextbook.selectionHint,
+  );
   return {
     ...runtimeContext,
     pageContext: {
       ...runtimeContext.pageContext,
       topic: bag.structuredTextbook.title,
       learningObjectives: boundedBody
-        ? [boundedBody.slice(0, 4000)]
+        ? [boundedBody]
         : runtimeContext.pageContext.learningObjectives,
     },
     citationContext: {
