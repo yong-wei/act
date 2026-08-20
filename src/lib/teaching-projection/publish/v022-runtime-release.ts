@@ -84,6 +84,13 @@ function qualificationBlockers(repoRoot: string, reportPath: string): string[] {
   return blockers;
 }
 
+export interface V022ReleaseGateAttestation {
+  lint: boolean;
+  typecheck: boolean;
+  test: boolean;
+  build: boolean;
+}
+
 export function publishActKgV022CutoverRuntime(input: {
   repoRoot: string;
   outputRoot?: string;
@@ -91,6 +98,9 @@ export function publishActKgV022CutoverRuntime(input: {
   frozenApplicationRevision?: string;
   hostShadowRequired?: boolean;
   hostVerificationReport?: string;
+  requireReleaseGates?: boolean;
+  releaseGates?: V022ReleaseGateAttestation;
+  readGitStatus?: () => string;
 }): {
   status: 'READY' | 'BLOCKED';
   reportPath: string;
@@ -114,6 +124,20 @@ export function publishActKgV022CutoverRuntime(input: {
   const head = gitRevParse(repoRoot, 'HEAD');
   const frozen = resolveFrozenApplicationRevision(repoRoot, input.frozenApplicationRevision, head);
   blockers.push(...frozen.blockers);
+  if (frozen.revision !== head) blockers.push('frozen-revision-not-head');
+  const readGitStatus = input.readGitStatus
+    ?? (() => execFileSync('git', ['-C', repoRoot, 'status', '--porcelain'], { encoding: 'utf8' }));
+  if (readGitStatus().trim().length > 0) blockers.push('working-tree-dirty');
+  if (input.requireReleaseGates !== false) {
+    const gates = input.releaseGates;
+    if (!gates) blockers.push('release-gates-unattested');
+    else {
+      if (gates.lint !== true) blockers.push('release-gate-lint');
+      if (gates.typecheck !== true) blockers.push('release-gate-typecheck');
+      if (gates.test !== true) blockers.push('release-gate-test');
+      if (gates.build !== true) blockers.push('release-gate-build');
+    }
+  }
 
   const authority = readJson(path.join(repoRoot, 'course-content/authoring/knowledge/authority/current.json'));
   const projection = readJson(path.join(repoRoot, 'course-content/runtime/knowledge/projection/current.json'));
@@ -126,12 +150,18 @@ export function publishActKgV022CutoverRuntime(input: {
     const active = matchCompositeEnvelope({
       authorityReleaseId: String(authority.releaseId ?? ''),
       authoritySnapshotId: String(authority.snapshotId ?? ''),
+      authoritySnapshotHash: String(authority.snapshotHash ?? ''),
       projectionId: String(projection.projectionId ?? ''),
+      projectionHash: String(projection.projectionHash ?? ''),
       publicationId: String(prerequisite.publicationId ?? ''),
+      publicationHash: String(prerequisite.publicationHash ?? ''),
       shardSetId: String(shards.shardSetId ?? ''),
+      shardSetHash: String(shards.shardSetHash ?? ''),
       catalogId: String(catalog.catalogId ?? ''),
+      catalogHash: String(catalog.catalogHash ?? ''),
       activationId: String(activation.activationId ?? ''),
-    });
+      activationHash: typeof activation.activationHash === 'string' ? activation.activationHash : null,
+    }, repoRoot);
     activeName = active.name;
     const boundName = input.boundEnvelopeName ?? active.name;
     envelopeByName(boundName);

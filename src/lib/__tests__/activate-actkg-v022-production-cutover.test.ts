@@ -172,6 +172,8 @@ describe('v0.22 runtime release', () => {
       outputRoot,
       boundEnvelopeName: 'control-theory-engineering-v0.9',
       hostShadowRequired: false,
+      requireReleaseGates: false,
+      readGitStatus: () => '',
     });
     expect(result.status).toBe('READY');
     expect(result.blockers).toEqual([]);
@@ -194,9 +196,34 @@ describe('v0.22 runtime release', () => {
       repoRoot: REPO_ROOT,
       outputRoot,
       boundEnvelopeName: 'control-theory-engineering-v0.9',
+      requireReleaseGates: false,
     });
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('host-shadow-verification-incomplete');
     expect(result.blockers).not.toContain('qualification-not-ready');
+  });
+
+  it('fails closed on a dirty worktree or unattested release gates', () => {
+    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v022-runtime-dirty-'));
+    roots.push(outputRoot);
+    const dirty = publishActKgV022CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      boundEnvelopeName: 'control-theory-engineering-v0.9',
+      hostShadowRequired: false,
+      requireReleaseGates: false,
+      readGitStatus: () => ' M src/lib/actkg-envelope/composite-envelope-registry.ts',
+    });
+    expect(dirty.status).toBe('BLOCKED');
+    expect(dirty.blockers).toContain('working-tree-dirty');
+    const unattested = publishActKgV022CutoverRuntime({
+      repoRoot: REPO_ROOT,
+      outputRoot,
+      boundEnvelopeName: 'control-theory-engineering-v0.9',
+      hostShadowRequired: false,
+      readGitStatus: () => '',
+    });
+    expect(unattested.status).toBe('BLOCKED');
+    expect(unattested.blockers).toContain('release-gates-unattested');
   });
 });
