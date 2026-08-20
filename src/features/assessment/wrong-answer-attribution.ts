@@ -7,6 +7,10 @@ import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-co
 import { findMicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
 export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v2';
+const SUPPORTED_WRONG_ANSWER_ATTRIBUTION_VERSIONS = [
+  'wrong-answer-attribution.v1',
+  WRONG_ANSWER_ATTRIBUTION_VERSION,
+] as const;
 
 export type WrongAnswerAttributionState = 'ATTRIBUTED' | 'UNCERTAIN';
 export type WrongAnswerAttributionNextAction = 'NONE' | 'MANUAL_REVIEW' | 'REPEAT_PRACTICE';
@@ -62,6 +66,7 @@ export interface WrongAnswerAttributionDb {
     findFirst(input: any): Promise<WrongAnswerRow | null>;
   };
   wrongAnswerAttribution: {
+    findFirst(input: any): Promise<PersistedWrongAnswerAttribution | null>;
     upsert(input: any): Promise<PersistedWrongAnswerAttribution>;
   };
 }
@@ -388,6 +393,17 @@ export async function attributeWrongAnswerEvidence(input: {
     },
   });
   if (!answer) return null;
+
+  // Existing records are immutable answer-time evidence. In particular, do not
+  // reinterpret a v1 answer with the current option attribution catalog.
+  const existingAttribution = await input.db.wrongAnswerAttribution.findFirst({
+    where: {
+      answerId: answer.id,
+      attributionVersion: { in: [...SUPPORTED_WRONG_ANSWER_ATTRIBUTION_VERSIONS] },
+    },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  });
+  if (existingAttribution) return projectAttribution(existingAttribution);
 
   const evidence = parseGovernedEvidence(answer, input.authenticatedUserId);
   if (!evidence) return null;

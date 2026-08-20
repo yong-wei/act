@@ -213,13 +213,18 @@ function rehashReviewDecision(item: any) {
   };
 }
 
-function dbFor(row: ReturnType<typeof answer> | null, stored = persisted()) {
+function dbFor(
+  row: ReturnType<typeof answer> | null,
+  stored = persisted(),
+  existingAttribution: ReturnType<typeof persisted> | null = null,
+) {
   return {
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn().mockResolvedValue(row),
       findMany: vi.fn().mockResolvedValue(row ? [row] : []),
     },
     wrongAnswerAttribution: {
+      findFirst: vi.fn().mockResolvedValue(existingAttribution),
       upsert: vi.fn().mockResolvedValue(stored),
     },
   };
@@ -382,6 +387,52 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(serializedWriteAndResult).not.toContain(RAW_SELECTED_ANSWER);
     expect(serializedWriteAndResult).not.toContain(RAW_CORRECT_ANSWER);
     expect(serializedWriteAndResult).not.toContain('raw explanation');
+  });
+
+  it('returns an existing v1 attribution without writing a v2 record', async () => {
+    const row = answer();
+    const legacy = persisted({
+      attributionVersion: 'wrong-answer-attribution.v1',
+      itemContentHash: 'legacy-item-content-hash',
+      knowledgeNodeIds: ['legacy-knowledge-node'],
+      misconceptionTags: ['legacy-misconception'],
+      evidenceSummary: {
+        version: 'wrong-answer-evidence-summary.v1',
+        outcome: 'incorrect',
+        answeredAt: '2026-07-31T08:00:00.000Z',
+        knowledgeNodeCount: 1,
+        misconceptionCandidateCount: 1,
+      },
+      confidence: 0.5,
+      limitations: ['legacy-attribution-preserved'],
+      nextAction: 'MANUAL_REVIEW',
+    });
+    const db = dbFor(row, persisted(), legacy);
+
+    const result = await attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+      optionAttributions: optionAttributionsFor(row),
+    });
+
+    expect(db.wrongAnswerAttribution.findFirst).toHaveBeenCalledWith({
+      where: {
+        answerId: 'answer-1',
+        attributionVersion: { in: ['wrong-answer-attribution.v1', 'wrong-answer-attribution.v2'] },
+      },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+    expect(db.wrongAnswerAttribution.upsert).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      attributionVersion: 'wrong-answer-attribution.v1',
+      attribution: {
+        knowledgeNodeId: 'legacy-knowledge-node',
+        misconceptionTag: 'legacy-misconception',
+      },
+      limitations: ['legacy-attribution-preserved'],
+      nextAction: 'MANUAL_REVIEW',
+    });
   });
 
   it('fails closed when the selected option has no unique current attribution', async () => {
