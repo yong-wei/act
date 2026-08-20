@@ -268,8 +268,9 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
 def mount_fields(path: Path) -> tuple[str, str]:
     helper = os.environ.get("ACT_RUNTIME_DEV_FINDMNT")
     command = [helper or which("findmnt"), "-n", "-o", "FSTYPE,OPTIONS", str(path)]
-    output = run(command).strip()
-    if not output:
+    completed = subprocess.run(command, capture_output=True, text=True)
+    output = (completed.stdout or "").strip()
+    if completed.returncode != 0 or not output:
         return "", ""
     fields = output.split(None, 1)
     fstype = fields[0] if fields else ""
@@ -301,20 +302,30 @@ def bind_runtime(view: Path, runtime_root: Path) -> None:
     run([which("mount"), "-o", "remount,bind,ro", str(runtime_root)])
     if not Path(runtime_root, ".act-runtime-release.v2.json").is_file():
         fail("checkout runtime bind is missing the selected view identity")
+    if not is_readonly_mount(runtime_root):
+        fail("checkout runtime bind must be read-only")
 
 
 def unmount(path: Path) -> None:
-    if not path.exists():
+    fstype, _ = mount_fields(path)
+    if not fstype:
         return
-    helper = shutil.which("fusermount") or shutil.which("umount")
-    if not helper:
+    if "fuse" in fstype.lower():
+        fusermount = shutil.which("fusermount")
+        if fusermount:
+            subprocess.run([fusermount, "-u", str(path)], check=False, capture_output=True)
+    umount = shutil.which("umount")
+    if not umount:
         fail("unmount tool is missing")
-    subprocess.run([helper, str(path)] if "fusermount" not in helper else [helper, "-u", str(path)], check=False)
+    subprocess.run([umount, str(path)], check=False, capture_output=True)
+    remaining, _ = mount_fields(path)
+    if remaining:
+        fail("failed to unmount a checkout-owned mount")
 
 
 def write_selection_receipt(path: Path, payload: dict[str, Any]) -> None:
     require_exact_keys(payload, (
-        "schemaVersion", "releaseId", "manifestSha256", "treeSha256", "blobMount", "viewRoot", "runtimeRoot", "startedAt",
+        "schemaVersion", "releaseId", "manifestSha256", "treeSha256", "blobMount", "helperMount", "viewRoot", "runtimeRoot", "startedAt",
     ), "selection receipt")
     serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     if any(secret in serialized for secret in ("accessKey", "LTAI", "Secret")):
@@ -347,7 +358,7 @@ def acquire_lock(checkout: Path) -> int:
     return descriptor
 
 
-def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> None:
+def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
     materializer = Path(__file__).resolve().parent.parent / MATERIALIZER_NAME
     python = sys.executable
     run([python, str(materializer), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path), "--blob-root", str(blob_root), "--view-root", str(view_root)])
@@ -357,8 +368,11 @@ def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, v
     else:
         run([which("mount"), "--bind", str(blob_root), str(helper)])
         run([which("mount"), "-o", "remount,bind,ro", str(helper)])
+        if not is_readonly_mount(helper):
+            fail("helper blob bind must be read-only")
     run([python, str(materializer), "verify", "--release-id", release_id, "--view-root", str(view_root)])
     run([python, str(materializer), "select", "--release-id", release_id, "--view-root", str(view_root)])
+    return helper
 
 
 def start_services(checkout: Path) -> None:
@@ -399,7 +413,7 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
         view_root = state / "materialized"
         view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(view_root, 0o700)
-        materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
+        helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
         selected = view_root / "current"
         bind_runtime(selected, runtime_root)
         payload = {
@@ -408,6 +422,7 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             "manifestSha256": readiness["manifestSha256"],
             "treeSha256": readiness["treeSha256"],
             "blobMount": str(blob_root),
+            "helperMount": str(helper_mount),
             "viewRoot": str(selected),
             "runtimeRoot": str(runtime_root),
             "startedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -442,6 +457,9 @@ def stop(checkout: Path) -> None:
             if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
                 fail("shutdown refused to unmount an unknown runtime path")
             unmount(Path(receipt["runtimeRoot"]))
+            helper_mount = receipt.get("helperMount")
+            if helper_mount:
+                unmount(Path(helper_mount))
             unmount(Path(receipt["blobMount"]))
         else:
             sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")

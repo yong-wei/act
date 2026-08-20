@@ -16,9 +16,11 @@ DEV = ROOT / "scripts/runtime-release/developer-oss"
 sys.path.insert(0, str(DEV))
 
 from bootstrap import (  # noqa: E402
+    mount_fields,
     parse_readyz_identity,
     prepare,
     stop,
+    unmount,
     verify_release_documents,
     write_selection_receipt,
 )
@@ -230,6 +232,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 "manifestSha256": manifest["manifestSha256"],
                 "treeSha256": manifest["treeSha256"],
                 "blobMount": str(Path(raw) / "blobs"),
+                "helperMount": str(Path(raw) / "helper"),
                 "viewRoot": str(Path(raw) / "view"),
                 "runtimeRoot": str(checkout / "course-content" / "runtime"),
                 "startedAt": "2026-08-20T00:00:00Z",
@@ -259,7 +262,11 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.unmount") as unmounted:
                 stop(checkout)
                 stopped.assert_called_once()
-                self.assertEqual(unmounted.call_count, 2)
+                self.assertEqual(unmounted.call_count, 3)
+                self.assertEqual(
+                    [call.args[0] for call in unmounted.call_args_list],
+                    [Path(selection["runtimeRoot"]), Path(selection["helperMount"]), Path(selection["blobMount"])],
+                )
 
     def test_materialized_view_files_are_readable_and_readonly_dir_rejects_writes(self):
         root = Path(tempfile.mkdtemp())
@@ -286,6 +293,49 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         os.chmod(selected, 0o555)
         with self.assertRaises(OSError):
             (selected / "should-not-write.txt").write_text("nope")
+
+    def test_missing_mountpoint_does_not_block_restart(self):
+        with tempfile.TemporaryDirectory() as raw:
+            fake = Path(raw) / "findmnt"
+            fake.write_text("#!/bin/sh\nexit 1\n")
+            fake.chmod(0o755)
+            os.environ["ACT_RUNTIME_DEV_FINDMNT"] = str(fake)
+            self.assertEqual(mount_fields(Path(raw) / "not-mounted"), ("", ""))
+
+    def test_bind_unmount_uses_umount_not_fusermount(self):
+        with tempfile.TemporaryDirectory() as raw:
+            bin_dir = Path(raw) / "bin"
+            bin_dir.mkdir()
+            log = Path(raw) / "log.txt"
+            for name, script in (
+                ("findmnt", "#!/bin/sh\nif [ \"$4\" = fuse.ossfs2 ]; then echo fuse.ossfs2 rw; else echo ext4 ro; fi\n"),
+                ("fusermount", "#!/bin/sh\necho fusermount \"$@\" >> \"%s\"\nexit 1\n" % log),
+                ("umount", "#!/bin/sh\necho umount \"$@\" >> \"%s\"\n" % log),
+            ):
+                path = bin_dir / name
+                path.write_text(script.replace(log.name, str(log)))
+                path.chmod(0o755)
+            os.environ["PATH"] = "%s:%s" % (bin_dir, os.environ.get("PATH", ""))
+            os.environ.pop("ACT_RUNTIME_DEV_FINDMNT", None)
+            (bin_dir / "findmnt").write_text("#!/bin/sh\necho ext4 ro\n")
+            target = Path(raw) / "runtime"
+            target.mkdir()
+            calls = []
+
+            def fake_run(command, check=False, capture_output=True, text=False, env=None, cwd=None):
+                calls.append(command)
+                class Result:
+                    returncode = 0
+                    stdout = ""
+                    stderr = ""
+                return Result()
+
+            with mock.patch("bootstrap.mount_fields", side_effect=[("ext4", "ro"), ("", "")]):
+                with mock.patch("shutil.which", side_effect=lambda name: str(bin_dir / name) if (bin_dir / name).exists() else None):
+                    with mock.patch("subprocess.run", side_effect=fake_run):
+                        unmount(target)
+            self.assertTrue(any(command and command[0].endswith("umount") for command in calls))
+            self.assertFalse(any(command and "fusermount" in command[0] for command in calls if command))
 
     def test_interrupted_unknown_runtime_path_is_not_recursively_deleted(self):
         with tempfile.TemporaryDirectory() as raw:
