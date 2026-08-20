@@ -35,6 +35,7 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
+import { commercialRuntimeRevisionProofProblems } from '../../src/lib/commercial-ui-governance';
 import {
   assertRuntimeRelationStyleCoverage,
   getKnowledgeGraphEffectiveEdgeOpacity,
@@ -2991,6 +2992,16 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     currentSourceSha256,
     productQaSourcePaths,
   });
+  const runtimeRevisionProofProblems = commercialRuntimeRevisionProofProblems(evidence.runtimeRevisionProof);
+  const runtimeRevisionProofExpected = objectRecord(objectRecord(evidence.runtimeRevisionProof).expected);
+  const runtimeRevisionConsistencyProblems = [
+    captureCommitSha && runtimeRevisionProofExpected.commitSha !== captureCommitSha
+      ? 'runtimeRevisionProof.expected.commitSha=captureRevision.commitSha'
+      : '',
+    captureTreeSha && runtimeRevisionProofExpected.treeSha !== captureTreeSha
+      ? 'runtimeRevisionProof.expected.treeSha=captureRevision.treeSha'
+      : '',
+  ].filter(Boolean);
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
@@ -3178,6 +3189,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     || activeVisualProblems.length > 0
     || authenticatedRoleProblems.length > 0
     || captureRevisionProblems.length > 0
+    || runtimeRevisionProofProblems.length > 0
+    || runtimeRevisionConsistencyProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
     || handoffProblems.length > 0
@@ -3190,6 +3203,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       `activeVisual=${activeVisualProblems.join(',') || 'none'}`,
       `authenticatedRoles=${authenticatedRoleProblems.join(',') || 'none'}`,
       `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
+      `runtimeRevisionProof=${[
+        ...runtimeRevisionProofProblems,
+        ...runtimeRevisionConsistencyProblems,
+      ].join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
       `handoff=${handoffProblems.join(',') || 'none'}`,

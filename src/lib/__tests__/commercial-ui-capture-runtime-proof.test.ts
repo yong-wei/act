@@ -12,12 +12,20 @@ import {
   fetchRuntimeCaptureRevisionProof,
   parseRuntimeCaptureRevisionProof,
 } from '../commercial-ui-capture-revision';
+import { commercialRuntimeRevisionProofProblems } from '../commercial-ui-governance';
 
 const localProof = {
   commitSha: 'a'.repeat(40),
   treeSha: 'b'.repeat(40),
   sourceFingerprint: 'c'.repeat(64),
   clean: true,
+} as const;
+
+const manifestRuntimeProof = {
+  endpoint: 'http://localhost:3002/api/internal/local-qa/revision',
+  expected: localProof,
+  beforeCapture: localProof,
+  afterCapture: localProof,
 } as const;
 
 function git(repositoryRoot: string, args: string[]) {
@@ -36,6 +44,19 @@ describe('commercial UI runtime capture proof', () => {
     };
     expect(() => assertRuntimeCaptureRevisionProofMatches(localProof, runtimeProof, 'knowledge capture service'))
       .toThrow(/commitSha/u);
+  });
+
+  it('requires a complete, internally consistent runtime proof in governed artifacts', () => {
+    expect(commercialRuntimeRevisionProofProblems(manifestRuntimeProof)).toEqual([]);
+    expect(commercialRuntimeRevisionProofProblems(undefined)).toContain('runtimeRevisionProof:missing');
+    expect(commercialRuntimeRevisionProofProblems({
+      ...manifestRuntimeProof,
+      beforeCapture: { ...localProof, treeSha: 'd'.repeat(40) },
+    })).toContain('runtimeRevisionProof.beforeCapture.treeSha=expected');
+    expect(commercialRuntimeRevisionProofProblems({
+      ...manifestRuntimeProof,
+      extra: true,
+    })).toContain('runtimeRevisionProof:fields');
   });
 
   it('reads the same-origin probe before accepting a capture', async () => {

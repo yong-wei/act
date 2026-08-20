@@ -101,6 +101,7 @@ type CommandDeckRouteEvidence = {
   commandDeckGeometry: {
     change: 'unify-simulation-chrome-and-camera-views';
     generatedAt: string;
+    captureRevision?: Pick<EvidenceCaptureRevision, 'commitSha' | 'treeSha'>;
     sourceSha256: Record<string, string>;
     runtimeRevisionProof?: RuntimeRevisionProofEvidence;
     viewports: CommandDeckViewportEvidence[];
@@ -701,13 +702,21 @@ function updateCommercialEvidence(
   };
   const routesFromEvidence = manifest.routes ?? [];
   const fullMatrixVisualQa = buildSimulationFullMatrixVisualQa(routeEvidence, routesFromEvidence, generatedAt);
-  writeSimulationFullMatrixManifest(fullMatrixVisualQa, generatedAt, runtimeRevisionProof);
+  const governedFullMatrixVisualQa = {
+    ...fullMatrixVisualQa,
+    captureRevision: {
+      commitSha: runtimeRevisionProof.expected.commitSha,
+      treeSha: runtimeRevisionProof.expected.treeSha,
+    },
+    runtimeRevisionProof,
+  };
+  writeSimulationFullMatrixManifest(governedFullMatrixVisualQa, generatedAt, runtimeRevisionProof);
   const evidenceByHref = new Map(routeEvidence.map((entry) => [entry.href, entry.commandDeckGeometry]));
   manifest.routes = (manifest.routes ?? []).map((route) => {
     if (route.href === '/simulations') {
       return {
         ...route,
-        simulationFullMatrixVisualQa: fullMatrixVisualQa as Record<string, unknown>,
+        simulationFullMatrixVisualQa: governedFullMatrixVisualQa as Record<string, unknown>,
       };
     }
     if (!route.href || !evidenceByHref.has(route.href) || !route.simulationVisualQa) return route;
@@ -779,6 +788,10 @@ async function main() {
     afterCapture: finalServiceRuntimeProof,
   };
   for (const routeEvidenceEntry of routeEvidence) {
+    routeEvidenceEntry.commandDeckGeometry.captureRevision = {
+      commitSha: captureRevision.commitSha,
+      treeSha: captureRevision.treeSha,
+    };
     routeEvidenceEntry.commandDeckGeometry.runtimeRevisionProof = runtimeRevisionProof;
   }
   const manifest = {
