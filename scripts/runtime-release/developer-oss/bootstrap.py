@@ -498,17 +498,19 @@ def stop(checkout: Path) -> None:
     try:
         stop_services(checkout)
         state = checkout_state(checkout)
-        receipt = read_selection_receipt(state / "selection.json")
-        runtime_root = checkout / "course-content" / "runtime"
-        if receipt:
-            if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
-                fail("shutdown refused to unmount an unknown runtime path")
-            unmount(Path(receipt["runtimeRoot"]))
-            helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
-            unmount(Path(helper_mount))
-            unmount(Path(receipt["blobMount"]))
-        else:
-            sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
-        remove_ossfs_config(state)
+        try:
+            receipt = read_selection_receipt(state / "selection.json")
+            runtime_root = checkout / "course-content" / "runtime"
+            if receipt:
+                if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
+                    fail("shutdown refused to unmount an unknown runtime path")
+                unmount(Path(receipt["runtimeRoot"]))
+                helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
+                unmount(Path(helper_mount))
+                unmount(Path(receipt["blobMount"]))
+            else:
+                sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
+        finally:
+            remove_ossfs_config(state)
     finally:
         os.close(lock)

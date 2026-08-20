@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -327,9 +328,12 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
 
     def test_preflight_uses_path_limited_mount_helper(self):
         source = (DEV / "bootstrap.py").read_text(encoding="utf-8")
+        helper = (DEV / "privileged-mount.py").read_text(encoding="utf-8")
         self.assertIn("act-runtime-dev-mount", source)
         self.assertNotIn('privileged(["true"])', source)
         self.assertNotIn("NOPASSWD: /usr/bin/mount, /usr/bin/umount", source)
+        self.assertIn("/proc/self/fd/", helper)
+        self.assertIn("O_NOFOLLOW", helper)
 
     def test_privileged_mount_helper_rejects_arbitrary_paths(self):
         helper = DEV / "privileged-mount.py"
@@ -367,6 +371,30 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("allowlist", result.stderr)
+
+    def test_privileged_mount_helper_pins_inode_across_parent_swap(self):
+        spec = importlib.util.spec_from_file_location("privileged_mount", DEV / "privileged-mount.py")
+        helper = importlib.util.module_from_spec(spec)
+        assert spec is not None and spec.loader is not None
+        spec.loader.exec_module(helper)
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw) / "state" / "act-runtime-dev-read"
+            target = root / "blobs"
+            target.mkdir(parents=True)
+            fd = helper.pin_allowed_dir(str(target))
+            try:
+                self.assertEqual(helper.fd_path(fd).resolve(), target.resolve())
+                evil = Path(raw) / "etc"
+                evil.mkdir()
+                backup = Path(raw) / "backup"
+                root.rename(backup)
+                root.symlink_to(evil)
+                self.assertEqual(helper.fd_path(fd).resolve(), (backup / "blobs").resolve())
+                swapped = Path(os.path.realpath(str(target)))
+                self.assertNotEqual(swapped, (backup / "blobs").resolve())
+                self.assertFalse(helper.allowed_runtime_or_state(swapped))
+            finally:
+                os.close(fd)
 
     def test_missing_mountpoint_does_not_block_restart(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -440,6 +468,34 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 stop(checkout)
                 unmounted.assert_not_called()
             self.assertTrue((other / "keep.txt").exists())
+            self.assertFalse(leftover.exists())
+
+    def test_stop_removes_ossfs_conf_when_unmount_fails(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            runtime = checkout / "course-content" / "runtime"
+            runtime.mkdir(parents=True)
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            from common import checkout_state
+            state = checkout_state(checkout)
+            write_selection_receipt(state / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+                "blobMount": str(Path(raw) / "blobs"),
+                "helperMount": str(Path(raw) / "helper"),
+                "viewRoot": str(Path(raw) / "view"),
+                "runtimeRoot": str(runtime),
+                "startedAt": "2026-08-20T00:00:00Z",
+            })
+            leftover = state / "ossfs.conf"
+            leftover.write_text("secret-should-go")
+            os.chmod(leftover, 0o600)
+            with mock.patch("bootstrap.stop_services"), mock.patch("bootstrap.unmount", side_effect=DeveloperRuntimeError("busy")):
+                with self.assertRaises(DeveloperRuntimeError):
+                    stop(checkout)
             self.assertFalse(leftover.exists())
 
 

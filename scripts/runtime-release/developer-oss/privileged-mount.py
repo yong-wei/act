@@ -13,6 +13,7 @@ ALLOWED_STATE_MARKER = "/act-runtime-dev-read/"
 ALLOWED_RUNTIME_SUFFIX = "/course-content/runtime"
 MOUNT_BINARIES = ("/bin/mount", "/usr/bin/mount")
 UMOUNT_BINARIES = ("/bin/umount", "/usr/bin/umount")
+O_PATH = getattr(os, "O_PATH", 0)
 
 
 def fail(message: str) -> None:
@@ -33,18 +34,69 @@ def allowed_runtime_or_state(path: Path) -> bool:
     return posix.endswith(ALLOWED_RUNTIME_SUFFIX) or ALLOWED_STATE_MARKER in posix + "/"
 
 
-def normalize(raw: str) -> Path:
+def lexical_path(raw: str) -> Path:
     path = Path(raw)
     if path.is_absolute() is False:
         fail("path must be absolute")
-    parts = path.as_posix().split("/")
-    if ".." in parts:
+    if ".." in path.as_posix().split("/"):
         fail("path must not contain ..")
-    lexical = Path(os.path.abspath(path))
-    real = Path(os.path.realpath(path))
-    if not allowed_runtime_or_state(lexical) or not allowed_runtime_or_state(real):
+    return Path(os.path.abspath(path))
+
+
+def open_directory_nofollow(path: Path) -> int:
+    fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY | O_PATH)
+    try:
+        for part in path.as_posix().strip("/").split("/"):
+            if part in ("", ".", ".."):
+                fail("path must not contain ..")
+            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | O_PATH, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
+        return fd
+    except OSError:
+        os.close(fd)
         fail("path is outside the developer runtime allowlist")
-    return real
+        return -1
+
+
+def fd_path(fd: int) -> Path:
+    proc = "/proc/self/fd/%d" % fd
+    if os.path.isdir("/proc/self/fd"):
+        return Path(os.readlink(proc))
+    try:
+        import fcntl
+        getter = getattr(fcntl, "F_GETPATH", 50)
+        result = fcntl.fcntl(fd, getter, b"\0" * 1024)
+        text = result.split(b"\x00", 1)[0].decode("utf-8") if isinstance(result, bytes) else ""
+        if text:
+            return Path(text)
+    except OSError:
+        pass
+    fail("cannot resolve pinned directory")
+    return Path("/")
+
+
+def mount_fd_path(fd: int) -> str:
+    proc = "/proc/self/fd/%d" % fd
+    if os.path.isdir("/proc/self/fd"):
+        return proc
+    fail("Linux /proc is required to execute privileged mounts")
+    return proc
+
+
+def pin_allowed_dir(raw: str) -> int:
+    lexical = lexical_path(raw)
+    if not allowed_runtime_or_state(lexical):
+        fail("path is outside the developer runtime allowlist")
+    real = Path(os.path.realpath(lexical))
+    if not allowed_runtime_or_state(real):
+        fail("path is outside the developer runtime allowlist")
+    fd = open_directory_nofollow(real)
+    pinned = fd_path(fd)
+    if not allowed_runtime_or_state(pinned):
+        os.close(fd)
+        fail("path is outside the developer runtime allowlist")
+    return fd
 
 
 def run_mount(args: list[str]) -> None:
@@ -53,11 +105,17 @@ def run_mount(args: list[str]) -> None:
         fail("mount failed")
 
 
-def run_umount(path: Path) -> None:
+def run_umount(fd: int) -> None:
     umount = first_executable(UMOUNT_BINARIES, "umount")
-    completed = subprocess.run([umount, str(path)], check=False)
+    completed = subprocess.run([umount, mount_fd_path(fd)], check=False)
     if completed.returncode != 0:
         fail("umount failed")
+
+
+def close_fds(*fds: int) -> None:
+    for fd in fds:
+        if fd >= 0:
+            os.close(fd)
 
 
 def main() -> int:
@@ -73,14 +131,25 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "bind":
-        source = normalize(args.source)
-        destination = normalize(args.destination)
-        run_mount(["--bind", str(source), str(destination)])
+        source_fd = pin_allowed_dir(args.source)
+        destination_fd = -1
+        try:
+            destination_fd = pin_allowed_dir(args.destination)
+            run_mount(["--bind", mount_fd_path(source_fd), mount_fd_path(destination_fd)])
+        finally:
+            close_fds(source_fd, destination_fd)
     elif args.command == "remount-ro":
-        destination = normalize(args.destination)
-        run_mount(["-o", "remount,bind,ro", str(destination)])
+        destination_fd = pin_allowed_dir(args.destination)
+        try:
+            run_mount(["-o", "remount,bind,ro", mount_fd_path(destination_fd)])
+        finally:
+            close_fds(destination_fd)
     elif args.command == "umount":
-        run_umount(normalize(args.path))
+        path_fd = pin_allowed_dir(args.path)
+        try:
+            run_umount(path_fd)
+        finally:
+            close_fds(path_fd)
     return 0
 
 
