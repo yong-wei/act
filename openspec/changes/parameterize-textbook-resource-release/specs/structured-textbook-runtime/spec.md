@@ -31,13 +31,15 @@ The runtime asset exporter SHALL read book configurations from the same resource
 - **THEN** the exporter SHALL fail closed with a clear missing-configuration error
 
 ### Requirement: Remote provenance verification deploys the resource set contract
-The remote deployment workflow SHALL publish the provenance helper, its resource set helper dependency, and the resource set configuration as one release unit before remote provenance verification runs.
+The remote deployment workflow SHALL publish the provenance helper, its resource set helper dependency, and the resource set configuration as one release unit before remote provenance verification runs. Daily application deploy SHALL use `ossfs-blob-view` and bind an independently published runtime view; runtime content updates SHALL use the explicit runtime-release path. The workflow SHALL NOT restore default runtime rsync, and SHALL NOT treat v1 `ossfs-release` as the daily default.
 
 #### Scenario: A remote host lacks the previous helper or configuration
-- **WHEN** legacy-rsync or ossfs-release deployment reaches remote provenance verification
-- **THEN** the workflow SHALL upload `textbook-runtime-v2-provenance.mjs`, `textbook-resource-set.mjs`, and `textbook-resource-set.json`
-- **AND** it SHALL execute the provenance helper from the remote repository root
+- **WHEN** default `ossfs-blob-view` application deploy, or an explicit runtime-release deploy, reaches remote provenance verification
+- **THEN** the workflow SHALL upload `textbook-runtime-v2-provenance.mjs`, `textbook-resource-set.mjs`, and `textbook-resource-set.json` as one unit
+- **AND** it SHALL execute the provenance helper from the remote repository root when remote provenance verification runs
 - **AND** missing or inconsistent helper/configuration files SHALL fail the deployment before it is accepted
+- **AND** retired `legacy-rsync` SHALL fail closed
+- **AND** v1 `ossfs-release` SHALL remain a compatibility entry only
 
 ## MODIFIED Requirements
 
