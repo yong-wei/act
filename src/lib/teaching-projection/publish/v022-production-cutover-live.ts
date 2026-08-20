@@ -99,23 +99,11 @@ export function materializeV022CutoverTrees(input: {
     path.join(input.repoRoot, 'course-content/runtime/knowledge/prerequisites/releases', V022_PUBLICATION_ID),
   );
 
-  const catalogPaths = resolveAuthorityDomainCatalogPaths(input.repoRoot);
-  const sealedCatalog = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
-  mkdirSync(path.dirname(catalogPaths.runtimeCatalogPath), { recursive: true });
-  cpSync(sealedCatalog, catalogPaths.runtimeCatalogPath);
-  const catalog = readJson(catalogPaths.runtimeCatalogPath);
+  const sealedCatalogPath = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
+  const catalog = readJson(sealedCatalogPath);
   if (String(catalog.catalogId) !== V022_ENVELOPE.catalogId) {
     throw new Error(`sealed v0.22 catalog identity drifted: ${String(catalog.catalogId)}`);
   }
-  replacePointerFile(catalogPaths.runtimeCurrentPath, Buffer.from(`${JSON.stringify({
-    contract: 'act-authority-domain-display-catalog-current/v1',
-    catalogId: V022_ENVELOPE.catalogId,
-    catalogHash: V022_ENVELOPE.catalogHash,
-    snapshotId: V022_ENVELOPE.authoritySnapshotId,
-    snapshotHash: V022_ENVELOPE.authoritySnapshotHash,
-    releaseId: V022_ENVELOPE.authorityReleaseId,
-    activatedAt: '2026-08-20T00:00:00.000Z',
-  })}\n`));
 
   const authorityManifest = readJson(path.join(
     input.repoRoot,
@@ -273,6 +261,26 @@ export function materializeV022CutoverTrees(input: {
   };
 }
 
+export function applyLiveV022Catalog(root: string, candidateRoot = root): void {
+  const catalogPaths = resolveAuthorityDomainCatalogPaths(root);
+  const sealedCatalogPath = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
+  const catalog = readJson(sealedCatalogPath);
+  if (String(catalog.catalogId) !== V022_ENVELOPE.catalogId) {
+    throw new Error(`sealed v0.22 catalog identity drifted: ${String(catalog.catalogId)}`);
+  }
+  mkdirSync(path.dirname(catalogPaths.runtimeCatalogPath), { recursive: true });
+  cpSync(sealedCatalogPath, catalogPaths.runtimeCatalogPath);
+  replacePointerFile(catalogPaths.runtimeCurrentPath, Buffer.from(`${JSON.stringify({
+    contract: 'act-authority-domain-display-catalog-current/v1',
+    catalogId: V022_ENVELOPE.catalogId,
+    catalogHash: V022_ENVELOPE.catalogHash,
+    snapshotId: V022_ENVELOPE.authoritySnapshotId,
+    snapshotHash: V022_ENVELOPE.authoritySnapshotHash,
+    releaseId: V022_ENVELOPE.authorityReleaseId,
+    activatedAt: '2026-08-20T00:00:00.000Z',
+  })}\n`));
+}
+
 function readLive(root: string, component: V022CutoverComponent): PointerIdentity | null {
   const filePath = path.join(root, V022_CUTOVER_POINTER_PATHS[component]);
   if (!existsSync(filePath)) return null;
@@ -313,6 +321,7 @@ export function createV022LivePointerBackend(root: string): CutoverPointerBacken
           targetId,
         );
       } else if (component === 'authority-domain-shards') {
+        applyLiveV022Catalog(root);
         const shardPaths = resolveAuthorityDomainShardPaths(root);
         const pointerPath = path.join(root, V022_CUTOVER_POINTER_PATHS[component]);
         const manifest = readJson(path.join(shardSetDir(shardPaths, targetId), 'manifest.json'));

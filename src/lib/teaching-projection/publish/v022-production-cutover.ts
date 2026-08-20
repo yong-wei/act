@@ -217,6 +217,23 @@ export function expectedPredecessorHashes(
   };
 }
 
+export function evaluatePublicMembershipEvidence(input: {
+  expectedDomainCount: number;
+  expectedMembershipCount: number;
+  labels: readonly string[];
+  memberCounts: readonly number[];
+  membershipKeys: readonly string[];
+}): string[] {
+  const blockers: string[] = [];
+  if (input.labels.length !== input.expectedDomainCount) blockers.push('public-domain-count-mismatch');
+  if (input.memberCounts.length !== input.expectedDomainCount) blockers.push('public-domain-count-mismatch');
+  if (input.memberCounts.some((count) => count <= 2)) blockers.push('public-legacy-membership-residual');
+  const reportedTotal = input.memberCounts.reduce((sum, count) => sum + count, 0);
+  if (reportedTotal < input.expectedMembershipCount) blockers.push('public-membership-count-mismatch');
+  if (input.membershipKeys.length !== reportedTotal) blockers.push('public-membership-inconsistent');
+  return [...new Set(blockers)].sort();
+}
+
 export function reviewedMembershipFromQualification(qualification: Record<string, unknown>): {
   membershipCount: number;
   domainCount: number;

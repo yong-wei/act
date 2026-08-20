@@ -20,6 +20,7 @@ import {
   createPreparedJournal,
   executeV022ProductionCutover,
   exerciseV022RollbackPath,
+  evaluatePublicMembershipEvidence,
   preflightV022ProductionCutover,
   reviewedMembershipFromQualification,
   sealCutoverReceipt,
@@ -131,31 +132,50 @@ function verifyPublicV022(publicUrl: string, expected: { domainCount: number; me
   const domains = Array.isArray(root.domains) ? root.domains as Array<Record<string, unknown>> : [];
   const labels = domains.map((row) => String(row.displayName ?? '')).filter(Boolean);
   const memberCounts = domains.map((row) => Number(row.memberCount ?? 0));
-  const firstDomainId = String(domains[0]?.id ?? domains[0]?.domainId ?? 'system-modeling');
-  const teachingGet = httpGet(
-    publicUrl,
-    studentJar,
-    `/api/knowledge/shards/active/domains/${encodeURIComponent(firstDomainId)}`,
-    '/tmp/v022-cutover-teaching.json',
-  );
-  const teaching = asRecord(teachingGet.status === 200 ? JSON.parse(teachingGet.body) : {});
-  const teachingObjects = Array.isArray(teaching.objects) ? teaching.objects as Array<Record<string, unknown>> : [];
-  const leaks = assertNoLearnerVisibleSystemIdentifiers([
-    ...labels,
-    ...teachingObjects.map((row) => String(row.label ?? row.displayName ?? '')),
-  ]);
+  const membershipKeys: string[] = [];
+  const objectLabels: string[] = [];
+  let teachingStatus = 0;
+  let teachingObjectCount = 0;
+  for (const [index, domain] of domains.entries()) {
+    const domainId = String(domain.id ?? domain.domainId ?? '');
+    const teachingGet = httpGet(
+      publicUrl,
+      studentJar,
+      `/api/knowledge/shards/active/domains/${encodeURIComponent(domainId)}`,
+      `/tmp/v022-cutover-teaching-${index}.json`,
+    );
+    const teaching = asRecord(teachingGet.status === 200 ? JSON.parse(teachingGet.body) : {});
+    const teachingObjects = Array.isArray(teaching.objects) ? teaching.objects as Array<Record<string, unknown>> : [];
+    if (index === 0) {
+      teachingStatus = teachingGet.status;
+      teachingObjectCount = teachingObjects.length;
+    }
+    if (teachingGet.status !== 200) teachingStatus = teachingGet.status;
+    for (const object of teachingObjects) {
+      const objectId = String(object.id ?? object.canonicalId ?? object.objectId ?? '');
+      membershipKeys.push(`${domainId}:${objectId}`);
+      objectLabels.push(String(object.label ?? object.displayName ?? ''));
+    }
+  }
+  const leaks = assertNoLearnerVisibleSystemIdentifiers([...labels, ...objectLabels]);
   const blockers: string[] = [];
   if (shardsGet.status !== 200) blockers.push('public-shards-http');
-  if (labels.length !== expected.domainCount) blockers.push('public-domain-count-mismatch');
-  if (memberCounts.some((count) => count <= 2)) blockers.push('public-legacy-membership-residual');
-  if (teachingGet.status !== 200 || teachingObjects.length <= 2) blockers.push('public-teaching-http');
+  if (teachingStatus !== 200 || teachingObjectCount <= 2) blockers.push('public-teaching-http');
+  blockers.push(...evaluatePublicMembershipEvidence({
+    expectedDomainCount: expected.domainCount,
+    expectedMembershipCount: expected.membershipCount,
+    labels,
+    memberCounts,
+    membershipKeys,
+  }));
   if (leaks.length > 0) blockers.push('learner-visible-system-identifier');
   return {
     labels,
     domainCount: labels.length,
     memberCounts,
-    teachingStatus: teachingGet.status,
-    teachingObjectCount: teachingObjects.length,
+    membershipKeyCount: membershipKeys.length,
+    teachingStatus,
+    teachingObjectCount,
     leaks,
     blockers,
   };
@@ -318,16 +338,10 @@ function run(): void {
       }),
     ) as Record<V022CutoverComponent, PointerIdentity>;
     process.stderr.write('materialize: start\n');
-    let materialized: ReturnType<typeof materializeV022CutoverTrees>;
-    try {
-      materialized = materializeV022CutoverTrees({
-        repoRoot: root,
-        candidateRoot: option(process.argv, '--candidate-root') ?? root,
-      });
-    } catch (error) {
-      if (existsSync(path.join(predecessorDir, 'catalog-current.json'))) restoreCatalog(root, predecessorDir);
-      throw error;
-    }
+    const materialized = materializeV022CutoverTrees({
+      repoRoot: root,
+      candidateRoot: option(process.argv, '--candidate-root') ?? root,
+    });
     process.stderr.write(`materialize: shardSet=${materialized.shardSetId}\n`);
     const persist = persistTo(journalPath);
     let journal = createPreparedJournal({
@@ -349,7 +363,6 @@ function run(): void {
       });
     } catch (error) {
       process.stderr.write(`activate failed: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
-      if (existsSync(path.join(predecessorDir, 'catalog-current.json'))) restoreCatalog(root, predecessorDir);
       const persisted = JSON.parse(readFileSync(journalPath, 'utf8')) as CutoverJournal;
       journal = persisted.status === 'BLOCKED_RECOVERY' || persisted.status === 'ROLLED_BACK'
         ? persisted
@@ -359,6 +372,7 @@ function run(): void {
           persistJournal: persist,
           predecessors,
         });
+      if (existsSync(path.join(predecessorDir, 'catalog-current.json'))) restoreCatalog(root, predecessorDir);
       writeReceipt(outDir, sealCutoverReceipt({
         journal,
         blockers: [error instanceof Error ? error.message : String(error)],
@@ -375,8 +389,8 @@ function run(): void {
       blockers.push(error instanceof Error ? error.message : String(error));
     }
     if (blockers.length > 0) {
-      if (existsSync(path.join(predecessorDir, 'catalog-current.json'))) restoreCatalog(root, predecessorDir);
       journal = compensateV022ProductionCutover({ backend: live, journal, persistJournal: persist, predecessors });
+      if (existsSync(path.join(predecessorDir, 'catalog-current.json'))) restoreCatalog(root, predecessorDir);
     }
     const receipt = sealCutoverReceipt({ journal, observations, blockers });
     writeReceipt(outDir, receipt);
