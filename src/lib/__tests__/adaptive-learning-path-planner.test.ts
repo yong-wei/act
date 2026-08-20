@@ -20,6 +20,7 @@ import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/p
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import { createEmptyCompetencyVector } from '../data-governance/competency-model';
+import type { PortraitV2DimensionId } from '../data-governance/kaq-objective-taxonomy';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
@@ -680,7 +681,7 @@ describe('policy bundle core diversity fixture', () => {
 
 function createPlannerPortrait(
   now: Date,
-  overrides: Partial<Record<(typeof PORTRAIT_V2_DIMENSION_IDS)[number], {
+  overrides: Partial<Record<PortraitV2DimensionId, {
     score?: number;
     confidence?: number;
     totalCount?: number;
@@ -722,7 +723,37 @@ function createPlannerPortrait(
   }), 'planner', { now });
 }
 
+function createEmptyPlannerPortrait(now: Date) {
+  return projectPortraitV2ForConsumer(createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt: now.toISOString(),
+    now,
+    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+      id,
+      score: 0,
+      confidence: 0,
+      trend: 'stable' as const,
+      freshness: {
+        state: 'missing' as const,
+        asOf: null,
+        evidenceAgeDays: null,
+      },
+      evidenceSummary: {
+        totalCount: 0,
+        sourceFamilyCounts: {},
+      },
+      lastPositiveEvidenceAt: null,
+      lastNegativeEvidenceAt: null,
+      rationale: 'No safe legacy mapping exists.',
+      limitations: ['missing-native-portrait-v2-evidence'],
+      sourceLineage: [],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  }), 'planner', { now });
+}
+
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
+  const now = new Date('2026-05-27T08:00:00.000Z');
   const registry = buildResourceNodeRegistry({
     registeredResources: [
       {
@@ -816,6 +847,53 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     };
   }
 
+  const primaryPortrait = createPlannerPortrait(now, {
+    engineeringConstraintSafety: { score: 60 },
+    transferIntegratedApplication: { score: 60 },
+    controllerDesignSynthesis: { score: 35 },
+    simulationValidationEvidence: { score: 35 },
+  });
+
+  const trustedLearnerState: NonNullable<AdaptiveLearningPathPlannerInput['learnerState']> = {
+    primaryPortraitState: 'SNAPSHOT',
+    primaryPortraitAvailability: 'available',
+    primaryPortrait,
+    knowledgeMastery: {
+      tags: {
+        'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
+        'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
+      },
+    },
+    primaryCompetencies: {
+      vector: {
+        parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 5 },
+        engineeringDecision: { score: 0.62, confidence: 0.6, evidenceCount: 4 },
+      },
+    },
+    resourcePreference: {
+      preferredModalities: ['simulation', 'video'],
+    },
+    evidence: {
+      confidence: {
+        level: 'medium',
+        score: 0.72,
+        evidenceCount: 8,
+        sourceCompleteness: 0.7,
+      },
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'partial',
+      },
+    },
+    risks: {
+      riskLevel: 'medium',
+      activeFlags: [
+        { type: 'participation', severity: 'medium' },
+      ],
+    },
+  };
+
   return {
     studentId: 'student-1',
     goal: {
@@ -823,42 +901,6 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
       title: '补齐伯德图与横摇控制',
       knowledgeTargets: ['kn-bode', 'kn-cruise'],
       competencyTargets: ['parameterDesign'],
-    },
-    learnerState: {
-      knowledgeMastery: {
-        tags: {
-          'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
-          'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
-        },
-      },
-      primaryCompetencies: {
-        vector: {
-          parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 5 },
-          engineeringDecision: { score: 0.62, confidence: 0.6, evidenceCount: 4 },
-        },
-      },
-      resourcePreference: {
-        preferredModalities: ['simulation', 'video'],
-      },
-      evidence: {
-        confidence: {
-          level: 'medium',
-          score: 0.72,
-          evidenceCount: 8,
-          sourceCompleteness: 0.7,
-        },
-        sourceCoverage: {
-          LearningFact: 'available',
-          StudentCompetencySnapshot: 'available',
-          StudentProfileSummary: 'partial',
-        },
-      },
-      risks: {
-        riskLevel: 'medium',
-        activeFlags: [
-          { type: 'participation', severity: 'medium' },
-        ],
-      },
     },
     registry,
     constraints: {
@@ -868,8 +910,23 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
       timelineWindowDays: 7,
       completedNodeIds: ['registry:bode-card'],
     },
-    now: new Date('2026-05-27T08:00:00.000Z'),
+    now,
     ...overrides,
+    learnerState: mergeLearnerState(trustedLearnerState, overrides.learnerState),
+  };
+}
+
+function mergeLearnerState(
+  trusted: NonNullable<AdaptiveLearningPathPlannerInput['learnerState']>,
+  override: AdaptiveLearningPathPlannerInput['learnerState'] | undefined,
+): AdaptiveLearningPathPlannerInput['learnerState'] {
+  if (override === undefined) return trusted;
+  if (override === null) return null;
+  return {
+    ...override,
+    primaryPortraitState: override.primaryPortraitState ?? trusted.primaryPortraitState,
+    primaryPortraitAvailability: override.primaryPortraitAvailability ?? trusted.primaryPortraitAvailability,
+    primaryPortrait: override.primaryPortrait ?? trusted.primaryPortrait,
   };
 }
 
@@ -3966,6 +4023,10 @@ describe('adaptive learning path planner', () => {
         competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
       },
       learnerState: {
+        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
+          transferIntegratedApplication: { score: 28, totalCount: 3 },
+          engineeringConstraintSafety: { score: 42, totalCount: 3 },
+        }),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
@@ -4572,6 +4633,12 @@ describe('adaptive learning path planner', () => {
             'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
           },
         },
+        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
+          controlModelingRepresentation: { score: 60, totalCount: 3 },
+          systemAnalysisInterpretation: { score: 60, totalCount: 3 },
+          controllerDesignSynthesis: { score: 60, totalCount: 3 },
+          engineeringConstraintSafety: { score: 60, totalCount: 3 },
+        }),
         primaryCompetencies: {
           vector: {
             controlModeling: { score: 0.6, confidence: 0.7, evidenceCount: 4 },
@@ -5708,7 +5775,7 @@ describe('adaptive learning path planner', () => {
     }));
   });
 
-  it('falls back to the compatibility vector when the portrait dimension has no usable evidence', () => {
+  it('fails closed when portrait v2 has no authoritative evidence', () => {
     const portraitNow = new Date('2026-05-27T08:00:00.000Z');
     const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
       userId: 'student-1',
@@ -5774,14 +5841,9 @@ describe('adaptive learning path planner', () => {
     }));
     const node = plan.mainPath.find((item) => item.nodeId === 'simulation:compatibility-readiness-fallback');
 
-    expect(node?.readiness).toMatchObject({
-      state: 'ready',
-      missingCompetencies: [],
-    });
-    expect(plan.visualization.evidence.learnerStateDeficits).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ targetId: 'parameterDesign' }),
-    ]));
-    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
+    expect(node).toBeUndefined();
+    expect(plan.explanations.fallbackReasons).toContain('trusted-portrait-unavailable');
+    expect(plan.visualization.evidence.capabilityEvidence).not.toEqual(expect.arrayContaining([
       expect.objectContaining({
         target: expect.objectContaining({ id: 'compatibility-readiness-capability' }),
         observedEvidence: expect.objectContaining({
@@ -8123,6 +8185,7 @@ describe('adaptive learning path planner', () => {
       },
       learnerState: {
         ...plannerInput().learnerState!,
+        primaryPortrait: createEmptyPlannerPortrait(new Date('2026-05-27T08:00:00.000Z')),
         evidence: {
           confidence: { evidenceCount: 0 },
         },
