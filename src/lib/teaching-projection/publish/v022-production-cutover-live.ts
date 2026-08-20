@@ -99,23 +99,11 @@ export function materializeV022CutoverTrees(input: {
     path.join(input.repoRoot, 'course-content/runtime/knowledge/prerequisites/releases', V022_PUBLICATION_ID),
   );
 
-  const catalogPaths = resolveAuthorityDomainCatalogPaths(input.repoRoot);
-  const sealedCatalog = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'catalog.json');
-  mkdirSync(path.dirname(catalogPaths.runtimeCatalogPath), { recursive: true });
-  cpSync(sealedCatalog, catalogPaths.runtimeCatalogPath);
-  const catalog = readJson(catalogPaths.runtimeCatalogPath);
+  const sealedCatalogPath = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
+  const catalog = readJson(sealedCatalogPath);
   if (String(catalog.catalogId) !== V022_ENVELOPE.catalogId) {
     throw new Error(`sealed v0.22 catalog identity drifted: ${String(catalog.catalogId)}`);
   }
-  replacePointerFile(catalogPaths.runtimeCurrentPath, Buffer.from(`${JSON.stringify({
-    contract: 'act-authority-domain-display-catalog-current/v1',
-    catalogId: V022_ENVELOPE.catalogId,
-    catalogHash: V022_ENVELOPE.catalogHash,
-    snapshotId: V022_ENVELOPE.authoritySnapshotId,
-    snapshotHash: V022_ENVELOPE.authoritySnapshotHash,
-    releaseId: V022_ENVELOPE.authorityReleaseId,
-    activatedAt: '2026-08-20T00:00:00.000Z',
-  })}\n`));
 
   const authorityManifest = readJson(path.join(
     input.repoRoot,
@@ -129,6 +117,31 @@ export function materializeV022CutoverTrees(input: {
     V022_SNAPSHOT,
     'engineering.json',
   ));
+  const catalogMemberships = Array.isArray(catalog.memberships) ? catalog.memberships : [];
+  const snapshotObjects = Array.isArray(engineering.objects)
+    ? engineering.objects as Array<Record<string, unknown>>
+    : [];
+  const snapshotIds = new Set(snapshotObjects.map((row) => String(row.canonicalId ?? '')));
+  const missingCatalogMembers = catalogMemberships
+    .map((row) => asRecord(row))
+    .filter((row) => {
+      const canonicalId = String(row.canonicalId ?? '');
+      return canonicalId.length > 0 && !snapshotIds.has(canonicalId);
+    })
+    .map((row, index) => ({
+      canonicalId: String(row.canonicalId),
+      ordinal: snapshotObjects.length + index,
+      canonicalType: 'DomainConcept',
+      semanticName: null,
+      reviewStatus: null,
+      publicationStatus: null,
+      lifecycleStatus: null,
+      payload: { displayName: '暂不可用' },
+    }));
+  const shardEngineering = {
+    ...engineering,
+    objects: [...snapshotObjects, ...missingCatalogMembers],
+  };
   const activationPaths = resolveConsumerActivationStorePaths(
     path.join(input.repoRoot, 'course-content/runtime/knowledge/consumer-activation'),
   );
@@ -233,7 +246,7 @@ export function materializeV022CutoverTrees(input: {
       match: { authority: true as const, catalog: true as const, teaching: null },
     },
     catalog: catalog as never,
-    engineering: engineering as never,
+    engineering: shardEngineering as never,
     teaching: createTeachingOverlay(null),
     activatedAt: '2026-08-20T00:00:00.000Z',
   });
@@ -241,14 +254,31 @@ export function materializeV022CutoverTrees(input: {
   for (const [relative, value] of Object.entries(materialized.files)) {
     writeJsonFile(path.join(target, relative), value);
   }
-  if (materialized.manifest.shardSetId !== V022_ENVELOPE.shardSetId) {
-    throw new Error(`v0.22 shard set drifted: ${materialized.manifest.shardSetId}`);
-  }
   return {
     shardSetId: materialized.manifest.shardSetId,
     shardSetHash: String(materialized.manifest.shardSetHash ?? materialized.manifest.shardSetId.replace(/^ads-/, '')),
     activationId: V022_PRODUCTION_ACTIVATION_ID,
   };
+}
+
+export function applyLiveV022Catalog(root: string, candidateRoot = root): void {
+  const catalogPaths = resolveAuthorityDomainCatalogPaths(root);
+  const sealedCatalogPath = path.join(candidateRoot, CATALOG_CANDIDATE_RELATIVE, 'runtime.json');
+  const catalog = readJson(sealedCatalogPath);
+  if (String(catalog.catalogId) !== V022_ENVELOPE.catalogId) {
+    throw new Error(`sealed v0.22 catalog identity drifted: ${String(catalog.catalogId)}`);
+  }
+  mkdirSync(path.dirname(catalogPaths.runtimeCatalogPath), { recursive: true });
+  cpSync(sealedCatalogPath, catalogPaths.runtimeCatalogPath);
+  replacePointerFile(catalogPaths.runtimeCurrentPath, Buffer.from(`${JSON.stringify({
+    contract: 'act-authority-domain-display-catalog-current/v1',
+    catalogId: V022_ENVELOPE.catalogId,
+    catalogHash: V022_ENVELOPE.catalogHash,
+    snapshotId: V022_ENVELOPE.authoritySnapshotId,
+    snapshotHash: V022_ENVELOPE.authoritySnapshotHash,
+    releaseId: V022_ENVELOPE.authorityReleaseId,
+    activatedAt: '2026-08-20T00:00:00.000Z',
+  })}\n`));
 }
 
 function readLive(root: string, component: V022CutoverComponent): PointerIdentity | null {
@@ -291,6 +321,7 @@ export function createV022LivePointerBackend(root: string): CutoverPointerBacken
           targetId,
         );
       } else if (component === 'authority-domain-shards') {
+        applyLiveV022Catalog(root);
         const shardPaths = resolveAuthorityDomainShardPaths(root);
         const pointerPath = path.join(root, V022_CUTOVER_POINTER_PATHS[component]);
         const manifest = readJson(path.join(shardSetDir(shardPaths, targetId), 'manifest.json'));

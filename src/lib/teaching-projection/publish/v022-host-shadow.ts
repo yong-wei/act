@@ -119,8 +119,8 @@ export function evaluateV022HostShadow(observation: V022HostShadowObservation): 
   }
   if (observation.projectionId !== envelope.projectionId) blockers.push('host-projection-envelope-drift');
   if (observation.prerequisitePublicationId !== envelope.publicationId) blockers.push('host-prerequisite-envelope-drift');
-  if (observation.shardSetId && observation.shardSetId !== envelope.shardSetId) blockers.push('host-shard-envelope-drift');
-  if (observation.catalogId && observation.catalogId !== envelope.catalogId) blockers.push('host-catalog-envelope-drift');
+  if (!observation.shardSetId || observation.shardSetId !== envelope.shardSetId) blockers.push('host-shard-envelope-drift');
+  if (!observation.catalogId || observation.catalogId !== envelope.catalogId) blockers.push('host-catalog-envelope-drift');
   if (observation.activationId !== envelope.activationId) blockers.push('host-activation-envelope-drift');
   if (observation.workerHealth && observation.workerHealth !== 'healthy') blockers.push('host-worker-unhealthy');
   if (observation.readyz && (observation.readyz.app !== true || observation.readyz.db !== true || observation.readyz.redis !== true)) {

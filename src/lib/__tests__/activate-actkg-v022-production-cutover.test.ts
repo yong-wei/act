@@ -9,6 +9,7 @@ import { createV022MapPointerBackend } from '../teaching-projection/publish/v022
 import {
   assertNoLearnerVisibleSystemIdentifiers,
   createPreparedJournal,
+  evaluatePublicMembershipEvidence,
   executeV022ProductionCutover,
   exerciseV022RollbackPath,
   pointerIdentityFromBytes,
@@ -136,6 +137,27 @@ describe('v0.22 production cutover protocol', () => {
     const membership = reviewedMembershipFromQualification(qualification);
     expect(membership.domainCount).toBeGreaterThan(1);
     expect(membership.membershipCount).toBeGreaterThan(membership.domainCount);
+    expect(evaluatePublicMembershipEvidence({
+      expectedDomainCount: membership.domainCount,
+      expectedMembershipCount: membership.membershipCount,
+      labels: Array.from({ length: membership.domainCount }, (_, index) => `domain-${index}`),
+      memberCounts: Array.from({ length: membership.domainCount }, () => 3),
+      membershipKeys: Array.from({ length: membership.domainCount * 3 }, (_, index) => `d:${index}`),
+    })).toContain('public-membership-count-mismatch');
+    expect(evaluatePublicMembershipEvidence({
+      expectedDomainCount: 2,
+      expectedMembershipCount: 5,
+      labels: ['系统建模', '根轨迹'],
+      memberCounts: [3, 2],
+      membershipKeys: ['a:1', 'a:2', 'a:3', 'b:1', 'b:2'],
+    })).toEqual(['public-legacy-membership-residual']);
+    expect(evaluatePublicMembershipEvidence({
+      expectedDomainCount: 2,
+      expectedMembershipCount: 5,
+      labels: ['系统建模', '根轨迹'],
+      memberCounts: [3, 3],
+      membershipKeys: ['a:1', 'a:2', 'a:3', 'b:1', 'b:2', 'b:3'],
+    })).toEqual([]);
   });
 
   it('restores all five selectors when one apply fails', () => {

@@ -4,6 +4,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import {
+  resolveAuthorityDomainCatalogPaths,
   type AuthorityDomainCatalogRuntime,
 } from '@/lib/authority-domain-catalog';
 import type {
@@ -552,11 +553,13 @@ export function runLiveNamedConsumerShadowReads(repoRoot: string): {
       authorityPaths,
       activationPaths,
     });
+    const catalogPaths = resolveAuthorityDomainCatalogPaths(repoRoot);
+    const catalog = readJson(catalogPaths.runtimeCatalogPath) as unknown as AuthorityDomainCatalogRuntime;
     const results = runNamedConsumerShadowReads({
       authorityManifest,
       engineering,
       loadedProjection,
-      catalog: null,
+      catalog,
       shardContext,
       shardPaths,
       authorityPaths,
