@@ -4614,7 +4614,7 @@
       },
       "simulationFullMatrixVisualQa": {
         "change": "govern-simulation-full-matrix-visual-qa",
-        "generatedAt": "2026-08-18T07:54:08.383Z",
+        "generatedAt": "2026-08-20T05:19:13.205Z",
         "activeRouteSource": "SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene",
         "routeCount": 7,
         "requiredThemes": [
@@ -4637,7 +4637,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
-            "screenshotSha256": "ae803499b5c48040c1c84f093271d95bd5c290035053a1d50e88468dea1d342b",
+            "screenshotSha256": "526f4db3b545bcd6337f41bb713b97c62ac94448f6bce5b41f0759574c102001",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4666,7 +4666,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
-            "screenshotSha256": "6d42ca90a978e3c892437f97c8ee4da4ed849824412da9543f255ebe1ef31d0d",
+            "screenshotSha256": "0e56901c966d6c9856db9a14025903e493ce492d0aa74c7e727b586e0fb510f0",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4695,7 +4695,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
-            "screenshotSha256": "9a45bcac507142bc46422d1d4bc29390457684b8191b8a017c7456fd45612e06",
+            "screenshotSha256": "acb904fd65b4fb489889768adb8103b7c28a1ba6ec7f13af981408495f20ac3a",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4724,7 +4724,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
-            "screenshotSha256": "d5f14308301cda9b3aeb0e6941d721d5376e1932e6625a4929ea9b8e3b21fe92",
+            "screenshotSha256": "debcce31971ce594f8d7a7b0dc662838dd6bfbc9675e28762685431e53ecd3f9",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4753,7 +4753,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
-            "screenshotSha256": "27cd3056c45fc84c1d28b107f1ba0e6c06bc45e2cb3d3a69d759a24ae4afa0b0",
+            "screenshotSha256": "95a247406b485791c49b1c86c3014bcf730c39344ebad8515d292e792f9b4202",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4782,7 +4782,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
-            "screenshotSha256": "132829e8d0b73a4894e0052afefd18845e8a438cc5fbbdb45374ce882e8eff08",
+            "screenshotSha256": "e1d4a12e88d0745b623e33f1820147861fb76bac755df77de84a421b5a252355",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4811,7 +4811,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
-            "screenshotSha256": "57667c709a184f063a753793256bed21b82b2c42d5f501bb1304f9d7942d6a85",
+            "screenshotSha256": "7e9b24640be9faba35b90df793e5eba80b6a728d50e22989302df5da5d831a73",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4840,7 +4840,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
-            "screenshotSha256": "99a5c47ff405cc87e9abacdd3dd7e154499cfddd9b791cbbf3665a4883e1f386",
+            "screenshotSha256": "9afedc08d4c96087cb726da13c2708ffd4017fac4156c4f7ab23c957d15acc63",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4869,7 +4869,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
-            "screenshotSha256": "78a9f588c3830fd7572cab306e9b0a6f60a3e5a2e03c5ee488180cf0029d997f",
+            "screenshotSha256": "ec1cdb51dbe604a181bbf0848f3cbec7c53f3991fe8bf4c2bb9341154dbd3afa",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4898,7 +4898,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
-            "screenshotSha256": "5c8bffc42b09b6906cf4fef03b00125ce9ce5339b1d0a66f40fd993a9e35357b",
+            "screenshotSha256": "fc4e376f0f7472007342213f1ebcc68b2a45148fdb44718e8c62a00b02c01a67",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4927,7 +4927,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
-            "screenshotSha256": "91e600560d3afa8c17d296000a0eb6394cb80f52a4f9ae8f4bc46265854d1bef",
+            "screenshotSha256": "f0d9b6425a99a3e0aec406279cda9b616645a66764e11ea2ca5b6586a4563700",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4956,7 +4956,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
-            "screenshotSha256": "6ac0fc005197712d4326e9adf1da042dda578da276be4673b9ab66b4e6324e02",
+            "screenshotSha256": "cd6dd8cc7fbd6119eb7d94814ce98928571e0e2d6df9a5c671c2d2e79d392d44",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -4985,7 +4985,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
-            "screenshotSha256": "0b1b22f065a9c981d0719842c55850ff4fd9528f368208aa79093432fa5d3627",
+            "screenshotSha256": "003cf758fc24a2551e3f8621a6c5b4f9c2a5d39977430e330ec582753388d902",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5014,7 +5014,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
-            "screenshotSha256": "29ba6b7adccc443aef655a7cefffb2ba62b07f9a842e3d6ed935dd238c79c384",
+            "screenshotSha256": "0cd5e56e8094e44aabf728288bf9f6a3652f111df61ee7c81bca06e7be08c217",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5043,7 +5043,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
-            "screenshotSha256": "cb8ab0f3f0cbcc78644dbf97674390541ac7c5a1cca4375bfff2ce57b19d1b84",
+            "screenshotSha256": "e3197baf260ce30123931d86b05dee3925de1304adeeddc54b08edb10d72122e",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5072,7 +5072,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
-            "screenshotSha256": "5dde045cd39538473d032db4eb986dee81731e3407195242d27c6205d06e85e1",
+            "screenshotSha256": "8624546bdab0e18c57791690137528fdc49d477711a96921d76e5b7905e70d93",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5101,7 +5101,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
-            "screenshotSha256": "7d173878bcf4b6f22c86a257e428108bc47b33a431c2d770315c47d107749b06",
+            "screenshotSha256": "f3aa5709afad991872626fe695cc5f8a12d702fb1c4c840f0677a721b57eac99",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5130,7 +5130,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
-            "screenshotSha256": "99d0733f3cc58776498d3ed33fbcaa92e762179bbf2e6494d9e520fdedd962d9",
+            "screenshotSha256": "689b191af71bbc4323ae947ae46478e622221d840170b9bc5af2f66809492d97",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5159,7 +5159,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
-            "screenshotSha256": "ad1900bddb244a4c72e11cdc2908f7a98983f74c7c0cb92f87754c4f40d1af58",
+            "screenshotSha256": "fb49ae852a811916a29baea80d2f437f84a178b9cc8b00ba8d20aeea6f3d0497",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5188,7 +5188,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
-            "screenshotSha256": "3c08b12fb026296747b302841d9c440e1e5a5492267515b8b21b1cdd034b9c18",
+            "screenshotSha256": "1a8703b5b2e84fbb3dab3baf6f9ca373caeb71ced3970a1fc5dbff09f856c128",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5217,7 +5217,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
-            "screenshotSha256": "bf1e60576fb6710eb575071505f9ae1add6531e8a525d09c4c4de499cc6440a1",
+            "screenshotSha256": "1df7caddbd1752536b8f36257e760c4847351de0da283a6a2489467c51da2835",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5246,7 +5246,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
-            "screenshotSha256": "b2c99152cd93654923fecf86d824fefbb3830d485b1eb2697c81a510761fc282",
+            "screenshotSha256": "85e89e5e311785f00291db4bf363dd4b3c224126a4851523af004f05e51e52c9",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5275,7 +5275,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
-            "screenshotSha256": "07532dcc011e78604b75d40324244309fc5d5fc25424800c7e5d92f224f600a8",
+            "screenshotSha256": "009013d11cd92c37e5549065417d252307c66e3812c2506dd75e708e00fbf8dc",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5304,7 +5304,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
-            "screenshotSha256": "8b7ca3df9316c3a05eb4c6afe652614d422868e817202ef5823a03ae678f507c",
+            "screenshotSha256": "f64eece06072ecbc6f2f1d8bf19dd762d724b3960d1f4988fbcdf1f36a80f312",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5333,7 +5333,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
-            "screenshotSha256": "4e6c91b0b3597319c66ccb62026dc65de2625f4e1f142f01b835f2ead9a24ff3",
+            "screenshotSha256": "98e76c09cfa54e2aaceddb601af0c205ea3177a3ffd3160716a0f3355e7ab446",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5362,7 +5362,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
-            "screenshotSha256": "1e58a4bfc36ce0a23d5dcbebab7941822b444f85ec707995eddb1b06a2c93c49",
+            "screenshotSha256": "ac95fd825278c3cc8c55e5371101cfdeef8d91a453a8d4d69fa836f900d91760",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5391,7 +5391,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
-            "screenshotSha256": "9bfde17f82c96f7a3dfbc2709955487ad31c29b22ffbdbe085050c47fb16c95c",
+            "screenshotSha256": "dc7b9957db58500ac9bde9f9529756a7cfa2b4d6598774a9edf30172515612b4",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5420,7 +5420,7 @@
             "role": "student",
             "authState": "public",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png",
-            "screenshotSha256": "59ac9691bd551ac67ebd1068e9437c4f246437a89ae8b789070626279144946d",
+            "screenshotSha256": "41eab7a5f6abe97c96624e2df09fd5cc99b07b3766fd2393b0d7f4f4567c8fbf",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "runtimeErrors": [],
@@ -5452,7 +5452,7 @@
         "independentReview": {
           "status": "passed",
           "reviewer": "ui-flow-reviewer",
-          "reviewedAt": "2026-08-18T07:54:08.383Z",
+          "reviewedAt": "2026-08-20T05:19:13.205Z",
           "report": "artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md",
           "reportSha256": "45d66e09197ad72831f3924fc73693d54ef930aee6bc81dc5b14966f949b3f6d",
           "unresolvedBlockers": 0,
@@ -5498,6 +5498,31 @@
               "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
               "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png"
             ]
+          }
+        },
+        "captureRevision": {
+          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+        },
+        "runtimeRevisionProof": {
+          "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
+          "expected": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
+            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "clean": true
+          },
+          "beforeCapture": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
+            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "clean": true
+          },
+          "afterCapture": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
+            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "clean": true
           }
         }
       }
@@ -12069,21 +12094,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/cruise/page.tsx": "8c035b667471d5d321d9c5f5446cfb9ea93cf7c29b23a87bd2c72cec28ea92b2",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
-              "screenshotSha256": "0b1b22f065a9c981d0719842c55850ff4fd9528f368208aa79093432fa5d3627",
+              "screenshotSha256": "003cf758fc24a2551e3f8621a6c5b4f9c2a5d39977430e330ec582753388d902",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12171,7 +12196,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1024.png",
-              "screenshotSha256": "ce2f9c6e7abf89f9b425e012954d1c016ed5737ccd16fc5997c1cde3799dd2f1",
+              "screenshotSha256": "68d49fa41100d0df6363753c34b16ed2cc3b20aac671e6566992486f710bdec5",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12243,7 +12268,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
-              "screenshotSha256": "29ba6b7adccc443aef655a7cefffb2ba62b07f9a842e3d6ed935dd238c79c384",
+              "screenshotSha256": "0cd5e56e8094e44aabf728288bf9f6a3652f111df61ee7c81bca06e7be08c217",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12315,7 +12340,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
-              "screenshotSha256": "cb8ab0f3f0cbcc78644dbf97674390541ac7c5a1cca4375bfff2ce57b19d1b84",
+              "screenshotSha256": "e3197baf260ce30123931d86b05dee3925de1304adeeddc54b08edb10d72122e",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12403,7 +12428,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1024.png",
-              "screenshotSha256": "fb400de4d82c7793bd0e4e2d7bbaa9ca441faf5f03438173bfa8340cbcb8dc14",
+              "screenshotSha256": "351537de8323facbc80a05a660f833899e9fd9754d7f53f101e3921ab6765374",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12475,7 +12500,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
-              "screenshotSha256": "5dde045cd39538473d032db4eb986dee81731e3407195242d27c6205d06e85e1",
+              "screenshotSha256": "8624546bdab0e18c57791690137528fdc49d477711a96921d76e5b7905e70d93",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -12554,23 +12579,27 @@
             "contextPlacement": "below-primary-scene",
             "mobileSceneFirst": true
           },
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -13165,21 +13194,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/lng/page.tsx": "c1b9fa74dbdebe08be72777d178dae0bde7ce27ab00246cb5617bd99c163a9a0",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
-              "screenshotSha256": "27cd3056c45fc84c1d28b107f1ba0e6c06bc45e2cb3d3a69d759a24ae4afa0b0",
+              "screenshotSha256": "95a247406b485791c49b1c86c3014bcf730c39344ebad8515d292e792f9b4202",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13266,7 +13295,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1024.png",
-              "screenshotSha256": "dcb6efbb012e99aa93b8f6dd4003fff448a1025de8d19c9c408fb1691873dca1",
+              "screenshotSha256": "0fc943c0f8b0a17c5f4fd28f54a60212127d03350d3899822c4a3e336ae75459",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13337,7 +13366,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
-              "screenshotSha256": "132829e8d0b73a4894e0052afefd18845e8a438cc5fbbdb45374ce882e8eff08",
+              "screenshotSha256": "e1d4a12e88d0745b623e33f1820147861fb76bac755df77de84a421b5a252355",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13408,7 +13437,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
-              "screenshotSha256": "57667c709a184f063a753793256bed21b82b2c42d5f501bb1304f9d7942d6a85",
+              "screenshotSha256": "7e9b24640be9faba35b90df793e5eba80b6a728d50e22989302df5da5d831a73",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13495,7 +13524,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1024.png",
-              "screenshotSha256": "65896367eed8fc442c80f868e181c56d8c929da47c58b708ad3f0bf965ff80fe",
+              "screenshotSha256": "c75c3ecafa1eb4358be55dd0a391a762a802536ff109de47bc811758ce9cbeb5",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13566,7 +13595,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
-              "screenshotSha256": "99a5c47ff405cc87e9abacdd3dd7e154499cfddd9b791cbbf3665a4883e1f386",
+              "screenshotSha256": "9afedc08d4c96087cb726da13c2708ffd4017fac4156c4f7ab23c957d15acc63",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/lng",
@@ -13634,23 +13663,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -14252,21 +14285,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/destroyer/page.tsx": "016a0d1f09f64ea6e808e09c8feeaaa283d42a85f29e68f93f9dbe90a2690383",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
-              "screenshotSha256": "ae803499b5c48040c1c84f093271d95bd5c290035053a1d50e88468dea1d342b",
+              "screenshotSha256": "526f4db3b545bcd6337f41bb713b97c62ac94448f6bce5b41f0759574c102001",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14353,7 +14386,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1024.png",
-              "screenshotSha256": "1dba798fd7fc5a534e0c0a3516938d616b372e8f61c52aeab8c229deef26b217",
+              "screenshotSha256": "36403629771ba1ca852dd117857f7a6ff9c7a6cd4eab18c256a899b665e185e5",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14424,7 +14457,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
-              "screenshotSha256": "6d42ca90a978e3c892437f97c8ee4da4ed849824412da9543f255ebe1ef31d0d",
+              "screenshotSha256": "0e56901c966d6c9856db9a14025903e493ce492d0aa74c7e727b586e0fb510f0",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14495,7 +14528,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
-              "screenshotSha256": "9a45bcac507142bc46422d1d4bc29390457684b8191b8a017c7456fd45612e06",
+              "screenshotSha256": "acb904fd65b4fb489889768adb8103b7c28a1ba6ec7f13af981408495f20ac3a",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14582,7 +14615,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1024.png",
-              "screenshotSha256": "e7799a762797c7a5eb27b182bacd673d25294c332f1a605c7748424574a357b7",
+              "screenshotSha256": "a6e942085effb7a05307976c701b13d3da7aebeeec4aa0715e8a44b19edc6323",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14653,7 +14686,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
-              "screenshotSha256": "d5f14308301cda9b3aeb0e6941d721d5376e1932e6625a4929ea9b8e3b21fe92",
+              "screenshotSha256": "debcce31971ce594f8d7a7b0dc662838dd6bfbc9675e28762685431e53ecd3f9",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -14721,23 +14754,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -15339,21 +15376,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/drilling/page.tsx": "185aaa67734d35283bc927a2d941dc2bee76bce31aa9afec2ff073a6cbf2166c",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
-              "screenshotSha256": "7d173878bcf4b6f22c86a257e428108bc47b33a431c2d770315c47d107749b06",
+              "screenshotSha256": "f3aa5709afad991872626fe695cc5f8a12d702fb1c4c840f0677a721b57eac99",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15440,7 +15477,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1024.png",
-              "screenshotSha256": "b1b967acf83bf6c6cb9983e5bc8f2c94e28c78c7834d3a3abda4487d0daacba0",
+              "screenshotSha256": "eee54a0923e8149f6af81680671fc53a19f1ce6c5916d7f61a24d5bdd6e11c65",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15511,7 +15548,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
-              "screenshotSha256": "99d0733f3cc58776498d3ed33fbcaa92e762179bbf2e6494d9e520fdedd962d9",
+              "screenshotSha256": "689b191af71bbc4323ae947ae46478e622221d840170b9bc5af2f66809492d97",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15582,7 +15619,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
-              "screenshotSha256": "ad1900bddb244a4c72e11cdc2908f7a98983f74c7c0cb92f87754c4f40d1af58",
+              "screenshotSha256": "fb49ae852a811916a29baea80d2f437f84a178b9cc8b00ba8d20aeea6f3d0497",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15669,7 +15706,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1024.png",
-              "screenshotSha256": "d41813380d80024198045925a7c93a55d1ff373bb0547979858f02d37605eae5",
+              "screenshotSha256": "8eb2ff285c079d035bd42ccdffd41ba99aa098259e5ca77363a8e7b032150bcb",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15740,7 +15777,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
-              "screenshotSha256": "3c08b12fb026296747b302841d9c440e1e5a5492267515b8b21b1cdd034b9c18",
+              "screenshotSha256": "1a8703b5b2e84fbb3dab3baf6f9ca373caeb71ced3970a1fc5dbff09f856c128",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -15808,23 +15845,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -16419,21 +16460,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/container/page.tsx": "35c5ebad26a19cfbbc033d88fa8c886e3790f299bbe6d0c221c45617c86d30e6",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
-              "screenshotSha256": "78a9f588c3830fd7572cab306e9b0a6f60a3e5a2e03c5ee488180cf0029d997f",
+              "screenshotSha256": "ec1cdb51dbe604a181bbf0848f3cbec7c53f3991fe8bf4c2bb9341154dbd3afa",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16520,7 +16561,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1024.png",
-              "screenshotSha256": "575c0ad30858b8d0132450c623c8d1424286d69b704f4daf48f6f6617d39343a",
+              "screenshotSha256": "795fa04c57f653be536224d66b2ca41b308eb6abe262dbaea6a4113299601562",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16591,7 +16632,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
-              "screenshotSha256": "5c8bffc42b09b6906cf4fef03b00125ce9ce5339b1d0a66f40fd993a9e35357b",
+              "screenshotSha256": "fc4e376f0f7472007342213f1ebcc68b2a45148fdb44718e8c62a00b02c01a67",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16662,7 +16703,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
-              "screenshotSha256": "91e600560d3afa8c17d296000a0eb6394cb80f52a4f9ae8f4bc46265854d1bef",
+              "screenshotSha256": "f0d9b6425a99a3e0aec406279cda9b616645a66764e11ea2ca5b6586a4563700",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16749,7 +16790,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1024.png",
-              "screenshotSha256": "cb323d0c09b67d4b6328e609338fc308ff08dd2d44051ad2c811dc7ee8fc7960",
+              "screenshotSha256": "6246c0f9e3257dd6217d589d9c65648216e3360f244b3b75c8608e89bf028241",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16820,7 +16861,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
-              "screenshotSha256": "6ac0fc005197712d4326e9adf1da042dda578da276be4673b9ab66b4e6324e02",
+              "screenshotSha256": "cd6dd8cc7fbd6119eb7d94814ce98928571e0e2d6df9a5c671c2d2e79d392d44",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/container",
@@ -16888,23 +16929,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -17499,21 +17544,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/icebreaker/page.tsx": "365cc67c64027689eebc3377c7409e2135474f64b8810c5a3788083b69a42015",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
-              "screenshotSha256": "bf1e60576fb6710eb575071505f9ae1add6531e8a525d09c4c4de499cc6440a1",
+              "screenshotSha256": "1df7caddbd1752536b8f36257e760c4847351de0da283a6a2489467c51da2835",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17600,7 +17645,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1024.png",
-              "screenshotSha256": "d0f98fcb4d3a8d155b347dee5b953830fbbd37505278dd4b8301805ad26a9e69",
+              "screenshotSha256": "5917689b76c7cdd857b2e704864bde28197c5ed17ba01f05b3f033e607f7e980",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17671,7 +17716,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
-              "screenshotSha256": "b2c99152cd93654923fecf86d824fefbb3830d485b1eb2697c81a510761fc282",
+              "screenshotSha256": "85e89e5e311785f00291db4bf363dd4b3c224126a4851523af004f05e51e52c9",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17742,7 +17787,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
-              "screenshotSha256": "07532dcc011e78604b75d40324244309fc5d5fc25424800c7e5d92f224f600a8",
+              "screenshotSha256": "009013d11cd92c37e5549065417d252307c66e3812c2506dd75e708e00fbf8dc",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17829,7 +17874,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1024.png",
-              "screenshotSha256": "e576f66043cd6b6959bf06368ce9323357c7fe182854d393ad665b18b4c3d4d4",
+              "screenshotSha256": "3a30e88086fb189486664729c59ca7a0cefd6ae7356def1e0507a9f4e360cd38",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17900,7 +17945,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
-              "screenshotSha256": "8b7ca3df9316c3a05eb4c6afe652614d422868e817202ef5823a03ae678f507c",
+              "screenshotSha256": "f64eece06072ecbc6f2f1d8bf19dd762d724b3960d1f4988fbcdf1f36a80f312",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -17968,23 +18013,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
@@ -18579,21 +18628,21 @@
         },
         "commandDeckGeometry": {
           "change": "unify-simulation-chrome-and-camera-views",
-          "generatedAt": "2026-08-18T07:54:08.383Z",
+          "generatedAt": "2026-08-20T05:19:13.205Z",
           "sourceSha256": {
             "src/app/simulations/dredger/page.tsx": "3d09bb4598c76abf908344672facb02b22da30207d90b87d457c25aad41e3dcb",
             "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
             "src/resources/simulations/components/simulation-ui.tsx": "477f4d84f2f2e7ccb63bc4163edea13b833844a773c2744ddf67a0259a979047",
             "src/resources/simulations/components/camera-view-switcher.tsx": "2a71f5a0742aca930938a8937c7ad506c9b761c68184b9863c86049acc414839",
             "src/lib/evidence-artifact-path.ts": "5c1101f7bd0be0c15ec92edc545739f6ca03c5271320875e592d90b787be4f57",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "aa2fdf8f5ab55193f1fa763c3422f86615b7c75fd032bf8721bfa271fa0c4c6e"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "2cbe273fb4c4c8895de540e878279e25d34c385f06b00d5fce4e5ad0c20335e1"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
-              "screenshotSha256": "4e6c91b0b3597319c66ccb62026dc65de2625f4e1f142f01b835f2ead9a24ff3",
+              "screenshotSha256": "98e76c09cfa54e2aaceddb601af0c205ea3177a3ffd3160716a0f3355e7ab446",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -18680,7 +18729,7 @@
               "width": 1024,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1024.png",
-              "screenshotSha256": "973a3291dfba3f5cb0b5f17f631d07c07daeb96375bd248187cdb329de481a7c",
+              "screenshotSha256": "e3fb142d3d939f8c430aa70a66796d438735a7ac59df957934a8ddd7dd0c35da",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -18751,7 +18800,7 @@
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
-              "screenshotSha256": "1e58a4bfc36ce0a23d5dcbebab7941822b444f85ec707995eddb1b06a2c93c49",
+              "screenshotSha256": "ac95fd825278c3cc8c55e5371101cfdeef8d91a453a8d4d69fa836f900d91760",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -18822,7 +18871,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
-              "screenshotSha256": "9bfde17f82c96f7a3dfbc2709955487ad31c29b22ffbdbe085050c47fb16c95c",
+              "screenshotSha256": "dc7b9957db58500ac9bde9f9529756a7cfa2b4d6598774a9edf30172515612b4",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -18909,7 +18958,7 @@
               "width": 1024,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1024.png",
-              "screenshotSha256": "fc7bf2a151626186793be1197d3252f4c67379aa82377eb9f6d6f78202be63d5",
+              "screenshotSha256": "a1ceb524b0bfe155274d0db0dc155d758be087a57f193beb756d8341f5786284",
               "screenshotWidth": 1024,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -18980,7 +19029,7 @@
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png",
-              "screenshotSha256": "59ac9691bd551ac67ebd1068e9437c4f246437a89ae8b789070626279144946d",
+              "screenshotSha256": "41eab7a5f6abe97c96624e2df09fd5cc99b07b3766fd2393b0d7f4f4567c8fbf",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -19048,23 +19097,27 @@
               ]
             }
           ],
+          "captureRevision": {
+            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          },
           "runtimeRevisionProof": {
             "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
             "expected": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "beforeCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             },
             "afterCapture": {
-              "commitSha": "614eb0f2dc824df1b20783f2d1e2b0de00b5a841",
-              "treeSha": "4c77fd6c6e172350937663939d954d0b3f318311",
+              "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
+              "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
               "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
               "clean": true
             }
