@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { sha256 } from '../../../scripts/actkg-release/authoritative-release';
+import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
 
 export const V022_DISPLAY_PROJECTION_CONTRACT = 'actkg-v022-display-projections/1' as const;
 export const V022_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22' as const;
@@ -115,9 +115,13 @@ export function loadPinnedV022Envelope(repoRoot: string): V022PinnedEnvelope {
       'admitted v0.22 candidate does not match the pinned composite envelope',
     );
   }
+  const admittedMirror = receipt.mirror;
+  if (!admittedMirror || typeof admittedMirror !== 'object' || Array.isArray(admittedMirror)) {
+    throw new V022EnvelopeError('admitted-mirror-missing', 'candidate receipt is missing the admitted mirror closure');
+  }
   assertSealedV022ReleaseMirror(repoRoot, {
-    releaseId,
     bundleDigest,
+    admittedMirror: admittedMirror as { bundleDigest?: unknown; controlledPath?: unknown; files?: unknown },
   });
   return {
     contract: V022_DISPLAY_PROJECTION_CONTRACT,
@@ -136,8 +140,21 @@ export function loadPinnedV022Envelope(repoRoot: string): V022PinnedEnvelope {
 
 export function assertSealedV022ReleaseMirror(
   repoRoot: string,
-  expected: { releaseId: string; bundleDigest: string },
+  expected: {
+    bundleDigest: string;
+    admittedMirror: { bundleDigest?: unknown; controlledPath?: unknown; files?: unknown };
+  },
 ): void {
+  const admittedFiles = expected.admittedMirror.files;
+  if (!Array.isArray(admittedFiles) || admittedFiles.length === 0) {
+    throw new V022EnvelopeError('admitted-mirror-files-missing', 'admitted candidate mirror file list is empty');
+  }
+  if (expected.admittedMirror.bundleDigest !== expected.bundleDigest) {
+    throw new V022EnvelopeError('admitted-mirror-bundle-drift', 'admitted candidate mirror digest drifted');
+  }
+  if (expected.admittedMirror.controlledPath !== V022_CONTROLLED_RELEASE_RELATIVE) {
+    throw new V022EnvelopeError('admitted-mirror-path-drift', 'admitted candidate mirror path drifted');
+  }
   const receiptPath = path.join(repoRoot, V022_MIRROR_RECEIPT_RELATIVE);
   let parsed: unknown;
   try {
@@ -148,23 +165,28 @@ export function assertSealedV022ReleaseMirror(
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new V022EnvelopeError('mirror-receipt-invalid', 'mirror receipt must be an object');
   }
-  const receipt = parsed as {
+  const diskReceipt = parsed as {
     bundleDigest?: unknown;
     controlledPath?: unknown;
     files?: unknown;
   };
-  if (receipt.bundleDigest !== expected.bundleDigest) {
-    throw new V022EnvelopeError('mirror-bundle-drift', 'controlled release mirror digest drifted from the admitted envelope');
+  if (canonicalJson({
+    bundleDigest: diskReceipt.bundleDigest,
+    controlledPath: diskReceipt.controlledPath,
+    files: diskReceipt.files,
+  }) !== canonicalJson({
+    bundleDigest: expected.admittedMirror.bundleDigest,
+    controlledPath: expected.admittedMirror.controlledPath,
+    files: expected.admittedMirror.files,
+  })) {
+    throw new V022EnvelopeError(
+      'mirror-receipt-drift',
+      'independent mirror receipt drifted from the admitted candidate mirror',
+    );
   }
-  if (receipt.controlledPath !== V022_CONTROLLED_RELEASE_RELATIVE) {
-    throw new V022EnvelopeError('mirror-path-drift', 'controlled release mirror path drifted');
-  }
-  if (!Array.isArray(receipt.files) || receipt.files.length === 0) {
-    throw new V022EnvelopeError('mirror-files-missing', 'controlled release mirror file list is empty');
-  }
-  for (const raw of receipt.files) {
+  for (const raw of admittedFiles) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-      throw new V022EnvelopeError('mirror-file-invalid', 'mirror file entry is invalid');
+      throw new V022EnvelopeError('mirror-file-invalid', 'admitted mirror file entry is invalid');
     }
     const row = raw as { path?: unknown; rawSha256?: unknown; byteLength?: unknown };
     const relative = text(row.path, 'mirror.file.path');

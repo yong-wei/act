@@ -8,7 +8,7 @@
 import 'dotenv/config';
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -93,7 +93,25 @@ export function prepareV022DisplayCatalog(repoRoot = process.cwd()): {
   };
   writeFileSync(authoringPath, authoringBytes);
   writeFileSync(runtimePath, runtimeBytes);
-  writeFileSync(receiptPath, `${catalogCanonicalJson(receipt)}\n`);
+  const afterWrite = snapshotPointers(repoRoot);
+  if (catalogCanonicalJson(before) !== catalogCanonicalJson(afterWrite)
+    || catalogCanonicalJson(after) !== catalogCanonicalJson(afterWrite)) {
+    rmSync(authoringPath, { force: true });
+    rmSync(runtimePath, { force: true });
+    rmSync(receiptPath, { force: true });
+    throw new Error('v0.22 display catalog rebuild moved a production pointer while writing candidates');
+  }
+  writeFileSync(receiptPath, `${catalogCanonicalJson({
+    ...receipt,
+    pointers: { before, after: afterWrite, unchanged: true },
+  })}\n`);
+  const afterReceipt = snapshotPointers(repoRoot);
+  if (catalogCanonicalJson(before) !== catalogCanonicalJson(afterReceipt)) {
+    rmSync(authoringPath, { force: true });
+    rmSync(runtimePath, { force: true });
+    rmSync(receiptPath, { force: true });
+    throw new Error('v0.22 display catalog rebuild moved a production pointer after staging the receipt');
+  }
   return {
     envelopeSnapshotId: envelope.snapshotId,
     catalogId: built.runtime.catalogId,
