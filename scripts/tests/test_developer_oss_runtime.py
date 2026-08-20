@@ -294,6 +294,37 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         with self.assertRaises(OSError):
             (selected / "should-not-write.txt").write_text("nope")
 
+    def test_stop_derives_helper_mount_from_legacy_receipt(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            runtime = checkout / "course-content" / "runtime"
+            runtime.mkdir(parents=True)
+            view = Path(raw) / "view"
+            helper = view / ".act-runtime-blobs"
+            helper.mkdir(parents=True)
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            from common import checkout_state
+            write_selection_receipt(checkout_state(checkout) / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+                "blobMount": str(Path(raw) / "blobs"),
+                "helperMount": "",
+                "viewRoot": str(view),
+                "runtimeRoot": str(runtime),
+                "startedAt": "2026-08-20T00:00:00Z",
+            })
+            receipt_path = checkout_state(checkout) / "selection.json"
+            payload = json.loads(receipt_path.read_text())
+            payload.pop("helperMount")
+            receipt_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+            os.chmod(receipt_path, 0o600)
+            with mock.patch("bootstrap.stop_services"), mock.patch("bootstrap.unmount") as unmounted:
+                stop(checkout)
+            self.assertEqual(unmounted.call_args_list[1].args[0], helper)
+
     def test_missing_mountpoint_does_not_block_restart(self):
         with tempfile.TemporaryDirectory() as raw:
             fake = Path(raw) / "findmnt"
@@ -331,9 +362,10 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 return Result()
 
             with mock.patch("bootstrap.mount_fields", side_effect=[("ext4", "ro"), ("", "")]):
-                with mock.patch("shutil.which", side_effect=lambda name: str(bin_dir / name) if (bin_dir / name).exists() else None):
-                    with mock.patch("subprocess.run", side_effect=fake_run):
-                        unmount(target)
+                with mock.patch("os.geteuid", return_value=0):
+                    with mock.patch("shutil.which", side_effect=lambda name: str(bin_dir / name) if (bin_dir / name).exists() else None):
+                        with mock.patch("subprocess.run", side_effect=fake_run):
+                            unmount(target)
             self.assertTrue(any(command and command[0].endswith("umount") for command in calls))
             self.assertFalse(any(command and "fusermount" in command[0] for command in calls if command))
 

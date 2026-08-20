@@ -18,7 +18,8 @@
 
 - 受支持的 CPU 架构（x86_64 或 aarch64）
 - `/dev/fuse`
-- `ossfs2`、`ossutil`、`findmnt`/`mount`
+- `ossfs2`、`ossutil`、`findmnt`/`mount`/`umount`
+- 非 root 时，对 `mount`/`umount` 配置无密码 `sudo -n`
 - Python 3、Node.js（与仓库 `engines` 一致）
 - 本仓库的可写 checkout
 
@@ -89,6 +90,7 @@ npm run shutdown:oss-runtime
 
 ```bash
 rm -f ~/.config/act-runtime-dev-read/credentials.json
+rm -f ~/.local/state/act-runtime-dev-read/checkouts/*/ossfs.conf
 ```
 
 并卸载仍在的 checkout bind 与 Blob FUSE。不要保留密钥备份在仓库或网盘。

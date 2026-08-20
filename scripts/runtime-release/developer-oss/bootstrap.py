@@ -21,6 +21,7 @@ from typing import Any
 from common import (
     BLOB_PREFIX,
     DEFAULT_READYZ_URL,
+    DeveloperRuntimeError,
     IDENTITY_KEYS,
     OSS_BUCKET,
     PUBLIC_OSS_ENDPOINT,
@@ -57,6 +58,12 @@ def which(name: str) -> str:
     if not path:
         fail("required tool is missing: %s" % name)
     return path
+
+
+def privileged(command: list[str]) -> list[str]:
+    if os.geteuid() == 0:
+        return command
+    return [which("sudo"), "-n", *command]
 
 
 def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> str:
@@ -260,6 +267,13 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
     which("node")
     which("mount")
     which("findmnt")
+    which("umount")
+    if os.geteuid() != 0:
+        which("sudo")
+        try:
+            run(privileged(["true"]))
+        except DeveloperRuntimeError:
+            fail("passwordless sudo is required for bind mount and unmount")
     if not os.access(checkout, os.W_OK):
         fail("checkout is not writable")
     return {"architecture": machine, "fuse": str(fuse)}
@@ -298,8 +312,8 @@ def mount_blobs(blob_root: Path, config_path: Path) -> None:
 
 def bind_runtime(view: Path, runtime_root: Path) -> None:
     runtime_root.mkdir(parents=True, exist_ok=True)
-    run([which("mount"), "--bind", str(view), str(runtime_root)])
-    run([which("mount"), "-o", "remount,bind,ro", str(runtime_root)])
+    run(privileged([which("mount"), "--bind", str(view), str(runtime_root)]))
+    run(privileged([which("mount"), "-o", "remount,bind,ro", str(runtime_root)]))
     if not Path(runtime_root, ".act-runtime-release.v2.json").is_file():
         fail("checkout runtime bind is missing the selected view identity")
     if not is_readonly_mount(runtime_root):
@@ -317,7 +331,7 @@ def unmount(path: Path) -> None:
     umount = shutil.which("umount")
     if not umount:
         fail("unmount tool is missing")
-    subprocess.run([umount, str(path)], check=False, capture_output=True)
+    subprocess.run(privileged([umount, str(path)]), check=False, capture_output=True)
     remaining, _ = mount_fields(path)
     if remaining:
         fail("failed to unmount a checkout-owned mount")
@@ -361,13 +375,13 @@ def acquire_lock(checkout: Path) -> int:
 def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
     materializer = Path(__file__).resolve().parent.parent / MATERIALIZER_NAME
     python = sys.executable
-    run([python, str(materializer), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path), "--blob-root", str(blob_root), "--view-root", str(view_root)])
+    run([python, str(materializer), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path), "--blob-root", str(blob_root), "--view-root", str(view_root), "--skip-blob-hash"])
     helper = view_root / "views" / release_id / ".act-runtime-blobs"
     if os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") == "1":
         run([python, str(materializer), "attach-helper", "--release-id", release_id, "--view-root", str(view_root), "--blob-root", str(blob_root), "--test-fixture"])
     else:
-        run([which("mount"), "--bind", str(blob_root), str(helper)])
-        run([which("mount"), "-o", "remount,bind,ro", str(helper)])
+        run(privileged([which("mount"), "--bind", str(blob_root), str(helper)]))
+        run(privileged([which("mount"), "-o", "remount,bind,ro", str(helper)]))
         if not is_readonly_mount(helper):
             fail("helper blob bind must be read-only")
     run([python, str(materializer), "verify", "--release-id", release_id, "--view-root", str(view_root)])
@@ -457,10 +471,12 @@ def stop(checkout: Path) -> None:
             if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
                 fail("shutdown refused to unmount an unknown runtime path")
             unmount(Path(receipt["runtimeRoot"]))
-            helper_mount = receipt.get("helperMount")
-            if helper_mount:
-                unmount(Path(helper_mount))
+            helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
+            unmount(Path(helper_mount))
             unmount(Path(receipt["blobMount"]))
+            config_path = state / "ossfs.conf"
+            if config_path.exists() and not config_path.is_symlink():
+                os.remove(config_path)
         else:
             sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
     finally:
