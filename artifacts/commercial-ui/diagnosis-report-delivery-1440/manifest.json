@@ -4,19 +4,19 @@
   "captureProfile": "diagnosis-report-delivery",
   "baseUrl": "http://localhost:3220",
   "revisionProbePath": "/api/internal/local-qa/revision",
-  "sourceRevision": "ed1cb252ac5de51028c0cfcfac3c4f45f2ca89b7",
-  "treeSha": "b3abfa1db1ca6df61adf889f8934cc08f6be4170",
-  "sourceFingerprint": "901857f78f548e21e6de1350bc50fad755b02a28738f3cbf12c0a82c191209d6",
+  "sourceRevision": "8d2bdf5e2bf548554afc1e2caca88155dc4c753e",
+  "treeSha": "e4055947f76586c0872185b546dacd790f122ceb",
+  "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
   "initialServiceRevision": {
-    "commitSha": "ed1cb252ac5de51028c0cfcfac3c4f45f2ca89b7",
-    "treeSha": "b3abfa1db1ca6df61adf889f8934cc08f6be4170",
-    "sourceFingerprint": "901857f78f548e21e6de1350bc50fad755b02a28738f3cbf12c0a82c191209d6",
+    "commitSha": "8d2bdf5e2bf548554afc1e2caca88155dc4c753e",
+    "treeSha": "e4055947f76586c0872185b546dacd790f122ceb",
+    "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
     "clean": true
   },
   "finalServiceRevision": {
-    "commitSha": "ed1cb252ac5de51028c0cfcfac3c4f45f2ca89b7",
-    "treeSha": "b3abfa1db1ca6df61adf889f8934cc08f6be4170",
-    "sourceFingerprint": "901857f78f548e21e6de1350bc50fad755b02a28738f3cbf12c0a82c191209d6",
+    "commitSha": "8d2bdf5e2bf548554afc1e2caca88155dc4c753e",
+    "treeSha": "e4055947f76586c0872185b546dacd790f122ceb",
+    "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
     "clean": true
   },
   "sourceFiles": [
@@ -72,8 +72,8 @@
     },
     {
       "file": "src/lib/diagnosis-report-delivery.ts",
-      "gitBlobId": "4dc39e9c42a273b7331ed24b8a7aa2baf43dbc6c",
-      "sha256": "c009cc8541b99f01b40500799ea34145c66ecbc039118b92cbdf12ee680612e5"
+      "gitBlobId": "ed1444c6bcd2723dca4ab6070f4dd211a419736b",
+      "sha256": "4731bc1902be855aedb073782a77163093d3e5f86d842bd1a25e55d91e42cb80"
     },
     {
       "file": "src/lib/diagnosis-report-pdf.ts",
@@ -92,8 +92,8 @@
     },
     {
       "file": "tests/diagnosis-report-delivery-evidence.spec.ts",
-      "gitBlobId": "7fec82683f57e3c4119f4e42a3b1ee24c670a8a7",
-      "sha256": "19596ef3df9b4a8b5e5f103a83d7f2de0a91149045077fb10dcfbe873b9ea8c5"
+      "gitBlobId": "ce61694785626f69a7b7787562d8e6e29f5fbb6d",
+      "sha256": "2b481d8db8463a8afd67ecf377b88130cc0c5984b6ccd9d2d2efb9c7a1b7e4e1"
     },
     {
       "file": "src/lib/commercial-ui-capture-revision.ts",
