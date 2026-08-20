@@ -131,7 +131,7 @@ async function readExactly(
 
 function validateManifest(value: unknown): TextbookIndexManifest {
   if (!isRecord(value) || !hasExactKeys(value, [
-    'recordType', 'formatVersion', 'sourceRevision', 'model',
+    'recordType', 'formatVersion', 'sourceRevision', 'resourceSetId', 'model',
     'observedDimension', 'normalizationVersion', 'vectorNormalization',
     'vectorEncoding', 'books', 'sourcePriority', 'counts', 'files',
     'productionConnected',
@@ -144,6 +144,7 @@ function validateManifest(value: unknown): TextbookIndexManifest {
     || value.vectorEncoding !== 'float32-le'
     || value.productionConnected !== false
     || !isNonEmptyString(value.sourceRevision)
+    || !isNonEmptyString(value.resourceSetId)
     || !isNonEmptyString(value.model)
     || !Number.isInteger(value.observedDimension)
     || (value.observedDimension as number) <= 0
@@ -489,7 +490,7 @@ function validateBuildReport(
   if (
     !isRecord(value)
     || !hasExactKeys(value, [
-      'recordType', 'formatVersion', 'status', 'sourceRevision', 'model',
+      'recordType', 'formatVersion', 'status', 'sourceRevision', 'resourceSetId', 'model',
       'observedDimension', 'normalizationVersion', 'bookCount', 'windowCount',
       'cacheHits', 'cacheMisses', 'providerBatches', 'providerUsageTokens',
       'providerLatencyMs', 'providerTraceIds', 'fileHashes',
@@ -498,6 +499,7 @@ function validateBuildReport(
     || value.formatVersion !== TEXTBOOK_RETRIEVAL_FORMAT_VERSION
     || value.status !== 'complete'
     || value.sourceRevision !== manifest.sourceRevision
+    || value.resourceSetId !== manifest.resourceSetId
     || value.model !== manifest.model
     || value.observedDimension !== manifest.observedDimension
     || value.normalizationVersion !== manifest.normalizationVersion

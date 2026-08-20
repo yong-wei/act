@@ -6,15 +6,13 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-export const TEXTBOOK_V2_BOOK_IDS = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+import {
+  loadTextbookResourceSet,
+  textbookBookCount,
+  textbookBookIds,
+} from './textbook-resource-set.mjs';
+
+export { loadTextbookResourceSet, textbookBookCount, textbookBookIds };
 
 export const TEXTBOOK_V2_REQUIRED_FILES = [
   'manifest.json',
@@ -186,7 +184,7 @@ export function inspectTextbookRuntimeV2(
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  const expectedBookIds = [...TEXTBOOK_V2_BOOK_IDS].sort();
+  const expectedBookIds = [...textbookBookIds()].sort();
   if (JSON.stringify(actualBookIds) !== JSON.stringify(expectedBookIds)) {
     throw new Error(
       `textbook-v2-book-set-mismatch: expected=${expectedBookIds.join(',')} actual=${actualBookIds.join(',')}`,
@@ -196,7 +194,7 @@ export function inspectTextbookRuntimeV2(
   let sourceRevision = null;
   const runtimeFiles = [];
   const mediaFiles = new Map();
-  for (const bookId of TEXTBOOK_V2_BOOK_IDS) {
+  for (const bookId of expectedBookIds) {
     const bookRoot = path.join(runtimeRoot, bookId);
     for (const fileName of TEXTBOOK_V2_REQUIRED_FILES) {
       const filePath = path.join(bookRoot, fileName);
@@ -303,7 +301,7 @@ export function inspectTextbookRuntimeV2(
     sourceRevision,
     runtimeDigest: digest.digest('hex'),
     inputDigest,
-    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
+    fileCount: expectedBookIds.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
     mediaFileCount: mediaFiles.size,
   };
 }
@@ -312,6 +310,7 @@ export function inspectTextbookRetrievalIndex(
   indexRoot,
   { expectedSourceRevision } = {},
 ) {
+  const resourceSet = loadTextbookResourceSet();
   if (expectedSourceRevision !== undefined) {
     assertRevision(expectedSourceRevision, 'expected-index-source-revision');
   }
@@ -323,6 +322,14 @@ export function inspectTextbookRetrievalIndex(
     || manifest.formatVersion !== 'textbook-hybrid-retrieval.v1'
   ) {
     throw new Error('textbook-retrieval-manifest-schema-invalid');
+  }
+  if (
+    typeof manifest.resourceSetId !== 'string'
+    || manifest.resourceSetId !== resourceSet.resourceSetId
+  ) {
+    throw new Error(
+      `textbook-retrieval-resource-set-mismatch:expected=${resourceSet.resourceSetId} actual=${String(manifest.resourceSetId)}`,
+    );
   }
   assertRevision(manifest.sourceRevision, 'index-source-revision');
   if (
@@ -347,6 +354,7 @@ export function inspectTextbookRetrievalIndex(
   }
   return {
     sourceRevision: manifest.sourceRevision,
+    resourceSetId: manifest.resourceSetId,
     indexDigest: digest.digest('hex'),
     fileCount: TEXTBOOK_RETRIEVAL_REQUIRED_FILES.length,
   };
@@ -356,6 +364,14 @@ function readSidecar(sidecarPath) {
   const sidecar = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
   if (sidecar.schemaVersion !== TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION) {
     throw new Error(`textbook-v2-provenance-schema-invalid:${String(sidecar.schemaVersion)}`);
+  }
+  if (
+    typeof sidecar.resourceSetId !== 'string'
+    || sidecar.resourceSetId !== loadTextbookResourceSet().resourceSetId
+  ) {
+    throw new Error(
+      `textbook-v2-provenance-resource-set-mismatch:expected=${loadTextbookResourceSet().resourceSetId} actual=${String(sidecar.resourceSetId)}`,
+    );
   }
   assertRevision(sidecar.appRevision, 'provenance-app-revision');
   assertRevision(sidecar.runtimeSourceRevision, 'provenance-runtime-source-revision');
@@ -424,6 +440,7 @@ async function writeSidecar(options) {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
     appRevision,
     imageTarSha256: await sha256FileStream(imageTar),
+    resourceSetId: index.resourceSetId,
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     runtimeInputDigest: runtime.inputDigest,
@@ -482,6 +499,7 @@ function verifyRuntime(options) {
     );
   }
   process.stdout.write(`${JSON.stringify({
+    resourceSetId: index.resourceSetId,
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     mediaFileCount: runtime.mediaFileCount,
@@ -496,6 +514,7 @@ function printField(options) {
   if (![
     'appRevision',
     'imageTarSha256',
+    'resourceSetId',
     'runtimeSourceRevision',
     'runtimeDigest',
     'indexSourceRevision',
