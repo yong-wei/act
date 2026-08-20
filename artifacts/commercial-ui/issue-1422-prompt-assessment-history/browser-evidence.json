@@ -1,17 +1,17 @@
 {
   "change": "persist-governed-prompt-assessment-history",
-  "capturedAt": "2026-08-20T15:28:42.666Z",
-  "captureRevision": "b083e8d62173a3c2b6630633af6f31f61a48e16c",
+  "capturedAt": "2026-08-20T16:50:30.846Z",
+  "captureRevision": "20aedce7d5fc304bb81ef3c9424b98546026f669",
   "remoteCapture": {
-    "branch": "codex/prompt-history-integrity-implementation",
-    "ref": "refs/heads/codex/prompt-history-integrity-implementation",
-    "revision": "b083e8d62173a3c2b6630633af6f31f61a48e16c"
+    "branch": "codex/prompt-history-integrity-merge-capture",
+    "ref": "refs/heads/codex/prompt-history-integrity-merge-capture",
+    "revision": "20aedce7d5fc304bb81ef3c9424b98546026f669"
   },
   "generator": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs",
   "sourceHashes": {
     "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs": "a796739c0ac44cec968bcd33737e1eaeed60aa3752e2ae035103f2879b8160f5",
     "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-source-hashes.mjs": "8ae7b5152002573b7be4d58663ae300937e7f03ab3f5d17fe382be280781ab10",
-    "playwright.config.ts": "411b577db20b3a547ae454e61e38cad4c1736206e14097076b52c27e9542f551",
+    "playwright.config.ts": "659f960aeb4b1baf8b6d365dd7a8a57fd447bd8366fe153a22f835e0d090cf1a",
     "tests/prompt-assessment-history-1422.spec.ts": "c3c8a06e36906eee7dfff7f1331ab50002ecb6694f6c48d56533ddb70ac92d37",
     "src/app/evaluation/prompt-assessment/page.tsx": "5a12ca6c67f460d3cca8cfaae4d69c403206061eb75bed2f9b9d845c235683c2",
     "src/app/api/evaluation/assess-prompt/route.ts": "37fcec994b334d72d24891573ac485fb60ace7e173709ef61381097c5ff9e955",
@@ -19,7 +19,7 @@
     "src/app/api/evaluation/prompt-history/[userId]/route.ts": "7c6a80e24fe25e294599ef343512f7ac4a27e0146ac2a355bf9db8e702eebb59",
     "src/features/evaluation/prompt-assessment-history.ts": "28f87d6df7e8b4c9bbaaa8bc23ddf560da47703d4a7c1550988c54a820518535",
     "src/features/evaluation/prompt-quality.ts": "ad955b6549e2539af9d2e16e7e160e368623acdc9854ae5c2698f94240bcc36d",
-    "prisma/schema.prisma": "783063046cdc9f0a08416ac60457342be39c33bbde944966e38339fc2e882857",
+    "prisma/schema.prisma": "79190abd6b4186961a659c984268ee9db8a513ced21af484774362dcc77a5fb2",
     "prisma/migrations/20260819124500_add_prompt_assessment_result_snapshot/migration.sql": "869d8d3d21c87881d587abf51f50cdbeeb477901a829cf129574289dbad578c2",
     "src/components/platform/app-shell.tsx": "50ab2beb30e925b3586ed1b8c3a652c8b1306a6cebf08c5712625353cb40ac9a",
     "src/lib/platform-role-navigation.ts": "a89f941628f5d68c40010dd861e4396b429b609173ff9e12fde3c4ef685ef1e8"
@@ -33,7 +33,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "74d560f7c7699db6ebfc17130f90ac5cbdef4b9bb2ef867729202b32e11f0846",
+      "sha256": "94f8935fd74fad619dfe6fe449b9a5ede992a1110f623c5667359c650b002795",
       "dimensions": {
         "width": 1440,
         "height": 1423
@@ -45,7 +45,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "0729c2421e12960d252a2754e8d7c684cdc67234b3e430dd101408f8e76c233d",
+      "sha256": "29a6bef66508ff192b58b312bf82e6ea8ede48df82f6d259d439ab40c0864099",
       "dimensions": {
         "width": 1440,
         "height": 1423
@@ -57,7 +57,7 @@
         "width": 320,
         "height": 900
       },
-      "sha256": "f66a202ccd387624f00bc47322e49b494b990764239101de3910b49db89616c3",
+      "sha256": "6bc8b09986b52cffc8daf55b6fb97ecdaa89d8716026ca2f5ea7b50ba741a3ef",
       "dimensions": {
         "width": 320,
         "height": 2842
@@ -69,7 +69,7 @@
         "width": 320,
         "height": 900
       },
-      "sha256": "a29c9b8e80e9bcb47e24543544305e796b95496c12089e8161e40218ea2e9bb0",
+      "sha256": "9463b534f7b9f795a3a0fef36b4c870c522033763a3e7356e5bae39b09f1fd5f",
       "dimensions": {
         "width": 320,
         "height": 2842
@@ -81,7 +81,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "26845a6174093b35efcf5d4e09e602d723f6f8f6aba7d5f935ff0231ad0d7e9b",
+      "sha256": "3fb548f6159cae308378203f7d03e85fcfeb08cf6ff47e446b87c460988ea207",
       "dimensions": {
         "width": 1440,
         "height": 1287
@@ -93,7 +93,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "b4c005e6242ad4b63198bdbcacdcba4df887c39c07f520c302e55bd02431d204",
+      "sha256": "591dd9dd3a141a94df9b945b1901a31269df064d1b2edec0f9bfd2818b64f438",
       "dimensions": {
         "width": 1440,
         "height": 1287
