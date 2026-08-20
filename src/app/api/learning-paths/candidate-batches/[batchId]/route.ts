@@ -4,7 +4,10 @@ import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-ba
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { getLearningPathRequester } from '../../route-helpers';
-import { assertCanReadCandidateBatch } from '../route-helpers';
+import {
+  assertCanReadCandidateBatch,
+  attachCandidateBatchSourcePathVersion,
+} from '../route-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,10 +24,14 @@ export async function GET(request: Request, props: { params: Promise<{ batchId: 
     if (candidateId && !batch.candidates.some((candidate) => candidate.id === candidateId)) {
       return NextResponse.json({ error: '候选路径不属于该批次' }, { status: 404 });
     }
+    const versionedBatch = await attachCandidateBatchSourcePathVersion(batch);
+    if (!versionedBatch) {
+      return NextResponse.json({ error: '候选路径批次的来源路径已失效' }, { status: 409 });
+    }
     return NextResponse.json({
-      batch,
+      batch: versionedBatch,
       focusedCandidate: candidateId
-        ? batch.candidates.find((candidate) => candidate.id === candidateId) ?? null
+        ? versionedBatch.candidates.find((candidate) => candidate.id === candidateId) ?? null
         : null,
     });
   } catch (error) {
