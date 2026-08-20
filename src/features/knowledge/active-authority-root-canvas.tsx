@@ -82,7 +82,7 @@ function RootBubble({
   };
 
   const body = (
-    <>
+    <g pointerEvents="none" aria-hidden="true">
       {isAggregate ? (
         <circle
           cx={entry.x}
@@ -91,7 +91,6 @@ function RootBubble({
           fill="none"
           stroke={KNOWLEDGE_ROOT_BUBBLE_STYLE.highlight}
           strokeWidth={2}
-          aria-hidden="true"
         />
       ) : null}
       <circle
@@ -124,7 +123,7 @@ function RootBubble({
           {entry.summary}
         </text>
       )}
-    </>
+    </g>
   );
 
   if (isAggregate) {
@@ -142,6 +141,7 @@ function RootBubble({
   return (
     <g {...common}>
       <title>{entry.name}</title>
+      {body}
       <foreignObject
         x={entry.x - entry.radius}
         y={entry.y - entry.radius}
@@ -161,7 +161,6 @@ function RootBubble({
           className="h-full w-full cursor-pointer rounded-full bg-transparent disabled:cursor-not-allowed"
         />
       </foreignObject>
-      {body}
     </g>
   );
 }

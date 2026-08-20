@@ -1026,7 +1026,16 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(rootCanvas?.querySelectorAll('line, polyline, [data-authority-root-edge]')).toHaveLength(0);
     expect(container.textContent).not.toContain('state-space');
     expect(container.textContent).not.toContain('internal-release');
-    expect(container.querySelector('[data-authority-domain-entry="modeling"]')?.getAttribute('aria-label')).toBe('系统建模');
+    const modelingButton = container.querySelector('[data-authority-domain-entry="modeling"]');
+    const modelingGroup = modelingButton?.closest('g');
+    const modelingCircle = modelingGroup?.querySelector('circle');
+    expect(modelingButton?.getAttribute('aria-label')).toBe('系统建模');
+    expect(modelingCircle?.closest('[pointer-events="none"]')).not.toBeNull();
+    expect(
+      modelingCircle && modelingButton
+        ? Boolean(modelingCircle.compareDocumentPosition(modelingButton) & Node.DOCUMENT_POSITION_FOLLOWING)
+        : false,
+    ).toBe(true);
     expect(container.querySelector('[data-authority-domain-entry="state-space"]')?.getAttribute('aria-label')).toBe('该领域暂不可用');
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested).toEqual(['/api/knowledge/shards/active']);
