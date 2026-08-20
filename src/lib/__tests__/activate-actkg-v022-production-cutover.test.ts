@@ -243,7 +243,7 @@ describe('v0.22 runtime release', () => {
     expect(gates).toEqual({ lint: true, typecheck: true, test: true, build: false });
     expect(commands.some((row) => row.includes('npm run typecheck'))).toBe(true);
     expect(commands.some((row) => row.includes('npm run lint'))).toBe(true);
-    expect(commands.some((row) => row.includes('vitest run'))).toBe(true);
+    expect(commands.some((row) => row.includes('npm run test'))).toBe(true);
     expect(commands.some((row) => row.includes('npm run build'))).toBe(false);
   });
 });

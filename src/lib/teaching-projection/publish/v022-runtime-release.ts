@@ -110,12 +110,7 @@ export function executeV022ReleaseGates(input: {
   return {
     lint: passed('npm', ['run', 'lint']),
     typecheck: passed('npm', ['run', 'typecheck']),
-    test: passed('npx', [
-      'vitest',
-      'run',
-      'src/lib/__tests__/actkg-v022-composite-envelope.test.ts',
-      'src/lib/__tests__/activate-actkg-v022-production-cutover.test.ts',
-    ]),
+    test: passed('npm', ['run', 'test']),
     build: input.runBuild === true ? passed('npm', ['run', 'build']) : false,
   };
 }
