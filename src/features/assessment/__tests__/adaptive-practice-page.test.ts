@@ -263,7 +263,9 @@ describe('adaptive practice page entry states', () => {
       source.indexOf('const submitPathGeneration = useCallback'),
       source.indexOf('const startPathGenerationFromAdvisor = useCallback'),
     );
-    expect(generationBlock).toContain('pathId: operation !== \'generate\' ? currentPathId : undefined');
+    expect(generationBlock).toContain('pathId: operation === \'explain\'');
+    expect(generationBlock).toContain('comparisonPathId');
+    expect(generationBlock).toContain('operation !== \'generate\' ? currentPathId : undefined');
     expect(generationBlock).toContain('await refreshLatestLearningPathAfterKonling();');
     expect(source).toContain('if (activePathId) {\n      const loaded = await fetchLearningPathRound(activePathId, activeGoal);');
   });
@@ -358,8 +360,8 @@ describe('adaptive practice page entry states', () => {
   it('synchronizes a generated candidate batch through the app router', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
     const generationBlock = source.slice(
-      source.indexOf("const generatedBatchId = operation === 'generate'"),
-      source.indexOf('await refreshLatestLearningPathAfterKonling()', source.indexOf("const generatedBatchId = operation === 'generate'")),
+      source.indexOf('const generatedBatchId = typeof payload.result?.candidateBatch?.id'),
+      source.indexOf('await refreshLatestLearningPathAfterKonling()', source.indexOf('const generatedBatchId = typeof payload.result?.candidateBatch?.id')),
     );
 
     expect(source).toContain("import { useRouter, useSearchParams } from 'next/navigation'");
@@ -376,6 +378,35 @@ describe('adaptive practice page entry states', () => {
     expect(generationBlock).toContain("nextUrl.searchParams.delete('candidate')");
     expect(generationBlock).toContain('router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false })');
     expect(generationBlock).not.toContain('window.history.replaceState');
+  });
+
+  it('invalidates late adjustment batches when source, progress, or editable request inputs change', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const requestVersionBlock = source.slice(
+      source.indexOf('const pathAdjustmentRequestVersionKey = useMemo'),
+      source.indexOf('const requestedPathContextKey', source.indexOf('const pathAdjustmentRequestVersionKey = useMemo')),
+    );
+    const submitBlock = source.slice(
+      source.indexOf('const submitPathGeneration = useCallback'),
+      source.indexOf('const startPathGenerationFromAdvisor', source.indexOf('const submitPathGeneration = useCallback')),
+    );
+    const fetchIndex = submitBlock.indexOf('const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId)');
+    const finalGuardIndex = submitBlock.indexOf('if (!isCurrentAdjustmentRequest()) return;', fetchIndex);
+    const installIndex = submitBlock.indexOf('synchronizedCandidateBatchRef.current = {', fetchIndex);
+
+    expect(requestVersionBlock).toContain('timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes');
+    expect(requestVersionBlock).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
+    expect(requestVersionBlock).toContain('resourcePreference: [...pathGenerationPanel.resourcePreference].sort()');
+    expect(requestVersionBlock).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
+    expect(requestVersionBlock).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
+    expect(requestVersionBlock).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent.trim()');
+    expect(requestVersionBlock).toContain("node.status === 'skipped' || node.status === 'blocked'");
+    expect(submitBlock).toContain('adjustmentRequestInputVersionKey === pathAdjustmentRequestVersionKeyRef.current');
+    expect(fetchIndex).toBeGreaterThan(-1);
+    expect(finalGuardIndex).toBeGreaterThan(fetchIndex);
+    expect(installIndex).toBeGreaterThan(finalGuardIndex);
+    expect(submitBlock.slice(submitBlock.indexOf('if (generatedBatchId && activeGoal)'), fetchIndex))
+      .toContain("if (operation !== 'revise')");
   });
 
   it('reuses the authorized batch after synchronizing its route', () => {

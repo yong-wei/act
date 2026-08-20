@@ -7,6 +7,7 @@ import {
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;
+  fingerprint: string;
   ordinal: number;
   styleId: string;
   policyFamily: string | null;
@@ -24,7 +25,36 @@ export interface AdaptivePathCandidateBatchView {
   plannerVersion: string | null;
   status: 'succeeded';
   createdAt: string;
+  metadata: Record<string, unknown>;
   candidates: AdaptivePathCandidateSnapshot[];
+}
+
+export interface AdaptivePathCandidateBatchDerivation {
+  kind: 'adjustment';
+  sourceBatchId: string;
+  sourceCandidateId: string;
+  sourceCandidateFingerprint: string;
+  activeProgressVersion: string;
+  requestSnapshot: Record<string, unknown>;
+  differenceSummary: AdaptivePathCandidateDifferenceSummary;
+}
+
+export interface AdaptivePathCandidateBatchPersistenceInput {
+  generationRequestId: string;
+  plan: AdaptiveLearningPathPlan;
+  classId?: string | null;
+  derivation?: AdaptivePathCandidateBatchDerivation;
+}
+
+export interface AdaptivePathCandidateDifferenceSummary {
+  sourceCandidateId: string;
+  sourceCandidateFingerprint: string;
+  material: boolean;
+  candidates: Array<{
+    ordinal: number;
+    styleId: string;
+    changedFields: string[];
+  }>;
 }
 
 export type AdaptivePathCandidateSelectionResolution =
@@ -43,6 +73,7 @@ interface CandidateBatchRecord {
   plannerVersion: string | null;
   status: string;
   createdAt: Date;
+  metadata: unknown;
   candidates: Array<{
     id: string;
     ordinal: number;
@@ -67,11 +98,7 @@ export class AdaptivePathCandidateBatchValidationError extends Error {}
 
 export async function persistAdaptivePathCandidateBatch(
   db: AdaptivePathCandidateBatchDb,
-  input: {
-    generationRequestId: string;
-    plan: AdaptiveLearningPathPlan;
-    classId?: string | null;
-  },
+  input: AdaptivePathCandidateBatchPersistenceInput,
 ): Promise<AdaptivePathCandidateBatchView> {
   validatePersistenceInput(input.generationRequestId, input.plan);
   const existing = await findByGenerationRequest(db, input.generationRequestId);
@@ -99,6 +126,13 @@ export async function persistAdaptivePathCandidateBatch(
           policyFamily: input.plan.policyFamily,
           confidence: input.plan.confidence,
           excludedPolicyFamilies: input.plan.excludedPolicyFamilies,
+          ...(input.derivation ? {
+            derivation: {
+              ...input.derivation,
+              requestSnapshot: jsonSnapshot(input.derivation.requestSnapshot),
+              requestFingerprint: fingerprintAdjustmentRequestSnapshot(input.derivation.requestSnapshot),
+            },
+          } : {}),
         }),
         candidates: {
           create: candidates.map((candidate) => ({
@@ -148,6 +182,7 @@ export function buildCandidateSnapshots(
     const snapshot = candidate.snapshot as Record<string, unknown>;
     return {
       id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
+      fingerprint: fingerprintAdaptivePathCandidateSnapshot(snapshot),
       ordinal,
       styleId: candidate.styleId,
       policyFamily: candidate.policyFamily,
@@ -176,16 +211,47 @@ export function toBatchView(record: CandidateBatchRecord): AdaptivePathCandidate
     plannerVersion: record.plannerVersion,
     status: 'succeeded',
     createdAt: record.createdAt.toISOString(),
+    metadata: jsonSnapshot(record.metadata),
     candidates: [...record.candidates]
       .sort((left, right) => left.ordinal - right.ordinal)
       .map((candidate) => ({
         id: candidate.id,
+        fingerprint: fingerprintAdaptivePathCandidateSnapshot(candidate.snapshot),
         ordinal: candidate.ordinal,
         styleId: candidate.styleId,
         policyFamily: candidate.policyFamily,
         label: candidate.label,
         snapshot: jsonSnapshot(candidate.snapshot),
       })),
+  };
+}
+
+export function fingerprintAdaptivePathCandidateSnapshot(snapshot: unknown): string {
+  return createHash('sha256')
+    .update(JSON.stringify(readMaterialCandidateFacts(snapshot)))
+    .digest('hex');
+}
+
+export function buildAdaptivePathCandidateDifferenceSummary(
+  sourceCandidate: AdaptivePathCandidateSnapshot,
+  plan: AdaptiveLearningPathPlan,
+): AdaptivePathCandidateDifferenceSummary {
+  const sourceFacts = readMaterialCandidateFacts(sourceCandidate.snapshot);
+  const candidates = buildCandidateSnapshots(plan, 'adjustment-preview').map((candidate) => {
+    const candidateFacts = readMaterialCandidateFacts(candidate.snapshot);
+    const changedFields = (Object.keys(sourceFacts) as Array<keyof typeof sourceFacts>)
+      .filter((field) => JSON.stringify(sourceFacts[field]) !== JSON.stringify(candidateFacts[field]));
+    return {
+      ordinal: candidate.ordinal,
+      styleId: candidate.styleId,
+      changedFields,
+    };
+  });
+  return {
+    sourceCandidateId: sourceCandidate.id,
+    sourceCandidateFingerprint: sourceCandidate.fingerprint,
+    material: candidates.some((candidate) => candidate.changedFields.length > 0),
+    candidates,
   };
 }
 
@@ -281,18 +347,69 @@ function isAmbiguousSelectionIntent(value: string): boolean {
 
 function assertMatchingExisting(
   record: CandidateBatchRecord,
-  input: { generationRequestId: string; plan: AdaptiveLearningPathPlan; classId?: string | null },
+  input: AdaptivePathCandidateBatchPersistenceInput,
 ): AdaptivePathCandidateBatchView {
+  assertAdaptivePathCandidateBatchMatchesInput(record, input);
+  return toBatchView(record);
+}
+
+export function assertAdaptivePathCandidateBatchMatchesInput(
+  record: Pick<
+    AdaptivePathCandidateBatchView,
+    'userId' | 'goalId' | 'classId' | 'generationRequestId' | 'sourcePathId'
+  > & { metadata: unknown },
+  input: AdaptivePathCandidateBatchPersistenceInput,
+): void {
   if (
+    record.generationRequestId !== input.generationRequestId ||
     record.userId !== input.plan.userId ||
     record.goalId !== input.plan.goal.id ||
+    record.classId !== (input.classId ?? null) ||
     record.sourcePathId !== input.plan.id
   ) {
     throw new AdaptivePathCandidateBatchConflictError(
       'Generation request identity is already bound to another candidate batch',
     );
   }
-  return toBatchView(record);
+  const existing = jsonSnapshot(jsonSnapshot(record.metadata).derivation);
+  if (!input.derivation && Object.keys(existing).length === 0) return;
+  const requestFingerprint = input.derivation
+    ? fingerprintAdjustmentRequestSnapshot(input.derivation.requestSnapshot)
+    : null;
+  const existingRequestFingerprint = typeof existing.requestFingerprint === 'string'
+    ? existing.requestFingerprint
+    : null;
+  const existingSnapshotFingerprint = fingerprintAdjustmentRequestSnapshot(existing.requestSnapshot);
+  if (
+    !input.derivation ||
+    existing.kind !== input.derivation.kind ||
+    existing.sourceBatchId !== input.derivation.sourceBatchId ||
+    existing.sourceCandidateId !== input.derivation.sourceCandidateId ||
+    existing.sourceCandidateFingerprint !== input.derivation.sourceCandidateFingerprint ||
+    existing.activeProgressVersion !== input.derivation.activeProgressVersion ||
+    !existingRequestFingerprint ||
+    existingRequestFingerprint !== existingSnapshotFingerprint ||
+    existingRequestFingerprint !== requestFingerprint
+  ) {
+    throw new AdaptivePathCandidateBatchConflictError(
+      'Adjustment request identity is already bound to another candidate source or request',
+    );
+  }
+}
+
+function fingerprintAdjustmentRequestSnapshot(snapshot: unknown): string {
+  return createHash('sha256').update(stableJson(snapshot)).digest('hex');
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${stableJson(nested)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
 }
 
 function validatePersistenceInput(generationRequestId: string, plan: AdaptiveLearningPathPlan): void {
@@ -309,8 +426,38 @@ function stableId(prefix: string, value: string): string {
 }
 
 function jsonSnapshot(value: unknown): Record<string, unknown> {
-  const normalized = JSON.parse(JSON.stringify(value)) as unknown;
+  const serialized = JSON.stringify(value);
+  if (!serialized) return {};
+  const normalized = JSON.parse(serialized) as unknown;
   return normalized && typeof normalized === 'object' && !Array.isArray(normalized)
     ? normalized as Record<string, unknown>
     : {};
+}
+
+function readMaterialCandidateFacts(value: unknown) {
+  const snapshot = jsonSnapshot(value);
+  return {
+    nodeIds: stringArray(snapshot.nodeIds),
+    estimatedMinutes: finiteNumber(snapshot.estimatedMinutes),
+    resourceMix: sortedNumberRecord(snapshot.resourceMix),
+    checkpointNodeIds: stringArray(snapshot.checkpointNodeIds),
+    terminalValidationNodeIds: stringArray(snapshot.terminalValidationNodeIds),
+  };
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
+}
+
+function finiteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function sortedNumberRecord(value: unknown): Record<string, number> {
+  const record = jsonSnapshot(value);
+  return Object.fromEntries(Object.entries(record)
+    .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && Number.isFinite(entry[1]))
+    .sort(([left], [right]) => left.localeCompare(right)));
 }

@@ -23,6 +23,7 @@ export async function resolveAdaptiveDiagnosisContext(input: {
   db: AdaptiveDiagnosisContextDb;
   authenticatedUserId: string;
   answerId: string;
+  optionAttributions?: unknown[];
 }): Promise<AdaptiveDiagnosisContext | null> {
   const adaptiveAttempt = await readAdaptiveAttemptContext({
     db: input.db as AdaptiveAttemptContextDb,
@@ -36,6 +37,7 @@ export async function resolveAdaptiveDiagnosisContext(input: {
       db: input.db as WrongAnswerAttributionDb,
       authenticatedUserId: input.authenticatedUserId,
       answerId: input.answerId,
+      optionAttributions: input.optionAttributions,
     })
     : null;
 

@@ -927,6 +927,15 @@ interface CandidateOption {
   includesRiskIntervention: boolean;
 }
 
+interface PolicyFamilyRetryState {
+  excludedCanonicalCoreRefs: ReadonlySet<string>;
+  parentKey: string;
+}
+
+interface PolicyFamilyRetryContext {
+  excludedCanonicalCoreRefs: ReadonlySet<string>;
+}
+
 interface SelectionState {
   selected: Map<string, ScoredNode>;
   coveredGoalTargets: Set<string>;
@@ -1957,6 +1966,7 @@ export function buildControlCorrectionThreeStylePathBundle(
 function buildAdaptiveLearningPathPlanInternal(
   input: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
+  retryContext?: PolicyFamilyRetryContext,
 ): AdaptiveLearningPathPlan {
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
@@ -2056,6 +2066,7 @@ function buildAdaptiveLearningPathPlanInternal(
         ]),
       };
     })
+    .filter((entry) => !isRetryExcludedCoreCandidate(entry.node, retryContext))
     .sort((left, right) =>
       configurationSelectionPriority(right.node, preferenceContext, input.constraints) -
         configurationSelectionPriority(left.node, preferenceContext, input.constraints) ||
@@ -2082,13 +2093,20 @@ function buildAdaptiveLearningPathPlanInternal(
     input.constraints,
     input.learnerState,
   );
+  const requiredPrerequisiteNodeIds = new Set(repairEntries.flatMap((entry) =>
+    planningUnitForNode(entry.node)?.prerequisites ?? []
+  ));
+  const retryRepairEntries = repairEntries.filter((entry) =>
+    !isRetryExcludedCoreCandidate(entry.node, retryContext) ||
+    requiredPrerequisiteNodeIds.has(entry.node.id)
+  );
   const checkpointResourceTypes = new Set<ResourceNode['type']>(
     registeredGoal?.checkpointPolicy.checkpointResourceTypes ?? []
   );
   const forcedCheckpointNodeIds = new Set(
     selectRepairCheckpointNodeIds(mainPathNodes, registeredGoal)
   );
-  const repairCandidates = repairEntries.map((entry) =>
+  const repairCandidates = retryRepairEntries.map((entry) =>
     toRepairCandidate(
       entry,
       requestedCompletedNodeIds,
@@ -2118,7 +2136,7 @@ function buildAdaptiveLearningPathPlanInternal(
       repairVersion: PATH_CONSTRAINT_REPAIR_VERSION,
     },
   });
-  const scoredByNodeId = new Map(repairEntries.map((entry) => [entry.node.id, entry]));
+  const scoredByNodeId = new Map(retryRepairEntries.map((entry) => [entry.node.id, entry]));
   const repairedEntries = constraintRepair.repairedNodeIds
     .map((nodeId) => scoredByNodeId.get(nodeId))
     .filter((entry): entry is ScoredNode => Boolean(entry));
@@ -4623,6 +4641,22 @@ function canonicalSourceRefForNode(node: ResourceNode): string {
   return `${node.sourceKind}:${node.sourceRef}`;
 }
 
+function isRetryExcludedCoreCandidate(
+  node: ResourceNode,
+  retryContext?: PolicyFamilyRetryContext,
+): boolean {
+  if (!retryContext || retryContext.excludedCanonicalCoreRefs.size === 0) return false;
+  const canonicalRef = canonicalSourceRefForNode(node);
+  if (!retryContext.excludedCanonicalCoreRefs.has(canonicalRef)) return false;
+  const disposition = node.planningMetadata.pathDisposition?.kind;
+  if (disposition === 'supporting-citation' || disposition === 'embedded-asset') return false;
+  if (node.checkpoint || node.type === 'checkpoint') return false;
+  if (node.planningMetadata.terminalConstraints.some((constraint) =>
+    constraint === 'terminal-validation' || constraint === 'terminal-node'
+  )) return false;
+  return true;
+}
+
 function isStructuralPolicySharedNode(
   node: AdaptiveLearningPathPlanNode,
   registry: ResourceNodeRegistry,
@@ -4683,96 +4717,176 @@ function buildPolicyBundle(
   const omittedPolicyReasons: string[] = [];
   const avoidedDifferentiableCoreRefs = new Set<string>();
   const retainedCoreRefs = new Set<string>();
-  const basePaths = families.reduce<AdaptiveLearningPathPolicyBundle['paths']>((paths, policyFamily) => {
-    const diversityAvoidNodeIds = unique([
-      ...(input.excludedNodeIds ?? []),
-      ...input.registry.nodes
-        .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
-        .map((node) => node.id),
-    ]);
-    const plan = buildAdaptiveLearningPathPlanInternal(
-      {
-        ...input,
-        policyFamily,
-        policyBundle: undefined,
-        diversityAvoidNodeIds,
-      },
-      false,
-    );
-    const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
-    const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);
-    if (mainPath.length === 0) {
-      omittedPolicyReasons.push(paths.length > 0 ? 'policy-option-diversity-unavailable' : 'policy-path-resource-missing');
-      return paths;
-    }
-    const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
-    if (paths.length > 0 && !hasNewCoreRef) {
-      omittedPolicyReasons.push('policy-option-diversity-unavailable');
-      return paths;
-    }
-    const pairwiseCoreOverlapExceedsThreshold = paths.some((existingPath) =>
-      resourceOverlap(
+  const basePaths: AdaptiveLearningPathPolicyBundle['paths'] = [];
+  for (const policyFamily of families) {
+    const retryQueue: PolicyFamilyRetryState[] = [{
+      excludedCanonicalCoreRefs: new Set<string>(),
+      parentKey: '',
+    }];
+    const seenRetryStateKeys = new Set<string>([retryStateKey(new Set<string>())]);
+    const seenCoreSetKeys = new Set<string>();
+    let attempts = 0;
+    let familyAccepted = false;
+    let ordinaryPlannerFailure = false;
+
+    const enqueueRetryState = (
+      excludedCanonicalCoreRefs: ReadonlySet<string>,
+      parentKey: string,
+    ) => {
+      const stateKey = retryStateKey(excludedCanonicalCoreRefs);
+      if (seenRetryStateKeys.has(stateKey)) return;
+      seenRetryStateKeys.add(stateKey);
+      retryQueue.push({ excludedCanonicalCoreRefs: new Set(excludedCanonicalCoreRefs), parentKey });
+    };
+
+    const enqueueRetryBranches = (
+      refs: string[],
+      currentExcludedCanonicalCoreRefs: ReadonlySet<string>,
+      parentKey: string,
+      options: { combinedFirst?: boolean } = {},
+    ) => {
+      const uniqueRefs = unique(refs).sort((left, right) => left.localeCompare(right));
+      if (options.combinedFirst && uniqueRefs.length > 1) {
+        enqueueRetryState(new Set([
+          ...currentExcludedCanonicalCoreRefs,
+          ...uniqueRefs,
+        ]), parentKey);
+      }
+      for (const ref of uniqueRefs) {
+        enqueueRetryState(new Set([
+          ...currentExcludedCanonicalCoreRefs,
+          ref,
+        ]), parentKey);
+      }
+    };
+
+    while (attempts < 3 && retryQueue.length > 0) {
+      const retryState = retryQueue.shift()!;
+      attempts += 1;
+      const diversityAvoidNodeIds = unique([
+        ...(input.excludedNodeIds ?? []),
+        ...input.registry.nodes
+          .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
+          .map((node) => node.id),
+      ]);
+      const plan = buildAdaptiveLearningPathPlanInternal(
+        {
+          ...input,
+          policyFamily,
+          policyBundle: undefined,
+          diversityAvoidNodeIds,
+        },
+        false,
+        { excludedCanonicalCoreRefs: retryState.excludedCanonicalCoreRefs },
+      );
+      const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
+      const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);
+      if (mainPath.length === 0) {
+        ordinaryPlannerFailure = true;
+        continue;
+      }
+      const coreSetKey = retryStateKey(new Set(coreRefs));
+      if (seenCoreSetKeys.has(coreSetKey)) continue;
+      seenCoreSetKeys.add(coreSetKey);
+      const retryExcludedCoreRefs = coreRefs.filter((ref) =>
+        retryState.excludedCanonicalCoreRefs.has(ref)
+      );
+      if (retryExcludedCoreRefs.length > 0) {
+        enqueueRetryBranches(
+          retryExcludedCoreRefs,
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
+        continue;
+      }
+      const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
+      if (basePaths.length > 0 && !hasNewCoreRef) {
+        enqueueRetryBranches(
+          coreRefs,
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
+        continue;
+      }
+      const overlapConflicts = pathsWithCoreOverlapAboveThreshold(
+        basePaths,
         coreRefs,
-        differentiablePolicyCoreRefs(existingPath.planNodes ?? [], input.registry),
-      ) >= overlapThreshold,
-    );
-    if (pairwiseCoreOverlapExceedsThreshold) {
-      omittedPolicyReasons.push('policy-option-diversity-unavailable');
-      return paths;
-    }
-    coreRefs.forEach((ref) => {
-      retainedCoreRefs.add(ref);
-      avoidedDifferentiableCoreRefs.add(ref);
-    });
-    const modalityMix = buildModalityMix(mainPath);
-    const terminalValidationNodeIds = mainPath
-      .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-      .map((node) => node.nodeId);
-    const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
-    const targetDeficits = deficitsForPath(mainPath, deficits);
-    paths.push({
-      styleId: styleIdForPolicyFamily(policyFamily),
-      policyFamily,
-      label: styleLabelForPolicyFamily(policyFamily),
-      nodeIds: mainPath.map((node) => node.nodeId),
-      activeNodeIds: activePolicyNodeIds(mainPath),
-      lockedNodeIds: lockedPolicyNodeIds(mainPath),
-      readinessSummary: policyReadinessSummary(mainPath),
-      unlockMessages: policyUnlockMessages(mainPath),
-      planNodes: mainPath,
-      nodeSummaries: mainPath.map(toPathOptionNodeSummary),
-      targetDeficits,
-      recommendationProvenance: buildAdaptivePathRecommendationProvenance({
-        path: mainPath,
-        deficits: targetDeficits,
-        confidence: plan.confidence.level,
-      }),
-      evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
-      estimatedMinutes: remainingEstimatedMinutes(mainPath),
-      modalityMix,
-      resourceMix: modalityMix,
-      overlap: {
-        maxWithOtherOptions: 0,
-      },
-      effort: {
+        input.registry,
+        overlapThreshold,
+      );
+      if (overlapConflicts.length > 0) {
+        enqueueRetryBranches(
+          unique(overlapConflicts.flatMap((conflict) => conflict.conflictingRefs)),
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
+        continue;
+      }
+      coreRefs.forEach((ref) => {
+        retainedCoreRefs.add(ref);
+        avoidedDifferentiableCoreRefs.add(ref);
+      });
+      const modalityMix = buildModalityMix(mainPath);
+      const terminalValidationNodeIds = mainPath
+        .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+        .map((node) => node.nodeId);
+      const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
+      const targetDeficits = deficitsForPath(mainPath, deficits);
+      basePaths.push({
+        styleId: styleIdForPolicyFamily(policyFamily),
+        policyFamily,
+        label: styleLabelForPolicyFamily(policyFamily),
+        nodeIds: mainPath.map((node) => node.nodeId),
+        activeNodeIds: activePolicyNodeIds(mainPath),
+        lockedNodeIds: lockedPolicyNodeIds(mainPath),
+        readinessSummary: policyReadinessSummary(mainPath),
+        unlockMessages: policyUnlockMessages(mainPath),
+        planNodes: mainPath,
+        nodeSummaries: mainPath.map(toPathOptionNodeSummary),
+        targetDeficits,
+        recommendationProvenance: buildAdaptivePathRecommendationProvenance({
+          path: mainPath,
+          deficits: targetDeficits,
+          confidence: plan.confidence.level,
+        }),
+        evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
         estimatedMinutes: remainingEstimatedMinutes(mainPath),
-        relative: effortLabel(remainingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
-      },
-      expectedTargetLift: round(plan.score.objectives.learningGain, 3),
-      terminalValidationNodeIds,
-      terminalValidationStrategy: {
-        nodeIds: terminalValidationNodeIds,
-        summary: terminalValidationRequired
-          ? terminalValidationNodeIds.length > 0
-            ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-            : 'terminal validation unavailable'
-          : '阶段检查点用于学习反馈',
-      },
-      checkpointNodeIds,
-      limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
-    });
-    return paths;
-  }, []);
+        modalityMix,
+        resourceMix: modalityMix,
+        overlap: {
+          maxWithOtherOptions: 0,
+        },
+        effort: {
+          estimatedMinutes: remainingEstimatedMinutes(mainPath),
+          relative: effortLabel(remainingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
+        },
+        expectedTargetLift: round(plan.score.objectives.learningGain, 3),
+        terminalValidationNodeIds,
+        terminalValidationStrategy: {
+          nodeIds: terminalValidationNodeIds,
+          summary: terminalValidationRequired
+            ? terminalValidationNodeIds.length > 0
+              ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+              : 'terminal validation unavailable'
+            : '阶段检查点用于学习反馈',
+        },
+        checkpointNodeIds,
+        limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
+      });
+      familyAccepted = true;
+      break;
+    }
+    if (!familyAccepted && attempts > 0) {
+      omittedPolicyReasons.push(
+        ordinaryPlannerFailure && basePaths.length === 0
+          ? 'policy-path-resource-missing'
+          : 'policy-option-diversity-unavailable',
+      );
+    }
+  }
   const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths, input.registry);
   const paths = basePaths.map((path) => ({
     ...path,
@@ -5274,6 +5388,35 @@ function buildPairwiseResourceOverlap(
     }
   }
   return overlaps;
+}
+
+function retryStateKey(refs: ReadonlySet<string>): string {
+  return Array.from(refs).sort((left, right) => left.localeCompare(right)).join('|');
+}
+
+function pathsWithCoreOverlapAboveThreshold(
+  paths: AdaptiveLearningPathPolicyBundle['paths'],
+  candidateCoreRefs: string[],
+  registry: ResourceNodeRegistry,
+  overlapThreshold: number,
+): Array<{ path: AdaptiveLearningPathPolicyBundle['paths'][number]; conflictingRefs: string[]; overlap: number }> {
+  return paths
+    .map((path) => {
+      const retainedCoreRefs = differentiablePolicyCoreRefs(path.planNodes ?? [], registry);
+      const overlap = resourceOverlap(candidateCoreRefs, retainedCoreRefs);
+      return {
+        path,
+        overlap,
+        conflictingRefs: candidateCoreRefs
+          .filter((ref) => retainedCoreRefs.includes(ref))
+          .sort((left, right) => left.localeCompare(right)),
+      };
+    })
+    .filter((item) => item.overlap >= overlapThreshold && item.conflictingRefs.length > 0)
+    .sort((left, right) =>
+      right.overlap - left.overlap ||
+      left.path.policyFamily.localeCompare(right.path.policyFamily)
+    );
 }
 
 function buildPairwiseModalityDistance(

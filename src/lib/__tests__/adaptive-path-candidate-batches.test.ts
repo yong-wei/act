@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   AdaptivePathCandidateBatchConflictError,
+  buildAdaptivePathCandidateDifferenceSummary,
   buildCandidateSnapshots,
+  fingerprintAdaptivePathCandidateSnapshot,
   persistAdaptivePathCandidateBatch,
   resolveAdaptivePathCandidateSelection,
 } from '@/lib/adaptive-path-candidate-batches';
@@ -286,7 +288,7 @@ describe('adaptive path candidate batches', () => {
     const batch = {
       id: 'batch-1', userId: 'student-1', goalId: 'control-correction', classId: 'class-1',
       generationRequestId: 'request-1', sourcePathId: 'path-1', plannerVersion: 'stage-1-rules-graph',
-      status: 'succeeded' as const, createdAt: '2026-08-05T00:00:00.000Z', candidates,
+      status: 'succeeded' as const, createdAt: '2026-08-05T00:00:00.000Z', metadata: {}, candidates,
     };
 
     expect(resolveAdaptivePathCandidateSelection(batch, { candidateId: candidates[1].id })).toMatchObject({
@@ -310,6 +312,135 @@ describe('adaptive path candidate batches', () => {
     }
     expect(resolveAdaptivePathCandidateSelection(batch, { candidateId: 'missing' })).toEqual({
       status: 'unresolved', batchId: 'batch-1',
+    });
+  });
+
+  it('persists adjustment lineage and detects governed material differences', async () => {
+    const source = buildCandidateSnapshots(plan(), 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths[0].nodeIds = ['node-adjusted'];
+    adjusted.policyBundle!.paths[0].planNodes = [node('node-adjusted')];
+    const differenceSummary = buildAdaptivePathCandidateDifferenceSummary(source, adjusted);
+    const { db, create } = dbFixture();
+
+    const batch = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-1',
+      plan: adjusted,
+      derivation: {
+        kind: 'adjustment',
+        sourceBatchId: 'source-batch',
+        sourceCandidateId: source.id,
+        sourceCandidateFingerprint: source.fingerprint,
+        activeProgressVersion: '2026-08-18T00:00:00.000Z',
+        requestSnapshot: { difficultyRhythm: 'challenge' },
+        differenceSummary,
+      },
+    });
+
+    expect(differenceSummary).toMatchObject({
+      material: true,
+      sourceCandidateFingerprint: fingerprintAdaptivePathCandidateSnapshot(source.snapshot),
+      candidates: expect.arrayContaining([
+        expect.objectContaining({ changedFields: expect.arrayContaining(['nodeIds']) }),
+      ]),
+    });
+    expect(batch.metadata).toMatchObject({
+      derivation: {
+        sourceBatchId: 'source-batch',
+        sourceCandidateId: source.id,
+        activeProgressVersion: '2026-08-18T00:00:00.000Z',
+      },
+    });
+    expect(create).toHaveBeenCalledOnce();
+  });
+
+  it('rejects adjustment idempotency reuse for a different governed source', async () => {
+    const source = buildCandidateSnapshots(plan(), 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths[0].nodeIds = ['node-adjusted'];
+    adjusted.policyBundle!.paths[0].planNodes = [node('node-adjusted')];
+    const differenceSummary = buildAdaptivePathCandidateDifferenceSummary(source, adjusted);
+    const { db } = dbFixture();
+    const derivation = {
+      kind: 'adjustment' as const,
+      sourceBatchId: 'source-batch',
+      sourceCandidateId: source.id,
+      sourceCandidateFingerprint: source.fingerprint,
+      activeProgressVersion: '2026-08-18T00:00:00.000Z',
+      requestSnapshot: { difficultyRhythm: 'challenge', resourcePreference: ['simulation'] },
+      differenceSummary,
+    };
+
+    await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-source-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation,
+    });
+
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-source-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation: {
+        ...derivation,
+        sourceCandidateId: 'another-candidate',
+      },
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+  });
+
+  it('rejects adjustment idempotency reuse for a different normalized request or class', async () => {
+    const source = buildCandidateSnapshots(plan(), 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths[0].nodeIds = ['node-adjusted'];
+    adjusted.policyBundle!.paths[0].planNodes = [node('node-adjusted')];
+    const differenceSummary = buildAdaptivePathCandidateDifferenceSummary(source, adjusted);
+    const { db } = dbFixture();
+    const derivation = {
+      kind: 'adjustment' as const,
+      sourceBatchId: 'source-batch',
+      sourceCandidateId: source.id,
+      sourceCandidateFingerprint: source.fingerprint,
+      activeProgressVersion: '2026-08-18T00:00:00.000Z',
+      requestSnapshot: { difficultyRhythm: 'challenge', resourcePreference: ['simulation'] },
+      differenceSummary,
+    };
+
+    await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation,
+    });
+
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-1',
+      derivation: {
+        ...derivation,
+        requestSnapshot: { resourcePreference: ['simulation'], difficultyRhythm: 'steady' },
+      },
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+    await expect(persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'adjustment-request-conflict',
+      plan: adjusted,
+      classId: 'class-2',
+      derivation,
+    })).rejects.toBeInstanceOf(AdaptivePathCandidateBatchConflictError);
+  });
+
+  it('reports no material difference for cosmetic candidate changes', () => {
+    const original = plan();
+    const source = buildCandidateSnapshots(original, 'source-batch')[0]!;
+    const adjusted = plan();
+    adjusted.policyBundle!.paths = [{
+      ...adjusted.policyBundle!.paths[0],
+      label: '新的显示名称',
+    }];
+
+    expect(buildAdaptivePathCandidateDifferenceSummary(source, adjusted)).toMatchObject({
+      material: false,
     });
   });
 });
