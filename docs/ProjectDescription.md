@@ -57,6 +57,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
+- 班级与学生学情页提供持久化诊断报告历史；正式生成前以当前生成器可读取的风险、能力快照和知识进度执行确定性预检。普通生成在输入与版本均未变化时被阻止，教师强制生成必须填写理由，并将前序报告、证据截止点、输入摘要和规则版本写入审计链。
 - `/teacher/assignments`：作业列表、单页编辑工作台、受治理题库选题、评分项编排、保存状态与发布校验入口。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
@@ -252,10 +253,16 @@ rtk npm run test:data-governance
 
 ```bash
 rtk bash scripts/build.sh
-rtk bash scripts/remote-deploy.sh
+rtk npm run deploy:app -- --skip-build
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。部署脚本保留 `legacy-rsync` 兼容模式，并支持显式 `ossfs-release` 模式：不可变 OSS Release 经全量摘要复核后挂载到固定前缀，再以只读 bind mount 提供给应用；真实生产启用需要 RAM Role、候选挂载、性能与回退证据。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
+课程 runtime 走独立 OSS 发布，不要用应用部署脚本同步本地 tree：
+
+```bash
+rtk npm run deploy:runtime
+```
+
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
 
 ## 维护入口
 

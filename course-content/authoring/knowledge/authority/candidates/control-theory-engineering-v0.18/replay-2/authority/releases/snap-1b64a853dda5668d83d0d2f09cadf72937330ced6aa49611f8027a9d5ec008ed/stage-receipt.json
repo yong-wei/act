@@ -1,0 +1,17 @@
+{
+  "contract": "actkg-engineering-authority-stage-receipt/v1",
+  "receiptId": "stage-v018-d32f48b22dbb67fd8da91a545dbeed82cffa4ca7ecf1c68fd8084e948cb4abd6",
+  "snapshotId": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+  "snapshotHash": "1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+  "releaseId": "ctr:release:control-theory-engineering-v0.18",
+  "releaseSetId": "actkg-authority-candidate-v018-9caf1083ae7a13c5122546e7ff7cbf8b6b0f463438444088d9c80227624866cd",
+  "stagedAt": "1970-01-01T00:00:00.000Z",
+  "status": "staged",
+  "selectorsChanged": 0,
+  "teachingSelectorsAdvanced": false,
+  "engineeringAuthorityAdvanced": false,
+  "reasons": [
+    "staged-candidate-only",
+    "selectors-unchanged"
+  ]
+}

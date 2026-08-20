@@ -119,6 +119,8 @@ export interface AuthorityShardObject {
   id: string;
   canonicalType: string;
   label: string;
+  /** Localized search/detail aliases; never used as identity. */
+  aliases: readonly string[];
   description: string | null;
   governance: {
     reviewStatus: string | null;
@@ -156,6 +158,8 @@ export interface AuthorityShardRelation {
 export interface AuthorityShardBoundaryRef {
   canonicalId: string;
   label: string;
+  /** Localized search/detail aliases when the boundary is materialized. */
+  aliases?: readonly string[];
   canonicalType: string;
   adjacentDomainIds: readonly RegisteredPeerDomainId[];
 }
@@ -217,6 +221,8 @@ export interface AuthorityNodeDetailShard {
     id: string;
     canonicalType: string;
     label: string;
+    /** Localized search/detail aliases; never used as identity. */
+    aliases?: readonly string[];
     description: string | null;
     teachingFields: Record<string, unknown>;
     governance: {
@@ -229,8 +235,41 @@ export interface AuthorityNodeDetailShard {
       cardAvailable: false;
       infographAvailable: false;
     };
+    /**
+     * Filled only by the authenticated node-detail API. Immutable shard bytes
+     * deliberately contain no card body or media locator.
+     */
+    learningContent?: AuthorityNodeLearningContent;
     semanticSupport: { supported: boolean; readOnly: true };
   };
+}
+
+export type AuthorityLearningCard =
+  | {
+    state: 'available';
+    summary: string;
+    insight: string | null;
+    explanation: string | null;
+  }
+  | {
+    state: 'missing' | 'blocked' | 'unavailable';
+    message: string;
+  };
+
+export type AuthorityLearningInfograph =
+  | {
+    state: 'available';
+    alternativeText: string;
+  }
+  | {
+    state: 'missing' | 'unavailable';
+    message: string;
+  };
+
+/** Learner-safe, selection-bound supplement to a sealed node-detail shard. */
+export interface AuthorityNodeLearningContent {
+  card: AuthorityLearningCard;
+  infograph: AuthorityLearningInfograph;
 }
 
 export type AuthorityLearnerShard =

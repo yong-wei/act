@@ -4652,6 +4652,20 @@ model ArenaSubmission {
   @@index([artifactHash])
 }
 
+model ArenaOfficialSubmitReservation {
+  id           String    @id
+  userId       String
+  taskId       String
+  classId      String    @default("")
+  submittedAt  DateTime
+  submissionId String?
+  lockedUntil  DateTime
+  createdAt    DateTime  @default(now())
+
+  @@unique([userId, taskId, classId, submittedAt])
+  @@index([submissionId])
+}
+
 model ArenaBlackBoxExperiment {
   id          String   @id @default(cuid())
   userId      String
@@ -4872,6 +4886,9 @@ model LearnerPortraitStateVersion {
   queueGeneration    BigInt
   stateWatermark     BigInt
   taskInputDigest    String                   @default("")
+  trustedFactIds     Json                     @default("[]")
+  trustedFactPolicyVersion String              @default("")
+  trustedInputDigest String                    @default("")
   stateKind          LearnerPortraitStateKind
   snapshotId         String?
   overallScore       Float?
@@ -5186,46 +5203,66 @@ model DiagnosisReport {
   riskSummary      Json?
   evidenceCutoff   DateTime
   generatorVersion String   @default("v1")
+  ruleVersion      String?
+  generationReason String?
+  forceReason      String?
+  previousReportId String?
+  inputSummary     Json?
+  inputDigest      String?
   generatedAt      DateTime @default(now())
   generationJobId  String?  @unique
 
-  class   Class @relation(fields: [classId], references: [id], onDelete: Restrict)
-  creator User  @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
-  target  User? @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
-  generationJob DiagnosisGenerationJob? @relation(fields: [generationJobId], references: [id], onDelete: Restrict)
+  class                   Class                    @relation(fields: [classId], references: [id], onDelete: Restrict)
+  creator                 User                     @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
+  target                  User?                    @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  generationJob           DiagnosisGenerationJob?  @relation("DiagnosisGenerationResult", fields: [generationJobId], references: [id], onDelete: Restrict)
+  previousReport          DiagnosisReport?         @relation("DiagnosisReportPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
+  successorReports        DiagnosisReport[]        @relation("DiagnosisReportPredecessor")
+  successorGenerationJobs DiagnosisGenerationJob[] @relation("DiagnosisGenerationPredecessor")
 
   @@index([scopeType, scopeId, generatedAt])
   @@index([classId, generatedAt])
   @@index([userId, generatedAt])
   @@index([targetUserId, generatedAt])
+  @@index([previousReportId])
 }
 
 model DiagnosisGenerationJob {
-  id               String                       @id @default(cuid())
-  userId           String
-  classId          String
-  targetUserId     String?
-  scopeType        String
-  scopeId          String
-  activeScopeKey   String?                      @unique
-  idempotencyKey   String
-  state            DiagnosisGenerationJobState @default(QUEUED)
-  evidenceCutoff   DateTime
-  generatorVersion String
-  failureCode      String?
-  failureMessage   String?
-  retryable        Boolean                      @default(false)
-  deliveryGeneration Int                        @default(0)
-  report           DiagnosisReport?
-  attempts         DiagnosisGenerationAttempt[]
-  createdAt        DateTime                     @default(now())
-  startedAt        DateTime?
-  completedAt      DateTime?
-  updatedAt        DateTime                     @updatedAt
+  id                         String                       @id @default(cuid())
+  userId                     String
+  classId                    String
+  targetUserId               String?
+  scopeType                  String
+  scopeId                    String
+  activeScopeKey             String?                      @unique
+  idempotencyKey             String
+  state                      DiagnosisGenerationJobState  @default(QUEUED)
+  evidenceCutoff             DateTime
+  generatorVersion           String
+  ruleVersion                String?
+  generationReason           String?
+  forceReason                String?
+  previousReportId           String?
+  inputSummary               Json?
+  governedInput              Json?
+  inputDigest                String?
+  ordinaryGenerationIdentity String?                      @unique
+  failureCode                String?
+  failureMessage             String?
+  retryable                  Boolean                      @default(false)
+  deliveryGeneration         Int                          @default(0)
+  report                     DiagnosisReport?             @relation("DiagnosisGenerationResult")
+  previousReport             DiagnosisReport?             @relation("DiagnosisGenerationPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
+  attempts                   DiagnosisGenerationAttempt[]
+  createdAt                  DateTime                     @default(now())
+  startedAt                  DateTime?
+  completedAt                DateTime?
+  updatedAt                  DateTime                     @updatedAt
 
   @@unique([userId, idempotencyKey])
   @@index([classId, targetUserId, createdAt])
   @@index([state, createdAt])
+  @@index([previousReportId])
 }
 
 model DiagnosisGenerationAttempt {
@@ -5393,6 +5430,9 @@ model ActkgRelease {
   bundleReceipts                  ActkgBundleReceipt[]
   projectionIdentities            ActkgProjectionIdentity[]
   linkMetadataRows                ActkgProjectionLinkMetadata[]
+  v2ProjectionProfiles            ActkgV2ProjectionProfile[]
+  v2MultilingualLabels            ActkgV2MultilingualLabel[]
+  v2AdmissionBinding              ActkgV2AdmissionBinding?
   deltaReceiptsAsBase             ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaBaseRelease")
   deltaReceiptsAsCandidate        ActkgReleaseSetDeltaReceipt[]          @relation("ActkgDeltaCandidateRelease")
 
@@ -5631,7 +5671,7 @@ model ActkgBundleReceipt {
   id                       String   @id
   bundleId                 String
   bundleRevision           Int
-  bundleDigest             String   @unique
+  bundleDigest             String
   bundleKind               String
   releaseStage             String
   bundleContractVersion    String
@@ -5668,8 +5708,10 @@ model ActkgBundleReceipt {
   linkMetadata             ActkgProjectionLinkMetadata[]
   deltaReceiptsAsBase      ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaBaseBundle")
   deltaReceiptsAsCandidate ActkgReleaseSetDeltaReceipt[] @relation("ActkgDeltaCandidateBundle")
+  v2AdmissionBinding       ActkgV2AdmissionBinding?
 
   @@unique([bundleId, bundleRevision])
+  @@unique([bundleContractVersion, bundleDigest])
   @@index([releaseSetId, releaseId])
   @@index([releaseId, candidateState])
 }
@@ -5697,6 +5739,68 @@ model ActkgBundleArtifact {
   @@id([bundleReceiptId, relativePath])
   @@unique([bundleReceiptId, ordinal])
   @@index([role])
+}
+
+// V2 projection profiles are preserved as typed semantic evidence.  They are
+// intentionally separate from V1 ProjectionIdentity rows: a profile carries
+// mapping and aggregation policy that has no V1 equivalent.
+model ActkgV2ProjectionProfile {
+  releaseId              String
+  profileKey             String
+  manifestProfile        String
+  profileId              String
+  profileSha256          String
+  projectionKind         String
+  profileVersion         String
+  mappingContractVersion String
+  aggregationPolicy      String
+  payload                Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, profileKey])
+  @@unique([releaseId, profileId])
+  @@index([releaseId, manifestProfile])
+}
+
+// V2 terminology rows retain the complete multilingual assertion identity and
+// original row payload.  They are not projected into V1 semanticName fields.
+model ActkgV2MultilingualLabel {
+  releaseId              String
+  ordinal                Int
+  entityId               String
+  language               String
+  label                  String
+  labelType              String
+  terminologyAssertionId String
+  payload                Json
+
+  release ActkgRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, terminologyAssertionId])
+  @@unique([releaseId, ordinal])
+  @@index([releaseId, entityId])
+  @@index([releaseId, language])
+}
+
+// Frozen registry/admission provenance for a V2 Bundle.  JSON members are
+// retained verbatim and bindingDigest binds the canonical complete object.
+model ActkgV2AdmissionBinding {
+  releaseId           String  @id
+  bundleReceiptId     String  @unique
+  protocol            String
+  provenance          String
+  verificationScope   String
+  verifiedDuringLoad  Boolean
+  registryIdentity    Json
+  upstreamRepository  Json
+  publicationRevision Json
+  sourceRevision      Json
+  bundleIdentity      Json
+  bindingDigest       String
+
+  release ActkgRelease       @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  receipt ActkgBundleReceipt @relation(fields: [bundleReceiptId], references: [id], onDelete: Restrict)
 }
 
 // Multi-Projection identity records. Runtime Projection maps into existing

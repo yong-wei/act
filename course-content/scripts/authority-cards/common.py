@@ -60,6 +60,13 @@ RUNTIME_INFOGRAPH_MANIFEST = (
     / "authority"
     / "manifest.json"
 )
+RUNTIME_LEARNING_CONTENT_MANIFEST = (
+    REPO_ROOT
+    / "course-content"
+    / "runtime"
+    / "knowledge"
+    / "authority-learning-content-manifest.json"
+)
 INVENTORY_DIR = REPO_ROOT / "course-content" / "authoring" / "knowledge" / "cards" / "authority"
 INVENTORY_JSON = INVENTORY_DIR / "inventory.json"
 STATUS_JSON = INVENTORY_DIR / "status.json"

@@ -240,11 +240,170 @@ export interface ReleaseSetLockV3 {
   components: ReleaseSetLockV3Component[];
 }
 
-export type PublicBundleRouteKind = 'legacy-exact-v0.2' | 'actkg-public-bundle/1';
+export type PublicBundleRouteKind =
+  | 'legacy-exact-v0.2'
+  | 'actkg-public-bundle/1'
+  | 'actkg-public-bundle/2';
 
 export interface PublicBundleRouteDecision {
   kind: PublicBundleRouteKind;
   controlledPath: string;
   hasManifest: boolean;
   reason: string;
+}
+
+export interface BundleIdentityV2 {
+  protocol: 'actkg-public-bundle/2';
+  bundleId: string;
+  bundleRevision: number;
+  bundleDigest: string;
+  bundleKind: 'module' | 'integration' | 'aggregate';
+  releaseStage: 'candidate' | 'stable';
+  bundleContractVersion: 'actkg-public-bundle/2';
+  controlledPath: string;
+  manifestRawSha256: string;
+  sha256sumsRawSha256: string;
+}
+
+export interface RevisionIdentity {
+  tag: string;
+  commit: string;
+}
+
+export interface PublicBundleV2UpstreamRepositoryIdentity {
+  repositoryId: string;
+  remoteUrl: string;
+}
+
+/**
+ * The immutable registry identity copied into the registered binding. This is
+ * descriptive provenance, not a cryptographic signature.
+ */
+export interface PublicBundleV2RegistryIdentity {
+  registryId: string;
+  bundleContractVersion: string;
+  bundleId: string;
+  bundleRevision: number;
+  bundleDigest: string;
+  manifestRawSha256: string;
+  sha256sumsRawSha256: string;
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  schemaVersion: string;
+  schemaRawSha256: string;
+}
+
+/** Result returned by the separate upstream-Git admission check. */
+export interface PublicBundleV2AdmissionResult {
+  contractVersion: 'actkg-public-bundle-v2-admission/1';
+  /** Gate-only outcome; this field is never copied into loader output. */
+  status: 'PASS';
+  registryIdentity: PublicBundleV2RegistryIdentity;
+  upstreamRepository: PublicBundleV2UpstreamRepositoryIdentity;
+  publicationRevision: RevisionIdentity;
+  sourceRevision: RevisionIdentity;
+}
+
+export interface RegisteredAdmissionBundleIdentity {
+  bundleContractVersion: 'actkg-public-bundle/2';
+  bundleId: string;
+  bundleRevision: number;
+  bundleDigest: string;
+}
+
+/**
+ * Module-controlled registration provenance. The binding is derived from the
+ * frozen registry at load time and never represents a Git operation performed
+ * by the loader itself.
+ */
+export interface RegisteredAdmissionBinding {
+  provenance: 'registry';
+  verificationScope: 'admission-time';
+  verifiedDuringLoad: false;
+  registryIdentity: PublicBundleV2RegistryIdentity;
+  upstreamRepository: PublicBundleV2UpstreamRepositoryIdentity;
+  publicationRevision: RevisionIdentity;
+  sourceRevision: RevisionIdentity;
+  bundleIdentity: RegisteredAdmissionBundleIdentity;
+}
+
+export interface TypedProjectionProfileV2 {
+  key: 'act' | 'domain' | 'review';
+  manifestProfile: 'runtime' | 'domain' | 'review';
+  profileId: string;
+  profileSha256: string;
+  projectionKind: string;
+  profileVersion: string;
+  mappingContractVersion: string;
+  aggregationPolicy: string;
+  payload: JsonObject;
+}
+
+export interface TypedMultilingualLabelV2 {
+  entityId: string;
+  language: string;
+  label: string;
+  labelType: string;
+  terminologyAssertionId: string;
+  payload: JsonObject;
+}
+
+export interface ValidatedComponentReferenceV2 {
+  releaseId: string;
+  releaseVersion: string;
+  releaseHash: string;
+  componentRole: string;
+  componentPath: string;
+  componentSha256: string;
+  sourceReleaseHash: string;
+  sourceCommit: string;
+  sourceTag?: string;
+}
+
+export interface RecomputedStatisticsV2 extends RecomputedStatistics {
+  releaseNodes: number;
+  terminologyAssertions: number;
+}
+
+/**
+ * Storage-independent validated Bundle v2 result.
+ * Downstream code must branch on `protocol` and must not treat this as
+ * `ValidatedActKGBundle`.
+ */
+export interface ValidatedActKGBundleV2 {
+  protocol: 'actkg-public-bundle/2';
+  captureRevision: string;
+  graphRagRuntimeIntakeBlocked: true;
+  bundleIdentity: BundleIdentityV2;
+  /** Source revision copied only from the raw Manifest. */
+  manifestSourceRevision: RevisionIdentity;
+  /** Registration provenance copied only from the frozen module registry. */
+  registeredAdmissionBinding: RegisteredAdmissionBinding;
+  releaseIdentity: ReleaseIdentity;
+  schemaIdentity: SchemaIdentity;
+  selectedRuntimeProjection: {
+    identity: ProjectionIdentity;
+    payload: JsonObject;
+  };
+  preservedProjections: Array<{
+    identity: ProjectionIdentity;
+    payload: JsonObject;
+  }>;
+  projectionProfiles: TypedProjectionProfileV2[];
+  multilingualLabels: TypedMultilingualLabelV2[];
+  runtimeLinkMetadata: ProjectionLinkMetadataRow[];
+  allLinkMetadata: Array<{
+    profiles: string[];
+    path: string;
+    rows: ProjectionLinkMetadataRow[];
+  }>;
+  crosswalk: CrosswalkRow[];
+  components: ValidatedComponentReferenceV2[];
+  rawArtifacts: ValidatedRawArtifact[];
+  release: JsonObject;
+  schema: JsonObject;
+  statistics: RecomputedStatisticsV2;
+  compatibility: CompatibilityAssessment;
+  unknownOptionalArtifacts: ArtifactDescriptor[];
 }

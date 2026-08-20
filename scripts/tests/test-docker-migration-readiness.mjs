@@ -73,6 +73,16 @@ function main() {
     dockerignore.includes('!course-content/runtime/knowledge/authority-domain-shards/**'),
     'Docker ignore 必须放行 immutable Authority domain shard set',
   );
+  for (const allowedRuntimeAsset of [
+    '!course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '!course-content/runtime/knowledge/cards/authority/**',
+    '!course-content/runtime/knowledge/infographs/authority/**',
+  ]) {
+    assert.ok(
+      dockerignore.includes(allowedRuntimeAsset),
+      `Docker ignore 必须放行 Authority 学习内容: ${allowedRuntimeAsset}`,
+    );
+  }
   assert.match(
     dockerfile,
     /course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*COPY --from=builder \/app\/course-content\/runtime\/knowledge\/authority-domain-shards \.\/course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*course-content\/runtime\/knowledge\/authority-domain-shards\/current\.json/,
@@ -87,14 +97,25 @@ function main() {
       runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
     'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
   );
+  for (const requiredLearningCopy of [
+    '/app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '/app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority',
+    '/app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority',
+  ]) {
+    assert.ok(
+      runnerStage.includes(requiredLearningCopy),
+      `Docker runner 必须包含 Authority 学习内容: ${requiredLearningCopy}`,
+    );
+  }
   assert.match(
     remoteDeployScript,
     /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,
     'remote deploy 必须固定检查远端 host authoring Authority current pointer',
   );
-  assert.ok(
-    (remoteDeployScript.match(/check_remote_authority_current_pointer_absence/g) ?? []).length >= 3,
-    'remote deploy 必须在部署前与部署后检查 host Authority current pointer 不存在',
+  assert.match(
+    remoteDeployScript,
+    /legacy-rsync 已退役/,
+    'legacy-rsync 已退役后不得再作为可执行 runtime 同步路径',
   );
   assert.match(
     dockerfile,

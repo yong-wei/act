@@ -11,6 +11,8 @@ import {
   ResourceNode,
   ResourceNodeRegistry,
 } from '../resource-node-registry';
+import { hasAuthoritativePortraitV2Evidence } from '../data-governance/portrait-v2-consumer';
+import type { PortraitV2ProjectedPayload } from '../data-governance/portrait-v2-model';
 
 export type ResourceLearnerMatchingScene = 'path' | 'konling' | 'diagnosis' | 'prep-pack';
 
@@ -29,6 +31,9 @@ export interface ResourceLearnerMatchingLearnerState {
       evidenceCount?: number;
     }>;
   };
+  primaryPortrait?: unknown;
+  primaryPortraitState?: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
+  primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
   };
@@ -391,6 +396,7 @@ function capabilityContributionScore(
   profile: ResourceLearnerRankerScoringProfile,
   learnerState: ResourceLearnerMatchingLearnerState | null,
 ): number {
+  if (!hasTrustedPortraitForRanking(learnerState)) return 0;
   const competencyState = learnerState?.primaryCompetencies?.vector ?? {};
   const entries = Object.entries(profile.abilityImpact);
   if (entries.length === 0) return 0;
@@ -462,6 +468,7 @@ function learnerCompetencyScore(
   learnerState: ResourceLearnerMatchingLearnerState | null,
   dimension: string,
 ): number {
+  if (!hasTrustedPortraitForRanking(learnerState)) return 0;
   return learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0;
 }
 
@@ -469,12 +476,24 @@ function learnerEvidenceCount(
   learnerState: ResourceLearnerMatchingLearnerState | null,
   readiness: ResourceNodeReadinessMetadata,
 ): number {
+  if (!hasTrustedPortraitForRanking(learnerState)) return 0;
   const competencyEvidence = Object.keys(readiness.minimumCompetency)
     .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
   return Math.max(
-    learnerState?.evidence?.confidence?.evidenceCount ?? 0,
     ...competencyEvidence,
     0,
+  );
+}
+
+function hasTrustedPortraitForRanking(
+  learnerState: ResourceLearnerMatchingLearnerState | null | undefined,
+): boolean {
+  return Boolean(
+    learnerState
+      && learnerState.primaryPortraitState === 'SNAPSHOT'
+      && learnerState.primaryPortraitAvailability === 'available'
+      && learnerState.primaryPortrait
+      && hasAuthoritativePortraitV2Evidence(learnerState.primaryPortrait as PortraitV2ProjectedPayload),
   );
 }
 

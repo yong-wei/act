@@ -1,0 +1,41 @@
+{
+  "contract": "act-teaching-projection-cards-index/v1",
+  "cards": [
+    {
+      "cardId": "ctc_modeling-2088bbde171b2e9ef66070d5",
+      "resourceId": "act:card:ctc_modeling-2088bbde171b2e9ef66070d5",
+      "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+      "active": true,
+      "required": true,
+      "sourcePath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-2088bbde171b2e9ef66070d5.md",
+      "title": null
+    },
+    {
+      "cardId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "resourceId": "act:card:ctc_modeling-865eb1c8824e157c2f05a903",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "active": true,
+      "required": true,
+      "sourcePath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.md",
+      "title": null
+    },
+    {
+      "cardId": "ctc_modeling-e442dacbfef4a0d7ea3c4c15",
+      "resourceId": "act:card:ctc_modeling-e442dacbfef4a0d7ea3c4c15",
+      "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+      "active": true,
+      "required": true,
+      "sourcePath": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-e442dacbfef4a0d7ea3c4c15.md",
+      "title": null
+    },
+    {
+      "cardId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "resourceId": "act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "active": true,
+      "required": true,
+      "sourcePath": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+      "title": null
+    }
+  ]
+}

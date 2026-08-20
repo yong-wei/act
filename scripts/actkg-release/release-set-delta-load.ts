@@ -489,7 +489,14 @@ export async function loadCandidateEvidenceByReleaseId(
   }
 
   const bundleReceipt = options?.bundleDigest
-    ? await tx.actkgBundleReceipt.findUnique({ where: { bundleDigest: options.bundleDigest } })
+    ? await tx.actkgBundleReceipt.findUnique({
+        where: {
+          bundleContractVersion_bundleDigest: {
+            bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+            bundleDigest: options.bundleDigest,
+          },
+        },
+      })
     : await tx.actkgBundleReceipt.findFirst({
       where: {
         releaseId,

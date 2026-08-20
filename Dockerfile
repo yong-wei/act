@@ -82,6 +82,7 @@ RUN test -f src/features/knowledge/active-authority-graph.tsx \
   && test -f src/features/knowledge/active-authority-shard-store.ts \
   && test -f src/lib/authority-domain-shards/materialize.ts \
   && test -f src/app/api/knowledge/shards/active/route.ts \
+  && test -f course-content/runtime/knowledge/authority-learning-content-manifest.json \
   && grep -q '/api/knowledge/shards/active' src/features/knowledge/active-authority-graph.tsx \
   && printf '%s\n' "${APP_REVISION}" > /app/.active-authority-shards-product
 
@@ -148,6 +149,9 @@ COPY --from=builder /app/course-content/runtime/resource-governance/runtime-reso
 # packaging of current.json + releases make Konling teaching context reachable.
 COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
 COPY --from=builder /app/course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards
+COPY --from=builder /app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json
+COPY --from=builder /app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority
+COPY --from=builder /app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority
 COPY --from=builder /app/course-content/runtime/knowledge/projection ./course-content/runtime/knowledge/projection
 # Production keeps candidate releases/receipts but never packages an authority
 # or teaching-projection current pointer without an explicit production cutover.

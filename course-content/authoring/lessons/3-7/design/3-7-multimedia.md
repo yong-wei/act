@@ -35,7 +35,7 @@
 | 文件名 | 类型 | 当前角色 | 来源链路 |
 | --- | --- | --- | --- |
 | `design/3-7-handout.pdf` | 讲义 PDF | runtime 下载版讲义源 | `design/3-7-handout.md` 导出 |
-| `media/processed/3-7-intro-video.mp4` | 导入视频 | 课前导入与预习资源 | 外部生成后纳入媒体索引 |
+| `media/processed/3-7-intro-video.mp4` | 导入视频 | 课前导入与预习资源 | 已完成，闲聊自控 Remotion 导入片 |
 | `media/processed/3-7-audio.m4a` | 音频 | 配套音频资源 | 外部生成后纳入媒体索引 |
 | `media/processed/3-7-slides.pdf` | 课件 PDF | 课堂/预习配套课件 | 外部导出后纳入媒体索引 |
 | `media/processed/3-7-course.mp4` | 课程视频 | 课程主视频资源 | 外部生成后纳入媒体索引 |

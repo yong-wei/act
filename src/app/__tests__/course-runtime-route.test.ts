@@ -3,6 +3,8 @@ import { join } from 'node:path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
 }));
@@ -157,6 +159,26 @@ describe('course-runtime asset route', () => {
 
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose the reserved helper mount before reading', async () => {
+    const [direct, nested, traversal] = await Promise.all([
+      requestRuntimeAsset(['.act-runtime-blobs', 'a'.repeat(64)]),
+      requestRuntimeAsset(['.act-runtime-blobs']),
+      requestRuntimeAsset(['lessons', '..', '.act-runtime-blobs', 'a'.repeat(64)]),
+    ]);
+
+    expect(direct.status).toBe(404);
+    expect(nested.status).toBe(404);
+    expect(traversal.status).toBe(404);
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose the reserved helper mount through normalized traversal', async () => {
+    const response = await requestRuntimeAsset(['..', '.act-runtime-blobs', 'a'.repeat(64)]);
+
+    expect(response.status).toBe(404);
     expect(mockedReadFile).not.toHaveBeenCalled();
   });
 

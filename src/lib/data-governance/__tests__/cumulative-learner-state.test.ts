@@ -147,5 +147,17 @@ describe('cumulative learner transition reducer', () => {
         correctionOfSequence: BigInt(1),
       })],
     })).toBe(true);
+    expect(requiresFullLearnerRebuild({
+      ...base,
+      currentTrustedFactPolicyVersion: 'trusted-learning-fact-policy.v0',
+      targetTrustedFactPolicyVersion: 'trusted-learning-fact-policy.v1',
+      transitions: [],
+    })).toBe(true);
+    expect(requiresFullLearnerRebuild({
+      ...base,
+      currentTrustedFactPolicyVersion: 'trusted-learning-fact-policy.v1',
+      targetTrustedFactPolicyVersion: 'trusted-learning-fact-policy.v1',
+      transitions: [],
+    })).toBe(false);
   });
 });

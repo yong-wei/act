@@ -72,6 +72,21 @@ describe('runtime media signed redirect route', () => {
     );
   });
 
+  it('signs only the active v2 manifest blob key without exposing a permanent OSS URL', async () => {
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-v2' });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({ objectKey: `runtime/blobs/sha256/${'a'.repeat(64)}` });
+    mocks.asyncSignatureUrl.mockResolvedValue('https://act-course-assets.oss-cn-hangzhou.aliyuncs.com/signed?Expires=123');
+
+    const response = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(mocks.asyncSignatureUrl).toHaveBeenCalledWith(
+      `runtime/blobs/sha256/${'a'.repeat(64)}`,
+      { expires: 300, method: 'GET' },
+    );
+  });
+
   it('fails closed for traversal, inactive objects, and missing runtime role configuration', async () => {
     mocks.isRuntimeMediaPath.mockReturnValueOnce(false);
     expect((await invoke(['..', 'secret.mp4'])).status).toBe(404);

@@ -38,6 +38,9 @@ function createDb(config: {
     score: 1,
     competencyContribution: config.invalidEvidence ? {} : { controlModeling: 1 },
     contextJson: { internalMarker: 'raw-fact-must-not-appear' },
+    sourceEventId: 'adaptive-assessment:fact-1',
+    sourceLogId: 'governed-log:fact-1',
+    knowledgeRevisionRef: null,
   }];
   const users = [
     { id: 'student-1', profile: { classId: 'class-1' } },
@@ -314,6 +317,14 @@ describe('cumulative attainment stopped-service migration', () => {
     const db = createDb();
     const digest = await plan(db);
     db._state.facts[0].score = 0.5;
+    await expect(apply(db, digest)).rejects.toThrow('plan-input-drift');
+    expect(db._state.fence.fence).toBe(BigInt(4));
+  });
+
+  it('rejects trusted-anchor drift that would change the filtered fact set', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    db._state.facts[0].sourceLogId = '';
     await expect(apply(db, digest)).rejects.toThrow('plan-input-drift');
     expect(db._state.fence.fence).toBe(BigInt(4));
   });

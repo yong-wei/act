@@ -797,48 +797,20 @@ assert.equal(
   'Podman 部署脚本应对 app/worker 创建后停留在 created/exited 的瞬时 runc 启动失败做有限重试',
 );
 
-assert.equal(
-  remoteDeployScript.includes('runtime_rsync_args=(') &&
-    remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"') &&
-    remoteDeployScript.includes('REMOTE_RUNTIME_STAGING_DIR') &&
-    remoteDeployScript.includes('REMOTE_RUNTIME_SELECTION_LOCK') &&
-    remoteDeployScript.includes('podman stop -t 30') &&
-    remoteDeployScript.includes('course-content/runtime') &&
-    (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||
-      remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
-  true,
-  '远端部署脚本应先同步并验证 staging，再持锁停消费者并替换正式目录',
-);
-
-const remotePreflightIndex = remoteDeployScript.indexOf(
-  'scripts/release/validate-textbook-runtime-v2.mjs',
-);
-const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync "${runtime_rsync_args[@]}"');
-const runtimeCutoverIndex = remoteDeployScript.indexOf(
-  'Step 0/8: 在 runtime 锁内替换 Legacy runtime',
-  runtimeRsyncIndex,
-);
-const runtimeStopIndex = remoteDeployScript.indexOf(
-  'podman stop -t 30',
-  runtimeCutoverIndex,
-);
-const remoteHostCheckIndex = remoteDeployScript.indexOf(
-  'check_remote_textbook_v2_files',
-  runtimeRsyncIndex,
-);
-const runtimeSwapIndex = remoteDeployScript.indexOf(
-  'if ! mv \\"${REMOTE_RUNTIME_STAGING_DIR}\\" \\"${REMOTE_RUNTIME_DIR}\\"',
-  runtimeStopIndex,
+assert.match(
+  remoteDeployScript,
+  /legacy-rsync 已退役/,
+  'legacy-rsync 必须失败关闭，不得再同步本地 course-content/runtime',
 );
 assert.equal(
-  remotePreflightIndex >= 0 &&
-    remotePreflightIndex < runtimeRsyncIndex &&
-    remoteHostCheckIndex > runtimeRsyncIndex &&
-    remoteHostCheckIndex < runtimeCutoverIndex &&
-    runtimeCutoverIndex < runtimeStopIndex &&
-    runtimeStopIndex < runtimeSwapIndex,
-  true,
-  '远端部署即使 skip-build 也必须先 preflight 和 staging 校验，再持锁停消费者并原子替换',
+  remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"'),
+  false,
+  '远端部署不得再包含 course-content/runtime rsync',
+);
+assert.match(
+  remoteDeployScript,
+  /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/,
+  '远端部署默认必须使用 ossfs-blob-view，不得默认 rsync runtime',
 );
 
 assert.equal(
@@ -917,10 +889,9 @@ assert.equal(
   textbookRetrievalRequiredFiles.every((fileName) =>
     textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
-    remoteDeployScript.includes('--index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
     remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
   true,
-  'build、skip-build 与远端验证必须把固定 index 纳入同一 revision/digest 合同',
+  'build 与远端 ossfs-release 验收必须把固定 index 纳入同一 revision/digest 合同',
 );
 
 console.log('runtime externalized deploy test passed');

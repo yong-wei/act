@@ -88,6 +88,12 @@ if [ "${ACT_RUNTIME_OSS_REGION+x}" = "x" ]; then
   operator_runtime_oss_region_was_set=1
   operator_runtime_oss_region="$ACT_RUNTIME_OSS_REGION"
 fi
+operator_runtime_active_receipt_path_was_set=0
+operator_runtime_active_receipt_path=""
+if [ "${ACT_RUNTIME_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
+  operator_runtime_active_receipt_path_was_set=1
+  operator_runtime_active_receipt_path="$ACT_RUNTIME_ACTIVE_RECEIPT_PATH"
+fi
 file_knowledge_mode_was_set=0
 file_knowledge_mode=""
 if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
@@ -135,6 +141,9 @@ if [ "$operator_runtime_oss_bucket_was_set" = "1" ]; then
 fi
 if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
   ACT_RUNTIME_OSS_REGION="$operator_runtime_oss_region"
+fi
+if [ "$operator_runtime_active_receipt_path_was_set" = "1" ]; then
+  ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$operator_runtime_active_receipt_path"
 fi
 if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
   if [ "$runtime_knowledge_mode" = "cutover" ]; then
@@ -276,11 +285,22 @@ if [ "$MODE" = "--runtime-cutover-app-only" ]; then
   RUNTIME_CUTOVER_APP_ONLY=1
   RUN_MIGRATIONS_ON_START=0
 fi
-RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
-RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-legacy-rsync}"
+RUNTIME_DELIVERY_MODE="${RUNTIME_DELIVERY_MODE:-ossfs-blob-view}"
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
+  RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/data/runtime/blob-views/current}"
+else
+  RUNTIME_CONTENT_DIR="${RUNTIME_CONTENT_DIR:-${PROJECT_DIR}/course-content/runtime}"
+fi
 ACT_RUNTIME_OSS_RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-}"
 ACT_RUNTIME_OSS_BUCKET="${ACT_RUNTIME_OSS_BUCKET:-act-course-assets}"
 ACT_RUNTIME_OSS_REGION="${ACT_RUNTIME_OSS_REGION:-oss-cn-hangzhou}"
+RUNTIME_ACTIVE_RECEIPT_PATH="${ACT_RUNTIME_ACTIVE_RECEIPT_PATH:-${PROJECT_DIR}/data/runtime/act-runtime-active-receipt.json}"
+RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH="/app/act-runtime-state/act-runtime-active-receipt.json"
+RUNTIME_ACTIVE_RECEIPT_HOST_DIR="${RUNTIME_ACTIVE_RECEIPT_PATH%/*}"
+if [ "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" = "$RUNTIME_ACTIVE_RECEIPT_PATH" ]; then
+  echo "ERROR: ACT_RUNTIME_ACTIVE_RECEIPT_PATH 必须包含父目录。" >&2
+  exit 1
+fi
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -291,7 +311,7 @@ ACT_TEACHING_PROJECTION_STORE_ROOT="${ACT_TEACHING_PROJECTION_STORE_ROOT:-/app/c
 # An ossfs release is the complete runtime source.  A path persisted by the
 # legacy runtime environment would otherwise create a nested bind mount from
 # the retired local tree and mask this release's projection subtree.
-if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ]; then
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ] || [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
   TEACHING_PROJECTION_STORE_DIR="${RUNTIME_CONTENT_DIR}/knowledge/projection"
 fi
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
@@ -357,11 +377,48 @@ require_runtime_delivery_mount() {
         exit 1
       fi
       ;;
+    ossfs-blob-view)
+      if [ "$MODE" = "--db-only" ]; then
+        return 0
+      fi
+      if [ -z "$ACT_RUNTIME_OSS_RAM_ROLE" ]; then
+        echo "ERROR: ossfs-blob-view 模式缺少 ACT_RUNTIME_OSS_RAM_ROLE。" >&2
+        exit 1
+      fi
+      require_cmd findmnt
+      if [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release.v2.json" ] || [ ! -f "$RUNTIME_CONTENT_DIR/.act-runtime-release-materialization.v1.json" ]; then
+        echo "ERROR: ossfs-blob-view 缺少已物化的 v2 runtime 身份工件: $RUNTIME_CONTENT_DIR" >&2
+        exit 1
+      fi
+      local helper_root="$RUNTIME_CONTENT_DIR/.act-runtime-blobs"
+      if [ ! -d "$helper_root" ] || [ -L "$helper_root" ]; then
+        echo "ERROR: ossfs-blob-view 缺少真实 blob helper 目录: $helper_root" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -M "$helper_root" -o FSTYPE | grep -Eq '^fuse(\.|$)'; then
+        echo "ERROR: ossfs-blob-view helper 目录不是 FUSE 挂载: $helper_root" >&2
+        exit 1
+      fi
+      if ! findmnt -rn -M "$helper_root" -o OPTIONS | grep -Eq '(^|,)ro(,|$)'; then
+        echo "ERROR: ossfs-blob-view helper 挂载必须只读: $helper_root" >&2
+        exit 1
+      fi
+      ;;
     *)
-      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync 或 ossfs-release，实际为: $RUNTIME_DELIVERY_MODE" >&2
+      echo "ERROR: RUNTIME_DELIVERY_MODE 必须为 legacy-rsync、ossfs-release 或 ossfs-blob-view，实际为: $RUNTIME_DELIVERY_MODE" >&2
       exit 1
       ;;
   esac
+}
+
+require_active_receipt_mount_dir() {
+  if [ ! -e "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+    mkdir -p "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR"
+  fi
+  if [ ! -d "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ] || [ -L "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+    echo "ERROR: active runtime receipt mount directory must be a real directory: $RUNTIME_ACTIVE_RECEIPT_HOST_DIR" >&2
+    exit 1
+  fi
 }
 
 require_actkg_activation_store_pointers() {
@@ -405,7 +462,10 @@ require_actkg_activation_store_pointers() {
         "${RUNTIME_CONTENT_DIR}/knowledge/prerequisites/current.json"
       )
       for pointer in "${cutover_pointers[@]}"; do
-        if [ ! -f "$pointer" ]; then
+        # Blob views keep these pointers as leaf symlinks into the read-only
+        # helper. `test -f` follows the target and fails when the host root
+        # cannot stat a FUSE object owned by the container uid.
+        if [ ! -f "$pointer" ] && [ ! -L "$pointer" ]; then
           echo "ERROR: production cutover 缺少 activation 指针: $pointer" >&2
           missing=1
         fi
@@ -763,7 +823,7 @@ write_runtime_env() {
     fi
     awk -F= '
       BEGIN {
-        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
         for (key_index in keys) managed[keys[key_index]] = 1;
       }
       !managed[$1] { print }
@@ -796,6 +856,7 @@ RUNTIME_DELIVERY_MODE=$RUNTIME_DELIVERY_MODE
 ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
 ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
 ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
+RUNTIME_ACTIVE_RECEIPT_PATH=$RUNTIME_ACTIVE_RECEIPT_PATH
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
@@ -887,6 +948,7 @@ run_scheduler_once() {
 
 require_cmd podman
 require_cmd ss
+require_active_receipt_mount_dir
 
 echo "[4-deploy] 开始部署..."
 
@@ -1098,6 +1160,7 @@ APP_ENV_ARGS=(
   -e ACT_RUNTIME_OSS_RAM_ROLE="$ACT_RUNTIME_OSS_RAM_ROLE"
   -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
   -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
+  -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -1204,6 +1267,13 @@ if [ "$RUNTIME_CUTOVER_APP_ONLY" != "1" ] && [[ "${MATH_DOCUMENT_GRADING_WORKER_
   podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
 fi
 
+RUNTIME_HELPER_MOUNT_ARGS=()
+if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
+  RUNTIME_HELPER_MOUNT_ARGS+=(
+    -v "${RUNTIME_CONTENT_DIR}/.act-runtime-blobs:/app/course-content/runtime/.act-runtime-blobs:ro"
+  )
+fi
+
 echo "- 启动应用容器: $APP_CONTAINER"
 run_detached_container "$APP_CONTAINER" podman run -d \
   --name "$APP_CONTAINER" \
@@ -1212,6 +1282,8 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   --entrypoint /bin/sh \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
+  ${RUNTIME_HELPER_MOUNT_ARGS[@]+"${RUNTIME_HELPER_MOUNT_ARGS[@]}"} \
+  -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \

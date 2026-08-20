@@ -607,6 +607,8 @@ function buildGateLearnerState(
         { score: 0.35, confidence: 0.7, evidenceCount: 2 },
       ])),
     },
+    primaryPortraitState: 'NO_EVIDENCE' as const,
+    primaryPortraitAvailability: 'no-eligible-evidence',
     evidence: {
       confidence: {
         level: 'medium' as const,

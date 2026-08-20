@@ -42,6 +42,8 @@ import {
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
   loadRootShard,
+  readActiveAuthorityInfograph,
+  attachActiveAuthorityLearningContent,
   projectAuthorityLearnerShard,
   type AuthorityLearnerShard,
   type AuthorityDomainDefaultShard,
@@ -536,5 +538,10 @@ export function readActiveNeighborhoodShard(nodeId: string): AuthorityNodeNeighb
 }
 
 export function readActiveDetailShard(nodeId: string): AuthorityNodeDetailShard {
-  return loadNodeDetailShard(nodeId);
+  return attachActiveAuthorityLearningContent(loadNodeDetailShard(nodeId));
+}
+
+export function readActiveDetailInfograph(nodeId: string): Buffer | null {
+  const shard = loadNodeDetailShard(nodeId);
+  return readActiveAuthorityInfograph(shard);
 }

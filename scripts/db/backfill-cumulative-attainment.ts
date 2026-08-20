@@ -17,6 +17,10 @@ import {
   mapLearningFactsToPortraitEvidence,
 } from '../../src/lib/data-governance/portrait-v2-incremental-update';
 import { materializeIncrementalPortraitV2 } from '../../src/lib/data-governance/portrait-v2-materialization';
+import {
+  isTrustedLearningFact,
+  TRUSTED_LEARNING_FACT_POLICY_VERSION,
+} from '../../src/lib/data-governance/trusted-learning-fact-filter';
 import { PORTRAIT_V2_CALCULATION_VERSION } from '../../src/lib/data-governance/portrait-v2-model';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -236,6 +240,7 @@ export async function inventoryCumulativeBackfill(
     select: {
       id: true, userId: true, startedAt: true, outcome: true, score: true,
       competencyContribution: true, contextJson: true, createdAt: true,
+      sourceEventId: true, sourceLogId: true, knowledgeRevisionRef: true,
     },
   });
   const ownerIds = [...new Set(facts.map((fact: any) => fact.userId))].sort();
@@ -262,7 +267,7 @@ export async function inventoryCumulativeBackfill(
   const canonicalTransitions: unknown[] = [];
   let noEvidenceStateCount = 0;
   for (const candidate of candidates) {
-    const learnerFacts = factsByUser.get(candidate.userId) ?? [];
+    const learnerFacts = (factsByUser.get(candidate.userId) ?? []).filter(isTrustedLearningFact);
     const journal = transitionsByUser.get(candidate.userId) ?? [];
     const drafts = planMissingLearningFactUpserts({ userId: candidate.userId, facts: learnerFacts, transitions: journal });
     let sequence = journal.reduce((max, row) => row.sequence > max ? row.sequence : max, BigInt(0));
@@ -290,9 +295,25 @@ export async function inventoryCumulativeBackfill(
     noEvidenceStateCount,
     baselineFence: fence,
     inputDigest: hash({
-      version: 1,
+      version: 2,
+      trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
       candidates: selected,
-      facts: facts.filter((fact: any) => selected.some((candidate) => candidate.userId === fact.userId)),
+      facts: facts
+        .filter((fact: any) => selected.some((candidate) => candidate.userId === fact.userId))
+        .map((fact: any) => ({
+          id: fact.id,
+          userId: fact.userId,
+          startedAt: fact.startedAt,
+          outcome: fact.outcome,
+          score: fact.score,
+          competencyContribution: fact.competencyContribution,
+          contextJson: fact.contextJson,
+          createdAt: fact.createdAt,
+          sourceEventId: fact.sourceEventId ?? null,
+          sourceLogId: fact.sourceLogId ?? null,
+          knowledgeRevisionRef: fact.knowledgeRevisionRef ?? null,
+          trusted: isTrustedLearningFact(fact),
+        })),
       transitions: canonicalTransitions.filter((row: any) =>
         selected.some((candidate) => candidate.userId === row.userId)),
       fence,

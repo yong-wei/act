@@ -238,6 +238,8 @@ function materializationFixture(input: {
             lastTrend: stateData?.lastTrend ?? null,
             lastRisk: stateData?.lastRisk ?? [],
             stateKind: stateData?.stateKind,
+            trustedFactPolicyVersion: stateData?.trustedFactPolicyVersion ?? null,
+            trustedInputDigest: stateData?.trustedInputDigest ?? null,
             snapshot: snapshotId
               ? { id: snapshotId, payload: snapshots.get(snapshotId) }
               : null,
@@ -273,12 +275,22 @@ function materializationFixture(input: {
 function learningFact(id: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
+    sourceEventId: `adaptive-assessment:${id}`,
+    sourceLogId: `governed-log:${id}`,
+    knowledgeRevisionRef: null,
     factType: 'question',
     startedAt: baseAt,
     outcome: 'success',
     score: 1,
     competencyContribution: { controlModeling: 1 },
-    contextJson: {},
+    contextJson: {
+      evidenceGovernance: {
+        evidenceQuality: 'rich',
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'adaptive_assessment_evidence',
+      },
+    },
     createdAt: baseAt,
     ...overrides,
   };
