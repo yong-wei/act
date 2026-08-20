@@ -91,23 +91,33 @@ export interface V022ReleaseGateAttestation {
   build: boolean;
 }
 
-export function loadV022ReleaseGateAttestation(
-  filePath: string,
-  applicationRevision: string,
-): { gates?: V022ReleaseGateAttestation; blockers: string[] } {
-  if (!existsSync(filePath)) return { blockers: ['release-gates-unattested'] };
-  const record = asRecord(JSON.parse(readFileSync(filePath, 'utf8')));
-  const blockers: string[] = [];
-  if (String(record.applicationRevision ?? '') !== applicationRevision) {
-    blockers.push('release-gate-revision-mismatch');
-  }
-  const gates = {
-    lint: record.lint === true,
-    typecheck: record.typecheck === true,
-    test: record.test === true,
-    build: record.build === true,
+export type ReleaseGateExecutor = (command: string, args: readonly string[]) => { status: number };
+
+export function executeV022ReleaseGates(input: {
+  repoRoot: string;
+  runBuild?: boolean;
+  exec?: ReleaseGateExecutor;
+}): V022ReleaseGateAttestation {
+  const exec = input.exec ?? ((command, args) => {
+    try {
+      execFileSync(command, [...args], { cwd: input.repoRoot, stdio: 'ignore' });
+      return { status: 0 };
+    } catch {
+      return { status: 1 };
+    }
+  });
+  const passed = (command: string, args: readonly string[]) => exec(command, args).status === 0;
+  return {
+    lint: passed('npm', ['run', 'lint']),
+    typecheck: passed('npm', ['run', 'typecheck']),
+    test: passed('npx', [
+      'vitest',
+      'run',
+      'src/lib/__tests__/actkg-v022-composite-envelope.test.ts',
+      'src/lib/__tests__/activate-actkg-v022-production-cutover.test.ts',
+    ]),
+    build: input.runBuild === true ? passed('npm', ['run', 'build']) : false,
   };
-  return { gates, blockers };
 }
 
 export function publishActKgV022CutoverRuntime(input: {

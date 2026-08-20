@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 import {
-  loadV022ReleaseGateAttestation,
+  executeV022ReleaseGates,
   publishActKgV022CutoverRuntime,
 } from '../../src/lib/teaching-projection/publish/v022-runtime-release';
 
@@ -17,10 +17,10 @@ export function prepareActKgV022RuntimeRelease(argv: readonly string[] = process
   const repoRoot = option(argv, '--repo-root') ?? process.cwd();
   const frozen = option(argv, '--frozen-revision')
     ?? execFileSync('git', ['-C', repoRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  const attestationPath = option(argv, '--gate-attestation');
-  const attestation = attestationPath
-    ? loadV022ReleaseGateAttestation(attestationPath, frozen)
-    : { blockers: ['release-gates-unattested'] as string[] };
+  const releaseGates = executeV022ReleaseGates({
+    repoRoot,
+    runBuild: argv.includes('--run-build'),
+  });
   const result = publishActKgV022CutoverRuntime({
     repoRoot,
     outputRoot: option(argv, '--output-root'),
@@ -28,8 +28,7 @@ export function prepareActKgV022RuntimeRelease(argv: readonly string[] = process
     frozenApplicationRevision: frozen,
     hostShadowRequired: !argv.includes('--skip-host-shadow'),
     hostVerificationReport: option(argv, '--host-shadow-report'),
-    releaseGates: attestation.blockers.length === 0 ? attestation.gates : undefined,
-    extraBlockers: attestation.blockers.filter((code) => code !== 'release-gates-unattested'),
+    releaseGates,
     requireReleaseGates: true,
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

@@ -1,5 +1,4 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -20,8 +19,10 @@ import {
   V09_PREDECESSOR_IDENTITIES,
   type V022CutoverComponent,
 } from '../teaching-projection/publish/v022-production-cutover';
-import { publishActKgV022CutoverRuntime } from '../teaching-projection/publish/v022-runtime-release';
-import { prepareActKgV022RuntimeRelease } from '../../../scripts/knowledge-cutover/publish-actkg-v022-cutover-runtime';
+import {
+  executeV022ReleaseGates,
+  publishActKgV022CutoverRuntime,
+} from '../teaching-projection/publish/v022-runtime-release';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const roots: string[] = [];
@@ -229,25 +230,20 @@ describe('v0.22 runtime release', () => {
     expect(unattested.blockers).toContain('release-gates-unattested');
   });
 
-  it('lets the official publish CLI consume a HEAD-bound gate attestation', () => {
-    const outputRoot = mkdtempSync(path.join(tmpdir(), 'act-v022-runtime-cli-'));
-    roots.push(outputRoot);
-    const head = execFileSync('git', ['-C', REPO_ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    const attestation = path.join(outputRoot, 'gates.json');
-    writeFileSync(attestation, `${JSON.stringify({
-      applicationRevision: head,
-      lint: true,
-      typecheck: true,
-      test: true,
-      build: true,
-    })}\n`);
-    const result = prepareActKgV022RuntimeRelease([
-      '--repo-root', REPO_ROOT,
-      '--output-root', outputRoot,
-      '--bound-envelope', 'control-theory-engineering-v0.9',
-      '--gate-attestation', attestation,
-    ]);
-    expect(result.blockers).not.toContain('release-gates-unattested');
-    expect(result.blockers).toContain('host-shadow-verification-incomplete');
+  it('records executed release gates instead of trusting handwritten booleans', () => {
+    const commands: string[] = [];
+    const gates = executeV022ReleaseGates({
+      repoRoot: REPO_ROOT,
+      runBuild: false,
+      exec: (command, args) => {
+        commands.push([command, ...args].join(' '));
+        return { status: 0 };
+      },
+    });
+    expect(gates).toEqual({ lint: true, typecheck: true, test: true, build: false });
+    expect(commands.some((row) => row.includes('npm run typecheck'))).toBe(true);
+    expect(commands.some((row) => row.includes('npm run lint'))).toBe(true);
+    expect(commands.some((row) => row.includes('vitest run'))).toBe(true);
+    expect(commands.some((row) => row.includes('npm run build'))).toBe(false);
   });
 });
