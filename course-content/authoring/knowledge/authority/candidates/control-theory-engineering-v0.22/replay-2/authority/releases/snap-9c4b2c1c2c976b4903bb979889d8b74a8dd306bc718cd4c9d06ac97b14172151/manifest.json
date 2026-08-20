@@ -14,7 +14,7 @@
   "importReceiptId": "receipt:v2:ctr:release:control-theory-engineering-v0.22",
   "bundleReceiptId": "bundle-receipt:v2:98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854",
   "deltaReceiptIds": [],
-  "captureRevision": "aa775d7a005c44162cb4b5af5afefd9a0274883f",
+  "captureRevision": "23d4548a9a57962e4c3a54db750b55fc3ef32d98",
   "objectCount": 7082,
   "relationCount": 2932,
   "provenance": {
@@ -29,14 +29,14 @@
     "importReceiptId": "receipt:v2:ctr:release:control-theory-engineering-v0.22",
     "bundleReceiptId": "bundle-receipt:v2:98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854",
     "bundleId": "ctb:control-theory-engineering-v0.22:r5",
-    "captureRevision": "aa775d7a005c44162cb4b5af5afefd9a0274883f",
+    "captureRevision": "23d4548a9a57962e4c3a54db750b55fc3ef32d98",
     "lockRawHash": "bc1a2e82c7b0aad838d6fd1f58ae8280b22b753f5a9fdb87757dabf519207480",
     "v2ProfileCount": 3,
     "v2MultilingualLabelCount": 2148,
     "v2AdmissionBindingDigest": "8b30fd03d5fccb9eab5cedbec9c6410506ea2325ebc547ebf87244790adfda11"
   },
   "engineeringDigest": "99f3da13dc39e001afe18d972d5a27403bce2d8d2f35c7827e9d6400d6b6a357",
-  "snapshotId": "snap-16c0b75362fab14678eed0d501a0be02053d0e0d44c17a034e57edb60f4b35fb",
-  "snapshotHash": "16c0b75362fab14678eed0d501a0be02053d0e0d44c17a034e57edb60f4b35fb",
+  "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+  "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
   "lifecycle": "staged"
 }
