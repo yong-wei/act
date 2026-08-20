@@ -5,7 +5,15 @@ import argparse
 import hashlib
 import json
 import shutil
+import sys
 from pathlib import Path
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from textbook_resource_set import load_textbook_resource_set
 
 
 COURSE_ROOT = Path(__file__).resolve().parents[1]
@@ -70,21 +78,40 @@ def export_book_assets(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--authoring-root', type=Path, default=DEFAULT_AUTHORING_ROOT)
-    parser.add_argument('--config-root', type=Path, required=True)
+    parser.add_argument('--authoring-root', type=Path)
+    parser.add_argument('--config-root', type=Path)
+    parser.add_argument('--resource-set', type=Path)
     parser.add_argument('--output-root', type=Path, required=True)
     args = parser.parse_args()
 
-    config_paths = sorted(args.config_root.glob('*.json'))
-    if len(config_paths) != 7:
-        raise ValueError(
-            f'textbook-runtime-assets-config-count-invalid:{len(config_paths)}',
+    if args.resource_set is not None:
+        resource_set = load_textbook_resource_set(args.resource_set)
+        config_root = Path.cwd() / resource_set['configRoot']
+        authoring_root = (
+            args.authoring_root
+            if args.authoring_root is not None
+            else Path.cwd() / resource_set['sourceRoot']
         )
+        config_paths = [
+            config_root / f'{book_id}.json'
+            for book_id in resource_set['books']
+        ]
+        missing = [str(path) for path in config_paths if not path.is_file()]
+        if missing:
+            raise ValueError(
+                f'textbook-runtime-assets-config-missing:{";".join(missing)}',
+            )
+    elif args.config_root is not None:
+        config_root = args.config_root
+        authoring_root = args.authoring_root or DEFAULT_AUTHORING_ROOT
+        config_paths = sorted(config_root.glob('*.json'))
+    else:
+        parser.error('--resource-set or --config-root is required')
     if args.output_root.exists():
         shutil.rmtree(args.output_root)
     counts = {
         read_json(config_path)['resourceId']: export_book_assets(
-            authoring_root=args.authoring_root,
+            authoring_root=authoring_root,
             config_path=config_path,
             output_root=args.output_root,
         )

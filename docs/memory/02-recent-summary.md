@@ -17,6 +17,7 @@
 ## 最近最重要的稳定变化
 
 - 2026-08-18 31 课导入片已增量发布到生产 v2 blob-view。active `runtime-7b907428f…`（source `71bbc2db4`），rollback `runtime-3dcc716…`；v0.18 选择器通过 parent overlay 保留。公网媒体走 `/api/course-runtime/assets/lessons/<unit>/media/<unit>-intro-video.mp4`，验收为 307。`remote-deploy.sh` 的 `legacy-rsync` 已退役，不得再 rsync `course-content/runtime`。
+- 2026-08-18 SiliconFlow 主力模型已切到 `Qwen/Qwen3.5-35B-A3B`。运行时真源是 `PlatformSetting.ai_provider_settings.selectedModel`，不是容器里残留的 `AI_MODEL`。切换前本地和生产 siliconflow 实际都是 `deepseek-ai/DeepSeek-V4-Flash`；代码回退默认此前是 Qwen3.6。未因这次切模型重建生产镜像。
 - 2026-08-17 31 课闲聊自控导入片已发布到作者态 `course-content/authoring/lessons/<unit>/media/processed/<unit>-intro-video.mp4`，并用 `course-content/scripts/export-runtime.sh --all` 加单独导出 `1-3` 同步到本地 runtime。成片文件被 `*.mp4` 忽略，不进 Git；清单回写在各课 `design/<unit>-multimedia.md` 与 `media/processed/<unit>-media.md`。生产 runtime 仍走 `deploy:runtime` / OSS blob-view，不会因本地 export 自动上线。
 - 2026-08-17 Issue #1379 `deduplicate-runtime-releases-with-content-blobs` 已完成 4.4 验证并归档。生产默认 `ossfs-blob-view`；`deploy:app` 不再 rsync runtime。
 - 2026-08-16 生产 runtime 已切到 OSS v2 blob-view。`deploy:app` / `remote-deploy.sh` 默认 `ossfs-blob-view`，只绑定已物化 view，不再 rsync `course-content/runtime`。runtime 内容更新走 `deploy:runtime`。

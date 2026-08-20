@@ -35,7 +35,12 @@ LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR="${LOCAL_RUNTIME_DIR}/resources/textbook-hybr
 REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
 REMOTE_RUNTIME_STAGING_DIR="${REMOTE_RUNTIME_DIR}.staging"
 REMOTE_RUNTIME_SELECTION_LOCK="${REMOTE_RUNTIME_SELECTION_LOCK:-${REMOTE_PROJECT_DIR}/data/runtime/.act-runtime-selection.lock}"
-TEXTBOOK_V2_BOOK_IDS="control-encyclopedia dorf-modern-control-systems feedback-control-of-dynamic-systems hu-shousong-auto-control-7th hu-shousong-auto-control-8th hu-shousong-exercise-analysis-3rd liu-sheng-auto-control-2015"
+LOCAL_RESOURCE_SET_HELPER="${ROOT_DIR}/scripts/release/textbook-resource-set.mjs"
+LOCAL_RESOURCE_SET_CONFIG="${ROOT_DIR}/course-content/config/textbook-resource-set.json"
+REMOTE_RESOURCE_SET_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-resource-set.mjs"
+REMOTE_RESOURCE_SET_CONFIG="${REMOTE_PROJECT_DIR}/course-content/config/textbook-resource-set.json"
+TEXTBOOK_V2_BOOK_IDS="$(node "${LOCAL_RESOURCE_SET_HELPER}" ids)"
+TEXTBOOK_V2_BOOK_COUNT="$(node "${LOCAL_RESOURCE_SET_HELPER}" count)"
 TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
 TEXTBOOK_RETRIEVAL_REQUIRED_FILES="manifest.json windows.jsonl bodies.utf8 vectors.f32 lexical-terms.jsonl lexical-postings.bin build-report.json"
 LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
@@ -68,6 +73,8 @@ REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE}.tmp"
 REMOTE_TMP_PROVENANCE_HELPER="${REMOTE_PROVENANCE_HELPER}.tmp"
+REMOTE_TMP_RESOURCE_SET_HELPER="${REMOTE_RESOURCE_SET_HELPER}.tmp"
+REMOTE_TMP_RESOURCE_SET_CONFIG="${REMOTE_RESOURCE_SET_CONFIG}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
 REMOTE_TMP_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT}.tmp"
 REMOTE_TMP_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT}.tmp"
@@ -156,13 +163,13 @@ found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
   book_id=\$(basename \"\${candidate}\")
-  case \"\${book_id}\" in
-    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+  case \" ${TEXTBOOK_V2_BOOK_IDS} \" in
+    *\" \${book_id} \"*) ;;
     *) echo \"ERROR: unexpected textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
   esac
   found=\$((found + 1))
 done
-[ \"\${found}\" -eq 7 ]
+[ \"\${found}\" -eq \"${TEXTBOOK_V2_BOOK_COUNT}\" ]
 for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
@@ -293,13 +300,13 @@ found=0
 for candidate in \"\${runtime_root}\"/*; do
   [ -d \"\${candidate}\" ] || continue
   book_id=\$(basename \"\${candidate}\")
-  case \"\${book_id}\" in
-    control-encyclopedia|dorf-modern-control-systems|feedback-control-of-dynamic-systems|hu-shousong-auto-control-7th|hu-shousong-auto-control-8th|hu-shousong-exercise-analysis-3rd|liu-sheng-auto-control-2015) ;;
+  case \" ${TEXTBOOK_V2_BOOK_IDS} \" in
+    *\" \${book_id} \"*) ;;
     *) echo \"ERROR: unexpected mounted textbook v2 runtime directory: \${book_id}\" >&2; exit 1 ;;
   esac
   found=\$((found + 1))
 done
-[ \"\${found}\" -eq 7 ]
+[ \"\${found}\" -eq \"${TEXTBOOK_V2_BOOK_COUNT}\" ]
 for book_id in ${TEXTBOOK_V2_BOOK_IDS}; do
   for file_name in ${TEXTBOOK_V2_REQUIRED_FILES}; do
     test -f \"\${runtime_root}/\${book_id}/\${file_name}\"
@@ -397,7 +404,6 @@ wait_for_public_session_api() {
 
 recover_prisma_migration_state() {
   log "- 检测到应用可能卡在 Prisma 迁移阶段，检查失败记录并停止服务"
-
   remote "bash -lc '
 set -euo pipefail
 set -a
@@ -522,6 +528,8 @@ fi
 [[ -s "${LOCAL_IMAGE_TAR}" ]] || fail "本地镜像产物不存在或为空: ${LOCAL_IMAGE_TAR}"
 [[ -f "${LOCAL_PROVENANCE_FILE}" ]] || fail "本地镜像缺少 provenance sidecar: ${LOCAL_PROVENANCE_FILE}"
 [[ -f "${LOCAL_PROVENANCE_HELPER}" ]] || fail "本地教材 runtime provenance helper 不存在"
+[[ -f "${LOCAL_RESOURCE_SET_HELPER}" ]] || fail "本地教材 resourceSet helper 不存在"
+[[ -f "${LOCAL_RESOURCE_SET_CONFIG}" ]] || fail "本地教材 resourceSet 配置不存在"
 
 node "${LOCAL_PROVENANCE_HELPER}" verify-image \
   --image-tar "${LOCAL_IMAGE_TAR}" \
@@ -562,12 +570,16 @@ log "[2/5] 同步部署脚本"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
 [[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
-remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")'"
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_PARENT_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")' '$(dirname "${REMOTE_PROVENANCE_HELPER}")' '$(dirname "${REMOTE_RESOURCE_SET_CONFIG}")'"
 
 scp -q "${LOCAL_PROVENANCE_FILE}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_FILE}"
 remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
 scp -q "${LOCAL_PROVENANCE_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_HELPER}"
 remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
+scp -q "${LOCAL_RESOURCE_SET_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_HELPER}"
+remote "mv '${REMOTE_TMP_RESOURCE_SET_HELPER}' '${REMOTE_RESOURCE_SET_HELPER}'"
+scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"
+remote "mv '${REMOTE_TMP_RESOURCE_SET_CONFIG}' '${REMOTE_RESOURCE_SET_CONFIG}'"
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   case "${RUNTIME_DELIVERY_MODE}" in
@@ -643,7 +655,7 @@ fi
 
 log "远端镜像路径: ${REMOTE_IMAGE_TAR}"
 log "远端 SHA256: ${REMOTE_FINAL_SHA}"
-remote "node '${REMOTE_PROVENANCE_HELPER}' verify-image \
+remote "cd '${REMOTE_PROJECT_DIR}' && node '${REMOTE_PROVENANCE_HELPER}' verify-image \
   --image-tar '${REMOTE_IMAGE_TAR}' \
   --sidecar '${REMOTE_PROVENANCE_FILE}'"
 
@@ -699,6 +711,9 @@ log "[5/5] 部署验证"
 log "- 校验远端镜像文件"
 remote "test -s '${REMOTE_IMAGE_TAR}'"
 remote "test -f '${REMOTE_PROVENANCE_FILE}'"
+remote "test -f '${REMOTE_PROVENANCE_HELPER}'"
+remote "test -f '${REMOTE_RESOURCE_SET_HELPER}'"
+remote "test -f '${REMOTE_RESOURCE_SET_CONFIG}'"
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
@@ -709,7 +724,7 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
     remote "test -d '${REMOTE_RUNTIME_DIR}'"
     check_remote_textbook_v2_files
     check_remote_runtime_pointer_absence
-    remote "node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
+    remote "cd '${REMOTE_PROJECT_DIR}' && node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
       --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
       --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
       --sidecar '${REMOTE_PROVENANCE_FILE}'"
@@ -750,7 +765,7 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
     log "- 校验应用容器已绑定 ossfs-blob-view"
     check_container_blob_view
   else
-    log "- 校验应用容器只读挂载中的七套教材 v2 runtime"
+    log "- 校验应用容器只读挂载中的 resourceSet 教材 v2 runtime"
     check_container_textbook_v2_files
   fi
 fi

@@ -40,28 +40,19 @@ The builder MUST combine carried-forward, auto-rebased, and newly authored recor
 - **WHEN** identical Authority, Delta, projection, and decisions are processed twice
 - **THEN** impact report, decisions, artifacts, and Projection hash SHALL be byte-identical
 
-### Requirement: The v0.18 rebase freezes the complete active reference denominator
-
-Before mapping, the builder MUST capture every active course/package/resource,
-card, infograph, textbook locator, prerequisite, learning-path, Konling, RAG,
-and other ACT teaching reference with its source revision and digest. Changed or
-uncaptured inputs MUST invalidate the build.
-
-#### Scenario: An active reference changes after capture
-
-- **WHEN** its current bytes or database observation differs from the sealed input
-- **THEN** the builder MUST reject the run rather than mix revisions
-
 ### Requirement: Successor resolution uses identity evidence only
 
 An unchanged stable ID MAY carry forward. Every changed predecessor MUST use an
-explicit reviewed mapping bound to the v0.9 object, v0.18 successor set,
-disposition, evidence, and capture. Names, labels, aliases, lexical similarity,
-embeddings, and graph distance MUST NOT select a successor.
+explicit reviewed mapping bound to the predecessor object in the captured
+active selection, the v0.22 successor set, disposition, evidence, and capture.
+Predecessor objects come from the currently active production release and any
+residual older-release bindings present in the captured denominator, such as
+the retiring v0.9-bound domain-catalog memberships. Names, labels, aliases,
+lexical similarity, embeddings, and graph distance MUST NOT select a successor.
 
 #### Scenario: One reviewed successor exists
 
-- **WHEN** a mapping record identifies one type-compatible v0.18 successor and
+- **WHEN** a mapping record identifies one type-compatible v0.22 successor and
   all pinned evidence matches
 - **THEN** the reference SHALL rebase deterministically to that successor
 
@@ -73,14 +64,16 @@ embeddings, and graph distance MUST NOT select a successor.
 ### Requirement: Existing references close while new teaching coverage remains incremental
 
 Every captured existing ACT reference MUST resolve or receive an explicit
-reviewed non-semantic disposition. New v0.18 nodes are not required to receive
-teaching relations for this rebase, and later reviewed relations MAY be added
-through a new complete Projection release.
+reviewed non-semantic disposition. New v0.22 nodes are not required to receive
+teaching relations for this rebase, missing teaching coverage MUST NOT block
+the Authority cutover, and later reviewed relations MAY be added through a new
+complete Projection release.
 
 #### Scenario: A new engineering node has no ACT teaching relation
 
 - **WHEN** no captured existing ACT reference targets that node
-- **THEN** its absence from the Teaching Projection SHALL NOT block rebase completion
+- **THEN** its absence from the Teaching Projection SHALL NOT block rebase
+  completion or Authority cutover readiness
 
 #### Scenario: An existing reference is unresolved
 
@@ -91,8 +84,10 @@ through a new complete Projection release.
 ### Requirement: Rebase output is complete, deterministic, and inactive
 
 The builder MUST produce complete content-addressed Teaching Projection and
-prerequisite releases bound to v0.18, the captured denominator, approved mapping
-set, and policy version. Two builds MUST match, and current pointers MUST remain v0.9.
+prerequisite releases bound to the pinned v0.22 composite candidate envelope,
+the captured denominator, approved mapping set, and policy version. Two builds
+MUST match, and current production pointers MUST remain on the currently
+active release.
 
 #### Scenario: All mapping work is resolved
 
@@ -113,18 +108,18 @@ is independently present in the captured active-reference set.
 
 ### Requirement: Candidate admission and database observation are fail-closed
 
-The rebase MUST bind its output to the candidate-admitted inactive v0.18
-release, release-set, bundle, snapshot, capture revision, and admission receipt.
-The builder MUST obtain its database observation through the existing v0.18
-candidate-import helper when a local loopback development `DATABASE_URL` is
-available. The helper MUST create and drop a schema-only disposable candidate
-database, import the pinned Bundle, and execute the frozen object/prerequisite
-queries in a repeatable read-only transaction. An explicit observation file MAY
-be supplied for replay. Every observation MUST freeze logical
-schema/environment identity, query-contract hash, parameters, deterministic
-object/prerequisite rows, result digest, and counts. Missing, unsafe, or
-drifting observation evidence MUST block readiness and MUST NOT be replaced by
-an invented live result.
+The rebase MUST bind its output to the candidate-admitted inactive v0.22
+release, release-set, bundle, snapshot, capture revision, and admission receipt
+produced by the v0.22 composite candidate import. The builder MUST obtain its
+database observation through the candidate-import helper when a local loopback
+development `DATABASE_URL` is available. The helper MUST create and drop a
+schema-only disposable candidate database, import the pinned Bundle, and
+execute the frozen object/prerequisite queries in a repeatable read-only
+transaction. An explicit observation file MAY be supplied for replay. Every
+observation MUST freeze logical schema/environment identity, query-contract
+hash, parameters, deterministic object/prerequisite rows, result digest, and
+counts. Missing, unsafe, or drifting observation evidence MUST block readiness
+and MUST NOT be replaced by an invented live result.
 
 #### Scenario: Candidate is generated without database credentials
 
@@ -133,12 +128,13 @@ an invented live result.
   if no safe loopback credentials are available, it SHALL emit a blocking
   receipt with `database-observation-unavailable` (or the specific fail-closed
   source/query finding), while any staged output remains explicitly
-  `unqualified` and `nonActivation`.
+  `unqualified` and `nonActivation`
 
 #### Scenario: Local disposable candidate-admission observation succeeds
 
 - **WHEN** the configured URL targets a loopback PostgreSQL development
-  service and the candidate Bundle imports into a disposable schema
+  service and the pinned v0.22 candidate Bundle imports into a disposable
+  schema
 - **THEN** the command SHALL record sorted object and prerequisite endpoint
   rows, their query-contract and result digests, and a READY observation check
   without persisting the physical disposable schema or changing any selector
@@ -146,13 +142,26 @@ an invented live result.
 ### Requirement: Existing selectors remain byte-stable
 
 The candidate builder MUST write only a scoped content-addressed output root.
-It MUST snapshot all current v0.9 pointer bytes before and after generation and
-reject any change; qualification, activation, consumer, and production
-selectors MUST NOT consume the candidate output.
+It MUST snapshot all current production pointer bytes before and after
+generation and reject any change; qualification, activation, consumer, and
+production selectors MUST NOT consume the candidate output.
 
 #### Scenario: Inactive candidate is staged
 
 - **WHEN** complete projection and prerequisite releases are generated twice
-- **THEN** their identities and bytes SHALL match, all current pointer bytes
-  SHALL remain unchanged, and the receipt SHALL retain `nonActivation: true`.
+- **THEN** their identities and bytes SHALL match, all current production
+  pointer bytes SHALL remain unchanged, and the receipt SHALL retain
+  `nonActivation: true`
+
+### Requirement: The v0.22 rebase freezes the complete active reference denominator
+
+Before mapping, the builder MUST capture every active course/package/resource,
+card, infograph, textbook locator, prerequisite, learning-path, Konling, RAG,
+and other ACT teaching reference with its source revision and digest. Changed or
+uncaptured inputs MUST invalidate the build.
+
+#### Scenario: An active reference changes after capture
+
+- **WHEN** its current bytes or database observation differs from the sealed input
+- **THEN** the builder MUST reject the run rather than mix revisions
 

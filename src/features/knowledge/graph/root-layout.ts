@@ -151,11 +151,12 @@ export function isCompactKnowledgeRootSet(nodes: readonly KnowledgeNodeData[]): 
 export function packKnowledgeGraphRootNodes<T extends KnowledgeNodeData>(
   nodes: readonly T[],
   viewport: KnowledgeRootPackingViewport,
-  measureText?: KnowledgeNodeLabelMeasureText
+  measureText?: KnowledgeNodeLabelMeasureText,
+  compare: (left: T, right: T) => number = compareRootNodes as (left: T, right: T) => number,
 ): Array<KnowledgeRootPackedNode<T>> {
   if (nodes.length === 0) return [];
 
-  const ordered = [...nodes].sort(compareRootNodes);
+  const ordered = [...nodes].sort(compare);
   const labelBoundsById = new Map(ordered.map((node) => [
     node.id,
     getKnowledgeRootCollisionBounds(node, measureText),
