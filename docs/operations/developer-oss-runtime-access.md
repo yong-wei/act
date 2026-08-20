@@ -19,10 +19,15 @@
 - 受支持的 CPU 架构（x86_64 或 aarch64）
 - `/dev/fuse`
 - `ossfs2`、`ossutil`、`findmnt`/`mount`/`umount`
-- 非 root 时，对实际的 `mount`/`umount` 配置无密码 `sudo -n`（不要只放行 `true`）。例如：
+- 非 root 时，安装仓库提供的路径受限 helper，**不要**把整个 `mount`/`umount` 放进 `NOPASSWD`：
 
-  ```
-  %sudo ALL=(root) NOPASSWD: /usr/bin/mount, /usr/bin/umount
+  ```bash
+  sudo install -o root -g root -m 0750 \
+    scripts/runtime-release/developer-oss/privileged-mount.py \
+    /usr/local/sbin/act-runtime-dev-mount
+  echo "$USER ALL=(root) NOPASSWD: /usr/local/sbin/act-runtime-dev-mount" | sudo tee /etc/sudoers.d/act-runtime-dev
+  sudo chmod 440 /etc/sudoers.d/act-runtime-dev
+  sudo visudo -cf /etc/sudoers.d/act-runtime-dev
   ```
 - Python 3、Node.js（与仓库 `engines` 一致）
 - 本仓库的可写 checkout

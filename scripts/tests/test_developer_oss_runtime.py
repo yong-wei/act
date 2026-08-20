@@ -325,11 +325,48 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 stop(checkout)
             self.assertEqual(unmounted.call_args_list[1].args[0], helper)
 
-    def test_preflight_checks_mount_and_umount_sudo_not_true(self):
+    def test_preflight_uses_path_limited_mount_helper(self):
         source = (DEV / "bootstrap.py").read_text(encoding="utf-8")
-        self.assertIn('privileged([which("mount"), "--help"])', source)
-        self.assertIn('privileged([which("umount"), "--help"])', source)
+        self.assertIn("act-runtime-dev-mount", source)
         self.assertNotIn('privileged(["true"])', source)
+        self.assertNotIn("NOPASSWD: /usr/bin/mount, /usr/bin/umount", source)
+
+    def test_privileged_mount_helper_rejects_arbitrary_paths(self):
+        helper = DEV / "privileged-mount.py"
+        with tempfile.TemporaryDirectory() as raw:
+            outside = Path(raw) / "not-allowed"
+            outside.mkdir()
+            result = subprocess.run(
+                [sys.executable, str(helper), "bind", str(outside), str(outside)],
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("allowlist", result.stderr)
+            self.assertNotIn("super-secret", result.stderr)
+            help_result = subprocess.run(
+                [sys.executable, str(helper), "--help"],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(help_result.returncode, 0)
+
+    def test_privileged_mount_helper_rejects_symlink_escape(self):
+        helper = DEV / "privileged-mount.py"
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            runtime = checkout / "course-content" / "runtime"
+            runtime.parent.mkdir(parents=True)
+            target = Path(raw) / "etc"
+            target.mkdir()
+            runtime.symlink_to(target)
+            result = subprocess.run(
+                [sys.executable, str(helper), "bind", str(runtime), str(runtime)],
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("allowlist", result.stderr)
 
     def test_missing_mountpoint_does_not_block_restart(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -372,8 +409,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     with mock.patch("shutil.which", side_effect=lambda name: str(bin_dir / name) if (bin_dir / name).exists() else None):
                         with mock.patch("subprocess.run", side_effect=fake_run):
                             unmount(target)
-            self.assertTrue(any(command and command[0].endswith("umount") for command in calls))
-            self.assertFalse(any(command and "fusermount" in command[0] for command in calls if command))
+            self.assertTrue(
+                any(
+                    command
+                    and any("privileged-mount.py" in str(part) for part in command)
+                    and "umount" in command
+                    for command in calls
+                )
+            )
+            self.assertFalse(any(command and str(command[0]).endswith("fusermount") for command in calls if command))
 
     def test_interrupted_unknown_runtime_path_is_not_recursively_deleted(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -383,10 +427,20 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             other.mkdir(parents=True)
             (other / "keep.txt").write_text("stay")
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            config = Path(raw) / "xdg-state" / "checkouts"
+            # ensure stop still removes leftover ossfs.conf without a receipt
+            from common import checkout_state
+            state = checkout_state(checkout)
+            state.mkdir(parents=True)
+            os.chmod(state, 0o700)
+            leftover = state / "ossfs.conf"
+            leftover.write_text("secret-should-go")
+            os.chmod(leftover, 0o600)
             with mock.patch("bootstrap.stop_services"), mock.patch("bootstrap.unmount") as unmounted:
                 stop(checkout)
                 unmounted.assert_not_called()
             self.assertTrue((other / "keep.txt").exists())
+            self.assertFalse(leftover.exists())
 
 
 if __name__ == "__main__":
