@@ -6,6 +6,8 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { sha256 } from '../../../scripts/actkg-release/authoritative-release';
+
 export const V022_DISPLAY_PROJECTION_CONTRACT = 'actkg-v022-display-projections/1' as const;
 export const V022_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22' as const;
 export const V022_BUNDLE_ID = 'ctb:control-theory-engineering-v0.22:r5' as const;
@@ -24,6 +26,8 @@ export const V022_CANDIDATE_RECEIPT_RELATIVE =
   'course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.22/candidate-receipt.json' as const;
 export const V022_CONTROLLED_RELEASE_RELATIVE =
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.22-r5' as const;
+export const V022_MIRROR_RECEIPT_RELATIVE =
+  `${V022_CONTROLLED_RELEASE_RELATIVE}.mirror-receipt.json` as const;
 
 export const V022_CURRENT_POINTER_PATHS = [
   'course-content/authoring/knowledge/authority/current.json',
@@ -111,6 +115,10 @@ export function loadPinnedV022Envelope(repoRoot: string): V022PinnedEnvelope {
       'admitted v0.22 candidate does not match the pinned composite envelope',
     );
   }
+  assertSealedV022ReleaseMirror(repoRoot, {
+    releaseId,
+    bundleDigest,
+  });
   return {
     contract: V022_DISPLAY_PROJECTION_CONTRACT,
     releaseId: V022_AUTHORITY_RELEASE_ID,
@@ -124,6 +132,58 @@ export function loadPinnedV022Envelope(repoRoot: string): V022PinnedEnvelope {
     multilingualLabelCount: V022_MULTILINGUAL_LABEL_COUNT,
     captureRevision,
   };
+}
+
+export function assertSealedV022ReleaseMirror(
+  repoRoot: string,
+  expected: { releaseId: string; bundleDigest: string },
+): void {
+  const receiptPath = path.join(repoRoot, V022_MIRROR_RECEIPT_RELATIVE);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(receiptPath, 'utf8')) as unknown;
+  } catch {
+    throw new V022EnvelopeError('mirror-receipt-missing', `missing ${V022_MIRROR_RECEIPT_RELATIVE}`);
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new V022EnvelopeError('mirror-receipt-invalid', 'mirror receipt must be an object');
+  }
+  const receipt = parsed as {
+    bundleDigest?: unknown;
+    controlledPath?: unknown;
+    files?: unknown;
+  };
+  if (receipt.bundleDigest !== expected.bundleDigest) {
+    throw new V022EnvelopeError('mirror-bundle-drift', 'controlled release mirror digest drifted from the admitted envelope');
+  }
+  if (receipt.controlledPath !== V022_CONTROLLED_RELEASE_RELATIVE) {
+    throw new V022EnvelopeError('mirror-path-drift', 'controlled release mirror path drifted');
+  }
+  if (!Array.isArray(receipt.files) || receipt.files.length === 0) {
+    throw new V022EnvelopeError('mirror-files-missing', 'controlled release mirror file list is empty');
+  }
+  for (const raw of receipt.files) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new V022EnvelopeError('mirror-file-invalid', 'mirror file entry is invalid');
+    }
+    const row = raw as { path?: unknown; rawSha256?: unknown; byteLength?: unknown };
+    const relative = text(row.path, 'mirror.file.path');
+    failLatest(relative, 'mirror.file.path');
+    const expectedSha = text(row.rawSha256, 'mirror.file.rawSha256');
+    const absolute = path.join(repoRoot, V022_CONTROLLED_RELEASE_RELATIVE, relative);
+    let bytes: Buffer;
+    try {
+      bytes = readFileSync(absolute);
+    } catch {
+      throw new V022EnvelopeError('mirror-file-missing', `sealed release file is missing: ${relative}`);
+    }
+    if (typeof row.byteLength === 'number' && bytes.byteLength !== row.byteLength) {
+      throw new V022EnvelopeError('mirror-file-drift', `sealed release file length drifted: ${relative}`);
+    }
+    if (sha256(bytes) !== expectedSha) {
+      throw new V022EnvelopeError('mirror-file-drift', `sealed release file bytes drifted: ${relative}`);
+    }
+  }
 }
 
 export function assertSameV022Envelope(

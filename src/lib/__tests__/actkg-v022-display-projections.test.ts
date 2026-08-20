@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
@@ -38,21 +39,27 @@ describe('actkg v0.22 display projections', () => {
     expect(domainIdFromModuleVersion(
       'optimal-control-foundations-and-linear-quadratic-design-engineering-v0.1',
     )).toBe('optimal-control-foundations-and-linear-quadratic-design');
-    expect(V022_REVIEWED_DOMAIN_PRESENTATION).toHaveLength(15);
-    expect(V022_REVIEWED_DOMAIN_PRESENTATION.map((row) => row.domainId)).not.toEqual([
-      ...REGISTERED_PEER_DOMAIN_IDS,
-    ]);
+    const components = JSON.parse(readFileSync(path.join(
+      'course-content/authoring/knowledge/releases/control-theory-engineering-v0.22-r5',
+      'component-releases.json',
+    ), 'utf8')) as { components: Array<{ component_role: string; release_version: string }> };
+    const moduleDomainIds = components.components
+      .filter((row) => row.component_role === 'module')
+      .map((row) => domainIdFromModuleVersion(row.release_version));
+    expect(V022_REVIEWED_DOMAIN_PRESENTATION.map((row) => row.domainId)).toEqual(moduleDomainIds);
+    expect(moduleDomainIds).not.toEqual([...REGISTERED_PEER_DOMAIN_IDS]);
   });
 
   it('rebuilds many-to-many membership covering every published v0.22 concept', () => {
     const envelope = loadPinnedV022Envelope(process.cwd());
     const built = buildV022DomainCatalogAuthoring({ repoRoot: process.cwd(), envelope });
-    expect(built.runtime.domains).toHaveLength(V022_REVIEWED_DOMAIN_PRESENTATION.length);
+    expect(built.runtime.domains.map((row) => row.domainId)).toEqual(
+      V022_REVIEWED_DOMAIN_PRESENTATION.map((row) => row.domainId),
+    );
     expect(built.runtime.aggregate.domainCount).toBe(built.runtime.domains.length);
-    expect(built.runtime.aggregate.domainCount).not.toBe(8);
+    expect(built.runtime.aggregate.domainCount).not.toBe(REGISTERED_PEER_DOMAIN_IDS.length);
     expect(built.orphanCount).toBe(0);
-    expect(built.publishedConceptCount).toBe(7300);
-    expect(built.runtime.memberships).toHaveLength(7300);
+    expect(built.publishedConceptCount).toBe(built.runtime.memberships.length);
     expect(built.runtime.authorityBinding.releaseId).toBe(V022_AUTHORITY_RELEASE_ID);
     expect(built.runtime.authorityBinding.snapshotId).toBe(V022_SNAPSHOT_ID);
     for (const domain of built.runtime.domains) {

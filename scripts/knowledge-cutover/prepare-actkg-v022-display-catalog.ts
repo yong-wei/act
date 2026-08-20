@@ -59,13 +59,17 @@ export function prepareV022DisplayCatalog(repoRoot = process.cwd()): {
   const envelope = loadPinnedV022Envelope(repoRoot);
   const before = snapshotPointers(repoRoot);
   const built = buildV022DomainCatalogAuthoring({ repoRoot, envelope });
+  const after = snapshotPointers(repoRoot);
+  if (catalogCanonicalJson(before) !== catalogCanonicalJson(after)) {
+    throw new Error('v0.22 display catalog rebuild moved a production pointer');
+  }
   const outputRoot = path.join(repoRoot, V022_DOMAIN_CATALOG_CANDIDATE_RELATIVE);
   mkdirSync(outputRoot, { recursive: true });
   const authoringPath = path.join(outputRoot, 'catalog.json');
   const runtimePath = path.join(outputRoot, 'runtime.json');
   const receiptPath = path.join(outputRoot, 'candidate-receipt.json');
-  writeFileSync(authoringPath, `${catalogCanonicalJson(built.authoring)}\n`);
-  writeFileSync(runtimePath, `${catalogCanonicalJson(built.runtime)}\n`);
+  const authoringBytes = Buffer.from(`${catalogCanonicalJson(built.authoring)}\n`);
+  const runtimeBytes = Buffer.from(`${catalogCanonicalJson(built.runtime)}\n`);
   const receipt = {
     protocol: 'actkg-v022-display-catalog/1',
     status: 'staged',
@@ -78,20 +82,18 @@ export function prepareV022DisplayCatalog(repoRoot = process.cwd()): {
     publishedConceptCount: built.publishedConceptCount,
     orphanCount: built.orphanCount,
     outputs: [
-      { path: path.relative(repoRoot, authoringPath), sha256: sha256(readFileSync(authoringPath)) },
-      { path: path.relative(repoRoot, runtimePath), sha256: sha256(readFileSync(runtimePath)) },
+      { path: path.relative(repoRoot, authoringPath), sha256: sha256(authoringBytes) },
+      { path: path.relative(repoRoot, runtimePath), sha256: sha256(runtimeBytes) },
     ],
-    pointers: { before, after: snapshotPointers(repoRoot), unchanged: true },
+    pointers: { before, after, unchanged: true },
     productionAuthoringUntouched: sha256(readFileSync(path.join(repoRoot, PRODUCTION_AUTHORING))),
     productionRuntimeUntouched: existsSync(path.join(repoRoot, PRODUCTION_RUNTIME))
       ? sha256(readFileSync(path.join(repoRoot, PRODUCTION_RUNTIME)))
       : null,
   };
+  writeFileSync(authoringPath, authoringBytes);
+  writeFileSync(runtimePath, runtimeBytes);
   writeFileSync(receiptPath, `${catalogCanonicalJson(receipt)}\n`);
-  const after = snapshotPointers(repoRoot);
-  if (catalogCanonicalJson(before) !== catalogCanonicalJson(after)) {
-    throw new Error('v0.22 display catalog rebuild moved a production pointer');
-  }
   return {
     envelopeSnapshotId: envelope.snapshotId,
     catalogId: built.runtime.catalogId,
