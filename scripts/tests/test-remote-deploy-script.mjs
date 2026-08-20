@@ -282,6 +282,19 @@ function main() {
   );
 
   assert.equal(
+    script.includes('$(dirname "${REMOTE_RESOURCE_SET_CONFIG}")')
+      && script.includes('scp -q "${LOCAL_RESOURCE_SET_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_HELPER}"')
+      && script.includes('scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"'),
+    true,
+    '远端 provenance 校验必须随同部署 resourceSet helper 与配置',
+  );
+  assert.match(
+    script,
+    /remote "cd '\$\{REMOTE_PROJECT_DIR\}' && node '\$\{REMOTE_PROVENANCE_HELPER\}' verify-runtime \\/,
+    '远端 runtime provenance 校验必须从远端项目根目录解析 resourceSet 配置',
+  );
+
+  assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),
     true,
     '本地镜像导出必须保留 Podman 部署脚本使用的 localhost 标签，避免远端继续复用同名旧镜像',

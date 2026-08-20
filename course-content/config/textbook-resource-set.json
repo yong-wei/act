@@ -1,0 +1,9 @@
+{
+  "resourceSetId": "current-authoring-bundle-v1",
+  "sourceRoot": "course-content/authoring/resources",
+  "configRoot": "course-content/config/textbook-structure-v2",
+  "books": [
+    "control-encyclopedia",
+    "hu-shousong-exercise-analysis-3rd"
+  ]
+}

@@ -584,6 +584,9 @@ model User {
   riskFlags                             StudentRiskFlag[]
   createdDiagnosisReports               DiagnosisReport[]                      @relation("DiagnosisReportCreator")
   targetedDiagnosisReports              DiagnosisReport[]                      @relation("DiagnosisReportTarget")
+  createdDiagnosisReportArtifacts       DiagnosisReportExportArtifact[]        @relation("DiagnosisReportArtifactCreator")
+  diagnosisReportExportEvents           DiagnosisReportExportEvent[]           @relation("DiagnosisReportExportActor")
+  diagnosisReportDispositionEvents      DiagnosisReportDispositionEvent[]      @relation("DiagnosisReportDispositionActor")
   learningMaterializationRebuildRequest LearningMaterializationRebuildRequest?
   learningMaterializationGeneration     LearningMaterializationGeneration?
   learningMaterializationOutbox         LearningMaterializationOutbox[]
@@ -5219,12 +5222,70 @@ model DiagnosisReport {
   previousReport          DiagnosisReport?         @relation("DiagnosisReportPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
   successorReports        DiagnosisReport[]        @relation("DiagnosisReportPredecessor")
   successorGenerationJobs DiagnosisGenerationJob[] @relation("DiagnosisGenerationPredecessor")
+  exportArtifacts         DiagnosisReportExportArtifact[]
+  dispositionEvents       DiagnosisReportDispositionEvent[]
 
   @@index([scopeType, scopeId, generatedAt])
   @@index([classId, generatedAt])
   @@index([userId, generatedAt])
   @@index([targetUserId, generatedAt])
   @@index([previousReportId])
+}
+
+model DiagnosisReportExportArtifact {
+  id                String   @id @default(cuid())
+  reportId          String
+  projectionVersion String
+  roleVersion       String
+  audienceUserId    String   @default("")
+  contentHash       String
+  artifactHash      String
+  artifactBytes     Bytes
+  artifactSizeBytes Int
+  pageCount         Int
+  createdById       String
+  createdAt         DateTime @default(now())
+
+  report  DiagnosisReport              @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  creator User                         @relation("DiagnosisReportArtifactCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  exports DiagnosisReportExportEvent[]
+
+  @@unique([reportId, projectionVersion, roleVersion, audienceUserId], map: "DiagnosisReportExportArtifact_identity_key")
+  @@index([reportId, createdAt])
+  @@index([createdById, createdAt])
+}
+
+model DiagnosisReportExportEvent {
+  id         String   @id @default(cuid())
+  artifactId String
+  actorId    String
+  exportedAt DateTime @default(now())
+
+  artifact DiagnosisReportExportArtifact @relation(fields: [artifactId], references: [id], onDelete: Restrict)
+  actor    User                          @relation("DiagnosisReportExportActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([artifactId, exportedAt])
+  @@index([actorId, exportedAt])
+}
+
+model DiagnosisReportDispositionEvent {
+  id             String   @id @default(cuid())
+  reportId       String
+  actorId        String
+  targetKind     String
+  targetKey      String
+  action         String
+  actionRef      String?
+  idempotencyKey String
+  result         String   @default("recorded")
+  createdAt      DateTime @default(now())
+
+  report DiagnosisReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  actor  User            @relation("DiagnosisReportDispositionActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@unique([reportId, actorId, idempotencyKey], map: "DiagnosisReportDisposition_idempotency_key")
+  @@index([reportId, targetKind, targetKey, createdAt])
+  @@index([actorId, createdAt])
 }
 
 model DiagnosisGenerationJob {

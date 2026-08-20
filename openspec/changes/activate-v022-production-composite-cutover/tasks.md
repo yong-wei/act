@@ -1,11 +1,11 @@
 ## 1. Envelope-configurable runtime release
 
-- [ ] 1.1 Replace hard-coded v0.18 selector constants (including the
+- [x] 1.1 Replace hard-coded v0.18 selector constants (including the
   `ctr:release:control-theory-engineering-v0.18` release and profile pins in
   `src/lib/authority-domain-shards/labels.ts`) with configuration bound to one
   named, qualified composite release envelope, failing closed on unknown or
   partially resolved envelopes.
-- [ ] 1.2 Prove the configured runtime resolves the current v0.18 envelope
+- [x] 1.2 Prove the configured runtime resolves the current v0.18 envelope
   identically to the previous hard-coded behavior via lint, typecheck, tests,
   and build gates on one frozen revision.
 - [ ] 1.3 Build and publish the immutable runtime release with provenance bound

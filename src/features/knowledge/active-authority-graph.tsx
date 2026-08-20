@@ -60,6 +60,7 @@ import {
   isPublicAuthorityLearnerShard,
   publicEnvelopesShareAuthorityAndCatalog,
 } from '@/lib/authority-domain-shards/envelope';
+import { ActiveAuthorityRootCanvas } from './active-authority-root-canvas';
 
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
@@ -83,7 +84,8 @@ export function selectActiveAuthorityMembership(
   activeDomainId?: string | null,
 ): AuthorityShardMembership | null {
   const ordered = [...memberships].sort((left, right) => (
-    REGISTERED_PEER_DOMAIN_IDS.indexOf(left.domainId) - REGISTERED_PEER_DOMAIN_IDS.indexOf(right.domainId)
+    (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).indexOf(left.domainId)
+    - (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).indexOf(right.domainId)
     || left.domainId.localeCompare(right.domainId)
     || left.visualRole.localeCompare(right.visualRole)
   ));
@@ -1373,32 +1375,14 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
-        <div className="flex-1 overflow-y-auto p-4" data-authority-shard-root="true">
-          <p className="mb-3 text-sm text-platform-fg-secondary">选择一个已审知识领域进入默认教学骨架。完整图谱不会在此加载。</p>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {workspace.root.domains.map((domain) => (
-              <button
-                key={domain.visualRole}
-                type="button"
-                data-authority-domain-entry={domain.visualRole}
-                onClick={() => enterDomain(domain.visualRole)}
-                className="rounded-xl border border-platform-border bg-platform-surface p-4 text-left hover:bg-platform-action-subtle"
-              >
-                <div className="text-sm font-semibold text-platform-fg-primary">{domain.displayName}</div>
-                <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">{domain.summary}</p>
-                <div className="mt-3 text-[11px] text-platform-fg-muted">已审对象 {domain.memberCount} 个</div>
-              </button>
-            ))}
-            <article
-              data-authority-aggregate-entry="true"
-              className="rounded-xl border border-platform-border bg-platform-canvas-muted p-4"
-              aria-label={`${workspace.root.aggregate.displayName}汇总入口`}
-            >
-              <div className="text-sm font-semibold text-platform-fg-primary">{workspace.root.aggregate.displayName}</div>
-              <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">{workspace.root.aggregate.summary}</p>
-              <div className="mt-3 text-[11px] text-platform-fg-muted">汇总 {workspace.root.aggregate.domainCount} 个已审领域，不展开全局关系。</div>
-            </article>
-          </div>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <p className="px-4 pt-3 text-sm text-platform-fg-secondary">选择一个已审知识领域进入默认教学骨架。完整图谱不会在此加载。</p>
+          <ActiveAuthorityRootCanvas
+            catalog={workspace.root}
+            onEnterDomain={(visualRole) => {
+              void enterDomain(visualRole);
+            }}
+          />
         </div>
       ) : !model || !scopedGraph ? (
         <div className="flex flex-1 items-center justify-center p-6 text-center">
