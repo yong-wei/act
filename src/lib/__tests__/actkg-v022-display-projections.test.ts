@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -5,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   V022_AUTHORITY_RELEASE_ID,
+  V022_CANDIDATE_RECEIPT_RELATIVE,
+  V022_CAPTURE_REVISION,
   V022_MULTILINGUAL_LABEL_COUNT,
   V022_REVIEWED_DOMAIN_PRESENTATION,
   V022_SNAPSHOT_ID,
@@ -23,6 +26,7 @@ describe('actkg v0.22 display projections', () => {
     const envelope = loadPinnedV022Envelope(process.cwd());
     expect(envelope.releaseId).toBe(V022_AUTHORITY_RELEASE_ID);
     expect(envelope.snapshotId).toBe(V022_SNAPSHOT_ID);
+    expect(envelope.captureRevision).toBe(V022_CAPTURE_REVISION);
     expect(envelope.multilingualLabelCount).toBe(V022_MULTILINGUAL_LABEL_COUNT);
     expect(envelope.integrationVersion).toBe('control-theory-integration-v0.20');
     expect(envelope.terminologyVersion).toBe('control-theory-zh-cn-terminology-v0.5');
@@ -85,5 +89,26 @@ describe('actkg v0.22 display projections', () => {
   it('keeps the sealed v0.18 label count from leaking into v0.22', () => {
     expect(V022_MULTILINGUAL_LABEL_COUNT).toBe(2148);
     expect(V022_MULTILINGUAL_LABEL_COUNT).not.toBe(1909);
+  });
+
+  it('loads the admitted mirror list from the capture Git revision', () => {
+    const envelope = loadPinnedV022Envelope(process.cwd());
+    const gitReceipt = JSON.parse(execFileSync(
+      'git',
+      ['show', `${V022_CAPTURE_REVISION}:${V022_CANDIDATE_RECEIPT_RELATIVE}`],
+      { cwd: process.cwd(), encoding: 'utf8' },
+    )) as {
+      mirror: { files: Array<{ path: string; rawSha256: string; gitObject: string }> };
+      validated: { bundleDigest: string };
+    };
+    const workingTreeReceipt = JSON.parse(readFileSync(V022_CANDIDATE_RECEIPT_RELATIVE, 'utf8')) as {
+      captureRevision: string;
+      mirror: { files: Array<{ path: string; rawSha256: string; gitObject: string }> };
+    };
+    expect(envelope.captureRevision).toBe(V022_CAPTURE_REVISION);
+    expect(gitReceipt.validated.bundleDigest).toBe(envelope.bundleDigest);
+    expect(gitReceipt.mirror.files.length).toBeGreaterThan(0);
+    expect(workingTreeReceipt.mirror.files).toEqual(gitReceipt.mirror.files);
+    expect(workingTreeReceipt.captureRevision).toBe(V022_CAPTURE_REVISION);
   });
 });
