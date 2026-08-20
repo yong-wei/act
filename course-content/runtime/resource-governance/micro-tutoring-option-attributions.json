@@ -1,4 +1,1517 @@
 {
   "version": "micro-tutoring-option-attributions.v1",
-  "entries": []
+  "entries": [
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+      "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297",
+      "optionKey": "A",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:confuses-overshoot-with-steady-error",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:f1244c7a7091145739106cda125b791e57b6f8df75643e53563a6e90e9cb6f38",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:confuses-overshoot-with-steady-error」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+      "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:confuses-overshoot-with-steady-error",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:f1244c7a7091145739106cda125b791e57b6f8df75643e53563a6e90e9cb6f38",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:confuses-overshoot-with-steady-error」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+      "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-root-locus-geometry",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:52033f30a698ef2bb96ac1075ffc6c7e790c9b8fe87135d3626c3c5f4c6ad255",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:ignores-root-locus-geometry」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+      "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-root-locus-geometry",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:52033f30a698ef2bb96ac1075ffc6c7e790c9b8fe87135d3626c3c5f4c6ad255",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:ignores-root-locus-geometry」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+      "contentHash": "ff1e0e7d00a6ac8e2f12a4cd0a114e50a79a9353673ae454d9ef799c3573926d",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:misuses-lead-compensation",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:4988d2b84f8396966bdfe4744b865d0db7b03d7c14fc35a252c72af7a302d06e",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:misuses-lead-compensation」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+      "contentHash": "ff1e0e7d00a6ac8e2f12a4cd0a114e50a79a9353673ae454d9ef799c3573926d",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:misuses-lead-compensation",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:4988d2b84f8396966bdfe4744b865d0db7b03d7c14fc35a252c72af7a302d06e",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:misuses-lead-compensation」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+      "contentHash": "a5940e4209a361c9cee75d172bf0012d1f003a1590a6d484b941fc443a7bc6d4",
+      "optionKey": "A",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-actuator-cost",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:66d20a634dbafbaf037065802680c7ca4a71808420d36360336ca2cd779ee09a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:ignores-actuator-cost」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+      "contentHash": "a5940e4209a361c9cee75d172bf0012d1f003a1590a6d484b941fc443a7bc6d4",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-actuator-cost",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:66d20a634dbafbaf037065802680c7ca4a71808420d36360336ca2cd779ee09a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:ignores-actuator-cost」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+      "contentHash": "d15ad456a3d74ae981a0cdca301036a6681e18428abed0474e2e9a2171604acd",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:single-metric-design",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:930718d44680b9b2edcd96f145b33c8c45ffd1c6218d40a9cb9e825ae24cd7b2",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:single-metric-design」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+      "contentHash": "d15ad456a3d74ae981a0cdca301036a6681e18428abed0474e2e9a2171604acd",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:single-metric-design",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:930718d44680b9b2edcd96f145b33c8c45ffd1c6218d40a9cb9e825ae24cd7b2",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:single-metric-design」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-06",
+      "contentHash": "214264d1899dabee031c5dcbc81aab35cf74ab5ae579f44f9c8e332537200eb3",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:tuning-without-margin-check",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:48e7c28b29a60b55ede919adf04e03d462c90ae50c0815d62a2f60b9258b2530",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:tuning-without-margin-check」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-06",
+      "contentHash": "214264d1899dabee031c5dcbc81aab35cf74ab5ae579f44f9c8e332537200eb3",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:tuning-without-margin-check",
+      "knowledgeNodeId": "cap:autocontrol:synthesize-controller-correction",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:48e7c28b29a60b55ede919adf04e03d462c90ae50c0815d62a2f60b9258b2530",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:control-correction:tuning-without-margin-check」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+      "contentHash": "ad5ef53747d263c0eafe23280ce93a7abbe987e861a1dbb55ee3ba1c3e2dfbe4",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:ignores-summing-sign",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:cc47afd807dbf78cefaf5d6b5c59acbcfe8c24b33da8a735281fb8bd866f1a6f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:ignores-summing-sign」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+      "contentHash": "ad5ef53747d263c0eafe23280ce93a7abbe987e861a1dbb55ee3ba1c3e2dfbe4",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:ignores-summing-sign",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:cc47afd807dbf78cefaf5d6b5c59acbcfe8c24b33da8a735281fb8bd866f1a6f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:ignores-summing-sign」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+      "contentHash": "95ffcc16bfa11b6d0dea370f318697142f4f511ac67304080fb123d7b914f21d",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:single-channel-thinking",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:36d074aae2e88d8bbf08e5a2437d42fff2be2fd66c185b05134599d75026ce8b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:single-channel-thinking」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+      "contentHash": "95ffcc16bfa11b6d0dea370f318697142f4f511ac67304080fb123d7b914f21d",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:single-channel-thinking",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:36d074aae2e88d8bbf08e5a2437d42fff2be2fd66c185b05134599d75026ce8b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:single-channel-thinking」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+      "contentHash": "e62ccedd4c70c7edce86e15c4a6aa07f5f88a793f8193e969126166b9f423a02",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:assumes-unity-feedback",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d0f4125b503c31e457aed1a6a53affa5d0bc92090d6fb4f4a64ae66780775ffd",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:assumes-unity-feedback」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+      "contentHash": "e62ccedd4c70c7edce86e15c4a6aa07f5f88a793f8193e969126166b9f423a02",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:assumes-unity-feedback",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d0f4125b503c31e457aed1a6a53affa5d0bc92090d6fb4f4a64ae66780775ffd",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:assumes-unity-feedback」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+      "contentHash": "39b3ba8bf82c3ed0462b351b16e53df9f4a204d559f8581053369d7866be5570",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:gain-always-good",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:01dea9455342c5c1c6c600a9f02b567f417bba5b172bbd101aad12c7ceb7173b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:gain-always-good」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+      "contentHash": "39b3ba8bf82c3ed0462b351b16e53df9f4a204d559f8581053369d7866be5570",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:gain-always-good",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:01dea9455342c5c1c6c600a9f02b567f417bba5b172bbd101aad12c7ceb7173b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:gain-always-good」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-05",
+      "contentHash": "ea49fe780af3eaeae10fd384d6a8589d78d271e8658f4dbcb484513a09bbfa8c",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:components-without-connections",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:1ccf1f14adf0e6da37eb7233616a66396febd4dd521f93fc5d2fd5b23a24db7f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:components-without-connections」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-05",
+      "contentHash": "ea49fe780af3eaeae10fd384d6a8589d78d271e8658f4dbcb484513a09bbfa8c",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:components-without-connections",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:1ccf1f14adf0e6da37eb7233616a66396febd4dd521f93fc5d2fd5b23a24db7f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:components-without-connections」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-06",
+      "contentHash": "d7e3b55c1b4956c1ae35118ebcdb9393e373d2da64a70832d094d6010a24f6c2",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:disturbance-location-ignored",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8e72bae1c590d67e83d4bfe21f14d736adc6c4cb184d554e3719c8fc75a52e9b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:disturbance-location-ignored」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-06",
+      "contentHash": "d7e3b55c1b4956c1ae35118ebcdb9393e373d2da64a70832d094d6010a24f6c2",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:disturbance-location-ignored",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8e72bae1c590d67e83d4bfe21f14d736adc6c4cb184d554e3719c8fc75a52e9b",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:feedback-loop-concept-foundations:disturbance-location-ignored」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+      "contentHash": "6d6124c1b3e5af0556cd6f03ebf7d06d1ce6e5c4d4bed5140e61af876e28e4fa",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:reads-bode-as-picture",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:1b5985829bb3a68365892e577cd6967770b1bbd84c1a45f7bfc97046fce00553",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:reads-bode-as-picture」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+      "contentHash": "6d6124c1b3e5af0556cd6f03ebf7d06d1ce6e5c4d4bed5140e61af876e28e4fa",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:reads-bode-as-picture",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:1b5985829bb3a68365892e577cd6967770b1bbd84c1a45f7bfc97046fce00553",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:reads-bode-as-picture」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+      "contentHash": "f6408123a68e2eb6cc2311f35f3dcfd39fb9a70fd440960d16d878658dcb0538",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:ignores-phase-margin",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:eedece6d978e5bebe16727a4eedc35cde9c712e0463c84aff67323f24fef6979",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:ignores-phase-margin」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+      "contentHash": "f6408123a68e2eb6cc2311f35f3dcfd39fb9a70fd440960d16d878658dcb0538",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:ignores-phase-margin",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:eedece6d978e5bebe16727a4eedc35cde9c712e0463c84aff67323f24fef6979",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:ignores-phase-margin」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+      "contentHash": "f2396582aeb6d22f779434504b1d662b30a73262ba150e329bcde4ac130bb61a",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-is-always-better",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:af3332285b6f81aa4cbe1582b9cee2d93c7e32ad96493ca8eb980baa7a932283",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:bandwidth-is-always-better」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+      "contentHash": "f2396582aeb6d22f779434504b1d662b30a73262ba150e329bcde4ac130bb61a",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-is-always-better",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:af3332285b6f81aa4cbe1582b9cee2d93c7e32ad96493ca8eb980baa7a932283",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:bandwidth-is-always-better」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+      "contentHash": "a5680c870add2f3f1e7a8cde1f68ab3c52ddaefe6fb930be9cdf94b78de0c5ce",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:skips-critical-point-meaning",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:3ade3a75a88064ad231dd222e64d630c6a4d0014a8739dc467748cbf1359cabd",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:skips-critical-point-meaning」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+      "contentHash": "a5680c870add2f3f1e7a8cde1f68ab3c52ddaefe6fb930be9cdf94b78de0c5ce",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:skips-critical-point-meaning",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:3ade3a75a88064ad231dd222e64d630c6a4d0014a8739dc467748cbf1359cabd",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:skips-critical-point-meaning」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-05",
+      "contentHash": "33a351a8a8521a23b6bca6ee294ea41bfc14bbf07a03e1f0e0c98929ce54e04d",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:slope-break-misread",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:caa410ad0463432bb23b1880b3fa1e89fc9db24363640621e21d1b67fd8c25ba",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:slope-break-misread」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-05",
+      "contentHash": "33a351a8a8521a23b6bca6ee294ea41bfc14bbf07a03e1f0e0c98929ce54e04d",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:slope-break-misread",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:caa410ad0463432bb23b1880b3fa1e89fc9db24363640621e21d1b67fd8c25ba",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:slope-break-misread」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-06",
+      "contentHash": "43959c364d41bcade9d3a44baf64196b912814b53cd4f5435177bd5c076f7eaa",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-only-speed",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b65763539793babf6de3e75882b08c55b549a01537bcd944a15bbc49a3a3fb4d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:bandwidth-only-speed」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-06",
+      "contentHash": "43959c364d41bcade9d3a44baf64196b912814b53cd4f5435177bd5c076f7eaa",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-only-speed",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b65763539793babf6de3e75882b08c55b549a01537bcd944a15bbc49a3a3fb4d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:frequency-response-foundations:bandwidth-only-speed」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+      "contentHash": "f67d3f1a8d8b1f32a50a218723124f947a4c4d1f692a52fb0646e6a77b324501",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d860e53edc853a1977966fa8d3b18172fad27163f195305cd23b99c0c6ed5879",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+      "contentHash": "f67d3f1a8d8b1f32a50a218723124f947a4c4d1f692a52fb0646e6a77b324501",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d860e53edc853a1977966fa8d3b18172fad27163f195305cd23b99c0c6ed5879",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+      "contentHash": "7c3f061525ca3284a4fc824afe850d067c850426b97de6e70deedbdc2a1e845f",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:wrong-real-axis-rule",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0b88bd99bf594a9ddeba226e3323bb529848776259b4f514141cd7d4f2ae52aa",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:wrong-real-axis-rule」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+      "contentHash": "7c3f061525ca3284a4fc824afe850d067c850426b97de6e70deedbdc2a1e845f",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:wrong-real-axis-rule",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0b88bd99bf594a9ddeba226e3323bb529848776259b4f514141cd7d4f2ae52aa",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:wrong-real-axis-rule」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+      "contentHash": "df236c0dfa8b9c968d644e8b064d7128cc67f2a175904a6dfaa417e49f551513",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:asymptote-centroid-error",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:50d8636bdba32365e0f2e5646bd28622e08fe9946430c4f90d7534ce4962d61e",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:asymptote-centroid-error」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+      "contentHash": "df236c0dfa8b9c968d644e8b064d7128cc67f2a175904a6dfaa417e49f551513",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:asymptote-centroid-error",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:50d8636bdba32365e0f2e5646bd28622e08fe9946430c4f90d7534ce4962d61e",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:asymptote-centroid-error」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+      "contentHash": "58d18f46133e79081b8319a5f19399afa66db95ee888c6578f6d8769234dd678",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:imaginary-crossing-ignored",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8e55b344deab217076da9fd9557d130eb33d8a57f1a77e1f52630dbc5a6a0110",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:imaginary-crossing-ignored」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+      "contentHash": "58d18f46133e79081b8319a5f19399afa66db95ee888c6578f6d8769234dd678",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:imaginary-crossing-ignored",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8e55b344deab217076da9fd9557d130eb33d8a57f1a77e1f52630dbc5a6a0110",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:imaginary-crossing-ignored」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+      "contentHash": "58b2a8842f44efb0122a6882a0c96d4ad37e0c7167d886f1dc3d258d0304a3f5",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:zero-without-target-region",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:7ff65329e144379cd646b38844d3d68c42a6a358270433234a4b3ec89da88921",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:zero-without-target-region」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+      "contentHash": "58b2a8842f44efb0122a6882a0c96d4ad37e0c7167d886f1dc3d258d0304a3f5",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:zero-without-target-region",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:7ff65329e144379cd646b38844d3d68c42a6a358270433234a4b3ec89da88921",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:zero-without-target-region」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-06",
+      "contentHash": "0cf40eb541bd106fe51b4a58f1fc6551b60fe7da9a53c0658e26f8be8a4fe9e7",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:angle-gives-gain",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8358185c49ff053550610fcfd14842b1d4aa9651c5fb69668be0eb367158e970",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:angle-gives-gain」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-06",
+      "contentHash": "0cf40eb541bd106fe51b4a58f1fc6551b60fe7da9a53c0658e26f8be8a4fe9e7",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:angle-gives-gain",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:8358185c49ff053550610fcfd14842b1d4aa9651c5fb69668be0eb367158e970",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:root-locus-analysis-foundations:angle-gives-gain」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+      "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:copies-controller-without-context",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:5dede477f2f5a11c37e5fa1aaa693066118999a3a941c7290ef067ff3fdff122",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:copies-controller-without-context」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+      "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:copies-controller-without-context",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:5dede477f2f5a11c37e5fa1aaa693066118999a3a941c7290ef067ff3fdff122",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:copies-controller-without-context」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+      "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:ignores-ocean-disturbance",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:fe75a570677d45c3a0a8006f805653bd7681df08bb961ec2ef7b22fe88402731",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:ignores-ocean-disturbance」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+      "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:ignores-ocean-disturbance",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:fe75a570677d45c3a0a8006f805653bd7681df08bb961ec2ef7b22fe88402731",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:ignores-ocean-disturbance」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+      "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:assumption-transfer-missing",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0eb405f4c41f5c5ebc8e0b0077b0972814f0706afd48f480214e17fd0a618657",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:assumption-transfer-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+      "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:assumption-transfer-missing",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0eb405f4c41f5c5ebc8e0b0077b0972814f0706afd48f480214e17fd0a618657",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:assumption-transfer-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+      "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:cc7d45a6c0c9ed1bbf6bb96c9ae41e1a29f33fd3433d50cbcd1e54af57ee82a8",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:single-objective-transfer」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+      "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:cc7d45a6c0c9ed1bbf6bb96c9ae41e1a29f33fd3433d50cbcd1e54af57ee82a8",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:single-objective-transfer」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+      "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:arena-evidence-missing",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2da4c381a95b7c92ac2fc5632e3d8dca809328441ef42efa5dd0d87accffd975",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:arena-evidence-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+      "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:arena-evidence-missing",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2da4c381a95b7c92ac2fc5632e3d8dca809328441ef42efa5dd0d87accffd975",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:arena-evidence-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
+      "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0ea19daa17f515d8612f95abd45443b86db2eb420aef25ffe7aaab3cd149b909",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:single-objective-transfer」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
+      "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "cap:autocontrol:transfer-to-ship-ocean-mission",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0ea19daa17f515d8612f95abd45443b86db2eb420aef25ffe7aaab3cd149b909",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:ship-ocean-transfer-application:single-objective-transfer」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+      "contentHash": "bcd6a8d6a9872c0f92a89fd8de2c0966b04f0433c507f5c87116a7c8dd04e518",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:invalid-simulation-comparison",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b7387252ae8c35ec41ae3172ebd50581659bbd38291af9058a215bc61cfc8871",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:invalid-simulation-comparison」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+      "contentHash": "bcd6a8d6a9872c0f92a89fd8de2c0966b04f0433c507f5c87116a7c8dd04e518",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:invalid-simulation-comparison",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b7387252ae8c35ec41ae3172ebd50581659bbd38291af9058a215bc61cfc8871",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:invalid-simulation-comparison」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+      "contentHash": "773a4c698b92e82f5c0bc16750a0325a90d18a6b55d9c0d555ff812ffd962b6d",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:unexplained-simulation-gap",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:01d8abdc4e2d446b5bf6a2a535287bdc779c6ea1f75985fbb7feee205d7adada",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:unexplained-simulation-gap」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+      "contentHash": "773a4c698b92e82f5c0bc16750a0325a90d18a6b55d9c0d555ff812ffd962b6d",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:unexplained-simulation-gap",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:01d8abdc4e2d446b5bf6a2a535287bdc779c6ea1f75985fbb7feee205d7adada",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:unexplained-simulation-gap」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+      "contentHash": "3d1f511d043270d8817d6ddb5ba9d698ce4e72c58574c084af29615836c29b95",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:missing-run-provenance",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:575fc5c054c5f668d70a302b81ddee7aa71840f8efe826b34a61b5d62a87e7c4",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:missing-run-provenance」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+      "contentHash": "3d1f511d043270d8817d6ddb5ba9d698ce4e72c58574c084af29615836c29b95",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:missing-run-provenance",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:575fc5c054c5f668d70a302b81ddee7aa71840f8efe826b34a61b5d62a87e7c4",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:missing-run-provenance」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+      "contentHash": "d6985b55bbe0a6e7a4589eec463d608921042e85e450a21056081687e2dd4816",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:hides-validation-limits",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:33da2b799d409ecf82fc3713636b68271d8296b59a8898496205ee540dabac66",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:hides-validation-limits」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+      "contentHash": "d6985b55bbe0a6e7a4589eec463d608921042e85e450a21056081687e2dd4816",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:hides-validation-limits",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:33da2b799d409ecf82fc3713636b68271d8296b59a8898496205ee540dabac66",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:hides-validation-limits」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+      "contentHash": "121336098663dd2d8a74b6a853e257ba3f24c0f53969ac589ccd75125da0201f",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:simulation-evidence-not-linked",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:4bcb6059ade4388380932fa40d8745c9ecf771c8dd2fc8b1854f15c424e4ec70",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:simulation-evidence-not-linked」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+      "contentHash": "121336098663dd2d8a74b6a853e257ba3f24c0f53969ac589ccd75125da0201f",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:simulation-evidence-not-linked",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:4bcb6059ade4388380932fa40d8745c9ecf771c8dd2fc8b1854f15c424e4ec70",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:simulation-evidence-not-linked」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-06",
+      "contentHash": "b83bc636b32789145bb56c02e1373e8d072518472684f187384e28ecc0417d1e",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:one-metric-proves-model",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:6635c29964308dfee6ce0a6d581353ccd562a92936b6933126fd383d2ee96b11",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:one-metric-proves-model」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-06",
+      "contentHash": "b83bc636b32789145bb56c02e1373e8d072518472684f187384e28ecc0417d1e",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:one-metric-proves-model",
+      "knowledgeNodeId": "cap:autocontrol:validate-with-simulation-evidence",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:6635c29964308dfee6ce0a6d581353ccd562a92936b6933126fd383d2ee96b11",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:simulation-validation-practice:one-metric-proves-model」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+      "contentHash": "9fdad2bef96da3d9a62675cf3e1a6fdce97c7a77c880aa03f17871622ae1c5a1",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:negative-margin-misread",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d18df9f15638de44fc5ed915a7bf2ada5f79a73f117a393d62ab0efbc35cb18c",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:negative-margin-misread」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+      "contentHash": "9fdad2bef96da3d9a62675cf3e1a6fdce97c7a77c880aa03f17871622ae1c5a1",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:negative-margin-misread",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:d18df9f15638de44fc5ed915a7bf2ada5f79a73f117a393d62ab0efbc35cb18c",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:negative-margin-misread」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+      "contentHash": "3d961fe8ec1ddac88a111a0f8d2fa14b834b435e3919b933433caa6af2de7c21",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2f2b5d08fe41837289d8145abe121af7f5c773eb1a1904b2a600ba0eed973cb1",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+      "contentHash": "3d961fe8ec1ddac88a111a0f8d2fa14b834b435e3919b933433caa6af2de7c21",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2f2b5d08fe41837289d8145abe121af7f5c773eb1a1904b2a600ba0eed973cb1",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+      "contentHash": "c235dd0a7e8a91dc39a3a357e2a44f09468f72c88667353d2e55960e59894e64",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:c90fa30afbb44afb7c88c10abeac6cc9284d2d68ac14dd2810fd28c4856f314d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+      "contentHash": "c235dd0a7e8a91dc39a3a357e2a44f09468f72c88667353d2e55960e59894e64",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:c90fa30afbb44afb7c88c10abeac6cc9284d2d68ac14dd2810fd28c4856f314d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+      "contentHash": "1ff97caeeb67ea6fd1d5e1a9827667172839a4acafb4996315c6ea0f53f79de3",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:ignores-actuator-safety",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:599737133755742a4ad287f28161fe3de447f7e2b715c5f1ea18672f0865930a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:ignores-actuator-safety」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+      "contentHash": "1ff97caeeb67ea6fd1d5e1a9827667172839a4acafb4996315c6ea0f53f79de3",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:ignores-actuator-safety",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:599737133755742a4ad287f28161fe3de447f7e2b715c5f1ea18672f0865930a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:ignores-actuator-safety」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-05",
+      "contentHash": "73ec0cd8feef5a6d51c4383129d178109b5fc239971f83957cf52030a68a4a6b",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-without-robustness",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:591067b76be7f20c72db4da49ac4854c2a0c13315c14f9ddc68bce25cecb8eb5",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:bandwidth-without-robustness」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-05",
+      "contentHash": "73ec0cd8feef5a6d51c4383129d178109b5fc239971f83957cf52030a68a4a6b",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-without-robustness",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:591067b76be7f20c72db4da49ac4854c2a0c13315c14f9ddc68bce25cecb8eb5",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:bandwidth-without-robustness」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-06",
+      "contentHash": "bd7dce866c93f4e6cd3b162c34f5ef56aa980ef19e26e285a1f084caac28518f",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:delay-affects-no-margin",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:a075dc3353113df48ed508b1cd26456d03994fc6bdad0c4718e4e6ba8b7b6730",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:delay-affects-no-margin」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-06",
+      "contentHash": "bd7dce866c93f4e6cd3b162c34f5ef56aa980ef19e26e285a1f084caac28518f",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:delay-affects-no-margin",
+      "knowledgeNodeId": "cap:autocontrol:trade-off-engineering-constraints",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:a075dc3353113df48ed508b1cd26456d03994fc6bdad0c4718e4e6ba8b7b6730",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:stability-margin-frequency-analysis:delay-affects-no-margin」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+      "contentHash": "5d7d87b074c2427a3b8396b4bf0ff3a59ffd3046624745435eef4df4ba0fd1b3",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:misses-overshoot-metric",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:95dd9bcc93593c85554105b75985ee8070ff38b6301a726a0444450f5d65351f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:misses-overshoot-metric」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+      "contentHash": "5d7d87b074c2427a3b8396b4bf0ff3a59ffd3046624745435eef4df4ba0fd1b3",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:misses-overshoot-metric",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:95dd9bcc93593c85554105b75985ee8070ff38b6301a726a0444450f5d65351f",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:misses-overshoot-metric」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+      "contentHash": "276f51d4eb0008cb42458ff2d1870b266b060ce577e0c45b2e0d28c88213b138",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:settling-rise-confusion",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:dddfb91ad3dba9a6f8a70d5a4a199484d308ed285a1cd1652f1fabbbaa96fd47",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:settling-rise-confusion」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+      "contentHash": "276f51d4eb0008cb42458ff2d1870b266b060ce577e0c45b2e0d28c88213b138",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:settling-rise-confusion",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:dddfb91ad3dba9a6f8a70d5a4a199484d308ed285a1cd1652f1fabbbaa96fd47",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:settling-rise-confusion」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+      "contentHash": "ce38e8dbe3ccae937e198ab81c741ab32500916977c79f9780885446efef18c8",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:steady-error-as-instability",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:924786f843b338d5a80b9dae0a0cd3fba7d2e6d7c23278c530ac01c33cded568",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:steady-error-as-instability」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+      "contentHash": "ce38e8dbe3ccae937e198ab81c741ab32500916977c79f9780885446efef18c8",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:steady-error-as-instability",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:924786f843b338d5a80b9dae0a0cd3fba7d2e6d7c23278c530ac01c33cded568",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:steady-error-as-instability」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+      "contentHash": "86cb3f410aa04973bcd2468c8c24d888b9b366467692624e4056d34d2be79e2c",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:damping-effect-reversed",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:ed754851762d11b271842282f241fd03c7a3e9db25a1dbab1b008f7a3b9f3b42",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:damping-effect-reversed」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+      "contentHash": "86cb3f410aa04973bcd2468c8c24d888b9b366467692624e4056d34d2be79e2c",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:damping-effect-reversed",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:ed754851762d11b271842282f241fd03c7a3e9db25a1dbab1b008f7a3b9f3b42",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:damping-effect-reversed」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+      "contentHash": "514df69b0a09efb6216cc7a2f331b9fa240581a3549e938faeab1fa150e80e67",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:unstructured-response-comparison",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:fc5a73e733c6977cfa983bfe33cce72c7d9cc040e62edacd008c23de6999614c",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:unstructured-response-comparison」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+      "contentHash": "514df69b0a09efb6216cc7a2f331b9fa240581a3549e938faeab1fa150e80e67",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:unstructured-response-comparison",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:fc5a73e733c6977cfa983bfe33cce72c7d9cc040e62edacd008c23de6999614c",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:unstructured-response-comparison」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-06",
+      "contentHash": "51248a6c7ca7c7daaaf33b5c1c0e22928663539643ff9cb86deaa3e8b84893c1",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:single-index-ranking",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2c9c9cbefbe9d0daf8d91656bdf767eef935456691934cf8b6c1cacea0e6fac9",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:single-index-ranking」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-06",
+      "contentHash": "51248a6c7ca7c7daaaf33b5c1c0e22928663539643ff9cb86deaa3e8b84893c1",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:single-index-ranking",
+      "knowledgeNodeId": "cap:autocontrol:interpret-time-frequency-response",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2c9c9cbefbe9d0daf8d91656bdf767eef935456691934cf8b6c1cacea0e6fac9",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:time-domain-response-analysis:single-index-ranking」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+      "contentHash": "c43b5a38256bbf7ff2e6cb817c9ff21608b53e6f28eca3018f45f3ec36453168",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2e5da06db88818489afdf03d8a6643e4f47d55c29fad2b825bd21266a949d0c0",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+      "contentHash": "c43b5a38256bbf7ff2e6cb817c9ff21608b53e6f28eca3018f45f3ec36453168",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:2e5da06db88818489afdf03d8a6643e4f47d55c29fad2b825bd21266a949d0c0",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+      "contentHash": "d1e08f5ef65b7a282f66e89e0361c8effa8776c92d2821c6a3c7cd326d40a803",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:untracked-physical-variables",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0991ee8d4f7f52d7b97b4aa8227e0e6bc565242d734e864e04a1803f1daf59ce",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:untracked-physical-variables」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+      "contentHash": "d1e08f5ef65b7a282f66e89e0361c8effa8776c92d2821c6a3c7cd326d40a803",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:untracked-physical-variables",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:0991ee8d4f7f52d7b97b4aa8227e0e6bc565242d734e864e04a1803f1daf59ce",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:untracked-physical-variables」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+      "contentHash": "2f6e196bdfab3098d77c501dbad5526e76f3168d9147bc31ce046ef7fb5a2e94",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:invalid-block-reduction",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:bf77e56560ea7e2d7915e73fbfe876321d9f45ac11285778a2d116948e733ee2",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:invalid-block-reduction」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+      "contentHash": "2f6e196bdfab3098d77c501dbad5526e76f3168d9147bc31ce046ef7fb5a2e94",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:invalid-block-reduction",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:bf77e56560ea7e2d7915e73fbfe876321d9f45ac11285778a2d116948e733ee2",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:invalid-block-reduction」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+      "contentHash": "d730d33ed534102bda68f3c19c34b6d74b3dea053b6335dcca05f0210a317890",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:lost-system-order",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:850a1836f48797ffc39475d8119872a03d0cf60e59f35b122d3c1239d01ec83a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:lost-system-order」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+      "contentHash": "d730d33ed534102bda68f3c19c34b6d74b3dea053b6335dcca05f0210a317890",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:lost-system-order",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:850a1836f48797ffc39475d8119872a03d0cf60e59f35b122d3c1239d01ec83a",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:lost-system-order」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+      "contentHash": "a767cf3733c1de02f19d1121be08fe68723615cab2d00104f7b29d8e8a1e36d4",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:measurement-path-omitted",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b50c33cf956539745ad38f6b9456e006d62160ba606dc2d3b91fd01d7c8cccb8",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:measurement-path-omitted」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+      "contentHash": "a767cf3733c1de02f19d1121be08fe68723615cab2d00104f7b29d8e8a1e36d4",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:measurement-path-omitted",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:b50c33cf956539745ad38f6b9456e006d62160ba606dc2d3b91fd01d7c8cccb8",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:measurement-path-omitted」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-06",
+      "contentHash": "260a676a923e9db5164a714f7b1096c619c52e1e1dbfeb717dcbb11b73ed0427",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:closed-loop-denominator",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:3824d0c1c3b0e2e69a85e399d3c7b5ad57bf1b04659d03d2bec24e95107b119d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:closed-loop-denominator」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-06",
+      "contentHash": "260a676a923e9db5164a714f7b1096c619c52e1e1dbfeb717dcbb11b73ed0427",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:closed-loop-denominator",
+      "knowledgeNodeId": "cap:autocontrol:model-feedback-system",
+      "version": "micro-tutoring-option-attribution.v1",
+      "reviewSourceHash": "sha256:3824d0c1c3b0e2e69a85e399d3c7b5ad57bf1b04659d03d2bec24e95107b119d",
+      "evidenceSummary": "人工语义审核已将该题列入「misconception:transfer-function-modeling-foundations:closed-loop-denominator」；本错误选项与该受控错因的判定相符。",
+      "limitations": [
+        "仅适用于当前目录项、内容哈希和错误选项键。"
+      ]
+    }
+  ]
 }

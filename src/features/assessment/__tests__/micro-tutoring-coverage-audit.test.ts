@@ -15,6 +15,7 @@ import {
   type MicroTutoringOptionAttribution,
   type MicroTutoringPracticeBaseline,
 } from '../micro-tutoring-coverage-audit';
+import { findMicroTutoringOptionAttribution } from '../micro-tutoring-option-attribution';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
@@ -31,6 +32,7 @@ function readJsonl<T>(name: string): T[] {
 const catalogItems = readJsonl<AdaptiveAssessmentCatalogItem>('adaptive-assessment-item-catalog-items.jsonl');
 const reviewDecisions = readJsonl<AssessmentItemSemanticReviewDecision>('assessment-item-semantic-review-snapshots.jsonl');
 const baseline = readJson<MicroTutoringPracticeBaseline>('micro-tutoring-practice-baseline.json');
+const publishedOptionAttributions = readJson<{ entries: unknown[] }>('micro-tutoring-option-attributions.json');
 
 function buildAttributions(): MicroTutoringOptionAttribution[] {
   const decisionByItemId = new Map(reviewDecisions.map((decision) => [decision.catalogItemId, decision]));
@@ -43,23 +45,27 @@ function buildAttributions(): MicroTutoringOptionAttribution[] {
         catalogItemId: item.catalogItemId,
         contentHash: item.contentHash,
         optionKey: option.key!,
-        learningGoalId: 'learning-goal-1',
-        misconceptionTag: 'misconception-1',
-        knowledgeNodeId: 'node-1',
+        learningGoalId: decision.selectedLearningGoalIds[0],
+        misconceptionTag: decision.misconceptionRefs[0],
+        knowledgeNodeId: decision.selectedGraphNodeIds[0],
         version: 'attribution.v1',
+        reviewSourceHash: decision.reviewSourceHash!,
+        evidenceSummary: 'Reviewed option attribution.',
+        limitations: ['content-hash-bound'],
       }));
   });
 }
 
 function report(input: Partial<Parameters<typeof buildMicroTutoringCoverageAuditReport>[0]> = {}) {
+  const attributions = buildAttributions();
   return buildMicroTutoringCoverageAuditReport({
     catalogItems,
     reviewDecisions,
     baseline,
     optionAttributions: [],
     optionReferenceSecret: OPTION_REFERENCE_SECRET,
-    activeLearningGoalIds: ['learning-goal-1'],
-    activeKnowledgeNodeIds: ['node-1'],
+    activeLearningGoalIds: [...new Set(attributions.map((attribution) => attribution.learningGoalId))],
+    activeKnowledgeNodeIds: [...new Set(attributions.map((attribution) => attribution.knowledgeNodeId))],
     resolveResources: () => [{ id: 'resource-1', version: 'resource.v1', estimatedMinutes: 3, actionPath: '/resources/1' }],
     resolveValidationItems: (sourceQuestionId) => [{
       id: 'validation-1',
@@ -73,6 +79,15 @@ function report(input: Partial<Parameters<typeof buildMicroTutoringCoverageAudit
   });
 }
 
+function reportWithPublishedAttributions() {
+  const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+  return report({
+    optionAttributions: attributions,
+    activeLearningGoalIds: [...new Set(attributions.map((attribution) => attribution.learningGoalId))],
+    activeKnowledgeNodeIds: [...new Set(attributions.map((attribution) => attribution.knowledgeNodeId))],
+  });
+}
+
 describe('micro tutoring coverage audit', () => {
   it('pins the 54-item practice denominator and exposes all 108 un-attributed error options', () => {
     const result = report();
@@ -83,6 +98,43 @@ describe('micro tutoring coverage audit', () => {
     expect(result.errorOptionCount).toBe(108);
     expect(result.gapReasonCounts.ATTRIBUTION_UNCERTAIN).toBe(108);
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('covers every qualified error option with a reviewed published attribution', () => {
+    const result = reportWithPublishedAttributions();
+
+    expect(publishedOptionAttributions.entries).toHaveLength(108);
+    expect(result.attributionIssues).toEqual([]);
+    expect(result.gapReasonCounts.ATTRIBUTION_UNCERTAIN).toBe(0);
+    expect(result.rows.every((row) => row.attributionVersion === 'micro-tutoring-option-attribution.v1')).toBe(true);
+  });
+
+  it('resolves only an exact published option attribution', () => {
+    const attribution = publishedOptionAttributions.entries[0] as MicroTutoringOptionAttribution;
+    const item = catalogItems.find((candidate) => candidate.catalogItemId === attribution.catalogItemId)!;
+    const reviewDecision = reviewDecisions.find((candidate) => candidate.catalogItemId === attribution.catalogItemId)!;
+    const correctOptionKey = (item.questionRefs.options ?? []).find((option) => option.isCorrect)?.key!;
+    const baseInput = {
+      entries: publishedOptionAttributions.entries,
+      catalogItemId: attribution.catalogItemId,
+      contentHash: attribution.contentHash,
+      selectedOptionKey: attribution.optionKey,
+      correctOptionKey,
+      reviewSourceHash: reviewDecision.reviewSourceHash!,
+      reviewedLearningGoalIds: reviewDecision.selectedLearningGoalIds,
+      reviewedKnowledgeNodeIds: reviewDecision.selectedGraphNodeIds,
+      reviewedMisconceptionTags: reviewDecision.misconceptionRefs,
+    };
+
+    expect(findMicroTutoringOptionAttribution(baseInput)).toEqual(attribution);
+    expect(findMicroTutoringOptionAttribution({
+      ...baseInput,
+      contentHash: 'f'.repeat(64),
+    })).toBeNull();
+    expect(findMicroTutoringOptionAttribution({
+      ...baseInput,
+      selectedOptionKey: correctOptionKey,
+    })).toBeNull();
   });
 
   it('reports content hash drift and duplicate baseline identifiers without changing the denominator', () => {
@@ -152,16 +204,20 @@ describe('micro tutoring coverage audit', () => {
       catalogItemId,
       sourceContentHash: contentHash,
     };
+    const extraReviewSourceHash = assessmentItemSemanticReviewSourceHash(extraDecision);
     const extraAttributions = (extraItem.questionRefs.options ?? [])
       .filter((option) => option.isCorrect === false && option.key)
       .map((option) => ({
         catalogItemId,
         contentHash,
         optionKey: option.key!,
-        learningGoalId: 'learning-goal-1',
-        misconceptionTag: 'misconception-1',
-        knowledgeNodeId: 'node-1',
+        learningGoalId: sourceDecision.selectedLearningGoalIds[0],
+        misconceptionTag: sourceDecision.misconceptionRefs[0],
+        knowledgeNodeId: sourceDecision.selectedGraphNodeIds[0],
         version: 'attribution.v1',
+        reviewSourceHash: extraReviewSourceHash,
+        evidenceSummary: 'Reviewed option attribution.',
+        limitations: ['content-hash-bound'],
       }));
     const result = report({
       catalogItems: [...catalogItems, extraItem],
@@ -169,7 +225,7 @@ describe('micro tutoring coverage audit', () => {
         ...reviewDecisions,
         {
           ...extraDecision,
-          reviewSourceHash: assessmentItemSemanticReviewSourceHash(extraDecision),
+          reviewSourceHash: extraReviewSourceHash,
         },
       ],
       baseline: {
@@ -320,6 +376,8 @@ describe('micro tutoring coverage audit', () => {
       { misconceptionTag: '' },
       { knowledgeNodeId: '' },
       { version: '' },
+      { evidenceSummary: '' },
+      { limitations: [] },
     ];
 
     for (const invalidField of invalidFields) {

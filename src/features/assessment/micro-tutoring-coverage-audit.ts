@@ -3,6 +3,13 @@ import { createHmac } from 'node:crypto';
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import {
+  isMicroTutoringOptionAttribution,
+  optionAttributionKey,
+  type MicroTutoringOptionAttribution,
+} from './micro-tutoring-option-attribution';
+
+export type { MicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
 export const MICRO_TUTORING_COVERAGE_AUDIT_VERSION = 'micro-tutoring-coverage-audit.v1';
 export const MICRO_TUTORING_PRACTICE_BASELINE_VERSION = 'micro-tutoring-practice-baseline.v1';
@@ -29,6 +36,7 @@ export type MicroTutoringOptionAttributionIssueReason =
   | 'ATTRIBUTION_RECORD_UNKNOWN_CATALOG_ITEM'
   | 'ATTRIBUTION_RECORD_CONTENT_HASH_DRIFT'
   | 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION'
+  | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID'
   | 'ATTRIBUTION_RECORD_DUPLICATE';
 
 export interface MicroTutoringPracticeBaseline {
@@ -37,16 +45,6 @@ export interface MicroTutoringPracticeBaseline {
     catalogItemId: string;
     contentHash: string;
   }>;
-}
-
-export interface MicroTutoringOptionAttribution {
-  catalogItemId: string;
-  contentHash: string;
-  optionKey: string;
-  learningGoalId: string;
-  misconceptionTag: string;
-  knowledgeNodeId: string;
-  version: string;
 }
 
 export interface GovernedMicroTutoringResource {
@@ -164,14 +162,6 @@ function hasAttributionIdentity(value: Partial<MicroTutoringOptionAttribution>):
     isNonEmptyString(value.optionKey);
 }
 
-function optionAttributionKey(
-  catalogItemId: string,
-  contentHash: string,
-  optionKey: string,
-): string {
-  return `${catalogItemId}\u0000${contentHash}\u0000${optionKey}`;
-}
-
 function attributionReference(value: unknown, index: number, secret: string): string {
   const attribution = attributionRecord(value);
   const identity = attribution && hasAttributionIdentity(attribution)
@@ -278,17 +268,14 @@ function baselineIssues(
 function attributionHasRequiredFields(
   attribution: Partial<MicroTutoringOptionAttribution>,
 ): attribution is MicroTutoringOptionAttribution {
-  return isNonEmptyString(attribution.learningGoalId) &&
-    isNonEmptyString(attribution.misconceptionTag) &&
-    isNonEmptyString(attribution.knowledgeNodeId) &&
-    isNonEmptyString(attribution.version) &&
-    hasAttributionIdentity(attribution);
+  return isMicroTutoringOptionAttribution(attribution);
 }
 
 function auditOptionAttributions(input: {
   optionAttributions: unknown[];
   catalogItems: AdaptiveAssessmentCatalogItem[];
   qualifiedItems: AdaptiveAssessmentCatalogItem[];
+  reviewDecisions: AssessmentItemSemanticReviewDecision[];
   optionReferenceSecret: string;
 }): {
   issues: MicroTutoringCoverageAuditReport['attributionIssues'];
@@ -300,6 +287,10 @@ function auditOptionAttributions(input: {
     entries.push(item);
     catalogById.set(item.catalogItemId, entries);
   }
+  const reviewDecisionByItemId = new Map(input.reviewDecisions.map((decision) => [
+    decision.catalogItemId,
+    decision,
+  ]));
   const auditedOptionKeys = new Set(
     input.qualifiedItems.flatMap((item) => (item.questionRefs.options ?? [])
       .flatMap((option) => option.isCorrect === false && isNonEmptyString(option.key)
@@ -332,6 +323,18 @@ function auditOptionAttributions(input: {
     );
     if (!auditedOptionKeys.has(optionKey)) {
       issueByRecord.set(index, ['ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION']);
+      return;
+    }
+    const reviewDecision = reviewDecisionByItemId.get(attribution.catalogItemId);
+    if (
+      !reviewDecision ||
+      reviewDecision.sourceContentHash !== attribution.contentHash ||
+      reviewDecision.reviewSourceHash !== attribution.reviewSourceHash ||
+      !reviewDecision.selectedLearningGoalIds.includes(attribution.learningGoalId) ||
+      !reviewDecision.selectedGraphNodeIds.includes(attribution.knowledgeNodeId) ||
+      !reviewDecision.misconceptionRefs.includes(attribution.misconceptionTag)
+    ) {
+      issueByRecord.set(index, ['ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID']);
       return;
     }
     const indexes = recordIndexesByOption.get(optionKey) ?? [];
@@ -386,6 +389,7 @@ export function buildMicroTutoringCoverageAuditReport(
     optionAttributions: input.optionAttributions,
     catalogItems: input.catalogItems,
     qualifiedItems,
+    reviewDecisions: input.reviewDecisions,
     optionReferenceSecret: input.optionReferenceSecret,
   });
   const activeLearningGoalIds = new Set(input.activeLearningGoalIds);

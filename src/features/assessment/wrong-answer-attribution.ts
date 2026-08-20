@@ -4,12 +4,9 @@ import {
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import type { AdaptiveAssessmentCatalogStage } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
+import { findMicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
-export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v1';
-
-const PRIMARY_REMEDIATION_NODE_BY_LEARNING_GOAL: Readonly<Record<string, string>> = {
-  'stability-margin-frequency-analysis': 'kn:autocontrol:stability-margin',
-};
+export const WRONG_ANSWER_ATTRIBUTION_VERSION = 'wrong-answer-attribution.v2';
 
 export type WrongAnswerAttributionState = 'ATTRIBUTED' | 'UNCERTAIN';
 export type WrongAnswerAttributionNextAction = 'NONE' | 'MANUAL_REVIEW' | 'REPEAT_PRACTICE';
@@ -99,8 +96,12 @@ export interface WrongAnswerAttributionProjection {
 interface GovernedEvidence {
   answer: WrongAnswerRow;
   itemContentHash: string;
-  knowledgeNodeIds: string[];
-  misconceptionTags: string[];
+  catalogItemId: string;
+  catalogContentHash: string;
+  reviewSourceHash: string;
+  reviewedLearningGoalIds: string[];
+  reviewedKnowledgeNodeIds: string[];
+  reviewedMisconceptionTags: string[];
 }
 
 const ATTRIBUTION_ALLOWED_STAGES = new Set<AdaptiveAssessmentCatalogStage>([
@@ -181,6 +182,7 @@ function parseGovernedEvidence(
   const itemSnapshot = record(metadata?.adaptiveAssessmentItemRef);
   const semanticRefs = record(itemSnapshot?.semanticRefs);
   const relationship = record(itemSnapshot?.relationship);
+  const catalogItemId = nonEmptyString(itemSnapshot?.catalogItemId);
   const catalogContentHash = nonEmptyString(itemSnapshot?.contentHash);
   const itemContentHash = nonEmptyString(answer.questionRef.contentHash);
   const source = nonEmptyString(answer.questionRef.source);
@@ -192,9 +194,10 @@ function parseGovernedEvidence(
   const snapshotMisconceptionTags = stringArray(questionSnapshot?.misconceptionTags);
   const graphNodeIds = stringArray(semanticRefs?.graphNodeIds);
   const learningGoalIds = stringArray(semanticRefs?.learningGoalIds);
-  const kaqKnowledgeNodeIds = stringArray(kaqMetadata?.knowledgeNodeIds);
   const misconceptionTags = stringArray(semanticRefs?.misconceptionTags);
   const reviewDecision = record(itemSnapshot?.reviewDecision);
+  const reviewSourceHash = nonEmptyString(reviewDecision?.reviewSourceHash);
+  const reviewedLearningGoalIds = stringArray(reviewDecision?.selectedLearningGoalIds);
   const reviewedGraphNodeIds = stringArray(reviewDecision?.selectedGraphNodeIds);
   const reviewedMisconceptionTags = stringArray(reviewDecision?.misconceptionRefs);
   const normalizedStage = attributionStage(nonEmptyString(reviewDecision?.selectedStagePurpose));
@@ -207,7 +210,7 @@ function parseGovernedEvidence(
     itemSnapshot?.catalogBacked !== true ||
     itemSnapshot?.reviewState !== 'path-eligible' ||
     itemSnapshot?.eligibilityState !== 'path-eligible' ||
-    !nonEmptyString(itemSnapshot?.catalogItemId) ||
+    !catalogItemId ||
     !nonEmptyString(itemSnapshot?.snapshotVersion) ||
     relationship?.immutable !== true ||
     relationship?.catalogUpdatesRewriteHistoricalAnswers !== false ||
@@ -227,9 +230,13 @@ function parseGovernedEvidence(
     snapshotCorrectOptionKey !== answer.correctOptionKey ||
     !snapshotMisconceptionTags ||
     !graphNodeIds ||
+    !learningGoalIds ||
     !misconceptionTags ||
+    !reviewSourceHash ||
+    !reviewedLearningGoalIds ||
     !reviewedGraphNodeIds ||
     !reviewedMisconceptionTags ||
+    !isSubset(learningGoalIds, reviewedLearningGoalIds) ||
     !isSubset(graphNodeIds, reviewedGraphNodeIds) ||
     !isSubset(misconceptionTags, reviewedMisconceptionTags) ||
     !normalizedStage ||
@@ -265,45 +272,35 @@ function parseGovernedEvidence(
   return {
     answer,
     itemContentHash,
-    knowledgeNodeIds: (() => {
-      if (kaqKnowledgeNodeIds?.length === 1 && kaqKnowledgeNodeIds[0].startsWith('kn:')) {
-        return [...kaqKnowledgeNodeIds];
-      }
-      const primaryNodeId = learningGoalIds?.length === 1
-        ? PRIMARY_REMEDIATION_NODE_BY_LEARNING_GOAL[learningGoalIds[0]]
-        : undefined;
-      return primaryNodeId ? [primaryNodeId] : uniqueSorted(graphNodeIds);
-    })(),
-    misconceptionTags: uniqueSorted(misconceptionTags),
+    catalogItemId,
+    catalogContentHash,
+    reviewSourceHash,
+    reviewedLearningGoalIds: uniqueSorted(learningGoalIds),
+    reviewedKnowledgeNodeIds: uniqueSorted(graphNodeIds),
+    reviewedMisconceptionTags: uniqueSorted(misconceptionTags),
   };
 }
 
-function classifyEvidence(evidence: GovernedEvidence): {
+function classifyEvidence(input: {
+  attribution: ReturnType<typeof findMicroTutoringOptionAttribution>;
+}): {
   state: WrongAnswerAttributionState;
   confidence: number;
   limitations: string[];
   nextAction: WrongAnswerAttributionNextAction;
 } {
-  if (evidence.knowledgeNodeIds.length === 0 || evidence.misconceptionTags.length === 0) {
+  if (!input.attribution) {
     return {
       state: 'UNCERTAIN',
       confidence: 0,
-      limitations: ['missing-reviewed-semantic-binding'],
+      limitations: ['option-attribution-unavailable'],
       nextAction: 'REPEAT_PRACTICE',
-    };
-  }
-  if (evidence.knowledgeNodeIds.length !== 1 || evidence.misconceptionTags.length !== 1) {
-    return {
-      state: 'UNCERTAIN',
-      confidence: 0.5,
-      limitations: ['multiple-reviewed-attribution-candidates'],
-      nextAction: 'MANUAL_REVIEW',
     };
   }
   return {
     state: 'ATTRIBUTED',
     confidence: 1,
-    limitations: [],
+    limitations: [...input.attribution.limitations],
     nextAction: 'NONE',
   };
 }
@@ -352,7 +349,7 @@ function projectAttribution(row: PersistedWrongAnswerAttribution): WrongAnswerAt
       ...knowledgeNodeIds.map((nodeId) => `knowledge-graph-node:${nodeId}`),
     ],
     confidence: row.confidence,
-    attributionVersion: WRONG_ANSWER_ATTRIBUTION_VERSION,
+    attributionVersion: row.attributionVersion,
     limitations: [...row.limitations],
     nextAction: row.nextAction as WrongAnswerAttributionNextAction,
     createdAt: row.createdAt.toISOString(),
@@ -363,6 +360,7 @@ export async function attributeWrongAnswerEvidence(input: {
   db: WrongAnswerAttributionDb;
   authenticatedUserId: string;
   answerId: string;
+  optionAttributions?: unknown[];
 }): Promise<WrongAnswerAttributionProjection | null> {
   const answer = await input.db.adaptiveAssessmentAnswer.findFirst({
     where: {
@@ -394,19 +392,40 @@ export async function attributeWrongAnswerEvidence(input: {
   const evidence = parseGovernedEvidence(answer, input.authenticatedUserId);
   if (!evidence) return null;
 
-  const classification = classifyEvidence(evidence);
+  const optionAttribution = findMicroTutoringOptionAttribution({
+    entries: input.optionAttributions,
+    catalogItemId: evidence.catalogItemId,
+    contentHash: evidence.catalogContentHash,
+    selectedOptionKey: answer.selectedOptionKey,
+    correctOptionKey: answer.correctOptionKey,
+    reviewSourceHash: evidence.reviewSourceHash,
+    reviewedLearningGoalIds: evidence.reviewedLearningGoalIds,
+    reviewedKnowledgeNodeIds: evidence.reviewedKnowledgeNodeIds,
+    reviewedMisconceptionTags: evidence.reviewedMisconceptionTags,
+  });
+  const classification = classifyEvidence({ attribution: optionAttribution });
+  const knowledgeNodeIds = optionAttribution ? [optionAttribution.knowledgeNodeId] : [];
+  const misconceptionTags = optionAttribution ? [optionAttribution.misconceptionTag] : [];
   const evidenceSummary = {
     version: 'wrong-answer-evidence-summary.v1' as const,
     outcome: 'incorrect' as const,
     answeredAt: answer.answeredAt.toISOString(),
-    knowledgeNodeCount: evidence.knowledgeNodeIds.length,
-    misconceptionCandidateCount: evidence.misconceptionTags.length,
+    knowledgeNodeCount: knowledgeNodeIds.length,
+    misconceptionCandidateCount: misconceptionTags.length,
+    optionAttribution: optionAttribution ? {
+      version: optionAttribution.version,
+      reviewSourceHash: optionAttribution.reviewSourceHash,
+      evidenceSummary: optionAttribution.evidenceSummary,
+    } : null,
   };
   const evidenceRefs = [
     `adaptive-assessment-answer:${answer.id}`,
     `adaptive-assessment-session:${answer.sessionId}`,
     `adaptive-assessment-item:${answer.questionRefId}:${evidence.itemContentHash}`,
-    ...evidence.knowledgeNodeIds.map((nodeId) => `knowledge-graph-node:${nodeId}`),
+    ...knowledgeNodeIds.map((nodeId) => `knowledge-graph-node:${nodeId}`),
+    ...(optionAttribution
+      ? [`micro-tutoring-option-attribution-review:${optionAttribution.reviewSourceHash}`]
+      : []),
   ];
 
   const persisted = await input.db.wrongAnswerAttribution.upsert({
@@ -426,8 +445,8 @@ export async function attributeWrongAnswerEvidence(input: {
       questionId: answer.questionId,
       itemContentHash: evidence.itemContentHash,
       state: classification.state,
-      knowledgeNodeIds: evidence.knowledgeNodeIds,
-      misconceptionTags: evidence.misconceptionTags,
+      knowledgeNodeIds,
+      misconceptionTags,
       evidenceSummary,
       evidenceRefs,
       confidence: classification.confidence,
