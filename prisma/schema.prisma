@@ -5203,46 +5203,66 @@ model DiagnosisReport {
   riskSummary      Json?
   evidenceCutoff   DateTime
   generatorVersion String   @default("v1")
+  ruleVersion      String?
+  generationReason String?
+  forceReason      String?
+  previousReportId String?
+  inputSummary     Json?
+  inputDigest      String?
   generatedAt      DateTime @default(now())
   generationJobId  String?  @unique
 
-  class   Class @relation(fields: [classId], references: [id], onDelete: Restrict)
-  creator User  @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
-  target  User? @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
-  generationJob DiagnosisGenerationJob? @relation(fields: [generationJobId], references: [id], onDelete: Restrict)
+  class                   Class                    @relation(fields: [classId], references: [id], onDelete: Restrict)
+  creator                 User                     @relation("DiagnosisReportCreator", fields: [userId], references: [id], onDelete: Restrict)
+  target                  User?                    @relation("DiagnosisReportTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  generationJob           DiagnosisGenerationJob?  @relation("DiagnosisGenerationResult", fields: [generationJobId], references: [id], onDelete: Restrict)
+  previousReport          DiagnosisReport?         @relation("DiagnosisReportPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
+  successorReports        DiagnosisReport[]        @relation("DiagnosisReportPredecessor")
+  successorGenerationJobs DiagnosisGenerationJob[] @relation("DiagnosisGenerationPredecessor")
 
   @@index([scopeType, scopeId, generatedAt])
   @@index([classId, generatedAt])
   @@index([userId, generatedAt])
   @@index([targetUserId, generatedAt])
+  @@index([previousReportId])
 }
 
 model DiagnosisGenerationJob {
-  id               String                       @id @default(cuid())
-  userId           String
-  classId          String
-  targetUserId     String?
-  scopeType        String
-  scopeId          String
-  activeScopeKey   String?                      @unique
-  idempotencyKey   String
-  state            DiagnosisGenerationJobState @default(QUEUED)
-  evidenceCutoff   DateTime
-  generatorVersion String
-  failureCode      String?
-  failureMessage   String?
-  retryable        Boolean                      @default(false)
-  deliveryGeneration Int                        @default(0)
-  report           DiagnosisReport?
-  attempts         DiagnosisGenerationAttempt[]
-  createdAt        DateTime                     @default(now())
-  startedAt        DateTime?
-  completedAt      DateTime?
-  updatedAt        DateTime                     @updatedAt
+  id                         String                       @id @default(cuid())
+  userId                     String
+  classId                    String
+  targetUserId               String?
+  scopeType                  String
+  scopeId                    String
+  activeScopeKey             String?                      @unique
+  idempotencyKey             String
+  state                      DiagnosisGenerationJobState  @default(QUEUED)
+  evidenceCutoff             DateTime
+  generatorVersion           String
+  ruleVersion                String?
+  generationReason           String?
+  forceReason                String?
+  previousReportId           String?
+  inputSummary               Json?
+  governedInput              Json?
+  inputDigest                String?
+  ordinaryGenerationIdentity String?                      @unique
+  failureCode                String?
+  failureMessage             String?
+  retryable                  Boolean                      @default(false)
+  deliveryGeneration         Int                          @default(0)
+  report                     DiagnosisReport?             @relation("DiagnosisGenerationResult")
+  previousReport             DiagnosisReport?             @relation("DiagnosisGenerationPredecessor", fields: [previousReportId], references: [id], onDelete: Restrict)
+  attempts                   DiagnosisGenerationAttempt[]
+  createdAt                  DateTime                     @default(now())
+  startedAt                  DateTime?
+  completedAt                DateTime?
+  updatedAt                  DateTime                     @updatedAt
 
   @@unique([userId, idempotencyKey])
   @@index([classId, targetUserId, createdAt])
   @@index([state, createdAt])
+  @@index([previousReportId])
 }
 
 model DiagnosisGenerationAttempt {

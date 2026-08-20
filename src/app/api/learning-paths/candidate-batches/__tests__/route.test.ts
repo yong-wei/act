@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   readExact: vi.fn(),
   classFindUnique: vi.fn(),
   profileFindUnique: vi.fn(),
+  learningPathFindFirst: vi.fn(),
 }));
 
 vi.mock('../../route-helpers', () => ({
@@ -19,6 +20,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     class: { findUnique: mocks.classFindUnique },
     studentProfile: { findUnique: mocks.profileFindUnique },
+    learningPath: { findFirst: mocks.learningPathFindFirst },
   },
 }));
 
@@ -44,12 +46,16 @@ describe('candidate batch routes', () => {
     mocks.requester.mockResolvedValue({ userId: 'student-1', role: 'student' });
     mocks.readLatest.mockResolvedValue(batch);
     mocks.readExact.mockResolvedValue(batch);
+    mocks.learningPathFindFirst.mockResolvedValue({ updatedAt: new Date('2026-08-03T00:00:00.000Z') });
   });
 
   it('returns the latest successful batch for the learner and goal', async () => {
     const response = await getLatest(new Request('http://test/api/learning-paths/candidate-batches/latest?goal=control-correction'));
     expect(response.status).toBe(200);
-    expect((await response.json()).batch.id).toBe('batch-1');
+    expect((await response.json()).batch).toMatchObject({
+      id: 'batch-1',
+      sourcePathVersion: '2026-08-03T00:00:00.000Z',
+    });
     expect(mocks.readLatest).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ userId: 'student-1' }));
   });
 
@@ -75,6 +81,17 @@ describe('candidate batch routes', () => {
       { params: Promise.resolve({ batchId: 'batch-1' }) },
     );
     expect(response.status).toBe(200);
+    expect((await response.json()).batch.sourcePathVersion).toBe('2026-08-03T00:00:00.000Z');
+  });
+
+  it('fails closed when the candidate batch source path no longer exists', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue(null);
+    const response = await getExact(
+      new Request('http://test/api/learning-paths/candidate-batches/batch-1'),
+      { params: Promise.resolve({ batchId: 'batch-1' }) },
+    );
+    expect(response.status).toBe(409);
+    expect((await response.json()).error).toContain('来源路径已失效');
   });
 
   it('rejects a candidate identity from another batch', async () => {

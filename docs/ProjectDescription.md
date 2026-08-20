@@ -57,6 +57,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
+- 班级与学生学情页提供持久化诊断报告历史；正式生成前以当前生成器可读取的风险、能力快照和知识进度执行确定性预检。普通生成在输入与版本均未变化时被阻止，教师强制生成必须填写理由，并将前序报告、证据截止点、输入摘要和规则版本写入审计链。
 - `/teacher/assignments`：作业列表、单页编辑工作台、受治理题库选题、评分项编排、保存状态与发布校验入口。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。

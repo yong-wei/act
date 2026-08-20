@@ -59,6 +59,8 @@ function manifest(): TeacherDiagnosisReportHistoryEvidenceManifest {
       generationCompleted: true,
       generationTimedOut: true,
       generationRetry: true,
+      generationPreflight: true,
+      forcedGenerationReason: true,
     },
     captures: [
       {
@@ -96,6 +98,16 @@ function manifest(): TeacherDiagnosisReportHistoryEvidenceManifest {
         routePath: '/teacher/classes/class-evidence',
         viewport: { width: 1440, height: 1100 },
         screenshot: 'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-completed-1440-light.png',
+        screenshotSha256: SHA_64,
+        consoleErrors: 0,
+        pageErrors: 0,
+        horizontalOverflow: false,
+      },
+      {
+        name: 'class-generation-preflight-no-change-1440-light',
+        routePath: '/teacher/classes/class-evidence',
+        viewport: { width: 1440, height: 1100 },
+        screenshot: 'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-preflight-no-change-1440-light.png',
         screenshotSha256: SHA_64,
         consoleErrors: 0,
         pageErrors: 0,
@@ -141,6 +153,7 @@ function context() {
       'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-history-320-dark.png': SHA_64,
       'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-queued-1440-light.png': SHA_64,
       'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-completed-1440-light.png': SHA_64,
+      'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-preflight-no-change-1440-light.png': SHA_64,
       'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-generation-timeout-320-dark.png': SHA_64,
       'artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-generation-retry-320-dark.png': SHA_64,
     },

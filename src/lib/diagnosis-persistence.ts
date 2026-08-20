@@ -84,6 +84,11 @@ export interface DiagnosisReportReadModel {
   riskSummary: DiagnosisRiskSummary;
   evidenceCutoff: Date;
   generatorVersion: string;
+  ruleVersion: string | null;
+  generationReason: string | null;
+  forceReason: string | null;
+  previousReportId: string | null;
+  inputSummary: unknown | null;
   generatedAt: Date;
 }
 
@@ -329,6 +334,13 @@ export async function persistDiagnosisReport(
     targetStudentId?: string | null;
     reportBody: z.input<typeof diagnosisReportBodySchema>;
     generationJobId?: string | null;
+    generatorVersion?: string;
+    ruleVersion?: string | null;
+    generationReason?: string | null;
+    forceReason?: string | null;
+    previousReportId?: string | null;
+    inputSummary?: unknown | null;
+    inputDigest?: string | null;
   },
   db: DiagnosisPersistenceDb = prisma as unknown as DiagnosisPersistenceDb,
 ) {
@@ -378,7 +390,13 @@ export async function persistDiagnosisReport(
       reportBody,
       riskSummary,
       evidenceCutoff,
-      generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+      generatorVersion: params.generatorVersion ?? DIAGNOSIS_REPORT_GENERATOR_VERSION,
+      ruleVersion: params.ruleVersion ?? null,
+      generationReason: params.generationReason ?? null,
+      forceReason: params.forceReason ?? null,
+      previousReportId: params.previousReportId ?? null,
+      inputSummary: params.inputSummary ?? undefined,
+      inputDigest: params.inputDigest ?? null,
       generationJobId: params.generationJobId ?? null,
     },
   });
@@ -418,6 +436,11 @@ export async function readDiagnosisReports(
       riskSummary: true,
       evidenceCutoff: true,
       generatorVersion: true,
+      ruleVersion: true,
+      generationReason: true,
+      forceReason: true,
+      previousReportId: true,
+      inputSummary: true,
       generatedAt: true,
     },
   });

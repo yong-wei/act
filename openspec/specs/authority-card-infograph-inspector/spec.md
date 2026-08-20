@@ -4,12 +4,17 @@
 Present governed, optional Knowledge Cards and accepted infographs in the selected Authority node inspector without changing graph topology or exposing system identities.
 ## Requirements
 ### Requirement: Selected Authority nodes open a stable learning inspector
-Selecting a presentable Authority object SHALL open or update a stable desktop side panel or mobile sheet containing its human-readable name, registered type label, explanation and relation summary. The graph SHALL retain its domain, layout, filters and loaded shards.
+Selecting a presentable Authority object SHALL open or update a stable desktop side panel or mobile sheet containing its human-readable name, registered type label, explanation and relation summary, with interaction behavior equivalent to the Legacy graph inspector: stable placement, in-place update when a different node is selected, and explicit close with focus return. Inspector content SHALL resolve from the currently active composite release and its ACT display projections. The graph SHALL retain its domain, layout, filters and loaded shards.
 
 #### Scenario: User selects a domain object
 - **WHEN** pointer or keyboard activation selects an Authority object
 - **THEN** the inspector SHALL open with sanitized semantic detail while the node remains selected
 - **AND** the canvas SHALL not be replaced by a card grid
+
+#### Scenario: Inspector matches Legacy interaction on active data
+- **WHEN** a user selects successive nodes in the same domain view
+- **THEN** the inspector SHALL update in place without closing, reopening, or resetting domain, filter or layout state
+- **AND** every displayed field SHALL resolve from the active composite release's ACT display projections rather than from any inactive or v0.9 catalog
 
 ### Requirement: Accepted Knowledge Cards and infographs load on demand
 The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content; missing cards, blocked drafts and unavailable media SHALL be omitted without a placeholder panel. The resolver SHALL accept only a v2 learning-content manifest whose sealed Authority release, release-set, snapshot and snapshot-hash exactly match the selected Authority shard envelope; legacy, malformed, duplicate-entry or mismatched manifests SHALL omit all optional media before any asset bytes are read.
@@ -54,3 +59,4 @@ Opening the inspector SHALL move focus into its detail surface. Closing by Escap
 - **WHEN** a mobile user opens a node, reads its card or infograph and closes the sheet
 - **THEN** the sheet SHALL detach or become hidden and focus SHALL return to the origin node or graph canvas
 - **AND** domain, filters and viewport state SHALL remain unchanged
+
