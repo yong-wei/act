@@ -8,6 +8,10 @@ The system SHALL publish a versioned display catalog whose registered top-level 
 - **THEN** the root projection SHALL expose exactly the release-declared domains in reviewed order plus one separately typed aggregate entry
 - **AND** none of those presentation entries SHALL be represented as an Authority object or relation
 
+#### Scenario: Catalog invents an unregistered domain
+- **WHEN** a catalog version contains an unregistered peer domain or promotes the aggregate entry to a peer domain
+- **THEN** publication SHALL fail closed
+
 #### Scenario: Catalog drifts from the release domain data
 - **WHEN** a catalog version contains a domain absent from the bound release's domain catalog data, omits a declared domain, asserts a hard-coded expected domain count, or promotes the aggregate entry to a peer domain
 - **THEN** publication SHALL fail closed
