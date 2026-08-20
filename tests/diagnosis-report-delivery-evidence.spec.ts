@@ -230,7 +230,7 @@ function baseProjection() {
 function teacherActions() {
   return [
     { kind: 'student', label: '查看学生详情', href: `/teacher/classes/${classId}/students/student-evidence`, targetKey: 'report' },
-    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/preparation?knowledgeNodeId=node-margin', targetKey: 'finding:1' },
+    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'finding:1' },
     { kind: 'remediation', label: '已注册补练资源：稳定裕度补练', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
   ];
 }

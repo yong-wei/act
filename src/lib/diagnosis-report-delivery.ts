@@ -273,7 +273,7 @@ async function resolveTeacherDeliveryActions(
     actions.push({
       kind: 'preparation',
       label: '进入备课工作台',
-      href: `/teacher/preparation?knowledgeNodeId=${encodeURIComponent(finding.knowledgeNodeId)}&classId=${encodeURIComponent(report.classId)}`,
+      href: '/teacher/smart-prep',
       targetKey,
     });
     const resource = resources.find((candidate) => (

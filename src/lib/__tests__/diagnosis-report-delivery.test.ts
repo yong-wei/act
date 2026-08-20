@@ -118,11 +118,12 @@ describe('diagnosis report delivery service', () => {
     }));
   });
 
-  it('returns only registered remediation destinations and current student/preparation routes', async () => {
+  it('returns only registered remediation destinations and existing student/preparation routes', async () => {
     const delivery = await readTeacherDiagnosisDelivery({
       teacherId: 'teacher-1', classId: 'class-1', reportId: 'report-1', role: 'teacher',
     });
     expect(delivery.actions.map((action) => action.kind)).toEqual(['student', 'preparation', 'remediation']);
+    expect(delivery.actions.find((action) => action.kind === 'preparation')?.href).toBe('/teacher/smart-prep');
     expect(delivery.actions.find((action) => action.kind === 'remediation')?.href).toContain('/teacher/resources/resource-nodes?q=');
   });
 
