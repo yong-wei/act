@@ -1,0 +1,38 @@
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "oss:GetObject",
+        "oss:GetObjectMeta",
+        "oss:GetObjectAcl",
+        "oss:HeadObject"
+      ],
+      "Resource": [
+        "acs:oss:*:*:act-course-assets/runtime/blob-releases/*",
+        "acs:oss:*:*:act-course-assets/runtime/blobs/sha256/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "oss:ListObjects",
+        "oss:ListObjectsV2"
+      ],
+      "Resource": [
+        "acs:oss:*:*:act-course-assets"
+      ],
+      "Condition": {
+        "StringLike": {
+          "oss:Prefix": [
+            "runtime/blob-releases/",
+            "runtime/blob-releases/*",
+            "runtime/blobs/sha256/",
+            "runtime/blobs/sha256/*"
+          ]
+        }
+      }
+    }
+  ]
+}

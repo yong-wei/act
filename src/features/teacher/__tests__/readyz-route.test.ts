@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 const mocks = vi.hoisted(() => ({
   prisma: {
     $queryRawUnsafe: vi.fn(),
@@ -49,6 +51,30 @@ describe('readyz route', () => {
       app: true,
       db: true,
       redis: true,
+      runtime: {
+        required: false,
+        ready: true,
+        identity: null,
+      },
+    });
+  });
+
+  it('returns 503 when blob-view runtime identity is required and unavailable', async () => {
+    vi.stubEnv('MATH_DOCUMENT_GRADING_WORKER_REQUIRED', 'false');
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+
+    const response = await GET();
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get('cache-control')).toContain('no-store');
+    await expect(response.json()).resolves.toMatchObject({
+      db: true,
+      redis: true,
+      runtime: {
+        required: true,
+        ready: false,
+        identity: null,
+      },
     });
   });
 
