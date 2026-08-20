@@ -4667,7 +4667,6 @@ function isStructuralPolicySharedNode(
   if (node.reasonCodes.includes('required-prerequisite')) return true;
   if (requiredPrerequisiteNodeIds.has(node.nodeId)) return true;
   if (node.reasonCodes.some((code) => code.startsWith('policy-') && code.endsWith('-support'))) return true;
-  if (node.sourceKind === 'ai_intervention') return true;
   if (node.terminalConstraints.some((constraint) =>
     constraint === 'terminal-validation' || constraint === 'terminal-node'
   )) return true;
