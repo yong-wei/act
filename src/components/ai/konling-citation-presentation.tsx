@@ -429,19 +429,23 @@ function TextbookCitationLink({
   const onClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!handle) return;
     event.preventDefault();
-    const response = await fetch(`/api/textbooks/version-bound-target?handle=${encodeURIComponent(handle)}`);
-    const payload = await response.json().catch(() => ({ ok: false, reason: 'unverified-citation' }));
-    if (!response.ok || !payload?.ok || typeof payload.href !== 'string') {
-      setNotice(payload?.reason === 'unauthorized'
-        ? '权限已变化，无法打开原引用。'
-        : payload?.reason === 'anchor-unavailable'
-          ? '定位不可用。'
-          : payload?.reason === 'revision-unavailable' || payload?.reason === 'hash-drift' || payload?.reason === 'version-changed'
-            ? '版本已变化，定位不可用。'
-            : '引用未能核验。');
-      return;
+    try {
+      const response = await fetch(`/api/textbooks/version-bound-target?handle=${encodeURIComponent(handle)}`);
+      const payload = await response.json().catch(() => ({ ok: false, reason: 'unverified-citation' }));
+      if (!response.ok || !payload?.ok || typeof payload.href !== 'string') {
+        setNotice(payload?.reason === 'unauthorized'
+          ? '权限已变化，无法打开原引用。'
+          : payload?.reason === 'anchor-unavailable'
+            ? '定位不可用。'
+            : payload?.reason === 'revision-unavailable' || payload?.reason === 'hash-drift' || payload?.reason === 'version-changed'
+              ? '版本已变化，定位不可用。'
+              : '引用未能核验。');
+        return;
+      }
+      window.location.assign(payload.href);
+    } catch {
+      setNotice('定位不可用。');
     }
-    window.location.assign(payload.href);
   };
 
   return (

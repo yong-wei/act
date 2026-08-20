@@ -176,6 +176,7 @@ export function GlobalAISidebar() {
     if (!requestedAssistantBinding) return;
     if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
     const switchKey = [
+      activeConversationId ?? 'none',
       requestedAssistantBinding.modeClientContextHints.unitId,
       requestedAssistantBinding.modeClientContextHints.sourceRevision,
       requestedAssistantBinding.modeClientContextHints.contentHash,
@@ -186,7 +187,7 @@ export function GlobalAISidebar() {
     void createConversation(requestedAssistantBinding).catch(() => {
       textbookCoachSwitchKeyRef.current = null;
     });
-  }, [activeAssistantBinding, assistantEntryPoint, createConversation, requestedAssistantBinding]);
+  }, [activeAssistantBinding, activeConversationId, assistantEntryPoint, createConversation, requestedAssistantBinding]);
 
   useEffect(() => {
     setSmartPrepContext(null);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
@@ -20,7 +21,9 @@ export function TextbookReaderCoachingSurface({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { isOpen, updatePageContext } = useGlobalAI();
+  const canCoach = session?.user?.role === 'STUDENT' || session?.user?.role === 'TEACHER';
   const rootRef = useRef<HTMLDivElement>(null);
   const openSnapshotRef = useRef<{ scrollTop: number; unitId: string } | null>(null);
   const userMovedRef = useRef(false);
@@ -115,6 +118,7 @@ export function TextbookReaderCoachingSurface({
           {citationNotice}
         </div>
       ) : null}
+      {canCoach ? (
       <div className="absolute right-4 top-4 z-10 max-w-[calc(100%-2rem)] sm:right-6">
         <KonlingEntryPointButton
           entryPoint={{
@@ -135,6 +139,7 @@ export function TextbookReaderCoachingSurface({
           label="对本页提问"
         />
       </div>
+      ) : null}
       <div onClick={() => { if (isOpen) recordUserMove(); }}>
         {children}
       </div>
