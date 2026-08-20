@@ -92,8 +92,11 @@ import {
 import {
   canEmitCruiseCompletionTelemetry,
   projectCruiseControlEffectDebrief,
-  resolveCruiseDebriefTaskContract,
 } from './cruise/control-effect-debrief';
+import {
+  CRUISE_DEBRIEF_ACCEPTANCE_QUERY,
+  buildCruiseDebriefProjectionInput,
+} from './cruise/control-effect-debrief-acceptance';
 import { ControlEffectDebriefCard } from './cruise/control-effect-debrief-card';
 
 // ============ 类型定义 ============
@@ -1698,6 +1701,8 @@ function TelemetryBridge({
 export default function CruiseSimulation() {
   const searchParams = useSearchParams();
   const isCourseMode = true;
+  const isBoundCourseTask = searchParams.get('courseMode') === CRUISE_COURSE_MODE;
+  const debriefAcceptanceId = searchParams.get(CRUISE_DEBRIEF_ACCEPTANCE_QUERY);
   const courseRole = searchParams.get('role') === 'student' ? 'student' : 'teacher';
   const courseStep = searchParams.get('step') || 'engineering-target';
   const isEmbedded = searchParams.get('embed') === '1';
@@ -2150,6 +2155,72 @@ export default function CruiseSimulation() {
     return computeConsistencyScore(state.targetForm, runtimePerformance);
   }, [runtimePerformance, state.targetForm]);
 
+  const debrief = useMemo(() => {
+    const liveSummary = hasRuntimeData && runtimePerformance
+      ? buildCruiseTelemetryBridgeSummary({
+        runId: telemetryRunIdRef.current,
+        startedAt: telemetryStartedAtRef.current,
+        completedAt: new Date().toISOString(),
+        seed: `${telemetryRunIdRef.current}:${telemetryStartedAtRef.current}`,
+        state: {
+          time: state.time,
+          heading: state.heading,
+          targetHeading: state.targetHeading,
+          yawRate: state.yawRate,
+          rudder: state.rudder,
+          speed: state.speed,
+          rollAngle: state.rollAngle,
+          seaState: state.seaState,
+          waveDirection: state.waveDirection,
+          finStabilizerEnabled: state.finStabilizerEnabled,
+          notchFilterEnabled: state.notchFilterEnabled,
+          comfort: state.comfort,
+          finPower: state.finPower,
+          controlMode: state.controlMode,
+          pidGains: state.pidGains,
+          targetForm: state.targetForm,
+        },
+        performance: runtimePerformance,
+        consistencyScore: consistencyScore ? { score: consistencyScore.score } : null,
+        sampleFrameCount: trajectoryRef.current.length,
+        virtualModeEnabled,
+      })
+      : null;
+    return projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: telemetryRunIdRef.current,
+      isCompleted: state.isCompleted,
+      isPaused: state.isPaused,
+      liveSummary,
+      isBoundCourseTask,
+      acceptanceFixtureId: debriefAcceptanceId,
+    }));
+  }, [
+    consistencyScore,
+    debriefAcceptanceId,
+    hasRuntimeData,
+    isBoundCourseTask,
+    runtimePerformance,
+    state.comfort,
+    state.controlMode,
+    state.finPower,
+    state.finStabilizerEnabled,
+    state.heading,
+    state.isCompleted,
+    state.isPaused,
+    state.notchFilterEnabled,
+    state.pidGains,
+    state.rollAngle,
+    state.rudder,
+    state.seaState,
+    state.speed,
+    state.targetForm,
+    state.targetHeading,
+    state.time,
+    state.waveDirection,
+    state.yawRate,
+    virtualModeEnabled,
+  ]);
+
   const syntheticPerformance = useMemo(() => computePerformanceFromController(state.pidGains), [state.pidGains]);
 
   const generateConsistencyComment = useCallback(async () => {
@@ -2356,42 +2427,7 @@ export default function CruiseSimulation() {
                 consistencyLoading={consistencyCommentLoading}
                 hasRuntimeData={hasRuntimeData}
                 runtimeHint={runtimeHint}
-                debrief={projectCruiseControlEffectDebrief({
-                  currentRunId: telemetryRunIdRef.current,
-                  isCompleted: state.isCompleted,
-                  isPaused: state.isPaused,
-                  summary: hasRuntimeData && runtimePerformance
-                    ? buildCruiseTelemetryBridgeSummary({
-                      runId: telemetryRunIdRef.current,
-                      startedAt: telemetryStartedAtRef.current,
-                      completedAt: new Date().toISOString(),
-                      seed: `${telemetryRunIdRef.current}:${telemetryStartedAtRef.current}`,
-                      state: {
-                        time: state.time,
-                        heading: state.heading,
-                        targetHeading: state.targetHeading,
-                        yawRate: state.yawRate,
-                        rudder: state.rudder,
-                        speed: state.speed,
-                        rollAngle: state.rollAngle,
-                        seaState: state.seaState,
-                        waveDirection: state.waveDirection,
-                        finStabilizerEnabled: state.finStabilizerEnabled,
-                        notchFilterEnabled: state.notchFilterEnabled,
-                        comfort: state.comfort,
-                        finPower: state.finPower,
-                        controlMode: state.controlMode,
-                        pidGains: state.pidGains,
-                        targetForm: state.targetForm,
-                      },
-                      performance: runtimePerformance,
-                      consistencyScore: consistencyScore ? { score: consistencyScore.score } : null,
-                      sampleFrameCount: trajectoryRef.current.length,
-                      virtualModeEnabled,
-                    })
-                    : null,
-                  taskContract: resolveCruiseDebriefTaskContract(isCourseMode),
-                })}
+                debrief={debrief}
                 onTargetFormTouch={handleTargetFormTouch}
                 onTargetFormChange={handleTargetFormChange}
                 onGenerateConsistencyComment={() => void generateConsistencyComment()}

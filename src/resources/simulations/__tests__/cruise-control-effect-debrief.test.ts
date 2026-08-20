@@ -15,6 +15,11 @@ import {
   resolveCruiseDebriefTaskContract,
 } from '../simulations/cruise/control-effect-debrief';
 import {
+  buildCruiseDebriefProjectionInput,
+  canUseCruiseDebriefAcceptanceFixture,
+  resolveCruiseDebriefAcceptanceFixture,
+} from '../simulations/cruise/control-effect-debrief-acceptance';
+import {
   buildCruiseTelemetryBridgeSummary,
   type CruiseTelemetryBridgeInput,
   type CruiseTelemetryBridgeSummary,
@@ -155,6 +160,7 @@ describe('cruise control-effect debrief projector', () => {
     const heading = debrief.thresholds.find((item) => item.metricId === 'heading_error_deg');
 
     expect(resolveCruiseDebriefTaskContract(false)).toBeNull();
+    expect(resolveCruiseDebriefTaskContract(true)).toEqual(CRUISE_COMFORT_COURSE_TURN_TASK);
     expect(overshoot).toMatchObject({
       satisfied: true,
       comparisonText: '8% ≤ 10%',
@@ -225,16 +231,66 @@ describe('cruise control-effect debrief isolation', () => {
   it('does not persist runs, call Arena, or write learner evidence from the projector or card', () => {
     const projector = readFileSync(join(process.cwd(), 'src/resources/simulations/simulations/cruise/control-effect-debrief.ts'), 'utf8');
     const card = readFileSync(join(process.cwd(), 'src/resources/simulations/simulations/cruise/control-effect-debrief-card.tsx'), 'utf8');
+    const acceptance = readFileSync(join(process.cwd(), 'src/resources/simulations/simulations/cruise/control-effect-debrief-acceptance.ts'), 'utf8');
     const scene = readFileSync(join(process.cwd(), 'src/resources/simulations/simulations/cruise-simulation.tsx'), 'utf8');
-    for (const source of [projector, card]) {
+    for (const source of [projector, card, acceptance]) {
       expect(source).not.toContain('persistSceneTraceRun');
       expect(source).not.toContain('/api/arena');
       expect(source).not.toContain('LearningFact');
     }
+    expect(acceptance).toContain("nodeEnv !== 'production'");
     expect(scene).toContain('canEmitCruiseCompletionTelemetry');
     expect(scene).toContain('isCompleted={state.isCompleted}');
-    expect(scene).toContain('resolveCruiseDebriefTaskContract(isCourseMode)');
+    expect(scene).toContain("searchParams.get('courseMode') === CRUISE_COURSE_MODE");
+    expect(scene).toContain('searchParams.get(CRUISE_DEBRIEF_ACCEPTANCE_QUERY)');
+    expect(scene).toContain('isBoundCourseTask');
+    expect(scene).not.toContain('resolveCruiseDebriefTaskContract(isCourseMode)');
     expect(scene).not.toContain('taskContract: state.targetForm');
+  });
+});
+
+describe('cruise control-effect debrief acceptance fixtures', () => {
+  it('does not inject course thresholds unless courseMode is explicitly bound', () => {
+    const unbound = projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: 'cruise-run-1',
+      isCompleted: false,
+      isPaused: false,
+      liveSummary: null,
+      isBoundCourseTask: false,
+      acceptanceFixtureId: 'satisfied',
+      nodeEnv: 'test',
+    }));
+    const bound = projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: 'cruise-run-1',
+      isCompleted: false,
+      isPaused: false,
+      liveSummary: null,
+      isBoundCourseTask: true,
+      acceptanceFixtureId: 'satisfied',
+      nodeEnv: 'test',
+    }));
+
+    const productionBound = projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: 'cruise-run-1',
+      isCompleted: false,
+      isPaused: false,
+      liveSummary: null,
+      isBoundCourseTask: true,
+      acceptanceFixtureId: 'satisfied',
+      nodeEnv: 'production',
+    }));
+
+    expect(canUseCruiseDebriefAcceptanceFixture('production')).toBe(false);
+    expect(resolveCruiseDebriefAcceptanceFixture('satisfied', 'cruise-run-1', 'production')).toBeNull();
+    expect(productionBound.status).toBe('unavailable');
+    expect(unbound.status).toBe('ready');
+    expect(unbound.hasAuthoritativeTask).toBe(false);
+    expect(unbound.thresholds).toEqual([]);
+    expect(bound.hasAuthoritativeTask).toBe(true);
+    expect(bound.thresholds.find((item) => item.metricId === 'turn_overshoot_percent')).toMatchObject({
+      satisfied: true,
+      comparisonText: '8% ≤ 10%',
+    });
   });
 });
 

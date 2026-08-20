@@ -169,8 +169,8 @@ export interface ProjectCruiseControlEffectDebriefInput {
   taskContract?: CruiseTaskThresholdContract | null;
 }
 
-export function resolveCruiseDebriefTaskContract(isCourseMode: boolean): CruiseTaskThresholdContract | null {
-  return isCourseMode ? CRUISE_COMFORT_COURSE_TURN_TASK : null;
+export function resolveCruiseDebriefTaskContract(isBoundCourseTask: boolean): CruiseTaskThresholdContract | null {
+  return isBoundCourseTask ? CRUISE_COMFORT_COURSE_TURN_TASK : null;
 }
 
 export function canEmitCruiseCompletionTelemetry(input: {
