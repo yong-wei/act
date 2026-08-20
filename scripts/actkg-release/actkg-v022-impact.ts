@@ -32,14 +32,41 @@ import { resolveTrustedCaptureRevision } from './capture-revision';
 export const V022_IMPACT_REPORT_PROTOCOL = 'actkg-v0.18-to-v0.22-impact/1' as const;
 export const V018_BASELINE_DEFAULT_PATH =
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.18' as const;
-const V018_BASELINE_FILES = [
+export const V018_BASELINE_FILES = [
   'bundle-manifest.json',
   'release.json',
   'act-projection.json',
+  'domain-projection.json',
+  'review-projection.json',
   'projection-link-metadata.jsonl',
   'rag-crosswalk.jsonl',
   'component-releases.json',
 ] as const;
+
+const V018_BASELINE_PROJECTIONS = [
+  { file: 'act-projection.json', profile: 'runtime', isRuntime: true },
+  { file: 'domain-projection.json', profile: 'domain', isRuntime: false },
+  { file: 'review-projection.json', profile: 'review', isRuntime: false },
+] as const;
+
+export function v2CompatibleComponentIdentity(input: {
+  componentReleaseId: string;
+  releaseHash: string;
+}): {
+  componentReleaseId: string;
+  releaseHash: string;
+  protocol: 'actkg-public-bundle/2';
+  referenceKind: 'standard_bundle_v2';
+  payloadDigest: string;
+} {
+  const identity = {
+    componentReleaseId: input.componentReleaseId,
+    releaseHash: input.releaseHash,
+    protocol: 'actkg-public-bundle/2' as const,
+    referenceKind: 'standard_bundle_v2' as const,
+  };
+  return { ...identity, payloadDigest: digestPayload(identity) };
+}
 
 export interface V022ImpactReport {
   protocol: typeof V022_IMPACT_REPORT_PROTOCOL;
@@ -225,12 +252,9 @@ function snapshotFromV2(bundle: ValidatedActKGBundleV2, releaseSetId: string): D
     };
   });
   const projections = buildV022DeltaProjections(bundle);
-  const components = bundle.components.map((row) => ({
+  const components = bundle.components.map((row) => v2CompatibleComponentIdentity({
     componentReleaseId: row.releaseId,
     releaseHash: row.releaseHash,
-    protocol: 'actkg-public-bundle/2',
-    referenceKind: 'standard_bundle_v2',
-    payloadDigest: digestPayload(row),
   }));
   const crosswalk = bundle.crosswalk.map((row) => ({
     tripleKey: [row.publishedEntityId, row.retrievalChunkId, row.citationTargetId].join('\u001f'),
@@ -255,28 +279,29 @@ function snapshotFromV2(bundle: ValidatedActKGBundleV2, releaseSetId: string): D
   return snapshotDigest(base);
 }
 
-function snapshotFromV09(input: {
+function snapshotFromV018(input: {
   manifest: JsonObject;
   release: JsonObject;
-  projection: JsonObject;
+  projections: Record<(typeof V018_BASELINE_PROJECTIONS)[number]['file'], JsonObject>;
   linkMetadata: JsonObject[];
   crosswalk: JsonObject[];
   components: JsonObject[];
   releaseSetId: string;
 }): DeltaSemanticSnapshot {
-  const entries = array(input.release.entries, 'v0.9 release entries');
-  const entryById = new Map(entries.map((row) => [text(row.entity, 'v0.9 release entry.entity'), row] as const));
-  const metadataById = new Map(input.linkMetadata.map((row) => [text(row.relation_id, 'v0.9 metadata.relation_id'), row] as const));
-  const nodes = array(input.projection.nodes, 'v0.9 runtime nodes');
-  const links = array(input.projection.links, 'v0.9 runtime links');
+  const entries = array(input.release.entries, 'v0.18 release entries');
+  const entryById = new Map(entries.map((row) => [text(row.entity, 'v0.18 release entry.entity'), row] as const));
+  const metadataById = new Map(input.linkMetadata.map((row) => [text(row.relation_id, 'v0.18 metadata.relation_id'), row] as const));
+  const runtime = input.projections['act-projection.json'];
+  const nodes = array(runtime.nodes, 'v0.18 runtime nodes');
+  const links = array(runtime.links, 'v0.18 runtime links');
   const objects = nodes.map((node) => {
-    const canonicalId = text(node.entity_id, 'v0.9 node.entity_id');
-    const canonicalType = text(node.entity_type, `v0.9 node ${canonicalId}.entity_type`);
+    const canonicalId = text(node.entity_id, 'v0.18 node.entity_id');
+    const canonicalType = text(node.entity_type, `v0.18 node ${canonicalId}.entity_type`);
     const semanticName = optionalText(node.semantic_name);
     return {
       canonicalId,
       canonicalType,
-      releaseTier: text(node.release_tier ?? entryById.get(canonicalId)?.release_tier, `v0.9 node ${canonicalId}.release_tier`),
+      releaseTier: text(node.release_tier ?? entryById.get(canonicalId)?.release_tier, `v0.18 node ${canonicalId}.release_tier`),
       semanticName,
       displayName: optionalText(node.display_name),
       materialIdentityDigest: digestObjectMaterialIdentity({ canonicalId, canonicalType, semanticName }),
@@ -285,35 +310,35 @@ function snapshotFromV09(input: {
     };
   });
   const relations = links.map((link) => {
-    const relationId = text(link.relation_id, 'v0.9 link.relation_id');
+    const relationId = text(link.relation_id, 'v0.18 link.relation_id');
     const metadata = metadataById.get(relationId);
     return {
       relationId,
-      predicate: text(link.relation_type, `v0.9 link ${relationId}.relation_type`),
-      direction: text(link.direction, `v0.9 link ${relationId}.direction`),
-      releaseTier: text(metadata?.release_tier ?? entryById.get(relationId)?.release_tier, `v0.9 link ${relationId}.release_tier`),
-      sourceId: text(link.source_id, `v0.9 link ${relationId}.source_id`),
-      targetId: text(link.target_id, `v0.9 link ${relationId}.target_id`),
+      predicate: text(link.relation_type, `v0.18 link ${relationId}.relation_type`),
+      direction: text(link.direction, `v0.18 link ${relationId}.direction`),
+      releaseTier: text(metadata?.release_tier ?? entryById.get(relationId)?.release_tier, `v0.18 link ${relationId}.release_tier`),
+      sourceId: text(link.source_id, `v0.18 link ${relationId}.source_id`),
+      targetId: text(link.target_id, `v0.18 link ${relationId}.target_id`),
       payloadDigest: digestPayload(link),
     };
   });
-  const projections = [{
-    profile: 'runtime',
-    projectionId: text(input.projection.id, 'v0.9 projection.id'),
-    versionDigest: text(input.projection.version_digest, 'v0.9 projection.version_digest'),
-    isRuntime: true,
-  }];
-  const components = input.components.map((row) => ({
-    componentReleaseId: text(row.release_id, 'v0.9 component.release_id'),
-    releaseHash: text(row.release_hash, 'v0.9 component.release_hash'),
-    protocol: text(row.reference_kind ?? 'legacy_exact', 'v0.9 component.protocol'),
-    referenceKind: optionalText(row.reference_kind),
-    payloadDigest: digestPayload(row),
+  const projections = V018_BASELINE_PROJECTIONS.map((entry) => {
+    const payload = input.projections[entry.file];
+    return {
+      profile: entry.profile,
+      projectionId: text(payload.id, `v0.18 ${entry.file}.id`),
+      versionDigest: text(payload.version_digest, `v0.18 ${entry.file}.version_digest`),
+      isRuntime: entry.isRuntime,
+    };
+  });
+  const components = input.components.map((row) => v2CompatibleComponentIdentity({
+    componentReleaseId: text(row.release_id, 'v0.18 component.release_id'),
+    releaseHash: text(row.release_hash, 'v0.18 component.release_hash'),
   }));
   const crosswalk = input.crosswalk.map((row) => {
-    const publishedEntityId = text(row.published_entity_id, 'v0.9 crosswalk.published_entity_id');
-    const retrievalChunkId = text(row.retrieval_chunk_id, 'v0.9 crosswalk.retrieval_chunk_id');
-    const citationTargetId = text(row.citation_target_id, 'v0.9 crosswalk.citation_target_id');
+    const publishedEntityId = text(row.published_entity_id, 'v0.18 crosswalk.published_entity_id');
+    const retrievalChunkId = text(row.retrieval_chunk_id, 'v0.18 crosswalk.retrieval_chunk_id');
+    const citationTargetId = text(row.citation_target_id, 'v0.18 crosswalk.citation_target_id');
     return {
       tripleKey: [publishedEntityId, retrievalChunkId, citationTargetId].join('\u001f'),
       publishedEntityId,
@@ -321,16 +346,18 @@ function snapshotFromV09(input: {
       citationTargetId,
     };
   });
-  const releaseIdentity = object(input.manifest.release, 'v0.9 manifest.release');
+  const releaseIdentity = object(input.manifest.release, 'v0.18 manifest.release');
+  const runtimeProjection = projections.find((row) => row.isRuntime);
+  if (!runtimeProjection) fail('v0.18 baseline is missing the runtime projection');
   const base = {
     releaseSetId: input.releaseSetId,
-    releaseId: text(releaseIdentity.release_id, 'v0.9 release_id'),
-    releaseVersion: text(releaseIdentity.release_version, 'v0.9 release_version'),
-    releaseHash: text(releaseIdentity.release_hash, 'v0.9 release_hash'),
-    sourceDatasetHash: text(releaseIdentity.source_dataset_hash, 'v0.9 source_dataset_hash'),
-    protocol: text(input.manifest.bundle_contract_version, 'v0.9 protocol'),
-    runtimeProjectionId: projections[0]!.projectionId,
-    runtimeProjectionDigest: projections[0]!.versionDigest,
+    releaseId: text(releaseIdentity.release_id, 'v0.18 release_id'),
+    releaseVersion: text(releaseIdentity.release_version, 'v0.18 release_version'),
+    releaseHash: text(releaseIdentity.release_hash, 'v0.18 release_hash'),
+    sourceDatasetHash: text(releaseIdentity.source_dataset_hash, 'v0.18 source_dataset_hash'),
+    protocol: text(input.manifest.bundle_contract_version, 'v0.18 protocol'),
+    runtimeProjectionId: runtimeProjection.projectionId,
+    runtimeProjectionDigest: runtimeProjection.versionDigest,
     objects,
     relations,
     crosswalk,
@@ -355,7 +382,7 @@ function readGitFile(root: string, revision: string, relativePath: string): Buff
 async function readCapturedFile(root: string, revision: string, relativePath: string): Promise<Buffer> {
   const bytes = await readFile(path.join(root, relativePath));
   const captured = readGitFile(root, revision, relativePath);
-  if (!bytes.equals(captured)) fail(`v0.9 baseline drifted from capture Git tree: ${relativePath}`);
+  if (!bytes.equals(captured)) fail(`v0.18 baseline drifted from capture Git tree: ${relativePath}`);
   return bytes;
 }
 
@@ -397,13 +424,21 @@ export async function computeV022ImpactReport(input: {
   }
   const manifest = parseJson(captured.get('bundle-manifest.json')!, 'bundle-manifest.json');
   const release = parseJson(captured.get('release.json')!, 'release.json');
-  const projection = parseJson(captured.get('act-projection.json')!, 'act-projection.json');
-  const linkMetadata = jsonl(captured.get('projection-link-metadata.jsonl')!, 'v0.9 link metadata');
-  const crosswalk = jsonl(captured.get('rag-crosswalk.jsonl')!, 'v0.9 crosswalk');
-  const components = array(parseJson(captured.get('component-releases.json')!, 'component-releases.json').components, 'v0.9 components');
-  const baseline = snapshotFromV09({
-    manifest, release, projection, linkMetadata, crosswalk, components,
-    releaseSetId: 'actkg-authority-current-v0.9',
+  const linkMetadata = jsonl(captured.get('projection-link-metadata.jsonl')!, 'v0.18 link metadata');
+  const crosswalk = jsonl(captured.get('rag-crosswalk.jsonl')!, 'v0.18 crosswalk');
+  const components = array(parseJson(captured.get('component-releases.json')!, 'component-releases.json').components, 'v0.18 components');
+  const baseline = snapshotFromV018({
+    manifest,
+    release,
+    projections: {
+      'act-projection.json': parseJson(captured.get('act-projection.json')!, 'act-projection.json'),
+      'domain-projection.json': parseJson(captured.get('domain-projection.json')!, 'domain-projection.json'),
+      'review-projection.json': parseJson(captured.get('review-projection.json')!, 'review-projection.json'),
+    },
+    linkMetadata,
+    crosswalk,
+    components,
+    releaseSetId: 'actkg-v018-release-baseline',
   });
   const candidate = snapshotFromV2(input.candidate, input.candidateReleaseSetId);
   const candidateEvidence: DeltaEvidenceRef = {
@@ -500,7 +535,7 @@ export async function computeV022ImpactReport(input: {
       runtimeProjectionDigest: candidate.runtimeProjectionDigest!,
     },
     counts: {
-      baselineReleaseEntries: array(release.entries, 'v0.9 entries').length,
+      baselineReleaseEntries: array(release.entries, 'v0.18 entries').length,
       candidateReleaseEntries: array(input.candidate.release.entries, 'v0.22 entries').length,
       baselineRuntimeNodes: baseline.objects.length,
       candidateRuntimeNodes: candidate.objects.length,

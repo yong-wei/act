@@ -15,7 +15,11 @@ import {
   REVIEWED_V0_22_IDENTITIES,
   REVIEWED_V0_22_V2_REGISTRY,
 } from '../../../scripts/actkg-release/bundle-compatibility-registry-v022';
-import { V018_BASELINE_DEFAULT_PATH } from '../../../scripts/actkg-release/actkg-v022-impact';
+import {
+  V018_BASELINE_DEFAULT_PATH,
+  V018_BASELINE_FILES,
+  v2CompatibleComponentIdentity,
+} from '../../../scripts/actkg-release/actkg-v022-impact';
 import { V022_ACT_CONTROLLED_PATH } from '../../../scripts/actkg-release/actkg-v022-release-mirror';
 import {
   assertV022CandidateBundleCounts,
@@ -59,6 +63,36 @@ describe('actkg v0.22 authority candidate boundaries', () => {
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V018_BASELINE_DEFAULT_PATH);
     expect(V022_CANDIDATE_CAPTURE_PATHS).toContain(V022_ACT_CONTROLLED_PATH);
     expect(new Set(V022_CANDIDATE_CAPTURE_PATHS).size).toBe(V022_CANDIDATE_CAPTURE_PATHS.length);
+    expect(V018_BASELINE_FILES).toEqual(expect.arrayContaining([
+      'act-projection.json',
+      'domain-projection.json',
+      'review-projection.json',
+    ]));
+  });
+
+  it('treats shared v0.18 and v0.22 component hashes as identical V2 identities', () => {
+    const readComponents = (relativePath: string): Array<{ release_id: string; release_hash: string }> => {
+      const parsed = JSON.parse(readFileSync(relativePath, 'utf8')) as {
+        components: Array<{ release_id: string; release_hash: string }>;
+      };
+      return parsed.components;
+    };
+    const baseline = readComponents(`${V018_BASELINE_DEFAULT_PATH}/component-releases.json`);
+    const candidate = readComponents(`${V022_ACT_CONTROLLED_PATH}/component-releases.json`);
+    const baselineIds = new Set(baseline.map((row) => row.release_id));
+    const shared = candidate.filter((row) => baselineIds.has(row.release_id));
+    expect(shared).toHaveLength(13);
+    for (const row of shared) {
+      const base = baseline.find((entry) => entry.release_id === row.release_id);
+      expect(base?.release_hash).toBe(row.release_hash);
+      expect(v2CompatibleComponentIdentity({
+        componentReleaseId: row.release_id,
+        releaseHash: row.release_hash,
+      })).toEqual(v2CompatibleComponentIdentity({
+        componentReleaseId: base!.release_id,
+        releaseHash: base!.release_hash,
+      }));
+    }
   });
 
   it('admits the repaired v0.22-r5 envelope through the existing v2 adapter', async () => {
