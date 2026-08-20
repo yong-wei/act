@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
   "issue": 1451,
-  "capturedAt": "2026-08-18T13:18:07.639Z",
-  "commitSha": "975f4fd1b440e8842c4b2fa30e27f556ef8df4c9",
+  "capturedAt": "2026-08-20T12:00:36.695Z",
+  "commitSha": "fa3a98fc9020f71d2c375b5f316ccc8bc49d99d2",
   "generator": "tests/adaptive-path-candidate-batches.spec.ts",
   "generatorSha256": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75",
   "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "255c3ed4e39ee7cc6c7196d6bf37fcb94e895ea4cfda8d66c600e88ed2356a64",
+    "src/app/assessment/adaptive-practice/page.tsx": "fbf45db5770040309c24a15fddaff96976db9983f4ba0a8949c87c92fd085d12",
     "src/lib/adaptive-path-candidate-batches.ts": "5548cad62011bd2a3af4a1f0b08b1a867d7009d97ea8303f3d63d04ea816f725",
-    "src/lib/konling-agent-runtime.ts": "ea4b00f40e4757b16ac4826d4fc32be243be413c1a6e9a8e4342de6f6aa56c4f",
+    "src/lib/konling-agent-runtime.ts": "2e0920f28818f2bbc1b23206d2eeb0fe73f46f734da57918a2a7ccf47fd7534e",
     "tests/adaptive-path-candidate-batches.spec.ts": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75"
   },
   "captureWorkingTreeSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "255c3ed4e39ee7cc6c7196d6bf37fcb94e895ea4cfda8d66c600e88ed2356a64",
+    "src/app/assessment/adaptive-practice/page.tsx": "fbf45db5770040309c24a15fddaff96976db9983f4ba0a8949c87c92fd085d12",
     "src/lib/adaptive-path-candidate-batches.ts": "5548cad62011bd2a3af4a1f0b08b1a867d7009d97ea8303f3d63d04ea816f725",
-    "src/lib/konling-agent-runtime.ts": "ea4b00f40e4757b16ac4826d4fc32be243be413c1a6e9a8e4342de6f6aa56c4f",
+    "src/lib/konling-agent-runtime.ts": "2e0920f28818f2bbc1b23206d2eeb0fe73f46f734da57918a2a7ccf47fd7534e",
     "tests/adaptive-path-candidate-batches.spec.ts": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75"
   },
   "sourceGitBlobIds": {
-    "src/app/assessment/adaptive-practice/page.tsx": "a10923fd758399b770bb36ead47ef1b0a6753094",
+    "src/app/assessment/adaptive-practice/page.tsx": "24dcfb22fc32b212a8d33d0105fc08ff8f105826",
     "src/lib/adaptive-path-candidate-batches.ts": "2a5ee7cc70aa44b2ed2db3581fc37236ff77cd56",
-    "src/lib/konling-agent-runtime.ts": "2f5dc2441cbf06e10435bef095818651cbd1a825",
+    "src/lib/konling-agent-runtime.ts": "fd7e59263981f94cf90e6acbdd1ee2889586230d",
     "tests/adaptive-path-candidate-batches.spec.ts": "3c28bbb65eba49e2654838ebbf853bccd04b2245"
   },
   "screenshots": [
@@ -81,7 +81,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1451-candidate-adjustment/adjusted-mobile-320.png",
-      "sha256": "9fb2ee00ff56bf9b8fd8065ba0579abfc775eb7c25a017c43bf953dcc81bf00a",
+      "sha256": "48dd6c1c41234f6026fbc255951401b8aaee0b28652be0e76c74e48b51c98534",
       "scenario": "adjusted",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1451-adjusted",
       "width": 320,
@@ -242,7 +242,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1451-candidate-adjustment/loaded-mobile-320.png",
-      "sha256": "ca2f8d29c2f1e0db95aa34f090714e597d4c3a9f5c63e937579352e330c95e80",
+      "sha256": "9c8ae7b0e3a90c6e7ae44f48e16d432ce04561fd754861db95b3ff75385d3939",
       "scenario": "loaded",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
       "width": 320,
@@ -279,7 +279,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1451-candidate-adjustment/failed-mobile-320.png",
-      "sha256": "0b9b0793afbb68cbba4356e36d3d85a64e3e4b5dd6d2d6aef853e8c3dc933cf5",
+      "sha256": "48ad42f777ec603665c922ba564211805df1e1f2165d9f2071c42a6ad525e70f",
       "scenario": "failed",
       "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327-failed&pathId=missing-path",
       "width": 320,
