@@ -4335,10 +4335,16 @@ async function buildAdaptivePathToolOutput(
     };
     candidateBatch = await readExistingBatch();
     if (!candidateBatch && hasMaterialPath) {
+      const writeFencePathId = effectiveRevisionArgs
+        ? effectiveRevisionArgs.pathId ?? input.context.planContext?.currentPathId
+        : persistedPlan.id;
+      if (!writeFencePathId) {
+        throw new KonlingRuntimeScopeError(409, '当前学习路径不存在，请刷新后重新调整。');
+      }
       try {
         candidateBatch = await runWithLearningPathWriteFence(
           input.db as any,
-          persistedPlan.id,
+          writeFencePathId,
           async (tx, existingPath) => {
             const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
               tx as any,
@@ -4348,7 +4354,7 @@ async function buildAdaptivePathToolOutput(
               assertAdaptivePathCandidateBatchMatchesInput(existingBatch, candidateBatchInput);
               return existingBatch;
             }
-            if (existingPath) {
+            if (!effectiveRevisionArgs && existingPath) {
               throw new AdaptivePathCandidateBatchConflictError(
                 'Candidate source path exists without its immutable candidate batch',
               );
@@ -5973,24 +5979,33 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
     goalId: getString(record, 'goalId') || null,
     pathId: getString(record, 'pathId') || null,
     graphNodeId: getString(record, 'graphNodeId') || null,
-    routeIntentProvided: Boolean(getString(record, 'routeIntent')),
+    routeIntent: getString(record, 'routeIntent') || null,
     naturalLanguageIntent: summarizeStudentIntent(getString(record, 'naturalLanguageIntent')),
   };
   if (toolName === 'generate_learning_path' || toolName === 'revise_learning_path_options') {
-    return redactSensitivePayload({
+    const generationSummary = {
       ...base,
       timeBudgetMinutes: getNumber(record, 'timeBudgetMinutes') || null,
       difficultyRhythm: getString(record, 'difficultyRhythm') || null,
-      resourcePreference: arrayOfStrings(record.resourcePreference),
+      resourcePreference: uniqueStringList(arrayOfStrings(record.resourcePreference)).sort(),
       checkpointPreference: getString(record, 'checkpointPreference') || null,
       allowExternalResources: typeof record.allowExternalResources === 'boolean' ? record.allowExternalResources : null,
-      excludedNodeIds: arrayOfStrings(record.excludedNodeIds),
+      excludedNodeIds: uniqueStringList(arrayOfStrings(record.excludedNodeIds)).sort(),
       preferredStyleId: getString(record, 'preferredStyleId') || null,
       requestedAt: getString(record, 'requestedAt') || null,
       priorRequestId: getString(record, 'priorRequestId') || null,
-      rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
+      rejectedStyleIds: uniqueStringList(arrayOfStrings(record.rejectedStyleIds)).sort(),
       selectedStyleId: getString(record, 'selectedStyleId') || null,
-    });
+    };
+    return redactSensitivePayload(toolName === 'revise_learning_path_options'
+      ? {
+          ...generationSummary,
+          sourceBatchId: getString(record, 'sourceBatchId') || null,
+          sourceCandidateId: getString(record, 'sourceCandidateId') || null,
+          sourceCandidateFingerprint: getString(record, 'sourceCandidateFingerprint') || null,
+          activeProgressVersion: getString(record, 'activeProgressVersion') || null,
+        }
+      : generationSummary);
   }
   if (toolName === 'reject_learning_path_option') {
     return redactSensitivePayload({
@@ -6367,6 +6382,13 @@ async function runKonlingRuntimeTool<T>(
     assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
     assertReusedCandidateSelectionToolRunMatchesInput(toolName, toolRun, toolInput);
     if (toolRun.status === 'succeeded') {
+      await assertReusedAdaptivePathAdjustmentToolRunMatchesInput(
+        runtimeInput,
+        toolName,
+        toolRun,
+        toolInput,
+        adaptivePathGoalId,
+      );
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
         toolRunId: toolRun.id,
@@ -6459,6 +6481,35 @@ function assertReusedCandidateSelectionToolRunMatchesInput(
   ) {
     throw new KonlingRuntimeScopeError(409, '幂等候选路径选择与已完成的工具请求不一致。');
   }
+}
+
+async function assertReusedAdaptivePathAdjustmentToolRunMatchesInput(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolRun: KonlingToolRunView,
+  toolInput: unknown,
+  goalId: string | null,
+): Promise<void> {
+  if (toolName !== 'revise_learning_path_options') return;
+  const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
+  const requestedSummary = buildKonlingToolInputSummary(toolName, parsed);
+  if (stableKonlingToolIdentityJson(toolRun.inputSummary) !== stableKonlingToolIdentityJson(requestedSummary)) {
+    throw new KonlingRuntimeScopeError(409, '幂等候选路径调整与已完成的工具请求不一致。');
+  }
+  const scopedGoalId = goalId ?? resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+  await resolveAdaptivePathAdjustmentSource(runtimeInput, scopedGoalId, parsed);
+  await assertAdaptivePathAdjustmentProgressStillCurrent(runtimeInput, scopedGoalId, parsed);
+}
+
+function stableKonlingToolIdentityJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableKonlingToolIdentityJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${stableKonlingToolIdentityJson(nested)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
 }
 
 async function validateKonlingToolPreflight(

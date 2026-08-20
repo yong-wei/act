@@ -38,6 +38,7 @@ const PATH_GENERATION_REQUEST_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9:_-]*$/;
 
 export async function POST(request: Request) {
   let generationRequestId: string | null = null;
+  let operation: PathAdvisorToolOperation = 'generate';
   try {
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '学习路径生成上下文缺失' }, { status: 400 });
     }
 
-    const operation: PathAdvisorToolOperation = body.operation === 'revise' || body.operation === 'explain'
+    operation = body.operation === 'revise' || body.operation === 'explain'
       ? body.operation
       : 'generate';
     if (operation === 'generate') {
@@ -256,10 +257,12 @@ export async function POST(request: Request) {
     if (error instanceof KonlingRuntimeScopeError) {
       return NextResponse.json({
         error: error.message,
-        readiness: adaptiveGenerationReadinessFromHttp({
-          status: error.status,
-          source: 'path-advisor-tool',
-          fallbackReason: 'advisor-forbidden',
+        ...(operation === 'revise' && error.status === 409 ? {} : {
+          readiness: adaptiveGenerationReadinessFromHttp({
+            status: error.status,
+            source: 'path-advisor-tool',
+            fallbackReason: 'advisor-forbidden',
+          }),
         }),
         ...(generationRequestId && error.status === 409 ? {
           generationRequest: { id: generationRequestId, status: 'failed' as const },

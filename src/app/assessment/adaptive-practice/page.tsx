@@ -2907,6 +2907,32 @@ export default function AdaptivePracticePage() {
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
   );
+  const pathAdjustmentRequestVersionKey = useMemo(() => JSON.stringify({
+    goalId: pathGenerationPanel.goalId,
+    routeIntent,
+    timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
+    difficultyRhythm: pathGenerationPanel.difficultyRhythm,
+    resourcePreference: [...pathGenerationPanel.resourcePreference].sort(),
+    checkpointPreference: pathGenerationPanel.checkpointPreference,
+    allowExternalResources: pathGenerationPanel.allowExternalResources,
+    naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent.trim(),
+    excludedNodeIds: pathExecutionNodes
+      .filter((node) => node.status === 'skipped' || node.status === 'blocked')
+      .map((node) => node.nodeId)
+      .sort(),
+  }), [
+    pathExecutionNodes,
+    pathGenerationPanel.allowExternalResources,
+    pathGenerationPanel.checkpointPreference,
+    pathGenerationPanel.difficultyRhythm,
+    pathGenerationPanel.goalId,
+    pathGenerationPanel.naturalLanguageIntent,
+    pathGenerationPanel.resourcePreference,
+    pathGenerationPanel.timeBudgetMinutes,
+    routeIntent,
+  ]);
+  const pathAdjustmentRequestVersionKeyRef = useRef(pathAdjustmentRequestVersionKey);
+  pathAdjustmentRequestVersionKeyRef.current = pathAdjustmentRequestVersionKey;
   const requestedPathContextKey = activeGoal
     ? `${activeGoal}:${activePathId ? `path:${activePathId}` : 'implicit'}`
     : null;
@@ -3702,9 +3728,17 @@ export default function AdaptivePracticePage() {
     const adjustmentRequestVersionKey = operation === 'revise'
       ? pathAdjustmentContextVersionKeyRef.current
       : null;
+    const adjustmentRequestInputVersionKey = operation === 'revise'
+      ? pathAdjustmentRequestVersionKeyRef.current
+      : null;
     const explanationRequestVersionKey = operation === 'explain'
       ? pathOptionVersionKeyRef.current
       : null;
+    const isCurrentAdjustmentRequest = () => operation !== 'revise' || (
+      adjustmentRequestId === activePathAdjustmentRequestIdRef.current &&
+      adjustmentRequestVersionKey === pathAdjustmentContextVersionKeyRef.current &&
+      adjustmentRequestInputVersionKey === pathAdjustmentRequestVersionKeyRef.current
+    );
     if (adjustmentRequestId) {
       activePathAdjustmentRequestIdRef.current = adjustmentRequestId;
     }
@@ -3776,14 +3810,7 @@ export default function AdaptivePracticePage() {
         }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (
-        operation === 'revise' && (
-          adjustmentRequestId !== activePathAdjustmentRequestIdRef.current ||
-          adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current
-        )
-      ) {
-        return;
-      }
+      if (!isCurrentAdjustmentRequest()) return;
       if (!response.ok) {
         if (payload.generationRequest?.status === 'failed') {
           generationFailureIsDefinitive = true;
@@ -3856,9 +3883,12 @@ export default function AdaptivePracticePage() {
           : null;
         if (generatedBatchId && activeGoal) {
           setGeneratedCandidateBatchFailure(false);
-          setActiveCandidateBatch(null);
-          setCandidateBatchLoadState('loading');
+          if (operation !== 'revise') {
+            setActiveCandidateBatch(null);
+            setCandidateBatchLoadState('loading');
+          }
           const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
+          if (!isCurrentAdjustmentRequest()) return;
           if (loadedBatch.status === 'loaded') {
             synchronizedCandidateBatchRef.current = {
               goalId: activeGoal,
@@ -3872,6 +3902,16 @@ export default function AdaptivePracticePage() {
             nextUrl.searchParams.set('batch', generatedBatchId);
             nextUrl.searchParams.delete('candidate');
             router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
+          } else if (operation === 'revise') {
+            const adjustedBatchLoadMessage = '调整后的候选路径暂时无法加载，请重试。';
+            setPathChoiceMessage(adjustedBatchLoadMessage);
+            if (option?.optionId) {
+              setPathOptionFeedback((current) => ({
+                ...current,
+                [option.optionId]: adjustedBatchLoadMessage,
+              }));
+            }
+            return;
           } else {
             setCandidateBatchLoadState(loadedBatch.status);
             setGeneratedCandidateBatchFailure(true);
@@ -3949,14 +3989,7 @@ export default function AdaptivePracticePage() {
         }));
       }
     } catch (generationError) {
-      if (
-        operation === 'revise' && (
-          adjustmentRequestId !== activePathAdjustmentRequestIdRef.current ||
-          adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current
-        )
-      ) {
-        return;
-      }
+      if (!isCurrentAdjustmentRequest()) return;
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
       if (generationRequestId) {
