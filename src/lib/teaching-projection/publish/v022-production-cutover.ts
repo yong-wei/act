@@ -321,7 +321,8 @@ export function preflightV022ProductionCutover(input: {
     if (runtime.productionCutoverAuthorized === true) blockers.push('runtime-claimed-cutover');
     if (runtime.qualificationDigest !== V022_SEALED_QUALIFICATION_SHA256) blockers.push('runtime-qualification-pin-drift');
   }
-  if (existsSync(hostShadowPath)) {
+  if (!existsSync(hostShadowPath)) blockers.push('host-shadow-verification-incomplete');
+  else {
     const host = readJsonFile(hostShadowPath);
     if (host.status !== 'READY') blockers.push('host-shadow-not-ready');
   }
