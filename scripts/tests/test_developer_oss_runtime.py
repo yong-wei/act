@@ -503,11 +503,22 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"
             checkout.mkdir()
+            runtime = checkout / "course-content" / "runtime"
+            runtime.mkdir(parents=True)
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
             from common import checkout_state
             state = checkout_state(checkout)
-            state.mkdir(parents=True)
-            os.chmod(state, 0o700)
+            write_selection_receipt(state / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+                "blobMount": str(Path(raw) / "blobs"),
+                "helperMount": str(Path(raw) / "helper"),
+                "viewRoot": str(Path(raw) / "view"),
+                "runtimeRoot": str(runtime),
+                "startedAt": "2026-08-20T00:00:00Z",
+            })
             leftover = state / "ossfs.conf"
             leftover.write_text("secret-should-go")
             os.chmod(leftover, 0o600)
