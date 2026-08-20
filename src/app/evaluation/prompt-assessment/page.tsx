@@ -781,7 +781,7 @@ export default function PromptAssessmentPage() {
                   <div className="grid gap-3 md:grid-cols-4">
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">提示词版本数</div>
-                      <div className="mt-1 text-xl font-semibold text-violet-300">{activeSessionHistory.length}</div>
+                      <div className="mt-1 text-xl font-semibold text-primary">{activeSessionHistory.length}</div>
                     </div>
                     <div className="rounded bg-slate-950 p-3">
                       <div className="text-xs text-slate-400">最近提示词得分</div>
