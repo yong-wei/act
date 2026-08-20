@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  V022_ADMISSION_RECEIPT_REVISION,
   V022_AUTHORITY_RELEASE_ID,
   V022_CANDIDATE_RECEIPT_RELATIVE,
   V022_CAPTURE_REVISION,
@@ -91,24 +92,23 @@ describe('actkg v0.22 display projections', () => {
     expect(V022_MULTILINGUAL_LABEL_COUNT).not.toBe(1909);
   });
 
-  it('loads the admitted mirror list from the capture Git revision', () => {
+  it('loads one admitted receipt for snapshot, capture, and mirror files', () => {
     const envelope = loadPinnedV022Envelope(process.cwd());
     const gitReceipt = JSON.parse(execFileSync(
       'git',
-      ['show', `${V022_CAPTURE_REVISION}:${V022_CANDIDATE_RECEIPT_RELATIVE}`],
+      ['show', `${V022_ADMISSION_RECEIPT_REVISION}:${V022_CANDIDATE_RECEIPT_RELATIVE}`],
       { cwd: process.cwd(), encoding: 'utf8' },
     )) as {
-      mirror: { files: Array<{ path: string; rawSha256: string; gitObject: string }> };
-      validated: { bundleDigest: string };
-    };
-    const workingTreeReceipt = JSON.parse(readFileSync(V022_CANDIDATE_RECEIPT_RELATIVE, 'utf8')) as {
       captureRevision: string;
       mirror: { files: Array<{ path: string; rawSha256: string; gitObject: string }> };
+      replays: Array<{ snapshotId: string }>;
+      validated: { bundleDigest: string };
     };
     expect(envelope.captureRevision).toBe(V022_CAPTURE_REVISION);
+    expect(gitReceipt.captureRevision).toBe(V022_CAPTURE_REVISION);
+    expect(gitReceipt.captureRevision).not.toBe(V022_ADMISSION_RECEIPT_REVISION);
+    expect(gitReceipt.replays[0]?.snapshotId).toBe(V022_SNAPSHOT_ID);
     expect(gitReceipt.validated.bundleDigest).toBe(envelope.bundleDigest);
     expect(gitReceipt.mirror.files.length).toBeGreaterThan(0);
-    expect(workingTreeReceipt.mirror.files).toEqual(gitReceipt.mirror.files);
-    expect(workingTreeReceipt.captureRevision).toBe(V022_CAPTURE_REVISION);
   });
 });

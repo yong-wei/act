@@ -20,6 +20,8 @@ export const V022_SNAPSHOT_HASH =
   '9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151' as const;
 export const V022_CAPTURE_REVISION =
   '23d4548a9a57962e4c3a54db750b55fc3ef32d98' as const;
+export const V022_ADMISSION_RECEIPT_REVISION =
+  'e44814fb777b5b5a8bfe5bebec4161fbec37d458' as const;
 export const V022_RELEASE_SET_ID =
   'actkg-authority-candidate-v018-98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854' as const;
 export const V022_INTEGRATION_VERSION = 'control-theory-integration-v0.20' as const;
@@ -180,41 +182,40 @@ function assertPinnedBundleIdentity(receipt: Record<string, unknown>): string {
   return bundleDigest;
 }
 
+function gitRevParse(repoRoot: string, spec: string): string {
+  return git(repoRoot, ['rev-parse', spec]).toString('utf8').trim();
+}
+
 export function loadPinnedV022Envelope(repoRoot: string): V022PinnedEnvelope {
   const captureRevision = V022_CAPTURE_REVISION;
-  const captureReceipt = loadGitCandidateReceipt(repoRoot, captureRevision);
-  const committedRevision = git(repoRoot, ['rev-parse', 'HEAD']).toString('utf8').trim();
-  const committedReceipt = loadGitCandidateReceipt(repoRoot, committedRevision);
-  assertInactiveCandidate(captureReceipt);
-  assertInactiveCandidate(committedReceipt);
-  const bundleDigest = assertPinnedBundleIdentity(captureReceipt);
-  assertPinnedBundleIdentity(committedReceipt);
-  const committedReplays = committedReceipt.replays as Array<Record<string, unknown>>;
-  const committedSnapshot = text(committedReplays[0]?.snapshotId, 'replays[0].snapshotId');
-  if (committedSnapshot !== V022_SNAPSHOT_ID) {
+  const receipt = loadGitCandidateReceipt(repoRoot, V022_ADMISSION_RECEIPT_REVISION);
+  const head = gitRevParse(repoRoot, 'HEAD');
+  if (
+    gitRevParse(repoRoot, `${head}:${V022_CANDIDATE_RECEIPT_RELATIVE}`)
+    !== gitRevParse(repoRoot, `${V022_ADMISSION_RECEIPT_REVISION}:${V022_CANDIDATE_RECEIPT_RELATIVE}`)
+  ) {
+    throw new V022EnvelopeError(
+      'admitted-receipt-drift',
+      'HEAD candidate receipt drifted from the pinned admission receipt revision',
+    );
+  }
+  assertInactiveCandidate(receipt);
+  const bundleDigest = assertPinnedBundleIdentity(receipt);
+  const replays = receipt.replays as Array<Record<string, unknown>>;
+  const snapshotId = text(replays[0]?.snapshotId, 'replays[0].snapshotId');
+  const receiptCapture = text(receipt.captureRevision, 'captureRevision');
+  failLatest(receiptCapture, 'captureRevision');
+  if (snapshotId !== V022_SNAPSHOT_ID || receiptCapture !== captureRevision) {
     throw new V022EnvelopeError(
       'envelope-mismatch',
       'admitted v0.22 candidate does not match the pinned composite envelope',
     );
   }
-  if (text(committedReceipt.captureRevision, 'captureRevision') !== captureRevision) {
-    throw new V022EnvelopeError(
-      'capture-revision-mismatch',
-      'committed candidate receipt is not bound to the pinned capture revision',
-    );
-  }
-  const captureMirror = mirrorClosure(captureReceipt);
-  const committedMirror = mirrorClosure(committedReceipt);
-  if (canonicalJson(captureMirror.files) !== canonicalJson(committedMirror.files)) {
-    throw new V022EnvelopeError(
-      'admitted-mirror-files-drift',
-      'committed candidate mirror files drifted from the capture revision',
-    );
-  }
+  const admittedMirror = mirrorClosure(receipt);
   assertSealedV022ReleaseMirror(repoRoot, {
     bundleDigest,
     captureRevision,
-    admittedMirror: captureMirror,
+    admittedMirror,
   });
   return {
     contract: V022_DISPLAY_PROJECTION_CONTRACT,
