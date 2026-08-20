@@ -15,9 +15,33 @@ import {
   startDiagnosisGenerationJob,
 } from '@/lib/diagnosis-generation';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
+import {
+  generateGovernedDiagnosisReport,
+} from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
+import {
+  digestDiagnosisGovernedInput,
+  preflightDiagnosisGeneration,
+} from '@/lib/diagnosis-generation-preflight';
 
 const now = new Date('2026-08-08T08:00:00.000Z');
+const governedInput = {
+  schemaVersion: 'teacher-diagnosis-governed-input.v1',
+  classId: 'class-1',
+  studentIds: ['student-1'],
+  riskFlags: [],
+  competencySnapshots: [],
+  knowledgeProgress: [{
+    id: 'progress-1',
+    userId: 'student-1',
+    nodeId: 'node-1',
+    status: 'IN_PROGRESS',
+    progress: 50,
+    timeSpent: 120,
+    lastVisited: now.toISOString(),
+  }],
+};
+const governedInputDigest = digestDiagnosisGovernedInput(governedInput);
 
 function publicJob(overrides: Record<string, unknown> = {}) {
   return {
@@ -41,12 +65,33 @@ function publicJob(overrides: Record<string, unknown> = {}) {
 }
 
 function dbFixture() {
-  return {
+  const db = {
     class: {
       findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1', isActive: true }),
     },
     studentProfile: {
       findFirst: vi.fn().mockResolvedValue({ userId: 'student-1' }),
+      findMany: vi.fn().mockResolvedValue([{ userId: 'student-1' }]),
+    },
+    diagnosisReport: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
+    studentRiskFlag: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    knowledgeProgress: {
+      findMany: vi.fn().mockResolvedValue([{
+        id: 'progress-1',
+        userId: 'student-1',
+        nodeId: 'node-1',
+        status: 'IN_PROGRESS',
+        progress: 50,
+        timeSpent: 120,
+        lastVisited: now,
+      }]),
+    },
+    studentCompetencySnapshot: {
+      findMany: vi.fn().mockResolvedValue([]),
     },
     diagnosisGenerationJob: {
       findUnique: vi.fn(),
@@ -60,12 +105,16 @@ function dbFixture() {
       count: vi.fn(),
       create: vi.fn(),
     },
+    $executeRaw: vi.fn().mockResolvedValue(1),
     $transaction: vi.fn(),
   };
+  db.$transaction.mockImplementation(async (callback: (client: unknown) => unknown) => callback(db));
+  return db;
 }
 
 function workerDbFixture() {
   const tx = {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     diagnosisGenerationJob: {
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       findUniqueOrThrow: vi.fn().mockResolvedValue({
@@ -75,6 +124,8 @@ function workerDbFixture() {
         targetUserId: null,
         evidenceCutoff: now,
         generatorVersion: 'teacher-diagnosis.v1',
+        governedInput,
+        inputDigest: governedInputDigest,
       }),
       update: vi.fn().mockResolvedValue({ id: 'job-1' }),
     },
@@ -95,6 +146,39 @@ function workerDbFixture() {
 }
 
 describe('teacher diagnosis generation contracts', () => {
+  it('fails closed before database or provider access when the frozen input digest is altered', async () => {
+    const db = { class: { findUnique: vi.fn() } };
+
+    await expect(generateGovernedDiagnosisReport(db as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: '0'.repeat(64),
+    })).rejects.toMatchObject({
+      code: 'diagnosis-governed-input-digest-mismatch',
+    });
+    expect(db.class.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('passes the immutable preflight input to the provider after mutable evidence changes', async () => {
+    const { db } = workerDbFixture();
+    const providerUnavailable = new Error('provider unavailable');
+    const generate = vi.fn().mockRejectedValue(providerUnavailable);
+
+    await expect(processDiagnosisGenerationJob(db as never, 'job-1', undefined, generate))
+      .rejects.toBe(providerUnavailable);
+
+    expect(generate).toHaveBeenCalledWith(db, expect.objectContaining({
+      governedInput,
+      inputDigest: governedInputDigest,
+    }));
+  });
+
   it('records malformed provider output as non-retryable and stops the worker', async () => {
     const parsed = diagnosisReportBodySchema.safeParse({
       summary: 'Malformed diagnosis output.',
@@ -178,6 +262,22 @@ describe('teacher diagnosis generation contracts', () => {
     })).toThrow();
   });
 
+  it('requires a bounded teacher reason only for explicit force intent', () => {
+    expect(() => diagnosisGenerationRequestSchema.parse({
+      idempotencyKey: 'request-123',
+      force: true,
+    })).toThrow();
+    expect(() => diagnosisGenerationRequestSchema.parse({
+      idempotencyKey: 'request-123',
+      forceReason: '不应脱离强制生成意图单独提交',
+    })).toThrow();
+    expect(diagnosisGenerationRequestSchema.parse({
+      idempotencyKey: 'request-123',
+      force: true,
+      forceReason: '用于本周教学复盘会议留档',
+    })).toMatchObject({ force: true, forceReason: '用于本周教学复盘会议留档' });
+  });
+
   it('reuses the same idempotency key', async () => {
     const db = dbFixture();
     db.diagnosisGenerationJob.findUnique.mockResolvedValueOnce(publicJob());
@@ -230,12 +330,152 @@ describe('teacher diagnosis generation contracts', () => {
         evidenceCutoff: now,
         scopeType: 'student',
         scopeId: 'student-1',
+        generationReason: 'first-generation',
+        ruleVersion: 'teacher-diagnosis-preflight.v1',
       }),
     }));
     expect(projectDiagnosisGenerationJob(result as never)).toMatchObject({
       id: 'job-2',
       evidenceCutoff: now.toISOString(),
     });
+  });
+
+  it('blocks ordinary generation when the governed input and versions are unchanged', async () => {
+    const db = dbFixture();
+    const baseline = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      now,
+    });
+    db.diagnosisReport.findFirst.mockResolvedValue({
+      id: 'report-1',
+      evidenceCutoff: now,
+      generatedAt: now,
+      generatorVersion: baseline.generatorVersion,
+      ruleVersion: baseline.ruleVersion,
+      inputSummary: baseline.inputSummary,
+      inputDigest: baseline.inputDigest,
+    });
+
+    await expect(startDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      idempotencyKey: 'request-unchanged',
+      now,
+    })).rejects.toMatchObject({ code: 'diagnosis-generation-no-effective-change', status: 409 });
+    expect(db.diagnosisGenerationJob.create).not.toHaveBeenCalled();
+  });
+
+  it('audits a teacher-forced generation without changing governed evidence', async () => {
+    const db = dbFixture();
+    const baseline = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      now,
+    });
+    db.diagnosisReport.findFirst.mockResolvedValue({
+      id: 'report-1',
+      evidenceCutoff: now,
+      generatedAt: now,
+      generatorVersion: baseline.generatorVersion,
+      ruleVersion: baseline.ruleVersion,
+      inputSummary: baseline.inputSummary,
+      inputDigest: baseline.inputDigest,
+    });
+    db.diagnosisGenerationJob.create.mockResolvedValue(publicJob({
+      id: 'job-forced',
+      generationReason: 'teacher-forced',
+      forceReason: '用于本周教学复盘会议留档',
+      previousReportId: 'report-1',
+    }));
+
+    const result = await startDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      idempotencyKey: 'request-forced',
+      force: true,
+      forceReason: '用于本周教学复盘会议留档',
+      now,
+    });
+
+    expect(result.id).toBe('job-forced');
+    expect(db.diagnosisGenerationJob.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        userId: 'teacher-1',
+        generationReason: 'teacher-forced',
+        forceReason: '用于本周教学复盘会议留档',
+        previousReportId: 'report-1',
+        evidenceCutoff: now,
+        generatorVersion: baseline.generatorVersion,
+        ruleVersion: baseline.ruleVersion,
+        inputDigest: baseline.inputDigest,
+        ordinaryGenerationIdentity: null,
+      }),
+    }));
+    expect(db.studentRiskFlag.findMany).toHaveBeenCalledTimes(2);
+    expect(db.studentRiskFlag).not.toHaveProperty('update');
+    expect(db.knowledgeProgress).not.toHaveProperty('update');
+  });
+
+  it('rejects a forced job when the latest predecessor changes before the locked insert', async () => {
+    const db = dbFixture();
+    const baseline = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1', classId: 'class-1', now,
+    });
+    const report = {
+      id: 'report-1', evidenceCutoff: now, generatedAt: now,
+      generatorVersion: baseline.generatorVersion,
+      ruleVersion: baseline.ruleVersion,
+      inputSummary: baseline.inputSummary,
+      inputDigest: baseline.inputDigest,
+    };
+    db.diagnosisReport.findFirst.mockReset();
+    db.diagnosisReport.findFirst
+      .mockResolvedValueOnce(report)
+      .mockResolvedValueOnce({ id: 'report-2' });
+
+    await expect(startDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      idempotencyKey: 'request-stale-forced',
+      force: true,
+      forceReason: '用于本周教学复盘会议留档',
+      now,
+    })).rejects.toMatchObject({
+      code: 'diagnosis-generation-predecessor-changed',
+      status: 409,
+    });
+    expect(db.$executeRaw).toHaveBeenCalledOnce();
+    expect(db.$executeRaw.mock.invocationCallOrder[0])
+      .toBeLessThan(db.diagnosisReport.findFirst.mock.invocationCallOrder[1]!);
+    expect(db.diagnosisGenerationJob.create).not.toHaveBeenCalled();
+  });
+
+  it('returns the ordinary job that wins the deterministic identity race', async () => {
+    const db = dbFixture();
+    const winner = publicJob({ id: 'job-winner', state: 'RUNNING' });
+    db.diagnosisGenerationJob.findUnique.mockResolvedValue(null);
+    db.diagnosisGenerationJob.create.mockRejectedValue(new Prisma.PrismaClientKnownRequestError(
+      'ordinary generation identity already exists',
+      { code: 'P2002', clientVersion: 'test' },
+    ));
+    db.diagnosisGenerationJob.findFirst.mockResolvedValue(winner);
+
+    const result = await startDiagnosisGenerationJob(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      idempotencyKey: 'request-raced',
+      now,
+    });
+
+    expect(result.id).toBe('job-winner');
+    expect(db.diagnosisGenerationJob.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        OR: expect.arrayContaining([
+          expect.objectContaining({ ordinaryGenerationIdentity: expect.any(String) }),
+        ]),
+      },
+    }));
   });
 
   it('reclaims a stale running job and records the interrupted attempt as timed out', async () => {
