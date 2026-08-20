@@ -33,7 +33,7 @@ export interface AIProviderConfig {
 
 export const SILICONFLOW_PROVIDER_ID = 'siliconflow';
 const DEFAULT_PROVIDER: AIProviderId = SILICONFLOW_PROVIDER_ID;
-export const DEFAULT_SILICONFLOW_MODEL = 'Qwen/Qwen3.6-35B-A3B';
+export const DEFAULT_SILICONFLOW_MODEL = 'Qwen/Qwen3.5-35B-A3B';
 const DEFAULT_SILICONFLOW_BASE_URL = 'https://api.siliconflow.cn/v1';
 export const DEFAULT_OPENAI_COMPATIBLE_CAPABILITIES: AIProviderCapabilities = {
   tools: true,

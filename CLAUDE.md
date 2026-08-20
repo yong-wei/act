@@ -122,7 +122,7 @@ src/
 
 **2. AI Integration** (`lib/ai-client.ts`, `src/lib/ai/`, `api/ai/chat/`)
 - Provider: configured by `AI_PROVIDER` (currently SiliconFlow, OpenAI-compatible)
-- Model: configured by `AI_MODEL` (currently `Qwen/Qwen3.6-35B-A3B`)
+- Model: configured by `AI_MODEL` (currently `Qwen/Qwen3.5-35B-A3B`)
 - Business routes use `getConfiguredAIModel()` and do not branch on provider
 - Function calling tools: get_simulation_status, set_simulation_params, analyze_result
 
@@ -169,7 +169,7 @@ NEXTAUTH_SECRET="..."
 AI_PROVIDER="siliconflow"
 AI_BASE_URL="https://api.siliconflow.cn/v1"
 AI_API_KEY="sk-..."
-AI_MODEL="Qwen/Qwen3.6-35B-A3B"
+AI_MODEL="Qwen/Qwen3.5-35B-A3B"
 ```
 
 ## Python 控制系统仿真工具

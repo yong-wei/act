@@ -567,7 +567,7 @@ require_math_document_grading_worker_config() {
   if [ "$provider" = "siliconflow" ]; then
     api_key="${api_key:-${SILICONFLOW_API_KEY:-}}"
     endpoint="${endpoint:-https://api.siliconflow.cn/v1}"
-    model="${model:-Qwen/Qwen3.6-35B-A3B}"
+    model="${model:-Qwen/Qwen3.5-35B-A3B}"
   fi
   if ! [[ "${GRADING_AI_PROVIDER_ENABLED:-false}" =~ ^(1|true|yes)$ ]] || [[ "$endpoint" != https://* ]] || [ -z "$model" ] || [ -z "$api_key" ]; then
     echo "ERROR: 数学文档批改 worker 缺少可用的 AI provider 配置。" >&2

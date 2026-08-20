@@ -263,7 +263,9 @@ describe('adaptive practice page entry states', () => {
       source.indexOf('const submitPathGeneration = useCallback'),
       source.indexOf('const startPathGenerationFromAdvisor = useCallback'),
     );
-    expect(generationBlock).toContain('pathId: operation !== \'generate\' ? currentPathId : undefined');
+    expect(generationBlock).toContain('pathId: operation === \'explain\'');
+    expect(generationBlock).toContain('comparisonPathId');
+    expect(generationBlock).toContain('operation !== \'generate\' ? currentPathId : undefined');
     expect(generationBlock).toContain('await refreshLatestLearningPathAfterKonling();');
     expect(source).toContain('if (activePathId) {\n      const loaded = await fetchLearningPathRound(activePathId, activeGoal);');
   });

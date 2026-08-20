@@ -14,7 +14,7 @@ import {
 } from '@/lib/ai/provider-settings';
 
 describe('AI provider settings', () => {
-  it('uses Qwen3.6 as the default SiliconFlow model and keeps the requested alternatives', () => {
+  it('uses Qwen3.5 as the default SiliconFlow model and keeps the requested alternatives', () => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
@@ -23,7 +23,7 @@ describe('AI provider settings', () => {
     const siliconflow = settings.providers[0];
 
     expect(settings.activeProvider).toBe('siliconflow');
-    expect(siliconflow?.selectedModel).toBe('Qwen/Qwen3.6-35B-A3B');
+    expect(siliconflow?.selectedModel).toBe('Qwen/Qwen3.5-35B-A3B');
     expect(siliconflow).toMatchObject({
       providerKind: 'openai-compatible',
       authMode: 'bearer-api-key',
@@ -38,6 +38,7 @@ describe('AI provider settings', () => {
     });
     expect(siliconflow?.models.map((model) => model.model)).toEqual(
       expect.arrayContaining([
+        'Qwen/Qwen3.5-35B-A3B',
         'Qwen/Qwen3.6-35B-A3B',
         'deepseek-ai/DeepSeek-V4-Flash',
         'MiniMaxAI/MiniMax-M2.5',
@@ -73,7 +74,7 @@ describe('AI provider settings', () => {
 
     expect(settings.activeProvider).toBe('custom-provider');
     expect(settings.providers).toHaveLength(2);
-    expect(settings.providers[0]?.models.map((model) => model.model)).toContain('Qwen/Qwen3.6-35B-A3B');
+    expect(settings.providers[0]?.models.map((model) => model.model)).toContain('Qwen/Qwen3.5-35B-A3B');
     expect(settings.providers[1]).toMatchObject({
       providerKind: 'anthropic-compatible',
       secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
@@ -106,13 +107,16 @@ describe('AI provider settings', () => {
     });
   });
 
-  it('marks Qwen3.6 to disable thinking for normal teaching prompts', () => {
+  it('marks Qwen3.5 to disable thinking for normal teaching prompts', () => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
       AI_API_KEY: 'sk-test',
     } as unknown as NodeJS.ProcessEnv);
 
+    expect(getModelRuntimeOptions(settings, 'siliconflow', 'Qwen/Qwen3.5-35B-A3B')).toEqual({
+      enableThinking: false,
+    });
     expect(getModelRuntimeOptions(settings, 'siliconflow', 'Qwen/Qwen3.6-35B-A3B')).toEqual({
       enableThinking: false,
     });
@@ -131,7 +135,7 @@ describe('AI provider settings', () => {
     });
 
     const synced = withSiliconFlowQwenDefault(settings);
-    expect(synced.providers[0]?.selectedModel).toBe('Qwen/Qwen3.6-35B-A3B');
+    expect(synced.providers[0]?.selectedModel).toBe('Qwen/Qwen3.5-35B-A3B');
   });
 
   it('leaves custom SiliconFlow selections and other providers untouched', () => {

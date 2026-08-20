@@ -68,6 +68,26 @@ assert.ok(
   'v2 desired lifecycle state must be staged before the legacy selector changes',
 );
 assert.ok(
+  activation.lastIndexOf('trap restore_runtime_consumers ERR') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'ERR recovery must be installed before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"') <
+    activation.lastIndexOf('restore_parent_host_overlays "$parent_view" "$candidate_view"'),
+  'parent overlay restore must happen after current view selection',
+);
+assert.match(
+  activation,
+  /candidate_current_selected=1[\s\S]*restore_parent_host_overlays "\$parent_view" "\$candidate_view"/,
+  'current-view selection must be durable before overlay restore can fail',
+);
+assert.match(
+  activation,
+  /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
+  'ERR recovery must revert current even when consumers were not switched',
+);
+assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
   'v2 cross-state activation must complete before clearing rollback handling',
 );

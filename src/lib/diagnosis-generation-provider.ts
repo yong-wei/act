@@ -1,4 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
+import { type Prisma, type PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 
 import {
   DiagnosisGenerationOutputValidationError,
@@ -7,9 +8,8 @@ import {
   diagnosisReportBodySchema,
   type DiagnosisReportBody,
 } from '@/lib/diagnosis-persistence';
+import { digestDiagnosisGovernedInput } from '@/lib/diagnosis-generation-preflight';
 import {
-  buildKonlingRuntimeContext,
-  buildKonlingToolRuntime,
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -20,6 +20,39 @@ const DIAGNOSIS_TOOLS = [
   'get_class_competency_summary',
   'get_student_knowledge_progress',
 ] as const;
+
+const governedInputSchema = z.object({
+  schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
+  classId: z.string(),
+  studentIds: z.array(z.string()),
+  riskFlags: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    type: z.string(),
+    severity: z.string(),
+    description: z.string(),
+    evidenceSummary: z.record(z.string(), z.unknown()),
+    triggeredAt: z.string(),
+    observedAt: z.string(),
+  })),
+  competencySnapshots: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    snapshotAt: z.string(),
+    // portrait-v2-legacy-compatibility-adapter: validate frozen non-sovereign provider input.
+    competencyVector: z.record(z.string(), z.unknown()),
+    calculationVersion: z.string(),
+  })),
+  knowledgeProgress: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    nodeId: z.string(),
+    status: z.string(),
+    progress: z.number(),
+    timeSpent: z.number(),
+    lastVisited: z.string(),
+  })),
+}).strict();
 
 export class DiagnosisGenerationValidationError extends Error {
   readonly retryable = false;
@@ -40,8 +73,27 @@ export async function generateGovernedDiagnosisReport(
     targetStudentId?: string | null;
     evidenceCutoff: Date;
     generatorVersion: string;
+    governedInput: Prisma.JsonValue | null;
+    inputDigest: string | null;
   },
 ) {
+  const governedInput = governedInputSchema.safeParse(input.governedInput);
+  if (!governedInput.success || !input.inputDigest) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-invalid');
+  }
+  const actualDigest = digestDiagnosisGovernedInput(governedInput.data);
+  if (actualDigest !== input.inputDigest) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-digest-mismatch');
+  }
+  if (governedInput.data.classId !== input.classId) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-scope-mismatch');
+  }
+  if (input.targetStudentId && (
+    governedInput.data.studentIds.length !== 1
+    || governedInput.data.studentIds[0] !== input.targetStudentId
+  )) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-scope-mismatch');
+  }
   const scopeResult = await verifyKonlingRuntimeScope(db, {
     authenticatedUserId: input.teacherId,
     role: 'TEACHER',
@@ -56,18 +108,6 @@ export async function generateGovernedDiagnosisReport(
     throw new DiagnosisGenerationValidationError('diagnosis-scope-invalid', scopeResult.error);
   }
   const scope = scopeResult.scope;
-  const context = await buildKonlingRuntimeContext(db, {
-    authenticatedUserId: input.teacherId,
-    role: 'TEACHER',
-    targetUserId: scope.targetUserId,
-    classId: input.classId,
-    courseId: scope.courseId,
-    pageId: scope.pageId,
-    teachingAssistantModeId: 'teacher-diagnosis',
-    currentUserQuery: '生成受治理的教师学情诊断报告',
-    evidenceCutoff: input.evidenceCutoff.toISOString(),
-    now: input.evidenceCutoff,
-  });
   const agentSession = await getOrCreateKonlingAgentSession(db, {
     scope,
     phase: 'teacher-diagnosis-generation',
@@ -80,18 +120,9 @@ export async function generateGovernedDiagnosisReport(
     },
     permittedTools: [...DIAGNOSIS_TOOLS],
   });
-  const tools = buildKonlingToolRuntime({
-    db,
-    scope,
-    context: { ...context, permittedTools: [...DIAGNOSIS_TOOLS] },
-    agentSessionId: agentSession.id,
-    permittedTools: [...DIAGNOSIS_TOOLS],
-    evidenceCutoff: input.evidenceCutoff,
-  });
-  const studentArgs = input.targetStudentId ? { studentId: input.targetStudentId } : {};
-  const riskFlags = await tools.getStudentRiskFlags(studentArgs);
-  const competency = input.targetStudentId ? null : await tools.getClassCompetencySummary({});
-  const knowledgeProgress = await tools.getStudentKnowledgeProgress(studentArgs);
+  const riskFlags = projectFrozenRiskFlags(governedInput.data);
+  const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
+  const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data);
   const toolAudit = [
     auditToolResult('get_student_risk_flags', riskFlags),
     ...(competency ? [auditToolResult('get_class_competency_summary', competency)] : []),
@@ -145,6 +176,99 @@ export async function generateGovernedDiagnosisReport(
     agentSessionId: agentSession.id,
     providerResponseId: generated.normalizedResponseId,
     toolAudit,
+  };
+}
+
+type GovernedInput = z.infer<typeof governedInputSchema>;
+
+function projectFrozenRiskFlags(input: GovernedInput) {
+  const flags = input.riskFlags.map((row) => ({
+    studentId: row.userId,
+    type: row.type,
+    severity: row.severity,
+    summary: row.description,
+    triggeredAt: row.triggeredAt,
+    evidenceSummary: row.evidenceSummary,
+    evidenceCutoff: row.observedAt,
+    evidenceRefs: [`student-risk-flag:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    students: input.studentIds,
+    flags,
+    evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: new Set(flags.map((flag) => flag.studentId)).size,
+    },
+    confidence: flags.length > 0 ? 'medium' : 'unavailable',
+    limitations: flags.length > 0 ? [] : ['no-current-governed-risk-flags'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenCompetency(input: GovernedInput) {
+  const totals = new Map<string, { sum: number; count: number }>();
+  for (const row of input.competencySnapshots) {
+    // portrait-v2-legacy-compatibility-adapter: aggregate the frozen non-sovereign input only.
+    for (const [dimension, value] of Object.entries(row.competencyVector)) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+      const current = totals.get(dimension) ?? { sum: 0, count: 0 };
+      current.sum += value;
+      current.count += 1;
+      totals.set(dimension, current);
+    }
+  }
+  const dimensions = Object.fromEntries([...totals.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([dimension, value]) => [dimension, {
+      mean: Math.round((value.sum / value.count) * 100) / 100,
+      evidencedMembers: value.count,
+      missingMembers: Math.max(input.studentIds.length - value.count, 0),
+    }]));
+  const coverage = input.studentIds.length === 0
+    ? 0
+    : input.competencySnapshots.length / input.studentIds.length;
+  return {
+    classId: input.classId,
+    dimensions,
+    evidenceRefs: input.competencySnapshots.map((row) => `student-competency-snapshot:${row.id}`),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: input.competencySnapshots.length,
+      coverage,
+    },
+    confidence: coverage >= 0.8 && input.competencySnapshots.length >= 5
+      ? 'high'
+      : coverage > 0 ? 'medium' : 'unavailable',
+    limitations: coverage === 0 ? ['no-current-competency-snapshots'] : [],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenKnowledgeProgress(input: GovernedInput) {
+  const progress = input.knowledgeProgress.map((row) => ({
+    studentId: row.userId,
+    knowledgeNodeId: row.nodeId,
+    status: row.status,
+    progress: row.progress,
+    timeSpentSeconds: row.timeSpent,
+    lastVisitedAt: row.lastVisited,
+    evidenceRefs: [`knowledge-progress:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    students: input.studentIds,
+    progress,
+    evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: new Set(progress.map((row) => row.studentId)).size,
+      progressRows: progress.length,
+    },
+    confidence: progress.length > 0 ? 'medium' : 'unavailable',
+    limitations: progress.length > 0 ? [] : ['no-knowledge-progress-evidence'],
+    privacyClass: 'teacher-scoped',
   };
 }
 

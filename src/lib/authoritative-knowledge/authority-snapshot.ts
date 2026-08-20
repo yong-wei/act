@@ -7,6 +7,7 @@
 
 import { createHash } from 'node:crypto';
 
+import { multilingualLabelCountForRelease } from '../actkg-envelope/composite-envelope-registry';
 import { STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL } from './contracts';
 
 import type {
@@ -364,6 +365,35 @@ function normalizePayload(payload: unknown): unknown {
   return payload;
 }
 
+function assertV2EvidenceCounts(
+  profileCount: number,
+  labelCount: number,
+  releaseId?: string,
+): void {
+  if (profileCount !== 3) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3, got ${profileCount}`,
+    );
+  }
+  const expectedLabelCount = releaseId ? multilingualLabelCountForRelease(releaseId) : null;
+  if (expectedLabelCount !== null) {
+    if (labelCount !== expectedLabelCount) {
+      throw new AuthoritySnapshotError(
+        'count-mismatch',
+        `V2 evidence counts must be profiles=3 and multilingualLabels=${expectedLabelCount}, got ${profileCount}/${labelCount}`,
+      );
+    }
+    return;
+  }
+  if (labelCount <= 0) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3 and a recorded multilingual label set, got ${profileCount}/${labelCount}`,
+    );
+  }
+}
+
 function normalizeV2Evidence(
   value: AuthoritativeV2Evidence | null | undefined,
   expectedReleaseId?: string,
@@ -384,12 +414,11 @@ function normalizeV2Evidence(
       payload: normalizePayload(row.payload),
     }))
     .sort((left, right) => left.ordinal - right.ordinal || left.terminologyAssertionId.localeCompare(right.terminologyAssertionId));
-  if (profiles.length !== 3 || multilingualLabels.length !== 1909) {
-    throw new AuthoritySnapshotError(
-      'count-mismatch',
-      `V2 evidence counts must be profiles=3 and multilingualLabels=1909, got ${profiles.length}/${multilingualLabels.length}`,
-    );
-  }
+  assertV2EvidenceCounts(
+    profiles.length,
+    multilingualLabels.length,
+    expectedReleaseId ?? profiles[0]?.releaseId,
+  );
   assertUniqueIds(profiles.map((row) => row.profileKey), 'V2 profiles');
   assertUniqueIds(profiles.map((row) => row.profileId), 'V2 profile IDs');
   assertUniqueIds(

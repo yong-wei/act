@@ -1588,10 +1588,13 @@ export async function loadAndValidateRegisteredPublicBundleV2(options: {
     terminologyAssertions: multilingualLabels.length,
   };
   if (
-    statistics.releaseNodes !== registry.expectedCounts.releaseNodes
-    || statistics.projectionNodes !== registry.expectedCounts.runtimeProjectionNodes
-    || statistics.publishedRelations !== registry.expectedCounts.publishedRuntimeRelations
-    || statistics.terminologyAssertions !== registry.expectedCounts.terminologyAssertions
+    registry.discoverCounts !== true
+    && (
+      statistics.releaseNodes !== registry.expectedCounts.releaseNodes
+      || statistics.projectionNodes !== registry.expectedCounts.runtimeProjectionNodes
+      || statistics.publishedRelations !== registry.expectedCounts.publishedRuntimeRelations
+      || statistics.terminologyAssertions !== registry.expectedCounts.terminologyAssertions
+    )
   ) {
     integrity(
       'recomputed v2 counts do not match the registered publication '

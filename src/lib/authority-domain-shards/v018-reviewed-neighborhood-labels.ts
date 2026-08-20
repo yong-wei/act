@@ -4,6 +4,7 @@
  */
 
 import type { AuthoritativeV2MultilingualLabelRecord } from '@/lib/authoritative-knowledge/contracts';
+import { envelopeByName } from '@/lib/actkg-envelope/composite-envelope-registry';
 import { projectionCanonicalJson, projectionSha256 } from '@/lib/teaching-projection/hash';
 
 export const V018_REVIEWED_NEIGHBORHOOD_OVERLAY_CONTRACT =
@@ -11,12 +12,10 @@ export const V018_REVIEWED_NEIGHBORHOOD_OVERLAY_CONTRACT =
 export const V018_REVIEWED_NEIGHBORHOOD_MERGE_POLICY =
   'replace-unsafe-preferred-omit-unsafe-alternatives/v1' as const;
 
-export const V018_REVIEWED_NEIGHBORHOOD_RELEASE_ID =
-  'ctr:release:control-theory-engineering-v0.18' as const;
-export const V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_ID =
-  'snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed' as const;
-export const V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH =
-  '1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed' as const;
+const V018_ENVELOPE = envelopeByName('control-theory-engineering-v0.18');
+export const V018_REVIEWED_NEIGHBORHOOD_RELEASE_ID = V018_ENVELOPE.authorityReleaseId;
+export const V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_ID = V018_ENVELOPE.authoritySnapshotId;
+export const V018_REVIEWED_NEIGHBORHOOD_SNAPSHOT_HASH = V018_ENVELOPE.authoritySnapshotHash;
 
 const ROWS: readonly { entityId: string; label: string }[] = Object.freeze([
   { entityId: 'ctc:c782502fe412ef828c662650', label: '闭环传递函数伴随概念' },

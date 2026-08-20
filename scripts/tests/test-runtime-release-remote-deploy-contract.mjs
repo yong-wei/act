@@ -3,11 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
-const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
-const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8');
+const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
 
-const ossModeMatch = remoteDeploy.match(/\n\s+ossfs-release\)\n\s+log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"([\s\S]*?)\n\s+\*\)/);
+const ossModeMatch = remoteDeploy.match(/\r?\n\s+ossfs-release\)\r?\n\s+log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"([\s\S]*?)\r?\n\s+\*\)/);
 assert.ok(ossModeMatch, 'remote deploy must have an isolated ossfs-release branch');
 const ossMode = ossModeMatch[0];
 

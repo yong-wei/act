@@ -9357,11 +9357,16 @@ describe('konling agent runtime', () => {
       }),
       comparison: expect.objectContaining({
         optionCount: expect.any(Number),
-        message: '已根据你的学习证据生成可比较的路径方案。',
+        message: expect.any(String),
       }),
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(result.comparison.message).toBe(
+      result.pathOptions.length > 1
+        ? '已根据你的学习证据生成可比较的路径方案。'
+        : '当前资源只能形成单一推荐方案。',
+    );
     expect(result.candidateBatch).toMatchObject({
       id: expect.stringMatching(/^path-candidate-batch_/),
       generationRequestId: 'path-gen-1',
@@ -10165,15 +10170,32 @@ describe('konling agent runtime', () => {
       learningPath: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'path-1',
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
           pathPayload: {
-            pathOptions: [{
-              styleId: 'guided',
-              policyFamily: 'guided',
-              resourceMix: {},
-            }],
+            pathOptions: [
+              { optionId: 'path-option-1', styleId: 'guided', policyFamily: 'guided', resourceMix: {} },
+              { optionId: 'path-option-2', styleId: 'sprint', policyFamily: 'sprint', resourceMix: {} },
+            ],
           },
           learnerStateRef: null,
           inputSnapshot: {},
+        }),
+      },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'batch-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          classId: 'class-1',
+          generationRequestId: 'generation-1',
+          sourcePathId: 'path-1',
+          plannerVersion: 'policy-selection-v1',
+          status: 'succeeded',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: [
+            { id: 'candidate-1', ordinal: 0, styleId: 'guided', policyFamily: 'guided', label: '方案甲', snapshot: { optionId: 'path-option-1' } },
+            { id: 'candidate-2', ordinal: 1, styleId: 'sprint', policyFamily: 'sprint', label: '方案乙', snapshot: { optionId: 'path-option-2' } },
+          ],
         }),
       },
     };
@@ -10198,6 +10220,9 @@ describe('konling agent runtime', () => {
       idempotencyKey: 'path-tradeoff-1',
       goalId: 'frequency-response-foundations',
       styleId: 'guided',
+      compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     }) as { scope: { goalId: string } };
 
     expect(result.scope.goalId).toBe('frequency-response-foundations');
@@ -10254,15 +10279,33 @@ describe('konling agent runtime', () => {
       learningPath: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'frequency-path-1',
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
           pathPayload: {
             policyBundle: {
               status: 'ready',
               paths: [
-                { styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
-                { styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
+                { optionId: 'path-option-1', styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
+                { optionId: 'path-option-2', styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
               ],
             },
           },
+        }),
+      },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'batch-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          classId: 'class-1',
+          generationRequestId: 'generation-1',
+          sourcePathId: 'frequency-path-1',
+          plannerVersion: 'policy-selection-v1',
+          status: 'succeeded',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: [
+            { id: 'candidate-1', ordinal: 0, styleId: 'guided', policyFamily: 'guided', label: '方案甲', snapshot: { optionId: 'path-option-1' } },
+            { id: 'candidate-2', ordinal: 1, styleId: 'sprint', policyFamily: 'sprint', label: '方案乙', snapshot: { optionId: 'path-option-2' } },
+          ],
         }),
       },
     };
@@ -10288,6 +10331,9 @@ describe('konling agent runtime', () => {
       goalId: 'frequency-response-foundations',
       pathId: 'frequency-path-1',
       styleId: 'guided',
+      compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     })).resolves.toMatchObject({
       operation: 'explained',
       scope: expect.objectContaining({
@@ -10348,6 +10394,7 @@ describe('konling agent runtime', () => {
       learningPath: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'frequency-path-1',
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
           pathPayload: {
             policyBundle: {
               status: 'ready',
@@ -10401,6 +10448,23 @@ describe('konling agent runtime', () => {
           },
         }),
       },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'batch-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          classId: 'class-1',
+          generationRequestId: 'generation-1',
+          sourcePathId: 'frequency-path-1',
+          plannerVersion: 'policy-selection-v1',
+          status: 'succeeded',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: [
+            { id: 'candidate-1', ordinal: 0, styleId: 'guided', policyFamily: 'guided', label: '方案甲', snapshot: { optionId: 'path-option-1' } },
+            { id: 'candidate-2', ordinal: 1, styleId: 'sprint', policyFamily: 'sprint', label: '方案乙', snapshot: { optionId: 'path-option-2' } },
+          ],
+        }),
+      },
     };
     const runtime = buildKonlingToolRuntime({
       db,
@@ -10425,6 +10489,8 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       styleId: 'guided',
       compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     }) as Record<string, any>;
 
     expect(result.comparison).toMatchObject({
@@ -10571,8 +10637,26 @@ describe('konling agent runtime', () => {
       learningPath: {
         findFirst: vi.fn().mockImplementation(async () => ({
           id: 'frequency-path-1',
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
           pathPayload,
         })),
+      },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'batch-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          classId: 'class-1',
+          generationRequestId: 'generation-1',
+          sourcePathId: 'frequency-path-1',
+          plannerVersion: 'policy-selection-v1',
+          status: 'succeeded',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: [
+            { id: 'candidate-1', ordinal: 0, styleId: 'guided', policyFamily: 'guided', label: '方案甲', snapshot: { optionId: 'path-option-1' } },
+            { id: 'candidate-2', ordinal: 1, styleId: 'sprint', policyFamily: 'sprint', label: '方案乙', snapshot: { optionId: 'path-option-2' } },
+          ],
+        }),
       },
     };
     const runtime = buildKonlingToolRuntime({
@@ -10598,6 +10682,8 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       styleId: 'guided',
       compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     }) as Record<string, any>;
     expect(identicalResult.comparison.status).toBe('no-material-difference');
     expect(identicalResult.studentSafeRationale).toContain('两条路径目前没有实质差异。');
@@ -10655,6 +10741,8 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       styleId: 'guided',
       compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     }) as Record<string, any>;
     expect(nodeIdentityResult.comparison).toMatchObject({
       status: 'ready',
@@ -10715,6 +10803,8 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       styleId: 'guided',
       compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     }) as Record<string, any>;
     expect(insufficientResult.comparison).toMatchObject({
       status: 'insufficient-data',
@@ -10814,15 +10904,33 @@ describe('konling agent runtime', () => {
       learningPath: {
         findFirst: vi.fn().mockResolvedValue({
           id: 'frequency-path-1',
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
           pathPayload: {
             policyBundle: {
               status: 'low-resource-fallback',
               paths: [
-                { styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
-                { styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
+                { optionId: 'path-option-1', styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
+                { optionId: 'path-option-2', styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
               ],
             },
           },
+        }),
+      },
+      adaptivePathCandidateBatch: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'batch-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          classId: 'class-1',
+          generationRequestId: 'generation-1',
+          sourcePathId: 'frequency-path-1',
+          plannerVersion: 'policy-selection-v1',
+          status: 'succeeded',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          candidates: [
+            { id: 'candidate-1', ordinal: 0, styleId: 'guided', policyFamily: 'guided', label: '方案甲', snapshot: { optionId: 'path-option-1' } },
+            { id: 'candidate-2', ordinal: 1, styleId: 'sprint', policyFamily: 'sprint', label: '方案乙', snapshot: { optionId: 'path-option-2' } },
+          ],
         }),
       },
     };
@@ -10849,6 +10957,8 @@ describe('konling agent runtime', () => {
       pathId: 'frequency-path-1',
       styleId: 'guided',
       compareWithStyleId: 'sprint',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-05-28T00:00:00.000Z|path-option-1:path-option-2',
     })).resolves.toMatchObject({
       operation: 'explained',
       styleId: 'guided',

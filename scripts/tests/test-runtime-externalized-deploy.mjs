@@ -9,8 +9,10 @@ import {
   removePathSync,
   replaceRuntimeDirectories,
 } from '../release/export-textbook-runtime-v2.mjs';
+import { loadTextbookResourceSet, textbookBookIds } from '../release/textbook-resource-set.mjs';
 
 const root = process.cwd();
+const resourceSetId = loadTextbookResourceSet().resourceSetId;
 const authoringInputRoot = path.join(root, 'course-content/authoring/resources');
 
 {
@@ -102,8 +104,10 @@ assert.throws(
       'scripts/release/export-textbook-runtime-v2.mjs',
       'scripts/release/validate-textbook-runtime-v2.mjs',
       'scripts/release/textbook-runtime-v2-provenance.mjs',
+      'scripts/release/textbook-resource-set.mjs',
       'course-content/scripts/export_structured_textbook_runtime_v2.py',
       'course-content/scripts/structured_textbook_runtime.py',
+      'course-content/scripts/textbook_resource_set.py',
       'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
       'course-content/scripts/validate_written_textbook_runtime_v2.py',
       'course-content/scripts/textbook_hybrid_retrieval.py',
@@ -112,6 +116,7 @@ assert.throws(
       'course-content/contracts/structured-textbook-runtime-v2.schema.json',
       'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
       'course-content/config/textbook-hybrid-retrieval.json',
+      'course-content/config/textbook-resource-set.json',
     ]) {
       const filePath = path.join(repositoryRoot, relativeInput);
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -198,15 +203,7 @@ assert.equal(
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
 );
 
-const textbookV2BookIds = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+const textbookV2BookIds = textbookBookIds();
 const textbookV2RequiredFiles = [
   'manifest.json',
   'navigation.json',
@@ -236,6 +233,7 @@ function createIndexFixture(indexRoot, revision) {
           recordType: 'index-manifest',
           formatVersion: 'textbook-hybrid-retrieval.v1',
           sourceRevision: revision,
+          resourceSetId,
         })}\n`
         : '',
     );
@@ -320,6 +318,28 @@ for (const failAtInstall of [2, 3]) {
   }
 }
 
+if (process.platform !== 'win32') {
+  const danglingSymlinkRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-dangling-symlink-'),
+  );
+  try {
+    const siblingTarget = path.join(danglingSymlinkRoot, '00-sibling-target');
+    const danglingLink = path.join(danglingSymlinkRoot, '99-dangling-link');
+    fs.mkdirSync(siblingTarget);
+    fs.symlinkSync(siblingTarget, danglingLink, 'dir');
+
+    removePathSync(danglingSymlinkRoot);
+
+    assert.throws(
+      () => fs.lstatSync(danglingSymlinkRoot),
+      { code: 'ENOENT' },
+      '递归清理必须删除其目标已先被删除的悬空符号链接',
+    );
+  } finally {
+    removePathSync(danglingSymlinkRoot);
+  }
+}
+
 {
   const permissionRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), 'textbook-runtime-permissions-'),
@@ -355,6 +375,8 @@ for (const failAtInstall of [2, 3]) {
           assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
         }
       }
+    }
+    for (const replacement of replacements) {
       assert.equal(
         fs.readFileSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`), 'utf8'),
         `content-${path.basename(replacement.target)}`,
@@ -374,7 +396,8 @@ for (const failAtInstall of [2, 3]) {
 }
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
+  textbookV2ProvenanceHelper.includes('textbookBookIds') &&
+    textbookV2ProvenanceHelper.includes('textbookBookCount') &&
     textbookV2RequiredFiles.every((fileName) => textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
     textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
@@ -424,7 +447,7 @@ try {
   assert.notEqual(
     mismatchResult.status,
     0,
-    '七书 sourceRevision 不一致时 release preflight 必须 fail closed',
+    'resourceSet sourceRevision 不一致时 release preflight 必须 fail closed',
   );
   assert.match(
     mismatchResult.stderr,
@@ -651,6 +674,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '1111111111111111111111111111111111111111',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -683,6 +707,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '3333333333333333333333333333333333333333',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -719,7 +744,7 @@ assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
     buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
   true,
-  'release build 必须在应用构建前执行七书教材 v2 preflight',
+  'release build 必须在应用构建前执行 resourceSet 教材 v2 preflight',
 );
 
 assert.equal(
@@ -827,14 +852,15 @@ assert.equal(
 );
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => remoteDeployScript.includes(bookId)) &&
+  remoteDeployScript.includes('scripts/release/textbook-resource-set.mjs') &&
+    remoteDeployScript.includes('TEXTBOOK_V2_BOOK_COUNT') &&
     textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
     remoteDeployScript.includes('check_container_textbook_v2_files') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3') &&
-    (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
+    (remoteDeployScript.match(/-eq \\"\$\{TEXTBOOK_V2_BOOK_COUNT\}\\"/g)?.length ?? 0) >= 2,
   true,
-  '远端宿主与已启动 app 容器必须校验七书 v2 与固定检索索引',
+  '远端宿主与已启动 app 容器必须校验 resourceSet v2 与固定检索索引',
 );
 
 assert.equal(

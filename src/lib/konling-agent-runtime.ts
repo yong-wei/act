@@ -56,6 +56,7 @@ import {
   resolveAdaptivePathCandidateSelection,
   type AdaptivePathCandidateBatchView,
 } from '@/lib/adaptive-path-candidate-batches';
+import { authorizeAdaptivePathComparisonIdentity } from '@/lib/adaptive-path-comparison';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,
@@ -2749,6 +2750,8 @@ const rejectLearningPathOptionParameters = adaptivePathToolBaseParameters.extend
 const explainLearningPathTradeoffParameters = adaptivePathToolBaseParameters.extend({
   styleId: z.string().min(1).optional(),
   compareWithStyleId: z.string().min(1).optional(),
+  candidateBatchId: z.string().min(1).optional(),
+  comparisonKey: z.string().min(1).optional(),
 });
 
 const recordPathAdjustmentOutcomeParameters = adaptivePathToolBaseParameters.extend({
@@ -5185,6 +5188,12 @@ async function buildAdaptivePathTradeoffOutput(
   args: z.infer<typeof explainLearningPathTradeoffParameters>,
 ) {
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  if (!args.candidateBatchId || !args.styleId || !args.compareWithStyleId || !args.comparisonKey) {
+    throw new KonlingRuntimeScopeError(400, '候选路径比较必须提供完整的批次、路径和比较身份。');
+  }
+  if (args.styleId === args.compareWithStyleId) {
+    throw new KonlingRuntimeScopeError(400, '候选路径比较不能选择同一条路径。');
+  }
   const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
   const path = await assertScopedAdaptivePathToolPath(input, pathId, {
     goalId,
@@ -5199,15 +5208,41 @@ async function buildAdaptivePathTradeoffOutput(
     { allowPolicyFallback: true },
   );
   const options = [...storedOptions.values()];
-  const selectedOption = args.styleId
-    ? storedOptions.get(args.styleId) ?? null
-    : options[0] ?? null;
-  const comparedOption = args.compareWithStyleId
-    ? storedOptions.get(args.compareWithStyleId) ?? null
-    : options.find((option) => option.styleId !== selectedOption?.styleId) ?? null;
+  const selectedOption = storedOptions.get(args.styleId) ?? null;
+  const comparedOption = storedOptions.get(args.compareWithStyleId) ?? null;
+  const candidateBatch = await readAdaptivePathCandidateBatch(input.db as any, args.candidateBatchId);
+  if (
+    !candidateBatch
+    || candidateBatch.userId !== input.scope.targetUserId
+    || candidateBatch.goalId !== goalId
+    || candidateBatch.sourcePathId !== path.id
+  ) {
+    throw new KonlingRuntimeScopeError(403, '候选比较对象不属于当前学习路径批次。');
+  }
+  const comparisonAuthorization = authorizeAdaptivePathComparisonIdentity({
+    candidateBatchId: candidateBatch.id,
+    candidateBatchCreatedAt: candidateBatch.createdAt,
+    currentPathUpdatedAt: toIsoOrNull(getValue(path, 'updatedAt')) ?? '',
+    candidates: candidateBatch.candidates.map((candidate, index) => ({
+      optionId: getString(readRecord(candidate.snapshot), 'optionId') || `path-option-${index + 1}`,
+      styleId: candidate.styleId,
+    })),
+    selectedStyleId: selectedOption?.styleId,
+    comparedStyleId: comparedOption?.styleId,
+    requestedComparisonKey: args.comparisonKey,
+  });
+  if (!comparisonAuthorization.ok) {
+    throw new KonlingRuntimeScopeError(
+      comparisonAuthorization.reason === 'stale-path-version' ? 409 : 403,
+      comparisonAuthorization.reason === 'stale-path-version'
+        ? '当前学习路径已更新，请重新生成候选方案后再比较。'
+        : '候选比较身份已失效，请重新选择比较对象。',
+    );
+  }
   const comparison = selectedOption && comparedOption && selectedOption.styleId !== comparedOption.styleId
     ? buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)
     : buildUnavailableAdaptivePathDifferenceExplanation(path.id, options);
+  comparison.comparisonKey = comparisonAuthorization.comparisonKey;
   return {
     operation: 'explained',
     scope: buildAdaptivePathToolScope(input, goalId, path.id),
@@ -5511,7 +5546,7 @@ async function assertScopedAdaptivePathToolPath(
       goalId: options.goalId,
       ...(input.scope.classId ? { classId: input.scope.classId } : {}),
     },
-    select: { id: true, pathPayload: true, learnerStateRef: true, inputSnapshot: true },
+    select: { id: true, pathPayload: true, learnerStateRef: true, inputSnapshot: true, updatedAt: true },
   });
   if (!path) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能访问不属于当前学生的学习路径。');
@@ -5549,6 +5584,7 @@ interface AdaptivePathStoredNodeSummary {
 interface AdaptivePathDifferenceExplanation {
   status: 'ready' | 'no-material-difference' | 'insufficient-data';
   pathId: string;
+  comparisonKey?: string;
   options: Array<{
     optionId: string;
     styleId: string;

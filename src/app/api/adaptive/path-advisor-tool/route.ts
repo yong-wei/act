@@ -20,13 +20,14 @@ import {
 import { prisma } from '@/lib/prisma';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { getAdaptivePracticeGoalOption } from '@/lib/adaptive-path-goal-options';
+import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
+import { authorizeAdaptivePathComparisonIdentity } from '@/lib/adaptive-path-comparison';
 import {
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
 } from '@/lib/adaptive-generation-readiness';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -124,6 +125,43 @@ export async function POST(request: Request) {
       classId,
       operation,
     );
+    if (operation === 'explain' && requestedToolInput.candidateBatchId) {
+      const candidateBatch = await readAdaptivePathCandidateBatch(prisma as any, requestedToolInput.candidateBatchId);
+      const candidateStyleIds = new Set(candidateBatch?.candidates.map((candidate) => candidate.styleId) ?? []);
+      if (
+        !candidateBatch ||
+        candidateBatch.userId !== session.user.id ||
+        candidateBatch.goalId !== goalId ||
+        candidateBatch.sourcePathId !== requestedToolInput.pathId ||
+        !requestedToolInput.styleId ||
+        !requestedToolInput.compareWithStyleId ||
+        !candidateStyleIds.has(requestedToolInput.styleId) ||
+        !candidateStyleIds.has(requestedToolInput.compareWithStyleId)
+      ) {
+        return NextResponse.json({ error: '候选比较对象不属于当前学习路径批次' }, { status: 403 });
+      }
+      const comparisonAuthorization = authorizeAdaptivePathComparisonIdentity({
+        candidateBatchId: candidateBatch.id,
+        candidateBatchCreatedAt: candidateBatch.createdAt,
+        currentPathUpdatedAt: requestedToolInput.pathVersion ?? '',
+        candidates: candidateBatch.candidates.map((candidate, index) => ({
+          optionId: readString(readRecord(candidate.snapshot).optionId) ?? `path-option-${index + 1}`,
+          styleId: candidate.styleId,
+        })),
+        selectedStyleId: requestedToolInput.styleId,
+        comparedStyleId: requestedToolInput.compareWithStyleId,
+        requestedComparisonKey: requestedToolInput.comparisonKey,
+      });
+      if (!comparisonAuthorization.ok) {
+        const stale = comparisonAuthorization.reason === 'stale-path-version';
+        return NextResponse.json({
+          error: stale
+            ? '当前学习路径已更新，请重新生成候选方案后再比较'
+            : '候选比较身份已失效，请重新选择比较对象',
+        }, { status: stale ? 409 : 403 });
+      }
+      requestedToolInput.comparisonKey = comparisonAuthorization.comparisonKey;
+    }
     if (generationRequestId) {
       requestedToolInput.idempotencyKey = `path-generation-request:${generationRequestId}`;
     }
@@ -360,9 +398,10 @@ async function buildPathAdvisorToolInput(
   operation: PathAdvisorToolOperation,
 ) {
   const pathId = typeof body.pathId === 'string' && body.pathId.length > 0 ? body.pathId : undefined;
-  const pathOptionLookup = pathId
-    ? await readPathOptionStyleLookup(pathId, goalId, userId)
-    : new Map<string, string>();
+  const pathOptionContext = pathId
+    ? await readPathOptionContext(pathId, goalId, userId)
+    : { lookup: new Map<string, string>(), pathVersion: null };
+  const pathOptionLookup = pathOptionContext.lookup;
   const resourcePreference = Array.isArray(body.resourcePreference)
     ? body.resourcePreference.filter((item): item is string => typeof item === 'string' && item.length > 0)
     : undefined;
@@ -453,6 +492,13 @@ async function buildPathAdvisorToolInput(
     selectedStyleId: adjustmentSourceStyleId ?? selectedStyleId,
     styleId: adjustmentSourceStyleId ?? selectedStyleId,
     compareWithStyleId,
+    candidateBatchId: typeof body.candidateBatchId === 'string' && body.candidateBatchId.length > 0
+      ? body.candidateBatchId
+      : undefined,
+    pathVersion: pathOptionContext.pathVersion ?? undefined,
+    comparisonKey: typeof body.comparisonKey === 'string' && body.comparisonKey.length > 0
+      ? body.comparisonKey
+      : undefined,
     excludedNodeIds,
     preferredStyleId: adjustmentSourceStyleId ?? preferredStyleId,
     requestedAt: typeof body.requestedAt === 'string' && body.requestedAt.length > 0 ? body.requestedAt : new Date().toISOString(),
@@ -542,7 +588,7 @@ function resolveCurrentPathStyleId(lookup: Map<string, string>, value: string, f
   return styleId;
 }
 
-async function readPathOptionStyleLookup(pathId: string, goalId: string, userId: string): Promise<Map<string, string>> {
+async function readPathOptionContext(pathId: string, goalId: string, userId: string) {
   const path = await (prisma as any).learningPath?.findFirst?.({
     where: {
       id: pathId,
@@ -551,6 +597,7 @@ async function readPathOptionStyleLookup(pathId: string, goalId: string, userId:
     },
     select: {
       pathPayload: true,
+      updatedAt: true,
     },
   });
   const pathPayload = readRecord(path?.pathPayload);
@@ -568,7 +615,10 @@ async function readPathOptionStyleLookup(pathId: string, goalId: string, userId:
       lookup.set(styleId, styleId);
       lookup.set(readString(option.optionId) ?? `path-option-${index + 1}`, styleId);
     });
-  return lookup;
+  return {
+    lookup,
+    pathVersion: readDateVersion(path?.updatedAt),
+  };
 }
 
 function readStringArray(value: unknown): string[] {
@@ -581,6 +631,13 @@ function readRecord(value: unknown): Record<string, unknown> {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function readDateVersion(value: unknown): string | null {
+  const date = value instanceof Date
+    ? value
+    : typeof value === 'string' ? new Date(value) : null;
+  return date && Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function uniqueStrings(values: string[]): string[] {

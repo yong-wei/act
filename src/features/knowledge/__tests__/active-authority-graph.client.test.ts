@@ -908,6 +908,14 @@ describe('active Authority knowledge workspace client boundary', () => {
     });
     expect(document.activeElement).toBe(node);
 
+    const modelNode = container.querySelector<SVGGElement>('[data-active-authority-node="node-model"]');
+    expect(modelNode).not.toBeNull();
+    await act(async () => modelNode!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+
     await act(async () => {
       [...container.querySelectorAll('button')].find((button) => button.textContent === '历史 Legacy')!.click();
     });
@@ -978,6 +986,59 @@ describe('active Authority knowledge workspace client boundary', () => {
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested).toContain('/api/knowledge/shards/active/nodes/node-concept');
     expect(requested.some((url) => url.includes('/infograph'))).toBe(false);
+  });
+
+  it('renders catalog-driven circular root entries with no connectors or internal identifiers', async () => {
+    const expandedRoot = {
+      ...rootShard,
+      root: {
+        ...rootShard.root,
+        domains: [
+          ...rootShard.root.domains,
+          frequencyRootDomain,
+          {
+            kind: 'presentation-domain' as const,
+            order: 3,
+            displayName: '  ',
+            summary: '',
+            presentationRole: 'domain' as const,
+            visualRole: 'state-space' as const,
+            memberCount: 1,
+          },
+        ],
+      },
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(expandedRoot);
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
+    expect(rootCanvas).not.toBeNull();
+    expect(container.querySelectorAll('[data-authority-domain-entry]')).toHaveLength(3);
+    expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
+    expect(rootCanvas?.querySelectorAll('line, polyline, [data-authority-root-edge]')).toHaveLength(0);
+    expect(container.textContent).not.toContain('state-space');
+    expect(container.textContent).not.toContain('internal-release');
+    const modelingButton = container.querySelector('[data-authority-domain-entry="modeling"]');
+    const modelingGroup = modelingButton?.closest('g');
+    const modelingCircle = modelingGroup?.querySelector('circle');
+    expect(modelingButton?.getAttribute('aria-label')).toBe('系统建模');
+    expect(modelingCircle?.closest('[pointer-events="none"]')).not.toBeNull();
+    expect(
+      modelingCircle && modelingButton
+        ? Boolean(modelingCircle.compareDocumentPosition(modelingButton) & Node.DOCUMENT_POSITION_FOLLOWING)
+        : false,
+    ).toBe(true);
+    expect(container.querySelector('[data-authority-domain-entry="state-space"]')?.getAttribute('aria-label')).toBe('该领域暂不可用');
+    const requested = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(requested).toEqual(['/api/knowledge/shards/active']);
   });
 
   it('renders the aggregate entry and keeps secondary objects behind explicit disclosure', async () => {

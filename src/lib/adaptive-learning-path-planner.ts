@@ -4615,22 +4615,55 @@ function buildPlanScore(
   };
 }
 
-function differentiablePolicyNodeIds(mainPath: AdaptiveLearningPathPlanNode[]): string[] {
-  return mainPath
-    .filter((node) =>
-      node.terminalConstraints.length === 0 &&
-      node.pathNodeType !== 'checkpoint' &&
-      !node.reasonCodes.includes('checkpoint-required')
-    )
-    .map((node) => node.nodeId);
+function canonicalSourceRefForNode(node: ResourceNode): string {
+  const registryRef = node.sourceRefs.find((source) => source.kind === 'resource_registry');
+  const teachingRef = node.sourceRefs.find((source) => source.kind === 'teaching_resource');
+  const canonicalRef = registryRef ?? teachingRef;
+  if (canonicalRef) return `resource:${canonicalRef.ref}`;
+  return `${node.sourceKind}:${node.sourceRef}`;
 }
 
-function differentiablePolicyModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<string, number> {
-  return buildModalityMix(mainPath.filter((node) =>
-    node.terminalConstraints.length === 0 &&
-    node.pathNodeType !== 'checkpoint' &&
-    !node.reasonCodes.includes('checkpoint-required')
-  ));
+function isStructuralPolicySharedNode(
+  node: AdaptiveLearningPathPlanNode,
+  registry: ResourceNodeRegistry,
+  requiredPrerequisiteNodeIds: Set<string>,
+): boolean {
+  if (node.pathNodeType === 'checkpoint' || node.type === 'checkpoint') return true;
+  if (node.reasonCodes.includes('checkpoint-required')) return true;
+  if (node.reasonCodes.includes('required-prerequisite')) return true;
+  if (requiredPrerequisiteNodeIds.has(node.nodeId)) return true;
+  if (node.reasonCodes.some((code) => code.startsWith('policy-') && code.endsWith('-support'))) return true;
+  if (node.terminalConstraints.some((constraint) =>
+    constraint === 'terminal-validation' || constraint === 'terminal-node'
+  )) return true;
+  const resourceNode = registry.nodes.find((candidate) => candidate.id === node.nodeId);
+  const disposition = resourceNode?.planningMetadata.pathDisposition?.kind;
+  return disposition === 'supporting-citation' || disposition === 'embedded-asset';
+}
+
+function corePolicyTeachingPlanNodes(
+  mainPath: AdaptiveLearningPathPlanNode[],
+  registry: ResourceNodeRegistry,
+): AdaptiveLearningPathPlanNode[] {
+  const requiredPrerequisiteNodeIds = new Set(mainPath.flatMap((node) => node.prerequisiteNodeIds));
+  return mainPath.filter((node) => !isStructuralPolicySharedNode(node, registry, requiredPrerequisiteNodeIds));
+}
+
+function differentiablePolicyCoreRefs(
+  mainPath: AdaptiveLearningPathPlanNode[],
+  registry: ResourceNodeRegistry,
+): string[] {
+  return unique(corePolicyTeachingPlanNodes(mainPath, registry).map((node) => {
+    const resourceNode = registry.nodes.find((candidate) => candidate.id === node.nodeId);
+    return resourceNode ? canonicalSourceRefForNode(resourceNode) : `${node.sourceKind}:${node.sourceRef}`;
+  }));
+}
+
+function differentiablePolicyModalityMix(
+  mainPath: AdaptiveLearningPathPlanNode[],
+  registry: ResourceNodeRegistry,
+): Record<string, number> {
+  return buildModalityMix(corePolicyTeachingPlanNodes(mainPath, registry));
 }
 
 function buildPolicyBundle(
@@ -4648,32 +4681,49 @@ function buildPolicyBundle(
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const omittedPolicyReasons: string[] = [];
-  const avoidedDifferentiableNodeIds = new Set(input.excludedNodeIds ?? []);
+  const avoidedDifferentiableCoreRefs = new Set<string>();
+  const retainedCoreRefs = new Set<string>();
   const basePaths = families.reduce<AdaptiveLearningPathPolicyBundle['paths']>((paths, policyFamily) => {
+    const diversityAvoidNodeIds = unique([
+      ...(input.excludedNodeIds ?? []),
+      ...input.registry.nodes
+        .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
+        .map((node) => node.id),
+    ]);
     const plan = buildAdaptiveLearningPathPlanInternal(
       {
         ...input,
         policyFamily,
         policyBundle: undefined,
-        diversityAvoidNodeIds: Array.from(avoidedDifferentiableNodeIds),
+        diversityAvoidNodeIds,
       },
       false,
     );
     const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
-    const differentiableNodeIds = differentiablePolicyNodeIds(mainPath);
-    const retainedDifferentiableNodeIds = new Set(paths.flatMap((path) =>
-      differentiablePolicyNodeIds(path.planNodes ?? [])
-    ));
+    const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);
     if (mainPath.length === 0) {
       omittedPolicyReasons.push(paths.length > 0 ? 'policy-option-diversity-unavailable' : 'policy-path-resource-missing');
       return paths;
     }
-    if (paths.length > 0 &&
-      (differentiableNodeIds.length === 0 || differentiableNodeIds.every((nodeId) => retainedDifferentiableNodeIds.has(nodeId)))) {
+    const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
+    if (paths.length > 0 && !hasNewCoreRef) {
       omittedPolicyReasons.push('policy-option-diversity-unavailable');
       return paths;
     }
-    differentiableNodeIds.forEach((nodeId) => avoidedDifferentiableNodeIds.add(nodeId));
+    const pairwiseCoreOverlapExceedsThreshold = paths.some((existingPath) =>
+      resourceOverlap(
+        coreRefs,
+        differentiablePolicyCoreRefs(existingPath.planNodes ?? [], input.registry),
+      ) >= overlapThreshold,
+    );
+    if (pairwiseCoreOverlapExceedsThreshold) {
+      omittedPolicyReasons.push('policy-option-diversity-unavailable');
+      return paths;
+    }
+    coreRefs.forEach((ref) => {
+      retainedCoreRefs.add(ref);
+      avoidedDifferentiableCoreRefs.add(ref);
+    });
     const modalityMix = buildModalityMix(mainPath);
     const terminalValidationNodeIds = mainPath
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
@@ -4723,7 +4773,7 @@ function buildPolicyBundle(
     });
     return paths;
   }, []);
-  const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths);
+  const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths, input.registry);
   const paths = basePaths.map((path) => ({
     ...path,
     overlap: {
@@ -4732,7 +4782,7 @@ function buildPolicyBundle(
         .reduce((max, item) => Math.max(max, item.overlap), 0), 3),
     },
   }));
-  const pairwiseModalityDistance = buildPairwiseModalityDistance(paths);
+  const pairwiseModalityDistance = buildPairwiseModalityDistance(paths, input.registry);
   const pairwiseEstimatedEffortDifference = buildPairwiseEstimatedEffortDifference(paths);
   const pairwiseTerminalValidationDifference = buildPairwiseTerminalValidationDifference(paths);
   const maxResourceOverlap = round(
@@ -4753,7 +4803,7 @@ function buildPolicyBundle(
     paths.some((path) => path.terminalValidationNodeIds.length === 0);
   const fallbackReasons = unique([
     ...omittedPolicyReasons,
-    maxResourceOverlap > overlapThreshold ? 'path-diversity-insufficient' : null,
+    maxResourceOverlap >= overlapThreshold ? 'path-diversity-insufficient' : null,
     terminalValidationMissing ? 'terminal-validation-diversity-insufficient' : null,
     new Set(paths.map((path) => path.nodeIds.join('|'))).size < Math.min(paths.length, 2)
       ? 'policy-paths-identical'
@@ -5204,7 +5254,10 @@ function buildPathOptionLimitations(
   ]);
 }
 
-function buildPairwiseResourceOverlap(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] {
+function buildPairwiseResourceOverlap(
+  paths: AdaptiveLearningPathPolicyBundle['paths'],
+  registry: ResourceNodeRegistry,
+): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] {
   const overlaps: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] = [];
   for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
@@ -5214,8 +5267,8 @@ function buildPairwiseResourceOverlap(paths: AdaptiveLearningPathPolicyBundle['p
         left: left.policyFamily,
         right: right.policyFamily,
         overlap: resourceOverlap(
-          differentiablePolicyNodeIds(left.planNodes ?? []),
-          differentiablePolicyNodeIds(right.planNodes ?? []),
+          differentiablePolicyCoreRefs(left.planNodes ?? [], registry),
+          differentiablePolicyCoreRefs(right.planNodes ?? [], registry),
         ),
       });
     }
@@ -5223,7 +5276,10 @@ function buildPairwiseResourceOverlap(paths: AdaptiveLearningPathPolicyBundle['p
   return overlaps;
 }
 
-function buildPairwiseModalityDistance(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] {
+function buildPairwiseModalityDistance(
+  paths: AdaptiveLearningPathPolicyBundle['paths'],
+  registry: ResourceNodeRegistry,
+): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] {
   const distances: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] = [];
   for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
@@ -5233,8 +5289,8 @@ function buildPairwiseModalityDistance(paths: AdaptiveLearningPathPolicyBundle['
         left: left.policyFamily,
         right: right.policyFamily,
         distance: setDistance(
-          Object.keys(differentiablePolicyModalityMix(left.planNodes ?? [])),
-          Object.keys(differentiablePolicyModalityMix(right.planNodes ?? [])),
+          Object.keys(differentiablePolicyModalityMix(left.planNodes ?? [], registry)),
+          Object.keys(differentiablePolicyModalityMix(right.planNodes ?? [], registry)),
         ),
       });
     }
