@@ -325,6 +325,12 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 stop(checkout)
             self.assertEqual(unmounted.call_args_list[1].args[0], helper)
 
+    def test_preflight_checks_mount_and_umount_sudo_not_true(self):
+        source = (DEV / "bootstrap.py").read_text(encoding="utf-8")
+        self.assertIn('privileged([which("mount"), "--help"])', source)
+        self.assertIn('privileged([which("umount"), "--help"])', source)
+        self.assertNotIn('privileged(["true"])', source)
+
     def test_missing_mountpoint_does_not_block_restart(self):
         with tempfile.TemporaryDirectory() as raw:
             fake = Path(raw) / "findmnt"

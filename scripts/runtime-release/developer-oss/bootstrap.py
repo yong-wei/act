@@ -271,9 +271,10 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
     if os.geteuid() != 0:
         which("sudo")
         try:
-            run(privileged(["true"]))
+            run(privileged([which("mount"), "--help"]))
+            run(privileged([which("umount"), "--help"]))
         except DeveloperRuntimeError:
-            fail("passwordless sudo is required for bind mount and unmount")
+            fail("passwordless sudo is required for mount and umount")
     if not os.access(checkout, os.W_OK):
         fail("checkout is not writable")
     return {"architecture": machine, "fuse": str(fuse)}

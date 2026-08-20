@@ -19,7 +19,11 @@
 - 受支持的 CPU 架构（x86_64 或 aarch64）
 - `/dev/fuse`
 - `ossfs2`、`ossutil`、`findmnt`/`mount`/`umount`
-- 非 root 时，对 `mount`/`umount` 配置无密码 `sudo -n`
+- 非 root 时，对实际的 `mount`/`umount` 配置无密码 `sudo -n`（不要只放行 `true`）。例如：
+
+  ```
+  %sudo ALL=(root) NOPASSWD: /usr/bin/mount, /usr/bin/umount
+  ```
 - Python 3、Node.js（与仓库 `engines` 一致）
 - 本仓库的可写 checkout
 
