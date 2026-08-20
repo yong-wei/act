@@ -2538,7 +2538,7 @@ function inferDeficits(
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
         const value = portraitScores.length > 0
           ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : 0;
+          : learnerCompetencyScore(learnerState, targetId);
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
           : 0;
@@ -4781,12 +4781,22 @@ function buildPolicyBundle(
         retryState.excludedCanonicalCoreRefs.has(ref)
       );
       if (retryExcludedCoreRefs.length > 0) {
-        enqueueRetryBranches(retryExcludedCoreRefs, retryState.excludedCanonicalCoreRefs, coreSetKey);
+        enqueueRetryBranches(
+          retryExcludedCoreRefs,
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
         continue;
       }
       const hasNewCoreRef = coreRefs.some((ref) => !retainedCoreRefs.has(ref));
       if (basePaths.length > 0 && !hasNewCoreRef) {
-        enqueueRetryBranches(coreRefs, retryState.excludedCanonicalCoreRefs, coreSetKey);
+        enqueueRetryBranches(
+          coreRefs,
+          retryState.excludedCanonicalCoreRefs,
+          coreSetKey,
+          { combinedFirst: true },
+        );
         continue;
       }
       const overlapConflicts = pathsWithCoreOverlapAboveThreshold(
