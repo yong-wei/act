@@ -1,0 +1,758 @@
+{
+  "version": "micro-tutoring-resource-projection.v1",
+  "source": "micro-tutoring-option-attributions.v2",
+  "actionVersion": "micro-tutoring-learning-action.v1",
+  "entries": [
+    {
+      "id": "micro-tutoring-resource:lesson15-series-precheck",
+      "registryId": "lesson15-series-precheck",
+      "teachingResourceRef": "registry:lesson15-series-precheck",
+      "resourceRevision": "sha256:9ff264665eb0314e6189f4ce4a4ad6197047910d2d3ab8b7c5d5087a4d34cd4c",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "launchTarget": "/interactive-learning/resources/lesson15-series-precheck",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson15-series-precheck",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "按超前/滞后职责选择串联校正，并复核动态、裕度和执行器代价。",
+        "studentInstruction": "完成串联校正前测，指出刚才错因用单一指标或照搬参数所跳过的校正步骤。",
+        "completionCondition": "提交前测作答，并记录校正选择动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:control-correction:changes-sampling-density-instead-of-controller",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：用减少采样点替代控制器校正，不能补偿相位裕度或提升闭环速度。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:confuses-overshoot-with-steady-error",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把已合格的稳态精度误作校正目标，未针对超调所反映的阻尼不足。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:copies-parameters-without-design-rationale",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：照搬最终参数而不提供校正依据，无法形成可复核的多指标设计证据。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:equates-slow-response-with-safety",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把响应缓慢等同于安全，未以性能指标和执行器约束共同判断。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:ignores-actuator-cost",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只依据输出速度评价方案，遗漏控制量峰值与执行器约束。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:ignores-root-locus-geometry",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为零点位置可任意指定，忽略根轨迹角度条件和目标极点区域。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:misuses-lead-compensation",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把增加低频积分阶次误作超前校正，混淆低频精度与相位补偿目标。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:single-gain-change-without-dynamic-check",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：以单纯降低增益替代校正设计，遗漏响应速度与相位裕度复核。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:single-metric-design",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：以单个已达标指标代替完整验收，遗漏其余动态、稳态和控制代价。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:trades-speed-for-unbounded-noise-amplification",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：将高频噪声放大误当作速度改善，忽略带宽和噪声敏感性的工程边界。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:tuning-without-margin-check",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：增加积分作用却不复核稳定裕度，会进一步侵蚀已有的相位安全边界。"
+        },
+        {
+          "misconceptionTag": "misconception:control-correction:uses-steady-error-without-pole-check",
+          "rationale": "复用已登记资源 lesson15-series-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只依据稳态误差常数选择方案，未检查闭环极点位置与动态稳定性。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:changes-sampling-density-instead-of-controller#sha256:169b2d837cd97c8e13cc92b26e91446b25b130bdb8a1a46f818c2a6788913de0",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:confuses-overshoot-with-steady-error#sha256:07d8be30159648ebaeff8a2a6808da090517eae85fba14b5ece7c6fbaed7fc40",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:copies-parameters-without-design-rationale#sha256:86998d0ee0178e41c5094892a7d11698952eef69ff8165520f3473835481161f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:equates-slow-response-with-safety#sha256:a107240723bf325069d5f9da5b5e0e7b0bee11a2667d18378c4b0ecfc4268b77",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:ignores-actuator-cost#sha256:cafa3014eba88e5cf0a3bdbe8c529b149878cb4b5621bc08e0615a744310ac80",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:ignores-root-locus-geometry#sha256:7aaf7844ddf0b7bb1071b60eb2199d26e2185f1dbaf43283178d46d2b0e9dc12",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:misuses-lead-compensation#sha256:882e36bb784aca44ea1c0f35ad89869fe79857f270f714cda208748232ff2285",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:single-gain-change-without-dynamic-check#sha256:728926aed0dd342f76fb291e59f84e771072758cc4fd4970aa5ff397955b5016",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:single-metric-design#sha256:e69fd5abb67f1a084263881dbb00ba21fe64636efda9569e185a4a8c1c06ac0a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:trades-speed-for-unbounded-noise-amplification#sha256:482fceb1eb0e0b39629b47cc0609722442d9c566bc29ed414aa60ebcce23f12b",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:tuning-without-margin-check#sha256:dfbf0f55f7da2816d05e2601178db12be3411ea6b0dfdc09d143c1e8d082de38",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:controller-correction#tag:misconception:control-correction:uses-steady-error-without-pole-check#sha256:60c5de4ff2b516f8446f976af93beed3c46a1bca87762fd2f5cb1b512ab3724f"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson01-feedback-precheck-v1",
+      "registryId": "lesson01-feedback-precheck-v1",
+      "teachingResourceRef": "registry:lesson01-feedback-precheck-v1",
+      "resourceRevision": "sha256:8f65d59ba803507e986ccb61eabdf177ccd0296766207c4f9c8bb92d3bd64732",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "launchTarget": "/interactive-learning/resources/lesson01-feedback-precheck-v1",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson01-feedback-precheck-v1",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "判断反馈回路中比较点、前向通道和扰动通道的结构关系。",
+        "studentInstruction": "完成反馈结构前测，针对刚才选错的结构关系写出一条可核对的纠正说明。",
+        "completionCondition": "提交前测作答，并在微辅导中记录该资源动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:assumes-unity-feedback",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：忽略非单位传感器动态，会错误构造误差信号和闭环分母。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:collapses-distinct-signal-paths",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：用单一路径表示多通道系统，无法保留给定与扰动的不同传递关系。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:components-without-connections",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只识别对象名称而不描述连接关系，不能确定闭环模型。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:deletes-disturbance-channel",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：删除扰动通道会使模型无法表达对象输入端扰动的传播路径。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:denies-gain-effect-on-closed-loop",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为开环增益与闭环无关，遗漏闭环极点、误差和裕度的增益依赖。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:denies-summing-junction-effect",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为比较点不影响传递关系，否定了反馈误差形成的基本结构语义。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:disturbance-location-ignored",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把扰动与参考输入无符号合并，丢失了扰动作用点和极性。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:gain-always-good",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把增益增大直接等同于稳定性提高，忽略稳定裕度可能下降。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:ignores-summing-sign",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：移动结构元素时忽略比较点符号，会改变误差信号和闭环代数关系。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:moves-sensor-into-forward-controller",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把测量环节误置于前向控制通道，改变了反馈结构及其物理含义。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:output-only-model-description",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只给最终输出而不保留比较点、方向和反馈路径，模型结构不可追溯。"
+        },
+        {
+          "misconceptionTag": "misconception:feedback-loop-concept-foundations:single-channel-thinking",
+          "rationale": "复用已登记资源 lesson01-feedback-precheck-v1 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把扰动并入给定输入，混淆了不同作用点对应的独立闭环通道。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:assumes-unity-feedback#sha256:80ef9756bde1f4bf235ab6b6131226f85cfa5e12ffc44be9f3d9268f56dc1038",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:collapses-distinct-signal-paths#sha256:f0f5c12b4a740a9e0c4f4f7e7c5cd9e2829381432c46dfe171a01c6cf2c5aef7",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:components-without-connections#sha256:a67232ee27ee692e95a5b8aa0c94940d1dd56b0ef0f48a106452ae4c144579c7",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:deletes-disturbance-channel#sha256:a39bda2b5ad2607848e3707b612551a0e817f9d09426598984f0a6d5ed4702c9",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:denies-gain-effect-on-closed-loop#sha256:ce8cd2f6b76b506d7cab3b9b9ef1f4f8d544b4f88993deb0b7cc7fbeec4dc06a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:denies-summing-junction-effect#sha256:0dee87b22f3645bf9d54f9662cc30d31875678aa5323342cae5a553d653587f6",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:disturbance-location-ignored#sha256:0a1a0ae42919bb6a1c93cf50956e71c99d7b5a2b7899f3f3793c5954e00d0670",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:gain-always-good#sha256:98da315ae987cb059fd6ffc59548525a9f2857e6447ca0ebc1816854b1757140",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:ignores-summing-sign#sha256:c398b30996315932433992906cfa8365f13bbd997149a15bab4f25e4bae596b5",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:moves-sensor-into-forward-controller#sha256:2643ffa38fae174597d4c782d227c709f634576a9bc24d93a3cf670e21a9712d",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:output-only-model-description#sha256:0082759d661910b93493df890583cb6b806832005dfce4400c254daf86a4ed45",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:feedback-loop#tag:misconception:feedback-loop-concept-foundations:single-channel-thinking#sha256:6232a1b52a79fdee2c605256ec7a6ab73044a0f86e9abd3d717dd8de70e5b8d0"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson12-frequency-precheck",
+      "registryId": "lesson12-frequency-precheck",
+      "teachingResourceRef": "registry:lesson12-frequency-precheck",
+      "resourceRevision": "sha256:ae0f86cd939f346eca16ff68910773ad2641e9940e43ea45803345f0fd3c4e5a",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "launchTarget": "/interactive-learning/resources/lesson12-frequency-precheck",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson12-frequency-precheck",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "从 Bode/频域曲线读取斜率、带宽和相位信息，而不是把图形当插图。",
+        "studentInstruction": "完成频率响应速判，标出刚才错因跳过的幅频或相频判读步骤。",
+        "completionCondition": "提交速判作答，并记录频域判读动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-is-always-better",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：将截止频率增大设为唯一准则，忽略噪声敏感性和鲁棒性代价。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-only-speed",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：错误联结带宽、速度和噪声，未理解带宽提高通常伴随更快响应与更高噪声敏感性。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:confuses-break-with-dc-gain-loss",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把渐近线转折误归因于低频增益特性丢失，未识别新增动态因子。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:equates-bandwidth-with-steady-error-only",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把带宽影响局限于稳态误差，遗漏快速性、噪声放大和鲁棒性。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:ignores-magnitude-slope",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只读取相位而跳过幅频斜率，无法判断转折频率处的结构变化。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:ignores-phase-margin",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把相位下降误解释为稳态误差改善，混淆频域稳定边界与低频精度。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:omits-bandwidth-analysis",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：完全回避带宽，无法建立频域指标与响应速度、噪声放大的联系。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:reads-bode-as-picture",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把图形外观当作分析对象，没有从斜率变化识别零极点结构。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:skips-critical-point-meaning",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只背判据结论而不理解临界点距离和环绕，无法可靠应用奈奎斯特判据。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:slope-break-misread",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把斜率再下降误判为一阶零点，颠倒了零点和极点的斜率贡献。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:substitutes-time-domain-for-nyquist-reading",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：用单一时域响应替代频域曲线阅读，缺少临界点和环绕证据。"
+        },
+        {
+          "misconceptionTag": "misconception:frequency-response-foundations:treats-phase-as-plot-only",
+          "rationale": "复用已登记资源 lesson12-frequency-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为相位只影响作图，忽略相位滞后对闭环稳定裕度的直接作用。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:bandwidth-is-always-better#sha256:1d445db7874c9d101db311d52c1d983407c46a2ca0953ad75459643d3c631f21",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:bandwidth-only-speed#sha256:beb93e5afb6abc12c0c5f9d597e2b6c99a7d831be3906dc676b693df31fd377a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:confuses-break-with-dc-gain-loss#sha256:c9461061f20bf921a1317b7d1a0d00748ed0b4b8e4f09b03a6955f100f177628",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:equates-bandwidth-with-steady-error-only#sha256:94fe3d34d6adf348bc1142f64ef604bc32daa395c8982fb08455fb28603e1411",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:ignores-magnitude-slope#sha256:bd05570eb5b123ad640554ccceacac431b408cad607fe496f8b012af078021ed",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:ignores-phase-margin#sha256:2ca3796b8770d36900d0a0e3e574ff1367b1645a2f05cc436bf4518051f57df4",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:omits-bandwidth-analysis#sha256:cf21774f6c86206944bc79298574a6fd1aaa6be7ac8581ff6781b4d1a179b6b8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:reads-bode-as-picture#sha256:d74b25623e06f68aad84e8b23a81828613551ae02cd05940073b771afaade277",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:skips-critical-point-meaning#sha256:7ea75de9baae835f3409a7bfd350ded5ab730fa08e0ce91c07a8e6ecf22fcf3c",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:slope-break-misread#sha256:bf57ecd6a0fb07821dace83e9543a24ee585a51b4816abd50f72b1dbdaa96b54",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:substitutes-time-domain-for-nyquist-reading#sha256:8fc7655c43e9879da30b4b8ef7e9f5b381c894fd3496e7a065e0864ce03562c8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:frequency-response#tag:misconception:frequency-response-foundations:treats-phase-as-plot-only#sha256:311326890265fd0203469db3085446c1ec699c3dfc14f035c2e072824ec82f50"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:sim-scene-destroyer",
+      "registryId": "sim-scene-destroyer",
+      "teachingResourceRef": "registry:sim-scene-destroyer",
+      "resourceRevision": "sha256:412ca86682abab5b967fa13ee35d8cdcae567c69b011b62ce4f3afb0229afd7f",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "launchTarget": "/interactive-learning/resources/sim-scene-destroyer",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:sim-scene-destroyer",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "model-operation",
+        "learningObjective": "把控制器方案迁移到船舶对象时保留扰动、任务指标和证据边界。",
+        "studentInstruction": "打开驱逐舰航向控制仿真，针对刚才的任务错因核对一项对象约束或扰动条件。",
+        "completionCondition": "完成一次有对象条件的仿真核验，并记录迁移动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:accepts-failed-disturbance-level",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：把较低海况的单项指标当作更高海况结论，忽略测试等级与联合判据。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:arena-evidence-missing",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只保留结果截图，缺少模型、参数、工况和指标的可复现实验证据。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:assumption-transfer-missing",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：把线性模型视为可无条件迁移，未复核工作点、扰动和执行器假设。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:copies-controller-without-context",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：直接复用控制器参数，未核对船舶对象、任务指标和约束差异。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:deletes-inconsistent-parameters",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：删除不一致参数掩盖了模型边界差异，不能完成可审计的场景迁移。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:ignores-ocean-disturbance",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只验证无扰动标称响应，未覆盖海况扰动下的任务鲁棒性。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:memorizes-context-without-evidence",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：背诵任务背景不能证明控制方案在该场景下有效，缺少运行证据链。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:renames-variables-without-model-transfer",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只替换变量名称而不迁移模型和证据，无法证明方案适用于新任务。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：把零稳态误差作为唯一任务指标，忽略动态品质与工程安全边界。"
+        },
+        {
+          "misconceptionTag": "misconception:ship-ocean-transfer-application:uses-score-without-mission-evidence",
+          "rationale": "复用已登记资源 sim-scene-destroyer 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只比较题目分数而不检查任务性能，不能构成海洋场景迁移证据。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:accepts-failed-disturbance-level#sha256:4e90e51baa926a3805902b9b6e8c5567ba11b4351b70bb5d617da7d9b95da9be",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:arena-evidence-missing#sha256:fa7a055fa3f37c32084545fdf7c01acf9806e7302a7751615f6c813063bb8a2a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:assumption-transfer-missing#sha256:0e2e7a1ed12775a719c1d86a08e196f9ff143121b8e5c120c59c7aac7bfb0365",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:copies-controller-without-context#sha256:d46e8154e5a89d2c9c1db2d6c1f3172d27bbe2423aee4b6a877e8e6f3db8a49d",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:deletes-inconsistent-parameters#sha256:5869eb1a20926aa33f4a2d32555d3fd59cb07cfc4da52b171411440ed6e227d2",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:ignores-ocean-disturbance#sha256:c5b62258ab6ab10199c486bb5df0846253fe3ed9710c201a5d0d408e1354f5af",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:memorizes-context-without-evidence#sha256:bcf90d8b3d1b27b56c87ccbba8dd8e6629d5788a256da452b05a0fcc81622aa0",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:renames-variables-without-model-transfer#sha256:b3c62a382901029922551ec6c9b1310d2288fdf93491303708713bd6b6cdcf20",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:single-objective-transfer#sha256:b25bc3438c9b45160d2f42b0f81a0aeedd2e1550d1773b7e5ec991503732f70f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion#sha256:e5d3fcba7028fece96bc38599f96bb1f0ea5878146ca5bebb7687510bad46c1f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:modern-transfer#tag:misconception:ship-ocean-transfer-application:uses-score-without-mission-evidence#sha256:6fe3074abe617a12ab4af36c03a5a695edd4deac3dca440e43a58ad9f7a57184"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson10-static-conditions",
+      "registryId": "lesson10-static-conditions",
+      "teachingResourceRef": "registry:lesson10-static-conditions",
+      "resourceRevision": "sha256:4181f3b8d8604935fbd3ba85504e1ea2da9928d7dba96bb63e4752ffed9510dd",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "launchTarget": "/interactive-learning/resources/lesson10-static-conditions",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson10-static-conditions",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "self-explanation",
+        "learningObjective": "用开环零极点的模值/相角条件解释根轨迹区段，而不是用输入或超调代替几何规则。",
+        "studentInstruction": "阅读根轨迹模值与相角条件，用一句话说明刚才错因违反了哪一条绘制规则。",
+        "completionCondition": "写出针对该错因的规则对照说明，并记录自我解释动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:accepts-visual-crossing-without-calculation",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：仅凭图形粗估虚轴穿越，缺少特征方程或稳定判据的定量确认。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:angle-gives-gain",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：用稳态误差代替幅值条件求增益，混淆根轨迹角度条件与增益计算。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:assumes-all-real-axis-is-locus",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：认为全部实轴都属于根轨迹，忽略右侧实轴零极点数量条件。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:forces-poles-to-imaginary-axis",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：强令极点实部为零不能替代幅值条件，且会把设计限制在稳定边界。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:imaginary-crossing-ignored",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：认为根轨迹穿越虚轴后仍保持稳定，忽略闭环极点进入右半平面的后果。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：把根轨迹起止点误写为闭环零极点，混淆了根轨迹由开环结构生成的规则。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-input-amplitude-for-asymptotes",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：用输入幅值决定渐近线，未依据开环零极点数目和位置计算。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-input-and-sampling-as-endpoints",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：用输入幅值和采样时间解释起止点，与根轨迹的开环零极点定义无关。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-overshoot-for-asymptotes",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：用时域超调现象替代渐近线几何规则，缺少零极点结构依据。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-steady-error-without-locus-shape",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：只看稳态误差常数，无法判断零点对根轨迹形状和动态性能的影响。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:wrong-real-axis-rule",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：把实轴判据的奇偶条件反转，导致根轨迹区段判断错误。"
+        },
+        {
+          "misconceptionTag": "misconception:root-locus-analysis-foundations:zero-without-target-region",
+          "rationale": "复用已登记资源 lesson10-static-conditions 的 6 分钟self-explanation动作，覆盖选项审核确认的错因：逐选项审核确认：把增加零点数量直接等同于稳定性提高，未检查根轨迹与目标极点区域。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:accepts-visual-crossing-without-calculation#sha256:95568024513bc9906503333553d74299a74fc490927c5533433cfd6b9d6c11fb",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:angle-gives-gain#sha256:30ebc2629aea5ceb9152dc03034be01e7e3abb7cada28625a4ab28743e606eeb",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:assumes-all-real-axis-is-locus#sha256:d4a336afa29878e90763771ac5c5fb2d03d40a3075ccb327532859b71ab3af37",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:forces-poles-to-imaginary-axis#sha256:601da4f0ba51e38a90f4eb8ab7f94290bdef8eeed15e57b9fcfca39b2d815bb2",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:imaginary-crossing-ignored#sha256:0b128b31e8379e10e130f5d152ad2764f60b7e5d9fdba0dc1efa10d17ed1c7b0",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion#sha256:a993274a094a947fe921820fe01b4c839343c6dd658768ae6371bf7a9d40b496",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:uses-input-amplitude-for-asymptotes#sha256:79c2d654059d5140549321b1402edd05394b275440e8093512ed28b6f795fb91",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:uses-input-and-sampling-as-endpoints#sha256:e27c3d9260286c52b016980b7d33cd60115c73709e50954055e32a263b0a7e70",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:uses-overshoot-for-asymptotes#sha256:9972877324a5edc633c7790ba60f6c8e1d741e8a0edcb0438e1880999449879a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:uses-steady-error-without-locus-shape#sha256:1b53238eb88a91526af09052cae8228cc82894899a72a738a5eb2f706aaa1b2f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:wrong-real-axis-rule#sha256:da916203492322695724b4ebd0d7a4c5eee98706651e0b62c062468fc16097a8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:root-locus#tag:misconception:root-locus-analysis-foundations:zero-without-target-region#sha256:62a25c6e6643b1d9da32e69973bcdd659e161bd6a2fc6ab0000d3cc5dcf7a296"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson11-graphical-thinking-workshop",
+      "registryId": "lesson11-graphical-thinking-workshop",
+      "teachingResourceRef": "registry:lesson11-graphical-thinking-workshop",
+      "resourceRevision": "sha256:ad09f44bb086b304758742388e6559dedce98ad4cc63156cbee1f78a83c4e942",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "launchTarget": "/interactive-learning/resources/lesson11-graphical-thinking-workshop",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson11-graphical-thinking-workshop",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "model-operation",
+        "learningObjective": "把仿真或图形化结果与运行条件、差异记录和可重复证据联系起来。",
+        "studentInstruction": "在图形化验证工作坊中完成一个有记录的对照步骤，说明刚才错因缺少哪类仿真证据。",
+        "completionCondition": "提交对照结果，并记录仿真验证动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:changes-input-before-comparison",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：改变输入后直接比较输出，把输入差异误作模型或控制器性能差异。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:claims-repetition-without-run-records",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：用笼统的多次验证陈述替代逐次运行记录，结果不可复核。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:deletes-failed-disturbance-runs",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：删除失败工况会造成选择性证据，无法说明模型和方案的真实限制。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:hides-validation-limits",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只汇报标称模型成功，隐去了扰动与参数变化下的适用边界。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:invalid-simulation-comparison",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：按曲线外观筛选结果会破坏同模型、同输入和同工况的比较基础。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:missing-run-provenance",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只保存末次截图，丢失模型版本、参数、输入和运行条件的来源链。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:omits-run-conditions",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只记录控制器名称而遗漏运行条件，无法复现或解释仿真结论。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:one-metric-proves-model",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：单项指标在容差内不能证明整体有效性，仍需检查其他判据。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:rejects-tolerance-consistent-result",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：把容差内的数值差异直接判为失败，忽略预先规定的验收容差。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:reruns-without-discrepancy-record",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：重复运行但不记录差异和条件，无法定位偏差来源或形成验证证据。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:simulation-evidence-not-linked",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：只提交最高分截图，未把证据绑定到模型、参数、工况和判据。"
+        },
+        {
+          "misconceptionTag": "misconception:simulation-validation-practice:unexplained-simulation-gap",
+          "rationale": "复用已登记资源 lesson11-graphical-thinking-workshop 的 6 分钟model-operation动作，覆盖选项审核确认的错因：逐选项审核确认：看到解析与仿真差异就否定理论，未检查步长、模型假设和数值误差来源。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:changes-input-before-comparison#sha256:8673e52d6e1921111b394df13bcd4dc6b5b25a74ce139b520725bc20c6bba3d3",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:claims-repetition-without-run-records#sha256:1c22e700b79f0b63731e087c9551145c75b8b2ad7637a007ce688d61b30f074b",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:deletes-failed-disturbance-runs#sha256:491535f914342cec441c2ac9eaab4e92860532647ba1e1325cdfef4796639ab1",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:hides-validation-limits#sha256:360bd75897d697ce9895bb66a154cf2e4767a724ed1f17f79fff920fa88fccf9",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:invalid-simulation-comparison#sha256:2e76e11b27289858906455174272f885f18d58a57f34f78ed019b119fc5e7a58",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:missing-run-provenance#sha256:18fbab4fec34b45a8ace8e2f07c23849e6a2b5248ad5a5a44381d17856724148",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:omits-run-conditions#sha256:2d703733f4ccb7565fc6e16e0e3cad098e4852e057f92a49ecee9820e918bf13",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:one-metric-proves-model#sha256:654640f510c2f9422a509480c021aae03b62236664a5848ebd6c9afc23091613",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:rejects-tolerance-consistent-result#sha256:0bc9059599776be2d34b77c9c0ba7497e6d3f7aa038eb8eee276dbd2fee51728",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:reruns-without-discrepancy-record#sha256:9d7578c9c3835fb54a515c0b23b607543459dbd1b2a15227668bf201a3186cc9",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:simulation-evidence-not-linked#sha256:4fd4733bc5349a39539795374c292a91e33b8746c4ff7ef3c2f6b76608a82fdd",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:simulation-validation#tag:misconception:simulation-validation-practice:unexplained-simulation-gap#sha256:0c093902af8c71dc4e4d761a9878cd6b9d74c116dc147eaa594fa527c37c74cb"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson14-margin-quick-check",
+      "registryId": "lesson14-margin-quick-check",
+      "teachingResourceRef": "registry:lesson14-margin-quick-check",
+      "resourceRevision": "sha256:f53715a66e0ba243bb0b576230e75aa26d6116eb20aeb87ac4ec4e1bb484892b",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "launchTarget": "/interactive-learning/resources/lesson14-margin-quick-check",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson14-margin-quick-check",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "同时使用幅值裕度和相位裕度判断稳定边界，而不是用单一时域观感代替。",
+        "studentInstruction": "完成稳定裕度速判，写出刚才错因忽略的那一项裕度或其工程含义。",
+        "completionCondition": "提交速判作答，并记录裕度判读动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把高带宽直接等同于更安全，忽略相位裕度下降造成的鲁棒性损失。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-without-robustness",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把交叉频率与相位裕度变化误推为低频跟踪性能确定恶化，缺少频域因果依据。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:delay-affects-no-margin",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：新增延迟后仅检查低频增益特性，遗漏延迟引入的负相位和裕度侵蚀。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:denies-bandwidth-margin-coupling",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：否认带宽与相位裕度的耦合，无法解释速度提升和安全边界收窄。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:equates-margin-with-computation-cost",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把幅值裕度归因于控制器计算量，未理解其描述增益不确定性余量。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-alone-proves-safety",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：以幅值裕度单项替代完整安全判断，忽略负相位裕度所揭示的风险。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把小幅值裕度误解为没有稳态误差，混淆鲁棒余量与跟踪精度。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:ignores-actuator-safety",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只保留频域曲线而不讨论执行器饱和，遗漏非线性工程安全约束。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:infers-zero-overshoot-from-crossover",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：由交叉频率和相位裕度变化断言无超调，超出了现有频域证据。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:negative-margin-misread",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把负相位裕度解释为快速且安全，颠倒了稳定安全边界的含义。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:skips-delay-stability-review",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为延迟不需复核，忽略幅频近似不变时相位仍会显著变化。"
+        },
+        {
+          "misconceptionTag": "misconception:stability-margin-frequency-analysis:uses-overshoot-alone-for-safety",
+          "rationale": "复用已登记资源 lesson14-margin-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只凭时域超调评价安全，未联合频域裕度与控制量限制。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing#sha256:363032d9e449dfd40be8380dd42e0b5ed8352e077c3d85a1011d2e8b029a1087",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:bandwidth-without-robustness#sha256:ba28d5fd28d713d8a30bee310ba1524d5061b4ba39485bccdf878422a9701ce7",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:delay-affects-no-margin#sha256:39d3e7115c77215d0e3268868140597b333e92a48b0a32eda8acc38e3fa9142d",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:denies-bandwidth-margin-coupling#sha256:856a6b6358fa6ceab9a6cf5a8e1f31777db0cc17c490fe75afe989bf56b5c614",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:equates-margin-with-computation-cost#sha256:2abf74ce7acdfc90c2bbb438957581999057fbc21864400eb592843bf31a5660",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:gain-margin-alone-proves-safety#sha256:cb5b837403d18c9c078b252b44ab01328f3a38d658e6917f2c16c4de0877652e",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing#sha256:cb5f29a713ff447b320f1e6af48a800e823b865d90f722225ff98ac8abc46071",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:ignores-actuator-safety#sha256:8d626858bfc35a51f82c79436d6dd0ed30208fcb273dc6525c154d97390ad366",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:infers-zero-overshoot-from-crossover#sha256:34bd8505ea42468706a6bc89a0dcc06e89404bd3cfd9ae3eae5656dea01aa580",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:negative-margin-misread#sha256:dd4617c049f104a72369bb88b521a324349ca91d3dc41045960b633a5ff965f8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:skips-delay-stability-review#sha256:225dc769800b85cae61c6bd505ba01c17267506bee908a22a57bcd099fc4c7ec",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:stability-margin#tag:misconception:stability-margin-frequency-analysis:uses-overshoot-alone-for-safety#sha256:552627c2bdb684d4d2c5cdc53a455b8beafcee00989aad76d8146fe9f328010e"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson06-metric-quick-check",
+      "registryId": "lesson06-metric-quick-check",
+      "teachingResourceRef": "registry:lesson06-metric-quick-check",
+      "resourceRevision": "sha256:86169a22ec0fa4acf47c74a035098532cf4179d314178469a10d76a2195f7fd9",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "launchTarget": "/interactive-learning/resources/lesson06-metric-quick-check",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson06-metric-quick-check",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "用超调、调节时间和稳态误差等可计算指标比较时域响应。",
+        "studentInstruction": "完成时域指标速判，指出刚才错因把哪一个指标误用成了另一个。",
+        "completionCondition": "提交速判作答，并记录指标提取动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:conclusion-without-time-domain-metrics",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只给优劣结论而不列指标，缺少可复核的时域比较证据。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:damping-effect-reversed",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：认为阻尼比增大会使超调增大，颠倒了欠阻尼二阶系统的典型趋势。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:damping-guarantees-zero-steady-error",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：由阻尼比变化断言稳态误差为零，混淆动态阻尼与系统型别及低频增益。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:equates-responses-with-different-dynamics",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把稳态值相同误作动态性能相同，遗漏超调与调节时间差异。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:misses-overshoot-metric",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：首次峰值超过稳态值时只读稳态误差，遗漏最大超调量与峰值时间。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:reads-curve-appearance-instead-of-metrics",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：用曲线视觉深浅代替时域指标读取，不能形成可计算的响应证据。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:settling-rise-confusion",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把进入并保持在误差带内的时间误作上升时间，混淆两个指标定义。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:single-index-ranking",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：由超调较小推断全部动态指标更优，忽略调节时间变慢的代价。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:steady-error-as-instability",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把非零稳态偏差直接判为不稳定，混淆终态误差与动态发散。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:unstructured-response-comparison",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：按曲线外观比较方案，没有使用一致的超调、调节时间和稳态误差指标。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:uses-peak-time-for-steady-error",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只读取峰值时间不能解释终态偏差，遗漏稳态误差及其来源。"
+        },
+        {
+          "misconceptionTag": "misconception:time-domain-response-analysis:uses-system-type-for-settling-time",
+          "rationale": "复用已登记资源 lesson06-metric-quick-check 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：用系统型别代替调节时间读数，未依据响应进入误差带的过程判断。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:conclusion-without-time-domain-metrics#sha256:698f456966efbe8ffaf882958ed9b9571d34c7049cb22e8b31444bd8d1f8320a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:damping-effect-reversed#sha256:05131df780987068156ffa73e1c2349f6e5fc60104324ceb5249a468532a10eb",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:damping-guarantees-zero-steady-error#sha256:8267dced726cef8e7a924572794fddfddd2af175b9eb9b3bf474007eef748c39",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:equates-responses-with-different-dynamics#sha256:13fe3a5c3c2cdb9a9c530e436c80a55717e9ee866a6dc1fcd2807cd1d52f8339",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:misses-overshoot-metric#sha256:959c9b3e9857ada35f599c8a7c60202cce207110ce182b6ccba80d2cad33ea22",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:reads-curve-appearance-instead-of-metrics#sha256:1984505d37cff4ff53102653782c06973561cf65aeacd9853668128ec2af6533",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:settling-rise-confusion#sha256:67e4bbfe44dbe826f39598a2a5ea15680426519f52ac57755b89102ba02d6cca",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:single-index-ranking#sha256:86921c4b94a8ea60c3cd68f577c41d40167c6d711c10eae52e1f3dedb52558e6",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:steady-error-as-instability#sha256:4d657bbe494f08777b3da3e45c99d7d49fee91107bab3d693ddf21e9c39a830f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:unstructured-response-comparison#sha256:bfe63b04b26360a33bd3c1071331f8025c3e3a1fb6dd2d3b4ccb8e46593e4545",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:uses-peak-time-for-steady-error#sha256:c5ac9ba3f9ad7bf4d554986722e26e9944432b0dbdccdd5ad62c2efd8462074b",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:time-domain-performance#tag:misconception:time-domain-response-analysis:uses-system-type-for-settling-time#sha256:0d35b7783e36e0667a4d168f6853f0c18be19bc2856b0e5135b24053daa6e9bb"
+      ]
+    },
+    {
+      "id": "micro-tutoring-resource:lesson04-transfer-precheck",
+      "registryId": "lesson04-transfer-precheck",
+      "teachingResourceRef": "registry:lesson04-transfer-precheck",
+      "resourceRevision": "sha256:0da2bc7398468a65401decb5a738dbf07a377e2f7c5db2a5e1a062304a18de1f",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "launchTarget": "/interactive-learning/resources/lesson04-transfer-precheck",
+      "estimatedMinutes": 6,
+      "privacyLevel": "student-visible",
+      "enabled": true,
+      "action": {
+        "id": "micro-tutoring-action:lesson04-transfer-precheck",
+        "version": "micro-tutoring-learning-action.v1",
+        "type": "retrieval-practice",
+        "learningObjective": "用零初值传递函数关系描述输入输出，而不是用随意初值或纯增益代替模型。",
+        "studentInstruction": "完成传递函数前测，标出你选错选项所遗漏的变量、初值或测量通道。",
+        "completionCondition": "提交前测作答，并记录传递函数建模动作完成。",
+        "estimatedMinutes": 6
+      },
+      "relations": [
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:adds-one-outside-transfer-ratio",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把前向传递函数与常数直接相加，未形成闭环输入输出比。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:block-diagram-without-physical-variables",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：只画结构方块而不标物理量，无法从对象规律建立可信模型。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:changes-numerator-to-fix-order",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：调整分子系数不能恢复缺失的系统阶次，未处理分母动态结构。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:closed-loop-denominator",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：使用倒数形式遗漏了负反馈闭环分母中的回路增益项。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:collapses-all-nodes-into-gain",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把求和点、分支点和动态环节合并为增益，破坏原连接拓扑。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:deletes-measurement-path",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：为化简而删除测量通道，会改变非单位反馈的闭环表达式。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：直接删除微分符号没有执行零初值拉普拉斯变换，不能得到输入输出传递关系。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:invalid-block-reduction",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：仅凭图形相邻就相乘，未确认方块是否构成真实串联连接。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:keeps-arbitrary-initial-condition-in-transfer-function",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把任意初始条件保留在传递函数定义中，混入了不属于零状态输入输出关系的项。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:lost-system-order",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：直接补高分母阶次掩盖建模遗漏，未回查储能元件和状态变量。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:measurement-path-omitted",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把传感器当作外部扰动，混淆测量反馈动态与扰动通道。"
+        },
+        {
+          "misconceptionTag": "misconception:transfer-function-modeling-foundations:untracked-physical-variables",
+          "rationale": "复用已登记资源 lesson04-transfer-precheck 的 6 分钟retrieval-practice动作，覆盖选项审核确认的错因：逐选项审核确认：把不同物理参数合并为单一增益，丢失质量、阻尼和刚度的可追溯关系。"
+        }
+      ],
+      "sourceRefs": [
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:adds-one-outside-transfer-ratio#sha256:55c509714e4d8bd7f941897722191f986d9946313224d95546c01d362b47e8f8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:block-diagram-without-physical-variables#sha256:bf34d8c168ea54eb36d5c9ba1a5613b85c998661c4a211f45e2a861da8d82992",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:changes-numerator-to-fix-order#sha256:9059a4dc4d01f86a9b008b69ea75a799586159c69c832a62471c1a34b80c8ba8",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:closed-loop-denominator#sha256:d122892d45118801c40fb17467107294ac1dd43f09f96317bceeab50be70acd4",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:collapses-all-nodes-into-gain#sha256:53d60839e0ef8b35a3b9a2020027d80582c4c275d7e9cd8429643478e82d70d7",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:deletes-measurement-path#sha256:ab23f18f69b50f936b8fec16b9cba0eb0198a9e5cd77a50d42d52b4cfa31704b",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition#sha256:027c8250739b086c91729829523480080c2806329c87c79603d1a713322f120f",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:invalid-block-reduction#sha256:c9f6819d4a2f490aa230ae31258ec59840d3d1466d3f0edd7ef1ded7b2bfbeeb",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:keeps-arbitrary-initial-condition-in-transfer-function#sha256:0b60670c888f16da34f2df79c8c504d62a5dc0c0c1e60110b9a242eeaf056c7a",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:lost-system-order#sha256:04cdff2b0f276675d9b29a33cd5d9c383a46ebcd38edf76299502fb938181ca7",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:measurement-path-omitted#sha256:92879e622cfd2ec209b2d42a36d50669d742c1d1f9d118b48b3149d131601a75",
+        "micro-tutoring-option-attributions.v2#node:kn:autocontrol:transfer-function-model#tag:misconception:transfer-function-modeling-foundations:untracked-physical-variables#sha256:4c28f1ab7ad972f4a143d263dbfb33b976cc36c3f89e78d3412926642793c635"
+      ]
+    }
+  ]
+}

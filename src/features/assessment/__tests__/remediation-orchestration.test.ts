@@ -20,12 +20,17 @@ vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', (
     currentCatalogSnapshots.get(questionId) ?? null),
 }));
 
+const GOVERNED_NODE = 'kn:autocontrol:controller-correction';
+const GOVERNED_TAG = 'misconception:control-correction:confuses-overshoot-with-steady-error';
+const GOVERNED_RESOURCE_ID = 'lesson15-series-precheck';
+
 function resource(input: {
   id: string;
   minutes: number;
   misconceptionTags?: string[];
   knowledgeNodeIds?: string[];
   prerequisiteKnowledgeNodeIds?: string[];
+  registryId?: string | null;
   version?: string;
   learnerVisible?: boolean;
   teacherOnly?: boolean;
@@ -40,11 +45,11 @@ function resource(input: {
     displayName: null,
     description: null,
     type: 'STATIC_TEXT',
-    registryId: null,
+    registryId: input.registryId === undefined ? null : input.registryId,
     content: input.brokenTarget ? null : `Resource content ${input.id}`,
     category: null,
     teacherOnly: input.teacherOnly ?? false,
-    knowledgeNodes: (input.knowledgeNodeIds ?? ['node-1']).map((id) => ({
+    knowledgeNodes: (input.knowledgeNodeIds ?? [GOVERNED_NODE]).map((id) => ({
       id,
       name: `Knowledge ${id}`,
       resources: [],
@@ -52,7 +57,7 @@ function resource(input: {
     })),
     config: {
       remediation: {
-        misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
+        misconceptionTags: input.misconceptionTags ?? [GOVERNED_TAG],
         prerequisiteKnowledgeNodeIds: input.prerequisiteKnowledgeNodeIds ?? [],
       },
       resourceNodePlanning: {
@@ -108,7 +113,7 @@ function validation(input: {
   const contentHash = input.contentHash ?? HASH_A;
   const catalogContentHash = input.catalogContentHash ?? HASH_A;
   const stage = input.stage ?? 'remediation';
-  const knowledgeNodeId = input.knowledgeNodeId ?? 'node-1';
+  const knowledgeNodeId = input.knowledgeNodeId ?? GOVERNED_NODE;
   const decisionWithoutHash = {
     catalogItemId: `catalog-${id}`,
     decisionKind: 'human-review' as const,
@@ -123,8 +128,8 @@ function validation(input: {
     selectedStagePurpose: stage,
     difficulty: 0.5,
     cognitiveLevel: 'apply',
-    misconceptionRefs: input.misconceptionTags ?? ['misconception-1'],
-    remediationRefs: ['teaching-resource:exact'],
+    misconceptionRefs: input.misconceptionTags ?? [GOVERNED_TAG],
+    remediationRefs: [`teaching-resource:${GOVERNED_RESOURCE_ID}`],
     metadataVersionRefs: {
       catalogVersion: 'catalog.v1',
       adaptiveAssessmentSnapshotVersion: input.version ?? 'validation.v1',
@@ -161,8 +166,8 @@ function validation(input: {
       kaqObjectiveIds: ['kaq-1'],
       graphNodeIds: [knowledgeNodeId],
       knowledgeTags: ['frequency-response'],
-      misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
-      remediationResourceNodeIds: ['teaching-resource:exact'],
+      misconceptionTags: input.misconceptionTags ?? [GOVERNED_TAG],
+      remediationResourceNodeIds: [`teaching-resource:${GOVERNED_RESOURCE_ID}`],
       difficulty: 0.5,
       cognitiveLevel: 'apply',
       assessmentStage: stage,
@@ -197,7 +202,7 @@ function validation(input: {
         actionPath: `/assessment/items/${id}`,
         learnerVisible: input.learnerVisible ?? true,
         graphNodeIds: [knowledgeNodeId],
-        misconceptionTags: input.misconceptionTags ?? ['misconception-1'],
+        misconceptionTags: input.misconceptionTags ?? [GOVERNED_TAG],
         relationship: {
           kind: 'variant',
           sourceQuestionIds: input.sourceQuestionIds ?? ['question-original'],
@@ -222,7 +227,7 @@ function persisted(create: Record<string, unknown>, id = 'result-1') {
 }
 
 function createDb() {
-  const resources = [resource({ id: 'exact', minutes: 3 })];
+  const resources = [resource({ id: GOVERNED_RESOURCE_ID, minutes: 3 })];
   const validations = [validation({})];
   const db = {
     wrongAnswerAttribution: {
@@ -231,12 +236,12 @@ function createDb() {
         userId: 'learner-1',
         questionId: 'question-original',
         state: 'ATTRIBUTED',
-        knowledgeNodeIds: ['node-1'],
-        misconceptionTags: ['misconception-1'],
+        knowledgeNodeIds: [GOVERNED_NODE],
+        misconceptionTags: [GOVERNED_TAG],
       }),
     },
     knowledgeNode: {
-      findFirst: vi.fn().mockResolvedValue({ id: 'node-1', name: 'Frequency response', isActive: true }),
+      findFirst: vi.fn().mockResolvedValue({ id: GOVERNED_NODE, name: 'Controller correction', isActive: true }),
     },
     teachingResource: {
       findMany: vi.fn().mockImplementation(async (input: any) => input.where?.id?.in
@@ -273,7 +278,7 @@ describe('remediation orchestration', () => {
         minutes: 3,
         knowledgeNodeIds: ['prerequisite-node'],
         misconceptionTags: [],
-        prerequisiteKnowledgeNodeIds: ['node-1'],
+        prerequisiteKnowledgeNodeIds: [GOVERNED_NODE],
       }),
     );
 
@@ -286,7 +291,7 @@ describe('remediation orchestration', () => {
       status: 'AVAILABLE',
       task: {
         estimatedMinutes: 5,
-        resources: [{ id: 'exact' }],
+        resources: [{ id: GOVERNED_RESOURCE_ID }],
         validationQuestion: {
           itemRefId: 'validation-1',
           contentHash: HASH_A,
@@ -308,10 +313,15 @@ describe('remediation orchestration', () => {
     const create = mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create;
     expect(create.taskSnapshot).toEqual(expect.objectContaining({
       sourceQuestionId: 'question-original',
-      knowledgeNodeId: 'node-1',
-      misconceptionTag: 'misconception-1',
+      knowledgeNodeId: GOVERNED_NODE,
+      misconceptionTag: GOVERNED_TAG,
     }));
-    expect(create.taskSnapshot.resources.map((item: any) => item.id)).toEqual(['exact']);
+    expect(create.taskSnapshot.resources.map((item: any) => item.id)).toEqual([GOVERNED_RESOURCE_ID]);
+    expect(create.taskSnapshot.resources[0]).toEqual(expect.objectContaining({
+      actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
+      actionVersion: 'micro-tutoring-learning-action.v1',
+      registryId: GOVERNED_RESOURCE_ID,
+    }));
     expect(JSON.stringify(result)).not.toContain('correctAnswer');
     expect(JSON.stringify(result)).not.toContain('explanation');
     expect(JSON.stringify(result)).not.toContain('options');
@@ -324,14 +334,14 @@ describe('remediation orchestration', () => {
       goal: 'Governed goal',
       estimatedMinutes: 5,
       sourceQuestionId: 'question-original',
-      knowledgeNodeId: 'node-1',
-      misconceptionTag: 'misconception-1',
+      knowledgeNodeId: GOVERNED_NODE,
+      misconceptionTag: GOVERNED_TAG,
       resources: [{
-        id: 'exact',
-        title: 'Resource exact',
+        id: GOVERNED_RESOURCE_ID,
+        title: `Resource ${GOVERNED_RESOURCE_ID}`,
         version: 'resource.v1',
         estimatedMinutes: 3,
-        actionPath: '/interactive-learning/resources/exact',
+        actionPath: `/interactive-learning/resources/${GOVERNED_RESOURCE_ID}`,
       }],
       validationQuestion: {
         itemRefId: 'validation-1',
@@ -363,11 +373,11 @@ describe('remediation orchestration', () => {
       goal: 'Governed goal',
       estimatedMinutes: 5,
       sourceQuestionId: 'question-original',
-      knowledgeNodeId: 'node-1',
-      misconceptionTag: 'misconception-1',
+      knowledgeNodeId: GOVERNED_NODE,
+      misconceptionTag: GOVERNED_TAG,
       resources: [{
-        id: 'exact', title: 'Resource exact', version: 'resource.v0', estimatedMinutes: 3,
-        actionPath: '/interactive-learning/resources/exact',
+        id: GOVERNED_RESOURCE_ID, title: `Resource ${GOVERNED_RESOURCE_ID}`, version: 'resource.v0', estimatedMinutes: 3,
+        actionPath: `/interactive-learning/resources/${GOVERNED_RESOURCE_ID}`,
       }],
       validationQuestion: {
         itemRefId: 'validation-1', questionId: 'question-variant', contentHash: HASH_A,
@@ -442,7 +452,7 @@ describe('remediation orchestration', () => {
       where: expect.objectContaining({
         metadata: {
           path: ['adaptiveAssessmentItemRef', 'semanticRefs', 'graphNodeIds'],
-          array_contains: ['node-1'],
+          array_contains: [GOVERNED_NODE],
         },
       }),
     }));
@@ -473,24 +483,8 @@ describe('remediation orchestration', () => {
   });
 
   it('resolves a canonical KAQ graph node without requiring a legacy KnowledgeNode row', async () => {
-    const canonicalNodeId = 'qual:autocontrol:safety-responsibility';
-    const { db, mocks, resources, validations } = createDb();
-    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
-      id: 'attribution-1',
-      userId: 'learner-1',
-      questionId: 'question-original',
-      state: 'ATTRIBUTED',
-      knowledgeNodeIds: [canonicalNodeId],
-      misconceptionTags: ['misconception-1'],
-    });
+    const { db, mocks } = createDb();
     mocks.knowledgeNode.findFirst.mockResolvedValue(null);
-    resources[0] = resource({
-      id: 'safety-review',
-      minutes: 3,
-      knowledgeNodeIds: ['legacy-safety-node'],
-      prerequisiteKnowledgeNodeIds: [canonicalNodeId],
-    });
-    validations[0] = validation({ knowledgeNodeId: canonicalNodeId });
 
     const result = await orchestrateRemediation({
       db,
@@ -501,7 +495,7 @@ describe('remediation orchestration', () => {
     expect(result).toMatchObject({
       status: 'AVAILABLE',
       task: {
-        goal: '巩固“安全责任意识”的关键概念',
+        goal: '巩固“控制器与校正”的关键概念',
       },
     });
   });
@@ -571,7 +565,7 @@ describe('remediation orchestration', () => {
       mocks.adaptiveAssessmentItemRef.findMany.mockResolvedValue([]);
     }],
     ['TIME_BUDGET_UNAVAILABLE', (mocks: ReturnType<typeof createDb>['mocks']) => {
-      mocks.teachingResource.findMany.mockResolvedValue([resource({ id: 'too-long', minutes: 10 })]);
+      mocks.teachingResource.findMany.mockResolvedValue([resource({ id: GOVERNED_RESOURCE_ID, minutes: 10 })]);
     }],
   ] as const)('persists %s when governed inputs cannot form a task', async (reason, arrange) => {
     const { db, mocks } = createDb();
@@ -634,7 +628,7 @@ describe('remediation orchestration', () => {
     const row = mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
     mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(await row);
     mocks.teachingResource.findMany.mockResolvedValue([resource({
-      id: 'exact',
+      id: GOVERNED_RESOURCE_ID,
       minutes: 3,
       learnerVisible: false,
     })]);
@@ -646,7 +640,7 @@ describe('remediation orchestration', () => {
     });
 
     expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'ACCESS_REVOKED' });
-    expect(JSON.stringify(result)).not.toContain('Resource exact');
+    expect(JSON.stringify(result)).not.toContain(`Resource ${GOVERNED_RESOURCE_ID}`);
   });
 
   it('fails closed when a validation reference drifts', async () => {

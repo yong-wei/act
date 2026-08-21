@@ -678,7 +678,11 @@ export async function recordMicroInterventionEvent(input: {
     throw new MicroInterventionRequestError('EVENT_INVALID');
   }
   if (input.eventType === 'RESOURCE_USED') {
-    if (!resourceId || !current.source.task.resources.some((resource) => resource.id === resourceId)) {
+    const boundResource = current.source.task.resources.find((resource) => resource.id === resourceId);
+    if (!resourceId || !boundResource) {
+      throw new MicroInterventionRequestError('EVENT_INVALID');
+    }
+    if (boundResource.actionId && !boundResource.actionVersion) {
       throw new MicroInterventionRequestError('EVENT_INVALID');
     }
   } else if (resourceId) {
