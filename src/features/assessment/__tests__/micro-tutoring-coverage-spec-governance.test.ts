@@ -53,24 +53,16 @@ describe('micro-tutoring coverage spec governance', () => {
     expect(coveragePurpose).toContain('不表示 54/54 运行时已完成');
   });
 
-  it('requires the archived #1391/#1392 contract plus lineage in canonical or this change', () => {
+  it('requires the archived #1391/#1392 contract plus lineage in canonical spec', () => {
     const coverage = read(COVERAGE_SPEC);
     const activeDelta = path.join(
       CHANGES_DIR,
       'consolidate-micro-tutoring-coverage-specs/specs/micro-tutoring-coverage-audit/spec.md',
     );
-    const archivedDelta = path.join(
-      ARCHIVE_DIR,
-      '2026-08-21-consolidate-micro-tutoring-coverage-specs/specs/micro-tutoring-coverage-audit/spec.md',
-    );
-    const combined = [
-      coverage,
-      existsSync(activeDelta) ? read(activeDelta) : '',
-      existsSync(archivedDelta) ? read(archivedDelta) : '',
-    ].join('\n');
+    const source = existsSync(activeDelta) ? `${coverage}\n${read(activeDelta)}` : coverage;
 
     for (const heading of REQUIRED_COVERAGE_HEADINGS) {
-      expect(combined).toContain(heading);
+      expect(source).toContain(heading);
     }
 
     const lineage = existsSync(LINEAGE_EVIDENCE)
