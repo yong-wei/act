@@ -7,12 +7,17 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildExternalInputBundle,
+  declarationInputFromBundle,
   EXTERNAL_INPUT_BUNDLE_PREFIXES,
   EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES,
   externalInputBundleWireSha256,
   isExternalInputBundleBasePathIncluded,
+  parseExternalInputBundleDeclaration,
   parseExternalInputBundleWire,
   serializeExternalInputBundle,
+  serializeExternalInputBundleDeclaration,
+  textbookCorpusIdentityDigest,
+  TEXTBOOK_INPUT_PROVENANCE_V2,
   verifyExternalInputBundleFilesystem,
 } from '../runtime-external-input-bundle';
 
@@ -119,5 +124,107 @@ describe('external runtime input bundle v1', () => {
       await rm(root, { recursive: true, force: true });
       await rm(generatedRoot, { recursive: true, force: true });
     }
+  });
+});
+
+describe('external runtime input bundle textbook provenance v2', () => {
+  const authoringRevision = 'b'.repeat(40);
+  const captureRevision = 'c'.repeat(40);
+  const bookIds = ['control-encyclopedia', 'hu-shousong-exercise-analysis-3rd'];
+  const resourceSetId = 'current-authoring-bundle-v1';
+
+  function v2Bundle() {
+    const files = [
+      { path: 'resources/textbooks-v2/input-provenance.json', sizeBytes: 3, sha256: digest('one') },
+      { path: 'resources/textbook-hybrid-retrieval/bge-m3/manifest.json', sizeBytes: 3, sha256: digest('two') },
+      { path: 'resources/textbooks/control-encyclopedia/assets/a.bin', sizeBytes: 3, sha256: digest('tri') },
+    ];
+    return buildExternalInputBundle({
+      externalInputId: 'textbook-runtime-generated-v2',
+      sourceRevision: captureRevision,
+      provenance: {
+        schemaVersion: TEXTBOOK_INPUT_PROVENANCE_V2,
+        authoringSourceRevision: authoringRevision,
+        resourceSetId,
+        bookIds,
+        resourceSetDigest: textbookCorpusIdentityDigest(resourceSetId, bookIds),
+        inputDigest: 'd'.repeat(64),
+        inputFileCount: 4,
+        generator: { id: 'act-textbook-runtime-v2-generator', version: 'v2' },
+      },
+      generator: { id: 'act-textbook-runtime-v2-generator', version: 'v2' },
+      overlay: {
+        baseSourceRevision: captureRevision,
+        baseRuntimeTreeSha256: '0'.repeat(64),
+        replacedPrefixes: [...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES],
+        generatedPrefixes: [...EXTERNAL_INPUT_BUNDLE_PREFIXES],
+        generatedTreeSha256: digest(JSON.stringify(files[0])),
+      },
+      files,
+    });
+  }
+
+  it('keeps authoring revision independent from capture/release revision', () => {
+    const built = v2Bundle();
+    expect(built.sourceRevision).toBe(captureRevision);
+    expect(built.provenance.schemaVersion).toBe(TEXTBOOK_INPUT_PROVENANCE_V2);
+    if (built.provenance.schemaVersion !== TEXTBOOK_INPUT_PROVENANCE_V2) throw new Error('expected v2');
+    expect(built.provenance.authoringSourceRevision).toBe(authoringRevision);
+    expect(built.provenance.authoringSourceRevision).not.toBe(built.sourceRevision);
+    expect(parseExternalInputBundleWire(Buffer.from(serializeExternalInputBundle(built))).wireSha256).toBe(built.wireSha256);
+  });
+
+  it('binds v2 corpus identity on the declaration and rejects book-set drift', () => {
+    const built = v2Bundle();
+    const declaration = parseExternalInputBundleDeclaration({
+      schemaVersion: 'act-runtime-external-input-bundles.v1',
+      inputs: [declarationInputFromBundle(built)],
+    });
+    expect(declaration.inputs[0]?.bookIds).toEqual(bookIds);
+    expect(serializeExternalInputBundleDeclaration(declaration)).toContain(authoringRevision);
+    const driftedBooks = ['control-encyclopedia', 'dorf-modern-control-systems'];
+    expect(() => parseExternalInputBundleDeclaration({
+      schemaVersion: 'act-runtime-external-input-bundles.v1',
+      inputs: [{
+        ...declarationInputFromBundle(built),
+        bookIds: driftedBooks,
+        resourceSetDigest: textbookCorpusIdentityDigest(resourceSetId, driftedBooks),
+      }],
+    })).not.toThrow();
+    expect(() => buildExternalInputBundle({
+      ...built,
+      provenance: {
+        ...built.provenance,
+        schemaVersion: TEXTBOOK_INPUT_PROVENANCE_V2,
+        authoringSourceRevision: authoringRevision,
+        resourceSetId,
+        bookIds: driftedBooks,
+        resourceSetDigest: built.provenance.schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V2
+          ? built.provenance.resourceSetDigest
+          : '0'.repeat(64),
+        inputDigest: 'd'.repeat(64),
+        inputFileCount: 4,
+        generator: { id: 'act-textbook-runtime-v2-generator', version: 'v2' },
+      },
+    })).toThrow(/resourceSet digest/);
+  });
+
+  it('still parses historical v1 declarations with exact keys', () => {
+    const historical = parseExternalInputBundleDeclaration({
+      schemaVersion: 'act-runtime-external-input-bundles.v1',
+      inputs: [{
+        externalInputId: 'textbook-runtime-generated-v2',
+        prefixes: [...EXTERNAL_INPUT_BUNDLE_PREFIXES],
+        bundleSemanticSha256: '1'.repeat(64),
+        bundleWireSha256: '2'.repeat(64),
+        sourceRevision: captureRevision,
+        baseSourceRevision: captureRevision,
+        overlaySha256: '3'.repeat(64),
+        inputDigest: '4'.repeat(64),
+        inputFileCount: 2,
+      }],
+    });
+    expect(historical.inputs[0]?.authoringSourceRevision).toBeUndefined();
+    expect(serializeExternalInputBundleDeclaration(historical)).not.toContain('resourceSetId');
   });
 });

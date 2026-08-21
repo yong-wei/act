@@ -14,6 +14,7 @@ import {
   RuntimeReleaseValidationError,
 } from '@/lib/runtime-release';
 import {
+  assertPreparedTextbookCorpusMatchesBundle,
   declarationInputForBundle,
   EXTERNAL_INPUT_BUNDLE_DECLARATION_PATH,
   parseExternalInputBundle,
@@ -663,7 +664,7 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
     try {
       declarationInputForBundle(bundleDeclaration.declaration, input.externalBundle);
       const baseEntries = await listRuntimeTree(input.repoRoot, input.externalBundle.overlay.baseSourceRevision);
-      if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256 || runtimeGitTreeDigest(entries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
+      if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
         throw new Error('external bundle base Git runtime capture drifted');
       }
       // Parsing is repeated here so callers cannot smuggle local-only fields or
@@ -674,6 +675,7 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
         ...(localRoot ? { root: localRoot } : {}),
         ...(localGeneratedRoot ? { generatedRoot: localGeneratedRoot } : {}),
       };
+      await assertPreparedTextbookCorpusMatchesBundle(input.repoRoot, input.externalBundle);
     } catch (cause) {
       throw gitError('runtime-release-external-input-bundle-mismatch', cause instanceof Error ? cause.message : String(cause));
     }
@@ -750,7 +752,7 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
     if (!bundleDeclarationObjectId) throw gitError('runtime-release-external-input-bundle-undeclared', 'External bundle is not bound by a tracked declaration.');
     try {
       const baseEntries = await listRuntimeTree(input.repoRoot, input.externalBundle.overlay.baseSourceRevision);
-      if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256 || runtimeGitTreeDigest(entries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
+      if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
         throw new Error('external bundle base Git runtime capture drifted');
       }
       const localRoot = input.externalBundle.root;
@@ -761,6 +763,7 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
         ...(localRoot ? { root: localRoot } : {}),
         ...(localGeneratedRoot ? { generatedRoot: localGeneratedRoot } : {}),
       };
+      await assertPreparedTextbookCorpusMatchesBundle(input.repoRoot, input.externalBundle);
     } catch (cause) {
       throw gitError('runtime-release-external-input-bundle-mismatch', cause instanceof Error ? cause.message : String(cause));
     }

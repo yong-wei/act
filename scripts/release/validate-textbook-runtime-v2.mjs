@@ -178,19 +178,24 @@ function main() {
   const index = filesOnly
     ? null
     : inspectTextbookRetrievalIndex(indexDir, {
-      expectedSourceRevision: runtime.sourceRevision,
+      expectedSourceRevision: runtime.authoringSourceRevision,
+      expectedResourceSetId: runtime.resourceSetId ?? undefined,
+      expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
     });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   const indexValidation = filesOnly
     ? null
-    : validateIndex(runtimeRoot, indexDir, runtime.sourceRevision);
+    : validateIndex(runtimeRoot, indexDir, runtime.authoringSourceRevision);
   const bookIds = textbookBookIds();
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
     bookIds,
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
-    sourceRevision: runtime.sourceRevision,
+    sourceRevision: runtime.authoringSourceRevision,
+    authoringSourceRevision: runtime.authoringSourceRevision,
+    provenanceGeneration: runtime.provenanceGeneration,
+    resourceSetId: runtime.resourceSetId,
     runtimeDigest: runtime.runtimeDigest,
     inputDigest: runtime.inputDigest,
     runtimeFileCount: runtime.fileCount,
