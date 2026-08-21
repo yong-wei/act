@@ -8,8 +8,6 @@ vi.mock('@/lib/commercial-ui-capture-revision', () => ({
   computeCaptureRevisionProof: mocks.computeCaptureRevisionProof,
 }));
 
-import { GET, resetRuntimeRevisionProofForTests } from '../../app/api/internal/local-qa/revision/route';
-
 const proof = {
   commitSha: 'a'.repeat(40),
   treeSha: 'b'.repeat(40),
@@ -28,10 +26,14 @@ function restoreEnvironment() {
   else mutableEnvironment.ACT_LOCAL_QA_BRIDGE = originalBridge;
 }
 
+async function loadRoute() {
+  vi.resetModules();
+  return import('../../app/api/internal/local-qa/revision/route');
+}
+
 describe('development-only commercial UI capture revision probe', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetRuntimeRevisionProofForTests();
     mutableEnvironment.NODE_ENV = 'development';
     delete mutableEnvironment.ACT_LOCAL_QA_BRIDGE;
     mocks.computeCaptureRevisionProof.mockReturnValue(proof);
@@ -42,6 +44,8 @@ describe('development-only commercial UI capture revision probe', () => {
   });
 
   it('returns 404 without exposing Git metadata outside the explicit local bridge', async () => {
+    const { GET } = await loadRoute();
+    vi.clearAllMocks();
     mutableEnvironment.NODE_ENV = 'production';
     mutableEnvironment.ACT_LOCAL_QA_BRIDGE = '1';
     const productionResponse = await GET();
@@ -57,6 +61,7 @@ describe('development-only commercial UI capture revision probe', () => {
   });
 
   it('returns only the fixed clean proof with no-store caching when enabled', async () => {
+    const { GET } = await loadRoute();
     mutableEnvironment.ACT_LOCAL_QA_BRIDGE = '1';
     const response = await GET();
     expect(response.status).toBe(200);
@@ -72,19 +77,22 @@ describe('development-only commercial UI capture revision probe', () => {
   it('fails closed without returning a dirty or Git error payload', async () => {
     mutableEnvironment.ACT_LOCAL_QA_BRIDGE = '1';
     mocks.computeCaptureRevisionProof.mockReturnValue({ ...proof, clean: false });
-    const dirtyResponse = await GET();
+    const { GET: dirtyGet } = await loadRoute();
+    const dirtyResponse = await dirtyGet();
     expect(dirtyResponse.status).toBe(503);
     expect(await dirtyResponse.text()).toBe('');
 
     mocks.computeCaptureRevisionProof.mockImplementation(() => {
       throw new Error('git metadata should not reach the response');
     });
-    const errorResponse = await GET();
+    const { GET: errorGet } = await loadRoute();
+    const errorResponse = await errorGet();
     expect(errorResponse.status).toBe(503);
     expect(await errorResponse.text()).toBe('');
   });
 
   it('keeps the first runtime proof stable for the lifetime of the route module', async () => {
+    const { GET } = await loadRoute();
     mutableEnvironment.ACT_LOCAL_QA_BRIDGE = '1';
     const firstResponse = await GET();
     expect(firstResponse.status).toBe(200);
@@ -98,5 +106,10 @@ describe('development-only commercial UI capture revision probe', () => {
     const secondResponse = await GET();
     expect(secondResponse.status).toBe(200);
     expect(await secondResponse.json()).toEqual(firstProof);
+  });
+
+  it('does not expose a test-only route export', async () => {
+    const route = await loadRoute();
+    expect(route).not.toHaveProperty('resetRuntimeRevisionProofForTests');
   });
 });

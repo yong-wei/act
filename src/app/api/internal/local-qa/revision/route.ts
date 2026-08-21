@@ -27,10 +27,6 @@ function getRuntimeRevisionProof() {
   }
 }
 
-export function resetRuntimeRevisionProofForTests() {
-  runtimeRevisionProof = null;
-}
-
 export async function GET() {
   if (process.env.NODE_ENV !== 'development' || process.env.ACT_LOCAL_QA_BRIDGE !== '1') {
     return new NextResponse(null, { status: 404, headers: NO_STORE_HEADERS });
