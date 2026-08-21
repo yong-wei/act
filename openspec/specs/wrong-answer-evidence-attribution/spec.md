@@ -1,7 +1,7 @@
 # wrong-answer-evidence-attribution Specification
 
 ## Purpose
-TBD - created by archiving change add-micro-tutoring-option-attribution. Update Purpose after archive.
+规定错误答案归因必须优先使用与当前题目 ID、内容哈希和学生所选错误选项精确匹配的选项级目录记录；记录缺失、重复、未审核或漂移时 fail-closed 为不确定状态，不得用题目级语义、关键词或默认节点回退。
 
 ## Requirements
 
