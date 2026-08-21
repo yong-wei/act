@@ -188,7 +188,7 @@ function main() {
   const indexValidation = filesOnly
     ? null
     : validateIndex(runtimeRoot, indexDir, runtime.authoringSourceRevision);
-  const bookIds = textbookBookIds();
+  const bookIds = runtime.bookIds;
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
     bookIds,
@@ -206,7 +206,7 @@ function main() {
     indexFiles: index?.fileCount ?? null,
     indexResourceSetId: index?.resourceSetId ?? null,
     indexWindows: indexValidation?.windows ?? null,
-    resourceSetId: loadTextbookResourceSet().resourceSetId,
+    currentResourceSetId: loadTextbookResourceSet().resourceSetId,
     runtimeDirectories: bookIds.length,
     recordsValidated: validation?.recordsValidated ?? null,
     closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,
