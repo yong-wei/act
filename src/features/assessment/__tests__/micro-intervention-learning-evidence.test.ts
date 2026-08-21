@@ -63,7 +63,7 @@ function sealedOutcome(overrides: Partial<SealedMicroInterventionOutcome> = {}):
   };
 }
 
-function createDb() {
+function createDb(initialOutcome: SealedMicroInterventionOutcome | null = sealedOutcome()) {
   const facts: Array<{ sourceEventId?: string | null; contextJson?: unknown; factType: string }> = [];
   const outbox = new Map<string, {
     status: string;
@@ -71,10 +71,13 @@ function createDb() {
     ownerUserId: string;
     dedupeKey: string;
     correlationId?: string;
+    causationId?: string;
+    eventType?: string;
   }>();
-  const db: MicroInterventionEvidenceDb = {
+  let outcome = initialOutcome;
+  const db = {
     learningFact: {
-      createMany: async ({ data, skipDuplicates }) => {
+      createMany: async ({ data, skipDuplicates }: { data: Array<{ sourceEventId?: string | null }>; skipDuplicates?: boolean }) => {
         const rows = Array.isArray(data) ? data : [];
         let count = 0;
         for (const row of rows) {
@@ -86,7 +89,7 @@ function createDb() {
         }
         return { count };
       },
-      updateMany: async ({ where, data }) => {
+      updateMany: async ({ where, data }: { where: { sourceEventId: string }; data: { contextJson: unknown } }) => {
         let count = 0;
         for (const fact of facts) {
           if (fact.sourceEventId === where.sourceEventId) {
@@ -98,7 +101,19 @@ function createDb() {
       },
     },
     evidenceOutbox: {
-      upsert: async ({ where, create, update }) => {
+      upsert: async ({ where, create, update }: {
+        where: { dedupeKey: string };
+        create: {
+          status: string;
+          payload: unknown;
+          ownerUserId: string;
+          dedupeKey: string;
+          correlationId?: string;
+          causationId?: string;
+          eventType?: string;
+        };
+        update: Record<string, unknown>;
+      }) => {
         const existing = outbox.get(where.dedupeKey);
         if (existing) {
           const next = { ...existing, ...update };
@@ -111,16 +126,19 @@ function createDb() {
           ownerUserId: create.ownerUserId,
           dedupeKey: create.dedupeKey,
           correlationId: create.correlationId,
+          causationId: create.causationId,
+          eventType: create.eventType,
         };
         outbox.set(create.dedupeKey, created);
         return { id: create.dedupeKey, ...created };
       },
-      findMany: async ({ where }) => [...outbox.values()]
+      findMany: async ({ where }: { where: { eventType?: string; ownerUserId?: string; status?: string; correlationId?: string } }) => [...outbox.values()]
+        .filter((row) => !where.eventType || row.eventType === where.eventType)
         .filter((row) => !where.ownerUserId || row.ownerUserId === where.ownerUserId)
         .filter((row) => !where.status || row.status === where.status)
         .filter((row) => !where.correlationId || row.correlationId === where.correlationId)
         .map((row) => ({ id: row.dedupeKey, ...row })),
-      update: async ({ where, data }) => {
+      update: async ({ where, data }: { where: { dedupeKey?: string; id?: string }; data: Record<string, unknown> }) => {
         const key = where.dedupeKey ?? where.id;
         const existing = key ? outbox.get(key) : undefined;
         if (!existing) return {};
@@ -129,8 +147,20 @@ function createDb() {
         return next;
       },
     },
+    microInterventionOutcome: {
+      findFirst: async ({ where }: { where: { id: string } }) => (
+        outcome && outcome.id === where.id ? outcome : null
+      ),
+    },
   };
-  return { db, facts, outbox };
+  return {
+    db: db as unknown as MicroInterventionEvidenceDb,
+    facts,
+    outbox,
+    setOutcome: (next: SealedMicroInterventionOutcome | null) => {
+      outcome = next;
+    },
+  };
 }
 
 describe('micro-intervention learning evidence', () => {
@@ -303,6 +333,42 @@ describe('micro-intervention learning evidence', () => {
       ]),
     });
     expect(conflicted[0]?.prerequisiteEvidence.microInterventionLimitations).toContain('conflict');
+    const isolated = rebuildMasteryUpdatesFromAnswers([
+      {
+        id: 'answer-pm',
+        questionId: 'q-pm',
+        isCorrect: true,
+        answeredAt: new Date('2026-08-21T00:10:00.000Z'),
+        knowledgeTags: ['phase-margin'],
+      },
+      {
+        id: 'answer-ct',
+        questionId: 'q-ct',
+        isCorrect: true,
+        answeredAt: new Date('2026-08-21T00:11:00.000Z'),
+        knowledgeTags: ['controller-tuning'],
+      },
+    ], {
+      consumeMicroInterventionEvidence: true,
+      microInterventionEvidence: applyMicroInterventionMasteryPolicy([
+        {
+          evidenceId: 'pass',
+          canonicalNodeId: 'kn:autocontrol:controller-correction',
+          isCorrect: true,
+          occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+        },
+        {
+          evidenceId: 'fail',
+          canonicalNodeId: 'kn:autocontrol:controller-correction',
+          isCorrect: false,
+          occurredAt: new Date('2026-08-22T00:05:00.000Z'),
+        },
+      ]),
+    });
+    expect(isolated.find((item) => item.knowledgeTag === 'phase-margin')?.prerequisiteEvidence.microInterventionLimitations)
+      .toBeUndefined();
+    expect(isolated.find((item) => item.knowledgeTag === 'controller-tuning')?.prerequisiteEvidence.microInterventionLimitations)
+      .toContain('conflict');
     const early = applyMicroInterventionMasteryPolicy([{
       evidenceId: 'src',
       canonicalNodeId: 'kn:autocontrol:controller-correction',
@@ -338,8 +404,40 @@ describe('micro-intervention learning evidence', () => {
       },
     } as never, { interventionId: 'intervention-1' });
     expect(result.processed).toBe(1);
-    expect([...outbox.values()][0]?.status).toBe('projected');
+    const tasks = [...outbox.values()].filter((row) => String(row.dedupeKey).startsWith('micro-intervention:pending:'));
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]?.status).toBe('projected');
     expect(facts.length).toBeGreaterThan(0);
+  });
+
+  it('queues a new pending task when later sealed validation arrives', async () => {
+    const { db, facts, outbox, setOutcome } = createDb(sealedOutcome({ validation: null }));
+    const processor = db as never;
+    await enqueueMicroInterventionEvidenceProjection({
+      db,
+      interventionId: 'intervention-1',
+      ownerUserId: 'learner-1',
+    });
+    await processPendingMicroInterventionEvidenceProjections(processor, { interventionId: 'intervention-1' });
+    expect(facts.some((fact) => fact.factType === 'micro_intervention_validation')).toBe(false);
+    const firstTasks = [...outbox.values()].filter((row) => String(row.dedupeKey).startsWith('micro-intervention:pending:'));
+    expect(firstTasks).toHaveLength(1);
+    expect(firstTasks[0]?.status).toBe('projected');
+
+    setOutcome(sealedOutcome());
+    await enqueueMicroInterventionEvidenceProjection({
+      db,
+      interventionId: 'intervention-1',
+      ownerUserId: 'learner-1',
+    });
+    const pendingAfter = [...outbox.values()].filter((row) => (
+      String(row.dedupeKey).startsWith('micro-intervention:pending:') && row.status === 'pending'
+    ));
+    expect(pendingAfter).toHaveLength(1);
+    expect(pendingAfter[0]?.dedupeKey).not.toBe(firstTasks[0]?.dedupeKey);
+
+    await processPendingMicroInterventionEvidenceProjections(processor, { interventionId: 'intervention-1' });
+    expect(facts.some((fact) => fact.factType === 'micro_intervention_validation')).toBe(true);
   });
 
   it('does not consume micro-intervention evidence when the consumer flag is off', () => {

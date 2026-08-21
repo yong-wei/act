@@ -87,7 +87,7 @@ export interface MicroInterventionEvidenceEnvelope {
 interface EvidenceOutboxDelegate {
   upsert(args: {
     where: { dedupeKey: string };
-    update: { payload?: unknown; status?: string };
+    update: { payload?: unknown; status?: string; causationId?: string };
     create: {
       eventType: string;
       correlationId: string;
@@ -109,6 +109,7 @@ interface EvidenceOutboxDelegate {
     status: string;
     dedupeKey: string;
     correlationId?: string;
+    causationId?: string;
   }>>;
   update(args: {
     where: { id?: string; dedupeKey?: string };
@@ -144,6 +145,39 @@ function identityComplete(identity: MicroInterventionEvidenceIdentity | null): i
 
 function evidenceId(parts: string[]): string {
   return createHash('sha256').update(parts.join(':')).digest('hex');
+}
+
+export function sealedMicroInterventionProjectionWatermark(
+  outcome: Pick<SealedMicroInterventionOutcome, 'id' | 'events' | 'validation'>,
+): string {
+  const events = [...outcome.events]
+    .map((event) => `${event.id}:${event.eventType}:${event.occurredAt.toISOString()}`)
+    .sort();
+  const validation = outcome.validation
+    ? [
+      outcome.validation.id,
+      outcome.validation.questionId,
+      outcome.validation.questionContentHash,
+      outcome.validation.questionVersion,
+      outcome.validation.isCorrect ? 'pass' : 'fail',
+      outcome.validation.submittedAt.toISOString(),
+    ].join(':')
+    : 'none';
+  return evidenceId([outcome.id, ...events, validation]);
+}
+
+function pendingProjectionDedupeKey(interventionId: string, watermark: string): string {
+  return `micro-intervention:pending:${interventionId}:${watermark}`;
+}
+
+function projectionTaskPayload(interventionId: string, watermark: string, attempts = 0) {
+  return {
+    kind: 'projection-task',
+    algorithmVersion: MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION,
+    interventionId,
+    sourceWatermark: watermark,
+    attempts,
+  };
 }
 
 export async function resolveMicroInterventionEvidenceIdentity(
@@ -268,31 +302,6 @@ function publicEnvelope(envelope: MicroInterventionEvidenceEnvelope) {
   };
 }
 
-export async function enqueueMicroInterventionEvidenceProjection(input: {
-  db: MicroInterventionEvidenceDb;
-  interventionId: string;
-  ownerUserId: string;
-}): Promise<void> {
-  const dedupeKey = `micro-intervention:pending:${input.interventionId}`;
-  await input.db.evidenceOutbox.upsert({
-    where: { dedupeKey },
-    update: {},
-    create: {
-      eventType: 'micro-intervention-evidence',
-      correlationId: input.interventionId,
-      causationId: dedupeKey,
-      ownerUserId: input.ownerUserId,
-      payload: {
-        kind: 'projection-task',
-        algorithmVersion: MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION,
-        interventionId: input.interventionId,
-      },
-      dedupeKey,
-      status: 'pending',
-    },
-  });
-}
-
 type MicroInterventionProjectionDb = MicroInterventionEvidenceDb & {
   microInterventionOutcome: {
     findFirst(args: {
@@ -301,6 +310,41 @@ type MicroInterventionProjectionDb = MicroInterventionEvidenceDb & {
     }): Promise<SealedMicroInterventionOutcome | null>;
   };
 };
+
+export async function enqueueMicroInterventionEvidenceProjection(input: {
+  db: MicroInterventionProjectionDb | MicroInterventionEvidenceDb;
+  interventionId: string;
+  ownerUserId: string;
+}): Promise<void> {
+  const loader = (input.db as MicroInterventionProjectionDb).microInterventionOutcome;
+  const outcome = typeof loader?.findFirst === 'function'
+    ? await loader.findFirst({
+      where: { id: input.interventionId },
+      include: { events: true, validation: true },
+    })
+    : null;
+  const watermark = outcome
+    ? sealedMicroInterventionProjectionWatermark(outcome)
+    : evidenceId([input.interventionId, 'absent']);
+  const dedupeKey = pendingProjectionDedupeKey(input.interventionId, watermark);
+  await input.db.evidenceOutbox.upsert({
+    where: { dedupeKey },
+    update: {
+      status: 'pending',
+      causationId: watermark,
+      payload: projectionTaskPayload(input.interventionId, watermark),
+    },
+    create: {
+      eventType: 'micro-intervention-evidence',
+      correlationId: input.interventionId,
+      causationId: watermark,
+      ownerUserId: input.ownerUserId,
+      payload: projectionTaskPayload(input.interventionId, watermark),
+      dedupeKey,
+      status: 'pending',
+    },
+  });
+}
 
 export async function processPendingMicroInterventionEvidenceProjections(
   db: MicroInterventionProjectionDb,

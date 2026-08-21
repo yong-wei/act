@@ -146,9 +146,16 @@ export function rebuildMasteryUpdatesFromAnswers(
   const algorithmVersion = options.algorithmVersion ?? ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION;
   const parameters = options.parameters ?? ADAPTIVE_ASSESSMENT_BKT_PARAMETERS;
   const prerequisitesByTag = options.prerequisitesByTag ?? DEFAULT_PREREQUISITES_BY_TAG;
-  const microInterventionLimitations = options.consumeMicroInterventionEvidence
-    ? [...new Set((options.microInterventionEvidence ?? []).flatMap((item) => item.limitations))]
-    : [];
+  const microInterventionLimitationsByTag = new Map<string, string[]>();
+  if (options.consumeMicroInterventionEvidence) {
+    for (const item of options.microInterventionEvidence ?? []) {
+      const current = microInterventionLimitationsByTag.get(item.knowledgeTag) ?? [];
+      for (const limitation of item.limitations) {
+        if (!current.includes(limitation)) current.push(limitation);
+      }
+      if (current.length > 0) microInterventionLimitationsByTag.set(item.knowledgeTag, current);
+    }
+  }
   const microEvidence = options.consumeMicroInterventionEvidence
     ? (options.microInterventionEvidence ?? [])
       .filter((item) => item.profileWeight > 0)
@@ -211,8 +218,8 @@ export function rebuildMasteryUpdatesFromAnswers(
             answer.answeredAt,
             options.prerequisiteStaleAfterMs,
           ),
-          ...(microInterventionLimitations.length > 0
-            ? { microInterventionLimitations }
+          ...((microInterventionLimitationsByTag.get(tag)?.length ?? 0) > 0
+            ? { microInterventionLimitations: microInterventionLimitationsByTag.get(tag) }
             : {}),
         },
       });
