@@ -521,7 +521,8 @@ log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
   log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
 else
-  OUTPUT_TAR="${LOCAL_IMAGE_TAR}" IMAGE_TAG="${REMOTE_APP_IMAGE}" \
+  BUILD_SCOPE="$([[ "${DEPLOY_SCOPE}" == "app" ]] && printf '%s' app-only || printf '%s' runtime-bound)" \
+    OUTPUT_TAR="${LOCAL_IMAGE_TAR}" IMAGE_TAG="${REMOTE_APP_IMAGE}" \
     bash "${ROOT_DIR}/scripts/build.sh"
 fi
 
@@ -534,31 +535,49 @@ fi
 node "${LOCAL_PROVENANCE_HELPER}" verify-image \
   --image-tar "${LOCAL_IMAGE_TAR}" \
   --sidecar "${LOCAL_PROVENANCE_FILE}"
+PROVENANCE_DEPLOYMENT_SCOPE="$(
+  node "${LOCAL_PROVENANCE_HELPER}" print-field \
+    --sidecar "${LOCAL_PROVENANCE_FILE}" \
+    --field deploymentScope
+)"
+if [[ "${DEPLOY_SCOPE}" == "app" ]]; then
+  [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "app-only" ]] \
+    || fail "--app-only 必须使用 deploymentScope=app-only 的镜像 provenance"
+else
+  [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "runtime-bound" ]] \
+    || fail "包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance"
+fi
 PROVENANCE_APP_REVISION="$(
   node "${LOCAL_PROVENANCE_HELPER}" print-field \
     --sidecar "${LOCAL_PROVENANCE_FILE}" \
     --field appRevision
 )"
-PROVENANCE_RUNTIME_REVISION="$(
-  node "${LOCAL_PROVENANCE_HELPER}" print-field \
-    --sidecar "${LOCAL_PROVENANCE_FILE}" \
-    --field runtimeSourceRevision
-)"
-PROVENANCE_RUNTIME_DIGEST="$(
-  node "${LOCAL_PROVENANCE_HELPER}" print-field \
-    --sidecar "${LOCAL_PROVENANCE_FILE}" \
-    --field runtimeDigest
-)"
-PROVENANCE_INDEX_REVISION="$(
-  node "${LOCAL_PROVENANCE_HELPER}" print-field \
-    --sidecar "${LOCAL_PROVENANCE_FILE}" \
-    --field indexSourceRevision
-)"
-PROVENANCE_INDEX_DIGEST="$(
-  node "${LOCAL_PROVENANCE_HELPER}" print-field \
-    --sidecar "${LOCAL_PROVENANCE_FILE}" \
-    --field indexDigest
-)"
+PROVENANCE_RUNTIME_REVISION=""
+PROVENANCE_RUNTIME_DIGEST=""
+PROVENANCE_INDEX_REVISION=""
+PROVENANCE_INDEX_DIGEST=""
+if [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "runtime-bound" ]]; then
+  PROVENANCE_RUNTIME_REVISION="$(
+    node "${LOCAL_PROVENANCE_HELPER}" print-field \
+      --sidecar "${LOCAL_PROVENANCE_FILE}" \
+      --field runtimeSourceRevision
+  )"
+  PROVENANCE_RUNTIME_DIGEST="$(
+    node "${LOCAL_PROVENANCE_HELPER}" print-field \
+      --sidecar "${LOCAL_PROVENANCE_FILE}" \
+      --field runtimeDigest
+  )"
+  PROVENANCE_INDEX_REVISION="$(
+    node "${LOCAL_PROVENANCE_HELPER}" print-field \
+      --sidecar "${LOCAL_PROVENANCE_FILE}" \
+      --field indexSourceRevision
+  )"
+  PROVENANCE_INDEX_DIGEST="$(
+    node "${LOCAL_PROVENANCE_HELPER}" print-field \
+      --sidecar "${LOCAL_PROVENANCE_FILE}" \
+      --field indexDigest
+  )"
+fi
 
 LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
 log "本地镜像: ${LOCAL_IMAGE_TAR}"
@@ -888,7 +907,11 @@ log "  公网地址: ${PUBLIC_URL}"
 log "  远端镜像: ${REMOTE_IMAGE_TAR}"
 log "  SHA256: ${REMOTE_FINAL_SHA}"
 log "  应用修订: ${PROVENANCE_APP_REVISION}"
-log "  教材 runtime 修订: ${PROVENANCE_RUNTIME_REVISION}"
-log "  教材 runtime digest: ${PROVENANCE_RUNTIME_DIGEST}"
-log "  教材检索索引修订: ${PROVENANCE_INDEX_REVISION}"
-log "  教材检索索引 digest: ${PROVENANCE_INDEX_DIGEST}"
+if [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "runtime-bound" ]]; then
+  log "  教材 runtime 修订: ${PROVENANCE_RUNTIME_REVISION}"
+  log "  教材 runtime digest: ${PROVENANCE_RUNTIME_DIGEST}"
+  log "  教材检索索引修订: ${PROVENANCE_INDEX_REVISION}"
+  log "  教材检索索引 digest: ${PROVENANCE_INDEX_DIGEST}"
+else
+  log "  runtime provenance: 未声明（app-only 部署保持远端现有 runtime）"
+fi

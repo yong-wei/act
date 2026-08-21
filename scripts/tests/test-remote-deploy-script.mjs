@@ -306,6 +306,14 @@ function main() {
     '远端部署脚本必须先调用本地 build.sh'
   );
 
+  assert.equal(
+    script.includes('BUILD_SCOPE="$([[ "${DEPLOY_SCOPE}" == "app" ]] && printf \'%s\' app-only || printf \'%s\' runtime-bound)"') &&
+      script.includes('--app-only 必须使用 deploymentScope=app-only 的镜像 provenance') &&
+      script.includes('包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance'),
+    true,
+    'app-only 部署必须使用不声明 runtime 的 provenance，runtime 选择部署仍必须绑定完整 provenance',
+  );
+
   assert.match(
     script,
     /SKIP_BUILD="\$\{SKIP_BUILD:-0\}"/,
