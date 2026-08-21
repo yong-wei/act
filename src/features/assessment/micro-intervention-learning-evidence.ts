@@ -16,9 +16,11 @@ import {
   decayedValidationWeight,
   isMicroInterventionEvidenceConsumerEnabled,
   isRepeatWithinWindow,
+  mapCanonicalNodeToMasteryTags,
   type MicroInterventionEvidenceKind,
   type MicroInterventionEvidenceLimitation,
 } from './micro-intervention-evidence-policy';
+import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 
 export interface MicroInterventionEvidenceIdentity {
   canonicalObjectId: string;
@@ -216,7 +218,7 @@ export function readSealedMicroInterventionProjectionSource(
       || outcome.validation.questionContentHash !== task.validationQuestion.contentHash
       || outcome.validation.questionVersion !== task.validationQuestion.version
     ) {
-      limitations.push('identity-drift');
+      return { envelopes: [], limitations: ['identity-drift'] };
     } else {
       envelopes.push({
         ...base,
@@ -255,6 +257,31 @@ function publicEnvelope(envelope: MicroInterventionEvidenceEnvelope) {
     captureRevision: envelope.identity.captureRevision,
     limitations: envelope.limitations,
   };
+}
+
+export async function enqueueMicroInterventionEvidenceProjection(input: {
+  db: MicroInterventionEvidenceDb;
+  interventionId: string;
+  ownerUserId: string;
+}): Promise<void> {
+  const dedupeKey = `micro-intervention:pending:${input.interventionId}`;
+  await input.db.evidenceOutbox.upsert({
+    where: { dedupeKey },
+    update: {},
+    create: {
+      eventType: 'micro-intervention-evidence',
+      correlationId: input.interventionId,
+      causationId: dedupeKey,
+      ownerUserId: input.ownerUserId,
+      payload: {
+        kind: 'projection-task',
+        algorithmVersion: MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION,
+        interventionId: input.interventionId,
+      },
+      dedupeKey,
+      status: 'pending',
+    },
+  });
 }
 
 export async function scheduleMicroInterventionEvidenceProjection(input: {
@@ -368,17 +395,6 @@ export async function projectMicroInterventionOutcome(input: {
       { knowledgeRevisionRef: revision.id },
     );
     writtenFacts += written.written;
-    if (
-      written.written === 0
-      && consume
-      && envelope.kind === 'independent-validation'
-      && typeof input.db.learningFact.updateMany === 'function'
-    ) {
-      await input.db.learningFact.updateMany({
-        where: { sourceEventId },
-        data: { contextJson },
-      });
-    }
   }
   return { projected: source.envelopes, limitations: source.limitations, writtenFacts };
 }
@@ -472,6 +488,50 @@ export function summarizeMicroInterventionEvidenceForPath(
     failCount: validations.filter((envelope) => envelope.isCorrect === false).length,
     limitations: [...limitations],
   };
+}
+
+export function applyMicroInterventionMasteryPolicy(
+  items: Array<{
+    evidenceId: string;
+    canonicalNodeId: string;
+    isCorrect: boolean;
+    occurredAt: Date;
+  }>,
+  now = new Date(),
+): MicroInterventionMasteryEvidence[] {
+  const grouped = new Map<string, typeof items>();
+  for (const item of items) {
+    const group = grouped.get(item.canonicalNodeId) ?? [];
+    group.push(item);
+    grouped.set(item.canonicalNodeId, group);
+  }
+  const evidence: MicroInterventionMasteryEvidence[] = [];
+  for (const [canonicalNodeId, group] of grouped) {
+    const ordered = [...group].sort((left, right) => left.occurredAt.getTime() - right.occurredAt.getTime());
+    const conflict = ordered.some((item) => item.isCorrect) && ordered.some((item) => !item.isCorrect);
+    ordered.forEach((item, index) => {
+      const tags = mapCanonicalNodeToMasteryTags(canonicalNodeId);
+      let weight = conflict ? 0 : decayedValidationWeight(item.occurredAt, now);
+      const limitations = ['not-terminal-mastery'];
+      if (conflict) limitations.push('conflict');
+      if (!conflict && index > 0 && isRepeatWithinWindow(ordered[index - 1].occurredAt, item.occurredAt)) {
+        weight = 0;
+        limitations.push('repeat-suppressed');
+      }
+      if (weight < MICRO_INTERVENTION_VALIDATION_WEIGHT_CAP) limitations.push('time-decayed');
+      for (const knowledgeTag of tags) {
+        evidence.push({
+          evidenceId: `${item.evidenceId}:${knowledgeTag}`,
+          knowledgeTag,
+          isCorrect: item.isCorrect,
+          occurredAt: item.occurredAt,
+          profileWeight: weight,
+          limitations,
+        });
+      }
+    });
+  }
+  return evidence;
 }
 
 export function applyMicroInterventionEvidenceSummaryToPathPlan<T extends {

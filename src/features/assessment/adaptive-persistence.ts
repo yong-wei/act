@@ -23,6 +23,7 @@ import {
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
 import { isMicroInterventionEvidenceConsumerEnabled } from './micro-intervention-evidence-policy';
+import { applyMicroInterventionMasteryPolicy } from './micro-intervention-learning-evidence';
 import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 
 import {
@@ -1131,29 +1132,23 @@ async function loadMicroInterventionMasteryEvidence(
       factType: 'micro_intervention_validation',
     },
   });
-  return rows.flatMap((row) => {
+  const raw = rows.flatMap((row) => {
     const context = row.contextJson && typeof row.contextJson === 'object' && !Array.isArray(row.contextJson)
       ? row.contextJson as Record<string, unknown>
-      : {};
-    const governance = context.evidenceGovernance && typeof context.evidenceGovernance === 'object'
-      ? context.evidenceGovernance as Record<string, unknown>
       : {};
     const evidence = context.microInterventionEvidence && typeof context.microInterventionEvidence === 'object'
       ? context.microInterventionEvidence as Record<string, unknown>
       : {};
-    const knowledgeTag = typeof evidence.canonicalNodeId === 'string' ? evidence.canonicalNodeId : '';
-    if (!row.sourceEventId || !knowledgeTag) return [];
+    const canonicalNodeId = typeof evidence.canonicalNodeId === 'string' ? evidence.canonicalNodeId : '';
+    if (!row.sourceEventId || !canonicalNodeId) return [];
     return [{
       evidenceId: row.sourceEventId,
-      knowledgeTag,
+      canonicalNodeId,
       isCorrect: row.outcome === 'success',
       occurredAt: row.startedAt,
-      profileWeight: typeof governance.profileWeight === 'number' ? governance.profileWeight : 0,
-      limitations: Array.isArray(evidence.limitations)
-        ? evidence.limitations.filter((item): item is string => typeof item === 'string')
-        : [],
     }];
   });
+  return applyMicroInterventionMasteryPolicy(raw);
 }
 
 async function loadPersistedAnswerRecords(

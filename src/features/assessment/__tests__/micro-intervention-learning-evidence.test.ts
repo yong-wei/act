@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { rebuildMasteryUpdatesFromAnswers } from '../adaptive-mastery';
 import {
   applyMicroInterventionEvidenceSummaryToPathPlan,
+  applyMicroInterventionMasteryPolicy,
   buildPublicMicroInterventionEvidenceReport,
   projectMicroInterventionOutcome,
   readSealedMicroInterventionProjectionSource,
@@ -165,8 +166,15 @@ describe('micro-intervention learning evidence', () => {
       identity: IDENTITY,
       consume: true,
     });
-    const upgraded = upgradedFacts.find((fact) => fact.factType === 'micro_intervention_validation');
-    expect((upgraded?.contextJson as { evidenceGovernance: { profileWeight: number } }).evidenceGovernance.profileWeight).toBe(0.25);
+    const sealed = upgradedFacts.find((fact) => fact.factType === 'micro_intervention_validation');
+    expect((sealed?.contextJson as { evidenceGovernance: { profileWeight: number } }).evidenceGovernance.profileWeight).toBe(0);
+    const consumed = applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:controller-correction',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+    }]);
+    expect(consumed[0]?.profileWeight).toBe(0.25);
     expect(JSON.stringify([...outbox.values()])).not.toContain('source-q-1');
     expect(JSON.stringify([...outbox.values()])).not.toContain('phase-lag');
     expect(JSON.stringify(facts)).not.toContain('selectedOption');
@@ -240,6 +248,17 @@ describe('micro-intervention learning evidence', () => {
       microInterventionEvidence: [{ ...evidence[0], profileWeight: 1 }],
     });
     expect(first[0]?.posteriorMastery).toBeLessThan(fullWeight[0]?.posteriorMastery ?? 1);
+
+    const mapped = rebuildMasteryUpdatesFromAnswers([], {
+      consumeMicroInterventionEvidence: true,
+      microInterventionEvidence: applyMicroInterventionMasteryPolicy([{
+        evidenceId: 'src',
+        canonicalNodeId: 'kn:autocontrol:controller-correction',
+        isCorrect: true,
+        occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+      }]),
+    });
+    expect(mapped[0]?.knowledgeTag).toBe('controller-tuning');
   });
 
   it('does not consume micro-intervention evidence when the consumer flag is off', () => {

@@ -8,7 +8,10 @@ import {
   submitMicroInterventionValidation,
   type MicroInterventionDb,
 } from '@/features/assessment/micro-intervention-outcomes';
-import { scheduleMicroInterventionEvidenceProjection } from '@/features/assessment/micro-intervention-learning-evidence';
+import {
+  enqueueMicroInterventionEvidenceProjection,
+  scheduleMicroInterventionEvidenceProjection,
+} from '@/features/assessment/micro-intervention-learning-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +79,11 @@ export async function POST(request: Request) {
     });
     if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
     if (result.status !== 'UNAVAILABLE') {
+      await enqueueMicroInterventionEvidenceProjection({
+        db: prisma as never,
+        interventionId,
+        ownerUserId: authenticated.userId,
+      });
       try {
         await scheduleMicroInterventionEvidenceProjection({
           db: prisma as never,

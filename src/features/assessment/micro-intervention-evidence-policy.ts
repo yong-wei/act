@@ -34,3 +34,20 @@ export function decayedValidationWeight(occurredAt: Date, now = new Date()): num
 export function isRepeatWithinWindow(previousAt: Date, currentAt: Date): boolean {
   return Math.abs(currentAt.getTime() - previousAt.getTime()) < MICRO_INTERVENTION_EVIDENCE_REPEAT_WINDOW_MS;
 }
+
+const CANONICAL_NODE_MASTERY_TAGS: Record<string, string[]> = {
+  'kn:autocontrol:stability-margin': ['phase-margin', 'gain-margin'],
+  'kn:autocontrol:controller-correction': ['controller-tuning'],
+  'kn:autocontrol:frequency-response': ['phase-margin'],
+  'kn:autocontrol:time-domain-performance': ['overshoot', 'settling-time'],
+  'kn:autocontrol:root-locus': ['pole-stability'],
+  'kn:autocontrol:feedback-loop': ['pole-stability'],
+  'kn:autocontrol:transfer-function-model': ['pole-stability'],
+};
+
+export function mapCanonicalNodeToMasteryTags(canonicalNodeId: string): string[] {
+  const mapped = CANONICAL_NODE_MASTERY_TAGS[canonicalNodeId];
+  if (mapped) return mapped;
+  const leaf = canonicalNodeId.split(':').pop()?.trim();
+  return leaf ? [leaf] : [];
+}
