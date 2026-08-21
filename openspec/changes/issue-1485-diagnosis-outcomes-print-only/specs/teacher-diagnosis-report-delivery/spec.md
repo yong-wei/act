@@ -25,3 +25,9 @@ The teacher report disposition area SHALL link to the existing smart preparation
 - **WHEN** an authorized teacher opens the teacher delivery page for a class report whose findings omit knowledge-node identifiers
 - **THEN** the report disposition area SHALL show the smart preparation workspace entry
 - **AND** it SHALL NOT create or alter a preparation task.
+
+#### Scenario: Local textbook runtime is not materialized
+
+- **WHEN** the teacher follows the report-level preparation entry in a local environment without the optional structured-textbook runtime directory
+- **THEN** the smart preparation workspace SHALL remain available with an empty textbook catalog
+- **AND** it SHALL NOT fail the diagnosis-report handoff.
