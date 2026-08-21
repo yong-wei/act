@@ -54,6 +54,7 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
+import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -504,17 +505,22 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   role: KnowledgeRole | undefined,
 ): NextResponse {
   try {
-    const shard = projectAuthorityLearnerShard(read());
+    const raw = read();
+    const shard = projectAuthorityLearnerShard(raw);
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);
+      const resourceBindings = attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard);
       if (role === 'STUDENT') {
         const { teachingFields: _teachingFields, ...node } = detail.node;
-        return NextResponse.json({ ...detail, node: { ...node, mathematics } });
+        return NextResponse.json({
+          ...detail,
+          node: { ...node, mathematics, resourceBindings },
+        });
       }
       return NextResponse.json({
         ...detail,
-        node: { ...detail.node, mathematics },
+        node: { ...detail.node, mathematics, resourceBindings },
       });
     }
     return NextResponse.json(shard);

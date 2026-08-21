@@ -16,8 +16,9 @@ import {
   X,
 } from 'lucide-react';
 
-import type {
-  ActiveNodeDetailResponse,
+import {
+  ACTIVE_RESOURCE_BINDING_ROLES,
+  type ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
@@ -1052,6 +1053,52 @@ function ActiveNodeDetail({
               />
             </section>
           ) : null}
+          <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
+            <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">系统资源</h3>
+            {node?.resourceBindings?.state === 'available' ? (
+              <div className="mt-2 space-y-3">
+                {ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
+                  const bindings = node.resourceBindings;
+                  const items = bindings?.state === 'available'
+                    ? bindings.items.filter((item) => item.bindingRole === role)
+                    : [];
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={role} data-active-resource-role={role}>
+                      <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
+                      <div className="mt-1 space-y-1">
+                        {items.map((item) => (
+                          item.availability === 'available' && item.launch.href ? (
+                            <a
+                              key={`${role}-${item.title}`}
+                              href={item.launch.href}
+                              data-active-resource-launch={item.launch.kind}
+                              className="block rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                            >
+                              {item.title}
+                              <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
+                            </a>
+                          ) : (
+                            <p
+                              key={`${role}-${item.title}`}
+                              data-active-resource-unavailable="true"
+                              className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
+                            >
+                              {item.title}（暂不可启动）
+                            </p>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-platform-fg-muted">
+                {node?.resourceBindings?.message ?? '暂无已授权系统资源。'}
+              </p>
+            )}
+          </section>
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
               <h3 className="font-semibold text-platform-fg-primary">内容状态</h3>
