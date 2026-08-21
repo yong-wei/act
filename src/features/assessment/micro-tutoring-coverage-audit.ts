@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessment/assessment-evidence-authority';
@@ -144,6 +144,7 @@ export interface MicroTutoringCoverageAuditReport {
   }>;
   gapReasonCounts: Record<MicroTutoringCoverageGapReason, number>;
   rows: MicroTutoringCoverageRow[];
+  contentDigest: string;
 }
 
 function uniqueSorted(values: string[]): string[] {
@@ -557,7 +558,7 @@ export function buildMicroTutoringCoverageAuditReport(
     for (const reason of row.reasons) gapReasonCounts[reason] += 1;
   }
   const completeOptionCount = rows.filter((row) => row.status === 'COMPLETE').length;
-  return {
+  const report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'> = {
     artifactVersion: MICRO_TUTORING_COVERAGE_AUDIT_VERSION,
     baselineItemCount: input.baseline.entries.length,
     qualifiedPracticeItemCount: qualifiedItems.length,
@@ -570,6 +571,10 @@ export function buildMicroTutoringCoverageAuditReport(
     gapReasonCounts,
     rows,
     ...(input.inputCapture ? { inputCapture: input.inputCapture } : {}),
+  };
+  return {
+    ...report,
+    contentDigest: microTutoringCoverageAuditContentDigest(report),
   };
 }
 
@@ -627,4 +632,46 @@ export function microTutoringCoverageAuditIsStrictlyComplete(
   return report.baselineIssues.length === 0 &&
     report.attributionIssues.length === 0 &&
     report.gapOptionCount === 0;
+}
+
+export function microTutoringCoverageAuditIsGitContentComplete(
+  report: MicroTutoringCoverageAuditReport,
+): boolean {
+  return report.baselineIssues.length === 0 &&
+    report.attributionIssues.length === 0 &&
+    report.qualifiedPracticeItemCount === MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT &&
+    report.errorOptionCount === 108 &&
+    report.gapReasonCounts.ATTRIBUTION_UNCERTAIN === 0 &&
+    report.gapReasonCounts.CANONICAL_NODE_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.RESOURCE_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.ACCESS_REVOKED === 0 &&
+    report.rows.every((row) => row.resources.length >= 1 && row.validationItems.length >= 1);
+}
+
+export function microTutoringCoverageAuditContentDigest(
+  report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'>,
+): string {
+  return `sha256:${createHash('sha256').update(JSON.stringify({
+    artifactVersion: report.artifactVersion,
+    baselineItemCount: report.baselineItemCount,
+    qualifiedPracticeItemCount: report.qualifiedPracticeItemCount,
+    errorOptionCount: report.errorOptionCount,
+    completeOptionCount: report.completeOptionCount,
+    gapOptionCount: report.gapOptionCount,
+    gapReasonCounts: report.gapReasonCounts,
+    baselineIssues: report.baselineIssues,
+    attributionIssueCount: report.attributionIssueCount,
+    attributionIssues: report.attributionIssues,
+    inputCapture: report.inputCapture ?? null,
+    rows: report.rows.map((row) => ({
+      catalogItemId: row.catalogItemId,
+      contentHash: row.contentHash,
+      errorOptionRef: row.errorOptionRef,
+      status: row.status,
+      reasons: row.reasons,
+      resourceIds: row.resources.map((resource) => resource.id),
+      validationIds: row.validationItems.map((item) => item.id),
+    })),
+  })).digest('hex')}`;
 }

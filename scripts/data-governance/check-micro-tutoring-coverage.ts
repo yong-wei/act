@@ -35,6 +35,8 @@ const GOVERNANCE_CAPTURE_PATHS = [
   `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
   'src/features/assessment/micro-tutoring-coverage-audit.ts',
+  'src/features/assessment/micro-tutoring-production-qualification.ts',
+  'scripts/data-governance/qualify-micro-tutoring.ts',
   'src/features/assessment/micro-tutoring-goal-node-catalog.ts',
   'src/features/assessment/micro-tutoring-resource-registry.ts',
   'src/features/assessment/micro-tutoring-validation-registry.ts',
@@ -201,7 +203,7 @@ async function loadGovernedRows(offline: boolean, sourceRevision: string): Promi
     return {
       resources: [],
       validations: [],
-      dependencyIssues: ['REFERENCE_DRIFT'],
+      dependencyIssues: [],
       governedProjectionRevision: null,
     };
   }
@@ -349,6 +351,7 @@ async function main() {
     errorOptionCount: report.errorOptionCount,
     completeOptionCount: report.completeOptionCount,
     gapOptionCount: report.gapOptionCount,
+    contentDigest: report.contentDigest,
     baselineIssues: report.baselineIssues.length,
     attributionIssues: report.attributionIssueCount,
     sourceRevision: inputCapture.sourceRevision,

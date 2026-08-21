@@ -10,6 +10,7 @@ import {
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   buildMicroTutoringCoverageAuditReport,
+  microTutoringCoverageAuditIsGitContentComplete,
   microTutoringCoverageAuditIsStrictlyComplete,
   microTutoringCoverageAuditMarkdown,
   type MicroTutoringOptionAttribution,
@@ -193,6 +194,8 @@ describe('micro tutoring coverage audit', () => {
       row.validationItems.every((item) => item.contentHash !== row.contentHash))).toBe(true);
     expect(JSON.stringify(result)).not.toContain('independenceRationale');
     expect(JSON.stringify(result)).not.toContain('purposeRationale');
+    expect(result.contentDigest).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(microTutoringCoverageAuditIsGitContentComplete(result)).toBe(true);
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(true);
   });
 
