@@ -35,18 +35,28 @@ try {
   const markdown = readFileSync(path.join(outputDir, 'micro-tutoring-coverage.md'), 'utf8');
   assert.equal(report.qualifiedPracticeItemCount, 54);
   assert.equal(report.errorOptionCount, 108);
-  assert.equal(report.gapOptionCount, 108);
+  assert.equal(report.gapReasonCounts.RESOURCE_UNAVAILABLE, 0);
+  assert.equal(report.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE, 0);
+  assert.equal(report.rows.every((row) => row.resources.length === 1), true);
+  assert.equal(report.rows.every((row) => row.validationItems.length >= 1), true);
   assert.equal(report.baselineIssues.length, 0);
   assert.match(report.inputCapture.sourceRevision, /^[a-f0-9]{40}$/);
   assert.equal(typeof report.inputCapture.sourceInputsClean, 'boolean');
+  assert.match(report.contentDigest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(JSON.stringify(report).includes('isCorrect'), false);
   assert.equal(JSON.stringify(report).includes('answerKey'), false);
   assert.equal(JSON.stringify(report).includes(optionReferenceSecret), false);
   assert.equal(markdown.includes('isCorrect'), false);
 
   const strictResult = run(['--strict']);
-  assert.notEqual(strictResult.status, 0, 'strict mode must fail when governed dependencies are unavailable');
-  assert.equal(readFileSync(path.join(outputDir, 'micro-tutoring-coverage.json'), 'utf8').includes('REFERENCE_DRIFT'), true);
+  if (report.inputCapture.sourceInputsClean) {
+    assert.equal(report.gapOptionCount, 0);
+    assert.equal(report.completeOptionCount, 108);
+    assert.equal(strictResult.status, 0, strictResult.output);
+  } else {
+    assert.equal(report.gapReasonCounts.REFERENCE_DRIFT, 108);
+    assert.notEqual(strictResult.status, 0, 'strict mode must fail when the captured worktree is dirty');
+  }
 
   const missingSecretResult = run([], { MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET: '' });
   assert.notEqual(missingSecretResult.status, 0, 'the command must reject a missing private option-reference secret');

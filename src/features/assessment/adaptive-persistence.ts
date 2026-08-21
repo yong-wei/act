@@ -359,6 +359,9 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
     learningGoalId: params.details.pathContext?.goalId,
     requestedStage,
   });
+  const requestedStageAuthorized = requestedStage === 'terminal-validation'
+    ? authority.limitations.length === 0
+    : Boolean(requestedStage && authority[requestedStage]);
   const reviewState = catalogSnapshot
     ? 'reviewed'
     : params.kaqQuizEvidence.learningFactEligible
@@ -366,7 +369,7 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
       : 'provisional';
   const pathAssessmentEligible = requestedStage !== null &&
     catalogSnapshot !== null &&
-    authority[requestedStage] &&
+    requestedStageAuthorized &&
     catalogSnapshotMatchesPathContext(catalogSnapshot, params.details.pathContext);
   const readinessGateEligible = requestedStage === 'readiness' && pathAssessmentEligible &&
     params.kaqQuizEvidence.readinessGateEligible;
@@ -402,10 +405,11 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
 
 function pathContextCatalogStage(
   pathContext: SubmittedAnswerDetails['pathContext'],
-): 'readiness' | 'checkpoint' | 'remediation' | null {
+): 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation' | null {
   return pathContext?.questionScope === 'readiness' ||
     pathContext?.questionScope === 'checkpoint' ||
-    pathContext?.questionScope === 'remediation'
+    pathContext?.questionScope === 'remediation' ||
+    pathContext?.questionScope === 'terminal-validation'
     ? pathContext.questionScope
     : null;
 }
@@ -424,7 +428,8 @@ function catalogSnapshotMatchesPathContext(
   if (
     questionScope === 'readiness' ||
     questionScope === 'checkpoint' ||
-    questionScope === 'remediation'
+    questionScope === 'remediation' ||
+    questionScope === 'terminal-validation'
   ) {
     return snapshot.allowedStages.includes(questionScope);
   }

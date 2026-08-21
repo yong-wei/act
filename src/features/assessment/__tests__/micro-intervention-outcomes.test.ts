@@ -36,6 +36,9 @@ const SOURCE = {
       version: 'resource.v1',
       estimatedMinutes: 3,
       actionPath: '/interactive-learning/resources/resource-1',
+      registryId: 'resource-1',
+      actionId: 'micro-tutoring-action:resource-1',
+      actionVersion: 'micro-tutoring-learning-action.v1',
     }],
     validationQuestion: {
       itemRefId: 'item-1',
@@ -223,6 +226,9 @@ describe('micro intervention outcomes', () => {
       version: resource.version,
       actionPath: resource.actionPath,
       estimatedMinutes: resource.estimatedMinutes,
+      registryId: resource.registryId,
+      actionId: resource.actionId,
+      actionVersion: resource.actionVersion,
     };
     mocks.readAvailableRemediationInterventionSource.mockResolvedValue(currentSource);
 
@@ -313,6 +319,34 @@ describe('micro intervention outcomes', () => {
       durationSeconds: 180,
     })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
     expect(events).toHaveLength(2);
+  });
+
+  it('rejects resource participation without a governed action identity', async () => {
+    const { db } = createDb();
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue({
+      ...SOURCE,
+      task: {
+        ...SOURCE.task,
+        resources: [{
+          id: 'resource-1',
+          title: 'Governed resource',
+          version: 'resource.v1',
+          estimatedMinutes: 3,
+          actionPath: '/interactive-learning/resources/resource-1',
+        }],
+      },
+    });
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    await expect(recordMicroInterventionEvent({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'resource-1',
+      eventType: 'RESOURCE_USED',
+      resourceId: 'resource-1',
+    })).rejects.toMatchObject({ code: 'EVENT_INVALID' });
   });
 
   it('rejects a concurrent event write that resolves to a different first payload', async () => {

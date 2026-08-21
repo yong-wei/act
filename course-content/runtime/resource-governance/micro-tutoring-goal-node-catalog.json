@@ -1,0 +1,89 @@
+{
+  "version": "micro-tutoring-goal-node-catalog.v1",
+  "baselineVersion": "micro-tutoring-practice-baseline.v1",
+  "graphVersion": "autocontrol-kaq-graph.v1",
+  "source": "micro-tutoring-option-attributions.v2",
+  "entries": [
+    {
+      "learningGoalId": "control-correction",
+      "aliases": ["learning-goal:control-correction"],
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:control-correction#sha256:c8cae93f67c906b252a1de8b9372ea6d3f5255effde054172856507701366805"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "aliases": ["learning-goal:feedback-loop-concept-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:feedback-loop-concept-foundations#sha256:ab11a1062d91f2ddd488caeb300d894c5e65e7d4329b0386267483f8a5d9f68b"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "frequency-response-foundations",
+      "aliases": ["learning-goal:frequency-response-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:frequency-response-foundations#sha256:bb7594d8652c274ee43e509f6d17b015381fa2a21de73cf57c333b32599ed110"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "root-locus-analysis-foundations",
+      "aliases": ["learning-goal:root-locus-analysis-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:root-locus-analysis-foundations#sha256:fa1f72ad120b0b02f96ea6094ed56b133c7c889c33b666b23e5c59e5ef81b8e0"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "ship-ocean-transfer-application",
+      "aliases": ["learning-goal:ship-ocean-transfer-application"],
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:ship-ocean-transfer-application#sha256:a797f168a49dc532372ea1c837f0a275afc709987507c7d69932b880b8ae3b1b"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "simulation-validation-practice",
+      "aliases": ["learning-goal:simulation-validation-practice"],
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:simulation-validation-practice#sha256:0543ad729a87924ebc3ecfc81df91af1d483252c81dfe118d9e812ccbaf18a1b"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "aliases": ["learning-goal:stability-margin-frequency-analysis"],
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:stability-margin-frequency-analysis#sha256:962fb70e55c344cb5737e20a65bb555d8fd6535817f2d20a318ed4948f814909"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "time-domain-response-analysis",
+      "aliases": ["learning-goal:time-domain-response-analysis"],
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:time-domain-response-analysis#sha256:4963eec9c5d7752e5b0b56a5ccebaf7b0e29c2dac8819d056a876e069cff4eaa"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "aliases": ["learning-goal:transfer-function-modeling-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:transfer-function-modeling-foundations#sha256:4e38660bd703b7430799cbf7cfeac35fbf9a51a70606f8535145b8b50ca86a12"],
+      "enabled": true
+    }
+  ]
+}

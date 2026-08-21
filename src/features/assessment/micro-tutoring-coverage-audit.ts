@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessment/assessment-evidence-authority';
@@ -8,6 +8,11 @@ import {
   optionAttributionKey,
   type MicroTutoringOptionAttribution,
 } from './micro-tutoring-option-attribution';
+import {
+  loadMicroTutoringGoalNodeCatalog,
+  resolveMicroTutoringGoalNode,
+  type MicroTutoringGoalNodeSourceContext,
+} from './micro-tutoring-goal-node-catalog';
 
 export type { MicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
@@ -38,7 +43,10 @@ export type MicroTutoringOptionAttributionIssueReason =
   | 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION'
   | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID'
   | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_REUSED'
-  | 'ATTRIBUTION_RECORD_DUPLICATE';
+  | 'ATTRIBUTION_RECORD_DUPLICATE'
+  | 'GOAL_NODE_CATALOG_INVALID'
+  | 'GOAL_NODE_UNRESOLVED'
+  | 'GOAL_NODE_CONFLICT';
 
 export interface MicroTutoringPracticeBaseline {
   version: string;
@@ -69,6 +77,8 @@ export interface MicroTutoringCoverageAuditInput {
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   optionReferenceSecret: string;
   activeLearningGoalIds: Iterable<string>;
   activeKnowledgeNodeIds: Iterable<string>;
@@ -134,6 +144,7 @@ export interface MicroTutoringCoverageAuditReport {
   }>;
   gapReasonCounts: Record<MicroTutoringCoverageGapReason, number>;
   rows: MicroTutoringCoverageRow[];
+  contentDigest: string;
 }
 
 function uniqueSorted(values: string[]): string[] {
@@ -274,6 +285,8 @@ function attributionHasRequiredFields(
 
 function auditOptionAttributions(input: {
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   catalogItems: AdaptiveAssessmentCatalogItem[];
   qualifiedItems: AdaptiveAssessmentCatalogItem[];
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
@@ -301,6 +314,10 @@ function auditOptionAttributions(input: {
   const rowsByOption = new Map<string, MicroTutoringOptionAttribution[]>();
   const issueByRecord = new Map<number, MicroTutoringOptionAttributionIssueReason[]>();
   const recordIndexesByOption = new Map<string, number[]>();
+  const goalNodeCatalog = loadMicroTutoringGoalNodeCatalog(
+    input.goalNodeCatalogSource,
+    input.goalNodeSourceContext,
+  );
 
   input.optionAttributions.forEach((value, index) => {
     const attribution = attributionRecord(value);
@@ -337,15 +354,25 @@ function auditOptionAttributions(input: {
       return;
     }
     const reviewDecision = reviewDecisionByItemId.get(attribution.catalogItemId);
+    const goalNode = resolveMicroTutoringGoalNode(attribution.learningGoalId, goalNodeCatalog);
     if (
       !reviewDecision ||
       reviewDecision.sourceContentHash !== attribution.contentHash ||
       reviewDecision.reviewSourceHash !== attribution.itemReviewSourceHash ||
       !reviewDecision.selectedLearningGoalIds.includes(attribution.learningGoalId) ||
-      !reviewDecision.selectedGraphNodeIds.includes(attribution.knowledgeNodeId) ||
       !attribution.misconceptionTag.startsWith(`misconception:${attribution.learningGoalId}:`)
     ) {
       issueByRecord.set(index, ['ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID']);
+      return;
+    }
+    if (!goalNode.ok) {
+      issueByRecord.set(index, [goalNode.reason === 'CATALOG_INVALID'
+        ? 'GOAL_NODE_CATALOG_INVALID'
+        : 'GOAL_NODE_UNRESOLVED']);
+      return;
+    }
+    if (attribution.knowledgeNodeId !== goalNode.knowledgeNodeId) {
+      issueByRecord.set(index, ['GOAL_NODE_CONFLICT']);
       return;
     }
     const rows = rowsByOption.get(optionKey) ?? [];
@@ -433,6 +460,8 @@ export function buildMicroTutoringCoverageAuditReport(
   const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
   const attributionAudit = auditOptionAttributions({
     optionAttributions: input.optionAttributions,
+    goalNodeCatalogSource: input.goalNodeCatalogSource,
+    goalNodeSourceContext: input.goalNodeSourceContext,
     catalogItems: input.catalogItems,
     qualifiedItems,
     reviewDecisions: input.reviewDecisions,
@@ -529,7 +558,7 @@ export function buildMicroTutoringCoverageAuditReport(
     for (const reason of row.reasons) gapReasonCounts[reason] += 1;
   }
   const completeOptionCount = rows.filter((row) => row.status === 'COMPLETE').length;
-  return {
+  const report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'> = {
     artifactVersion: MICRO_TUTORING_COVERAGE_AUDIT_VERSION,
     baselineItemCount: input.baseline.entries.length,
     qualifiedPracticeItemCount: qualifiedItems.length,
@@ -542,6 +571,10 @@ export function buildMicroTutoringCoverageAuditReport(
     gapReasonCounts,
     rows,
     ...(input.inputCapture ? { inputCapture: input.inputCapture } : {}),
+  };
+  return {
+    ...report,
+    contentDigest: microTutoringCoverageAuditContentDigest(report),
   };
 }
 
@@ -599,4 +632,46 @@ export function microTutoringCoverageAuditIsStrictlyComplete(
   return report.baselineIssues.length === 0 &&
     report.attributionIssues.length === 0 &&
     report.gapOptionCount === 0;
+}
+
+export function microTutoringCoverageAuditIsGitContentComplete(
+  report: MicroTutoringCoverageAuditReport,
+): boolean {
+  return report.baselineIssues.length === 0 &&
+    report.attributionIssues.length === 0 &&
+    report.qualifiedPracticeItemCount === MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT &&
+    report.errorOptionCount === 108 &&
+    report.gapReasonCounts.ATTRIBUTION_UNCERTAIN === 0 &&
+    report.gapReasonCounts.CANONICAL_NODE_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.RESOURCE_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE === 0 &&
+    report.gapReasonCounts.ACCESS_REVOKED === 0 &&
+    report.rows.every((row) => row.resources.length >= 1 && row.validationItems.length >= 1);
+}
+
+export function microTutoringCoverageAuditContentDigest(
+  report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'>,
+): string {
+  return `sha256:${createHash('sha256').update(JSON.stringify({
+    artifactVersion: report.artifactVersion,
+    baselineItemCount: report.baselineItemCount,
+    qualifiedPracticeItemCount: report.qualifiedPracticeItemCount,
+    errorOptionCount: report.errorOptionCount,
+    completeOptionCount: report.completeOptionCount,
+    gapOptionCount: report.gapOptionCount,
+    gapReasonCounts: report.gapReasonCounts,
+    baselineIssues: report.baselineIssues,
+    attributionIssueCount: report.attributionIssueCount,
+    attributionIssues: report.attributionIssues,
+    inputCapture: report.inputCapture ?? null,
+    rows: report.rows.map((row) => ({
+      catalogItemId: row.catalogItemId,
+      contentHash: row.contentHash,
+      errorOptionRef: row.errorOptionRef,
+      status: row.status,
+      reasons: row.reasons,
+      resourceIds: row.resources.map((resource) => resource.id),
+      validationIds: row.validationItems.map((item) => item.id),
+    })),
+  })).digest('hex')}`;
 }

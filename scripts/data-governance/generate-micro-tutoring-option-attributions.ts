@@ -7,6 +7,7 @@ import {
   microTutoringOptionAttributionReviewSourceHash,
   type MicroTutoringOptionAttribution,
 } from '@/features/assessment/micro-tutoring-option-attribution';
+import { resolveMicroTutoringGoalNode } from '@/features/assessment/micro-tutoring-goal-node-catalog';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OUTPUT_PATH = path.join(GOVERNANCE_DIR, 'micro-tutoring-option-attributions.json');
@@ -168,9 +169,10 @@ async function main() {
       expectedKeys.add(reviewKey);
       const review = reviewByOption.get(reviewKey);
       if (!review) throw new Error(`missing option review: ${item.sourceId}:${option.key}`);
-      const [, , misconceptionSlug, evidenceSummary, nodeIndex = 0] = review;
-      const knowledgeNodeId = decision.selectedGraphNodeIds[nodeIndex];
-      if (!knowledgeNodeId) throw new Error(`invalid reviewed node index: ${item.sourceId}:${option.key}`);
+      const [, , misconceptionSlug, evidenceSummary] = review;
+      const goalNode = resolveMicroTutoringGoalNode(decision.selectedLearningGoalIds[0]);
+      if (!goalNode.ok) throw new Error(`unresolved goal node: ${item.sourceId}:${goalNode.reason}`);
+      const knowledgeNodeId = goalNode.knowledgeNodeId;
       const attributionWithoutHash = {
         catalogItemId: item.catalogItemId,
         contentHash: item.contentHash,

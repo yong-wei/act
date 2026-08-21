@@ -3,7 +3,7 @@
 ## Purpose
 Provide one governed catalog for all adaptive-assessment question sources so path planning, review workflows, and answer snapshots share stable item identity, lineage, content hashes, review state, and eligibility semantics.
 
-The catalog separates low-stakes imported or generated practice from explicitly path-eligible items used for readiness, checkpoint, remediation, and terminal-validation gates.
+The catalog separates low-stakes imported or generated practice from explicitly path-eligible items used for readiness, checkpoint, remediation, and terminal-validation gates. Micro-tutoring validation purpose is an explicit review decision bound to catalog identity; it is not inferred from `allowedStages`.
 ## Requirements
 ### Requirement: Assessment item catalog registers all adaptive question sources
 The system SHALL maintain a governed assessment item catalog that registers all current and future sources that may supply adaptive-assessment questions.
@@ -178,3 +178,49 @@ LearningGoal assessment baseline completion SHALL support deterministic shards s
 - **WHEN** selected shard rows cannot satisfy a stage
 - **THEN** the coverage matrix SHALL report an explicit limitation for that shard cell
 - **AND** unselected rows SHALL remain in the assessment workqueue rather than blocking unrelated fixture data completion.
+
+### Requirement: 微辅导来源题目使用受治理的学习目标映射
+评估目录 SHALL 在题目被纳入微辅导覆盖基线或用于微辅导编排前，核验其审查后的学习目标能够通过当前有效的微辅导目标目录解析到唯一、启用且属于 knowledge 域的 `kn:` 规范主知识节点。
+
+#### Scenario: 微辅导来源题目具有有效目标映射
+- **WHEN** 已审查的 practice 题被纳入微辅导覆盖或被用作错误选项归因来源
+- **THEN** 其学习目标 SHALL 通过有效目录解析到唯一规范主知识节点
+- **AND** 题目快照、归因和审计 SHALL 使用同一解析结果而非独立的文本推断
+
+#### Scenario: 微辅导来源题目缺少有效目标映射
+- **WHEN** 已审查的 practice 题的学习目标未知、停用、歧义、仅关联能力域 `cap:` 节点或与目录版本漂移
+- **THEN** 评估目录和微辅导审计 SHALL 将该题标记为不可编排
+- **AND** 系统 SHALL 不以现有图节点标签、关键词或默认节点替代该映射
+
+### Requirement: 目录发布显式生命周期覆盖身份
+
+评估目录 release SHALL 对每个项目分别记录允许阶段、人工批准阶段用途、path eligibility、运行时注册状态和所属 lifecycle coverage baseline/version。一个字段的存在不得隐式推导其他层级；高风险阶段用途变化 MUST 触发审核 stale 和新发布回执。
+
+#### Scenario: 目录项目进入 v2 阶段覆盖
+
+- **WHEN** 一个项目被计入 v2 readiness、checkpoint、remediation 或 terminal-validation 单元
+- **THEN** 它 SHALL 具有当前内容哈希、人工阶段决定、path eligibility、运行时引用和 v2 baseline identity
+- **AND** 历史目录 release SHALL 保持不变
+
+#### Scenario: 阶段用途或运行时注册缺失
+
+- **WHEN** 项目仅有 allowed stage、仅有人工决定或仅有运行时题面之一
+- **THEN** 目录 SHALL 报告缺失层级
+- **AND** 项目不得计入当前可选择数量
+
+### Requirement: 目录显式登记微辅导验证用途
+
+评估目录 SHALL 将“可作为微辅导验证候选”作为独立人工审核用途，而不是由一般 `allowedStages`、path eligibility 或 remediation/checkpoint 标签推断。审核决定 MUST 绑定内容哈希、学习目标、规范节点、适用错因、难度、变式独立性和 metadata version。
+
+#### Scenario: 审核者批准验证用途
+
+- **WHEN** 审核者确认一个目录题目适合特定节点和错因的微辅导验证
+- **THEN** 目录 SHALL 记录版本化验证用途决定及依据
+- **AND** 内容、答案、节点或审核版本变化 SHALL 使决定 stale
+
+#### Scenario: 题目只有一般 path eligibility
+
+- **WHEN** 题目为 path-eligible 但没有当前微辅导验证用途决定
+- **THEN** 它 SHALL 保持可用于原阶段
+- **AND** 不得进入微辅导验证登记
+
