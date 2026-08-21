@@ -1,4 +1,6 @@
 import catalogSource from '../../../course-content/runtime/resource-governance/micro-tutoring-goal-node-catalog.json';
+import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import practiceBaselineSource from '../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
 
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
@@ -45,6 +47,11 @@ export interface LoadedMicroTutoringGoalNodeCatalog {
   issues: MicroTutoringGoalNodeCatalogIssue[];
 }
 
+export interface MicroTutoringGoalNodeSourceContext {
+  practiceBaseline: unknown;
+  optionAttributions: unknown;
+}
+
 export type MicroTutoringGoalNodeResolution =
   | {
     ok: true;
@@ -52,6 +59,7 @@ export type MicroTutoringGoalNodeResolution =
     knowledgeNodeId: string;
     catalogVersion: string;
     source: string;
+    sourceRefs: string[];
     resolvedBy: 'canonical' | 'alias';
   }
   | {
@@ -69,8 +77,30 @@ function nonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function sameStrings(left: string[], right: string[]): boolean {
+  const normalizedLeft = [...new Set(left)].sort();
+  const normalizedRight = [...new Set(right)].sort();
+  return normalizedLeft.length === normalizedRight.length &&
+    normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+function governedSourceRefs(
+  learningGoalId: string,
+  baselineVersion: string,
+  attributionVersion: string,
+): string[] {
+  return [
+    `${baselineVersion}#goal:${learningGoalId}`,
+    `${attributionVersion}#goal:${learningGoalId}`,
+  ];
+}
+
 export function loadMicroTutoringGoalNodeCatalog(
   source: unknown = catalogSource,
+  sourceContext: MicroTutoringGoalNodeSourceContext = {
+    practiceBaseline: practiceBaselineSource,
+    optionAttributions: optionAttributionSource,
+  },
 ): LoadedMicroTutoringGoalNodeCatalog {
   const value = record(source);
   const issues: MicroTutoringGoalNodeCatalogIssue[] = [];
@@ -92,6 +122,31 @@ export function loadMicroTutoringGoalNodeCatalog(
   }
   if (value.graphVersion !== AUTOCONTROL_KAQ_GRAPH_VERSION) {
     issues.push({ code: 'VERSION_DRIFT', ref: String(value.graphVersion) });
+  }
+  const baseline = record(sourceContext.practiceBaseline);
+  const attributionSource = record(sourceContext.optionAttributions);
+  const baselineEntries = Array.isArray(baseline?.entries) ? baseline.entries.map(record) : [];
+  const attributionEntries = Array.isArray(attributionSource?.entries)
+    ? attributionSource.entries.map(record)
+    : [];
+  const baselineCatalogItemIds = new Set(baselineEntries.flatMap((entry) =>
+    nonEmptyString(entry?.catalogItemId) ? [entry.catalogItemId] : []));
+  const governedGoalIds = new Set(attributionEntries.flatMap((entry) =>
+    nonEmptyString(entry?.catalogItemId) &&
+    baselineCatalogItemIds.has(entry.catalogItemId) &&
+    nonEmptyString(entry.learningGoalId)
+      ? [entry.learningGoalId]
+      : []));
+  const attributionVersion = nonEmptyString(attributionSource?.version)
+    ? attributionSource.version
+    : '';
+  if (
+    baseline?.version !== value.baselineVersion ||
+    attributionVersion !== value.source ||
+    baselineEntries.length === 0 ||
+    attributionEntries.length === 0
+  ) {
+    issues.push({ code: 'SOURCE_DRIFT', ref: 'catalog-source' });
   }
 
   const entries: MicroTutoringGoalNodeCatalogEntry[] = [];
@@ -125,6 +180,16 @@ export function loadMicroTutoringGoalNodeCatalog(
     };
     if (normalized.catalogVersion !== value.version || normalized.graphVersion !== value.graphVersion) {
       issues.push({ code: 'VERSION_DRIFT', ref: normalized.learningGoalId });
+    }
+    if (
+      !governedGoalIds.has(normalized.learningGoalId) ||
+      !sameStrings(normalized.sourceRefs, governedSourceRefs(
+        normalized.learningGoalId,
+        String(value.baselineVersion),
+        attributionVersion,
+      ))
+    ) {
+      issues.push({ code: 'SOURCE_DRIFT', ref: normalized.learningGoalId });
     }
     const node = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.find((candidate) =>
       candidate.id === normalized.knowledgeNodeId);
@@ -176,6 +241,7 @@ export function resolveMicroTutoringGoalNode(
     knowledgeNodeId: entry.knowledgeNodeId,
     catalogVersion: loaded.catalog.version,
     source: loaded.catalog.source,
+    sourceRefs: [...entry.sourceRefs],
     resolvedBy: canonical ? 'canonical' : 'alias',
   };
 }

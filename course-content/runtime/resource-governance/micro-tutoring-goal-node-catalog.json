@@ -2,7 +2,7 @@
   "version": "micro-tutoring-goal-node-catalog.v1",
   "baselineVersion": "micro-tutoring-practice-baseline.v1",
   "graphVersion": "autocontrol-kaq-graph.v1",
-  "source": "openspec/changes/add-micro-tutoring-goal-node-catalog/design.md",
+  "source": "micro-tutoring-option-attributions.v2",
   "entries": [
     {
       "learningGoalId": "control-correction",
@@ -10,7 +10,10 @@
       "knowledgeNodeId": "kn:autocontrol:controller-correction",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:control-correction"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:control-correction",
+        "micro-tutoring-option-attributions.v2#goal:control-correction"
+      ],
       "enabled": true
     },
     {
@@ -19,7 +22,10 @@
       "knowledgeNodeId": "kn:autocontrol:feedback-loop",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:feedback-loop-concept-foundations"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:feedback-loop-concept-foundations",
+        "micro-tutoring-option-attributions.v2#goal:feedback-loop-concept-foundations"
+      ],
       "enabled": true
     },
     {
@@ -28,7 +34,10 @@
       "knowledgeNodeId": "kn:autocontrol:frequency-response",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:frequency-response-foundations"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:frequency-response-foundations",
+        "micro-tutoring-option-attributions.v2#goal:frequency-response-foundations"
+      ],
       "enabled": true
     },
     {
@@ -37,7 +46,10 @@
       "knowledgeNodeId": "kn:autocontrol:root-locus",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:root-locus-analysis-foundations"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:root-locus-analysis-foundations",
+        "micro-tutoring-option-attributions.v2#goal:root-locus-analysis-foundations"
+      ],
       "enabled": true
     },
     {
@@ -46,7 +58,10 @@
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:ship-ocean-transfer-application"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:ship-ocean-transfer-application",
+        "micro-tutoring-option-attributions.v2#goal:ship-ocean-transfer-application"
+      ],
       "enabled": true
     },
     {
@@ -55,7 +70,10 @@
       "knowledgeNodeId": "kn:autocontrol:simulation-validation",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:simulation-validation-practice"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:simulation-validation-practice",
+        "micro-tutoring-option-attributions.v2#goal:simulation-validation-practice"
+      ],
       "enabled": true
     },
     {
@@ -64,7 +82,10 @@
       "knowledgeNodeId": "kn:autocontrol:stability-margin",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:stability-margin-frequency-analysis"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:stability-margin-frequency-analysis",
+        "micro-tutoring-option-attributions.v2#goal:stability-margin-frequency-analysis"
+      ],
       "enabled": true
     },
     {
@@ -73,7 +94,10 @@
       "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:time-domain-response-analysis"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:time-domain-response-analysis",
+        "micro-tutoring-option-attributions.v2#goal:time-domain-response-analysis"
+      ],
       "enabled": true
     },
     {
@@ -82,7 +106,10 @@
       "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
       "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
       "graphVersion": "autocontrol-kaq-graph.v1",
-      "sourceRefs": ["learning-goal:transfer-function-modeling-foundations"],
+      "sourceRefs": [
+        "micro-tutoring-practice-baseline.v1#goal:transfer-function-modeling-foundations",
+        "micro-tutoring-option-attributions.v2#goal:transfer-function-modeling-foundations"
+      ],
       "enabled": true
     }
   ]

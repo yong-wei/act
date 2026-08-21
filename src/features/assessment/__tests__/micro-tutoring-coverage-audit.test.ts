@@ -247,6 +247,26 @@ describe('micro tutoring coverage audit', () => {
       .some((row) => row.reasons.includes('ATTRIBUTION_UNCERTAIN'))).toBe(true);
   });
 
+  it('fails strict coverage when catalog source evidence drifts', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const catalogSource = readJson<Record<string, unknown>>('micro-tutoring-goal-node-catalog.json');
+    const resolveResources = vi.fn(() => []);
+    const resolveValidationItems = vi.fn(() => []);
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeCatalogSource: { ...catalogSource, source: 'forged-source' },
+      resolveResources,
+      resolveValidationItems,
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(resolveResources).not.toHaveBeenCalled();
+    expect(resolveValidationItems).not.toHaveBeenCalled();
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
   it('reports content hash drift and duplicate baseline identifiers without changing the denominator', () => {
     const result = report({
       baseline: {

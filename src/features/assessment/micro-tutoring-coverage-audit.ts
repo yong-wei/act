@@ -11,6 +11,7 @@ import {
 import {
   loadMicroTutoringGoalNodeCatalog,
   resolveMicroTutoringGoalNode,
+  type MicroTutoringGoalNodeSourceContext,
 } from './micro-tutoring-goal-node-catalog';
 
 export type { MicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
@@ -76,6 +77,8 @@ export interface MicroTutoringCoverageAuditInput {
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   optionReferenceSecret: string;
   activeLearningGoalIds: Iterable<string>;
   activeKnowledgeNodeIds: Iterable<string>;
@@ -281,6 +284,8 @@ function attributionHasRequiredFields(
 
 function auditOptionAttributions(input: {
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   catalogItems: AdaptiveAssessmentCatalogItem[];
   qualifiedItems: AdaptiveAssessmentCatalogItem[];
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
@@ -308,7 +313,10 @@ function auditOptionAttributions(input: {
   const rowsByOption = new Map<string, MicroTutoringOptionAttribution[]>();
   const issueByRecord = new Map<number, MicroTutoringOptionAttributionIssueReason[]>();
   const recordIndexesByOption = new Map<string, number[]>();
-  const goalNodeCatalog = loadMicroTutoringGoalNodeCatalog();
+  const goalNodeCatalog = loadMicroTutoringGoalNodeCatalog(
+    input.goalNodeCatalogSource,
+    input.goalNodeSourceContext,
+  );
 
   input.optionAttributions.forEach((value, index) => {
     const attribution = attributionRecord(value);
@@ -451,6 +459,8 @@ export function buildMicroTutoringCoverageAuditReport(
   const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
   const attributionAudit = auditOptionAttributions({
     optionAttributions: input.optionAttributions,
+    goalNodeCatalogSource: input.goalNodeCatalogSource,
+    goalNodeSourceContext: input.goalNodeSourceContext,
     catalogItems: input.catalogItems,
     qualifiedItems,
     reviewDecisions: input.reviewDecisions,
