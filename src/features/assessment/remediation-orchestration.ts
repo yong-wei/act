@@ -130,6 +130,7 @@ export interface RemediationTaskSnapshot {
     registryId?: string;
     actionId?: string;
     actionVersion?: string;
+    resourceRevision?: string;
   }>;
   validationQuestion: {
     itemRefId: string;
@@ -506,6 +507,7 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
     const registryId = nonEmptyString(resource?.registryId) ?? undefined;
     const actionId = nonEmptyString(resource?.actionId) ?? undefined;
     const actionVersion = nonEmptyString(resource?.actionVersion) ?? undefined;
+    const resourceRevision = nonEmptyString(resource?.resourceRevision) ?? undefined;
     return id && title && version && minutes && actionPath
       ? {
         id,
@@ -516,6 +518,7 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
         ...(registryId ? { registryId } : {}),
         ...(actionId ? { actionId } : {}),
         ...(actionVersion ? { actionVersion } : {}),
+        ...(resourceRevision ? { resourceRevision } : {}),
       }
       : null;
   });
@@ -598,9 +601,11 @@ async function projectResult(
     if (
       !stored.actionId ||
       !stored.actionVersion ||
+      !stored.resourceRevision ||
       !projected ||
       projected.actionId !== stored.actionId ||
-      projected.actionVersion !== stored.actionVersion
+      projected.actionVersion !== stored.actionVersion ||
+      projected.version !== stored.resourceRevision
     ) {
       return unavailableProjection(row, 'REFERENCE_DRIFT');
     }
@@ -868,6 +873,7 @@ async function orchestrateRemediationVersion(input: {
       registryId: projected.registryId,
       actionId: projected.actionId,
       actionVersion: projected.actionVersion,
+      resourceRevision: projected.version,
     };
   });
   if (boundResources.some((resource) => resource === null)) {

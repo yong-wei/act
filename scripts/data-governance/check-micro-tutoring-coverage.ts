@@ -13,6 +13,7 @@ import {
   type MicroTutoringPracticeBaseline,
 } from '@/features/assessment/micro-tutoring-coverage-audit';
 import {
+  listGovernedRemediationResources,
   listGovernedRemediationValidationItems,
   remediationResourceSelect,
   type RemediationResourceRow,
@@ -270,21 +271,39 @@ async function main() {
     activeKnowledgeNodeIds: AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes
       .filter((node) => node.status === 'active')
       .map((node) => node.id),
-    resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
-      knowledgeNodeId,
-      misconceptionTag,
-      projection: resourceProjectionSource,
-      optionAttributions: attributionSource,
-      authorityRows: options.offline
-        ? undefined
-        : governedRows.resources.map((row) => ({
-          id: row.id,
-          registryId: row.registryId,
-          teacherOnly: row.teacherOnly,
-          config: row.config,
-        })),
-      captureRevision: options.offline ? undefined : inputCapture.sourceRevision,
-    }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
+    resolveResources: (knowledgeNodeId, misconceptionTag) => {
+      const projected = listMicroTutoringGovernedResources({
+        knowledgeNodeId,
+        misconceptionTag,
+        projection: resourceProjectionSource,
+        optionAttributions: attributionSource,
+        authorityRows: options.offline
+          ? undefined
+          : governedRows.resources.map((row) => ({
+            id: row.id,
+            registryId: row.registryId,
+            teacherOnly: row.teacherOnly,
+            config: row.config,
+          })),
+        captureRevision: options.offline ? undefined : inputCapture.sourceRevision,
+      });
+      if (options.offline) {
+        return projected.map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource);
+      }
+      const parsed = listGovernedRemediationResources({
+        rows: governedRows.resources,
+        knowledgeNodeId,
+        misconceptionTag,
+      });
+      const parsedKeys = new Set(
+        governedRows.resources
+          .filter((row) => parsed.some((resource) => resource.id === row.id))
+          .flatMap((row) => [row.id, row.registryId].filter((value): value is string => Boolean(value))),
+      );
+      return projected
+        .filter((resource) => parsedKeys.has(resource.registryId))
+        .map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource);
+    },
     resolveValidationItems: (sourceQuestionId, _sourceContentHash, knowledgeNodeId, misconceptionTag) =>
       listGovernedRemediationValidationItems({
         rows: governedRows.validations,

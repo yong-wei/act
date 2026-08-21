@@ -11,6 +11,7 @@ import {
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '../remediation-orchestration';
+import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
 
 const HASH_A = 'a'.repeat(64);
 const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
@@ -321,6 +322,7 @@ describe('remediation orchestration', () => {
       actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
       actionVersion: 'micro-tutoring-learning-action.v1',
       registryId: GOVERNED_RESOURCE_ID,
+      resourceRevision: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
     }));
     expect(JSON.stringify(result)).not.toContain('correctAnswer');
     expect(JSON.stringify(result)).not.toContain('explanation');
@@ -370,6 +372,10 @@ describe('remediation orchestration', () => {
         registryId: GOVERNED_RESOURCE_ID,
         actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
         actionVersion: 'micro-tutoring-learning-action.v1',
+        resourceRevision: listMicroTutoringGovernedResources({
+          knowledgeNodeId: GOVERNED_NODE,
+          misconceptionTag: GOVERNED_TAG,
+        })[0]?.version,
       }],
       validationQuestion: {
         itemRefId: 'validation-1',

@@ -109,7 +109,7 @@ export function microTutoringResourceAuthorityAllowsStudentUse(
   if (teacherPolicy === 'blocked' || teacherPolicy === 'teacher-only') return false;
   if (captureRevision) {
     const captured = record(record(row.config)?.remediation)?.captureRevision;
-    if (typeof captured === 'string' && captured.trim() && captured !== captureRevision) return false;
+    if (typeof captured !== 'string' || captured.trim() !== captureRevision) return false;
   }
   return true;
 }
