@@ -29,4 +29,4 @@
 
 ## Tracking
 
-- 本变更是历史 SymPy 能力来源 [#1154](https://github.com/yong-wei/act/issues/1154) 的 follow-up；合并前需要登记唯一追踪 Issue，并在合并时同步该 Issue 状态。
+- 本变更是历史 SymPy 能力来源 [#1154](https://github.com/yong-wei/act/issues/1154) 的 follow-up；唯一追踪 Issue 已登记为 [#1496](https://github.com/yong-wei/act/issues/1496)，PR #1484 已通过 `Closes #1496` 关联，合并时自动关闭该 Issue。
