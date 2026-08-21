@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectAuthorityNodeResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
+import {
+  attachActiveAuthorityResourceBindings,
+  projectAuthorityNodeResourceBindings,
+} from '@/lib/authority-domain-shards/resource-bindings';
+import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
 import type {
   TeachingBindingRuntime,
   TeachingResourceRuntime,
@@ -111,5 +115,44 @@ describe('active Authority resource binding projection', () => {
       ],
     });
     expect(JSON.stringify(unavailable)).not.toContain('act:textbook:dorf');
+  });
+
+  it('keeps base detail usable when teaching identity is not matched', () => {
+    const shard = {
+      shardClass: 'node-detail',
+      envelope: {
+        contract: 'act-authority-shard-envelope/v1',
+        authority: {
+          snapshotId: 'snap-1',
+          snapshotHash: 'a'.repeat(64),
+          releaseId: 'release-1',
+          releaseSetId: 'set-1',
+          activationId: 'activation-1',
+          activationHash: 'b'.repeat(64),
+          projectionId: null,
+          projectionHash: null,
+        },
+        catalog: { catalogId: 'catalog-1', catalogHash: 'c'.repeat(64), catalogVersion: 'v1' },
+        teaching: { status: 'unavailable', projectionId: null, projectionHash: null, teachingCacheFamily: null },
+        match: { authority: true, catalog: true, teaching: false },
+      },
+      node: {
+        id: 'node-1',
+        canonicalType: 'DomainConcept',
+        label: '节点',
+        description: '说明仍可用',
+        teachingFields: {},
+        governance: { reviewStatus: null, publicationStatus: null, lifecycleStatus: null },
+        sources: [],
+        media: { cardAvailable: false, infographAvailable: false },
+        semanticSupport: { supported: true, readOnly: true as const },
+      },
+    } as unknown as AuthorityNodeDetailShard;
+    expect(attachActiveAuthorityResourceBindings(shard)).toEqual({
+      state: 'unavailable',
+      message: '当前系统资源暂时不可用。',
+    });
+    expect(shard.node.label).toBe('节点');
+    expect(shard.node.description).toBe('说明仍可用');
   });
 });

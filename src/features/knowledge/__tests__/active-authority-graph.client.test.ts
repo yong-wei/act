@@ -1068,6 +1068,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-model"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-isolated"]')).toBeNull();
 
@@ -1077,6 +1079,29 @@ describe('active Authority knowledge workspace client boundary', () => {
       filter!.value = 'Formula';
       filter!.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+  });
+
+  it('materializes both endpoints of published teaching relations even when one is a secondary type', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) {
+        return mockResponse(domainDefaultShard(canvas.nodes, [], {
+          teachingRelations: [teachingRelation('teaching-formula', 'node-concept', 'node-formula')],
+          teachingCoverage: { status: 'available', relationCount: 1, coreNodeCount: 2, note: '已发布教学顺序' },
+        }));
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    expect(container.querySelector('[data-active-authority-relation="teaching-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
   });
 

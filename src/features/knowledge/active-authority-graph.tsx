@@ -267,9 +267,10 @@ function useActiveAuthorityWorkspace(retry: number): {
 
   useEffect(() => {
     const controller = new AbortController();
+    const requestControllers = requestControllersRef.current;
     const generation = nextRequestGeneration();
     failClosedRef.current = false;
-    requestControllersRef.current.add(controller);
+    requestControllers.add(controller);
     setState({ status: 'loading' });
     setFamilyFailures({});
     setNeighborhoodFailures({});
@@ -291,9 +292,12 @@ function useActiveAuthorityWorkspace(retry: number): {
       });
     return () => {
       controller.abort();
-      requestControllersRef.current.delete(controller);
+      requestControllers.delete(controller);
       nextRequestGeneration();
     };
+    // Root reload is keyed only by retry. applyShard/onIdentityFailure close
+    // over the current request generation and must not retrigger the fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retry]);
 
   function enterDomain(visualRole: string): Promise<boolean> {
@@ -1000,34 +1004,6 @@ function ActiveNodeDetail({
               </div>
             ) : null}
           </div>
-          <section aria-labelledby="active-detail-relations">
-            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">一跳关系</h3>
-            <div className="mt-2 space-y-2">
-              {summaries.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? '部分关系暂不可解释，已隐藏。' : '暂无已发布关系。'}</p>
-              ) : summaries.slice(0, 20).map((relation) => (
-                <button
-                  key={relation.key}
-                  type="button"
-                  data-active-inspector-neighbor={relation.neighborKey}
-                  onClick={() => onActivateNeighbor(relation.neighborKey)}
-                  className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
-                >
-                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
-                  <span className="ml-2 text-platform-fg-muted">
-                    {relation.directionLabel === '关联关系'
-                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
-                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
-                  </span>
-                </button>
-              ))}
-              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">部分关系暂不可解释，已隐藏。</p> : null}
-            </div>
-          </section>
-          <section aria-labelledby="active-detail-sources">
-            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">参考来源</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
-          </section>
           {node?.learningContent?.card.state === 'available' ? (
             <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
               <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">知识卡</h3>
@@ -1098,6 +1074,34 @@ function ActiveNodeDetail({
                 {node?.resourceBindings?.message ?? '暂无已授权系统资源。'}
               </p>
             )}
+          </section>
+          <section aria-labelledby="active-detail-relations">
+            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">一跳关系</h3>
+            <div className="mt-2 space-y-2">
+              {summaries.length === 0 ? (
+                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? '部分关系暂不可解释，已隐藏。' : '暂无已发布关系。'}</p>
+              ) : summaries.slice(0, 20).map((relation) => (
+                <button
+                  key={relation.key}
+                  type="button"
+                  data-active-inspector-neighbor={relation.neighborKey}
+                  onClick={() => onActivateNeighbor(relation.neighborKey)}
+                  className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
+                >
+                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
+                  <span className="ml-2 text-platform-fg-muted">
+                    {relation.directionLabel === '关联关系'
+                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
+                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                  </span>
+                </button>
+              ))}
+              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">部分关系暂不可解释，已隐藏。</p> : null}
+            </div>
+          </section>
+          <section aria-labelledby="active-detail-sources">
+            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">参考来源</h3>
+            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
           </section>
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
@@ -1263,6 +1267,9 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     setTypeFilter('');
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    // modelReady gates the first composed graph; later model identity changes
+    // (family/neighborhood merges) must not reset selection, pan, or zoom.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainEpoch, modelReady, visibleNodeLimit]);
 
   useEffect(() => {
@@ -1272,7 +1279,12 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       for (const relation of model.relations) {
         const source = model.nodeByKey.get(relation.sourceKey);
         const target = model.nodeByKey.get(relation.targetKey);
-        if (workspace.enabledFamilies.length === 0 && (!source || !target || !isPrimaryDomainObject(source) || !isPrimaryDomainObject(target))) {
+        const teachingRelation = relation.sourceRelation.layer === 'ACT_TEACHING';
+        if (
+          !teachingRelation
+          && workspace.enabledFamilies.length === 0
+          && (!source || !target || !isPrimaryDomainObject(source) || !isPrimaryDomainObject(target))
+        ) {
           continue;
         }
         next.add(relation.sourceKey);
