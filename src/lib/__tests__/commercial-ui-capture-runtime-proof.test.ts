@@ -86,6 +86,30 @@ describe('commercial UI runtime capture proof', () => {
         ...manifestRuntimeProof,
         expected: { ...localProof, commitSha, treeSha: '0'.repeat(40) },
       }, repositoryRoot)).toContain('runtimeRevisionProof.expected.treeSha=commit');
+
+      const primaryBranch = execFileSync('git', ['branch', '--show-current'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim();
+      git(repositoryRoot, ['checkout', '-b', 'foreign-proof']);
+      writeFileSync(path.join(repositoryRoot, 'src/source.ts'), 'export const source = false;\n');
+      git(repositoryRoot, ['add', 'src/source.ts']);
+      git(repositoryRoot, ['commit', '-m', 'foreign capture proof']);
+      const foreignCommitSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim();
+      const foreignTreeSha = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim();
+      git(repositoryRoot, ['checkout', primaryBranch]);
+      expect(commercialRuntimeRevisionProofObjectProblems({
+        ...manifestRuntimeProof,
+        expected: { ...localProof, commitSha: foreignCommitSha, treeSha: foreignTreeSha },
+        beforeCapture: { ...localProof, commitSha: foreignCommitSha, treeSha: foreignTreeSha },
+        afterCapture: { ...localProof, commitSha: foreignCommitSha, treeSha: foreignTreeSha },
+      }, repositoryRoot)).toContain('runtimeRevisionProof.expected.commitSha=current-head');
     } finally {
       rmSync(repositoryRoot, { recursive: true, force: true });
     }
