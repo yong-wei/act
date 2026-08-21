@@ -13,3 +13,14 @@
 14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。
 
 当前 Active Authority 数据集按运行时返回的可用范围呈现；未发布的教学关系保持“暂不可用”状态，不将该证据表述为生产权威切换。
+# Knowledge Workspace Product QA Visual Review
+
+Conclusion: PASS
+
+Reviewer: codex-manual-visual-review
+
+Review scope: current-head refresh after the adaptive-practice browser dependency boundary remediation.
+
+The knowledge workspace capture was rerun against clean source HEAD `f302c9ee747c3f2a248fce397db0057a412e153c` (tree `c47a63cff9afb1daa6d89b79077162099aea0678`). The runtime revision proof reports the same commit and tree before and after capture, with `clean=true`. The refresh changed only the adaptive-practice browser dependency boundary; the captured knowledge workspace UI behavior and layout contracts remain unchanged.
+
+The current screenshot and source SHA-256 bindings are recorded in `browser-evidence.json` and were rechecked for this revision. Blocking findings: none. Final verdict: PASS.

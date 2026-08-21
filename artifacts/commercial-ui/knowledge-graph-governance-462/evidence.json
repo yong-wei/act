@@ -2,11 +2,11 @@
   "issue": 462,
   "change": "govern-knowledge-graph-navigation-and-visual-qa",
   "route": "/knowledge",
-  "capturedAt": "2026-08-21T05:54:27.563Z",
-  "headCommit": "623c20e13b0490129a0c1aead447de13eb01c365",
+  "capturedAt": "2026-08-21T15:23:31.498Z",
+  "headCommit": "f302c9ee747c3f2a248fce397db0057a412e153c",
   "captureRevision": {
-    "commitSha": "623c20e13b0490129a0c1aead447de13eb01c365",
-    "treeSha": "9571d394064b30d119ddb86c0b73d4623b6bf1ff"
+    "commitSha": "f302c9ee747c3f2a248fce397db0057a412e153c",
+    "treeSha": "c47a63cff9afb1daa6d89b79077162099aea0678"
   },
   "localToolEvidence": {
     "desktopDefault": {

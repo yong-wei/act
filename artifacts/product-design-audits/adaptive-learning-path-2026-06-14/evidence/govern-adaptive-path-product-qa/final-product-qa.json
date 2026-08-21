@@ -1,15 +1,15 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-08-10T02:44:58.312Z",
-  "sourceCommit": "623c20e13b0490129a0c1aead447de13eb01c365",
+  "generatedAt": "2026-08-21T15:38:28.471Z",
+  "sourceCommit": "worktree:129658a58f18b8b0cf762e2f",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
-  "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
+  "designHandoffSha256": "4086112a5753dd730dbe507cd26ef54689df0bf79a2aa7c7aa73e600ad5015a3",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
-  "handoffMatrixSha256": "4518ad34dc92bf23554dc6c7d59a7c1662424a73ef96269546fb06775d06468f",
+  "handoffMatrixSha256": "fe19882612afcd63f262660ce2e612571f14960200e0f87a411b24128e3c3a04",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "fd9a77748ae9931856a6c2d677bd259eed9642d4c3f98338f8363531d82a4b8a",
+  "captureManifestSha256": "ecefbd91ad48a066f948d60c23188e57b596c4d585015a41ba2bdb6fcfcb7603",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
-  "visualSignalsSha256": "309033899c35251b6494a73114fb3be866dd8833b6ea5ba1600fa6f06a95ddd3",
+  "visualSignalsSha256": "e4430a789959129b975f2f8acda720d052b417b6f19f06b14f5e67cfe3daef69",
   "conceptImages": [
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
@@ -378,7 +378,7 @@
     "status": "passed",
     "reviewer": "ui-flow-reviewer",
     "report": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md",
-    "reportSha256": "aacb2745b8384818ccfc5615e5e84e6739a101a635f7263df9c03bff855b22ae"
+    "reportSha256": "86f6d5bd0fd0f0035c0f0eeee431c2a5cc589ba0ecd2287c608c776857f10498"
   },
   "functionalGates": {
     "coldStartGeneratesSelectablePaths": true,
