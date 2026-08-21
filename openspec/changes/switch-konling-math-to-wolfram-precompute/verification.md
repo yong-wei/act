@@ -1,17 +1,20 @@
 # Verification
 
 Date: 2026-08-21
+Stable HEAD for the local run: e224a21ff
 
 ## Completed locally
 
 - `node scripts/tests/test-math-calc-wolfram.mjs` passed on the local activated WolframScript 1.14.0 / Wolfram Engine 15.0.
 - `npx --yes tsx ./scripts/tests/test-konling-math-real-smoke.ts` passed: real shared executor Laplace result and representative Konling inverse-Laplace precompute context.
-- `npx vitest run src/app/api/math/calculate/__tests__/route.real-smoke.test.ts` passed: authenticated `/api/math/calculate` handler returned a real Wolfram result.
-- `npx vitest run src/lib/__tests__/math-calc.test.ts src/lib/__tests__/konling-math-precompute.test.ts src/lib/__tests__/konling-agent-runtime.test.ts` passed: 3 files, 225 tests.
+- `npx vitest run src/app/api/math/calculate/__tests__/route.real-smoke.test.ts src/lib/__tests__/math-calc.test.ts src/lib/__tests__/konling-math-precompute.test.ts src/lib/__tests__/konling-agent-runtime.test.ts` passed: 4 files, 226 tests.
 - `npm run typecheck` passed.
+- `npm run verify:commit` passed.
 - `npx --yes @fission-ai/openspec validate switch-konling-math-to-wolfram-precompute --type change --strict` passed; `add-teaching-grade-wolfram-derivations` also passed. Other unrelated active changes have pre-existing validation failures and are not part of this PR.
 - `git diff --check` reported no whitespace errors.
 - WSL `sh -n` syntax check passed for `docker-entrypoint.sh` and `scripts/math-calc/check-wolfram-ready.sh`.
+
+The local working tree also contains unrelated uncommitted AI-provider changes owned by the user; they are outside this change and do not participate in the verification above.
 
 ## Not completed in this local environment
 
