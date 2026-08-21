@@ -1,7 +1,8 @@
-import { createHash } from 'node:crypto';
-
 import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
 import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog';
+import { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
+
+export { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
 
 export interface MicroTutoringOptionAttribution {
   catalogItemId: string;
@@ -33,23 +34,6 @@ function nonEmptyString(value: unknown): value is string {
 
 function nonEmptyStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && value.every(nonEmptyString);
-}
-
-function canonicalizeReviewSourceValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonicalizeReviewSourceValue);
-  if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
-    .filter(([, entryValue]) => entryValue !== undefined)
-    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-    .map(([key, entryValue]) => [key, canonicalizeReviewSourceValue(entryValue)]));
-}
-
-export function microTutoringOptionAttributionReviewSourceHash(
-  attribution: Omit<MicroTutoringOptionAttribution, 'reviewSourceHash'> & { reviewSourceHash?: string },
-): string {
-  const { reviewSourceHash: _reviewSourceHash, ...hashInput } = attribution;
-  const canonicalJson = JSON.stringify(canonicalizeReviewSourceValue(hashInput));
-  return `sha256:${createHash('sha256').update(canonicalJson).digest('hex')}`;
 }
 
 export function optionAttributionKey(

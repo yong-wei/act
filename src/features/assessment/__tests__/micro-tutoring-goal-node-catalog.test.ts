@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -5,6 +7,7 @@ import {
   resolveMicroTutoringGoalNode,
   type MicroTutoringGoalNodeCatalogEntry,
 } from '../micro-tutoring-goal-node-catalog';
+import { microTutoringOptionAttributionReviewSourceHash } from '../micro-tutoring-option-attribution-evidence';
 
 function source(entries: unknown[], overrides: Record<string, unknown> = {}) {
   return {
@@ -18,22 +21,45 @@ function source(entries: unknown[], overrides: Record<string, unknown> = {}) {
 }
 
 function sourceContext(entries: Array<Pick<MicroTutoringGoalNodeCatalogEntry, 'learningGoalId'>>) {
+  const learningGoalIds = [...new Set(entries.map((entry) => entry.learningGoalId))];
+  const optionAttributions = learningGoalIds.flatMap((learningGoalId) => ['A', 'B'].map((optionKey) => {
+    const attribution = {
+      catalogItemId: `catalog-item:${learningGoalId}`,
+      contentHash: 'a'.repeat(64),
+      optionKey,
+      learningGoalId,
+      knowledgeNodeId: learningGoalId === 'other-goal'
+        ? 'cap:autocontrol:model-feedback-system'
+        : 'kn:autocontrol:feedback-loop',
+      itemReviewSourceHash: `sha256:${'b'.repeat(64)}`,
+    };
+    return {
+      ...attribution,
+      reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(attribution),
+    };
+  }));
   return {
     practiceBaseline: {
       version: 'micro-tutoring-practice-baseline.v1',
-      entries: entries.map((entry) => ({
-        catalogItemId: `catalog-item:${entry.learningGoalId}`,
+      entries: learningGoalIds.map((learningGoalId) => ({
+        catalogItemId: `catalog-item:${learningGoalId}`,
         contentHash: 'a'.repeat(64),
       })),
     },
     optionAttributions: {
       version: 'micro-tutoring-option-attributions.v2',
-      entries: entries.map((entry) => ({
-        catalogItemId: `catalog-item:${entry.learningGoalId}`,
-        learningGoalId: entry.learningGoalId,
-      })),
+      entries: optionAttributions,
     },
   };
+}
+
+function sourceRef(learningGoalId: string): string {
+  const knowledgeNodeId = learningGoalId === 'other-goal'
+    ? 'cap:autocontrol:model-feedback-system'
+    : 'kn:autocontrol:feedback-loop';
+  const binding = `catalog-item:${learningGoalId}\0${'a'.repeat(64)}\0sha256:${'b'.repeat(64)}\0${knowledgeNodeId}`;
+  const digest = createHash('sha256').update(binding).digest('hex');
+  return `micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2#goal:${learningGoalId}#sha256:${digest}`;
 }
 
 const activeEntry = {
@@ -42,10 +68,7 @@ const activeEntry = {
   knowledgeNodeId: 'kn:autocontrol:feedback-loop',
   catalogVersion: 'micro-tutoring-goal-node-catalog.v1',
   graphVersion: 'autocontrol-kaq-graph.v1',
-  sourceRefs: [
-    'micro-tutoring-practice-baseline.v1#goal:feedback-loop-concept-foundations',
-    'micro-tutoring-option-attributions.v2#goal:feedback-loop-concept-foundations',
-  ],
+  sourceRefs: [sourceRef('feedback-loop-concept-foundations')],
   enabled: true,
 };
 
@@ -80,10 +103,7 @@ describe('micro tutoring goal node catalog', () => {
         learningGoalId: 'other-goal',
         aliases: ['shared'],
         knowledgeNodeId: 'cap:autocontrol:model-feedback-system',
-        sourceRefs: [
-          'micro-tutoring-practice-baseline.v1#goal:other-goal',
-          'micro-tutoring-option-attributions.v2#goal:other-goal',
-        ],
+        sourceRefs: [sourceRef('other-goal')],
       },
     ];
     const loaded = loadMicroTutoringGoalNodeCatalog(
@@ -141,5 +161,36 @@ describe('micro tutoring goal node catalog', () => {
       ok: false,
       reason: 'CATALOG_INVALID',
     });
+  });
+
+  it('rejects forged item-goal bindings, baseline content drift and invalid attribution hashes', () => {
+    const forgedGoalContext = sourceContext([activeEntry]);
+    const forgedAttribution = {
+      ...forgedGoalContext.optionAttributions.entries[0],
+      learningGoalId: 'other-goal',
+      knowledgeNodeId: 'cap:autocontrol:model-feedback-system',
+    };
+    forgedGoalContext.optionAttributions.entries[0] = {
+      ...forgedAttribution,
+      reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(forgedAttribution),
+    };
+    const contentDriftContext = sourceContext([activeEntry]);
+    contentDriftContext.optionAttributions.entries[0].contentHash = 'c'.repeat(64);
+    contentDriftContext.optionAttributions.entries[0].reviewSourceHash =
+      microTutoringOptionAttributionReviewSourceHash(contentDriftContext.optionAttributions.entries[0]);
+    const invalidHashContext = sourceContext([activeEntry]);
+    invalidHashContext.optionAttributions.entries[0].reviewSourceHash = `sha256:${'d'.repeat(64)}`;
+
+    for (const context of [forgedGoalContext, contentDriftContext, invalidHashContext]) {
+      const loaded = loadMicroTutoringGoalNodeCatalog(source([activeEntry]), context);
+      expect(loaded.issues).toContainEqual({
+        code: 'SOURCE_DRIFT',
+        ref: activeEntry.learningGoalId,
+      });
+      expect(resolveMicroTutoringGoalNode(activeEntry.learningGoalId, loaded)).toEqual({
+        ok: false,
+        reason: 'CATALOG_INVALID',
+      });
+    }
   });
 });

@@ -22,3 +22,4 @@
 - [x] 4.1 运行受影响的 Vitest 用例、微辅导覆盖命令、`npm run typecheck` 和 `git diff --check`。
 - [x] 4.2 运行 `openspec validate add-micro-tutoring-goal-node-catalog --type change --strict` 并记录结果。
 - [x] 4.3 根据正式审核补充目录级与记录级来源身份核验、解析结果来源证据及来源漂移 strict-fail 回归，并重新运行 current-head 门禁。
+- [ ] 4.4 根据首次 Codex Review 补充完整目录项—内容哈希—审核目标—规范节点—记录哈希绑定核验，阻断使用真实目录项伪造目标的来源记录，并重新运行 current-head 门禁。

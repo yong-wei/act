@@ -267,6 +267,30 @@ describe('micro tutoring coverage audit', () => {
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
 
+  it('blocks a forged goal binding that reuses a real baseline catalog item', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const forged = rehashAttribution({
+      ...attributions[0],
+      learningGoalId: 'feedback-loop-concept-foundations',
+      knowledgeNodeId: 'kn:autocontrol:feedback-loop',
+    });
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeSourceContext: {
+        practiceBaseline: baseline,
+        optionAttributions: {
+          version: 'micro-tutoring-option-attributions.v2',
+          entries: [forged, ...attributions.slice(1)],
+        },
+      },
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
   it('reports content hash drift and duplicate baseline identifiers without changing the denominator', () => {
     const result = report({
       baseline: {

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import catalogSource from '../../../course-content/runtime/resource-governance/micro-tutoring-goal-node-catalog.json';
 import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
 import practiceBaselineSource from '../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
@@ -6,6 +8,7 @@ import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
 } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
 
 export const MICRO_TUTORING_GOAL_NODE_CATALOG_VERSION = 'micro-tutoring-goal-node-catalog.v1';
 export const MICRO_TUTORING_GOAL_NODE_BASELINE_VERSION = 'micro-tutoring-practice-baseline.v1';
@@ -88,10 +91,11 @@ function governedSourceRefs(
   learningGoalId: string,
   baselineVersion: string,
   attributionVersion: string,
+  bindings: string[],
 ): string[] {
+  const digest = createHash('sha256').update([...bindings].sort().join('\n')).digest('hex');
   return [
-    `${baselineVersion}#goal:${learningGoalId}`,
-    `${attributionVersion}#goal:${learningGoalId}`,
+    `${baselineVersion}+${attributionVersion}#goal:${learningGoalId}#sha256:${digest}`,
   ];
 }
 
@@ -129,14 +133,46 @@ export function loadMicroTutoringGoalNodeCatalog(
   const attributionEntries = Array.isArray(attributionSource?.entries)
     ? attributionSource.entries.map(record)
     : [];
-  const baselineCatalogItemIds = new Set(baselineEntries.flatMap((entry) =>
-    nonEmptyString(entry?.catalogItemId) ? [entry.catalogItemId] : []));
-  const governedGoalIds = new Set(attributionEntries.flatMap((entry) =>
-    nonEmptyString(entry?.catalogItemId) &&
-    baselineCatalogItemIds.has(entry.catalogItemId) &&
-    nonEmptyString(entry.learningGoalId)
-      ? [entry.learningGoalId]
+  const baselineByCatalogItemId = new Map(baselineEntries.flatMap((entry) =>
+    nonEmptyString(entry?.catalogItemId) && /^[a-f0-9]{64}$/.test(String(entry.contentHash ?? ''))
+      ? [[entry.catalogItemId, String(entry.contentHash)]] as const
       : []));
+  const attributionsByCatalogItemId = new Map<string, Record<string, unknown>[]>();
+  for (const entry of attributionEntries) {
+    if (!entry || !nonEmptyString(entry.catalogItemId)) continue;
+    const records = attributionsByCatalogItemId.get(entry.catalogItemId) ?? [];
+    records.push(entry);
+    attributionsByCatalogItemId.set(entry.catalogItemId, records);
+  }
+  const bindingsByGoalId = new Map<string, string[]>();
+  for (const [catalogItemId, contentHash] of baselineByCatalogItemId) {
+    const records = attributionsByCatalogItemId.get(catalogItemId) ?? [];
+    const validRecords = records.filter((entry) =>
+      entry.contentHash === contentHash &&
+      nonEmptyString(entry.optionKey) &&
+      nonEmptyString(entry.learningGoalId) &&
+      nonEmptyString(entry.knowledgeNodeId) &&
+      /^sha256:[a-f0-9]{64}$/.test(String(entry.itemReviewSourceHash ?? '')) &&
+      entry.reviewSourceHash === microTutoringOptionAttributionReviewSourceHash(entry));
+    const learningGoalIds = new Set(validRecords.map((entry) => String(entry.learningGoalId)));
+    const knowledgeNodeIds = new Set(validRecords.map((entry) => String(entry.knowledgeNodeId)));
+    const itemReviewSourceHashes = new Set(validRecords.map((entry) => String(entry.itemReviewSourceHash)));
+    const optionKeys = new Set(validRecords.map((entry) => String(entry.optionKey)));
+    if (
+      records.length !== 2 ||
+      validRecords.length !== 2 ||
+      learningGoalIds.size !== 1 ||
+      knowledgeNodeIds.size !== 1 ||
+      itemReviewSourceHashes.size !== 1 ||
+      optionKeys.size !== 2
+    ) continue;
+    const [learningGoalId] = learningGoalIds;
+    const [itemReviewSourceHash] = itemReviewSourceHashes;
+    const bindings = bindingsByGoalId.get(learningGoalId) ?? [];
+    const [knowledgeNodeId] = knowledgeNodeIds;
+    bindings.push(`${catalogItemId}\0${contentHash}\0${itemReviewSourceHash}\0${knowledgeNodeId}`);
+    bindingsByGoalId.set(learningGoalId, bindings);
+  }
   const attributionVersion = nonEmptyString(attributionSource?.version)
     ? attributionSource.version
     : '';
@@ -182,11 +218,12 @@ export function loadMicroTutoringGoalNodeCatalog(
       issues.push({ code: 'VERSION_DRIFT', ref: normalized.learningGoalId });
     }
     if (
-      !governedGoalIds.has(normalized.learningGoalId) ||
+      !bindingsByGoalId.has(normalized.learningGoalId) ||
       !sameStrings(normalized.sourceRefs, governedSourceRefs(
         normalized.learningGoalId,
         String(value.baselineVersion),
         attributionVersion,
+        bindingsByGoalId.get(normalized.learningGoalId) ?? [],
       ))
     ) {
       issues.push({ code: 'SOURCE_DRIFT', ref: normalized.learningGoalId });
