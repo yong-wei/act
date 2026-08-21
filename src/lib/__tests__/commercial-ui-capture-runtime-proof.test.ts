@@ -87,6 +87,18 @@ describe('commercial UI runtime capture proof', () => {
         expected: { ...localProof, commitSha, treeSha: '0'.repeat(40) },
       }, repositoryRoot)).toContain('runtimeRevisionProof.expected.treeSha=commit');
 
+      git(repositoryRoot, ['tag', '-a', 'annotated-proof', '-m', 'annotated capture proof', commitSha]);
+      const annotatedTagSha = execFileSync('git', ['rev-parse', 'refs/tags/annotated-proof^{tag}'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim();
+      expect(commercialRuntimeRevisionProofObjectProblems({
+        ...manifestRuntimeProof,
+        expected: { ...localProof, commitSha: annotatedTagSha, treeSha },
+        beforeCapture: { ...localProof, commitSha: annotatedTagSha, treeSha },
+        afterCapture: { ...localProof, commitSha: annotatedTagSha, treeSha },
+      }, repositoryRoot)).toContain('runtimeRevisionProof.expected.commitSha:object');
+
       const primaryBranch = execFileSync('git', ['branch', '--show-current'], {
         cwd: repositoryRoot,
         encoding: 'utf8',

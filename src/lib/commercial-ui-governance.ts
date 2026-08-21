@@ -454,7 +454,7 @@ export function commercialRuntimeRevisionProofObjectProblems(
       continue;
     }
     try {
-      const commitType = execFileSync('git', ['cat-file', '-t', `${commitSha}^{commit}`], {
+      const commitType = execFileSync('git', ['cat-file', '-t', commitSha], {
         cwd: repositoryRoot,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'ignore'],
