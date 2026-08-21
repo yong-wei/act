@@ -3026,10 +3026,10 @@ export default function AdaptivePracticePage() {
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
   pathOptionVersionKeyRef.current = pathOptionVersionKey;
   const pathAdjustmentContextVersionKey = useMemo(() => [
-    activeGoal ?? 'no-goal',
-    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? 'no-path',
-    readPathProgressVersion(activePathRound?.updatedAt) ?? 'no-progress',
-    activeCandidateBatch?.id ?? 'no-batch',
+    activeGoal ?? '暂无目标',
+    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? '暂无学习路径',
+    readPathProgressVersion(activePathRound?.updatedAt) ?? '暂无进度',
+    activeCandidateBatch?.id ?? '暂无候选批次',
     ...candidatePathOptions.map((option) => (
       `${option.candidateId ?? 'no-candidate'}:${option.candidateFingerprint ?? 'no-fingerprint'}`
     )),
