@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { buildAdaptiveAssessmentItemCatalog } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+import { writeGeneratedCatalogRelease, generatedQuestionsFromStore } from '@/features/adaptive-assessment/generated-candidate-catalog';
 import { publishGeneratedCandidate } from '@/features/adaptive-assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
@@ -31,6 +33,15 @@ export async function POST(
       catalogReleaseId: body.catalogReleaseId ?? 'generated-catalog.r1',
     });
     await persistGeneratedCandidateStore(prisma, store);
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      generatedCandidateStore: store,
+      generatedQuestions: generatedQuestionsFromStore(store),
+      checkpointQuestions: [],
+      presetQuestions: [],
+    });
+    writeGeneratedCatalogRelease(store, process.cwd(), catalog.items.filter((item) => (
+      item.sourceFamily === 'generated-adaptive-question' && item.eligibilityState === 'path-eligible'
+    )));
     return NextResponse.json({
       receiptId: receipt.receiptId,
       receiptHash: receipt.receiptHash,

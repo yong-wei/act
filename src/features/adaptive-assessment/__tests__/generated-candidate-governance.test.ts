@@ -117,7 +117,7 @@ describe('generated candidate governance', () => {
     expect(restored.revisions[0]?.envelope.contentHash).toBe(created.revision.envelope.contentHash);
   });
 
-  it('requires a current human approval before publication and keeps historical receipts after retire', () => {
+  it('requires a current human approval before publication and keeps historical receipts after retire', async () => {
     const store = createGeneratedCandidateStore();
     const created = createGeneratedCandidate(store, envelope(validContent(), 'ai'));
     expect(() => publishGeneratedCandidate(store, {
@@ -178,6 +178,15 @@ describe('generated candidate governance', () => {
         generatedPublicationReceiptHash: receipt.receiptHash,
       }),
     });
+    const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const { writeGeneratedCatalogRelease } = await import('../generated-candidate-catalog');
+    const dir = mkdtempSync(join(tmpdir(), 'generated-catalog-'));
+    writeGeneratedCatalogRelease(store, dir, catalog.items.filter((item) => item.eligibilityState === 'path-eligible'));
+    const release = JSON.parse(readFileSync(join(dir, 'course-content/runtime/resource-governance/generated-assessment-catalog-release.json'), 'utf8')) as { catalogItemIds: string[] };
+    expect(release.catalogItemIds).toContain(receipt.catalogItemId);
+    rmSync(dir, { recursive: true, force: true });
 
     const retired = retireGeneratedPublication(store, {
       receiptId: receipt.receiptId,

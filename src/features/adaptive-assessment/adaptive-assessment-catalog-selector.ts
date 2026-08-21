@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type {
@@ -17,6 +17,10 @@ import {
 import {
   loadFrozenTerminalValidationOverlay,
 } from './adaptive-assessment-lifecycle-coverage';
+import {
+  GENERATED_CATALOG_ITEMS_PATH,
+  GENERATED_CATALOG_REVIEWS_PATH,
+} from './generated-candidate-catalog';
 
 export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
 
@@ -84,9 +88,24 @@ function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArt
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
   const overlay = loadFrozenTerminalValidationOverlay();
   const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
+  const generatedItems = existsSync(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
+    ? readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
+    : [];
+  const generatedDecisions = existsSync(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
+    ? readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
+    : [];
+  const generatedIds = new Set(generatedItems.map((item) => item.catalogItemId));
   cachedArtifacts = buildRuntimeCatalogArtifacts(
-    [...items.filter((item) => !overlayIds.has(item.catalogItemId)), ...overlay.items],
-    [...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId)), ...overlay.decisions],
+    [
+      ...items.filter((item) => !overlayIds.has(item.catalogItemId) && !generatedIds.has(item.catalogItemId)),
+      ...overlay.items,
+      ...generatedItems,
+    ],
+    [
+      ...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId) && !generatedIds.has(decision.catalogItemId)),
+      ...overlay.decisions,
+      ...generatedDecisions,
+    ],
   );
   return cachedArtifacts;
 }
