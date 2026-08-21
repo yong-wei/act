@@ -2189,12 +2189,27 @@ function buildAdaptiveLearningPathPlanInternal(
     entry.node.id,
     evaluateNodeReadiness(entry.node, input.learnerState, input.constraints, completedNodeIds),
   ]));
-  const currentNodeId = plannedEntries.length > 0
+  let currentNodeId = plannedEntries.length > 0
     ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId, input.constraints.currentNodeId)
     : null;
-  const mainPath = plannedEntries.length > 0
+  let mainPath = plannedEntries.length > 0
     ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)!))
     : [];
+  const itemTypeTerminalValidation = resolveItemTypeTerminalValidation({
+    learningGoalId: input.goal.id,
+  });
+  const acceptsQuestionTerminal = Boolean(
+    registeredGoal?.learningGoal?.terminalValidationPolicy.terminalNodeTypes.some((type) => (
+      type === 'quiz' || type === 'adaptive_quiz'
+    )),
+  );
+  const itemTypeTerminalValidationNode = acceptsQuestionTerminal && mainPath.length > 0
+    ? toItemTypeTerminalValidationPlanNode(itemTypeTerminalValidation, mainPath, input.goal.id)
+    : null;
+  if (itemTypeTerminalValidationNode) {
+    mainPath = [...mainPath, itemTypeTerminalValidationNode];
+    if (!currentNodeId) currentNodeId = itemTypeTerminalValidationNode.nodeId;
+  }
   const alternatives = buildAlternatives(
     scored,
     mainPath,
@@ -2207,9 +2222,6 @@ function buildAdaptiveLearningPathPlanInternal(
     planningCompletedNodeIds,
   );
   const score = buildPlanScore(mainPath, alternatives, input.learnerState, input.constraints);
-  const itemTypeTerminalValidation = resolveItemTypeTerminalValidation({
-    learningGoalId: input.goal.id,
-  });
   const explanations: AdaptiveLearningPathExplanation = {
     selectedReasons: mainPath.flatMap((node) => node.reasonCodes),
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
@@ -3944,6 +3956,54 @@ function resolveCurrentPlanNodeId(
   return null;
 }
 
+function toItemTypeTerminalValidationPlanNode(
+  resolution: ItemTypeTerminalValidationResolution,
+  mainPath: AdaptiveLearningPathPlanNode[],
+  goalId: string,
+): AdaptiveLearningPathPlanNode | null {
+  if (resolution.status !== 'ready' || !resolution.catalogItemId || !resolution.taskId) return null;
+  const nodeId = `item-type-terminal-validation:${resolution.catalogItemId}`;
+  const prerequisiteNodeIds = mainPath.at(-1) ? [mainPath.at(-1)!.nodeId] : [];
+  return {
+    nodeId,
+    title: '题目型终结验证',
+    type: 'adaptive_quiz',
+    pathNodeType: 'adaptive_quiz',
+    displayName: '题目型终结验证',
+    iconKey: 'adaptive-quiz',
+    shapeHint: 'task',
+    evidenceBehavior: 'assessment',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: {
+      assessmentPurpose: 'terminal-validation',
+      criteria: ['item-type-terminal-validation'],
+      requiredEvidenceRefs: [resolution.catalogItemId],
+      remediationBehavior: null,
+      reviewState: 'review',
+    },
+    sourceKind: 'checkpoint',
+    sourceRef: resolution.catalogItemId,
+    target: `/assessment/adaptive-practice?goalId=${encodeURIComponent(goalId)}&questionScope=terminal-validation`,
+    estimatedTimeMinutes: 8,
+    cognitiveLoad: 'high',
+    prerequisiteNodeIds,
+    prerequisiteBasis: prerequisiteNodeIds.map((id) => ({ nodeId: id, source: 'PlanningUnit' })),
+    knowledgeCoverage: [],
+    launchBinding: {
+      kind: 'checkpoint-contract',
+      target: `/assessment/adaptive-practice?goalId=${encodeURIComponent(goalId)}&questionScope=terminal-validation`,
+      sourceRef: { kind: 'checkpoint', ref: resolution.catalogItemId },
+    },
+    teacherPolicy: 'allowed',
+    privacyLevel: 'student-visible',
+    terminalConstraints: ['terminal-validation'],
+    score: 1,
+    reasonCodes: ['item-type-terminal-validation'],
+    status: mainPath.length === 0 ? 'current' : 'next',
+  };
+}
+
 function toPlanNode(
   entry: ScoredNode,
   currentNodeId: string | null,
@@ -4615,7 +4675,7 @@ function buildPlanScore(
   const engagement = round(mainPath.filter((node) =>
     learnerState?.resourcePreference?.preferredModalities?.includes(node.type)
   ).length / Math.max(mainPath.length, 1), 3);
-  const estimatedTime = remainingEstimatedMinutes(mainPath);
+  const estimatedTime = remainingTeachingEstimatedMinutes(mainPath);
   const constraintSatisfaction = estimatedTime <= constraints.timeBudgetMinutes && mainPath.length > 0 ? 1 : 0;
   const diversity = round(new Set(mainPath.map((node) => node.type)).size / Math.max(mainPath.length, 1), 3);
   const fatigue = round(Math.max(0, 1 - estimatedTime / Math.max(constraints.timeBudgetMinutes, 1)), 3);
@@ -4666,6 +4726,11 @@ function isRetryExcludedCoreCandidate(
   return true;
 }
 
+function isItemTypeTerminalValidationPlanNode(node: AdaptiveLearningPathPlanNode): boolean {
+  return node.nodeId.startsWith('item-type-terminal-validation:')
+    || node.checkpoint?.assessmentPurpose === 'terminal-validation';
+}
+
 function isStructuralPolicySharedNode(
   node: AdaptiveLearningPathPlanNode,
   registry: ResourceNodeRegistry,
@@ -4688,8 +4753,9 @@ function corePolicyTeachingPlanNodes(
   mainPath: AdaptiveLearningPathPlanNode[],
   registry: ResourceNodeRegistry,
 ): AdaptiveLearningPathPlanNode[] {
-  const requiredPrerequisiteNodeIds = new Set(mainPath.flatMap((node) => node.prerequisiteNodeIds));
-  return mainPath.filter((node) => !isStructuralPolicySharedNode(node, registry, requiredPrerequisiteNodeIds));
+  const teachingPath = mainPath.filter((node) => !isItemTypeTerminalValidationPlanNode(node));
+  const requiredPrerequisiteNodeIds = new Set(teachingPath.flatMap((node) => node.prerequisiteNodeIds));
+  return teachingPath.filter((node) => !isStructuralPolicySharedNode(node, registry, requiredPrerequisiteNodeIds));
 }
 
 function differentiablePolicyCoreRefs(
@@ -4862,15 +4928,15 @@ function buildPolicyBundle(
           confidence: plan.confidence.level,
         }),
         evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
-        estimatedMinutes: remainingEstimatedMinutes(mainPath),
+        estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
         modalityMix,
         resourceMix: modalityMix,
         overlap: {
           maxWithOtherOptions: 0,
         },
         effort: {
-          estimatedMinutes: remainingEstimatedMinutes(mainPath),
-          relative: effortLabel(remainingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
+          estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
+          relative: effortLabel(remainingTeachingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
         },
         expectedTargetLift: round(plan.score.objectives.learningGain, 3),
         terminalValidationNodeIds,
@@ -5673,6 +5739,10 @@ function remainingEstimatedMinutes(nodes: AdaptiveLearningPathPlanNode[]): numbe
   return nodes
     .filter((node) => node.status !== 'completed')
     .reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
+}
+
+function remainingTeachingEstimatedMinutes(nodes: AdaptiveLearningPathPlanNode[]): number {
+  return remainingEstimatedMinutes(nodes.filter((node) => !isItemTypeTerminalValidationPlanNode(node)));
 }
 
 function unique<T extends string>(values: Array<T | null | undefined>): T[] {

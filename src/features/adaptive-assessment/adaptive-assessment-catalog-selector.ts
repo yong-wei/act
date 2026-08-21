@@ -15,8 +15,7 @@ import {
   evaluateAssessmentEvidenceAuthority,
 } from './assessment-evidence-authority';
 import {
-  buildTerminalValidationOverlayCatalog,
-  buildTerminalValidationReviewDecisions,
+  loadFrozenTerminalValidationOverlay,
 } from './adaptive-assessment-lifecycle-coverage';
 
 export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
@@ -83,12 +82,11 @@ function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArt
   if (cachedArtifacts) return cachedArtifacts;
   const items = readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, CATALOG_ITEMS_PATH));
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
-  const overlay = buildTerminalValidationOverlayCatalog();
-  const overlayDecisions = buildTerminalValidationReviewDecisions(overlay.items);
+  const overlay = loadFrozenTerminalValidationOverlay();
   const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
   cachedArtifacts = buildRuntimeCatalogArtifacts(
     [...items.filter((item) => !overlayIds.has(item.catalogItemId)), ...overlay.items],
-    [...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId)), ...overlayDecisions],
+    [...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId)), ...overlay.decisions],
   );
   return cachedArtifacts;
 }

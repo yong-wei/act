@@ -22,6 +22,9 @@ import {
   buildTerminalValidationOverlayCatalog,
   buildTerminalValidationReviewDecisions,
   detectLifecycleBaselineDrift,
+  FROZEN_TERMINAL_VALIDATION_BASELINE,
+  loadFrozenTerminalValidationOverlay,
+  selectFrozenTerminalValidationItems,
 } from '../adaptive-assessment-lifecycle-coverage';
 import { REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS } from '../learning-goal-checkpoint-question-sets';
 import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '../learning-goal-terminal-validation-question-sets';
@@ -170,6 +173,30 @@ describe('adaptive assessment lifecycle coverage v2', () => {
         })),
       },
     })).toThrow(AdaptiveAssessmentCatalogSelectionError);
+  });
+
+  it('fails closed when frozen terminal-validation hashes drift', () => {
+    const overlay = buildTerminalValidationOverlayCatalog();
+    const drifted = overlay.items.map((item, index) => (
+      index === 0 ? { ...item, contentHash: '0'.repeat(64) } : item
+    ));
+    expect(selectFrozenTerminalValidationItems(drifted)).toHaveLength(overlay.items.length - 1);
+  });
+
+  it('loads runtime terminal-validation overlay from frozen hashes instead of live auto-approval', () => {
+    const live = buildTerminalValidationOverlayCatalog();
+    const frozen = loadFrozenTerminalValidationOverlay();
+    expect(frozen.items).toHaveLength(FROZEN_TERMINAL_VALIDATION_BASELINE.length);
+    expect(frozen.items.map((item) => item.catalogItemId).sort()).toEqual(
+      FROZEN_TERMINAL_VALIDATION_BASELINE.map((entry) => entry.catalogItemId).sort(),
+    );
+    expect(frozen.items.every((item) => (
+      FROZEN_TERMINAL_VALIDATION_BASELINE.some((entry) => (
+        entry.catalogItemId === item.catalogItemId && entry.contentHash === item.contentHash
+      ))
+    ))).toBe(true);
+    expect(frozen.decisions).toHaveLength(frozen.items.length);
+    expect(live.items).toHaveLength(frozen.items.length);
   });
 
   it('resolves item-type terminal validation without replacing simulation or Arena evidence', () => {

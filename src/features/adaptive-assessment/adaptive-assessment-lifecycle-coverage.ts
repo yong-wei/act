@@ -115,6 +115,18 @@ export interface LifecycleBaselineEntry {
   contentHash: string;
 }
 
+export const FROZEN_TERMINAL_VALIDATION_BASELINE: LifecycleBaselineEntry[] = [
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:control-correction-terminal-validation-01', contentHash: '3e78a3bfc9f990eb46f28b051352f16e53633f73d378e7c6c4bed0a68bdcb190' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-terminal-validation-01', contentHash: '11d21426c0f2fcf44850e721895b722e71d78fe055a3f1c0fddaad02d1bf07a2' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-terminal-validation-01', contentHash: '09d3bdf32a58ef68859394ba677e36eb31a2290326064e43976c8a9e84489be8' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-terminal-validation-01', contentHash: 'f3fbe5a4a753588980a6ab08907e1893b8fb44ad4002530b675a8696c50c84cd' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-terminal-validation-01', contentHash: 'bc83638bebb8d5888333bd0defe01744e5e329304990d86d2a9ec3bcebcc47cb' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-terminal-validation-01', contentHash: 'decf6965a700d0ee186da14484d299894961b83ada81582f411269fa3bd8909d' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-terminal-validation-01', contentHash: 'fac65abed8adbf90e2c09222fc3021c6c0fb7261791ff1d8afa7031f0adaad5c' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-terminal-validation-01', contentHash: '9910a2d13844442cb1bce245afc860fa28845daff99042251fcbb202cee53259' },
+  { catalogItemId: 'adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-terminal-validation-01', contentHash: 'e83c199cb16fb514245bd6ab0256758d91a2874d34098f9e6f55155ba1a0c047' },
+];
+
 export interface LifecycleCoverageArtifacts {
   matrix: {
     artifactVersion: typeof LIFECYCLE_COVERAGE_V2_VERSION;
@@ -184,6 +196,22 @@ export const LIFECYCLE_COVERAGE_LEARNING_GOALS: Array<{ id: string; title: strin
 
 export function lifecycleCoverageGoals() {
   return LIFECYCLE_COVERAGE_LEARNING_GOALS;
+}
+
+export function selectFrozenTerminalValidationItems(
+  items: AdaptiveAssessmentCatalogItem[],
+): AdaptiveAssessmentCatalogItem[] {
+  const frozenById = new Map(FROZEN_TERMINAL_VALIDATION_BASELINE.map((entry) => [entry.catalogItemId, entry.contentHash]));
+  return items.filter((item) => frozenById.get(item.catalogItemId) === item.contentHash);
+}
+
+export function loadFrozenTerminalValidationOverlay() {
+  const overlay = buildTerminalValidationOverlayCatalog();
+  const items = selectFrozenTerminalValidationItems(overlay.items);
+  return {
+    items,
+    decisions: buildTerminalValidationReviewDecisions(items),
+  };
 }
 
 export function buildTerminalValidationOverlayCatalog() {
@@ -292,7 +320,9 @@ function layerCatalogItemIds(
     const selectable = runtimeRegistered
       && baselineIds.has(entry.item.catalogItemId)
       && !policy.forbiddenSelectableFamilies.includes(entry.item.sourceFamily);
-    if (layer === 'registered') return true;
+    if (layer === 'registered') {
+      return allowed || lifecycleStageFromCatalogStage(entry.item.semanticRefs.assessmentStage) === stage;
+    }
     if (layer === 'allowed') return allowed;
     if (layer === 'approved') return approved;
     if (layer === 'eligible') return eligible;

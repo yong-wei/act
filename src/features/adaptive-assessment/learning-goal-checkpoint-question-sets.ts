@@ -1,4 +1,5 @@
 import type { AdaptiveAssessmentCatalogStage } from './adaptive-assessment-item-catalog';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from './learning-goal-terminal-validation-question-sets';
 import type { CrossDomainQuestion, QuestionDomain, QuestionType } from '../assessment/adaptive-question-bank';
 
 export const LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION = 'learning-goal-checkpoint-question-sets.v2';
@@ -660,7 +661,9 @@ export function getCheckpointAuthoredQuestionRecordByRuntimeId(
 ): CheckpointAuthoredQuestionRecord | null {
   const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId);
   if (!sourceId) return null;
-  return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId) ?? null;
+  return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId)
+    ?? REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((record) => record.id === sourceId)
+    ?? null;
 }
 
 export function checkpointAuthoredQuestionToRuntimeQuestion(

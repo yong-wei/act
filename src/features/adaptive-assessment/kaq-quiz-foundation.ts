@@ -11,7 +11,7 @@ import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from '@/lib/
 
 export const KAQ_QUIZ_FOUNDATION_BANK_VERSION = 'kaq-quiz-foundation-bank.v1';
 
-export type KaqQuizPurpose = 'precheck' | 'practice' | 'checkpoint' | 'readiness-gate' | 'remediation';
+export type KaqQuizPurpose = 'precheck' | 'practice' | 'checkpoint' | 'readiness-gate' | 'remediation' | 'terminal-validation';
 export type KaqQuizReviewState = 'reviewed' | 'provisional';
 export type KaqQuizConfidenceLevel = 'high' | 'medium' | 'low';
 
@@ -324,6 +324,7 @@ function checkpointAuthoredPurpose(stagePurpose: string): KaqQuizPurpose {
   if (stagePurpose === 'precheck') return 'precheck';
   if (stagePurpose === 'checkpoint') return 'checkpoint';
   if (stagePurpose === 'remediation') return 'remediation';
+  if (stagePurpose === 'terminal-validation') return 'terminal-validation';
   return 'practice';
 }
 

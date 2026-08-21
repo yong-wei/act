@@ -5,8 +5,7 @@ import {
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   LIFECYCLE_COVERAGE_V2_VERSION,
-  buildTerminalValidationOverlayCatalog,
-  buildTerminalValidationReviewDecisions,
+  loadFrozenTerminalValidationOverlay,
 } from '@/features/adaptive-assessment/adaptive-assessment-lifecycle-coverage';
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
@@ -29,10 +28,9 @@ export function resolveItemTypeTerminalValidation(input: {
   askedQuestionIds?: Set<string>;
   answeredQuestionIds?: Set<string>;
 }): ItemTypeTerminalValidationResolution {
-  const overlay = buildTerminalValidationOverlayCatalog();
-  const overlayDecisions = buildTerminalValidationReviewDecisions(overlay.items);
+  const overlay = loadFrozenTerminalValidationOverlay();
   const items = [...(input.items ?? []), ...overlay.items];
-  const decisions = [...(input.decisions ?? []), ...overlayDecisions];
+  const decisions = [...(input.decisions ?? []), ...overlay.decisions];
   try {
     const selected: CatalogBackedAssessmentSelection = selectCatalogBackedAssessmentItemFromArtifacts({
       learningGoalId: input.learningGoalId,
