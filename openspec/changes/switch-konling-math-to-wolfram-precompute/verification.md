@@ -22,6 +22,10 @@ Stable HEAD for the local run: f720835c8
 - `.github/workflows/docker-wolfram-verify.yml` builds the production-equivalent image, runs the in-container `MATH_CALC_TEST_IMAGE` Wolfram smoke through the default entrypoint, and asserts a Wolfram-less negative image is rejected fail-closed. It is triggered by `workflow_dispatch`; the runner must provide at least 20 GiB Docker VM memory and the repository must expose `WOLFRAM_ACTIVATION_EMAIL`/`WOLFRAM_ACTIVATION_PASSWORD` or `WOLFRAMSCRIPT_ENTITLEMENTID` secrets.
 - `scripts/tests/test-konling-http-e2e.mjs` records the running-chat-service HTTP E2E evidence for the representative inverse-Laplace question and asserts no `calculate` tool call plus Wolfram/verification content. It requires a running service with PostgreSQL, an authenticated session cookie (`KONLING_E2E_AUTH_COOKIE`), and a configured model provider.
 
+## GitHub Actions run history
+
+- Run `32507278912` and `32507769322` both failed at `Build production image` with `no space left on device` on the default `ubuntu-latest` runner. The repository variable `WOLFRAM_VERIFY_RUNNER` is now set to `ubuntu-latest-16-cores`; the verification is being re-run on that runner.
+
 ## Not completed in this local environment
 
 - Building and running the final production-equivalent container image: Docker is not available in this Windows workspace. `scripts/tests/test-docker-migration-readiness.mjs` now supports `MATH_CALC_TEST_IMAGE` and `MATH_CALC_TEST_NEGATIVE_IMAGE` for a real in-container Wolfram smoke and for asserting that a Wolfram-less image is rejected by the entrypoint; these must be executed where Docker exists.
