@@ -21,9 +21,9 @@ function answer(overrides: Record<string, unknown> = {}) {
     reviewedAt: '2026-07-31T07:00:00.000Z',
     reviewBatchId: 'wrong-answer-attribution-test.v1',
     sourceContentHash: catalogContentHash,
-    selectedLearningGoalIds: ['learning-goal-1'],
+    selectedLearningGoalIds: ['stability-margin-frequency-analysis'],
     selectedKaqObjectiveIds: ['kaq-objective-1'],
-    selectedGraphNodeIds: ['knowledge-node-1'],
+    selectedGraphNodeIds: ['kn:autocontrol:stability-margin'],
     selectedStagePurpose: 'checkpoint' as const,
     difficulty: 0.5,
     cognitiveLevel: 'apply',
@@ -101,9 +101,9 @@ function answer(overrides: Record<string, unknown> = {}) {
             rubricRef: 'rubric:test',
           },
           semanticRefs: {
-            learningGoalIds: ['learning-goal-1'],
+            learningGoalIds: ['stability-margin-frequency-analysis'],
             kaqObjectiveIds: ['kaq-objective-1'],
-            graphNodeIds: ['knowledge-node-1'],
+            graphNodeIds: ['kn:autocontrol:stability-margin'],
             knowledgeTags: ['steady-state-error'],
             misconceptionTags: ['confuses-low-and-high-frequency'],
             remediationResourceNodeIds: ['remediation-node-1'],
@@ -192,7 +192,7 @@ function persisted(overrides: Record<string, unknown> = {}) {
     questionId: 'question-1',
     itemContentHash: 'a'.repeat(64),
     state: 'ATTRIBUTED',
-    knowledgeNodeIds: ['knowledge-node-1'],
+    knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
     misconceptionTags: ['confuses-low-and-high-frequency'],
     evidenceSummary: {
       version: 'wrong-answer-evidence-summary.v1',
@@ -367,7 +367,7 @@ describe('attributeWrongAnswerEvidence', () => {
       update: {},
       create: expect.objectContaining({
         state: 'ATTRIBUTED',
-        knowledgeNodeIds: ['knowledge-node-1'],
+        knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
         misconceptionTags: ['confuses-low-and-high-frequency'],
         confidence: 1,
         limitations: ['content-hash-bound'],
@@ -377,11 +377,11 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(result).toMatchObject({
       state: 'ATTRIBUTED',
       attribution: {
-        knowledgeNodeId: 'knowledge-node-1',
+        knowledgeNodeId: 'kn:autocontrol:stability-margin',
         misconceptionTag: 'confuses-low-and-high-frequency',
       },
       candidates: {
-        knowledgeNodeIds: ['knowledge-node-1'],
+        knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
         misconceptionTags: ['confuses-low-and-high-frequency'],
       },
       confidence: 1,
@@ -481,7 +481,7 @@ describe('attributeWrongAnswerEvidence', () => {
     });
   });
 
-  it('uses the reviewed option attribution instead of the legacy KAQ fallback', async () => {
+  it('uses the catalog knowledge node instead of a capability-domain review node', async () => {
     const multiObjective = answer();
     const metadata = multiObjective.questionRef.metadata as any;
     metadata.kaq.knowledgeNodeIds = ['kn:autocontrol:stability-margin'];
@@ -501,9 +501,11 @@ describe('attributeWrongAnswerEvidence', () => {
     ];
     rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
     rehashItemContent(multiObjective);
-    const optionAttributions = optionAttributionsFor(multiObjective);
+    const optionAttributions = optionAttributionsFor(multiObjective, {
+      knowledgeNodeId: 'kn:autocontrol:stability-margin',
+    });
     const db = dbFor(multiObjective, persisted({
-      knowledgeNodeIds: ['cap:autocontrol:trade-off-engineering-constraints'],
+      knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
     }));
 
     const result = await attributeWrongAnswerEvidence({
@@ -516,13 +518,13 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
         state: 'ATTRIBUTED',
-        knowledgeNodeIds: ['cap:autocontrol:trade-off-engineering-constraints'],
+        knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
       }),
     }));
     expect(result).toMatchObject({
       state: 'ATTRIBUTED',
       attribution: {
-        knowledgeNodeId: 'cap:autocontrol:trade-off-engineering-constraints',
+        knowledgeNodeId: 'kn:autocontrol:stability-margin',
         misconceptionTag: 'confuses-low-and-high-frequency',
       },
     });
@@ -598,7 +600,7 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(context?.wrongAnswerAttribution).toMatchObject({
       state: 'ATTRIBUTED',
       attribution: {
-        knowledgeNodeId: 'knowledge-node-1',
+        knowledgeNodeId: 'kn:autocontrol:stability-margin',
         misconceptionTag: 'confuses-low-and-high-frequency',
       },
     });

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import {
@@ -20,6 +20,7 @@ import {
   isMicroTutoringOptionAttribution,
   microTutoringOptionAttributionReviewSourceHash,
 } from '../micro-tutoring-option-attribution';
+import { resolveMicroTutoringGoalNode } from '../micro-tutoring-goal-node-catalog';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
@@ -45,13 +46,16 @@ function buildAttributions(): MicroTutoringOptionAttribution[] {
     if (decision?.selectedStagePurpose !== 'practice') return [];
     return (item.questionRefs.options ?? [])
       .filter((option) => option.isCorrect === false && option.key)
-      .map((option) => ({
+      .map((option) => {
+        const goalNode = resolveMicroTutoringGoalNode(decision.selectedLearningGoalIds[0]);
+        if (!goalNode.ok) throw new Error(goalNode.reason);
+        return {
         catalogItemId: item.catalogItemId,
         contentHash: item.contentHash,
         optionKey: option.key!,
         learningGoalId: decision.selectedLearningGoalIds[0],
         misconceptionTag: `misconception:${decision.selectedLearningGoalIds[0]}:${option.key!.toLowerCase()}`,
-        knowledgeNodeId: decision.selectedGraphNodeIds[0],
+        knowledgeNodeId: goalNode.knowledgeNodeId,
         version: 'micro-tutoring-option-attribution.v2',
         itemReviewSourceHash: decision.reviewSourceHash!,
         reviewerId: 'assessment-content-reviewer:test',
@@ -60,7 +64,8 @@ function buildAttributions(): MicroTutoringOptionAttribution[] {
         reviewBatchId: 'micro-tutoring-option-attribution-review.test',
         evidenceSummary: `Independent reviewed evidence for option ${option.key}.`,
         limitations: ['content-hash-bound'],
-      })).map((attribution) => ({
+        };
+      }).map((attribution) => ({
         ...attribution,
         reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(attribution),
       }));
@@ -218,6 +223,100 @@ describe('micro tutoring coverage audit', () => {
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
 
+  it('blocks a goal-node catalog conflict before resource and validation lookup', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const conflicting = rehashAttribution({
+      ...attributions[0],
+      knowledgeNodeId: 'cap:autocontrol:synthesize-controller-correction',
+    });
+    const resolveResources = vi.fn(() => []);
+    const resolveValidationItems = vi.fn(() => []);
+    const result = report({
+      optionAttributions: [conflicting, ...attributions.slice(1)],
+      resolveResources,
+      resolveValidationItems,
+    });
+
+    expect(result.attributionIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: 'GOAL_NODE_CONFLICT' }),
+    ]));
+    expect(resolveResources).toHaveBeenCalledTimes(107);
+    expect(resolveValidationItems).toHaveBeenCalledTimes(107);
+    expect(result.rows
+      .filter((row) => row.catalogItemId === conflicting.catalogItemId)
+      .some((row) => row.reasons.includes('ATTRIBUTION_UNCERTAIN'))).toBe(true);
+  });
+
+  it('fails strict coverage when catalog source evidence drifts', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const catalogSource = readJson<Record<string, unknown>>('micro-tutoring-goal-node-catalog.json');
+    const resolveResources = vi.fn(() => []);
+    const resolveValidationItems = vi.fn(() => []);
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeCatalogSource: { ...catalogSource, source: 'forged-source' },
+      resolveResources,
+      resolveValidationItems,
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(resolveResources).not.toHaveBeenCalled();
+    expect(resolveValidationItems).not.toHaveBeenCalled();
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('blocks a forged goal binding that reuses a real baseline catalog item', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const forged = rehashAttribution({
+      ...attributions[0],
+      learningGoalId: 'feedback-loop-concept-foundations',
+      knowledgeNodeId: 'kn:autocontrol:feedback-loop',
+    });
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeSourceContext: {
+        practiceBaseline: baseline,
+        optionAttributions: {
+          version: 'micro-tutoring-option-attributions.v2',
+          entries: [forged, ...attributions.slice(1)],
+        },
+      },
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
+  it('blocks a catalog node that differs from its governed attribution group', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const catalogSource = readJson<{
+      entries: Array<Record<string, unknown>>;
+      [key: string]: unknown;
+    }>('micro-tutoring-goal-node-catalog.json');
+    const forgedEntries = catalogSource.entries.map((entry, index) => index === 0
+      ? { ...entry, knowledgeNodeId: 'kn:autocontrol:feedback-loop' }
+      : entry);
+    const resolveResources = vi.fn(() => []);
+    const resolveValidationItems = vi.fn(() => []);
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeCatalogSource: { ...catalogSource, entries: forgedEntries },
+      resolveResources,
+      resolveValidationItems,
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(resolveResources).not.toHaveBeenCalled();
+    expect(resolveValidationItems).not.toHaveBeenCalled();
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
   it('reports content hash drift and duplicate baseline identifiers without changing the denominator', () => {
     const result = report({
       baseline: {
@@ -288,13 +387,16 @@ describe('micro tutoring coverage audit', () => {
     const extraReviewSourceHash = assessmentItemSemanticReviewSourceHash(extraDecision);
     const extraAttributions = (extraItem.questionRefs.options ?? [])
       .filter((option) => option.isCorrect === false && option.key)
-      .map((option) => ({
+      .map((option) => {
+        const goalNode = resolveMicroTutoringGoalNode(sourceDecision.selectedLearningGoalIds[0]);
+        if (!goalNode.ok) throw new Error(goalNode.reason);
+        return {
         catalogItemId,
         contentHash,
         optionKey: option.key!,
         learningGoalId: sourceDecision.selectedLearningGoalIds[0],
         misconceptionTag: `misconception:${sourceDecision.selectedLearningGoalIds[0]}:${option.key!.toLowerCase()}`,
-        knowledgeNodeId: sourceDecision.selectedGraphNodeIds[0],
+        knowledgeNodeId: goalNode.knowledgeNodeId,
         version: 'micro-tutoring-option-attribution.v2',
         itemReviewSourceHash: extraReviewSourceHash,
         reviewerId: 'assessment-content-reviewer:test',
@@ -303,7 +405,8 @@ describe('micro tutoring coverage audit', () => {
         reviewBatchId: 'micro-tutoring-option-attribution-review.test',
         evidenceSummary: `Independent reviewed evidence for option ${option.key}.`,
         limitations: ['content-hash-bound'],
-      })).map((attribution) => ({
+        };
+      }).map((attribution) => ({
         ...attribution,
         reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(attribution),
       }));

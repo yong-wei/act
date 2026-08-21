@@ -8,6 +8,11 @@ import {
   optionAttributionKey,
   type MicroTutoringOptionAttribution,
 } from './micro-tutoring-option-attribution';
+import {
+  loadMicroTutoringGoalNodeCatalog,
+  resolveMicroTutoringGoalNode,
+  type MicroTutoringGoalNodeSourceContext,
+} from './micro-tutoring-goal-node-catalog';
 
 export type { MicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
@@ -38,7 +43,10 @@ export type MicroTutoringOptionAttributionIssueReason =
   | 'ATTRIBUTION_RECORD_NOT_AUDITED_ERROR_OPTION'
   | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID'
   | 'ATTRIBUTION_RECORD_REVIEW_EVIDENCE_REUSED'
-  | 'ATTRIBUTION_RECORD_DUPLICATE';
+  | 'ATTRIBUTION_RECORD_DUPLICATE'
+  | 'GOAL_NODE_CATALOG_INVALID'
+  | 'GOAL_NODE_UNRESOLVED'
+  | 'GOAL_NODE_CONFLICT';
 
 export interface MicroTutoringPracticeBaseline {
   version: string;
@@ -69,6 +77,8 @@ export interface MicroTutoringCoverageAuditInput {
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   optionReferenceSecret: string;
   activeLearningGoalIds: Iterable<string>;
   activeKnowledgeNodeIds: Iterable<string>;
@@ -274,6 +284,8 @@ function attributionHasRequiredFields(
 
 function auditOptionAttributions(input: {
   optionAttributions: unknown[];
+  goalNodeCatalogSource?: unknown;
+  goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
   catalogItems: AdaptiveAssessmentCatalogItem[];
   qualifiedItems: AdaptiveAssessmentCatalogItem[];
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
@@ -301,6 +313,10 @@ function auditOptionAttributions(input: {
   const rowsByOption = new Map<string, MicroTutoringOptionAttribution[]>();
   const issueByRecord = new Map<number, MicroTutoringOptionAttributionIssueReason[]>();
   const recordIndexesByOption = new Map<string, number[]>();
+  const goalNodeCatalog = loadMicroTutoringGoalNodeCatalog(
+    input.goalNodeCatalogSource,
+    input.goalNodeSourceContext,
+  );
 
   input.optionAttributions.forEach((value, index) => {
     const attribution = attributionRecord(value);
@@ -337,15 +353,25 @@ function auditOptionAttributions(input: {
       return;
     }
     const reviewDecision = reviewDecisionByItemId.get(attribution.catalogItemId);
+    const goalNode = resolveMicroTutoringGoalNode(attribution.learningGoalId, goalNodeCatalog);
     if (
       !reviewDecision ||
       reviewDecision.sourceContentHash !== attribution.contentHash ||
       reviewDecision.reviewSourceHash !== attribution.itemReviewSourceHash ||
       !reviewDecision.selectedLearningGoalIds.includes(attribution.learningGoalId) ||
-      !reviewDecision.selectedGraphNodeIds.includes(attribution.knowledgeNodeId) ||
       !attribution.misconceptionTag.startsWith(`misconception:${attribution.learningGoalId}:`)
     ) {
       issueByRecord.set(index, ['ATTRIBUTION_RECORD_REVIEW_EVIDENCE_INVALID']);
+      return;
+    }
+    if (!goalNode.ok) {
+      issueByRecord.set(index, [goalNode.reason === 'CATALOG_INVALID'
+        ? 'GOAL_NODE_CATALOG_INVALID'
+        : 'GOAL_NODE_UNRESOLVED']);
+      return;
+    }
+    if (attribution.knowledgeNodeId !== goalNode.knowledgeNodeId) {
+      issueByRecord.set(index, ['GOAL_NODE_CONFLICT']);
       return;
     }
     const rows = rowsByOption.get(optionKey) ?? [];
@@ -433,6 +459,8 @@ export function buildMicroTutoringCoverageAuditReport(
   const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
   const attributionAudit = auditOptionAttributions({
     optionAttributions: input.optionAttributions,
+    goalNodeCatalogSource: input.goalNodeCatalogSource,
+    goalNodeSourceContext: input.goalNodeSourceContext,
     catalogItems: input.catalogItems,
     qualifiedItems,
     reviewDecisions: input.reviewDecisions,
