@@ -540,9 +540,13 @@ def manifest_release_id(view: Path) -> str:
     return manifest["releaseId"]
 
 
-def verify_changed_blob(blob_root: Path, entry: Dict[str, Any]) -> None:
+def verify_changed_blob(blob_root: Path, entry: Dict[str, Any], *, skip_hash: bool = False) -> None:
     blob = blob_path(blob_root, entry["sha256"])
-    if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
+    if blob.stat().st_size != entry["sizeBytes"]:
+        fail("mounted changed blob does not match manifest: %s" % entry["path"])
+    if skip_hash:
+        return
+    if hash_file(blob) != entry["sha256"]:
         fail("mounted changed blob does not match manifest: %s" % entry["path"])
 
 
@@ -571,6 +575,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
     manifest, manifest_wire = parse_manifest(Path(args.manifest))
     receipt = parse_receipt(Path(args.receipt), manifest, manifest_wire)
     cache_enabled = bool(getattr(args, "cache_textbook_retrieval", False))
+    skip_blob_hash = bool(getattr(args, "skip_blob_hash", False))
     if cache_enabled:
         require_textbook_retrieval_cache(manifest)
     cached_paths = set(TEXTBOOK_RETRIEVAL_CACHE_PATHS) if cache_enabled else set()
@@ -625,7 +630,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             else:
                 os.symlink(relative_helper_link(entry["path"], entry["sha256"]), str(logical))
                 if not inherited and entry["sha256"] not in verified_changed_blobs:
-                    verify_changed_blob(blob_root, entry)
+                    verify_changed_blob(blob_root, entry, skip_hash=skip_blob_hash)
                     verified_changed_blobs.add(entry["sha256"])
                     verified_changed_blob_sizes[entry["sha256"]] = entry["sizeBytes"]
                 if not inherited:
@@ -819,6 +824,7 @@ def main() -> None:
         command.add_argument("--view-root", required=True)
         command.add_argument("--parent-view")
         command.add_argument("--cache-textbook-retrieval", action="store_true")
+        command.add_argument("--skip-blob-hash", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)
     selector.add_argument("--view-root", required=True)

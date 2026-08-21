@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -49,6 +50,7 @@ export interface TextbookCatalogEntry {
   bookId: string;
   edition: string;
   title: string;
+  sourceRevision: string;
   structureUnitCount: number;
   fragmentAnchorCount: number;
 }
@@ -99,6 +101,7 @@ export interface TextbookReaderProjection {
     naturalNumber: string | null;
     structuralPath: string[];
     markdown: string;
+    contentHash: string;
   };
   hierarchy: TextbookNavigationNode[];
   breadcrumbs: TextbookReaderLocation[];
@@ -231,6 +234,7 @@ function catalogEntry(manifest: StructuredTextbookManifest): TextbookCatalogEntr
     bookId: manifest.bookId,
     edition: manifest.edition,
     title: TEXTBOOK_TITLES[manifest.bookId] ?? manifest.bookId,
+    sourceRevision: manifest.sourceRevision,
     structureUnitCount: manifest.counts.structureUnits,
     fragmentAnchorCount: manifest.counts.fragmentAnchors,
   };
@@ -529,6 +533,7 @@ export async function loadTextbookReaderProjection(input: {
       naturalNumber: unit.naturalNumber,
       structuralPath: unit.structuralPath,
       markdown: insertTextbookFragmentMarkers(unit.markdown, unit.sourceSpan.startLine, runtimeAnchors),
+      contentHash: `sha256:${createHash('sha256').update(unit.markdown, 'utf8').digest('hex')}`,
     },
     hierarchy: buildHierarchy(index, route.bookId, route.edition),
     breadcrumbs,

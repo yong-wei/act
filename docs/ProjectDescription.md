@@ -145,6 +145,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 新增或改造仿真应遵守 `docs/Simulation_Guidelines.md`：固定步长时钟、线性模型 Tustin 离散化、非线性模型走内置积分器接口，避免在页面内直接手写漂移的数值步进。参与 SSR 的页面不能静态导入会触发 React/R3F 浏览器运行时依赖的 3D 预览组件。
 
+Cruise 课程转向场景（`sim/cruise` / `cruise-comfort-course-turn` / `fleet-cruise-adora`）在完成态增加只读“控制效果复盘”：事实层只陈述当前运行已计算指标，任务层仅在显式 `courseMode=cruise-boppps` 绑定注册课程任务并给出权威阈值时逐项判断满足或未满足。独立 `/simulations/cruise` 探索页只陈述事实，不注入课程阈值。复盘不重算物理量、不把结束时刻舵角或功率当作峰值或能量、也不改 Arena 评分、官方评价、榜单或学习证据。其他船型保持原完成态。
+
 ## Arena 控制竞技场
 
 Arena 是统一评测与排行榜层，不是单一控制方法工作台。基本单元是：
@@ -171,7 +173,7 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 ## 数据治理、学习路径与智能助教
 
-数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。
+数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。自适应题库生命周期覆盖 v2 按九个学习目标和 readiness / practice / checkpoint / remediation / terminal-validation 分别报告登记、允许、审核、资格、运行时注册与可选择数量；`practice-v1` 的 54 题分母保持不变。题目型终结验证是独立 scope，可与仿真或 Arena 终验并存，不得静默替代。
 
 主要数据表与链路：
 
@@ -209,6 +211,8 @@ AI 能力嵌入多个教学场景：
 - `src/lib/konling-agent-runtime.ts`：控灵模式、工具、上下文与引用约束。
 - `src/features/ai/companion`：仿真与学习过程中的伴学和干预。
 - 管理员 `/admin/config`：AI 供应商、模型、启用状态与响应测试。
+
+统一教材阅读器的 `resource-coach` 入口只绑定 runtime v2 结构单元及其已登记公式/图/表锚点。可信上下文由服务端按 `resourceId + bookId + edition + sourceRevision + unitId + contentHash`（可选 `anchorId`）重读并原子固定；客户端 URL、选区和正文不得扩大权限或引用。回答引用只能使用服务端版本绑定导航句柄，活动新版 reader URL 不能冒充旧会话。普通 TeachingResource、KnowledgeCard、`/knowledge`、PDF、视频时间轴和外部网页仍不提供该入口。
 
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
@@ -263,7 +267,7 @@ rtk npm run deploy:app -- --skip-build
 rtk npm run deploy:runtime
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)。
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime` 只读挂载该 active Release，密钥走仓库外凭据文件，不复用 Publisher。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md) 与 [开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)。
 
 ## 维护入口
 

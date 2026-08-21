@@ -51,6 +51,10 @@ for (const invariant of [
   "src/lib/runtime-lesson-media-document.ts",
   "scripts/db/seed-all-knowledge.mjs",
   "src/lib/textbook-reader.ts",
+  "src/lib/runtime-release-textbook-candidate-smoke.ts",
+  'smokeCandidateTextbookCorpus',
+  'ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT',
+  'ACT_RUNTIME_CANDIDATE_INDEX_ROOT',
   'candidate media, knowledge, or textbook consumer smoke failed',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
@@ -152,15 +156,111 @@ assert.ok(consumerModule, 'candidate consumer module must remain extractable for
 const consumerDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-candidate-smoke-'));
 const consumerPath = path.join(consumerDirectory, 'candidate-smoke.ts');
 fs.writeFileSync(consumerPath, consumerModule[1], { encoding: 'utf8', mode: 0o600 });
+const textbookFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-textbook-smoke-'));
+const textbookRoot = path.join(textbookFixture, 'textbooks-v2');
+const indexRoot = path.join(textbookFixture, 'index');
+const fixtureBooks = [
+  ['control-encyclopedia', '2015'],
+  ['hu-shousong-exercise-analysis-3rd', '第三版'],
+];
+const fixtureRevision = 'a'.repeat(40);
+fs.mkdirSync(textbookRoot, { recursive: true });
+for (const [bookId, edition] of fixtureBooks) {
+  const bookRoot = path.join(textbookRoot, bookId);
+  fs.mkdirSync(bookRoot, { recursive: true });
+  const unitId = `textbook-unit:${bookId}@edition/chapter-chapter-01`;
+  const unit = {
+    id: unitId,
+    bookId,
+    edition,
+    chapterId: 'chapter-01',
+    structuralPath: ['chapter-chapter-01'],
+    parentId: null,
+    ancestorIds: [],
+    level: 1,
+    kind: 'chapter',
+    naturalNumber: '1',
+    title: '第一章',
+    markdown: '# 第一章\n正文',
+    sourceSpan: {
+      sourcePath: `textbooks/${bookId}/chapter-01/textbook.md`,
+      startLine: 1,
+      endLine: 1,
+      startByte: 0,
+      endByte: 8,
+    },
+    fragmentAnchorIds: [],
+    recordType: 'structure-unit',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  };
+  fs.writeFileSync(path.join(bookRoot, 'manifest.json'), JSON.stringify({
+    recordType: 'export-manifest',
+    schemaVersion: 'structured-textbook-runtime.v2',
+    bookId,
+    edition,
+    sourceRevision: fixtureRevision,
+    sourceHashes: {},
+    counts: { structureUnits: 1, fragmentAnchors: 0, retrievalWindows: 1, navigationEntries: 1 },
+  }));
+  fs.writeFileSync(path.join(bookRoot, 'navigation.json'), JSON.stringify({
+    recordType: 'navigation-index',
+    schemaVersion: 'structured-textbook-runtime.v2',
+    bookId,
+    entries: [{ unitId, parentId: null, childIds: [], previousUnitId: null, nextUnitId: null }],
+  }));
+  fs.writeFileSync(path.join(bookRoot, 'units.jsonl'), `${JSON.stringify(unit)}\n`);
+  fs.writeFileSync(path.join(bookRoot, 'anchors.jsonl'), '');
+  fs.writeFileSync(path.join(bookRoot, 'windows.jsonl'), `${JSON.stringify({
+    id: unitId.replace('textbook-unit:', 'textbook-window:'),
+    primaryUnitId: unitId,
+    segments: [{ owningUnitId: unitId, markdown: unit.markdown, sourceSpan: unit.sourceSpan }],
+    citationTarget: false,
+    recordType: 'retrieval-window',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  })}\n`);
+}
+fs.writeFileSync(path.join(textbookRoot, 'input-provenance.json'), JSON.stringify({
+  schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+  sourceRevision: fixtureRevision,
+  inputDigest: 'b'.repeat(64),
+  inputFileCount: 2,
+}));
+fs.mkdirSync(indexRoot, { recursive: true });
+for (const fileName of [
+  'windows.jsonl', 'bodies.utf8', 'vectors.f32', 'lexical-terms.jsonl', 'lexical-postings.bin', 'build-report.json',
+]) {
+  fs.writeFileSync(path.join(indexRoot, fileName), '');
+}
+fs.writeFileSync(path.join(indexRoot, 'manifest.json'), JSON.stringify({
+  recordType: 'index-manifest',
+  formatVersion: 'textbook-hybrid-retrieval.v1',
+  sourceRevision: fixtureRevision,
+  resourceSetId: 'current-authoring-bundle-v1',
+  books: fixtureBooks.map(([bookId, edition]) => ({
+    bookId,
+    edition,
+    manifestHash: `sha256:${'0'.repeat(64)}`,
+    sourceHashes: { 'manifest.json': `sha256:${'1'.repeat(64)}` },
+  })),
+}));
 let consumerOutput;
 try {
   consumerOutput = execFileSync(
     path.join(root, 'node_modules', '.bin', 'tsx'),
     [consumerPath],
-    { cwd: root, encoding: 'utf8' },
+    {
+      cwd: root,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT: textbookRoot,
+        ACT_RUNTIME_CANDIDATE_INDEX_ROOT: indexRoot,
+      },
+    },
   ).trim();
 } finally {
   fs.rmSync(consumerDirectory, { recursive: true, force: true });
+  fs.rmSync(textbookFixture, { recursive: true, force: true });
 }
 const consumerResult = JSON.parse(consumerOutput);
 assert.match(

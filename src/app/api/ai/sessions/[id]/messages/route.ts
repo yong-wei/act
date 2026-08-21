@@ -56,6 +56,14 @@ import {
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import {
+  findLatestPinnedTextbookIdentity,
+  pinTextbookCoachIdentity,
+} from '@/lib/textbook-resource-coach';
+import {
+  applyTextbookCoachRuntimeContext,
+  readTextbookCoachServerBag,
+} from '@/lib/textbook-resource-coach/runtime-bridge';
+import {
   attachKonlingExecutedToolResults,
   correctKonlingMalformedStructuredResponse,
   executeKonlingDsmlToolCalls,
@@ -241,6 +249,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       currentUserQuery: userMessage.content,
       trustedContentContext: true,
     };
+    const existingTextbookPin = findLatestPinnedTextbookIdentity(existingMessages);
     const serverModeContext = candidateOnly
       ? null
       : await resolveKonlingTeachingAssistantServerModeContext({
@@ -248,14 +257,36 @@ export async function POST(request: NextRequest, context: RouteContext) {
           modeId: effectiveModeId,
           scope: authorizedScope,
           clientContextHints: effectiveModeClientContextHints,
+          pinnedTextbookIdentity: existingTextbookPin,
         });
+    const textbookCoach = readTextbookCoachServerBag(serverModeContext);
+    if (textbookCoach.textbookCoachFailure) {
+      return NextResponse.json({
+        error: 'KONLING_MODE_UNAVAILABLE',
+        mode: 'resource-coach',
+        status: 'unavailable',
+        unavailableReasons: [`textbook-coach:${textbookCoach.textbookCoachFailure}`],
+        degradedReasons: [],
+        clientHintsRejected: Object.keys(effectiveModeClientContextHints ?? {}),
+      }, { status: 409 });
+    }
     const assistantBinding = candidateOnly
       ? null
-      : normalizeKonlingConversationAssistantBinding({
-          modeId: effectiveModeId,
-          clientContextHints: effectiveModeClientContextHints,
-          validatedModeContext: serverModeContext,
-        });
+      : (() => {
+          const binding = normalizeKonlingConversationAssistantBinding({
+            modeId: effectiveModeId,
+            clientContextHints: effectiveModeClientContextHints,
+            validatedModeContext: serverModeContext,
+          });
+          if (!binding || !textbookCoach.structuredTextbook) return binding;
+          return {
+            ...binding,
+            pinnedTextbookResourceIdentity: pinTextbookCoachIdentity({
+              existingPin: existingTextbookPin,
+              verified: textbookCoach.structuredTextbook.identity,
+            }).identity,
+          };
+        })();
     const smartPrepBinding = serverModeContext
       ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
       : null;
@@ -263,9 +294,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ...runtimeInput,
       teachingAssistantServerModeContext: serverModeContext,
     });
+    const textbookRuntimeContext = applyTextbookCoachRuntimeContext(runtimeContext, serverModeContext);
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: effectiveModeId,
-      runtimeContext,
+      runtimeContext: textbookRuntimeContext,
       scope: authorizedScope,
       serverModeContext,
       clientContextHints: effectiveModeClientContextHints,
@@ -290,7 +322,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ? KONLING_CANDIDATE_READ_TOOLS
       : modeContract.permittedTools;
     const modeRuntimeContext = {
-      ...runtimeContext,
+      ...textbookRuntimeContext,
       knowledgeCapabilityContext: modeContract.groundingContext,
       teachingAssistantMode: modeContract,
     };

@@ -36,6 +36,8 @@
 
 Bucket `act-course-assets` 必须保持私有、阻止公共访问、标准存储与 SSE-OSS。不得将 AccessKey、Secret、STS token 或签名 URL 写入仓库、`.env`、脚本、manifest 或日志。
 
+合作者开发接入使用独立 RAM 用户 `act-runtime-dev-read` 和杭州**公网** Endpoint，只挂载 readiness 投影的生产 active v2 Release。它不是 Publisher，也不是 ECS `act-runtime-oss-read`。共享凭据无法做个人审计，项目结束必须删钥匙。接入说明见 [developer-oss-runtime-access.md](developer-oss-runtime-access.md)，RAM 创建/撤销见 [developer-oss-runtime-ram-setup.md](developer-oss-runtime-ram-setup.md)。开发启动走 `npm run startup:oss-runtime`，不要把密钥写入 `.env`。
+
 ECS 使用用户创建的受限服务角色 `act-runtime-oss-release-operator-ecs`。它的对象策略仅覆盖 `runtime/` 前缀；bridge 在 IMDS 中精确匹配该角色并以不可变 publish/verify 协议控制写入。应用仍只经只读 ossfs bind 读取 runtime，短时媒体签名不向浏览器暴露永久 Bucket URL。删除能力只可由后续独立、审查过的回收适配器在精确退役前缀上使用；当前 v2 GC 仅演练本地 mirror，不会删除 OSS 对象。
 
 角色绑定完成后，先从 ECS 只读确认 metadata endpoint 返回角色名，再验证 role 对目标 Bucket/prefix 的最小读取能力。不要以长期 AK 作为替代方案。

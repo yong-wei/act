@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type {
@@ -14,8 +14,15 @@ import {
 import {
   evaluateAssessmentEvidenceAuthority,
 } from './assessment-evidence-authority';
+import {
+  loadFrozenTerminalValidationOverlay,
+} from './adaptive-assessment-lifecycle-coverage';
+import {
+  GENERATED_CATALOG_ITEMS_PATH,
+  GENERATED_CATALOG_REVIEWS_PATH,
+} from './generated-candidate-catalog';
 
-export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation';
+export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
 
 export interface CatalogSelectionLimitation {
   code: 'path-assessment-catalog-coverage-incomplete';
@@ -68,6 +75,37 @@ interface RuntimeCatalogArtifacts {
 }
 
 let cachedArtifacts: RuntimeCatalogArtifacts | null = null;
+let generatedRuntimeOverlay: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+} = { items: [], decisions: [] };
+let generatedRuntimeOverlayReady = false;
+
+export function invalidateRuntimeCatalogCache() {
+  cachedArtifacts = null;
+}
+
+export function isGeneratedRuntimeOverlayReady() {
+  return generatedRuntimeOverlayReady;
+}
+
+export function resetGeneratedRuntimeOverlay() {
+  generatedRuntimeOverlay = { items: [], decisions: [] };
+  generatedRuntimeOverlayReady = false;
+  cachedArtifacts = null;
+}
+
+export function replaceGeneratedRuntimeOverlay(input: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+}) {
+  generatedRuntimeOverlay = {
+    items: [...input.items],
+    decisions: [...input.decisions],
+  };
+  generatedRuntimeOverlayReady = true;
+  cachedArtifacts = null;
+}
 
 function readJsonl<T>(filePath: string): T[] {
   const content = readFileSync(filePath, 'utf8').trim();
@@ -75,11 +113,45 @@ function readJsonl<T>(filePath: string): T[] {
   return content.split('\n').filter(Boolean).map((line) => JSON.parse(line) as T);
 }
 
+function loadGeneratedCatalog(rootDir: string): {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+} {
+  if (generatedRuntimeOverlayReady) {
+    return generatedRuntimeOverlay;
+  }
+  const itemsPath = path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH);
+  const reviewsPath = path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH);
+  return {
+    items: existsSync(itemsPath) ? readJsonl<AdaptiveAssessmentCatalogItem>(itemsPath) : [],
+    decisions: existsSync(reviewsPath)
+      ? readJsonl<AssessmentItemSemanticReviewDecision>(reviewsPath)
+      : [],
+  };
+}
+
 function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArtifacts {
   if (cachedArtifacts) return cachedArtifacts;
   const items = readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, CATALOG_ITEMS_PATH));
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
-  cachedArtifacts = buildRuntimeCatalogArtifacts(items, decisions);
+  const overlay = loadFrozenTerminalValidationOverlay();
+  const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
+  const generatedCatalog = loadGeneratedCatalog(rootDir);
+  const generatedItems = generatedCatalog.items;
+  const generatedDecisions = generatedCatalog.decisions;
+  const generatedIds = new Set(generatedItems.map((item) => item.catalogItemId));
+  cachedArtifacts = buildRuntimeCatalogArtifacts(
+    [
+      ...items.filter((item) => !overlayIds.has(item.catalogItemId) && !generatedIds.has(item.catalogItemId)),
+      ...overlay.items,
+      ...generatedItems,
+    ],
+    [
+      ...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId) && !generatedIds.has(decision.catalogItemId)),
+      ...overlay.decisions,
+      ...generatedDecisions,
+    ],
+  );
   return cachedArtifacts;
 }
 
@@ -111,6 +183,7 @@ function decisionStageMatches(
       decision.selectedStagePurpose === 'precheck';
   }
   if (requestedStage === 'checkpoint') return decision.selectedStagePurpose === 'checkpoint';
+  if (requestedStage === 'terminal-validation') return decision.selectedStagePurpose === 'terminal-validation';
   return decision.selectedStagePurpose === 'remediation';
 }
 
@@ -140,12 +213,13 @@ function isReviewedPathEligibleSelection(
         requestedStage,
       })
     : null;
-  return Boolean(
-    decision &&
-    authority &&
-    authority[requestedStage] &&
-    decisionStageMatches(decision, requestedStage),
-  );
+  if (!decision || !authority || !decisionStageMatches(decision, requestedStage)) return false;
+  if (requestedStage === 'terminal-validation') {
+    return authority.limitations.length === 0
+      && item.sourceFamily !== 'generated-adaptive-question'
+      && item.eligibilityState === 'path-eligible';
+  }
+  return Boolean(authority[requestedStage]);
 }
 
 export function selectCatalogBackedAssessmentItem(params: {

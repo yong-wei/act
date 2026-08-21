@@ -178,3 +178,49 @@ LearningGoal assessment baseline completion SHALL support deterministic shards s
 - **WHEN** selected shard rows cannot satisfy a stage
 - **THEN** the coverage matrix SHALL report an explicit limitation for that shard cell
 - **AND** unselected rows SHALL remain in the assessment workqueue rather than blocking unrelated fixture data completion.
+
+### Requirement: 微辅导来源题目使用受治理的学习目标映射
+评估目录 SHALL 在题目被纳入微辅导覆盖基线或用于微辅导编排前，核验其审查后的学习目标能够通过当前有效的微辅导目标目录解析到唯一、启用且属于 knowledge 域的 `kn:` 规范主知识节点。
+
+#### Scenario: 微辅导来源题目具有有效目标映射
+- **WHEN** 已审查的 practice 题被纳入微辅导覆盖或被用作错误选项归因来源
+- **THEN** 其学习目标 SHALL 通过有效目录解析到唯一规范主知识节点
+- **AND** 题目快照、归因和审计 SHALL 使用同一解析结果而非独立的文本推断
+
+#### Scenario: 微辅导来源题目缺少有效目标映射
+- **WHEN** 已审查的 practice 题的学习目标未知、停用、歧义、仅关联能力域 `cap:` 节点或与目录版本漂移
+- **THEN** 评估目录和微辅导审计 SHALL 将该题标记为不可编排
+- **AND** 系统 SHALL 不以现有图节点标签、关键词或默认节点替代该映射
+
+### Requirement: 目录发布显式生命周期覆盖身份
+
+评估目录 release SHALL 对每个项目分别记录允许阶段、人工批准阶段用途、path eligibility、运行时注册状态和所属 lifecycle coverage baseline/version。一个字段的存在不得隐式推导其他层级；高风险阶段用途变化 MUST 触发审核 stale 和新发布回执。
+
+#### Scenario: 目录项目进入 v2 阶段覆盖
+
+- **WHEN** 一个项目被计入 v2 readiness、checkpoint、remediation 或 terminal-validation 单元
+- **THEN** 它 SHALL 具有当前内容哈希、人工阶段决定、path eligibility、运行时引用和 v2 baseline identity
+- **AND** 历史目录 release SHALL 保持不变
+
+#### Scenario: 阶段用途或运行时注册缺失
+
+- **WHEN** 项目仅有 allowed stage、仅有人工决定或仅有运行时题面之一
+- **THEN** 目录 SHALL 报告缺失层级
+- **AND** 项目不得计入当前可选择数量
+
+### Requirement: 目录仅接收具备生成发布回执的候选题
+
+生成来源题目只有在候选 lineage 完整、自动预检有效、独立人工审核批准且 publication receipt 可回读时，才 MAY 进入评估目录。目录记录 MUST 包含 generation kind、候选/修订引用、内容哈希、审核决定和 publication identity；临时内存题、模板练习或仅有模型建议的题目不得成为 path-eligible。
+
+#### Scenario: 已批准生成题进入目录
+
+- **WHEN** 目录构建读取到有效生成 publication receipt
+- **THEN** 它 SHALL 登记对应不可变 catalog item 和完整 lineage
+- **AND** 是否用于 readiness、checkpoint、remediation 或 terminal-validation SHALL 继续由独立阶段政策决定
+
+#### Scenario: 生成题缺少人工批准或发布回执
+
+- **WHEN** 候选只有模型输出、自动预检、临时运行时对象或过期审核
+- **THEN** 目录 SHALL 将其报告为 provisional/blocked 或不纳入发布集合
+- **AND** 不得以 `ai_generated` 字符串推断正式资格
+

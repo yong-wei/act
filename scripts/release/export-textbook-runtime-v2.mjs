@@ -12,6 +12,14 @@ import {
   TEXTBOOK_RESOURCE_SET_PATH,
   textbookBookIds,
 } from './textbook-resource-set.mjs';
+import {
+  TEXTBOOK_INPUT_PROVENANCE_FILE,
+  serializeTextbookInputProvenance,
+  buildTextbookInputProvenanceV2,
+} from './textbook-runtime-input-provenance.mjs';
+
+const TEXTBOOK_GENERATOR_ID = 'act-textbook-runtime-v2-generator';
+const TEXTBOOK_GENERATOR_VERSION = 'v2';
 
 const repoRoot = process.cwd();
 const resourcesRoot = path.resolve(
@@ -37,10 +45,12 @@ const TEXTBOOK_GENERATOR_INPUTS = [
   'scripts/release/export-textbook-runtime-v2.mjs',
   'scripts/release/validate-textbook-runtime-v2.mjs',
   'scripts/release/textbook-runtime-v2-provenance.mjs',
+  'scripts/release/textbook-runtime-input-provenance.mjs',
   'scripts/release/textbook-resource-set.mjs',
   'course-content/scripts/export_structured_textbook_runtime_v2.py',
   'course-content/scripts/structured_textbook_runtime.py',
   'course-content/scripts/textbook_resource_set.py',
+  'course-content/scripts/textbook_runtime_input_provenance.py',
   'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
   'course-content/scripts/validate_written_textbook_runtime_v2.py',
   'course-content/scripts/textbook_hybrid_retrieval.py',
@@ -52,8 +62,7 @@ const TEXTBOOK_GENERATOR_INPUTS = [
   'course-content/config/textbook-resource-set.json',
   resourceSetConfig.configRoot,
 ];
-const INPUT_PROVENANCE_FILE = 'input-provenance.json';
-const INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
+
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -331,13 +340,17 @@ function main() {
       throw new Error('textbook-runtime-v2-resource-set-empty');
     }
     fs.writeFileSync(
-      path.join(stagedRuntime, INPUT_PROVENANCE_FILE),
-      `${JSON.stringify({
-        schemaVersion: INPUT_PROVENANCE_SCHEMA,
-        sourceRevision: revision,
+      path.join(stagedRuntime, TEXTBOOK_INPUT_PROVENANCE_FILE),
+      serializeTextbookInputProvenance(buildTextbookInputProvenanceV2({
+        authoringSourceRevision: revision,
+        resourceSetId: resourceSetConfig.resourceSetId,
+        bookIds: bookIds,
+        sourceRoot: resourceSetConfig.sourceRoot,
+        configRoot: resourceSetConfig.configRoot,
         inputDigest: inputSnapshot.digest,
         inputFileCount: inputSnapshot.fileCount,
-      }, null, 2)}\n`,
+        generator: { id: TEXTBOOK_GENERATOR_ID, version: TEXTBOOK_GENERATOR_VERSION },
+      })),
       { flag: 'wx' },
     );
     run(process.execPath, [
@@ -370,7 +383,9 @@ function main() {
     ]);
     removePathSync(stagingRoot);
     process.stdout.write(`${JSON.stringify({
-      sourceRevision: revision,
+      authoringSourceRevision: revision,
+      resourceSetId: resourceSetConfig.resourceSetId,
+      bookIds,
       inputDigest: inputSnapshot.digest,
       inputFileCount: inputSnapshot.fileCount,
       runtimeRoot,

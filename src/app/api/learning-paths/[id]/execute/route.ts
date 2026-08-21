@@ -7,6 +7,7 @@ import {
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
 import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
@@ -66,6 +67,7 @@ const RESOURCE_TYPES = new Set([
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
+    await ensureGeneratedCatalogHydrated(prisma);
     const requester = await getLearningPathRequester();
     if (requester instanceof NextResponse) return requester;
     const params = await props.params;
@@ -719,7 +721,14 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const remediationCompletionEligible = reviewedKaqAnswer &&
     input.resourceType === 'adaptive_quiz' &&
     matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'remediation');
-  const pathCompletionEligible = readinessCompletionEligible || checkpointEligible || remediationCompletionEligible;
+  const terminalValidationCompletionEligible = reviewedKaqAnswer &&
+    input.resourceType === 'adaptive_quiz' &&
+    kaqPurpose === 'terminal-validation' &&
+    matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'terminal-validation');
+  const pathCompletionEligible = readinessCompletionEligible
+    || checkpointEligible
+    || remediationCompletionEligible
+    || terminalValidationCompletionEligible;
   const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0
     ? kaqLearningGoalIds.includes(input.goalId)
     : true;
@@ -907,7 +916,7 @@ function matchesAdaptiveAssessmentPathContext(
 function matchesAdaptiveAssessmentCatalogPathStage(
   answer: Record<string, any> | undefined,
   input: { goalId?: string | null },
-  stage: 'readiness' | 'checkpoint' | 'remediation',
+  stage: 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation',
 ): boolean {
   const itemRef = toRecord(toRecord(answer?.questionRef?.metadata).adaptiveAssessmentItemRef);
   const semanticRefs = toRecord(itemRef.semanticRefs);
@@ -936,8 +945,11 @@ function matchesAdaptiveAssessmentCatalogPathStage(
       allowHistoricalIncompleteSnapshotRecovery,
     },
   );
+  const stageAuthorized = stage === 'terminal-validation'
+    ? authority.limitations.length === 0
+    : Boolean(authority[stage]);
   return itemRef.catalogBacked === true &&
-    authority[stage] &&
+    stageAuthorized &&
     pathExecution.questionScope === stage &&
     (typeof input.goalId !== 'string' || input.goalId.trim().length === 0 ||
       arrayOfStrings(semanticRefs.learningGoalIds).includes(input.goalId));

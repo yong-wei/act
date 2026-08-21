@@ -4208,6 +4208,97 @@ model AdaptiveMasteryUpdate {
   @@index([algorithmVersion])
 }
 
+model AdaptiveAssessmentGeneratedCandidate {
+  id                String   @id
+  generationKind    String
+  status            String
+  currentRevisionId String
+  createdByUserId   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  revisions AdaptiveAssessmentGeneratedCandidateRevision[]
+  events    AdaptiveAssessmentGeneratedCandidateEvent[]
+  reviews   AdaptiveAssessmentGeneratedCandidateReview[]
+  receipts  AdaptiveAssessmentGeneratedPublicationReceipt[]
+
+  @@index([status, createdAt])
+  @@index([generationKind, status])
+  @@index([createdByUserId, createdAt])
+}
+
+model AdaptiveAssessmentGeneratedCandidateRevision {
+  id                 String   @id
+  candidateId        String
+  parentRevisionId   String?
+  contentHash        String
+  envelopePublicJson  Json
+  envelopePrivateJson Json     @default("{}")
+  contentJson         Json
+  promptHash          String?
+  modelResponseHash   String?
+  createdAt          DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+  @@index([contentHash])
+}
+
+model AdaptiveAssessmentGeneratedCandidateEvent {
+  id          String   @id
+  candidateId String
+  revisionId  String
+  status      String
+  actorUserId String?
+  reason      String
+  createdAt   DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+}
+
+model AdaptiveAssessmentGeneratedCandidateReview {
+  id               String   @id
+  candidateId      String
+  revisionId       String
+  reviewerUserId   String
+  reviewerRole     String
+  outcome          String
+  rationale        String
+  itemDecisions    Json
+  contentHash      String
+  reviewSourceHash String
+  stale            Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, revisionId, createdAt])
+  @@index([reviewSourceHash])
+}
+
+model AdaptiveAssessmentGeneratedPublicationReceipt {
+  id               String    @id
+  candidateId      String
+  revisionId       String
+  reviewId         String
+  catalogItemId    String
+  contentHash      String
+  catalogReleaseId String
+  receiptHash      String    @unique
+  generationKind   String
+  status           String
+  createdAt        DateTime  @default(now())
+  retiredAt        DateTime?
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@index([candidateId, status])
+  @@index([catalogItemId])
+}
+
 model AIIntervention {
   id               String    @id @default(cuid())
   userId           String
@@ -4357,6 +4448,9 @@ model PromptAssessment {
   structurizationScore Float
   executabilityScore   Float
   suggestions          Json[]
+  assessmentResult     Json?
+  auditTaskContext     Json?
+  consistencyResult    Json?
   version              Int
   createdAt            DateTime @default(now())
 
@@ -4364,6 +4458,7 @@ model PromptAssessment {
 
   @@index([userId, createdAt])
   @@index([sessionId, version])
+  @@unique([userId, sessionId, version])
 }
 
 model DesignSession {

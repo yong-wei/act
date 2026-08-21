@@ -15,6 +15,7 @@ import {
   findAdaptiveAssessmentCatalogSnapshot,
   type AdaptiveAssessmentCatalogSnapshot,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
 import {
   evaluateAssessmentEvidenceSnapshotAuthority,
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
@@ -359,6 +360,9 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
     learningGoalId: params.details.pathContext?.goalId,
     requestedStage,
   });
+  const requestedStageAuthorized = requestedStage === 'terminal-validation'
+    ? authority.limitations.length === 0
+    : Boolean(requestedStage && authority[requestedStage]);
   const reviewState = catalogSnapshot
     ? 'reviewed'
     : params.kaqQuizEvidence.learningFactEligible
@@ -366,7 +370,7 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
       : 'provisional';
   const pathAssessmentEligible = requestedStage !== null &&
     catalogSnapshot !== null &&
-    authority[requestedStage] &&
+    requestedStageAuthorized &&
     catalogSnapshotMatchesPathContext(catalogSnapshot, params.details.pathContext);
   const readinessGateEligible = requestedStage === 'readiness' && pathAssessmentEligible &&
     params.kaqQuizEvidence.readinessGateEligible;
@@ -402,10 +406,11 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
 
 function pathContextCatalogStage(
   pathContext: SubmittedAnswerDetails['pathContext'],
-): 'readiness' | 'checkpoint' | 'remediation' | null {
+): 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation' | null {
   return pathContext?.questionScope === 'readiness' ||
     pathContext?.questionScope === 'checkpoint' ||
-    pathContext?.questionScope === 'remediation'
+    pathContext?.questionScope === 'remediation' ||
+    pathContext?.questionScope === 'terminal-validation'
     ? pathContext.questionScope
     : null;
 }
@@ -424,7 +429,8 @@ function catalogSnapshotMatchesPathContext(
   if (
     questionScope === 'readiness' ||
     questionScope === 'checkpoint' ||
-    questionScope === 'remediation'
+    questionScope === 'remediation' ||
+    questionScope === 'terminal-validation'
   ) {
     return snapshot.allowedStages.includes(questionScope);
   }
@@ -710,6 +716,7 @@ async function persistAdaptiveAssessmentSubmission(
   details: SubmittedAnswerDetails,
   db: AdaptiveAssessmentPersistenceDb,
 ): Promise<PersistedSubmission & { result: SubmitAnswerResult }> {
+  await ensureGeneratedCatalogHydrated(db);
   const execute = async (tx: AdaptiveAssessmentPersistenceTx): Promise<PersistedSubmission & { result: SubmitAnswerResult }> => {
   const answeredAt = new Date(details.record.createdAt);
   const score = details.record.isCorrect ? 100 : 0;
@@ -1200,6 +1207,7 @@ export async function getAbilityReportWithPersistenceFallback(
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<AbilityReport> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     return getAbilityReport(userId);
   }
@@ -1212,6 +1220,7 @@ export async function getDiagnosticWithPersistenceFallback(
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DiagnosticResult> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     return getDiagnostic(userId);
   }
@@ -1228,6 +1237,7 @@ export async function selectNextQuestionWithPersistenceFallback(
   estimatedAbility: number;
   confidenceInterval: [number, number];
 }> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     if (params.continuity) {
       throw new Error('Companion practice requires adaptive-assessment persistence.');

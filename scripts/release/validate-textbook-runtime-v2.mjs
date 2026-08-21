@@ -178,19 +178,25 @@ function main() {
   const index = filesOnly
     ? null
     : inspectTextbookRetrievalIndex(indexDir, {
-      expectedSourceRevision: runtime.sourceRevision,
+      expectedSourceRevision: runtime.authoringSourceRevision,
+      expectedResourceSetId: runtime.resourceSetId ?? undefined,
+      expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
+      runtimeRoot,
     });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   const indexValidation = filesOnly
     ? null
-    : validateIndex(runtimeRoot, indexDir, runtime.sourceRevision);
-  const bookIds = textbookBookIds();
+    : validateIndex(runtimeRoot, indexDir, runtime.authoringSourceRevision);
+  const bookIds = runtime.bookIds;
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
     bookIds,
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
-    sourceRevision: runtime.sourceRevision,
+    sourceRevision: runtime.authoringSourceRevision,
+    authoringSourceRevision: runtime.authoringSourceRevision,
+    provenanceGeneration: runtime.provenanceGeneration,
+    resourceSetId: runtime.resourceSetId,
     runtimeDigest: runtime.runtimeDigest,
     inputDigest: runtime.inputDigest,
     runtimeFileCount: runtime.fileCount,
@@ -200,7 +206,7 @@ function main() {
     indexFiles: index?.fileCount ?? null,
     indexResourceSetId: index?.resourceSetId ?? null,
     indexWindows: indexValidation?.windows ?? null,
-    resourceSetId: loadTextbookResourceSet().resourceSetId,
+    currentResourceSetId: loadTextbookResourceSet().resourceSetId,
     runtimeDirectories: bookIds.length,
     recordsValidated: validation?.recordsValidated ?? null,
     closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,

@@ -106,7 +106,7 @@ describe('adaptive assessment item catalog', () => {
       reviewState: 'generated-provisional',
       eligibilityState: 'generated-provisional',
       allowedStages: ['low-stakes-practice'],
-      limitations: ['generated-provisional-not-path-eligible'],
+      limitations: expect.arrayContaining(['generated-provisional-not-path-eligible']),
     });
     expect(generatedItem?.allowedStages).not.toContain('checkpoint');
     expect(generatedItem?.allowedStages).not.toContain('terminal-validation');

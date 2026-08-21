@@ -916,6 +916,27 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
   };
 }
 
+function teachingMainPathNodeIds(plan: { mainPath: Array<{ nodeId: string }> }): string[] {
+  return plan.mainPath
+    .map((node) => node.nodeId)
+    .filter((nodeId) => !nodeId.startsWith('item-type-terminal-validation:'));
+}
+
+function expectItemTypeTerminalValidationTail(plan: {
+  mainPath: Array<{
+    nodeId: string;
+    type: string;
+    target?: string;
+    checkpoint?: { assessmentPurpose?: string | null } | null;
+  }>;
+}): void {
+  const tail = plan.mainPath.at(-1);
+  expect(tail?.nodeId).toMatch(/^item-type-terminal-validation:/);
+  expect(tail?.type).toBe('adaptive_quiz');
+  expect(tail?.checkpoint?.assessmentPurpose).toBe('terminal-validation');
+  expect(tail?.target).toContain('questionScope=terminal-validation');
+}
+
 function mergeLearnerState(
   trusted: NonNullable<AdaptiveLearningPathPlannerInput['learnerState']>,
   override: AdaptiveLearningPathPlannerInput['learnerState'] | undefined,
@@ -3124,7 +3145,8 @@ describe('adaptive learning path planner', () => {
 
     expect(plan.status).toBe('fallback');
     expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-frequency-card-b']);
+    expect(teachingMainPathNodeIds(plan)).toEqual(['knowledge-card:graph-frequency-card-b']);
+    expectItemTypeTerminalValidationTail(plan);
     expect(plan.mainPath[0]?.resourceRanker?.featureContributions).toContainEqual(expect.objectContaining({
       feature: 'selected-graph-focus',
       value: 1,
@@ -3372,7 +3394,8 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.graphContext?.targetGraphNodeIds).toContain(prerequisiteNodeId);
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-prerequisite-card']);
+    expect(teachingMainPathNodeIds(plan)).toEqual(['knowledge-card:graph-prerequisite-card']);
+    expectItemTypeTerminalValidationTail(plan);
     expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
   });
 
@@ -4922,7 +4945,13 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.status).toBe('ready');
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:policy-checkpoint-card']);
+    expect(teachingMainPathNodeIds(plan)).toEqual(['knowledge-card:policy-checkpoint-card']);
+    expectItemTypeTerminalValidationTail(plan);
+    expect(plan.explanations.itemTypeTerminalValidation).toMatchObject({
+      status: 'ready',
+      replacesTypedTerminalEvidence: false,
+      combinesWith: ['simulation', 'arena'],
+    });
     expect(plan.constraintRepair).toMatchObject({
       status: 'satisfied',
       checkpointNodeIds: ['knowledge-card:policy-checkpoint-card'],
@@ -5009,7 +5038,8 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.status).toBe('ready');
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:policy-checkpoint-boundary-card']);
+    expect(teachingMainPathNodeIds(plan)).toEqual(['knowledge-card:policy-checkpoint-boundary-card']);
+    expectItemTypeTerminalValidationTail(plan);
     expect(plan.constraintRepair).toMatchObject({
       status: 'satisfied',
       checkpointNodeIds: ['knowledge-card:policy-checkpoint-boundary-card'],
@@ -5583,7 +5613,8 @@ describe('adaptive learning path planner', () => {
       },
     }));
 
-    expect(plan.mainPath.map((node) => node.type)).toEqual(['textbook_section']);
+    expect(plan.mainPath.map((node) => node.type)).toEqual(['textbook_section', 'adaptive_quiz']);
+    expectItemTypeTerminalValidationTail(plan);
     expect(plan.constraintRepair).toMatchObject({
       status: 'infeasible',
       checkpointNodeIds: [],
@@ -5917,10 +5948,11 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.status).toBe('fallback');
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+    expect(teachingMainPathNodeIds(plan)).toEqual([
       'textbook-section:repair-nonblocking:prep',
       'textbook-section:repair-nonblocking:locked',
     ]);
+    expectItemTypeTerminalValidationTail(plan);
     expect(plan.currentNodeId).toBe('textbook-section:repair-nonblocking:prep');
     expect(plan.explanations.fallbackReasons).toContain('checkpoint-resource-missing');
     expect(plan.constraintRepair).toMatchObject({

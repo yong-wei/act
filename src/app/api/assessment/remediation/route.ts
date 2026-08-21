@@ -13,6 +13,7 @@ import {
   attributeWrongAnswerEvidence,
   type WrongAnswerAttributionDb,
 } from '@/features/assessment/wrong-answer-attribution';
+import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,7 @@ async function authenticatedLearner() {
 
 export async function POST(request: Request) {
   try {
+    await ensureGeneratedCatalogHydrated(prisma);
     const learner = await authenticatedLearner();
     if ('error' in learner) {
       return NextResponse.json({ error: learner.error }, { status: learner.status });
@@ -94,6 +96,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    await ensureGeneratedCatalogHydrated(prisma);
     const learner = await authenticatedLearner();
     if ('error' in learner) {
       return NextResponse.json({ error: learner.error }, { status: learner.status });

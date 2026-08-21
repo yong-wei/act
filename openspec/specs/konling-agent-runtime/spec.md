@@ -248,24 +248,32 @@ Konling SHALL expose degraded or unavailable state when simulation context requi
 - **AND** it SHALL NOT claim authoritative diagnosis from generic chat context alone.
 
 ### Requirement: Konling exposes governed adaptive path tools
-Konling SHALL expose scoped tools for adaptive learning path generation, revision, selection, rejection, explanation, and outcome recording.
+Konling SHALL expose scoped tools for adaptive learning path generation, revision, persisted-candidate selection, rejection, explanation, and outcome recording.
 
 #### Scenario: Konling invokes graph-driven path generation
 - **WHEN** a student asks Konling to generate or revise a graph-driven learning path
 - **THEN** Konling SHALL call the governed planner tool with server-owned LearningGoal, graph subgoal, learner, class, resource, path, and privacy context
 - **AND** it SHALL preserve AgentToolRun audit, idempotency, and permission constraints.
 
+#### Scenario: Konling handles a candidate selection request
+- **WHEN** a student asks Konling to choose from a persisted candidate batch
+- **THEN** Konling SHALL resolve the request against that authorized batch and call the existing path-choice contract only for one verified candidate
+- **AND** unique resolution SHALL remain `pending_commit` until that governed path-choice mutation succeeds
+- **AND** Konling SHALL NOT represent `pending_commit` as a completed selection
+- **AND** an ambiguous request SHALL produce a structured clarification turn without side effects.
+
 ### Requirement: Path tools are auditable and idempotent
-Konling path-generation tools SHALL use the shared AgentToolRun audit and idempotency contract.
+Konling path-generation and persisted-candidate selection tools SHALL use the shared AgentToolRun audit and idempotency contract.
 
 #### Scenario: Tool call starts
 - **WHEN** Konling accepts a path-generation, revision, selection, or rejection tool call
 - **THEN** the system SHALL persist tool name, agent session, actor user, target user, goal, permission tier, approval state, correlation id, idempotency key, and redacted input summary before executing side effects.
 
 #### Scenario: Idempotent request repeats
-- **WHEN** the same owner user repeats the same path-generation request with the same idempotency key
+- **WHEN** the same owner user repeats the same path-generation request or confirmed candidate selection with the same idempotency key
 - **THEN** the system SHALL reuse or return the existing tool run according to registry policy
-- **AND** it SHALL NOT create duplicate active path rounds.
+- **AND** a different explicit candidate or different natural-language intent under that key SHALL fail with a conflict
+- **AND** it SHALL NOT create duplicate active path rounds or path choices.
 
 ### Requirement: Konling path outputs use student-safe language
 Konling path generation SHALL return student-facing explanations without leaking internal readiness codes.
@@ -971,4 +979,59 @@ Konling SHALL record candidate adjustment as its own governed tool run and outco
 #### Scenario: Learner later chooses an adjusted candidate
 - **WHEN** the learner explicitly selects a candidate from the derived batch
 - **THEN** the existing path-choice workflow MAY record selection or switch evidence independently from the adjustment tool run.
+
+### Requirement: Resource coach consumes version-bound textbook context
+Konling `resource-coach` SHALL accept unified textbook reader context only after the server has authorized and resolved a complete `structured-textbook-unit` identity. Client page context SHALL remain a hint and SHALL NOT establish trusted resource body, version, anchor, permission, or citation scope.
+
+#### Scenario: Textbook resource coach becomes ready
+- **WHEN** the current actor is authorized and the server validates `resourceId`, `bookId`, `edition`, `sourceRevision`, `unitId`, `contentHash`, and any requested registered `anchorId`
+- **THEN** `resource-coach` SHALL use the server-reloaded bounded unit or fragment context
+- **AND** the server SHALL atomically persist that complete resource identity before producing the first grounded answer.
+
+#### Scenario: Subsequent turn uses the resource session
+- **WHEN** the user asks another question in an existing version-bound resource-coach session
+- **THEN** Konling SHALL reauthorize the actor and revalidate the pinned revision, unit, hash, and anchor before using resource context
+- **AND** client hints or a newer active runtime SHALL NOT silently replace the session identity.
+
+#### Scenario: Resource context cannot be revalidated
+- **WHEN** permission is denied, the pinned revision is unavailable, the content hash drifts, the unit mapping changes, or the anchor is invalid
+- **THEN** `resource-coach` SHALL return a visible unavailable or degraded reason appropriate to the failure
+- **AND** it SHALL NOT answer from generic chat as though it had verified the requested resource context.
+
+#### Scenario: Resource-grounded answer exposes citations
+- **WHEN** Konling returns an answer supported by the verified textbook context
+- **THEN** answer metadata SHALL include only server-assigned citation identifiers whose hydrated version-bound addresses match the pinned resource identity and can resolve that exact identity at click time
+- **AND** missing or unverified support SHALL be labeled as having no verifiable citation rather than supplemented with a model-authored source.
+
+### Requirement: Path generation request identity survives unknown outcomes
+The Konling path-generation boundary SHALL preserve one client-visible generation request identity across rerenders, repeated callbacks, active-status checks, and retries whose server outcome is unknown.
+
+#### Scenario: Generation response is lost
+- **WHEN** a path-generation request reaches the server but the client receives a connection failure or an unexpected route exception
+- **THEN** the client SHALL retain the original generation request identity for its next query or retry
+- **AND** the server SHALL derive the same AgentToolRun idempotency key from that identity
+
+#### Scenario: Existing generation is still active
+- **WHEN** the same owner repeats a generation request whose AgentToolRun is pending or running
+- **THEN** the runtime SHALL return the existing run state
+- **AND** it SHALL NOT create a duplicate active path round
+
+#### Scenario: Runtime reports a definitive terminal result
+- **WHEN** the runtime reports succeeded, blocked, or failed for a generation request
+- **THEN** the response SHALL preserve the request identity and expose the definitive lifecycle state
+- **AND** a later explicit regeneration SHALL use a new request identity
+
+### Requirement: Konling generation results expose persisted batch identity
+After successful adaptive path generation, Konling SHALL receive and expose the persisted candidate batch ID and candidate IDs returned by the server, and SHALL NOT derive those identities from assistant text.
+
+#### Scenario: Successful generation returns shared identity
+- **WHEN** Konling completes a path generation request successfully
+- **THEN** its structured result references the same batch ID and candidate IDs that the path center can read
+
+### Requirement: Konling reads planner candidates without rewriting them
+When explaining a persisted batch, Konling SHALL use the server-owned batch projection and SHALL preserve planner ordering, candidate content, and recommendation provenance.
+
+#### Scenario: Explanation uses stored candidates
+- **WHEN** Konling explains or links to a candidate from a successful batch
+- **THEN** it references the persisted candidate and does not independently re-rank, regenerate, or rewrite the candidate set
 

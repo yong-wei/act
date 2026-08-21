@@ -145,6 +145,7 @@ const importFromApp = (relativePath: string) => import(
 const { parseRuntimeLessonMediaDocument } = await importFromApp('src/lib/runtime-lesson-media-document.ts');
 const { loadTextbookCatalog, loadTextbookReaderProjection } = await importFromApp('src/lib/textbook-reader.ts');
 const { loadStructuredTextbookBook } = await importFromApp('src/lib/structured-textbook-runtime.ts');
+const { smokeCandidateTextbookCorpus } = await importFromApp('src/lib/runtime-release-textbook-candidate-smoke.ts');
 const { selectRelationsForDb, validateRuntimeNodes } = await importFromApp('scripts/db/seed-all-knowledge.mjs');
 const lessonsRoot = path.join(runtimeRoot, 'lessons');
 let mediaPath = '';
@@ -196,23 +197,11 @@ if (relationSelection.selectedRelations.size === 0) {
   throw new Error('candidate runtime has no database-ready knowledge relations');
 }
 
-const textbookRoot = path.join(runtimeRoot, 'resources', 'textbooks-v2');
-const catalog = await loadTextbookCatalog({ userId: 'candidate-runtime-smoke', runtimeRoot: textbookRoot });
-const catalogEntry = catalog[0];
-if (!catalogEntry) throw new Error('candidate runtime has no textbook catalog entry');
-const book = await loadStructuredTextbookBook(catalogEntry.bookId, textbookRoot);
-const unit = book.units.find((entry) => entry.structuralPath.length > 0);
-if (!unit) throw new Error('candidate textbook has no readable structural unit');
-const textbookProjection = await loadTextbookReaderProjection({
-  userId: 'candidate-runtime-smoke',
-  bookId: catalogEntry.bookId,
-  edition: catalogEntry.edition,
-  unitPath: unit.structuralPath,
-  runtimeRoot: textbookRoot,
+await smokeCandidateTextbookCorpus({
+  runtimeRoot,
+  textbookRoot: process.env.ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT,
+  indexRoot: process.env.ACT_RUNTIME_CANDIDATE_INDEX_ROOT,
 });
-if (!textbookProjection.unit.markdown.trim() || textbookProjection.hierarchy.length === 0) {
-  throw new Error('candidate textbook reader projection is incomplete');
-}
 
 console.log(JSON.stringify({ mediaPath }));
 }
