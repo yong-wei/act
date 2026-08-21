@@ -25,6 +25,7 @@ import {
   FROZEN_TERMINAL_VALIDATION_BASELINE,
   loadFrozenTerminalValidationOverlay,
   selectFrozenTerminalValidationItems,
+  selectFrozenTerminalValidationOverlay,
 } from '../adaptive-assessment-lifecycle-coverage';
 import { REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS } from '../learning-goal-checkpoint-question-sets';
 import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '../learning-goal-terminal-validation-question-sets';
@@ -183,6 +184,20 @@ describe('adaptive assessment lifecycle coverage v2', () => {
     expect(selectFrozenTerminalValidationItems(drifted)).toHaveLength(overlay.items.length - 1);
   });
 
+  it('fails closed when frozen terminal-validation review hashes drift', () => {
+    const overlay = buildTerminalValidationOverlayCatalog();
+    const decisions = buildTerminalValidationReviewDecisions(overlay.items);
+    const drifted = decisions.map((decision, index) => (
+      index === 0 ? { ...decision, reviewSourceHash: 'sha256:' + '0'.repeat(64) } : decision
+    ));
+    const frozen = selectFrozenTerminalValidationOverlay({
+      items: overlay.items,
+      decisions: drifted,
+    });
+    expect(frozen.items).toHaveLength(overlay.items.length - 1);
+    expect(frozen.decisions).toHaveLength(overlay.items.length - 1);
+  });
+
   it('loads runtime terminal-validation overlay from frozen hashes instead of live auto-approval', () => {
     const live = buildTerminalValidationOverlayCatalog();
     const frozen = loadFrozenTerminalValidationOverlay();
@@ -193,6 +208,11 @@ describe('adaptive assessment lifecycle coverage v2', () => {
     expect(frozen.items.every((item) => (
       FROZEN_TERMINAL_VALIDATION_BASELINE.some((entry) => (
         entry.catalogItemId === item.catalogItemId && entry.contentHash === item.contentHash
+      ))
+    ))).toBe(true);
+    expect(frozen.decisions.every((decision) => (
+      FROZEN_TERMINAL_VALIDATION_BASELINE.some((entry) => (
+        entry.catalogItemId === decision.catalogItemId && entry.reviewSourceHash === decision.reviewSourceHash
       ))
     ))).toBe(true);
     expect(frozen.decisions).toHaveLength(frozen.items.length);
