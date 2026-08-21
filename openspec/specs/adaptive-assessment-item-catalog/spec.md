@@ -4,7 +4,9 @@
 Provide one governed catalog for all adaptive-assessment question sources so path planning, review workflows, and answer snapshots share stable item identity, lineage, content hashes, review state, and eligibility semantics.
 
 The catalog separates low-stakes imported or generated practice from explicitly path-eligible items used for readiness, checkpoint, remediation, and terminal-validation gates.
+
 ## Requirements
+
 ### Requirement: Assessment item catalog registers all adaptive question sources
 The system SHALL maintain a governed assessment item catalog that registers all current and future sources that may supply adaptive-assessment questions.
 
@@ -178,3 +180,16 @@ LearningGoal assessment baseline completion SHALL support deterministic shards s
 - **WHEN** selected shard rows cannot satisfy a stage
 - **THEN** the coverage matrix SHALL report an explicit limitation for that shard cell
 - **AND** unselected rows SHALL remain in the assessment workqueue rather than blocking unrelated fixture data completion.
+
+### Requirement: 微辅导来源题目使用受治理的学习目标映射
+评估目录 SHALL 在题目被纳入微辅导覆盖基线或用于微辅导编排前，核验其审查后的学习目标能够通过当前有效的微辅导目标目录解析到唯一、启用且属于 knowledge 域的 `kn:` 规范主知识节点。
+
+#### Scenario: 微辅导来源题目具有有效目标映射
+- **WHEN** 已审查的 practice 题被纳入微辅导覆盖或被用作错误选项归因来源
+- **THEN** 其学习目标 SHALL 通过有效目录解析到唯一规范主知识节点
+- **AND** 题目快照、归因和审计 SHALL 使用同一解析结果而非独立的文本推断
+
+#### Scenario: 微辅导来源题目缺少有效目标映射
+- **WHEN** 已审查的 practice 题的学习目标未知、停用、歧义、仅关联能力域 `cap:` 节点或与目录版本漂移
+- **THEN** 评估目录和微辅导审计 SHALL 将该题标记为不可编排
+- **AND** 系统 SHALL 不以现有图节点标签、关键词或默认节点替代该映射
