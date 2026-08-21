@@ -1,14 +1,12 @@
 import { createHash } from 'node:crypto';
 
-import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
-import practiceBaselineSource from '../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
-import registrySource from '../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry.json';
 import {
   checkpointAuthoredQuestionRuntimeId,
   sourceIdFromCheckpointAuthoredQuestionRuntimeId,
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog';
+import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export const MICRO_TUTORING_VALIDATION_REGISTRY_VERSION = 'micro-tutoring-validation-registry.v1';
 export const MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE =
@@ -281,9 +279,9 @@ function parseStudentQuestionRef(
 }
 
 export function loadMicroTutoringValidationRegistry(
-  source: unknown = registrySource,
-  optionAttributions: unknown = optionAttributionSource,
-  practiceBaseline: unknown = practiceBaselineSource,
+  source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-validation-registry.json'),
+  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
+  practiceBaseline: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-practice-baseline.json'),
 ): LoadedMicroTutoringValidationRegistry {
   const value = record(source);
   const issues: MicroTutoringValidationRegistryIssue[] = [];
