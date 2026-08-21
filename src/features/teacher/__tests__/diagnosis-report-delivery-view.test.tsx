@@ -52,6 +52,7 @@ describe('DiagnosisReportDeliveryView', () => {
       <DiagnosisReportDeliveryView
         projection={projection}
         actions={[
+          { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'report' },
           { kind: 'preparation', label: '进入备课工作台', href: '/teacher/preparation', targetKey: 'finding:1' },
           { kind: 'remediation', label: '已注册补练资源', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
         ]}
@@ -69,6 +70,7 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('学习建议');
     expect(html).toContain('完成一次针对性练习');
     expect(html).toContain('处置不会清除风险');
+    expect(html).toContain('href="/teacher/smart-prep"');
     expect(html).toContain('报告版本：report-1');
   });
 
