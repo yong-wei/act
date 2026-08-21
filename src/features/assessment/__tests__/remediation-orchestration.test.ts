@@ -743,6 +743,52 @@ describe('remediation orchestration', () => {
     expect(JSON.stringify(result)).not.toContain(GOVERNED_VALIDATION_SOURCE_ID);
   });
 
+  it('keeps a legacy snapshot available when itemRevision is absent', async () => {
+    const { db, mocks } = createDb();
+    const taskSnapshot = {
+      version: 'remediation-task-snapshot.v1',
+      goal: 'Governed goal',
+      estimatedMinutes: 5,
+      sourceQuestionId: 'question-original',
+      knowledgeNodeId: GOVERNED_NODE,
+      misconceptionTag: GOVERNED_TAG,
+      resources: [{
+        id: GOVERNED_RESOURCE_ID,
+        title: `Resource ${GOVERNED_RESOURCE_ID}`,
+        version: 'resource.v1',
+        estimatedMinutes: 3,
+        actionPath: `/interactive-learning/resources/${GOVERNED_RESOURCE_ID}`,
+        registryId: GOVERNED_RESOURCE_ID,
+        actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
+        actionVersion: 'micro-tutoring-learning-action.v1',
+        resourceRevision: listMicroTutoringGovernedResources({
+          knowledgeNodeId: GOVERNED_NODE,
+          misconceptionTag: GOVERNED_TAG,
+        })[0]?.version,
+      }],
+      validationQuestion: {
+        itemRefId: 'validation-1',
+        questionId: GOVERNED_VALIDATION_SOURCE_ID,
+        contentHash: GOVERNED_VALIDATION_HASH,
+        version: 'validation.v1',
+        estimatedMinutes: 2,
+        actionPath: '/assessment/adaptive-practice',
+      },
+    };
+    mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(persisted({
+      wrongAnswerAttributionId: 'attribution-1',
+      orchestratorVersion: 'remediation-orchestrator.v1',
+      userId: 'learner-1',
+      status: 'AVAILABLE',
+      taskSnapshot,
+    }));
+
+    const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+
+    expect(result?.status).toBe('AVAILABLE');
+    expect(mocks.remediationOrchestrationResult.upsert).not.toHaveBeenCalled();
+  });
+
   it('fails closed when the validation registry revision drifts', async () => {
     const { db, mocks } = createDb();
     const created = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });

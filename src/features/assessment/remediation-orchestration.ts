@@ -666,22 +666,21 @@ async function projectResult(
   ) {
     return unavailableProjection(row, 'REFERENCE_DRIFT');
   }
-  const projectedValidation = task.validationQuestion.itemRevision
-    ? findMicroTutoringGovernedValidationBinding({
+  if (task.validationQuestion.itemRevision) {
+    const projectedValidation = findMicroTutoringGovernedValidationBinding({
       knowledgeNodeId: task.knowledgeNodeId,
       misconceptionTag: task.misconceptionTag,
       questionId: task.validationQuestion.questionId,
       contentHash: task.validationQuestion.contentHash,
       itemRevision: task.validationQuestion.itemRevision,
-    })
-    : null;
-  if (
-    !task.validationQuestion.itemRevision ||
-    !projectedValidation ||
-    projectedValidation.itemRevision !== task.validationQuestion.itemRevision ||
-    projectedValidation.contentHash !== task.validationQuestion.contentHash
-  ) {
-    return unavailableProjection(row, 'REFERENCE_DRIFT');
+    });
+    if (
+      !projectedValidation ||
+      projectedValidation.itemRevision !== task.validationQuestion.itemRevision ||
+      projectedValidation.contentHash !== task.validationQuestion.contentHash
+    ) {
+      return unavailableProjection(row, 'REFERENCE_DRIFT');
+    }
   }
 
   return {
