@@ -1,8 +1,8 @@
 ## ADDED Requirements
 
-### Requirement: Teacher delivery controls are print-only
+### Requirement: Diagnosis delivery controls are print-only
 
-The teacher report delivery header SHALL provide the browser print action and SHALL NOT render or invoke a direct PDF-export action. This UI constraint SHALL NOT change the student-safe delivery surface.
+The teacher and student-safe report delivery headers SHALL provide the browser print action and SHALL NOT render or invoke a direct PDF-export action. Existing server-side PDF artifacts, audit records, and already-published PDF endpoints are outside this UI change.
 
 #### Scenario: Teacher opens a fixed report
 
@@ -12,5 +12,6 @@ The teacher report delivery header SHALL provide the browser print action and SH
 
 #### Scenario: Student opens a safe report
 
-- **WHEN** an authenticated student opens a student-safe report with an available PDF address
-- **THEN** the student delivery surface MAY continue to expose its PDF export action.
+- **WHEN** an authenticated student opens a student-safe report
+- **THEN** the header SHALL show the print control
+- **AND** SHALL NOT show an export-PDF control or issue a PDF request.

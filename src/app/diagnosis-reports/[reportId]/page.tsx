@@ -33,7 +33,6 @@ export default function StudentDiagnosisReportPage() {
       projection={projection}
       actions={[]}
       dispositionEvents={[]}
-      pdfHref={`/api/diagnosis-reports/${encodeURIComponent(reportId)}/student-safe/pdf`}
       returnHref="/dashboard"
       teacherMode={false}
     />

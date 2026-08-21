@@ -72,7 +72,7 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('报告版本：report-1');
   });
 
-  it('keeps the student surface free of teacher disposition controls', () => {
+  it('keeps the student surface print-only and free of teacher disposition controls', () => {
     const html = renderToStaticMarkup(
       <DiagnosisReportDeliveryView
         projection={{
@@ -85,13 +85,13 @@ describe('DiagnosisReportDeliveryView', () => {
         } as never}
         actions={[]}
         dispositionEvents={[]}
-        pdfHref="/api/student-pdf"
         returnHref="/dashboard"
         teacherMode={false}
       />,
     );
     expect(html).toContain('data-diagnosis-delivery-role="student"');
-    expect(html).toContain('导出 PDF');
+    expect(html).toContain('打印');
+    expect(html).not.toContain('导出 PDF');
     expect(html).not.toContain('报告处置');
     expect(html).not.toContain('标记已安排干预');
   });
