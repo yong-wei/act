@@ -142,7 +142,7 @@ export default function PortfolioPage() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, []);
 
   const selectedReflection = portfolio?.reflections.find((reflection) => reflection.id === selectedReflectionId) ?? null;
   const openReflectionDraft = useCallback((draftId: string) => {

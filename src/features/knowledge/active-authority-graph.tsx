@@ -258,6 +258,9 @@ function useActiveAuthorityWorkspace(retry: number): {
     return true;
   }
 
+  // Root loading is deliberately retried only through `retry`; its helpers
+  // coordinate the latest workspace and request generation through refs.
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const controller = new AbortController();
     const generation = nextRequestGeneration();
@@ -288,6 +291,7 @@ function useActiveAuthorityWorkspace(retry: number): {
       nextRequestGeneration();
     };
   }, [retry]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   function enterDomain(visualRole: string): Promise<boolean> {
     const current = workspaceRef.current;
@@ -1148,6 +1152,9 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
   const modelReady = Boolean(model);
+  // This reset is intentionally tied to readiness rather than model identity:
+  // filtering and selection rebuild the derived model without resetting view state.
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!model) return;
     const pending = pendingCrossDomainSelectionRef.current;
@@ -1165,6 +1172,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     setZoom(1);
     setPan({ x: 0, y: 0 });
   }, [domainEpoch, modelReady, visibleNodeLimit]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     if (!model) return;
