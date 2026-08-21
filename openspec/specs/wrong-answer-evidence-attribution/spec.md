@@ -1,0 +1,21 @@
+# wrong-answer-evidence-attribution Specification
+
+## Purpose
+TBD - created by archiving change add-micro-tutoring-option-attribution. Update Purpose after archive.
+
+## Requirements
+
+### Requirement: 新归因优先采用精确选项级证据
+
+系统 SHALL 在创建新的错误答案归因时，优先采用与当前题目 ID、不可变内容哈希和学生实际选择的错误选项精确匹配的有效选项级归因记录。系统 MUST 在记录缺失、重复、未审核、内容漂移或指向正确选项时返回不确定状态，且不得以题目级语义、关键词或默认节点替代。
+
+#### Scenario: 学生选择已归因的错误选项
+
+- **WHEN** 已验证的学生错误答案与唯一有效的选项级归因记录精确匹配
+- **THEN** 系统使用该记录中的唯一知识节点、错因标签、证据摘要、限制说明和归因版本创建归因
+
+#### Scenario: 学生选择没有有效记录的错误选项
+
+- **WHEN** 已验证的学生错误答案找不到唯一有效的选项级归因记录
+- **THEN** 系统创建或返回受控 `UNCERTAIN` 归因
+- **AND** 不得启动基于猜测知识节点的微辅导任务
