@@ -159,6 +159,8 @@ describe('POST teacher diagnosis generation', () => {
         classId: 'class-1',
         targetStudentId: 'student-1',
         idempotencyKey: 'request-123',
+        force: undefined,
+        forceReason: null,
       },
     );
     expect(mocks.enqueueGenerationJob).toHaveBeenCalledWith({ marker: 'prisma' }, 'job-1');
@@ -173,5 +175,31 @@ describe('POST teacher diagnosis generation', () => {
     expect(response.status).toBe(400);
     expect(mocks.startGenerationJob).not.toHaveBeenCalled();
     expect(mocks.enqueueGenerationJob).not.toHaveBeenCalled();
+  });
+
+  it('passes only explicit force intent and teacher reason to server-side job creation', async () => {
+    const job = { id: 'job-forced', state: 'QUEUED' };
+    mocks.startGenerationJob.mockResolvedValue(job);
+    mocks.enqueueGenerationJob.mockResolvedValue({ queued: true, job, errorCode: null });
+
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({
+        idempotencyKey: 'request-forced',
+        force: true,
+        forceReason: '用于本周教学复盘会议留档',
+      }),
+    }), { params: Promise.resolve({ classId: 'class-1' }) });
+
+    expect(response.status).toBe(202);
+    expect(mocks.startGenerationJob).toHaveBeenCalledWith(
+      { marker: 'prisma' },
+      expect.objectContaining({
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        force: true,
+        forceReason: '用于本周教学复盘会议留档',
+      }),
+    );
   });
 });

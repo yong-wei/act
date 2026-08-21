@@ -109,6 +109,49 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     });
   });
 
+  it('also disables thinking for Qwen3.6 requests', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model: 'Qwen/Qwen3.6-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+    };
+
+    createSiliconFlowAdapter(config);
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'Qwen/Qwen3.6-35B-A3B',
+          messages: [{ role: 'user', content: 'hello' }],
+          stream: true,
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string
+    ) as Record<string, unknown>;
+    expect(forwardedBody).toMatchObject({
+      model: 'Qwen/Qwen3.6-35B-A3B',
+      enable_thinking: false,
+    });
+  });
+
   it('does not add Qwen thinking defaults to non-Qwen generic SiliconFlow requests', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')

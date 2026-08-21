@@ -127,7 +127,7 @@
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
           "authState": "authenticated",
-          "navigationState": "role-route-tabs"
+          "navigationState": "mobile-drawer"
         }
       ]
     }

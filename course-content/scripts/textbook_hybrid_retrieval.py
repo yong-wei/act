@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import struct
+import sys
 import tempfile
 import time
 import unicodedata
@@ -22,8 +23,18 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from textbook_resource_set import load_textbook_resource_set, textbook_book_count
+
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RUNTIME_ROOT = REPO_ROOT / 'course-content' / 'runtime' / 'resources' / 'textbooks-v2'
+DEFAULT_RESOURCE_SET_PATH = (
+    REPO_ROOT / 'course-content' / 'config' / 'textbook-resource-set.json'
+)
 FORMAT_VERSION = 'textbook-hybrid-retrieval.v1'
 NORMALIZATION_VERSION = 'nfkc-lower-cjk-unigram-bigram-technical-v1'
 DEFAULT_MODEL = 'BAAI/bge-m3'
@@ -564,6 +575,7 @@ def _derive_embedding_chunks(
 def _load_runtime(
     runtime_root: Path,
     expected_book_count: int,
+    expected_book_ids: Sequence[str] | None = None,
 ) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]]]:
     book_dirs = sorted(
         path for path in runtime_root.iterdir()
@@ -573,6 +585,14 @@ def _load_runtime(
         raise RetrievalContractError(
             f'expected {expected_book_count} textbook manifests, found {len(book_dirs)}',
         )
+    actual_book_ids = sorted(path.name for path in book_dirs)
+    if expected_book_ids is not None:
+        declared_book_ids = sorted(set(expected_book_ids))
+        if actual_book_ids != declared_book_ids:
+            raise RetrievalContractError(
+                'runtime textbook set does not match the declared resource set:'
+                f'expected={declared_book_ids}:found={actual_book_ids}',
+            )
     books: list[dict[str, Any]] = []
     windows: list[dict[str, Any]] = []
     revisions: set[str] = set()
@@ -942,12 +962,30 @@ def build_index(
     model: str = DEFAULT_MODEL,
     expected_dimension: int | None = None,
     cache_root: Path,
-    expected_book_count: int = 7,
+    expected_book_count: int | None = None,
     batch_size: int = 32,
     embed: Callable[[Sequence[str]], dict[str, Any]] | None = None,
+    resource_set: Path | str | None = None,
 ) -> dict[str, Any]:
     """Rebuild a complete index from reviewed structured textbook runtime v2."""
-    source_revision, books, windows = _load_runtime(runtime_root, expected_book_count)
+    resource_set_path = (
+        Path(resource_set)
+        if resource_set is not None
+        else DEFAULT_RESOURCE_SET_PATH
+    )
+    resource_set_config = load_textbook_resource_set(resource_set_path)
+    if expected_book_count is None:
+        expected_book_count = len(resource_set_config['books'])
+    elif expected_book_count != len(resource_set_config['books']):
+        raise RetrievalContractError(
+            'expected-book-count and resource-set disagree:'
+            f'expected={expected_book_count}:resource-set={len(resource_set_config["books"])}',
+        )
+    source_revision, books, windows = _load_runtime(
+        runtime_root,
+        expected_book_count,
+        expected_book_ids=resource_set_config['books'],
+    )
     vectors, dimension, cache_stats = _resolve_vectors(
         windows,
         model=model,
@@ -967,6 +1005,7 @@ def build_index(
             'recordType': 'build-report',
             'formatVersion': FORMAT_VERSION,
             'status': 'complete',
+            'resourceSetId': resource_set_config['resourceSetId'],
             'sourceRevision': source_revision,
             'model': model,
             'observedDimension': dimension,
@@ -984,6 +1023,7 @@ def build_index(
         manifest = {
             'recordType': 'index-manifest',
             'formatVersion': FORMAT_VERSION,
+            'resourceSetId': resource_set_config['resourceSetId'],
             'sourceRevision': source_revision,
             'model': model,
             'observedDimension': dimension,
@@ -1003,7 +1043,12 @@ def build_index(
             'productionConnected': False,
         }
         _write_json(temporary / 'manifest.json', manifest)
-        verify_index(temporary, runtime_root=runtime_root, expected_book_count=expected_book_count)
+        verify_index(
+            temporary,
+            runtime_root=runtime_root,
+            expected_book_count=expected_book_count,
+            resource_set=resource_set_path,
+        )
         if output_dir.exists():
             shutil.rmtree(output_dir)
         os.replace(temporary, output_dir)
@@ -1121,12 +1166,28 @@ def verify_index(
     index_dir: Path,
     *,
     runtime_root: Path,
-    expected_book_count: int = 7,
+    expected_book_count: int | None = None,
+    resource_set: Path | str | None = None,
 ) -> dict[str, Any]:
+    resource_set_path = (
+        Path(resource_set)
+        if resource_set is not None
+        else DEFAULT_RESOURCE_SET_PATH
+    )
+    resource_set_config = load_textbook_resource_set(resource_set_path)
+    if expected_book_count is None:
+        expected_book_count = len(resource_set_config['books'])
+    elif expected_book_count != len(resource_set_config['books']):
+        raise RetrievalContractError(
+            'expected-book-count and resource-set disagree:'
+            f'expected={expected_book_count}:resource-set={len(resource_set_config["books"])}',
+        )
     manifest = _read_json(index_dir / 'manifest.json')
     if (
         manifest.get('recordType') != 'index-manifest'
         or manifest.get('formatVersion') != FORMAT_VERSION
+        or not isinstance(manifest.get('resourceSetId'), str)
+        or not manifest['resourceSetId']
         or manifest.get('normalizationVersion') != NORMALIZATION_VERSION
         or manifest.get('vectorNormalization') != 'l2'
         or manifest.get('vectorEncoding') != 'float32-le'
@@ -1140,8 +1201,12 @@ def verify_index(
         if not path.is_file() or sha256_file(path) != expected_hash:
             raise RetrievalContractError(f'index file hash mismatch: {name}')
     source_revision, books, source_windows = _load_runtime(
-        runtime_root, expected_book_count,
+        runtime_root,
+        expected_book_count,
+        expected_book_ids=resource_set_config['books'],
     )
+    if manifest.get('resourceSetId') != resource_set_config['resourceSetId']:
+        raise RetrievalContractError('index resourceSetId is stale')
     if manifest.get('sourceRevision') != source_revision:
         raise RetrievalContractError('index sourceRevision is stale')
     if manifest.get('books') != books:
@@ -1225,6 +1290,7 @@ def verify_index(
     if (
         report.get('recordType') != 'build-report'
         or report.get('status') != 'complete'
+        or report.get('resourceSetId') != resource_set_config['resourceSetId']
         or report.get('sourceRevision') != source_revision
         or report.get('model') != manifest.get('model')
         or report.get('observedDimension') != dimension
@@ -1238,6 +1304,7 @@ def verify_index(
         raise RetrievalContractError('build report is inconsistent with the index')
     return {
         'status': 'valid',
+        'resourceSetId': resource_set_config['resourceSetId'],
         'sourceRevision': source_revision,
         'books': len(books),
         'windows': len(rows),
@@ -1935,7 +2002,8 @@ def _add_index_arguments(parser: argparse.ArgumentParser) -> None:
         type=Path,
         default=DEFAULT_RUNTIME_ROOT,
     )
-    parser.add_argument('--expected-book-count', type=int, default=7)
+    parser.add_argument('--expected-book-count', type=int)
+    parser.add_argument('--resource-set', type=Path)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1978,6 +2046,21 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.resource_set is not None:
+        resource_count = textbook_book_count(args.resource_set)
+        if (
+            args.expected_book_count is not None
+            and args.expected_book_count != resource_count
+        ):
+            raise RetrievalContractError(
+                'expected-book-count and resource-set disagree:'
+                f'expected={args.expected_book_count}:resource-set={resource_count}',
+            )
+        args.expected_book_count = resource_count
+    if args.expected_book_count is None:
+        raise RetrievalContractError(
+            '--resource-set or --expected-book-count is required',
+        )
     if args.command == 'build-index':
         api_key = os.environ.get('SILICONFLOW_API_KEY', '')
         client = (
@@ -1999,12 +2082,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected_book_count=args.expected_book_count,
             batch_size=args.batch_size,
             embed=client.embed_with_evidence if client else None,
+            resource_set=args.resource_set,
         )
     elif args.command == 'verify-index':
         result = verify_index(
             args.index_dir,
             runtime_root=args.runtime_root,
             expected_book_count=args.expected_book_count,
+            resource_set=args.resource_set,
         )
     else:
         api_key = os.environ.get('SILICONFLOW_API_KEY', '')

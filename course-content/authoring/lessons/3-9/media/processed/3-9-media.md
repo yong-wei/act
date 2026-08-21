@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=a6d4c6700950c5d47e277ff3d9d3a177&v=1775885707196&puid=26652392&enc=5a6480937e6aad1e6f2d4a907dbf0f3e&wps=f99f9e7e0081c083f2ce288493154facd70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-9-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-9-audio.m4a
 
 - 自控快准稳博弈

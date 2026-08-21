@@ -884,3 +884,60 @@ When a candidate path is adopted, the system SHALL project the candidate's stude
 - **THEN** the node explanation remains available through its existing aggregate or legacy fallback contract
 - **AND** no event reference is inferred from the current learner portrait
 
+### Requirement: Candidate adjustment is grounded in one persisted source candidate
+The adaptive learning path planner SHALL derive an adjustment from one authorized persisted source candidate plus normalized request parameters and current governed learner facts, and SHALL NOT infer the source from display order, title, or generated conversation text.
+
+#### Scenario: Source candidate and request are valid
+- **WHEN** an adjustment request identifies an authorized persisted source candidate and provides supported structured or mapped intent parameters
+- **THEN** the planner SHALL preserve mandatory prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints
+- **AND** it SHALL generate adjusted alternatives relative to that source candidate.
+
+#### Scenario: Source facts are unavailable
+- **WHEN** the source candidate cannot be resolved or its required governed facts are incomplete
+- **THEN** the planner SHALL return an unavailable result
+- **AND** it SHALL NOT reconstruct the source from client ordering or assistant prose.
+
+### Requirement: Candidate adjustment requires a material path difference
+The adaptive learning path planner SHALL distinguish adjusted candidates using governed node identities and ordering or supported path metrics, and SHALL NOT treat explanation text, display labels, or score-only changes as a new route.
+
+#### Scenario: Adjustment changes governed path facts
+- **WHEN** a feasible adjusted candidate changes a non-mandatory node, node order, resource composition, checkpoint structure, or supported path constraint relative to the source
+- **THEN** the planner SHALL expose the changed facts for server-side difference validation.
+
+#### Scenario: Constraints permit no material alternative
+- **WHEN** higher-priority constraints and governed resources cannot produce a materially different executable candidate
+- **THEN** the planner SHALL return a structured no-material-difference limitation
+- **AND** it SHALL NOT fabricate a cosmetic alternative.
+
+### Requirement: 路径规划支持受治理的题目型 terminal validation
+
+路径规划 SHALL 将题目型 `terminal-validation` 作为独立评估 scope，并仅选择当前 lifecycle baseline 中人工批准、path-eligible、运行时已注册且与目标和路径 identity 一致的题目。题目型验证 MAY 与仿真或 Arena 终结验证组合，但不得替代策略要求的其他终结证据。
+
+#### Scenario: 路径请求题目型终结验证
+
+- **WHEN** 当前路径策略要求题目型 terminal validation 且存在合格候选
+- **THEN** 规划器 SHALL 返回受版本约束的评估节点和解释
+- **AND** 选择后 SHALL 使用不可变评估题目快照
+
+#### Scenario: 只有 provisional 或其他阶段题目
+
+- **WHEN** 目标没有合格 terminal-validation 候选，但存在 generated-provisional、practice 或 checkpoint 题目
+- **THEN** 规划器 SHALL 返回缺失终结验证的低置信度或受控 fallback
+- **AND** 不得把其他阶段题目静默替代为 terminal validation
+
+### Requirement: 路径规划只消费治理后的微干预证据摘要
+
+路径规划 SHALL 仅消费微干预 evidence projector 生成的 confidence、freshness、quality、identity 和 limitation 摘要，不得读取原始答案或由参与事件直接改变路径。低置信度、冲突或 stale 微干预证据 MAY 触发补救或再验证，但 MUST NOT 绕过 readiness、checkpoint 或 terminal-validation 门禁。
+
+#### Scenario: 当前验证证据支持路径调整
+
+- **WHEN** 受治理摘要显示当前节点存在有界、足够新鲜的微干预验证证据
+- **THEN** 规划器 MAY 将其作为解释性输入调整后续练习或补救优先级
+- **AND** 决策 SHALL 记录所用 evidence summary 和算法版本
+
+#### Scenario: 证据低置信度或冲突
+
+- **WHEN** 摘要标记重复、过期、冲突或身份漂移
+- **THEN** 规划器 SHALL 保留/增加评估门禁或请求再验证
+- **AND** 不得将路径节点直接标为已掌握
+

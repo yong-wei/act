@@ -144,7 +144,7 @@ const DEFAULT_AI_SETTINGS: AIProviderSettings = {
           id: 'qwen-3-6-35b-a3b',
           label: 'Qwen3.6 35B A3B',
           model: 'Qwen/Qwen3.6-35B-A3B',
-          description: '保留为可选模型。',
+          description: 'SiliconFlow 可选语言模型。',
         },
         {
           id: 'deepseek-v4-flash',

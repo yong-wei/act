@@ -1,4 +1,4 @@
-import type { ArenaSubmissionRecord } from './submission-service';
+import type { ArenaSubmissionRecord } from './types';
 
 export function isArenaSubmissionEffectiveForRanking(submission: ArenaSubmissionRecord): boolean {
   const intrinsicallyRankable = submission.evaluation.valid

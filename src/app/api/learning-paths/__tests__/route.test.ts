@@ -277,11 +277,11 @@ function useStructuredCheckpointAssessmentPath() {
 function reviewedAdaptiveAssessmentAnswer(params: {
   id: string;
   questionId: string;
-  purpose: 'readiness-gate' | 'checkpoint' | 'remediation' | 'practice';
+  purpose: 'readiness-gate' | 'checkpoint' | 'remediation' | 'practice' | 'terminal-validation';
   nodeId: string;
   goalId?: string;
   questionScope?: string;
-  catalogStage?: 'readiness' | 'checkpoint' | 'remediation';
+  catalogStage?: 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
   includeCatalogRef?: boolean;
   createdAt?: Date;
   answeredAt?: Date;
@@ -334,7 +334,7 @@ function reviewedAdaptiveAssessmentAnswer(params: {
 function assessmentCatalogSnapshot(
   questionId: string,
   goalId: string,
-  stage: 'readiness' | 'checkpoint' | 'remediation',
+  stage: 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation',
 ) {
   const contentHash = `content-hash:${questionId}`;
   const kaqObjectiveIds = [`knowledge:${goalId}`];
@@ -2139,6 +2139,100 @@ describe('learning path round API routes', () => {
           availableOutcomeRefs: expect.arrayContaining(['adaptive_assessment:answer-remediation']),
         }),
       }),
+    }));
+  });
+
+  it('completes adaptive quiz nodes with reviewed terminal-validation answers without treating them as typed evidence', async () => {
+    useStructuredAdaptiveAssessmentPath('adaptive_assessment:answer-terminal-validation');
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-terminal-validation',
+      questionId: 'frequency-response-foundations-terminal-validation-01',
+      purpose: 'terminal-validation',
+      nodeId: 'adaptive-quiz:control-target-check',
+      questionScope: 'terminal-validation',
+      catalogStage: 'terminal-validation',
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'terminal-validation-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-terminal-validation',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-terminal-validation',
+          provenance: 'official',
+          readinessGateEligible: false,
+          pathCompletionEligible: true,
+          terminalValidationEligible: false,
+          isCorrect: true,
+          score: 100,
+        }),
+      }),
+      evidenceRefs: [{ kind: 'AdaptiveAssessmentAnswer', id: 'answer-terminal-validation' }],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'control-workbench:lead-design',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['adaptive-quiz:control-target-check'],
+          availableOutcomeRefs: expect.arrayContaining(['adaptive_assessment:answer-terminal-validation']),
+        }),
+      }),
+    }));
+  });
+
+  it('does not complete terminal-validation answers without catalog-backed path eligibility', async () => {
+    useStructuredAdaptiveAssessmentPath('adaptive_assessment:answer-terminal-validation');
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-terminal-validation',
+      questionId: 'frequency-response-foundations-terminal-validation-01',
+      purpose: 'terminal-validation',
+      nodeId: 'adaptive-quiz:control-target-check',
+      questionScope: 'terminal-validation',
+      catalogStage: 'terminal-validation',
+      includeCatalogRef: false,
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'terminal-validation-adaptive-outcome-missing-catalog',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-terminal-validation',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-terminal-validation',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
     }));
   });
 

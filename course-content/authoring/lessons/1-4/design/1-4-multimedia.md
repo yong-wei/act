@@ -93,7 +93,7 @@
 
 `media/processed/1-4-media.md` 保留以下课程级资源节名：
 
-- `1-4-intro-video.mp4`（待制作）
+- `1-4-intro-video.mp4`（已完成）
 - `1-4-slides.pdf`（待制作）
 - `1-4-course.mp4`（待制作）
 - `1-4-audio.m4a`（待制作）

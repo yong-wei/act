@@ -16,6 +16,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession }));
 vi.mock('@/lib/prisma', () => ({ prisma: {} }));
+vi.mock('@/features/assessment/micro-intervention-learning-evidence', () => ({
+  enqueueMicroInterventionEvidenceProjection: vi.fn(async () => undefined),
+  processPendingMicroInterventionEvidenceProjections: vi.fn(async () => ({ processed: 0, failed: 0 })),
+}));
 vi.mock('@/features/assessment/micro-intervention-outcomes', () => ({
   MicroInterventionRequestError: mocks.MicroInterventionRequestError,
   startMicroIntervention: mocks.startMicroIntervention,

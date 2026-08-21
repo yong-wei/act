@@ -274,7 +274,7 @@ function sourceFromAvailableTask(
     orchestratorVersion: source.orchestratorVersion,
     learnerSessionId: source.learnerSessionId,
     validationRuntimeHash: question ? validationRuntimeHash(question) : null,
-    task: source.task,
+    task: structuredClone(source.task),
   };
 }
 
@@ -678,7 +678,8 @@ export async function recordMicroInterventionEvent(input: {
     throw new MicroInterventionRequestError('EVENT_INVALID');
   }
   if (input.eventType === 'RESOURCE_USED') {
-    if (!resourceId || !current.source.task.resources.some((resource) => resource.id === resourceId)) {
+    const boundResource = current.source.task.resources.find((resource) => resource.id === resourceId);
+    if (!resourceId || !boundResource?.actionId || !boundResource.actionVersion) {
       throw new MicroInterventionRequestError('EVENT_INVALID');
     }
   } else if (resourceId) {

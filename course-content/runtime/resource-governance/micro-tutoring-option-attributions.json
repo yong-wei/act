@@ -1,0 +1,2058 @@
+{
+  "version": "micro-tutoring-option-attributions.v2",
+  "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+  "entries": [
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+      "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297",
+      "optionKey": "A",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:confuses-overshoot-with-steady-error",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:f1244c7a7091145739106cda125b791e57b6f8df75643e53563a6e90e9cb6f38",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把已合格的稳态精度误作校正目标，未针对超调所反映的阻尼不足。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:5617ec4f9fb1684b440a21e59fd9e89d6c02e937209949c74e301c7329d25e8f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+      "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:single-gain-change-without-dynamic-check",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:f1244c7a7091145739106cda125b791e57b6f8df75643e53563a6e90e9cb6f38",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：以单纯降低增益替代校正设计，遗漏响应速度与相位裕度复核。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:8ab423039d470830c5f89ee5b97dc68b72148c8223b8f4474be98d1e84fb1a67"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+      "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-root-locus-geometry",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:52033f30a698ef2bb96ac1075ffc6c7e790c9b8fe87135d3626c3c5f4c6ad255",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为零点位置可任意指定，忽略根轨迹角度条件和目标极点区域。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:830bf3859457e082ca73192d2cf7ca5a918b6e9603be7db7ae58ca246f56936e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+      "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:uses-steady-error-without-pole-check",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:52033f30a698ef2bb96ac1075ffc6c7e790c9b8fe87135d3626c3c5f4c6ad255",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只依据稳态误差常数选择方案，未检查闭环极点位置与动态稳定性。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:069a90a5bccc1214aa4e96150c07bc2ac53ed5c68cdb4e608cb7734372a98343"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+      "contentHash": "ff1e0e7d00a6ac8e2f12a4cd0a114e50a79a9353673ae454d9ef799c3573926d",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:misuses-lead-compensation",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:4988d2b84f8396966bdfe4744b865d0db7b03d7c14fc35a252c72af7a302d06e",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把增加低频积分阶次误作超前校正，混淆低频精度与相位补偿目标。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:5ef0b1dda889b590a214a5180bbbb3bce674869dbc8f97fd53828087c14d8d7d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+      "contentHash": "ff1e0e7d00a6ac8e2f12a4cd0a114e50a79a9353673ae454d9ef799c3573926d",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:trades-speed-for-unbounded-noise-amplification",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:4988d2b84f8396966bdfe4744b865d0db7b03d7c14fc35a252c72af7a302d06e",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：将高频噪声放大误当作速度改善，忽略带宽和噪声敏感性的工程边界。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:fa2ec8540b9d45b605cc0ec6823da81f94574fd2f4ce3d05e8fab6ce96aa3352"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+      "contentHash": "a5940e4209a361c9cee75d172bf0012d1f003a1590a6d484b941fc443a7bc6d4",
+      "optionKey": "A",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:ignores-actuator-cost",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:66d20a634dbafbaf037065802680c7ca4a71808420d36360336ca2cd779ee09a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只依据输出速度评价方案，遗漏控制量峰值与执行器约束。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:590cfc906ba6345c8e214614233abdb46f96dff3cc0c264ab57f610134e0a392"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+      "contentHash": "a5940e4209a361c9cee75d172bf0012d1f003a1590a6d484b941fc443a7bc6d4",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:equates-slow-response-with-safety",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:66d20a634dbafbaf037065802680c7ca4a71808420d36360336ca2cd779ee09a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把响应缓慢等同于安全，未以性能指标和执行器约束共同判断。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:2b870467c40e09f8818fcdbb66dbdc97d609c7af1dbbf09fbf03ddb0baee3845"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+      "contentHash": "d15ad456a3d74ae981a0cdca301036a6681e18428abed0474e2e9a2171604acd",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:single-metric-design",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:930718d44680b9b2edcd96f145b33c8c45ffd1c6218d40a9cb9e825ae24cd7b2",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：以单个已达标指标代替完整验收，遗漏其余动态、稳态和控制代价。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:f2dfaa6c775078a37274dccab586a38cdcd44022977334b5278d4e76d4acb87a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+      "contentHash": "d15ad456a3d74ae981a0cdca301036a6681e18428abed0474e2e9a2171604acd",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:copies-parameters-without-design-rationale",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:930718d44680b9b2edcd96f145b33c8c45ffd1c6218d40a9cb9e825ae24cd7b2",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：照搬最终参数而不提供校正依据，无法形成可复核的多指标设计证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:bfd8e8722c8711d52373be09fb1aa7bf553609e990071fa2f75d9e889529c390"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-06",
+      "contentHash": "214264d1899dabee031c5dcbc81aab35cf74ab5ae579f44f9c8e332537200eb3",
+      "optionKey": "B",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:tuning-without-margin-check",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:48e7c28b29a60b55ede919adf04e03d462c90ae50c0815d62a2f60b9258b2530",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：增加积分作用却不复核稳定裕度，会进一步侵蚀已有的相位安全边界。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ba5b6f752dd68ece1c2885bc746536ee5ee2bbb008edf263e1c6a0b6822deeec"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-06",
+      "contentHash": "214264d1899dabee031c5dcbc81aab35cf74ab5ae579f44f9c8e332537200eb3",
+      "optionKey": "C",
+      "learningGoalId": "control-correction",
+      "misconceptionTag": "misconception:control-correction:changes-sampling-density-instead-of-controller",
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:48e7c28b29a60b55ede919adf04e03d462c90ae50c0815d62a2f60b9258b2530",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用减少采样点替代控制器校正，不能补偿相位裕度或提升闭环速度。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:45c30514eca57a8267b05247917ce56bbc2f42116f5766f78a0cfc1888a6c633"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+      "contentHash": "ad5ef53747d263c0eafe23280ce93a7abbe987e861a1dbb55ee3ba1c3e2dfbe4",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:ignores-summing-sign",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:cc47afd807dbf78cefaf5d6b5c59acbcfe8c24b33da8a735281fb8bd866f1a6f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：移动结构元素时忽略比较点符号，会改变误差信号和闭环代数关系。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d4868c7a4561461e5edc08bd40739128b6f1822fd6988d0863818210b2ca3983"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+      "contentHash": "ad5ef53747d263c0eafe23280ce93a7abbe987e861a1dbb55ee3ba1c3e2dfbe4",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:denies-summing-junction-effect",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:cc47afd807dbf78cefaf5d6b5c59acbcfe8c24b33da8a735281fb8bd866f1a6f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为比较点不影响传递关系，否定了反馈误差形成的基本结构语义。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d4b973cdf95fc3295986bf5edd629508a1af382ac3789bfb387e345f855fba9f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+      "contentHash": "95ffcc16bfa11b6d0dea370f318697142f4f511ac67304080fb123d7b914f21d",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:single-channel-thinking",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:36d074aae2e88d8bbf08e5a2437d42fff2be2fd66c185b05134599d75026ce8b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把扰动并入给定输入，混淆了不同作用点对应的独立闭环通道。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:8a9640a0fd9e036b9e0076765fdd163424009ecb36b1ab77b0af78c229e0be26"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+      "contentHash": "95ffcc16bfa11b6d0dea370f318697142f4f511ac67304080fb123d7b914f21d",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:collapses-distinct-signal-paths",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:36d074aae2e88d8bbf08e5a2437d42fff2be2fd66c185b05134599d75026ce8b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用单一路径表示多通道系统，无法保留给定与扰动的不同传递关系。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:a87937502eb9807069f3484d6cf93aac354ebba9dc0f81d0b08872de5df87b68"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+      "contentHash": "e62ccedd4c70c7edce86e15c4a6aa07f5f88a793f8193e969126166b9f423a02",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:assumes-unity-feedback",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d0f4125b503c31e457aed1a6a53affa5d0bc92090d6fb4f4a64ae66780775ffd",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：忽略非单位传感器动态，会错误构造误差信号和闭环分母。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e47d4bd9921509c13fa875ff56e9a869855343c515349e09e9317b7f03c39170"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+      "contentHash": "e62ccedd4c70c7edce86e15c4a6aa07f5f88a793f8193e969126166b9f423a02",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:moves-sensor-into-forward-controller",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d0f4125b503c31e457aed1a6a53affa5d0bc92090d6fb4f4a64ae66780775ffd",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把测量环节误置于前向控制通道，改变了反馈结构及其物理含义。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:25b7a568bc0ac5e38a3464fe6e20e7b3d2672378d0bb966d4ad715f9533e2235"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+      "contentHash": "39b3ba8bf82c3ed0462b351b16e53df9f4a204d559f8581053369d7866be5570",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:gain-always-good",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:01dea9455342c5c1c6c600a9f02b567f417bba5b172bbd101aad12c7ceb7173b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把增益增大直接等同于稳定性提高，忽略稳定裕度可能下降。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:2e7204ceb096a39b3d4db49c320d320999e15cbc1f15a79f5ddb9d9f1e8661dc"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+      "contentHash": "39b3ba8bf82c3ed0462b351b16e53df9f4a204d559f8581053369d7866be5570",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:denies-gain-effect-on-closed-loop",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:01dea9455342c5c1c6c600a9f02b567f417bba5b172bbd101aad12c7ceb7173b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为开环增益与闭环无关，遗漏闭环极点、误差和裕度的增益依赖。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:5ee36879de499727ec84d485b5cc7901d9d2397699557f362afca12633410483"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-05",
+      "contentHash": "ea49fe780af3eaeae10fd384d6a8589d78d271e8658f4dbcb484513a09bbfa8c",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:components-without-connections",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:1ccf1f14adf0e6da37eb7233616a66396febd4dd521f93fc5d2fd5b23a24db7f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只识别对象名称而不描述连接关系，不能确定闭环模型。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:cc992825fbc1be72d6da0af1f6ce358e4fd00053ba41030b8cd824e96599f4c9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-05",
+      "contentHash": "ea49fe780af3eaeae10fd384d6a8589d78d271e8658f4dbcb484513a09bbfa8c",
+      "optionKey": "C",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:output-only-model-description",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:1ccf1f14adf0e6da37eb7233616a66396febd4dd521f93fc5d2fd5b23a24db7f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只给最终输出而不保留比较点、方向和反馈路径，模型结构不可追溯。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ab6d0c9c9ad524dc911dd4727213aa6b9249d51f0d9b4ffb5afea5ea1a933e26"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-06",
+      "contentHash": "d7e3b55c1b4956c1ae35118ebcdb9393e373d2da64a70832d094d6010a24f6c2",
+      "optionKey": "A",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:disturbance-location-ignored",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8e72bae1c590d67e83d4bfe21f14d736adc6c4cb184d554e3719c8fc75a52e9b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把扰动与参考输入无符号合并，丢失了扰动作用点和极性。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:982fa0beebdcedb1a4a9f694fe96cf0f2f736607a48e15f0428af40ae5e17853"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-06",
+      "contentHash": "d7e3b55c1b4956c1ae35118ebcdb9393e373d2da64a70832d094d6010a24f6c2",
+      "optionKey": "B",
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "misconceptionTag": "misconception:feedback-loop-concept-foundations:deletes-disturbance-channel",
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8e72bae1c590d67e83d4bfe21f14d736adc6c4cb184d554e3719c8fc75a52e9b",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：删除扰动通道会使模型无法表达对象输入端扰动的传播路径。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:742f50ee89aa20129c3b303f0bfee9c8a6c26d2c8b8a7825ab067a3a77cd908d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+      "contentHash": "6d6124c1b3e5af0556cd6f03ebf7d06d1ce6e5c4d4bed5140e61af876e28e4fa",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:reads-bode-as-picture",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:1b5985829bb3a68365892e577cd6967770b1bbd84c1a45f7bfc97046fce00553",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把图形外观当作分析对象，没有从斜率变化识别零极点结构。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d5c3869ee3a4acf68c6b6accb84eee524b6b88486ff16caf8f461349f05c1ad6"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+      "contentHash": "6d6124c1b3e5af0556cd6f03ebf7d06d1ce6e5c4d4bed5140e61af876e28e4fa",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:ignores-magnitude-slope",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:1b5985829bb3a68365892e577cd6967770b1bbd84c1a45f7bfc97046fce00553",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只读取相位而跳过幅频斜率，无法判断转折频率处的结构变化。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:6cc08ab5dd6ea3fe0b44790559f196f5395e8b74570a1d989f7c8ebd2653c0e6"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+      "contentHash": "f6408123a68e2eb6cc2311f35f3dcfd39fb9a70fd440960d16d878658dcb0538",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:ignores-phase-margin",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:eedece6d978e5bebe16727a4eedc35cde9c712e0463c84aff67323f24fef6979",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把相位下降误解释为稳态误差改善，混淆频域稳定边界与低频精度。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:aaac044497dfaba532d877497ada3ee2345a3c7218496d7ee2b409fe37c4758b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+      "contentHash": "f6408123a68e2eb6cc2311f35f3dcfd39fb9a70fd440960d16d878658dcb0538",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:treats-phase-as-plot-only",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:eedece6d978e5bebe16727a4eedc35cde9c712e0463c84aff67323f24fef6979",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为相位只影响作图，忽略相位滞后对闭环稳定裕度的直接作用。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:da919babc8d068b3f306db1df94fb2ab5d9ac4a25cfc298086e5ddfa66d2d8fb"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+      "contentHash": "f2396582aeb6d22f779434504b1d662b30a73262ba150e329bcde4ac130bb61a",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-is-always-better",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:af3332285b6f81aa4cbe1582b9cee2d93c7e32ad96493ca8eb980baa7a932283",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：将截止频率增大设为唯一准则，忽略噪声敏感性和鲁棒性代价。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e402f50cfe004a0ffdd1dbff52d8970ffa8d38f8736722d38d09fe11c7b27947"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+      "contentHash": "f2396582aeb6d22f779434504b1d662b30a73262ba150e329bcde4ac130bb61a",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:omits-bandwidth-analysis",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:af3332285b6f81aa4cbe1582b9cee2d93c7e32ad96493ca8eb980baa7a932283",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：完全回避带宽，无法建立频域指标与响应速度、噪声放大的联系。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:21e854fe00f65148bb02aade86fa2af3ccd46a5d88ba97e71753ba741c793b5c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+      "contentHash": "a5680c870add2f3f1e7a8cde1f68ab3c52ddaefe6fb930be9cdf94b78de0c5ce",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:skips-critical-point-meaning",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:3ade3a75a88064ad231dd222e64d630c6a4d0014a8739dc467748cbf1359cabd",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只背判据结论而不理解临界点距离和环绕，无法可靠应用奈奎斯特判据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:de098b51a905adddeb4417b1c05532a21a373c370d3952f1bd09dbd2cd40571e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+      "contentHash": "a5680c870add2f3f1e7a8cde1f68ab3c52ddaefe6fb930be9cdf94b78de0c5ce",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:substitutes-time-domain-for-nyquist-reading",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:3ade3a75a88064ad231dd222e64d630c6a4d0014a8739dc467748cbf1359cabd",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用单一时域响应替代频域曲线阅读，缺少临界点和环绕证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ff9a7e13230fdd3ddccf4a0b70df8c03ab1d1ad28883745a9c3ed87c265d7cd9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-05",
+      "contentHash": "33a351a8a8521a23b6bca6ee294ea41bfc14bbf07a03e1f0e0c98929ce54e04d",
+      "optionKey": "A",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:slope-break-misread",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:caa410ad0463432bb23b1880b3fa1e89fc9db24363640621e21d1b67fd8c25ba",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把斜率再下降误判为一阶零点，颠倒了零点和极点的斜率贡献。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:35ea12216fce932eff565e95e715f559849db96f7a672e929ca6845caf8833e2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-05",
+      "contentHash": "33a351a8a8521a23b6bca6ee294ea41bfc14bbf07a03e1f0e0c98929ce54e04d",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:confuses-break-with-dc-gain-loss",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:caa410ad0463432bb23b1880b3fa1e89fc9db24363640621e21d1b67fd8c25ba",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把渐近线转折误归因于低频增益特性丢失，未识别新增动态因子。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:447ef4ab35910d3a8ed34ee2ae58b348079a63456c79208ef5317c604ab41637"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-06",
+      "contentHash": "43959c364d41bcade9d3a44baf64196b912814b53cd4f5435177bd5c076f7eaa",
+      "optionKey": "B",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:bandwidth-only-speed",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b65763539793babf6de3e75882b08c55b549a01537bcd944a15bbc49a3a3fb4d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：错误联结带宽、速度和噪声，未理解带宽提高通常伴随更快响应与更高噪声敏感性。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:96dc2493a1030b2318e0b227a82527207748872891821d42269bf67f9851ea5b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-06",
+      "contentHash": "43959c364d41bcade9d3a44baf64196b912814b53cd4f5435177bd5c076f7eaa",
+      "optionKey": "C",
+      "learningGoalId": "frequency-response-foundations",
+      "misconceptionTag": "misconception:frequency-response-foundations:equates-bandwidth-with-steady-error-only",
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b65763539793babf6de3e75882b08c55b549a01537bcd944a15bbc49a3a3fb4d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把带宽影响局限于稳态误差，遗漏快速性、噪声放大和鲁棒性。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:f91d02a819185543803478350bad9b839c3d1cb49654cf83075f9911535c60f2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+      "contentHash": "f67d3f1a8d8b1f32a50a218723124f947a4c4d1f692a52fb0646e6a77b324501",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d860e53edc853a1977966fa8d3b18172fad27163f195305cd23b99c0c6ed5879",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把根轨迹起止点误写为闭环零极点，混淆了根轨迹由开环结构生成的规则。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:bb1fd9b85080875d850232d62e341cdd4af6f8acd8a4ac52e4b95a41c0e3a2a1"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+      "contentHash": "f67d3f1a8d8b1f32a50a218723124f947a4c4d1f692a52fb0646e6a77b324501",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-input-and-sampling-as-endpoints",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d860e53edc853a1977966fa8d3b18172fad27163f195305cd23b99c0c6ed5879",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用输入幅值和采样时间解释起止点，与根轨迹的开环零极点定义无关。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:71991fb3b044041756df775d39281174ae09882bd648145dd5c1c42e67fa4279"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+      "contentHash": "7c3f061525ca3284a4fc824afe850d067c850426b97de6e70deedbdc2a1e845f",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:wrong-real-axis-rule",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0b88bd99bf594a9ddeba226e3323bb529848776259b4f514141cd7d4f2ae52aa",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把实轴判据的奇偶条件反转，导致根轨迹区段判断错误。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:96b7fa9a9ec0ed9188b8e2c22151e6227903aef218072727b3619c1a3ae8f95b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+      "contentHash": "7c3f061525ca3284a4fc824afe850d067c850426b97de6e70deedbdc2a1e845f",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:assumes-all-real-axis-is-locus",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0b88bd99bf594a9ddeba226e3323bb529848776259b4f514141cd7d4f2ae52aa",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为全部实轴都属于根轨迹，忽略右侧实轴零极点数量条件。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:38b6321719dd9740ecc9a9fd0b689c6a7334106a5c27c55974d077452c5eb5a3"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+      "contentHash": "df236c0dfa8b9c968d644e8b064d7128cc67f2a175904a6dfaa417e49f551513",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-input-amplitude-for-asymptotes",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:50d8636bdba32365e0f2e5646bd28622e08fe9946430c4f90d7534ce4962d61e",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用输入幅值决定渐近线，未依据开环零极点数目和位置计算。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d747b89b40f2bcb0dcc53dfb6135a768e3e5fbd5fead02cdfc1a0233cfec91e0"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+      "contentHash": "df236c0dfa8b9c968d644e8b064d7128cc67f2a175904a6dfaa417e49f551513",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-overshoot-for-asymptotes",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:50d8636bdba32365e0f2e5646bd28622e08fe9946430c4f90d7534ce4962d61e",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用时域超调现象替代渐近线几何规则，缺少零极点结构依据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:739314e78e374205782c501bda4e18b694b5b1cbe6e6097044d9c4971494647d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+      "contentHash": "58d18f46133e79081b8319a5f19399afa66db95ee888c6578f6d8769234dd678",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:accepts-visual-crossing-without-calculation",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8e55b344deab217076da9fd9557d130eb33d8a57f1a77e1f52630dbc5a6a0110",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：仅凭图形粗估虚轴穿越，缺少特征方程或稳定判据的定量确认。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ae8c177855ac0e2c85e50ede137edb2fe65e3c49b397ed853a06531b7f3ed317"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+      "contentHash": "58d18f46133e79081b8319a5f19399afa66db95ee888c6578f6d8769234dd678",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:imaginary-crossing-ignored",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8e55b344deab217076da9fd9557d130eb33d8a57f1a77e1f52630dbc5a6a0110",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为根轨迹穿越虚轴后仍保持稳定，忽略闭环极点进入右半平面的后果。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:15454e29c9efd4c6b9854fc8579a2dce77a226ce89f7a16342dce2f1a66a1048"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+      "contentHash": "58b2a8842f44efb0122a6882a0c96d4ad37e0c7167d886f1dc3d258d0304a3f5",
+      "optionKey": "A",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:zero-without-target-region",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:7ff65329e144379cd646b38844d3d68c42a6a358270433234a4b3ec89da88921",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把增加零点数量直接等同于稳定性提高，未检查根轨迹与目标极点区域。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:8207b6ea982745a5da11efd6fd710b6ad55fc269331845dcfc470bcc97e994ba"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+      "contentHash": "58b2a8842f44efb0122a6882a0c96d4ad37e0c7167d886f1dc3d258d0304a3f5",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:uses-steady-error-without-locus-shape",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:7ff65329e144379cd646b38844d3d68c42a6a358270433234a4b3ec89da88921",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只看稳态误差常数，无法判断零点对根轨迹形状和动态性能的影响。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:2ad4ff9e966149b6a2055753db751ba24b6ccab74a2e01d9ff41485d8fe7b9b9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-06",
+      "contentHash": "0cf40eb541bd106fe51b4a58f1fc6551b60fe7da9a53c0658e26f8be8a4fe9e7",
+      "optionKey": "B",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:angle-gives-gain",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8358185c49ff053550610fcfd14842b1d4aa9651c5fb69668be0eb367158e970",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用稳态误差代替幅值条件求增益，混淆根轨迹角度条件与增益计算。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:903f6054dfd8b57e072c590aa2471b25b47894ff95e8339f536d94b880c755b9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-06",
+      "contentHash": "0cf40eb541bd106fe51b4a58f1fc6551b60fe7da9a53c0658e26f8be8a4fe9e7",
+      "optionKey": "C",
+      "learningGoalId": "root-locus-analysis-foundations",
+      "misconceptionTag": "misconception:root-locus-analysis-foundations:forces-poles-to-imaginary-axis",
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:8358185c49ff053550610fcfd14842b1d4aa9651c5fb69668be0eb367158e970",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：强令极点实部为零不能替代幅值条件，且会把设计限制在稳定边界。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:49bb651ef454e97e0abf3f3b37edaddce87fbfbf28c6c9cf2838b06ef575908e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+      "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:copies-controller-without-context",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:5dede477f2f5a11c37e5fa1aaa693066118999a3a941c7290ef067ff3fdff122",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：直接复用控制器参数，未核对船舶对象、任务指标和约束差异。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:f83da5c6f1badcdac98d2db253a5f0f33ba46f6ee95f31030b033c89d0aa624a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+      "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:renames-variables-without-model-transfer",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:5dede477f2f5a11c37e5fa1aaa693066118999a3a941c7290ef067ff3fdff122",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只替换变量名称而不迁移模型和证据，无法证明方案适用于新任务。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:28417dd1ff66919985bd8e722c6ef6ab5c201d0569dea9970cad9db17999a968"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+      "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:ignores-ocean-disturbance",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:fe75a570677d45c3a0a8006f805653bd7681df08bb961ec2ef7b22fe88402731",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只验证无扰动标称响应，未覆盖海况扰动下的任务鲁棒性。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:91a86051509ae367ce1b127acb93c5a3f04dce39d783ea9c2ae651ef8cb0c246"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+      "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:uses-score-without-mission-evidence",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:fe75a570677d45c3a0a8006f805653bd7681df08bb961ec2ef7b22fe88402731",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只比较题目分数而不检查任务性能，不能构成海洋场景迁移证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:9fa6c3f13a71fd7f920b6b4dc9eeb82827aac8a76653e02aa24e67a1836ff9f3"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+      "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:assumption-transfer-missing",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0eb405f4c41f5c5ebc8e0b0077b0972814f0706afd48f480214e17fd0a618657",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把线性模型视为可无条件迁移，未复核工作点、扰动和执行器假设。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:a97b6d8733b9bac9d23ebeae25e188941c353c072b135bbbf7dd76103d71b0b5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+      "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:deletes-inconsistent-parameters",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0eb405f4c41f5c5ebc8e0b0077b0972814f0706afd48f480214e17fd0a618657",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：删除不一致参数掩盖了模型边界差异，不能完成可审计的场景迁移。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:363c09740d9ed56591e80bdc7c2342d8cf83e6948a02aa03275dbe90bf6f4245"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+      "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:cc7d45a6c0c9ed1bbf6bb96c9ae41e1a29f33fd3433d50cbcd1e54af57ee82a8",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:4ed5a8b12aaf8e33fc04087793d494343bd466be1adbf43cc5b6f9e35ea3d4eb"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+      "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:cc7d45a6c0c9ed1bbf6bb96c9ae41e1a29f33fd3433d50cbcd1e54af57ee82a8",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把零稳态误差作为唯一任务指标，忽略动态品质与工程安全边界。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:fa1b62b7f9068b5e02a3e8bf5a8bba41d2f50fb947e34925367b2366005685ea"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+      "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:arena-evidence-missing",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2da4c381a95b7c92ac2fc5632e3d8dca809328441ef42efa5dd0d87accffd975",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只保留结果截图，缺少模型、参数、工况和指标的可复现实验证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:262ee6bda8bd06723bdc26242b95d1f868bc8adf2df4ef6101666a09d56d07f4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+      "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
+      "optionKey": "C",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:memorizes-context-without-evidence",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2da4c381a95b7c92ac2fc5632e3d8dca809328441ef42efa5dd0d87accffd975",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：背诵任务背景不能证明控制方案在该场景下有效，缺少运行证据链。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:82f0ea0cf840c8fe0446dd8664dcb00da57d068bb1834b32b224ff45844c81be"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
+      "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
+      "optionKey": "A",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0ea19daa17f515d8612f95abd45443b86db2eb420aef25ffe7aaab3cd149b909",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d907fe52d8e89ccf6beaab076100b70d6784d6bab6b26f69cdb1267da742de5a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
+      "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
+      "optionKey": "B",
+      "learningGoalId": "ship-ocean-transfer-application",
+      "misconceptionTag": "misconception:ship-ocean-transfer-application:accepts-failed-disturbance-level",
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0ea19daa17f515d8612f95abd45443b86db2eb420aef25ffe7aaab3cd149b909",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把较低海况的单项指标当作更高海况结论，忽略测试等级与联合判据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:385cf27a659d13b80f8f952756707d449a2763d7de2f7ea12f5c7ccbbfaaf9ca"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+      "contentHash": "bcd6a8d6a9872c0f92a89fd8de2c0966b04f0433c507f5c87116a7c8dd04e518",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:invalid-simulation-comparison",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b7387252ae8c35ec41ae3172ebd50581659bbd38291af9058a215bc61cfc8871",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：按曲线外观筛选结果会破坏同模型、同输入和同工况的比较基础。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ed39cd675d808598f8048598d4237a1094776a1f7fcc64546ebc5eef93eb406f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+      "contentHash": "bcd6a8d6a9872c0f92a89fd8de2c0966b04f0433c507f5c87116a7c8dd04e518",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:changes-input-before-comparison",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b7387252ae8c35ec41ae3172ebd50581659bbd38291af9058a215bc61cfc8871",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：改变输入后直接比较输出，把输入差异误作模型或控制器性能差异。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:b75418e03b6e268ec9bba71d271481002a230cc9c26fdc0b6152c61484d925be"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+      "contentHash": "773a4c698b92e82f5c0bc16750a0325a90d18a6b55d9c0d555ff812ffd962b6d",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:unexplained-simulation-gap",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:01d8abdc4e2d446b5bf6a2a535287bdc779c6ea1f75985fbb7feee205d7adada",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：看到解析与仿真差异就否定理论，未检查步长、模型假设和数值误差来源。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:4e5c6f3f18bc2c1877b3f6ab81be81355d37cd2ae7df60e9afd3cc2f289e771c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+      "contentHash": "773a4c698b92e82f5c0bc16750a0325a90d18a6b55d9c0d555ff812ffd962b6d",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:reruns-without-discrepancy-record",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:01d8abdc4e2d446b5bf6a2a535287bdc779c6ea1f75985fbb7feee205d7adada",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：重复运行但不记录差异和条件，无法定位偏差来源或形成验证证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:915cec4f1ad596dd353ad51172ea7a97dfcfd9b29f98999ed448febe6aedb163"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+      "contentHash": "3d1f511d043270d8817d6ddb5ba9d698ce4e72c58574c084af29615836c29b95",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:missing-run-provenance",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:575fc5c054c5f668d70a302b81ddee7aa71840f8efe826b34a61b5d62a87e7c4",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只保存末次截图，丢失模型版本、参数、输入和运行条件的来源链。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:324ebf531141f847a6345d864df58e57d3d983721573298f63ee5bb54ce6ff33"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+      "contentHash": "3d1f511d043270d8817d6ddb5ba9d698ce4e72c58574c084af29615836c29b95",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:claims-repetition-without-run-records",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:575fc5c054c5f668d70a302b81ddee7aa71840f8efe826b34a61b5d62a87e7c4",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用笼统的多次验证陈述替代逐次运行记录，结果不可复核。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:02c9dbe707941bfbed2da43f230698a247d7b5a9cfabdf4986eeabb238609caf"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+      "contentHash": "d6985b55bbe0a6e7a4589eec463d608921042e85e450a21056081687e2dd4816",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:hides-validation-limits",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:33da2b799d409ecf82fc3713636b68271d8296b59a8898496205ee540dabac66",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只汇报标称模型成功，隐去了扰动与参数变化下的适用边界。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e5dc0d395dfb1577af44fcb5e45542cd049c018a20f7fe618c7631bf023251a2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+      "contentHash": "d6985b55bbe0a6e7a4589eec463d608921042e85e450a21056081687e2dd4816",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:deletes-failed-disturbance-runs",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:33da2b799d409ecf82fc3713636b68271d8296b59a8898496205ee540dabac66",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：删除失败工况会造成选择性证据，无法说明模型和方案的真实限制。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e294b57f6b254a973b2db45b5386742ec6fe54df272c15d366f11cf8ac85fa42"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+      "contentHash": "121336098663dd2d8a74b6a853e257ba3f24c0f53969ac589ccd75125da0201f",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:simulation-evidence-not-linked",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:4bcb6059ade4388380932fa40d8745c9ecf771c8dd2fc8b1854f15c424e4ec70",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只提交最高分截图，未把证据绑定到模型、参数、工况和判据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:5fac755ce71c1059f6069184a56935b8755e4fc9aa74c838f2f988382b8f737f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+      "contentHash": "121336098663dd2d8a74b6a853e257ba3f24c0f53969ac589ccd75125da0201f",
+      "optionKey": "C",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:omits-run-conditions",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:4bcb6059ade4388380932fa40d8745c9ecf771c8dd2fc8b1854f15c424e4ec70",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只记录控制器名称而遗漏运行条件，无法复现或解释仿真结论。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:924b75df49e1d48cd425e7c25758ab22c74b0449b0ebd2b8234b14470aba2f9b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-06",
+      "contentHash": "b83bc636b32789145bb56c02e1373e8d072518472684f187384e28ecc0417d1e",
+      "optionKey": "A",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:one-metric-proves-model",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:6635c29964308dfee6ce0a6d581353ccd562a92936b6933126fd383d2ee96b11",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：单项指标在容差内不能证明整体有效性，仍需检查其他判据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:9e56d6220bc2e35bf5a0026b7b6246ee6a1c65af9e75a6a14c2e983a69d91d49"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-06",
+      "contentHash": "b83bc636b32789145bb56c02e1373e8d072518472684f187384e28ecc0417d1e",
+      "optionKey": "B",
+      "learningGoalId": "simulation-validation-practice",
+      "misconceptionTag": "misconception:simulation-validation-practice:rejects-tolerance-consistent-result",
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:6635c29964308dfee6ce0a6d581353ccd562a92936b6933126fd383d2ee96b11",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把容差内的数值差异直接判为失败，忽略预先规定的验收容差。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:9e3d51f87877e071bf6986d0d38ca3257ff52f6fb566529429e59d141923128e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+      "contentHash": "9fdad2bef96da3d9a62675cf3e1a6fdce97c7a77c880aa03f17871622ae1c5a1",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:negative-margin-misread",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d18df9f15638de44fc5ed915a7bf2ada5f79a73f117a393d62ab0efbc35cb18c",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把负相位裕度解释为快速且安全，颠倒了稳定安全边界的含义。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:20c16d237739d8a43c652c97e2603209f12a9c8d00708f0e4f30bc8fe6405210"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+      "contentHash": "9fdad2bef96da3d9a62675cf3e1a6fdce97c7a77c880aa03f17871622ae1c5a1",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-alone-proves-safety",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:d18df9f15638de44fc5ed915a7bf2ada5f79a73f117a393d62ab0efbc35cb18c",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：以幅值裕度单项替代完整安全判断，忽略负相位裕度所揭示的风险。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:a5bc9adba34c23353e390c102495e1fd2e72a44abe5af02b356ef1a2048620ac"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+      "contentHash": "3d961fe8ec1ddac88a111a0f8d2fa14b834b435e3919b933433caa6af2de7c21",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2f2b5d08fe41837289d8145abe121af7f5c773eb1a1904b2a600ba0eed973cb1",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把小幅值裕度误解为没有稳态误差，混淆鲁棒余量与跟踪精度。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ce2bd99457b938ccf8077dc7b1b68400bd8f3fce0f6cac5df09b0e26de51525c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+      "contentHash": "3d961fe8ec1ddac88a111a0f8d2fa14b834b435e3919b933433caa6af2de7c21",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:equates-margin-with-computation-cost",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2f2b5d08fe41837289d8145abe121af7f5c773eb1a1904b2a600ba0eed973cb1",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把幅值裕度归因于控制器计算量，未理解其描述增益不确定性余量。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:68902f71af4ec7f461ff7aacb0a1a79097f1c72362d64f1ee4a9520f67d10988"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+      "contentHash": "c235dd0a7e8a91dc39a3a357e2a44f09468f72c88667353d2e55960e59894e64",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:c90fa30afbb44afb7c88c10abeac6cc9284d2d68ac14dd2810fd28c4856f314d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把高带宽直接等同于更安全，忽略相位裕度下降造成的鲁棒性损失。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:7a56bbe00fd93660bb3dc8148c6f2003dae392e0ab9aff1a215ea595ace5fe1b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+      "contentHash": "c235dd0a7e8a91dc39a3a357e2a44f09468f72c88667353d2e55960e59894e64",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:denies-bandwidth-margin-coupling",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:c90fa30afbb44afb7c88c10abeac6cc9284d2d68ac14dd2810fd28c4856f314d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：否认带宽与相位裕度的耦合，无法解释速度提升和安全边界收窄。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:9343a14ab2be48d6a5b0b8de623c890bdf83cc8536d4473bcf510010015c5a99"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+      "contentHash": "1ff97caeeb67ea6fd1d5e1a9827667172839a4acafb4996315c6ea0f53f79de3",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:ignores-actuator-safety",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:599737133755742a4ad287f28161fe3de447f7e2b715c5f1ea18672f0865930a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只保留频域曲线而不讨论执行器饱和，遗漏非线性工程安全约束。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:66e2cefcb8f16a477651c43664d6247191cdd6bf847236344ada836be4aa20c4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+      "contentHash": "1ff97caeeb67ea6fd1d5e1a9827667172839a4acafb4996315c6ea0f53f79de3",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:uses-overshoot-alone-for-safety",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:599737133755742a4ad287f28161fe3de447f7e2b715c5f1ea18672f0865930a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只凭时域超调评价安全，未联合频域裕度与控制量限制。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:92302c9e2e7a8ecc24581ff36460e8a40e979027fcef87a097923687dd7dc0a9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-05",
+      "contentHash": "73ec0cd8feef5a6d51c4383129d178109b5fc239971f83957cf52030a68a4a6b",
+      "optionKey": "B",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:bandwidth-without-robustness",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:591067b76be7f20c72db4da49ac4854c2a0c13315c14f9ddc68bce25cecb8eb5",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把交叉频率与相位裕度变化误推为低频跟踪性能确定恶化，缺少频域因果依据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:f633e2b4ba5acf139febb7409117fc7a758d0982d2df36676cb9cf9636f0d477"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-05",
+      "contentHash": "73ec0cd8feef5a6d51c4383129d178109b5fc239971f83957cf52030a68a4a6b",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:infers-zero-overshoot-from-crossover",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:591067b76be7f20c72db4da49ac4854c2a0c13315c14f9ddc68bce25cecb8eb5",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：由交叉频率和相位裕度变化断言无超调，超出了现有频域证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:8ae7545ce17a1e9f37e0bf773f814130b7681957ba4c028502fbf564d127429c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-06",
+      "contentHash": "bd7dce866c93f4e6cd3b162c34f5ef56aa980ef19e26e285a1f084caac28518f",
+      "optionKey": "A",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:delay-affects-no-margin",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:a075dc3353113df48ed508b1cd26456d03994fc6bdad0c4718e4e6ba8b7b6730",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：新增延迟后仅检查低频增益特性，遗漏延迟引入的负相位和裕度侵蚀。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:66da32e7d62672e2b737d81f59be96a770eaf5da93a8044799e1816c38d17123"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-06",
+      "contentHash": "bd7dce866c93f4e6cd3b162c34f5ef56aa980ef19e26e285a1f084caac28518f",
+      "optionKey": "C",
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "misconceptionTag": "misconception:stability-margin-frequency-analysis:skips-delay-stability-review",
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:a075dc3353113df48ed508b1cd26456d03994fc6bdad0c4718e4e6ba8b7b6730",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为延迟不需复核，忽略幅频近似不变时相位仍会显著变化。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:b5e2df17c4a6dc9eec64ab4473cb1aa04d4b6afd06f47d3ab551205a0cb83058"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+      "contentHash": "5d7d87b074c2427a3b8396b4bf0ff3a59ffd3046624745435eef4df4ba0fd1b3",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:misses-overshoot-metric",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:95dd9bcc93593c85554105b75985ee8070ff38b6301a726a0444450f5d65351f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：首次峰值超过稳态值时只读稳态误差，遗漏最大超调量与峰值时间。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:73ca5dc3da4a5ea035969050e2e84ccd4a54e8ddd124dcc324929e10ac780577"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+      "contentHash": "5d7d87b074c2427a3b8396b4bf0ff3a59ffd3046624745435eef4df4ba0fd1b3",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:reads-curve-appearance-instead-of-metrics",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:95dd9bcc93593c85554105b75985ee8070ff38b6301a726a0444450f5d65351f",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用曲线视觉深浅代替时域指标读取，不能形成可计算的响应证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:cd54c609078fb4f80ba5eb2fbbf2852974b29aeb3e95db67292d95a8e0e1dbfe"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+      "contentHash": "276f51d4eb0008cb42458ff2d1870b266b060ce577e0c45b2e0d28c88213b138",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:settling-rise-confusion",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:dddfb91ad3dba9a6f8a70d5a4a199484d308ed285a1cd1652f1fabbbaa96fd47",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把进入并保持在误差带内的时间误作上升时间，混淆两个指标定义。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:0b19a34e2c55e03fe5b625333610939920e0a564088b160d6ada16522813275c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+      "contentHash": "276f51d4eb0008cb42458ff2d1870b266b060ce577e0c45b2e0d28c88213b138",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:uses-system-type-for-settling-time",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:dddfb91ad3dba9a6f8a70d5a4a199484d308ed285a1cd1652f1fabbbaa96fd47",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：用系统型别代替调节时间读数，未依据响应进入误差带的过程判断。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:0f9d23260dcd15d17c7009ad067ce0dece2fa0e28bd7cb1e32e5110a2e09c91f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+      "contentHash": "ce38e8dbe3ccae937e198ab81c741ab32500916977c79f9780885446efef18c8",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:steady-error-as-instability",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:924786f843b338d5a80b9dae0a0cd3fba7d2e6d7c23278c530ac01c33cded568",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把非零稳态偏差直接判为不稳定，混淆终态误差与动态发散。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:c34f0823cd944c56cf4686b19fa9f02316fb3934bf4ae3e6776abee6272d0de9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+      "contentHash": "ce38e8dbe3ccae937e198ab81c741ab32500916977c79f9780885446efef18c8",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:uses-peak-time-for-steady-error",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:924786f843b338d5a80b9dae0a0cd3fba7d2e6d7c23278c530ac01c33cded568",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只读取峰值时间不能解释终态偏差，遗漏稳态误差及其来源。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d852280ca1d7e6fbcbb227f729dbaf6b4868cfb861b724a13b8b006575f8a8df"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+      "contentHash": "86cb3f410aa04973bcd2468c8c24d888b9b366467692624e4056d34d2be79e2c",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:damping-effect-reversed",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:ed754851762d11b271842282f241fd03c7a3e9db25a1dbab1b008f7a3b9f3b42",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：认为阻尼比增大会使超调增大，颠倒了欠阻尼二阶系统的典型趋势。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:904f5bca3e29a4e72d28fd633aff7956bcf87499cbeb1bfdf5afa46ffcd6afdf"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+      "contentHash": "86cb3f410aa04973bcd2468c8c24d888b9b366467692624e4056d34d2be79e2c",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:damping-guarantees-zero-steady-error",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:ed754851762d11b271842282f241fd03c7a3e9db25a1dbab1b008f7a3b9f3b42",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：由阻尼比变化断言稳态误差为零，混淆动态阻尼与系统型别及低频增益。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:352969dfb3114a906efbae776a219613746400cc5666070ce74c09e535040727"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+      "contentHash": "514df69b0a09efb6216cc7a2f331b9fa240581a3549e938faeab1fa150e80e67",
+      "optionKey": "B",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:unstructured-response-comparison",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:fc5a73e733c6977cfa983bfe33cce72c7d9cc040e62edacd008c23de6999614c",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：按曲线外观比较方案，没有使用一致的超调、调节时间和稳态误差指标。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e072d43f12999293addb65ed5675a062a63831a02f1af2936d43bb928548fe71"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+      "contentHash": "514df69b0a09efb6216cc7a2f331b9fa240581a3549e938faeab1fa150e80e67",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:conclusion-without-time-domain-metrics",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:fc5a73e733c6977cfa983bfe33cce72c7d9cc040e62edacd008c23de6999614c",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只给优劣结论而不列指标，缺少可复核的时域比较证据。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:54197109137558f04b9e68157d172ef5dc7f2c1471b955bd1cfd43f94de98780"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-06",
+      "contentHash": "51248a6c7ca7c7daaaf33b5c1c0e22928663539643ff9cb86deaa3e8b84893c1",
+      "optionKey": "A",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:single-index-ranking",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2c9c9cbefbe9d0daf8d91656bdf767eef935456691934cf8b6c1cacea0e6fac9",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：由超调较小推断全部动态指标更优，忽略调节时间变慢的代价。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:c5740711deee0e6c7ae3c70d1f37bdd8f1b36967484737c444f1be7ebfd8e284"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-06",
+      "contentHash": "51248a6c7ca7c7daaaf33b5c1c0e22928663539643ff9cb86deaa3e8b84893c1",
+      "optionKey": "C",
+      "learningGoalId": "time-domain-response-analysis",
+      "misconceptionTag": "misconception:time-domain-response-analysis:equates-responses-with-different-dynamics",
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2c9c9cbefbe9d0daf8d91656bdf767eef935456691934cf8b6c1cacea0e6fac9",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把稳态值相同误作动态性能相同，遗漏超调与调节时间差异。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:51f328bec480b0b33b0755b62946802cdd2073bcedb7fc37310a0d09a2cf8d5e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+      "contentHash": "c43b5a38256bbf7ff2e6cb817c9ff21608b53e6f28eca3018f45f3ec36453168",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2e5da06db88818489afdf03d8a6643e4f47d55c29fad2b825bd21266a949d0c0",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：直接删除微分符号没有执行零初值拉普拉斯变换，不能得到输入输出传递关系。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:213a4b569bbaab3a966a034514a993262d422f34b80db9bce2e6f44950676fe6"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+      "contentHash": "c43b5a38256bbf7ff2e6cb817c9ff21608b53e6f28eca3018f45f3ec36453168",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:keeps-arbitrary-initial-condition-in-transfer-function",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:2e5da06db88818489afdf03d8a6643e4f47d55c29fad2b825bd21266a949d0c0",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把任意初始条件保留在传递函数定义中，混入了不属于零状态输入输出关系的项。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:dd6202f365dfbbdddbb95975adf394d9379b62c693527deaa5d7f8ced252f744"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+      "contentHash": "d1e08f5ef65b7a282f66e89e0361c8effa8776c92d2821c6a3c7cd326d40a803",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:untracked-physical-variables",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0991ee8d4f7f52d7b97b4aa8227e0e6bc565242d734e864e04a1803f1daf59ce",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把不同物理参数合并为单一增益，丢失质量、阻尼和刚度的可追溯关系。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:ef07045ce6106220770aee9c166c228443fd0880ae66967b2c4f8880b5dc4970"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+      "contentHash": "d1e08f5ef65b7a282f66e89e0361c8effa8776c92d2821c6a3c7cd326d40a803",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:block-diagram-without-physical-variables",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:0991ee8d4f7f52d7b97b4aa8227e0e6bc565242d734e864e04a1803f1daf59ce",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：只画结构方块而不标物理量，无法从对象规律建立可信模型。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:f08d1c68d8408aeddfd16917693154e584381e31f7f78aac179d1e94ea6b9ae4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+      "contentHash": "2f6e196bdfab3098d77c501dbad5526e76f3168d9147bc31ce046ef7fb5a2e94",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:invalid-block-reduction",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:bf77e56560ea7e2d7915e73fbfe876321d9f45ac11285778a2d116948e733ee2",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：仅凭图形相邻就相乘，未确认方块是否构成真实串联连接。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:67d8241d70ab6345f08f369671006cfb4bb3c16faccac86f9523d188ea25b9ef"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+      "contentHash": "2f6e196bdfab3098d77c501dbad5526e76f3168d9147bc31ce046ef7fb5a2e94",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:collapses-all-nodes-into-gain",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:bf77e56560ea7e2d7915e73fbfe876321d9f45ac11285778a2d116948e733ee2",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把求和点、分支点和动态环节合并为增益，破坏原连接拓扑。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:d0eb6ae0f9c14af7be265c6d14dbdb7d2b2f51310b2cb8df6944d6d9fd875c1f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+      "contentHash": "d730d33ed534102bda68f3c19c34b6d74b3dea053b6335dcca05f0210a317890",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:lost-system-order",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:850a1836f48797ffc39475d8119872a03d0cf60e59f35b122d3c1239d01ec83a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：直接补高分母阶次掩盖建模遗漏，未回查储能元件和状态变量。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:888c1ff078479042b379f0e4c83c16b8945d1ae0011f10c2e1d76d7ddd95f380"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+      "contentHash": "d730d33ed534102bda68f3c19c34b6d74b3dea053b6335dcca05f0210a317890",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:changes-numerator-to-fix-order",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:850a1836f48797ffc39475d8119872a03d0cf60e59f35b122d3c1239d01ec83a",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：调整分子系数不能恢复缺失的系统阶次，未处理分母动态结构。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:900cafcec77e37aa0bd9db7f77b54ecc228c171ca93046b7f8a757dcf348c74f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+      "contentHash": "a767cf3733c1de02f19d1121be08fe68723615cab2d00104f7b29d8e8a1e36d4",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:measurement-path-omitted",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b50c33cf956539745ad38f6b9456e006d62160ba606dc2d3b91fd01d7c8cccb8",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把传感器当作外部扰动，混淆测量反馈动态与扰动通道。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:b99e3f8032ca4be7336fcc20c521f01103efd4abab3646e786c3fecf7f4fc275"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+      "contentHash": "a767cf3733c1de02f19d1121be08fe68723615cab2d00104f7b29d8e8a1e36d4",
+      "optionKey": "C",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:deletes-measurement-path",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:b50c33cf956539745ad38f6b9456e006d62160ba606dc2d3b91fd01d7c8cccb8",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：为化简而删除测量通道，会改变非单位反馈的闭环表达式。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:e142dea36eb649528dbdae265f06f63b98767f04ba2845ec4721566509b41831"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-06",
+      "contentHash": "260a676a923e9db5164a714f7b1096c619c52e1e1dbfeb717dcbb11b73ed0427",
+      "optionKey": "A",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:closed-loop-denominator",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:3824d0c1c3b0e2e69a85e399d3c7b5ad57bf1b04659d03d2bec24e95107b119d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：使用倒数形式遗漏了负反馈闭环分母中的回路增益项。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:806338798990303a850b4cb0c5f21431a9f8e3ffd455503028570663ce9a78ab"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-06",
+      "contentHash": "260a676a923e9db5164a714f7b1096c619c52e1e1dbfeb717dcbb11b73ed0427",
+      "optionKey": "B",
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "misconceptionTag": "misconception:transfer-function-modeling-foundations:adds-one-outside-transfer-ratio",
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "version": "micro-tutoring-option-attribution.v2",
+      "itemReviewSourceHash": "sha256:3824d0c1c3b0e2e69a85e399d3c7b5ad57bf1b04659d03d2bec24e95107b119d",
+      "reviewerId": "course-pedagogy-reviewer:issue-1392",
+      "reviewerRole": "assessment-content-reviewer",
+      "reviewedAt": "2026-08-20T00:00:00.000Z",
+      "reviewBatchId": "micro-tutoring-option-attribution-review.v2",
+      "evidenceSummary": "逐选项审核确认：把前向传递函数与常数直接相加，未形成闭环输入输出比。",
+      "limitations": [
+        "仅适用于所绑定的目录项、内容哈希和错误选项键；题目内容变更后必须重新审核。"
+      ],
+      "reviewSourceHash": "sha256:14abd03a06318b59d81517bee57d8314a4ca0e1e6aa581af18025ec1e9d222ee"
+    }
+  ]
+}

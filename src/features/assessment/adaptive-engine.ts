@@ -17,6 +17,7 @@ import {
   REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
+
 export interface AdaptiveAnswerRecord {
   sessionId: string;
   userId: string;
@@ -97,7 +98,7 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
-export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint' | 'remediation';
+export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
 
 export interface AbilityReport {
   userId: string;
@@ -488,8 +489,11 @@ export function selectNextQuestionFromAnswers(
 
 function isPathOwnedCatalogScope(
   questionScope: AdaptiveQuestionScope,
-): questionScope is 'readiness' | 'checkpoint' | 'remediation' {
-  return questionScope === 'readiness' || questionScope === 'checkpoint' || questionScope === 'remediation';
+): questionScope is 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation' {
+  return questionScope === 'readiness'
+    || questionScope === 'checkpoint'
+    || questionScope === 'remediation'
+    || questionScope === 'terminal-validation';
 }
 
 function filterQuestionsByGoal(

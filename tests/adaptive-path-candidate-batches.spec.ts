@@ -5,11 +5,12 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1349');
+const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1451-candidate-adjustment');
 const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/lib/adaptive-path-candidate-batches.ts',
+  'src/lib/konling-agent-runtime.ts',
   'tests/adaptive-path-candidate-batches.spec.ts',
 ];
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
@@ -57,11 +58,11 @@ function currentHead(): string {
 
 function trackedChangesOutsideEvidence(): string[] {
   const evidencePrefix = `${path.relative(process.cwd(), evidenceDir).replaceAll('\\', '/')}/`;
-  return execFileSync('git', ['diff', '--name-only', '-z', 'HEAD', '--'])
+  return execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--', '.'])
     .toString('utf8')
     .split('\0')
     .filter(Boolean)
-    .map((file) => file.replaceAll('\\', '/'))
+    .map((entry) => entry.slice(3).replaceAll('\\', '/'))
     .filter((file) => !file.startsWith(evidencePrefix));
 }
 
@@ -130,10 +131,12 @@ const captureProvenance = updateEvidence ? createCaptureProvenanceSnapshot() : n
 const activePathId = 'active-path-before-generation';
 const candidatePathId = 'candidate-source-path';
 const batchId = 'path-candidate-batch_issue1327';
+const adjustedBatchId = 'path-candidate-batch_issue1451-adjusted';
 const missingBatchId = 'path-candidate-batch_issue1327-missing';
 const failedBatchId = 'path-candidate-batch_issue1327-failed';
 const unauthorizedBatchId = 'path-candidate-batch_issue1349-unauthorized';
 const candidateIds = ['path-candidate_foundation', 'path-candidate_sprint'];
+const candidateFingerprints = ['a'.repeat(64), 'b'.repeat(64)];
 
 const planNode = {
   nodeId: 'node-phase-margin',
@@ -190,9 +193,38 @@ const candidateBatch = {
   plannerVersion: 'candidate-batch-e2e',
   status: 'succeeded',
   createdAt: '2026-08-03T00:00:00.000Z',
+  metadata: {},
   candidates: [
-    { id: candidateIds[0], ordinal: 0, styleId: 'foundation', policyFamily: 'foundation', label: 'Foundation candidate', snapshot: option('foundation', 'Foundation candidate', 35) },
-    { id: candidateIds[1], ordinal: 1, styleId: 'sprint', policyFamily: 'simulation', label: 'Simulation sprint', snapshot: option('sprint', 'Simulation sprint', 50) },
+    { id: candidateIds[0], fingerprint: candidateFingerprints[0], ordinal: 0, styleId: 'foundation', policyFamily: 'foundation', label: 'Foundation candidate', snapshot: option('foundation', 'Foundation candidate', 35) },
+    { id: candidateIds[1], fingerprint: candidateFingerprints[1], ordinal: 1, styleId: 'sprint', policyFamily: 'simulation', label: 'Simulation sprint', snapshot: option('sprint', 'Simulation sprint', 50) },
+  ],
+};
+
+const adjustedCandidateBatch = {
+  ...candidateBatch,
+  id: adjustedBatchId,
+  generationRequestId: 'path-adjustment-request-issue1451',
+  sourcePathId: 'adjusted-candidate-source-path',
+  createdAt: '2026-08-18T12:00:00.000Z',
+  metadata: {
+    derivation: {
+      kind: 'adjustment',
+      sourceBatchId: batchId,
+      sourceCandidateId: candidateIds[0],
+      sourceCandidateFingerprint: candidateFingerprints[0],
+      activeProgressVersion: '2026-08-18T08:00:00.000Z',
+    },
+  },
+  candidates: [
+    {
+      id: 'path-candidate_adjusted',
+      fingerprint: 'c'.repeat(64),
+      ordinal: 0,
+      styleId: 'adjusted-simulation',
+      policyFamily: 'simulation',
+      label: 'Adjusted simulation route',
+      snapshot: option('adjusted-simulation', 'Adjusted simulation route', 40),
+    },
   ],
 };
 
@@ -224,6 +256,7 @@ const activePath = {
     executions: [],
     deviations: [],
     interventions: [],
+    updatedAt: '2026-08-18T08:00:00.000Z',
   },
 };
 
@@ -273,6 +306,7 @@ async function installRoutes(
   waitForCandidateBatch?: () => Promise<void>,
   generatedBatchId = batchId,
   observeCandidateBatchRequest?: (requestCount: number) => number | undefined,
+  adjustmentOutcome: 'persisted' | 'no-material-difference' | 'stale-progress' = 'persisted',
 ) {
   let candidateBatchRequestCount = 0;
   await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
@@ -292,18 +326,55 @@ async function installRoutes(
       },
     },
   }));
-  await page.route('**/api/adaptive/path-advisor-tool', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({
-      agentSessionId: 'agent-session-issue-1349',
-      generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
-      result: {
-        generationStatus: 'succeeded',
-        candidateBatch: { id: generatedBatchId },
-      },
-    }),
-  }));
+  await page.route('**/api/adaptive/path-advisor-tool', async (route) => {
+    const request = route.request().postDataJSON() as { operation?: string } | null;
+    if (request?.operation === 'revise') {
+      if (adjustmentOutcome === 'stale-progress') {
+        await route.fulfill({
+          status: 409,
+          json: { error: '学习路径进度已更新，请基于最新进度重新调整。' },
+        });
+        return;
+      }
+      if (adjustmentOutcome === 'no-material-difference') {
+        await route.fulfill({
+          status: 200,
+          json: {
+            agentSessionId: 'agent-session-issue-1451',
+            result: {
+              generationStatus: 'no_material_difference',
+              candidateBatch: null,
+              comparison: { message: '调整后的方案与原候选没有实质差异，请修改调整条件后重试。' },
+            },
+          },
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        json: {
+          agentSessionId: 'agent-session-issue-1451',
+          result: {
+            generationStatus: 'persisted',
+            candidateBatch: { id: adjustedBatchId },
+          },
+        },
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        agentSessionId: 'agent-session-issue-1349',
+        generationRequest: { id: 'generation-request-issue-1349', status: 'succeeded' },
+        result: {
+          generationStatus: 'succeeded',
+          candidateBatch: { id: generatedBatchId },
+        },
+      }),
+    });
+  });
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
@@ -323,6 +394,9 @@ async function installRoutes(
     }
     await route.fulfill({ json: { batch: candidateBatch } });
   });
+  await page.route(`**/api/learning-paths/candidate-batches/${adjustedBatchId}**`, (route) => (
+    route.fulfill({ json: { batch: adjustedCandidateBatch } })
+  ));
   await page.route(`**/api/learning-paths/candidate-batches/${missingBatchId}**`, (route) => (
     route.fulfill({ status: 404, json: { error: 'Candidate batch not found' } })
   ));
@@ -489,6 +563,32 @@ test('does not write an unauthorized generated batch to the URL', async ({ conte
   await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
 });
 
+for (const viewport of [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const) {
+  test(`${viewport.name} exposes persisted candidate adjustment without hiding the active path`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await installRoutes(page);
+
+    const query = new URLSearchParams({
+      demo: '1',
+      goal: 'control-correction',
+      intent: 'contextual-recommendation',
+      batch: batchId,
+    });
+    await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    const adjustAction = page.getByRole('button', { name: '请控灵调整Foundation candidate' })
+      .filter({ visible: true })
+      .first();
+    await expect(adjustAction).toBeEnabled();
+    await assertNoHorizontalOverflow(page);
+  });
+}
+
 async function openGeneration(page: Page, requestedBatchId?: string, candidateId?: string, pathId?: string) {
   const query = new URLSearchParams({
     goal: 'control-correction',
@@ -530,7 +630,9 @@ test('candidate batch evidence remains bound to committed sources', () => {
   }
   expect(new Set(manifest.screenshots.map((screenshot) => `${screenshot.scenario}:${screenshot.width}`))).toEqual(new Set([
     'no-batch:1440', 'loaded:1440', 'missing:1440', 'failed:1440', 'unauthorized:1440',
+    'adjusted:1440', 'no-material-difference:1440', 'stale-progress:1440',
     'no-batch:320', 'loaded:320', 'missing:320', 'failed:320', 'unauthorized:320',
+    'adjusted:320', 'no-material-difference:320', 'stale-progress:320',
   ]));
   for (const screenshot of manifest.screenshots) {
     expect(sha256(readFileSync(path.resolve(process.cwd(), screenshot.file)))).toBe(screenshot.sha256);
@@ -581,7 +683,8 @@ async function assertNoHorizontalOverflow(page: Page) {
 async function captureEvidence(
   page: Page,
   viewport: { name: string; width: number; height: number },
-  scenario: 'no-batch' | 'loaded' | 'missing' | 'failed' | 'unauthorized',
+  scenario: 'no-batch' | 'loaded' | 'missing' | 'failed' | 'unauthorized'
+    | 'adjusted' | 'no-material-difference' | 'stale-progress',
   assertions: string[],
   focusedControl?: string,
 ) {
@@ -602,7 +705,9 @@ async function captureEvidence(
     height: viewport.height,
     activePathId,
     candidateSourcePathId: candidatePathId,
-    batchId: scenario === 'loaded'
+    batchId: scenario === 'adjusted'
+      ? adjustedBatchId
+      : scenario === 'loaded' || scenario === 'no-material-difference' || scenario === 'stale-progress'
       ? batchId
       : scenario === 'missing'
         ? missingBatchId
@@ -614,6 +719,79 @@ async function captureEvidence(
     assertions,
     focusedControl: focusedControl ?? null,
     noHorizontalOverflow: true,
+  });
+}
+
+function visibleFoundationAdjustmentAction(page: Page) {
+  return page.getByRole('button', { name: '请控灵调整Foundation candidate' })
+    .filter({ visible: true })
+    .first();
+}
+
+for (const viewport of [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const) {
+  test(`${viewport.name} captures a persisted derived batch while preserving the active path`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await login(context);
+    await installRoutes(page, undefined, batchId, undefined, 'persisted');
+    await openGeneration(page, batchId);
+
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    const adjustAction = visibleFoundationAdjustmentAction(page);
+    await expect(adjustAction).toBeEnabled();
+    await adjustAction.click();
+
+    await expect(page.getByText('Adjusted simulation route', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await captureEvidence(page, viewport, 'adjusted', [
+      'adjustment loads the persisted derived candidate batch',
+      'the existing active path remains visible and unchanged',
+      'the displayed candidates come from the server-authorized derived batch',
+    ]);
+  });
+
+  test(`${viewport.name} captures explicit no-material-difference feedback`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await login(context);
+    await installRoutes(page, undefined, batchId, undefined, 'no-material-difference');
+    await openGeneration(page, batchId);
+
+    await visibleFoundationAdjustmentAction(page).click();
+    await expect(page.getByText(
+      '调整后的方案与原候选没有实质差异，请修改调整条件后重试。',
+      { exact: true },
+    ).filter({ visible: true }).first()).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await captureEvidence(page, viewport, 'no-material-difference', [
+      'no material difference is reported explicitly',
+      'no replacement candidate batch is created or loaded',
+      'the original candidate batch and active path remain visible',
+    ]);
+  });
+
+  test(`${viewport.name} captures stale-progress rejection without replacing candidates`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await login(context);
+    await installRoutes(page, undefined, batchId, undefined, 'stale-progress');
+    await openGeneration(page, batchId);
+
+    await visibleFoundationAdjustmentAction(page).click();
+    await expect(page.getByText(
+      '学习路径进度已更新，请基于最新进度重新调整。',
+      { exact: true },
+    ).filter({ visible: true }).first()).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await captureEvidence(page, viewport, 'stale-progress', [
+      'stale active-path progress fails closed with actionable feedback',
+      'the stale response does not replace the current candidate batch',
+      'the existing active path remains visible',
+    ]);
   });
 }
 
@@ -700,12 +878,12 @@ for (const viewport of [
 test.afterAll(() => {
   if (!updateEvidence) return;
   expect(captureProvenance).not.toBeNull();
-  expect(screenshots).toHaveLength(10);
+  expect(screenshots).toHaveLength(16);
   verifyCaptureProvenance(captureProvenance!, 'after all screenshots');
   const temporaryManifestPath = `${manifestPath}.${process.pid}.tmp`;
   const manifest = `${JSON.stringify({
     schemaVersion: 1,
-    issue: 1349,
+    issue: 1451,
     capturedAt: new Date().toISOString(),
     commitSha: captureProvenance!.commitSha,
     generator: 'tests/adaptive-path-candidate-batches.spec.ts',

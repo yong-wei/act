@@ -179,6 +179,7 @@ describe('Konling teaching-assistant server context', () => {
         findMany: vi.fn().mockResolvedValue([answer]),
       },
       wrongAnswerAttribution: {
+        findFirst: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockResolvedValue({
           id: 'attribution-1',
           answerId: 'answer-1',

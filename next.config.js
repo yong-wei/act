@@ -7,9 +7,14 @@ const runtimeCatalogTraceIncludes = [
   './course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
 ];
 
+const sealedEnvelopeRegistryTraceIncludes = [
+  './course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json',
+];
+
 const contentTraceExcludes = [
   './course-content/authoring/lessons/**/*',
   './course-content/authoring/knowledge/**/*',
+  ...sealedEnvelopeRegistryTraceIncludes.map((entry) => `!${entry}`),
   './course-content/authoring/shared/**/*',
   '!./course-content/authoring/shared/lesson-id-map.json',
   './course-content/runtime/**/*',
@@ -65,6 +70,7 @@ const nextConfig = {
     '/*': [
       './course-content/authoring/shared/lesson-id-map.json',
       ...runtimeCatalogTraceIncludes,
+      ...sealedEnvelopeRegistryTraceIncludes,
     ],
     '/api/content/mdx': [
       './content/**/*',

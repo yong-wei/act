@@ -22,6 +22,12 @@ import type {
   DiagnosisReportsPayload,
 } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
+import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
+import {
+  projectReportHistoryCard,
+  type EvidenceCoverageGroup,
+  type ReportComparison,
+} from '@/features/teacher/teacher-diagnosis-report-history-projection';
 
 type ReportHistoryState = 'loading' | 'ready' | 'error';
 
@@ -32,6 +38,7 @@ interface TeacherDiagnosisReportHistoryProps {
 }
 
 interface TeacherDiagnosisReportHistoryViewProps {
+  classId?: string;
   state: ReportHistoryState;
   reports: DiagnosisReportApiItem[];
   selectedReportId?: string | null;
@@ -43,6 +50,10 @@ interface TeacherDiagnosisReportHistoryViewProps {
   generationError?: string | null;
   onGenerate?: () => void;
   onRetryGeneration?: () => void;
+  generationPreflight?: DiagnosisGenerationPreflightApiItem | null;
+  preflightLoading?: boolean;
+  onClosePreflight?: () => void;
+  onConfirmGeneration?: (forceReason?: string) => void;
 }
 
 const CONFIDENCE_LABELS = {
@@ -84,6 +95,8 @@ export function TeacherDiagnosisReportHistory({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [generationJob, setGenerationJob] = useState<DiagnosisGenerationJobApiItem | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationPreflight, setGenerationPreflight] = useState<DiagnosisGenerationPreflightApiItem | null>(null);
+  const [preflightLoading, setPreflightLoading] = useState(false);
 
   const loadReports = useCallback(async () => {
     setState('loading');
@@ -119,7 +132,32 @@ export function TeacherDiagnosisReportHistory({
     void loadReports();
   }, [loadReports]);
 
-  const submitGeneration = useCallback(async (retry = false) => {
+  const loadPreflight = useCallback(async () => {
+    setGenerationError(null);
+    setPreflightLoading(true);
+    try {
+      const searchParams = new URLSearchParams();
+      if (targetStudentId) searchParams.set('studentId', targetStudentId);
+      const query = searchParams.size > 0 ? `?${searchParams.toString()}` : '';
+      const response = await fetch(
+        `/api/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/preflight${query}`,
+      );
+      const payload = await response.json().catch(() => null) as {
+        preflight?: DiagnosisGenerationPreflightApiItem;
+        error?: string;
+      } | null;
+      if (!response.ok || !payload?.preflight) {
+        throw new Error(payload?.error || '读取诊断生成预检失败');
+      }
+      setGenerationPreflight(payload.preflight);
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : '读取诊断生成预检失败');
+    } finally {
+      setPreflightLoading(false);
+    }
+  }, [classId, targetStudentId]);
+
+  const submitGeneration = useCallback(async (retry = false, forceReason?: string) => {
     setGenerationError(null);
     try {
       const response = retry && generationJob
@@ -134,11 +172,13 @@ export function TeacherDiagnosisReportHistory({
             body: JSON.stringify({
               idempotencyKey: crypto.randomUUID(),
               ...(targetStudentId ? { targetStudentId } : {}),
+              ...(forceReason ? { force: true, forceReason } : {}),
             }),
           });
       const payload = await response.json().catch(() => null) as { job?: DiagnosisGenerationJobApiItem; error?: string } | null;
       if (!payload?.job) throw new Error(payload?.error || '创建诊断生成任务失败');
       setGenerationJob(payload.job);
+      setGenerationPreflight(null);
       if (!response.ok) setGenerationError(payload.error || '诊断生成任务投递失败');
     } catch (error) {
       setGenerationError(error instanceof Error ? error.message : '创建诊断生成任务失败');
@@ -161,7 +201,8 @@ export function TeacherDiagnosisReportHistory({
   }, [generationJob, loadReports]);
 
   return (
-    <TeacherDiagnosisReportHistoryView
+      <TeacherDiagnosisReportHistoryView
+        classId={classId}
       state={state}
       reports={reports}
       selectedReportId={selectedReportId}
@@ -171,13 +212,18 @@ export function TeacherDiagnosisReportHistory({
       onSelectReport={setSelectedReportId}
       generationJob={generationJob}
       generationError={generationError}
-      onGenerate={() => void submitGeneration(false)}
+      generationPreflight={generationPreflight}
+      preflightLoading={preflightLoading}
+      onGenerate={() => void loadPreflight()}
+      onClosePreflight={() => setGenerationPreflight(null)}
+      onConfirmGeneration={(forceReason) => void submitGeneration(false, forceReason)}
       onRetryGeneration={() => void submitGeneration(true)}
     />
   );
 }
 
 export function TeacherDiagnosisReportHistoryView({
+  classId,
   state,
   reports,
   selectedReportId,
@@ -189,6 +235,10 @@ export function TeacherDiagnosisReportHistoryView({
   generationError,
   onGenerate,
   onRetryGeneration,
+  generationPreflight,
+  preflightLoading,
+  onClosePreflight,
+  onConfirmGeneration,
 }: TeacherDiagnosisReportHistoryViewProps) {
   const selectedReport = useMemo(
     () => reports.find((report) => report.id === selectedReportId) ?? reports[0] ?? null,
@@ -211,7 +261,7 @@ export function TeacherDiagnosisReportHistoryView({
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-600 dark:text-sky-300">
-              Governed evidence ledger
+              可回看诊断记录
             </p>
             <h2 className="mt-1 text-xl font-semibold text-foreground">学情诊断报告历史</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-subtle">
@@ -224,13 +274,15 @@ export function TeacherDiagnosisReportHistoryView({
             type="button"
             data-diagnosis-generation-action="generate"
             onClick={onGenerate}
-            disabled={generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
+            disabled={preflightLoading || generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'}
             className="btn-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-wait disabled:opacity-60"
           >
-            {generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'
+            {preflightLoading || generationJob?.state === 'QUEUED' || generationJob?.state === 'RUNNING'
               ? <Loader2 className="h-4 w-4 animate-spin" />
               : <BookOpenCheck className="h-4 w-4" />}
-            {generationJob?.state === 'QUEUED'
+            {preflightLoading
+              ? '检查生成条件'
+              : generationJob?.state === 'QUEUED'
               ? '等待生成'
               : generationJob?.state === 'RUNNING'
                 ? '正在生成'
@@ -248,6 +300,14 @@ export function TeacherDiagnosisReportHistoryView({
         </div>
       </header>
 
+      {generationPreflight ? (
+        <GenerationPreflight
+          preflight={generationPreflight}
+          onClose={onClosePreflight}
+          onConfirm={onConfirmGeneration}
+        />
+      ) : null}
+
       {generationJob || generationError ? (
         <GenerationStatus
           job={generationJob}
@@ -260,13 +320,17 @@ export function TeacherDiagnosisReportHistoryView({
       {state === 'error' ? <ErrorState message={errorMessage} onRetry={onRefresh} /> : null}
       {state === 'ready' && reports.length === 0 ? <EmptyState /> : null}
       {state === 'ready' && selectedReport ? (
-        <div className="relative grid min-w-0 lg:grid-cols-[17rem,minmax(0,1fr)]">
+        <div className="relative grid min-w-0 lg:grid-cols-[21rem,minmax(0,1fr)]">
           <ReportIndex
             reports={reports}
             selectedReportId={selectedReport.id}
             onSelectReport={onSelectReport}
           />
-          <ReportDetail report={selectedReport} />
+          <ReportDetail
+            classId={classId}
+            report={selectedReport}
+            adjacentOlderReport={reports[reports.findIndex((report) => report.id === selectedReport.id) + 1]}
+          />
         </div>
       ) : null}
     </section>
@@ -283,6 +347,19 @@ function GenerationStatus({
   onRetry?: () => void;
 }) {
   const failed = job?.state === 'FAILED' || job?.state === 'TIMED_OUT';
+  if (job?.state === 'COMPLETED' && !error) {
+    return (
+      <details
+        className="relative border-b border-emerald-500/20 bg-emerald-500/5 px-5 py-3 text-sm sm:px-6"
+        data-diagnosis-generation-state="COMPLETED"
+      >
+        <summary className="cursor-pointer font-medium text-foreground">
+          诊断生成完成，报告历史已更新
+        </summary>
+        <p className="mt-2 text-xs text-subtle">证据截止：{formatReportTime(job.evidenceCutoff)}</p>
+      </details>
+    );
+  }
   return (
     <div
       className={`relative flex flex-col gap-2 border-b px-5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
@@ -317,6 +394,101 @@ function GenerationStatus({
   );
 }
 
+function GenerationPreflight({
+  preflight,
+  onClose,
+  onConfirm,
+}: {
+  preflight: DiagnosisGenerationPreflightApiItem;
+  onClose?: () => void;
+  onConfirm?: (forceReason?: string) => void;
+}) {
+  const [forceReason, setForceReason] = useState('');
+  const statusCopy = {
+    FIRST_GENERATION: ['首次生成', '当前范围尚无正式诊断报告。'],
+    NEW_EVIDENCE: ['存在新的诊断依据', '受治理输入已发生有效变化。'],
+    VERSION_CHANGE: ['生成版本已变化', '生成器或确定性预检规则已更新。'],
+    NO_EFFECTIVE_CHANGE: ['没有有效变化', '与上一份正式报告相比，当前受治理输入和版本均未变化。'],
+    ACTIVE_JOB: ['已有生成任务', '当前范围已有排队或运行中的诊断任务。'],
+    UNAVAILABLE: ['暂不可生成', '当前范围没有生成器可读取的合格受治理输入。'],
+  } as const;
+  const [title, description] = statusCopy[preflight.status];
+  const categoryLabels = {
+    assignment: '作业',
+    assessment: '测验',
+    learningBehavior: '学习行为',
+    risk: '风险',
+    eligibility: '诊断资格',
+  } as const;
+  return (
+    <div className="relative border-b border-sky-500/20 bg-sky-500/5 px-5 py-4 sm:px-6" data-diagnosis-preflight-status={preflight.status}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="font-medium text-foreground">{title}</p>
+          <p className="mt-1 text-sm text-subtle">{description}</p>
+          {preflight.previousReport ? (
+            <p className="mt-1 text-xs text-subtle">
+              上一份报告证据截止：{formatReportTime(preflight.previousReport.evidenceCutoff)}
+            </p>
+          ) : null}
+          <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {Object.entries(preflight.categories).map(([name, category]) => (
+              <div key={name} className="rounded-lg border border-border/60 bg-card/60 px-3 py-2">
+                <dt className="text-xs text-subtle">{categoryLabels[name as keyof typeof categoryLabels]}</dt>
+                <dd className="mt-1 text-sm font-medium text-foreground">
+                  {category.availability === 'unavailable'
+                    ? '未接入'
+                    : `${category.changedCount ?? 0} 项变化`}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {preflight.canForce ? (
+            <label className="mt-3 block max-w-xl text-sm text-foreground">
+              强制生成理由
+              <textarea
+                value={forceReason}
+                onChange={(event) => setForceReason(event.target.value)}
+                minLength={8}
+                maxLength={1_000}
+                rows={2}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                placeholder="说明为什么在证据未变化时仍需形成新的正式报告（至少 8 个字符）"
+              />
+            </label>
+          ) : null}
+        </div>
+        <div className="flex flex-none gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost-themed rounded-lg px-3 py-2 text-sm">
+            取消
+          </button>
+          {preflight.canGenerate ? (
+            <button
+              type="button"
+              data-diagnosis-generation-action="confirm"
+              onClick={() => onConfirm?.()}
+              className="btn-themed rounded-lg px-3 py-2 text-sm"
+            >
+              确认生成
+            </button>
+          ) : null}
+          {preflight.canForce ? (
+            <button
+              type="button"
+              data-diagnosis-generation-action="force"
+              disabled={forceReason.trim().length < 8}
+              onClick={() => onConfirm?.(forceReason.trim())}
+              className="btn-themed rounded-lg px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              强制生成
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReportIndex({
   reports,
   selectedReportId,
@@ -339,13 +511,15 @@ function ReportIndex({
         {reports.map((report, index) => {
           const selected = report.id === selectedReportId;
           const degraded = isDegraded(report);
+          const projection = projectReportHistoryCard(report, reports[index + 1]);
           return (
             <button
               key={report.id}
               type="button"
               onClick={() => onSelectReport?.(report.id)}
               aria-current={selected ? 'true' : undefined}
-              className={`min-w-[13.5rem] rounded-lg border px-3 py-3 text-left transition lg:min-w-0 ${
+              aria-label={`${projection.scopeLabel}诊断报告，${formatReportTime(report.generatedAt)}，${projection.availability.label}`}
+              className={`min-w-[17rem] rounded-lg border px-3 py-3 text-left transition lg:min-w-0 ${
                 selected
                   ? 'border-sky-500/40 bg-sky-500/10 shadow-sm'
                   : 'border-border/60 bg-card/60 hover:border-sky-500/25 hover:bg-card'
@@ -354,17 +528,22 @@ function ReportIndex({
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-subtle">
-                  Snapshot {String(reports.length - index).padStart(2, '0')}
+                  报告 {String(reports.length - index).padStart(2, '0')}
                 </span>
-                {degraded ? (
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                ) : (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                )}
+                <span className={degraded ? 'text-xs font-medium text-amber-700 dark:text-amber-300' : 'text-xs font-medium text-emerald-700 dark:text-emerald-300'}>
+                  {projection.availability.label}
+                </span>
               </div>
-              <p className="mt-2 text-sm font-medium text-foreground">{formatReportTime(report.generatedAt)}</p>
-              <p className="mt-1 text-xs text-subtle">
-                {CONFIDENCE_LABELS[report.reportBody.confidence]} · {report.reportBody.findings.length} 项发现
+              <p className="mt-2 text-sm font-medium text-foreground">{projection.scopeLabel} · {projection.includedStudentsLabel}</p>
+              <p className="mt-1 text-xs text-subtle">生成时间：{formatReportTime(report.generatedAt)}</p>
+              <p className="mt-1 text-xs text-subtle">证据截止：{projection.evidenceCutoffLabel}</p>
+              <p className="mt-2 line-clamp-2 text-sm leading-5 text-foreground">主要薄弱点：{projection.mainWeaknessLabel}</p>
+              <p className="mt-1 text-xs text-subtle">风险人数：未提供 · 限制：{projection.declaredLimitations.length + (projection.attributionLimited ? 1 : 0)} 项</p>
+              <p className="mt-2 text-xs leading-5 text-subtle">
+                {projection.generationReason}
+              </p>
+              <p className="mt-2 text-xs font-medium leading-5 text-sky-700 dark:text-sky-300">
+                {projection.comparison.description}
               </p>
             </button>
           );
@@ -374,8 +553,17 @@ function ReportIndex({
   );
 }
 
-function ReportDetail({ report }: { report: DiagnosisReportApiItem }) {
+function ReportDetail({
+  classId,
+  report,
+  adjacentOlderReport,
+}: {
+  classId?: string;
+  report: DiagnosisReportApiItem;
+  adjacentOlderReport?: DiagnosisReportApiItem;
+}) {
   const degraded = isDegraded(report);
+  const projection = projectReportHistoryCard(report, adjacentOlderReport);
   const evidenceCount = new Set([
     ...report.reportBody.evidenceRefs,
     ...report.reportBody.findings.flatMap((finding) => finding.evidenceRefs),
@@ -387,7 +575,7 @@ function ReportDetail({ report }: { report: DiagnosisReportApiItem }) {
         <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className={degraded ? 'diagnosis-chip-muted' : 'diagnosis-chip-ready'}>
-              {degraded ? '受限快照' : '证据就绪'}
+              {projection.availability.label}
             </span>
             <span className="rounded-full border border-border/70 px-2.5 py-1 text-xs text-subtle">
               {report.scopeType === 'student' ? '学生报告' : '班级报告'}
@@ -396,19 +584,51 @@ function ReportDetail({ report }: { report: DiagnosisReportApiItem }) {
           <p className="mt-4 text-base leading-7 text-foreground">{report.reportBody.summary}</p>
         </div>
         <dl className="grid min-w-0 grid-cols-2 gap-2 text-sm sm:min-w-[17rem]">
+          <Metric label="诊断范围" value={projection.scopeLabel} />
+          <Metric label="纳入人数" value={projection.includedStudentsLabel} />
           <Metric label="生成时间" value={formatReportTime(report.generatedAt)} />
           <Metric label="证据截止" value={formatReportTime(report.evidenceCutoff)} />
-          <Metric label="证据引用" value={`${evidenceCount} 条`} />
-          <Metric label="生成版本" value={report.generatorVersion} mono />
+          <Metric label="诊断结构版本" value={report.generatorVersion} mono />
         </dl>
       </div>
 
+      {classId ? (
+        <div className="mt-5 flex flex-wrap gap-2" data-diagnosis-delivery-entry>
+          <Link
+            href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}`}
+            className="btn-themed rounded-lg px-3 py-2 text-sm"
+          >
+            打开教师交付版
+          </Link>
+          {report.scopeType === 'student' ? (
+            <Link
+              href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}?role=student`}
+              className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"
+            >
+              预览学生安全版
+            </Link>
+          ) : (
+            <span className="px-1 py-2 text-xs text-subtle">班级报告不生成学生安全版</span>
+          )}
+        </div>
+      ) : null}
+
+      <section className="mt-6 rounded-xl border border-sky-500/25 bg-sky-500/5 p-4" data-report-availability={projection.availability.label}>
+        <h3 className="text-sm font-semibold text-foreground">报告状态：{projection.availability.label}</h3>
+        <p className="mt-2 text-sm leading-6 text-subtle">{projection.availability.description}</p>
+        <p className="mt-2 text-sm font-medium text-sky-700 dark:text-sky-300">恢复建议：{projection.availability.recoveryAction}</p>
+      </section>
+
+      <EvidenceCoverageSummary groups={projection.evidenceGroups} />
+
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CoverageMetric report={report} />
+        <Metric label="受治理证据" value={`${evidenceCount} 条`} />
         <Metric label="总体置信度" value={CONFIDENCE_LABELS[report.reportBody.confidence]} />
         <Metric label="风险发现" value={`${report.riskSummary.total} 项`} />
         <Metric label="局限说明" value={`${report.reportBody.limitations.length} 项`} />
       </div>
+
+      <ConfidenceExplanation reasons={projection.confidenceReasons} />
 
       <div className="mt-7">
         <div className="flex items-center gap-2">
@@ -455,23 +675,89 @@ function ReportDetail({ report }: { report: DiagnosisReportApiItem }) {
         )}
       </div>
 
-      <div className="mt-7 grid gap-4 lg:grid-cols-2">
+      <div className="mt-7 grid gap-4 lg:grid-cols-3">
         <RiskSummary report={report} />
-        <Limitations report={report} />
+        <ComparisonSummary comparison={projection.comparison} />
+        <Limitations projection={projection} />
       </div>
     </article>
   );
 }
 
-function CoverageMetric({ report }: { report: DiagnosisReportApiItem }) {
-  const coverage = report.reportBody.sourceCoverage;
-  if (typeof coverage.coverage === 'number') {
-    return <Metric label="证据覆盖" value={`${Math.round(coverage.coverage * 100)}%`} />;
-  }
-  if (typeof coverage.includedStudents === 'number' && typeof coverage.classMembers === 'number') {
-    return <Metric label="证据覆盖" value={`${coverage.includedStudents}/${coverage.classMembers} 人`} />;
-  }
-  return <Metric label="知识进度证据" value={`${coverage.progressRows ?? 0} 行`} />;
+function EvidenceCoverageSummary({ groups }: { groups: EvidenceCoverageGroup[] }) {
+  return (
+    <section className="mt-7" aria-labelledby="diagnosis-evidence-coverage-title">
+      <div className="flex items-center gap-2">
+        <ClipboardList className="h-4 w-4 text-sky-600 dark:text-sky-300" />
+        <h3 id="diagnosis-evidence-coverage-title" className="text-sm font-semibold text-foreground">证据覆盖摘要</h3>
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        {groups.map((group) => (
+          <section key={group.id} className="rounded-xl border border-border/70 bg-card/65 p-4" data-evidence-group={group.id}>
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="font-medium text-foreground">{group.label}</h4>
+              <span className={coverageStateClassName(group.state)}>{coverageStateLabel(group.state)}</span>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <Metric label="纳入" value={group.includedLabel} />
+              <Metric label="缺失" value={group.missingLabel} />
+            </dl>
+            <p className="mt-3 text-xs leading-5 text-subtle">{group.explanation}</p>
+            {group.detailSources.length > 0 ? (
+              <details className="mt-3 text-xs text-subtle">
+                <summary className="cursor-pointer font-medium text-sky-700 dark:text-sky-300">查看来源明细</summary>
+                <p className="mt-2 leading-5">{group.detailSources.join('、')}</p>
+              </details>
+            ) : null}
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ConfidenceExplanation({ reasons }: { reasons: ReturnType<typeof projectReportHistoryCard>['confidenceReasons'] }) {
+  return (
+    <section className="mt-7 rounded-xl border border-border/70 bg-accent/25 p-4" aria-labelledby="diagnosis-confidence-reasons-title">
+      <div className="flex items-center gap-2">
+        <CheckCircle2 className="h-4 w-4 text-sky-600 dark:text-sky-300" />
+        <h3 id="diagnosis-confidence-reasons-title" className="text-sm font-semibold text-foreground">置信度与覆盖说明</h3>
+      </div>
+      {reasons.length > 0 ? (
+        <ul className="mt-3 space-y-3 text-sm leading-6 text-subtle">
+          {reasons.map((item) => (
+            <li key={item.reason}>
+              <p>{item.reason}</p>
+              <p className="font-medium text-sky-700 dark:text-sky-300">恢复建议：{item.recoveryAction}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-subtle">当前报告没有发现额外的可验证覆盖限制。</p>
+      )}
+    </section>
+  );
+}
+
+function ComparisonSummary({ comparison }: { comparison: ReportComparison }) {
+  return (
+    <section className="rounded-xl border border-border/70 bg-accent/25 p-4" data-report-comparison={comparison.state}>
+      <div className="flex items-center gap-2">
+        <History className="h-4 w-4 text-sky-600 dark:text-sky-300" />
+        <h3 className="text-sm font-semibold text-foreground">相邻报告变化</h3>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-subtle">{comparison.description}</p>
+      {comparison.state === 'ready' ? (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <Metric label="新增" value={comparison.additions ?? 0} />
+          <Metric label="持续" value={comparison.persistent ?? 0} />
+          <Metric label="改善／风险降级" value={comparison.improved ?? 0} />
+          <Metric label="风险升级" value={comparison.riskEscalated ?? 0} />
+          <Metric label="风险降级" value={comparison.riskDowngraded ?? 0} />
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function RiskSummary({ report }: { report: DiagnosisReportApiItem }) {
@@ -494,16 +780,26 @@ function RiskSummary({ report }: { report: DiagnosisReportApiItem }) {
   );
 }
 
-function Limitations({ report }: { report: DiagnosisReportApiItem }) {
+function Limitations({
+  projection,
+}: {
+  projection: ReturnType<typeof projectReportHistoryCard>;
+}) {
+  const limitations = [
+    ...projection.declaredLimitations,
+    ...(projection.attributionLimited
+      ? ['部分发现没有可核验的知识节点映射，精准知识薄弱点仍受限。']
+      : []),
+  ];
   return (
     <section className="rounded-xl border border-border/70 bg-accent/25 p-4">
       <div className="flex items-center gap-2">
         <ClipboardList className="h-4 w-4 text-amber-500" />
         <h3 className="text-sm font-semibold text-foreground">判断边界</h3>
       </div>
-      {report.reportBody.limitations.length > 0 ? (
+      {limitations.length > 0 ? (
         <ul className="mt-3 space-y-2 text-sm leading-6 text-subtle">
-          {report.reportBody.limitations.map((limitation) => (
+          {limitations.map((limitation) => (
             <li key={limitation} className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-amber-500" />
               <span>{limitation}</span>
@@ -565,9 +861,7 @@ function ErrorState({ message, onRetry }: { message?: string | null; onRetry?: (
 }
 
 function isDegraded(report: DiagnosisReportApiItem) {
-  return report.reportBody.confidence === 'low'
-    || report.reportBody.confidence === 'unavailable'
-    || report.reportBody.limitations.length > 0;
+  return projectReportHistoryCard(report).availability.label !== '证据较充分';
 }
 
 function formatReportTime(value: string) {
@@ -579,4 +873,16 @@ function severityClassName(severity: 'low' | 'medium' | 'high') {
   if (severity === 'high') return 'rounded-full bg-rose-500/10 px-2.5 py-1 text-xs text-rose-600 dark:text-rose-300';
   if (severity === 'medium') return 'rounded-full bg-amber-500/10 px-2.5 py-1 text-xs text-amber-700 dark:text-amber-300';
   return 'rounded-full bg-sky-500/10 px-2.5 py-1 text-xs text-sky-700 dark:text-sky-300';
+}
+
+function coverageStateLabel(state: EvidenceCoverageGroup['state']) {
+  if (state === 'available') return '覆盖可用';
+  if (state === 'partial') return '覆盖不完整';
+  return '未接入';
+}
+
+function coverageStateClassName(state: EvidenceCoverageGroup['state']) {
+  if (state === 'available') return 'rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-300';
+  if (state === 'partial') return 'rounded-full bg-amber-500/10 px-2.5 py-1 text-xs text-amber-700 dark:text-amber-300';
+  return 'rounded-full bg-slate-500/10 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300';
 }

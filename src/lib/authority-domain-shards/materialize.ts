@@ -172,16 +172,13 @@ export function projectAuthorityObject(
 ): AuthorityShardObject {
   const payload = asObject(object.payload);
   const resolved = labels ? resolveAuthorityLabel(labels, object.canonicalId) : null;
-  if (labels && (!resolved || resolved.status !== 'available' || !resolved.label)) {
-    throw new AuthorityShardMaterializeError(
-      'label-unavailable',
-      'Authority object label is unavailable for the selected snapshot.',
-    );
-  }
+  const label = resolved?.status === 'available' && resolved.label
+    ? resolved.label
+    : (labels ? '暂不可用' : safeLabel(payload));
   return {
     id: object.canonicalId,
     canonicalType: object.canonicalType,
-    label: resolved?.label ?? safeLabel(payload),
+    label,
     aliases: resolved?.aliases ?? [],
     description: stringOrNull(payload.description),
     governance: {

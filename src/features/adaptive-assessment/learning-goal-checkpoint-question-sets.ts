@@ -1,4 +1,5 @@
 import type { AdaptiveAssessmentCatalogStage } from './adaptive-assessment-item-catalog';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from './learning-goal-terminal-validation-question-sets';
 import type { CrossDomainQuestion, QuestionDomain, QuestionType } from '../assessment/adaptive-question-bank';
 
 export const LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION = 'learning-goal-checkpoint-question-sets.v2';
@@ -640,7 +641,7 @@ function runtimeStage(record: CheckpointAuthoredQuestionRecord): AuthoredStage {
   if (record.stagePurpose === 'readiness' || record.stagePurpose === 'readiness-gate' || record.stagePurpose === 'precheck') {
     return 'readiness';
   }
-  if (record.stagePurpose === 'checkpoint') return 'checkpoint';
+  if (record.stagePurpose === 'checkpoint' || record.stagePurpose === 'terminal-validation') return 'checkpoint';
   if (record.stagePurpose === 'remediation') return 'remediation';
   return 'practice';
 }
@@ -660,7 +661,9 @@ export function getCheckpointAuthoredQuestionRecordByRuntimeId(
 ): CheckpointAuthoredQuestionRecord | null {
   const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId);
   if (!sourceId) return null;
-  return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId) ?? null;
+  return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId)
+    ?? REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((record) => record.id === sourceId)
+    ?? null;
 }
 
 export function checkpointAuthoredQuestionToRuntimeQuestion(

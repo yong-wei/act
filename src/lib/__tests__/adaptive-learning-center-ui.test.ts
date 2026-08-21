@@ -911,7 +911,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('const graphNodeId = assistantEntryPoint?.mode ===');
     expect(pageSource).toContain('graphNodeId,');
     expect(pageSource).toContain('excludedNodeIds: operation ===');
-    expect(pageSource).toContain('preferredOptionId: operation !==');
+    expect(pageSource).toContain("preferredOptionId: operation === 'explain'");
+    expect(pageSource).toContain("sourceBatchId: operation === 'revise' ? option?.batchId");
+    expect(pageSource).toContain("sourceCandidateId: operation === 'revise' ? option?.candidateId");
+    expect(pageSource).toContain("sourceCandidateFingerprint: operation === 'revise' ? option?.candidateFingerprint");
+    expect(pageSource).toContain("activeProgressVersion: operation === 'revise' ? activeProgressVersion");
+    expect(pageSource).toContain("payload.result?.generationStatus === 'no_material_difference'");
+    expect(pageSource).toContain('adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current');
+    expect(pageSource).toContain('adjustmentRequestId !== activePathAdjustmentRequestIdRef.current');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
     expect(pageSource).toContain('generationRequestId,');
     expect(pageSource).toContain('type PathGenerationRequestStatus,');
@@ -950,6 +957,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('path-generation-request:${generationRequestId}');
     expect(routeSource).toContain('readPathGenerationRequestStatus(result)');
     expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
+    expect(routeSource).toContain('readAdaptivePathCandidateBatch(prisma as any, sourceBatchId)');
+    expect(routeSource).toContain('sourceCandidate.fingerprint !== sourceCandidateFingerprint');
+    expect(routeSource).toContain('progressVersion: path.updatedAt instanceof Date');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('effectiveRevisionArgs,\n                tx,');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
     expect(routeSource).toContain('const graphNodeId = typeof body.graphNodeId');
@@ -983,6 +995,8 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
       .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .not.toContain("action: 'switch',\n      selectedStyleId: 'selectedStyleId' in args");
   });
 
   it('renders server-owned path difference facts and invalidates stale explanations', () => {

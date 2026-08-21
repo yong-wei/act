@@ -40,7 +40,7 @@
 
 - `5-4-cover-comic.png` 和 `5-4-info.png` 为保留资产文件名，现有成品不由代码脚本覆盖。
 - `5-4-cover-comic-prompt.md` 用于后续重新生成或复核封面漫画。
-- `5-4-intro-video-prompts.md` 已存在，后续成品为 `5-4-intro-video.mp4`，进入审查阶段后再确认可用性。
+- `5-4-intro-video.mp4` 已发布到 `media/processed/`。原提示词仍保留为原料。
 
 ## 互动课程设计可直接复用的媒体
 

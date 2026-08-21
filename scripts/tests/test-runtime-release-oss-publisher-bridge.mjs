@@ -698,6 +698,16 @@ try {
   assert.equal(await readFile(legacyCompleteLog, 'utf8').catch(() => ''), '', 'legacy completion must not overwrite immutable objects');
   assert.equal((await verify(legacyComplete)).schemaVersion, 'runtime-release-verification.v2');
 
+  const doubledMetaBody = Buffer.from('ossutil doubled metadata prefix');
+  const doubledMeta = buildBlobState('9'.repeat(40), [doubledMetaBody, doubledMetaBody]);
+  await seedBlob(doubledMeta.files[0], doubledMetaBody, {
+    'X-Oss-Meta-X-Oss-Meta-Schema': 'act-runtime-blob.v1',
+    'X-Oss-Meta-X-Oss-Meta-Sha256': sha(doubledMetaBody),
+    'X-Oss-Meta-X-Oss-Meta-Size': String(doubledMetaBody.byteLength),
+  });
+  const doubledMetaResult = await publishBlob({ data: doubledMeta });
+  assert.equal(doubledMetaResult.status, 'complete', 'ossutil v2 doubled x-oss-meta-* headers must parse as complete blob metadata');
+
   const legacyInterrupted = buildBlobState('1'.repeat(40), [Buffer.from('legacy interrupted bytes'), Buffer.from('legacy interrupted bytes')]);
   const legacyInterruptedReceipt = prooflessBlobReceipt(legacyInterrupted);
   for (const file of new Map(legacyInterrupted.files.map((file) => [file.objectKey, file])).values()) {

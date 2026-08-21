@@ -82,6 +82,8 @@ export async function processDiagnosisGenerationJob(
       targetStudentId: claim.job.targetUserId,
       evidenceCutoff: claim.job.evidenceCutoff,
       generatorVersion: claim.job.generatorVersion,
+      governedInput: claim.job.governedInput,
+      inputDigest: claim.job.inputDigest,
     }));
     await completeDiagnosisGenerationJob(db, {
       jobId,

@@ -1,6 +1,8 @@
 # 1-1-intro-video.mp4
 
-- 待关联：围绕“真实系统如何持续朝着期望状态工作”制作导入视频。
+- 闲聊自控 Remotion 导入片已发布到 media/processed/1-1-intro-video.mp4（2026-08-17）。
+
+本地成品已发布：`media/processed/1-1-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
 
 # 1-1-slides.pdf
 

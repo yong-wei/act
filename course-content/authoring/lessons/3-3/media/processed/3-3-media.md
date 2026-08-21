@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6f3769aa6545e86a6e92faaf4f3642fc&v=1775530673503&puid=26652392&enc=d1b87cf076b4388973e4ce2eea244be7&wps=4eb22745e5138f694994e89b02738d59d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-3-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-3-audio.m4a
 
 - 根轨迹法预判系统生死线

@@ -6,7 +6,6 @@ import {
   AGGREGATE_ENTRY_ID,
   DOMAIN_VISUAL_ROLES,
   PRESENTATION_ROLES,
-  REGISTERED_PEER_DOMAIN_IDS,
   isRegisteredPeerDomainId,
   type AggregatePresentationAuthoring,
   type AuthorityDomainCatalogAuthoring,
@@ -34,7 +33,7 @@ const RAW_HEX_BLOB = /\b[a-f0-9]{40,64}\b/iu;
 const RELEASE_ID_PATTERN = /\bctr:release:[^\s]+\b/iu;
 const SNAPSHOT_ID_PATTERN = /\bsnap-[a-f0-9]{64}\b/iu;
 const CATALOG_KEY_PATTERN =
-  /\b(?:system-modeling|time-domain-analysis|stability-analysis|frequency-domain-analysis|root-locus|classical-control-design|discrete-time-control-analysis|state-space-control-analysis-and-design|control-theory-integration)\b/u;
+  /\b(?:system-modeling|time-domain-analysis|stability-analysis|frequency-domain-analysis|root-locus|classical-control-design|discrete-time-control-analysis|state-space-control-analysis-and-design|nonlinear-system-analysis|lyapunov-stability|discrete-time-control-design|robustness-sensitivity-analysis|optimal-control-foundations-and-linear-quadratic-design|robust-control-analysis-and-design|nonlinear-control-design|control-theory-integration)\b/u;
 const RAW_AUTHORITY_ENUM_TOKENS = [
   // Presentation roles and active Authority object types.
   'domain',
@@ -233,6 +232,7 @@ function assertAggregate(entry: AggregatePresentationAuthoring): void {
 function assertMembership(
   membership: DomainMembershipAuthoring,
   authorityIds: ReadonlySet<string>,
+  declaredDomains: ReadonlySet<string>,
   seenCanonical: Set<string>,
   seenPairs: Set<string>,
 ): void {
@@ -266,7 +266,7 @@ function assertMembership(
 
   const localDomains = new Set<string>();
   for (const domainId of membership.domainIds) {
-    if (!isRegisteredPeerDomainId(domainId)) {
+    if (!declaredDomains.has(domainId) || !isRegisteredPeerDomainId(domainId)) {
       throw new DomainCatalogValidationError(
         'unregistered-domain',
         `membership ${membership.canonicalId} references unregistered domain ${String(domainId)}`,
@@ -289,7 +289,7 @@ function assertMembership(
     seenPairs.add(pairKey);
   }
 
-  if (!isRegisteredPeerDomainId(membership.preferredDomainId)) {
+  if (!declaredDomains.has(membership.preferredDomainId) || !isRegisteredPeerDomainId(membership.preferredDomainId)) {
     throw new DomainCatalogValidationError(
       'preferred-domain-unregistered',
       `membership ${membership.canonicalId} preferredDomainId is unregistered`,
@@ -332,24 +332,16 @@ export function validateAuthorityDomainCatalogAuthoring(
   if (!Array.isArray(authoring.domains)) {
     throw new DomainCatalogValidationError('schema-invalid', 'domains must be an array');
   }
-  if (authoring.domains.length !== REGISTERED_PEER_DOMAIN_IDS.length) {
+  if (authoring.domains.length === 0) {
     throw new DomainCatalogValidationError(
       'domain-set-size-invalid',
-      `catalog must contain exactly ${REGISTERED_PEER_DOMAIN_IDS.length} peer domains`,
+      'catalog must declare at least one peer domain from the bound release',
     );
   }
 
   const seenDomains = new Set<string>();
   for (const domain of authoring.domains) {
     assertDomainEntry(domain, seenDomains);
-  }
-  for (const required of REGISTERED_PEER_DOMAIN_IDS) {
-    if (!seenDomains.has(required)) {
-      throw new DomainCatalogValidationError(
-        'domain-set-incomplete',
-        `missing required peer domain ${required}`,
-      );
-    }
   }
 
   // Aggregate must not appear as a peer domain.
@@ -373,7 +365,7 @@ export function validateAuthorityDomainCatalogAuthoring(
     throw new DomainCatalogValidationError('schema-invalid', 'memberships must be an array');
   }
   for (const membership of authoring.memberships) {
-    assertMembership(membership, authorityIds, seenCanonical, seenPairs);
+    assertMembership(membership, authorityIds, seenDomains, seenCanonical, seenPairs);
   }
 
   // Defensive: presentation roles vocabulary is closed.

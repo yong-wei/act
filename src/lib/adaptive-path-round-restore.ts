@@ -2,7 +2,7 @@ import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-plan
 import {
   getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,
-} from '@/lib/adaptive-path-goal-options';
+} from '@/lib/adaptive-path-goal-options-client';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import {
   remapAdaptivePathPayloadReferences,
@@ -57,7 +57,7 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     userId: round.userId,
     goal: {
       id: round.goalId,
-      title: goalOption?.title ?? round.title,
+      title: goalOption?.label ?? round.title,
       knowledgeTargets: [],
     },
     stage: 'stage-1-rules-graph',

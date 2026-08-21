@@ -47,4 +47,20 @@ describe('arena module boundaries', () => {
       "ARENA_EVALUATION_PROTOCOL_VERSION = 'whitebox-v1'",
     );
   });
+
+  it('keeps browser Arena submission types out of the server evaluator module', () => {
+    const browserEntries = [
+      'src/features/arena/submissions/arena-blackbox-submission-panel.tsx',
+      'src/features/arena/submissions/ranking-policy.ts',
+      'src/features/arena/leaderboards/leaderboard.ts',
+      'src/features/arena/student/arena-feedback-rules.ts',
+      'src/features/arena/student/arena-personal-feedback.tsx',
+      'src/features/control-workbench/presets/blackbox-identification-preset.tsx',
+    ];
+    for (const path of browserEntries) {
+      const entrySource = source(path);
+      expect(entrySource).toMatch(/from ['"][^'"]*(?:submissions\/types|\.\/types)['"]/);
+      expect(entrySource).not.toContain('submissions/submission-service');
+    }
+  });
 });

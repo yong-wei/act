@@ -77,6 +77,7 @@ function compareRootNodes(left: KnowledgeNodeData, right: KnowledgeNodeData): nu
 }
 
 export function getKnowledgeRootPresentationRadius(node: KnowledgeNodeData): number {
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
   const nodeScale = getKnowledgeNodeScale({
     metadata: node.metadata,
     degree: node.graphDegree,
@@ -87,10 +88,13 @@ export function getKnowledgeRootPresentationRadius(node: KnowledgeNodeData): num
     ? Math.min(semanticRegion.maxRadius, nodeScale.radius * semanticRegion.radiusMultiplier)
     : 0;
   const minimumBodyRadius = Math.max(nodeScale.radius, nodeScale.glowRadius, semanticRadius);
-  return Math.ceil(getKnowledgeRootLabelBounds({
+  const nameRadius = Math.ceil(getKnowledgeRootLabelBounds({
     name: node.name,
     minimumBodyRadius,
   }).collisionRadius * 1000) / 1000;
+  return typeof metadata.presentationRadius === 'number' && Number.isFinite(metadata.presentationRadius)
+    ? Math.max(nameRadius, metadata.presentationRadius)
+    : nameRadius;
 }
 
 export function getKnowledgeRootCollisionBounds(
@@ -151,11 +155,12 @@ export function isCompactKnowledgeRootSet(nodes: readonly KnowledgeNodeData[]): 
 export function packKnowledgeGraphRootNodes<T extends KnowledgeNodeData>(
   nodes: readonly T[],
   viewport: KnowledgeRootPackingViewport,
-  measureText?: KnowledgeNodeLabelMeasureText
+  measureText?: KnowledgeNodeLabelMeasureText,
+  compare: (left: T, right: T) => number = compareRootNodes as (left: T, right: T) => number,
 ): Array<KnowledgeRootPackedNode<T>> {
   if (nodes.length === 0) return [];
 
-  const ordered = [...nodes].sort(compareRootNodes);
+  const ordered = [...nodes].sort(compare);
   const labelBoundsById = new Map(ordered.map((node) => [
     node.id,
     getKnowledgeRootCollisionBounds(node, measureText),
