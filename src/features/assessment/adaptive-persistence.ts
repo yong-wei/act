@@ -22,6 +22,8 @@ import {
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
+import { isMicroInterventionEvidenceConsumerEnabled } from './micro-intervention-evidence-policy';
+import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 
 import {
   buildSubmitAnswerResult,
@@ -136,6 +138,13 @@ type AdaptiveAssessmentPersistenceTx = {
       data: Prisma.LearningFactCreateManyInput[];
       skipDuplicates?: boolean;
     }): Promise<CreateManyResult>;
+    findMany?(args: Record<string, unknown>): Promise<Array<{
+      sourceEventId: string | null;
+      factType: string;
+      outcome: string;
+      startedAt: Date;
+      contextJson: unknown;
+    }>>;
   };
 };
 
@@ -1007,6 +1016,11 @@ async function persistAdaptiveAssessmentSubmission(
   ], {
     algorithmVersion: algorithm.version,
     parameters: readBktParameters(algorithm.parameters),
+    consumeMicroInterventionEvidence: isMicroInterventionEvidenceConsumerEnabled(),
+    microInterventionEvidence: await loadMicroInterventionMasteryEvidence(
+      tx,
+      effectiveDetails.record.userId,
+    ),
   });
   const currentUpdates = rebuiltUpdates.filter((update) => update.answerId === answer.id);
   const masteryResult = await tx.adaptiveMasteryUpdate.createMany({
@@ -1104,6 +1118,42 @@ export async function submitAnswerWithPersistenceFallback(
   }
 
   return submitAnswerDurably(params, db);
+}
+
+async function loadMicroInterventionMasteryEvidence(
+  tx: AdaptiveAssessmentPersistenceTx,
+  userId: string,
+): Promise<MicroInterventionMasteryEvidence[]> {
+  if (typeof tx.learningFact.findMany !== 'function') return [];
+  const rows = await tx.learningFact.findMany({
+    where: {
+      userId,
+      factType: 'micro_intervention_validation',
+    },
+  });
+  return rows.flatMap((row) => {
+    const context = row.contextJson && typeof row.contextJson === 'object' && !Array.isArray(row.contextJson)
+      ? row.contextJson as Record<string, unknown>
+      : {};
+    const governance = context.evidenceGovernance && typeof context.evidenceGovernance === 'object'
+      ? context.evidenceGovernance as Record<string, unknown>
+      : {};
+    const evidence = context.microInterventionEvidence && typeof context.microInterventionEvidence === 'object'
+      ? context.microInterventionEvidence as Record<string, unknown>
+      : {};
+    const knowledgeTag = typeof evidence.canonicalNodeId === 'string' ? evidence.canonicalNodeId : '';
+    if (!row.sourceEventId || !knowledgeTag) return [];
+    return [{
+      evidenceId: row.sourceEventId,
+      knowledgeTag,
+      isCorrect: row.outcome === 'success',
+      occurredAt: row.startedAt,
+      profileWeight: typeof governance.profileWeight === 'number' ? governance.profileWeight : 0,
+      limitations: Array.isArray(evidence.limitations)
+        ? evidence.limitations.filter((item): item is string => typeof item === 'string')
+        : [],
+    }];
+  });
 }
 
 async function loadPersistedAnswerRecords(

@@ -155,11 +155,13 @@ export function rebuildMasteryUpdatesFromAnswers(
         answeredAt: item.occurredAt,
         knowledgeTags: [item.knowledgeTag],
         evidenceKind: 'non_assessment' as const,
+        profileWeight: item.profileWeight,
       }))
     : [];
   const sortedAnswers = [...answers.map((answer) => ({
     ...answer,
     evidenceKind: 'assessment' as const,
+    profileWeight: 1,
   })), ...microEvidence].sort((left, right) => {
     const timeDelta = left.answeredAt.getTime() - right.answeredAt.getTime();
     return timeDelta !== 0 ? timeDelta : left.id.localeCompare(right.id);
@@ -177,7 +179,9 @@ export function rebuildMasteryUpdatesFromAnswers(
         posterior: parameters.initialMastery,
         attempts: 0,
       };
-      const posterior = computePosterior(previous.posterior, answer.isCorrect, parameters);
+      const fullPosterior = computePosterior(previous.posterior, answer.isCorrect, parameters);
+      const weight = clamp(answer.profileWeight, 0, 1);
+      const posterior = previous.posterior + (fullPosterior - previous.posterior) * weight;
       const attemptCount = previous.attempts + 1;
 
       updates.push({

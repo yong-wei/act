@@ -4,6 +4,11 @@ import {
   writeKnowledgeScopedLearningFacts,
   type LearningFactSink,
 } from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import {
+  projectionPinsFromSelection,
+  resolveLearningPathProductionSelection,
+} from '@/lib/versioned-knowledge-activation';
 import {
   MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION,
   MICRO_INTERVENTION_PUBLIC_MIN_LEARNERS,
@@ -80,7 +85,7 @@ export interface MicroInterventionEvidenceEnvelope {
 interface EvidenceOutboxDelegate {
   upsert(args: {
     where: { dedupeKey: string };
-    update: Record<string, never>;
+    update: { payload?: unknown; status?: string };
     create: {
       eventType: string;
       correlationId: string;
@@ -102,6 +107,12 @@ interface EvidenceOutboxDelegate {
 
 export interface MicroInterventionEvidenceDb extends LearningFactSink {
   evidenceOutbox: EvidenceOutboxDelegate;
+  learningFact: LearningFactSink['learningFact'] & {
+    updateMany?(args: {
+      where: { sourceEventId: string };
+      data: { contextJson: unknown };
+    }): Promise<{ count: number }>;
+  };
 }
 
 function nonEmpty(value: unknown): string | null {
@@ -122,6 +133,34 @@ function identityComplete(identity: MicroInterventionEvidenceIdentity | null): i
 
 function evidenceId(parts: string[]): string {
   return createHash('sha256').update(parts.join(':')).digest('hex');
+}
+
+export async function resolveMicroInterventionEvidenceIdentity(
+  outcome: SealedMicroInterventionOutcome,
+): Promise<MicroInterventionEvidenceIdentity | null> {
+  const nodeId = nonEmpty(outcome.sourceSnapshot?.task?.knowledgeNodeId);
+  if (!nodeId) return null;
+  const selection = resolveLearningPathProductionSelection();
+  const pins = projectionPinsFromSelection(selection);
+  const revision = await resolveActiveKnowledgeRevision();
+  const aggregateReleaseId = nonEmpty(pins.authorityReleaseId);
+  const knowledgeProjectionId = nonEmpty(pins.projectionId);
+  const captureRevision = nonEmpty(selection.combination?.captureRevision) ?? revision.id;
+  const aggregateReleaseSetId = nonEmpty(pins.authoritySnapshotId) ?? aggregateReleaseId;
+  if (!aggregateReleaseId || !knowledgeProjectionId || !captureRevision || !aggregateReleaseSetId) {
+    return null;
+  }
+  if (aggregateReleaseSetId.includes('candidate') || aggregateReleaseId.includes('candidate')) {
+    return null;
+  }
+  return {
+    canonicalObjectId: nodeId,
+    aggregateReleaseSetId,
+    aggregateReleaseId,
+    knowledgeProjectionId,
+    captureRevision,
+    courseId: nonEmpty(selection.combination?.scopeId) ?? undefined,
+  };
 }
 
 export function readSealedMicroInterventionProjectionSource(
@@ -238,7 +277,9 @@ export async function scheduleMicroInterventionEvidenceProjection(input: {
   await projectMicroInterventionOutcome({
     db: input.db,
     outcome,
-    identity: input.identity ?? null,
+    identity: input.identity === undefined
+      ? await resolveMicroInterventionEvidenceIdentity(outcome)
+      : input.identity,
   });
 }
 
@@ -285,10 +326,27 @@ export async function projectMicroInterventionOutcome(input: {
   }
 
   const consume = input.consume ?? isMicroInterventionEvidenceConsumerEnabled();
+  const revision = await resolveActiveKnowledgeRevision();
   let writtenFacts = 0;
   for (const envelope of source.envelopes) {
     const status = envelope.kind === 'independent-validation' && !consume ? 'shadow' : 'projected';
     await persistOutbox(input.db, envelope, input.outcome.userId, status);
+    const sourceEventId = `micro-intervention:${envelope.evidenceId}`;
+    const contextJson = {
+      knowledgeRevisionRef: revision.id,
+      evidenceGovernance: {
+        evidenceQuality: envelope.kind === 'independent-validation' ? 'partial' : 'missing',
+        profileWeight: envelope.kind === 'independent-validation' && consume
+          ? MICRO_INTERVENTION_VALIDATION_WEIGHT_CAP
+          : 0,
+        skipProfileContribution: envelope.kind !== 'independent-validation' || !consume,
+        policyReason: envelope.kind === 'independent-validation'
+          ? consume ? 'micro_intervention_validation_bounded' : 'micro_intervention_validation_shadow'
+          : 'micro_intervention_context_only',
+        knowledgeRevisionRef: revision.id,
+      },
+      microInterventionEvidence: publicEnvelope(envelope),
+    };
     const rows = [{
       userId: input.outcome.userId,
       factType: envelope.kind === 'independent-validation'
@@ -300,24 +358,27 @@ export async function projectMicroInterventionOutcome(input: {
       outcome: envelope.isCorrect === true ? 'success' : envelope.isCorrect === false ? 'failure' : 'partial',
       score: envelope.isCorrect === true ? 1 : envelope.isCorrect === false ? 0 : null,
       competencyContribution: {},
-      sourceEventId: envelope.evidenceId,
+      sourceEventId,
       courseId: envelope.identity.courseId ?? null,
-      contextJson: {
-        evidenceGovernance: {
-          evidenceQuality: envelope.kind === 'independent-validation' ? 'partial' : 'missing',
-          profileWeight: envelope.kind === 'independent-validation' && consume
-            ? MICRO_INTERVENTION_VALIDATION_WEIGHT_CAP
-            : 0,
-          skipProfileContribution: envelope.kind !== 'independent-validation' || !consume,
-          policyReason: envelope.kind === 'independent-validation'
-            ? consume ? 'micro_intervention_validation_bounded' : 'micro_intervention_validation_shadow'
-            : 'micro_intervention_context_only',
-        },
-        microInterventionEvidence: publicEnvelope(envelope),
-      },
+      contextJson,
     }];
-    const written = await writeKnowledgeScopedLearningFacts(input.db, { rows, knowledgeScoped: true });
+    const written = await writeKnowledgeScopedLearningFacts(
+      input.db,
+      { rows, knowledgeScoped: true },
+      { knowledgeRevisionRef: revision.id },
+    );
     writtenFacts += written.written;
+    if (
+      written.written === 0
+      && consume
+      && envelope.kind === 'independent-validation'
+      && typeof input.db.learningFact.updateMany === 'function'
+    ) {
+      await input.db.learningFact.updateMany({
+        where: { sourceEventId },
+        data: { contextJson },
+      });
+    }
   }
   return { projected: source.envelopes, limitations: source.limitations, writtenFacts };
 }
@@ -330,7 +391,10 @@ async function persistOutbox(
 ) {
   await db.evidenceOutbox.upsert({
     where: { dedupeKey: envelope.evidenceId },
-    update: {},
+    update: {
+      payload: publicEnvelope(envelope),
+      status,
+    },
     create: {
       eventType: 'micro-intervention-evidence',
       correlationId: envelope.interventionId,
@@ -426,11 +490,8 @@ export function applyMicroInterventionEvidenceSummaryToPathPlan<T extends {
   if (!consume || summary.confidence < 0.2 || summary.quality !== 'bounded-validation') {
     limitations.add('micro-intervention:hold-assessment-gates');
   }
-  const masteredCanonicalIds = [...(plan.masteredCanonicalIds ?? [])]
-    .filter((id) => id !== summary.canonicalNodeId);
   return {
     ...plan,
-    masteredCanonicalIds,
     limitations: [...limitations],
   };
 }
@@ -445,8 +506,8 @@ export function buildPublicMicroInterventionEvidenceReport(rows: Array<{
   passCount: number;
   nodeCount: number;
 } {
-  const learners = new Set(rows.map((row) => row.ownerUserId));
   const validations = rows.filter((row) => row.payload.kind === 'independent-validation');
+  const learners = new Set(validations.map((row) => row.ownerUserId));
   if (learners.size < MICRO_INTERVENTION_PUBLIC_MIN_LEARNERS) {
     return {
       suppressed: true,

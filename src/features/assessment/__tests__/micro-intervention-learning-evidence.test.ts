@@ -77,11 +77,25 @@ function createDb() {
         }
         return { count };
       },
+      updateMany: async ({ where, data }) => {
+        let count = 0;
+        for (const fact of facts) {
+          if (fact.sourceEventId === where.sourceEventId) {
+            Object.assign(fact, data);
+            count += 1;
+          }
+        }
+        return { count };
+      },
     },
     evidenceOutbox: {
-      upsert: async ({ where, create }) => {
+      upsert: async ({ where, create, update }) => {
         const existing = outbox.get(where.dedupeKey);
-        if (existing) return { id: where.dedupeKey, ...existing };
+        if (existing) {
+          const next = { ...existing, ...update };
+          outbox.set(where.dedupeKey, next);
+          return { id: where.dedupeKey, ...next };
+        }
         const created = {
           status: create.status,
           payload: create.payload,
@@ -128,6 +142,7 @@ describe('micro-intervention learning evidence', () => {
     });
     expect(first.writtenFacts).toBe(2);
     expect(replayed.writtenFacts).toBe(0);
+    expect(facts).toHaveLength(2);
     expect(facts.map((fact) => fact.factType).sort()).toEqual([
       'micro_intervention_context',
       'micro_intervention_validation',
@@ -137,6 +152,21 @@ describe('micro-intervention learning evidence', () => {
       .evidenceGovernance;
     expect(governance.profileWeight).toBe(0.25);
     expect(governance.skipProfileContribution).toBe(false);
+    const { db: upgradeDb, facts: upgradedFacts } = createDb();
+    await projectMicroInterventionOutcome({
+      db: upgradeDb,
+      outcome: sealedOutcome(),
+      identity: IDENTITY,
+      consume: false,
+    });
+    await projectMicroInterventionOutcome({
+      db: upgradeDb,
+      outcome: sealedOutcome(),
+      identity: IDENTITY,
+      consume: true,
+    });
+    const upgraded = upgradedFacts.find((fact) => fact.factType === 'micro_intervention_validation');
+    expect((upgraded?.contextJson as { evidenceGovernance: { profileWeight: number } }).evidenceGovernance.profileWeight).toBe(0.25);
     expect(JSON.stringify([...outbox.values()])).not.toContain('source-q-1');
     expect(JSON.stringify([...outbox.values()])).not.toContain('phase-lag');
     expect(JSON.stringify(facts)).not.toContain('selectedOption');
@@ -181,7 +211,7 @@ describe('micro-intervention learning evidence', () => {
       masteredCanonicalIds: ['kn:autocontrol:phase-margin', 'other'],
       limitations: [],
     }, summary, { consume: true });
-    expect(plan.masteredCanonicalIds).toEqual(['other']);
+    expect(plan.masteredCanonicalIds).toEqual(['kn:autocontrol:phase-margin', 'other']);
     expect(plan.limitations).toContain('micro-intervention:hold-assessment-gates');
   });
 
@@ -205,6 +235,11 @@ describe('micro-intervention learning evidence', () => {
     expect(second).toEqual(first);
     expect(first[0]?.evidenceKind).toBe('non_assessment');
     expect(first[0]?.confidence).toBeLessThan(0.7);
+    const fullWeight = rebuildMasteryUpdatesFromAnswers([], {
+      consumeMicroInterventionEvidence: true,
+      microInterventionEvidence: [{ ...evidence[0], profileWeight: 1 }],
+    });
+    expect(first[0]?.posteriorMastery).toBeLessThan(fullWeight[0]?.posteriorMastery ?? 1);
   });
 
   it('does not consume micro-intervention evidence when the consumer flag is off', () => {
