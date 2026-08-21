@@ -94,13 +94,36 @@ function uniqueSorted(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort();
 }
 
+export function microTutoringResourceAuthorityDigest(registryId: string): string {
+  const metadata = getRegisteredResourceMetadata(registryId);
+  if (!metadata) return '';
+  const planning = metadata.planningOverride;
+  return JSON.stringify({
+    label: metadata.label,
+    type: metadata.type,
+    launchTarget: metadata.launchTarget ?? null,
+    renderTarget: metadata.renderTarget ?? null,
+    sourceVersionRef: planning?.pathDisposition?.sourceVersionRef ?? 'resource-node-registry.v1',
+    estimatedTimeMinutes: planning?.estimatedTimeMinutes ?? null,
+    privacyLevel: planning?.privacyLevel ?? null,
+    availability: planning?.availability ?? null,
+    teacherPolicy: planning?.teacherPolicy ?? null,
+    evidenceInstrumentation: planning?.evidenceInstrumentation ?? [],
+  });
+}
+
 export function microTutoringResourceRevision(input: {
   registryId: string;
   knowledgeNodeId: string;
   launchTarget: string;
 }): string {
   return `sha256:${createHash('sha256')
-    .update([input.registryId, input.knowledgeNodeId, input.launchTarget].join('\0'))
+    .update([
+      input.registryId,
+      input.knowledgeNodeId,
+      input.launchTarget,
+      microTutoringResourceAuthorityDigest(input.registryId),
+    ].join('\0'))
     .digest('hex')}`;
 }
 

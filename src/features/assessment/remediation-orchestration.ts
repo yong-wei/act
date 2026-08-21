@@ -840,6 +840,29 @@ async function orchestrateRemediationVersion(input: {
     }));
   }
 
+  const boundResources = selection.resources.map(({ tier: _tier, ...resource }) => {
+    const row = matchingRows.find((candidate) => candidate.id === resource.id);
+    const projected = projectedResources.find((candidate) =>
+      candidate.registryId === resource.id ||
+      candidate.id === resource.id ||
+      (row?.registryId !== null && row?.registryId === candidate.registryId));
+    if (!projected?.actionId || !projected.actionVersion) return null;
+    return {
+      ...resource,
+      registryId: projected.registryId,
+      actionId: projected.actionId,
+      actionVersion: projected.actionVersion,
+    };
+  });
+  if (boundResources.some((resource) => resource === null)) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+
   const taskSnapshot: RemediationTaskSnapshot = {
     version: 'remediation-task-snapshot.v1',
     goal: `巩固“${knowledgeNode.name}”的关键概念`,
@@ -848,18 +871,7 @@ async function orchestrateRemediationVersion(input: {
     sourceQuestionId: attribution.questionId,
     knowledgeNodeId,
     misconceptionTag,
-    resources: selection.resources.map(({ tier: _tier, ...resource }) => {
-      const projected = projectedResources.find((candidate) =>
-        candidate.registryId === resource.id || candidate.id === resource.id);
-      return {
-        ...resource,
-        ...(projected ? {
-          registryId: projected.registryId,
-          actionId: projected.actionId,
-          actionVersion: projected.actionVersion,
-        } : {}),
-      };
-    }),
+    resources: boundResources as RemediationTaskSnapshot['resources'],
     validationQuestion: {
       itemRefId: selection.validation.id,
       questionId: selection.validation.questionId,

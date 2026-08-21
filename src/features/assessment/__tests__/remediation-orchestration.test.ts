@@ -327,6 +327,31 @@ describe('remediation orchestration', () => {
     expect(JSON.stringify(result)).not.toContain('options');
   });
 
+  it('binds action identity when TeachingResource id is a cuid and registryId matches the projection', async () => {
+    const { db, mocks, resources } = createDb();
+    resources[0] = resource({
+      id: 'cuid_teaching_resource_1',
+      registryId: GOVERNED_RESOURCE_ID,
+      minutes: 3,
+    });
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({ status: 'AVAILABLE' });
+    expect(mocks.remediationOrchestrationResult.upsert.mock.calls[0][0].create.taskSnapshot.resources[0]).toEqual(
+      expect.objectContaining({
+        id: 'cuid_teaching_resource_1',
+        registryId: GOVERNED_RESOURCE_ID,
+        actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
+        actionVersion: 'micro-tutoring-learning-action.v1',
+      }),
+    );
+  });
+
   it('returns an existing immutable result without a second write', async () => {
     const { db, mocks } = createDb();
     const taskSnapshot = {

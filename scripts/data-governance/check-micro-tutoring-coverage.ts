@@ -275,6 +275,13 @@ async function main() {
       misconceptionTag,
       projection: resourceProjectionSource,
       optionAttributions: attributionSource,
+      authorityRows: options.offline
+        ? undefined
+        : governedRows.resources.map((row) => ({
+          id: row.id,
+          registryId: row.registryId,
+          teacherOnly: row.teacherOnly,
+        })),
     }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
     resolveValidationItems: (sourceQuestionId, _sourceContentHash, knowledgeNodeId, misconceptionTag) =>
       listGovernedRemediationValidationItems({
