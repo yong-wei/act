@@ -3,24 +3,10 @@
 结论：PASS
 
 - 复核者：codex-manual-visual-review。
-- 捕获绑定：commit 5b1887ac02c9bff247ae69fcbd564678f49d641d，tree 6010396f05d361b011047528af80c1b5d36c226e。
-- 捕获时间：2026-08-18T07:42:15.075Z。
-- 截图绑定：stateMatrix 29 个状态与 activeAuthorityVisualMatrix 4 个状态均记录 SHA-256；复核映射与当前 33 张截图一致。
-- 源码绑定：36 个受检路径记录 SHA-256；复核映射与当前源码一致。
+- 捕获绑定：commit `0e0813c9d34b8f8a0bce7a69f02f67548550b2a0`，tree `c1c58a9a39e28977bfa5671219374ac990374103`。
+- 运行态证明：捕获前后均与上述 commit/tree 一致，`clean=true`。
+- 复核映射：29 个状态截图、4 个 Active Authority 视图和 36 个受检源码路径的 SHA-256 已写入 `browser-evidence.json`。
 
-人工抽查覆盖 1440px Active Authority、320px Active Authority、1440px Legacy 图谱和 320px 节点检查器。代表截图未见横向溢出、面板遮挡、焦点提示缺失或角色边界泄露。
+人工抽查覆盖 1440px Active Authority 深色、320px Active Authority、1440px Legacy 图谱和管理员 Candidate 视图。页面未见横向溢出、面板遮挡、控制项不可达、主题对比失衡或角色边界泄露。Active Authority 的“教学关系暂不可用”和受限对象数量由运行时数据明确呈现，未被误表述为生产权威切换。
 
-14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。
-
-当前 Active Authority 数据集按运行时返回的可用范围呈现；未发布的教学关系保持“暂不可用”状态，不将该证据表述为生产权威切换。
-# Knowledge Workspace Product QA Visual Review
-
-Conclusion: PASS
-
-Reviewer: codex-manual-visual-review
-
-Review scope: current-head refresh after the adaptive-practice browser dependency boundary remediation.
-
-The knowledge workspace capture was rerun against clean source HEAD `f302c9ee747c3f2a248fce397db0057a412e153c` (tree `c47a63cff9afb1daa6d89b79077162099aea0678`). The runtime revision proof reports the same commit and tree before and after capture, with `clean=true`. The refresh changed only the adaptive-practice browser dependency boundary; the captured knowledge workspace UI behavior and layout contracts remain unchanged.
-
-The current screenshot and source SHA-256 bindings are recorded in `browser-evidence.json` and were rechecked for this revision. Blocking findings: none. Final verdict: PASS.
+14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。阻断问题：无。
