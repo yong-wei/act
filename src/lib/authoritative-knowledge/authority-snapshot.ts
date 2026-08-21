@@ -7,6 +7,7 @@
 
 import { createHash } from 'node:crypto';
 
+import { multilingualLabelCountForRelease } from '../actkg-envelope/composite-envelope-registry';
 import { STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL } from './contracts';
 
 import type {
@@ -35,8 +36,6 @@ export const DEFAULT_AUTHORITY_ROOT_RELATIVE =
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_COMMIT_SHA = /^[a-f0-9]{40}$/u;
-const V018_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.18';
-const V018_V2_MULTILINGUAL_LABEL_COUNT = 1909;
 
 export type AuthoritySnapshotLifecycle =
   | 'staged'
@@ -377,11 +376,12 @@ function assertV2EvidenceCounts(
       `V2 evidence counts must be profiles=3, got ${profileCount}`,
     );
   }
-  if (releaseId === V018_AUTHORITY_RELEASE_ID) {
-    if (labelCount !== V018_V2_MULTILINGUAL_LABEL_COUNT) {
+  const expectedLabelCount = releaseId ? multilingualLabelCountForRelease(releaseId) : null;
+  if (expectedLabelCount !== null) {
+    if (labelCount !== expectedLabelCount) {
       throw new AuthoritySnapshotError(
         'count-mismatch',
-        `V2 evidence counts must be profiles=3 and multilingualLabels=1909, got ${profileCount}/${labelCount}`,
+        `V2 evidence counts must be profiles=3 and multilingualLabels=${expectedLabelCount}, got ${profileCount}/${labelCount}`,
       );
     }
     return;

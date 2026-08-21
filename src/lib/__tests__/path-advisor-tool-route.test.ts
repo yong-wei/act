@@ -9,10 +9,10 @@ const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   classFindUnique: vi.fn(),
   learningPathFindFirst: vi.fn(),
+  readAdaptivePathCandidateBatch: vi.fn(),
   isRegisteredAdaptiveLearningPathGoal: vi.fn(),
   resolveKonlingTeachingAssistantServerModeContext: vi.fn(),
   resolveKonlingTeachingAssistantSignedGraphNodeId: vi.fn(),
-  readAdaptivePathCandidateBatch: vi.fn(),
   verifyKonlingRuntimeScope: vi.fn(),
 }));
 
@@ -41,6 +41,10 @@ vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
 
 vi.mock('@/lib/adaptive-path-goal-options', () => ({
   getAdaptivePracticeGoalOption: () => ({ title: '控制校正' }),
+}));
+
+vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
 }));
 
 vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
@@ -96,6 +100,7 @@ describe('path advisor tool route readiness', () => {
     mocks.isRegisteredAdaptiveLearningPathGoal.mockReturnValue(true);
     mocks.classFindUnique.mockResolvedValue({ teacherId: 'teacher-1' });
     mocks.learningPathFindFirst.mockResolvedValue(null);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue(null);
     mocks.verifyKonlingRuntimeScope.mockResolvedValue({
       ok: true,
       scope: {
@@ -301,6 +306,140 @@ describe('path advisor tool route readiness', () => {
         id: 'stable-request-1',
         status: 'running',
       },
+    });
+  });
+
+  it('binds path adjustment to an authorized persisted candidate and progress version', async () => {
+    const activeProgressVersion = '2026-08-18T02:00:00.000Z';
+    const sourceCandidateFingerprint = 'a'.repeat(64);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'source-request-1',
+      sourcePathId: 'source-path-1',
+      plannerVersion: 'stage-1-rules-graph',
+      status: 'succeeded',
+      createdAt: '2026-08-17T00:00:00.000Z',
+      metadata: {},
+      candidates: [{
+        id: 'candidate-1',
+        fingerprint: sourceCandidateFingerprint,
+        ordinal: 0,
+        styleId: 'simulation-driven',
+        policyFamily: 'simulation-driven',
+        label: '仿真路径',
+        snapshot: { optionId: 'path-option-1', nodeIds: ['node-1'] },
+      }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: { executionStatus: { completedNodeIds: [] } },
+      lastExecutionMetadata: {},
+      updatedAt: new Date(activeProgressVersion),
+    });
+    const reviseLearningPathOptions = vi.fn().mockResolvedValue({
+      generationStatus: 'persisted',
+      candidateBatch: { id: 'derived-batch-1' },
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions,
+    });
+
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      idempotencyKey: 'path-adjustment-request:adjustment-1',
+      selectedOptionId: 'path-option-client-order-must-not-authorize',
+    });
+
+    expect(response.status).toBe(200);
+    expect(reviseLearningPathOptions).toHaveBeenCalledWith(expect.objectContaining({
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      selectedStyleId: 'simulation-driven',
+      preferredStyleId: 'simulation-driven',
+    }));
+  });
+
+  it('keeps stale adjustment conflicts retryable without replacing readiness with a permission block', async () => {
+    const activeProgressVersion = '2026-08-18T02:00:00.000Z';
+    const sourceCandidateFingerprint = 'a'.repeat(64);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'source-request-1',
+      sourcePathId: 'source-path-1',
+      plannerVersion: 'stage-1-rules-graph',
+      status: 'succeeded',
+      createdAt: '2026-08-17T00:00:00.000Z',
+      metadata: {},
+      candidates: [{
+        id: 'candidate-1',
+        fingerprint: sourceCandidateFingerprint,
+        ordinal: 0,
+        styleId: 'simulation-driven',
+        policyFamily: 'simulation-driven',
+        label: '仿真路径',
+        snapshot: { optionId: 'path-option-1', nodeIds: ['node-1'] },
+      }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: { executionStatus: { completedNodeIds: [] } },
+      lastExecutionMetadata: {},
+      updatedAt: new Date(activeProgressVersion),
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn().mockRejectedValue(
+        new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。'),
+      ),
+    });
+
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      idempotencyKey: 'path-adjustment-request:stale-adjustment',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: '学习路径进度已更新，请基于最新进度重新调整。',
+    });
+    expect(payload).not.toHaveProperty('readiness');
+  });
+
+  it('rejects path adjustment without a stable candidate source', async () => {
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选路径调整缺少稳定的来源或进度版本。',
     });
   });
 
