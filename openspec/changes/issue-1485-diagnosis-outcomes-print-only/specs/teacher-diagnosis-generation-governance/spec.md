@@ -4,6 +4,21 @@
 
 The system SHALL compare current eligible assignment, assessment, learning-behavior, risk, and eligibility inputs with the previous formal report. A source that is not integrated into the diagnosis evidence contract SHALL be marked unavailable and SHALL NOT be counted as new evidence. An integrated source with no qualifying results SHALL be available with a zero count rather than represented as unavailable.
 
+#### Scenario: New governed evidence arrives
+
+- **WHEN** an eligible assignment, assessment, risk, competency, or knowledge-progress input changes after the previous report
+- **THEN** preflight SHALL return `new-evidence`, identify the changed governed categories, and permit ordinary generation.
+
+#### Scenario: Unrelated or ineligible fact arrives
+
+- **WHEN** only a page event, unrelated learning fact, unsupported risk type, non-member evidence, or unavailable source changes
+- **THEN** preflight SHALL NOT report new diagnosis evidence or permit ordinary generation.
+
+#### Scenario: Generator or deterministic rule changes
+
+- **WHEN** the generator version or preflight rule version differs from the previous formal report
+- **THEN** preflight SHALL return `version-change`, identify the changed version, and permit ordinary generation.
+
 #### Scenario: Reviewed assignment results arrive
 
 - **WHEN** a class member has a submitted assignment with a frozen class binding, published revision, reviewed total and review timestamp at or before the evidence cutoff
@@ -19,6 +34,17 @@ The system SHALL compare current eligible assignment, assessment, learning-behav
 ### Requirement: Preflight and lifecycle projections are role-safe
 
 The system SHALL expose preflight and generation lifecycle data only to the owning teacher and only for an authorized class or current member. Public projections SHALL contain aggregate category counts and audit metadata, not raw evidence payloads or identities of other students. Persisted report source coverage SHALL include deterministic assignment and assessment inclusion, missing, evidence and scored counts when those sources are integrated.
+
+#### Scenario: Unauthorized scope is requested
+
+- **WHEN** a non-teacher, non-owner, or teacher targeting a non-member requests preflight or generation
+- **THEN** the server SHALL fail closed without exposing status, counts, predecessor metadata, or evidence details.
+
+#### Scenario: Teacher reads a class preflight
+
+- **WHEN** the owning teacher requests a class-scoped preflight
+- **THEN** the response SHALL use aggregate change counts and availability states
+- **AND** SHALL NOT expose student identifiers or raw evidence values.
 
 #### Scenario: Teacher reads an integrated class report
 
