@@ -2,13 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { buildAdaptiveAssessmentItemCatalog } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { replaceGeneratedRuntimeOverlay } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import {
-  generatedQuestionsFromStore,
-  generatedReviewDecisionsFromStore,
-  writeGeneratedCatalogRelease,
-} from '@/features/adaptive-assessment/generated-candidate-catalog';
+import { writeGeneratedCatalogRelease } from '@/features/adaptive-assessment/generated-candidate-catalog';
+import { applyGeneratedCandidateStoreToRuntimeOverlay } from '@/features/adaptive-assessment/generated-catalog-runtime';
 import { publishGeneratedCandidate } from '@/features/adaptive-assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
@@ -37,20 +32,8 @@ export async function POST(
       publisherUserId: session.user.id,
       catalogReleaseId: body.catalogReleaseId ?? 'generated-catalog.r1',
     });
-    const catalog = buildAdaptiveAssessmentItemCatalog({
-      generatedCandidateStore: store,
-      generatedQuestions: generatedQuestionsFromStore(store),
-      checkpointQuestions: [],
-      presetQuestions: [],
-    });
-    const publishedItems = catalog.items.filter((item) => (
-      item.sourceFamily === 'generated-adaptive-question' && item.eligibilityState === 'path-eligible'
-    ));
     await persistGeneratedCandidateStore(prisma, store);
-    replaceGeneratedRuntimeOverlay({
-      items: publishedItems,
-      decisions: generatedReviewDecisionsFromStore(store),
-    });
+    const publishedItems = applyGeneratedCandidateStoreToRuntimeOverlay(store);
     try {
       writeGeneratedCatalogRelease(store, process.cwd(), publishedItems);
     } catch {

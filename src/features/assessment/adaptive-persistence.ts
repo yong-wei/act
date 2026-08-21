@@ -15,6 +15,7 @@ import {
   findAdaptiveAssessmentCatalogSnapshot,
   type AdaptiveAssessmentCatalogSnapshot,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
 import {
   evaluateAssessmentEvidenceSnapshotAuthority,
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
@@ -715,6 +716,7 @@ async function persistAdaptiveAssessmentSubmission(
   details: SubmittedAnswerDetails,
   db: AdaptiveAssessmentPersistenceDb,
 ): Promise<PersistedSubmission & { result: SubmitAnswerResult }> {
+  await ensureGeneratedCatalogHydrated(db);
   const execute = async (tx: AdaptiveAssessmentPersistenceTx): Promise<PersistedSubmission & { result: SubmitAnswerResult }> => {
   const answeredAt = new Date(details.record.createdAt);
   const score = details.record.isCorrect ? 100 : 0;
@@ -1205,6 +1207,7 @@ export async function getAbilityReportWithPersistenceFallback(
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<AbilityReport> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     return getAbilityReport(userId);
   }
@@ -1217,6 +1220,7 @@ export async function getDiagnosticWithPersistenceFallback(
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DiagnosticResult> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     return getDiagnostic(userId);
   }
@@ -1233,6 +1237,7 @@ export async function selectNextQuestionWithPersistenceFallback(
   estimatedAbility: number;
   confidenceInterval: [number, number];
 }> {
+  await ensureGeneratedCatalogHydrated(db);
   if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
     if (params.continuity) {
       throw new Error('Companion practice requires adaptive-assessment persistence.');

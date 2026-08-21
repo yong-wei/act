@@ -16,6 +16,7 @@ import {
   serializeGeneratedCandidateStore,
   type GeneratedCandidateContent,
   type GeneratedCandidateEnvelopeInput,
+  type GeneratedCandidateStore,
 } from '../generated-candidate-governance';
 
 function validContent(overrides: Partial<GeneratedCandidateContent> = {}): GeneratedCandidateContent {
@@ -32,6 +33,75 @@ function validContent(overrides: Partial<GeneratedCandidateContent> = {}): Gener
     difficulty: 0.6,
     intendedStage: 'low-stakes-practice',
     ...overrides,
+  };
+}
+
+function persistenceDbFromStore(store: GeneratedCandidateStore) {
+  return {
+    adaptiveAssessmentGeneratedCandidate: {
+      findMany: async () => store.candidates.map((record) => ({
+        id: record.candidateId,
+        generationKind: record.generationKind,
+        status: record.status,
+        currentRevisionId: record.currentRevisionId,
+        createdByUserId: record.createdByUserId,
+        createdAt: new Date(record.createdAt),
+        updatedAt: new Date(record.updatedAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateRevision: {
+      findMany: async () => store.revisions.map((revision) => ({
+        id: revision.revisionId,
+        candidateId: revision.candidateId,
+        envelopePublicJson: revision.envelope,
+        envelopePrivateJson: revision.privatePayload ?? {},
+        contentJson: revision.content,
+        createdAt: new Date(revision.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateEvent: {
+      findMany: async () => store.events.map((event) => ({
+        id: event.eventId,
+        candidateId: event.candidateId,
+        revisionId: event.revisionId,
+        status: event.status,
+        actorUserId: event.actorUserId,
+        reason: event.reason,
+        createdAt: new Date(event.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateReview: {
+      findMany: async () => store.reviews.map((review) => ({
+        id: review.reviewId,
+        candidateId: review.candidateId,
+        revisionId: review.revisionId,
+        reviewerUserId: review.reviewerUserId,
+        reviewerRole: review.reviewerRole,
+        outcome: review.outcome,
+        rationale: review.rationale,
+        itemDecisions: review.itemDecisions,
+        contentHash: review.contentHash,
+        reviewSourceHash: review.reviewSourceHash,
+        stale: review.stale,
+        createdAt: new Date(review.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedPublicationReceipt: {
+      findMany: async () => store.receipts.map((receipt) => ({
+        id: receipt.receiptId,
+        candidateId: receipt.candidateId,
+        revisionId: receipt.revisionId,
+        reviewId: receipt.reviewId,
+        catalogItemId: receipt.catalogItemId,
+        contentHash: receipt.contentHash,
+        catalogReleaseId: receipt.catalogReleaseId,
+        receiptHash: receipt.receiptHash,
+        generationKind: receipt.generationKind,
+        status: receipt.status,
+        createdAt: new Date(receipt.createdAt),
+        retiredAt: receipt.retiredAt ? new Date(receipt.retiredAt) : null,
+      })),
+    },
   };
 }
 
@@ -195,6 +265,17 @@ describe('generated candidate governance', () => {
       items: catalog.items.filter((item) => item.eligibilityState === 'path-eligible'),
       decisions: generatedReviewDecisionsFromStore(store),
     });
+    expect(findAdaptiveAssessmentCatalogSnapshot(question.id)?.catalogItemId).toBe(receipt.catalogItemId);
+
+    const {
+      isGeneratedRuntimeOverlayReady,
+      resetGeneratedRuntimeOverlay,
+    } = await import('../adaptive-assessment-catalog-selector');
+    const { ensureGeneratedCatalogHydrated } = await import('../generated-catalog-runtime');
+    resetGeneratedRuntimeOverlay();
+    expect(isGeneratedRuntimeOverlayReady()).toBe(false);
+    await ensureGeneratedCatalogHydrated(persistenceDbFromStore(store));
+    expect(isGeneratedRuntimeOverlayReady()).toBe(true);
     expect(findAdaptiveAssessmentCatalogSnapshot(question.id)?.catalogItemId).toBe(receipt.catalogItemId);
 
     const retired = retireGeneratedPublication(store, {
