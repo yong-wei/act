@@ -307,14 +307,14 @@ describe('micro-intervention learning evidence', () => {
         occurredAt: new Date('2026-08-21T00:05:00.000Z'),
       }]),
     });
-    expect(mapped[0]?.knowledgeTag).toBe('controller-tuning');
+    expect(mapped[0]?.knowledgeTag).toBe('control-correction');
     expect(mapped[0]?.prerequisiteEvidence.microInterventionLimitations).toEqual(['not-terminal-mastery']);
     const conflicted = rebuildMasteryUpdatesFromAnswers([{
       id: 'answer-1',
       questionId: 'q-1',
       isCorrect: true,
       answeredAt: new Date('2026-08-21T00:10:00.000Z'),
-      knowledgeTags: ['controller-tuning'],
+      knowledgeTags: ['control-correction'],
     }], {
       consumeMicroInterventionEvidence: true,
       microInterventionEvidence: applyMicroInterventionMasteryPolicy([
@@ -346,7 +346,7 @@ describe('micro-intervention learning evidence', () => {
         questionId: 'q-ct',
         isCorrect: true,
         answeredAt: new Date('2026-08-21T00:11:00.000Z'),
-        knowledgeTags: ['controller-tuning'],
+        knowledgeTags: ['control-correction'],
       },
     ], {
       consumeMicroInterventionEvidence: true,
@@ -367,7 +367,7 @@ describe('micro-intervention learning evidence', () => {
     });
     expect(isolated.find((item) => item.knowledgeTag === 'phase-margin')?.prerequisiteEvidence.microInterventionLimitations)
       .toBeUndefined();
-    expect(isolated.find((item) => item.knowledgeTag === 'controller-tuning')?.prerequisiteEvidence.microInterventionLimitations)
+    expect(isolated.find((item) => item.knowledgeTag === 'control-correction')?.prerequisiteEvidence.microInterventionLimitations)
       .toContain('conflict');
     const early = applyMicroInterventionMasteryPolicy([{
       evidenceId: 'src',
@@ -438,6 +438,58 @@ describe('micro-intervention learning evidence', () => {
 
     await processPendingMicroInterventionEvidenceProjections(processor, { interventionId: 'intervention-1' });
     expect(facts.some((fact) => fact.factType === 'micro_intervention_validation')).toBe(true);
+  });
+
+  it('supersedes stale pending tasks whose sealed watermark no longer matches', async () => {
+    const { db, facts, outbox, setOutcome } = createDb(sealedOutcome({ validation: null }));
+    const processor = db as never;
+    await enqueueMicroInterventionEvidenceProjection({
+      db,
+      interventionId: 'intervention-1',
+      ownerUserId: 'learner-1',
+    });
+    setOutcome(sealedOutcome());
+    await enqueueMicroInterventionEvidenceProjection({
+      db,
+      interventionId: 'intervention-1',
+      ownerUserId: 'learner-1',
+    });
+    const result = await processPendingMicroInterventionEvidenceProjections(processor, { interventionId: 'intervention-1' });
+    const tasks = [...outbox.values()].filter((row) => String(row.dedupeKey).startsWith('micro-intervention:pending:'));
+    expect(result.processed).toBe(2);
+    expect(tasks.map((row) => row.status).sort()).toEqual(['projected', 'superseded']);
+    expect(facts.some((fact) => fact.factType === 'micro_intervention_validation')).toBe(true);
+  });
+
+  it('maps catalog canonical nodes onto production authored-goal knowledge tags', () => {
+    const evidence = applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:controller-correction',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+    }]);
+    expect(evidence.map((item) => item.knowledgeTag)).toEqual(['control-correction']);
+    expect(applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:simulation-validation',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+    }]).map((item) => item.knowledgeTag)).toEqual(['simulation-validation-practice']);
+
+    const answerId = 'answer-goal';
+    const updates = rebuildMasteryUpdatesFromAnswers([{
+      id: answerId,
+      questionId: 'control-correction-practice-01',
+      isCorrect: true,
+      answeredAt: new Date('2026-08-21T00:10:00.000Z'),
+      knowledgeTags: ['control-correction', 'practice'],
+    }], {
+      consumeMicroInterventionEvidence: true,
+      microInterventionEvidence: evidence,
+    });
+    const persisted = updates.filter((item) => item.answerId === answerId);
+    expect(persisted.find((item) => item.knowledgeTag === 'control-correction')?.priorMastery)
+      .toBeGreaterThan(0.35);
   });
 
   it('does not consume micro-intervention evidence when the consumer flag is off', () => {

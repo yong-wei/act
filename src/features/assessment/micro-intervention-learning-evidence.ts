@@ -373,9 +373,38 @@ export async function processPendingMicroInterventionEvidenceProjections(
     if (!interventionId) continue;
     const attempts = typeof payload.attempts === 'number' ? payload.attempts : 0;
     try {
-      await scheduleMicroInterventionEvidenceProjection({
+      const outcome = typeof db.microInterventionOutcome?.findFirst === 'function'
+        ? await db.microInterventionOutcome.findFirst({
+          where: { id: interventionId },
+          include: { events: true, validation: true },
+        })
+        : null;
+      if (!outcome) {
+        await db.evidenceOutbox.update({
+          where: { dedupeKey: task.dedupeKey },
+          data: { status: 'projected', processedAt: new Date(), payload: { ...payload, attempts: attempts + 1 } },
+        });
+        processed += 1;
+        continue;
+      }
+      const expectedWatermark = nonEmpty(payload.sourceWatermark);
+      const currentWatermark = sealedMicroInterventionProjectionWatermark(outcome);
+      if (expectedWatermark && expectedWatermark !== currentWatermark) {
+        await db.evidenceOutbox.update({
+          where: { dedupeKey: task.dedupeKey },
+          data: {
+            status: 'superseded',
+            processedAt: new Date(),
+            payload: { ...payload, attempts: attempts + 1, skippedReason: 'watermark-mismatch' },
+          },
+        });
+        processed += 1;
+        continue;
+      }
+      await projectMicroInterventionOutcome({
         db,
-        interventionId,
+        outcome,
+        identity: await resolveMicroInterventionEvidenceIdentity(outcome),
       });
       await db.evidenceOutbox.update({
         where: { dedupeKey: task.dedupeKey },

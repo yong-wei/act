@@ -1,3 +1,6 @@
+import { REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-terminal-validation-question-sets';
+
 export const MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION = 'micro-intervention-evidence.v1';
 export const MICRO_INTERVENTION_EVIDENCE_REPEAT_WINDOW_MS = 6 * 60 * 60 * 1000;
 export const MICRO_INTERVENTION_EVIDENCE_DECAY_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
@@ -35,19 +38,30 @@ export function isRepeatWithinWindow(previousAt: Date, currentAt: Date): boolean
   return Math.abs(currentAt.getTime() - previousAt.getTime()) < MICRO_INTERVENTION_EVIDENCE_REPEAT_WINDOW_MS;
 }
 
-const CANONICAL_NODE_MASTERY_TAGS: Record<string, string[]> = {
-  'kn:autocontrol:stability-margin': ['phase-margin', 'gain-margin'],
-  'kn:autocontrol:controller-correction': ['controller-tuning'],
-  'kn:autocontrol:frequency-response': ['phase-margin'],
-  'kn:autocontrol:time-domain-performance': ['overshoot', 'settling-time'],
-  'kn:autocontrol:root-locus': ['pole-stability'],
-  'kn:autocontrol:feedback-loop': ['pole-stability'],
-  'kn:autocontrol:transfer-function-model': ['pole-stability'],
-};
+let catalogMasteryTagsByNode: Map<string, string[]> | null = null;
+
+function catalogMasteryTagsByCanonicalNode(): Map<string, string[]> {
+  if (catalogMasteryTagsByNode) return catalogMasteryTagsByNode;
+  const collected = new Map<string, Set<string>>();
+  for (const question of [
+    ...REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+    ...REVIEWED_TERMINAL_VALIDATION_QUESTIONS,
+  ]) {
+    for (const nodeId of question.graphNodeIds) {
+      const tags = collected.get(nodeId) ?? new Set<string>();
+      tags.add(question.learningGoalId);
+      collected.set(nodeId, tags);
+    }
+  }
+  catalogMasteryTagsByNode = new Map(
+    [...collected.entries()].map(([nodeId, tags]) => [nodeId, [...tags].sort()]),
+  );
+  return catalogMasteryTagsByNode;
+}
 
 export function mapCanonicalNodeToMasteryTags(canonicalNodeId: string): string[] {
-  const mapped = CANONICAL_NODE_MASTERY_TAGS[canonicalNodeId];
-  if (mapped) return mapped;
+  const mapped = catalogMasteryTagsByCanonicalNode().get(canonicalNodeId);
+  if (mapped && mapped.length > 0) return mapped;
   const leaf = canonicalNodeId.split(':').pop()?.trim();
   return leaf ? [leaf] : [];
 }
