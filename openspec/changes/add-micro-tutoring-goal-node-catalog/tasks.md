@@ -15,9 +15,9 @@
 
 - [x] 3.1 为目录解析补充合法目标、合法别名、未知目标、歧义别名、重复映射、停用目标、节点域无效和版本漂移的单元测试。
 - [x] 3.2 扩展错误归因与覆盖审计测试，验证目录冲突不能产生可用微辅导任务，且资源与验证题不会收到未核验节点。
-- [ ] 3.3 在全部主节点均已核验为 `kn:` 的最终输入上运行离线和严格覆盖审计，核验全部 54 道合格 practice 题的目标映射与 108 个错误选项归因一致。
+- [x] 3.3 在全部主节点均已核验为 `kn:` 的最终输入上运行离线和严格覆盖审计，核验全部 54 道合格 practice 题的目标映射与 108 个错误选项归因一致。
 
 ## 4. 变更门禁
 
-- [ ] 4.1 运行受影响的 Vitest 用例、微辅导覆盖命令、`npm run typecheck` 和 `git diff --check`。
-- [ ] 4.2 运行 `openspec validate add-micro-tutoring-goal-node-catalog --type change --strict` 并记录结果。
+- [x] 4.1 运行受影响的 Vitest 用例、微辅导覆盖命令、`npm run typecheck` 和 `git diff --check`。
+- [x] 4.2 运行 `openspec validate add-micro-tutoring-goal-node-catalog --type change --strict` 并记录结果。
