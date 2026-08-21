@@ -77,6 +77,11 @@ import {
 } from '@/lib/konling-citation-repair';
 import type { KonlingAssignedCitation } from '@/lib/konling-citation-protocol';
 import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
+import {
+  buildMathPrecomputeContext,
+  precomputeMathAnswer,
+  withoutCalculateTool,
+} from '@/lib/konling-math-precompute';
 import { resolveKonlingTextbookOptimizations } from '@/lib/konling-textbook-background-optimization';
 import {
   correctKonlingMalformedStructuredResponse,
@@ -736,6 +741,12 @@ export async function POST(request: Request) {
       systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
     }
 
+    tools = withoutCalculateTool(tools);
+    modelRequirements = {
+      ...modelRequirements,
+      tools: Object.keys(tools).length > 0,
+    };
+
     // 检查 API Key 配置
     if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
       return new Response(
@@ -752,10 +763,19 @@ export async function POST(request: Request) {
 
     // 使用 Vercel AI SDK 生成流式响应
     const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
-    const frozenModelMessages = await toModelMessages(uiMessages);
+    const frozenModelMessages = (await toModelMessages(uiMessages)).filter(
+      (message) => (message as { role?: string }).role !== 'system',
+    );
+    const effectiveUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+    const precomputedMath = effectiveUserMessage
+      ? await precomputeMathAnswer(effectiveUserMessage.content)
+      : null;
+    const mathPrecomputeContext = precomputedMath
+      ? `\n\n${buildMathPrecomputeContext(precomputedMath)}`
+      : '';
     const result = await streamText({
       model: responseModel,
-      system: systemPrompt,
+      system: `${systemPrompt}${mathPrecomputeContext}`,
       messages: frozenModelMessages,
       tools,
       ...(forceStructuredSmartPrepTool ? {

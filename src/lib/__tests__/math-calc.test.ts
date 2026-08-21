@@ -85,6 +85,28 @@ describe('math calculate executor', () => {
     });
   });
 
+  it('spawns wolframscript with the Wolfram Language calculator', async () => {
+    const child = createFakeChildProcess();
+    mocks.spawn.mockReturnValue(child);
+
+    const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
+    await Promise.resolve();
+
+    expect(mocks.spawn).toHaveBeenCalledWith(
+      'wolframscript',
+      [
+        '-file',
+        join(process.cwd(), 'scripts', 'math-calc', 'calc.wls'),
+        JSON.stringify({ expression: 'x', operation: 'simplify' }),
+      ],
+      expect.objectContaining({ cwd: process.cwd(), windowsHide: true }),
+    );
+    expect(child.stdin.write).not.toHaveBeenCalled();
+
+    completeCalculation(child);
+    await pending;
+  });
+
   it('projects a non-zero calculator exit into the stable unavailable error without stderr details', async () => {
     const child = createFakeChildProcess();
     mocks.spawn.mockReturnValue(child);
@@ -105,7 +127,7 @@ describe('math calculate executor', () => {
   });
 
   it('limits subprocess concurrency for every caller of the shared executor', async () => {
-    const calculations = Array.from({ length: 12 }, () => runMathCalculate({ expression: '1' }));
+    const calculations = Array.from({ length: 9 }, () => runMathCalculate({ expression: '1' }));
     const saturated = expect(
       runMathCalculate({ expression: '1' })
     ).rejects.toBeInstanceOf(MathCalculateCapacityError);
@@ -113,35 +135,32 @@ describe('math calculate executor', () => {
 
     let assertionError: unknown;
     try {
-      expect(mocks.spawn).toHaveBeenCalledTimes(4);
+      expect(mocks.spawn).toHaveBeenCalledTimes(1);
     } catch (error) {
       assertionError = error;
     }
     await saturated;
 
-    for (let index = 0; index < children.length; index += 1) {
+    for (let index = 0; index < calculations.length; index += 1) {
+      while (!children[index]) {
+        await new Promise((resolve) => setImmediate(resolve));
+      }
       completeCalculation(children[index]);
-      await Promise.resolve();
+      await new Promise((resolve) => setImmediate(resolve));
     }
     await Promise.allSettled(calculations);
 
     if (assertionError) throw assertionError;
-    expect(mocks.spawn).toHaveBeenCalledTimes(12);
+    expect(mocks.spawn).toHaveBeenCalledTimes(9);
   });
 
-  it('keeps the Python backend and LaTeX parser verifiable in the production image', () => {
-    const script = readFileSync(join(process.cwd(), 'scripts', 'math-calc', 'calc.py'), 'utf8');
-    const requirements = readFileSync(
-      join(process.cwd(), 'scripts', 'math-calc', 'requirements.txt'),
-      'utf8'
-    );
-    const dockerfile = readFileSync(join(process.cwd(), 'Dockerfile'), 'utf8');
-    const entrypoint = readFileSync(join(process.cwd(), 'docker-entrypoint.sh'), 'utf8');
+  it('keeps Wolfram parsing held and allowlisted before evaluation', () => {
+    const script = readFileSync(join(process.cwd(), 'scripts', 'math-calc', 'calc.wls'), 'utf8');
 
-    expect(script).toMatch(/^#!\/usr\/bin\/env python3\r?\n"""/);
-    expect(requirements).toContain('antlr4-python3-runtime==4.11.1');
-    expect(dockerfile).toContain('python3 -m py_compile scripts/math-calc/calc.py');
-    expect(dockerfile).toContain('parse_latex');
-    expect(entrypoint).toContain('parse_latex');
+    expect(script).toContain('HoldComplete');
+    expect(script).toContain('allowedHeads');
+    expect(script).toContain('ReleaseHold');
+    expect(script).toContain('containsUnevaluatedComputationQ');
+    expect(script.indexOf('ReleaseHold')).toBeGreaterThan(script.indexOf('allowedHeads'));
   });
 });

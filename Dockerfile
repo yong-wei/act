@@ -1,10 +1,8 @@
 # Base image
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
-COPY scripts/math-calc/requirements.txt /tmp/math-calc-requirements.txt
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip \
-  && pip install --no-cache-dir --break-system-packages -r /tmp/math-calc-requirements.txt
+  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
 
 # Dependencies stage
 FROM base AS deps
@@ -162,12 +160,8 @@ RUN rm -f \
 COPY --from=builder /app/.app-revision ./.app-revision
 COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 
-# 验证生产镜像内的 SymPy 与 LaTeX parser 依赖，并运行真实计算烟测。
-RUN python3 -c 'import json, subprocess; result = subprocess.run(["python3", "scripts/math-calc/calc.py"], input=json.dumps({"expression": r"\frac{1}{s}", "operation": "simplify"}), text=True, capture_output=True, check=True); payload = json.loads(result.stdout); assert payload["status"] == "ok", payload; assert payload["steps"][0]["operation"] == "identify", payload'
-
-# 验证公式推导脚本与 LaTeX 解析依赖在生产镜像内可执行。
-RUN python3 -m py_compile scripts/math-calc/calc.py \
-  && python3 -c "import sympy; assert sympy.__version__ == '1.13.3', sympy.__version__; from sympy.parsing.latex import parse_latex; assert str(parse_latex(r'\\frac{1}{s}')) == '1/s'"
+# Wolfram Engine 受许可证约束，不在镜像构建中嵌入安装包或激活凭据。
+# 部署环境必须额外提供已激活的 wolframscript；entrypoint 会报告其可用性。
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

@@ -24,7 +24,6 @@ function runNode(script, options = {}) {
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
-  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -182,23 +181,13 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
-    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+    /Wolfram Engine[\s\S]*wolframscript/,
+    'Dockerfile 必须说明 Wolfram Engine 由部署环境提供，且不得嵌入激活凭据',
   );
-  assert.match(
+  assert.doesNotMatch(
     dockerfile,
-    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
-    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
-  );
-  assert.match(
-    mathCalcRequirements,
-    /^sympy==1\.13\.3$/m,
-    'math-calc requirements 必须固定 SymPy 1.13.3',
-  );
-  assert.match(
-    mathCalcRequirements,
-    /^antlr4-python3-runtime==4\.11\.1$/m,
-    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
+    /scripts\/math-calc\/calc\.py|scripts\/math-calc\/requirements\.txt|sympy|parse_latex/i,
+    'Dockerfile 不得继续声明已移除的 SymPy 公式计算后端',
   );
 
   assert.match(
@@ -358,6 +347,11 @@ function main() {
 
   const entrypointPath = path.join(root, 'docker-entrypoint.sh');
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
+  assert.match(
+    entrypointScript,
+    /command -v wolframscript[\s\S]*wolframscript --version/,
+    'docker-entrypoint.sh 必须检查 Wolfram 运行时与激活状态',
+  );
   assert.match(
     entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,

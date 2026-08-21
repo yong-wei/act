@@ -1,8 +1,8 @@
 /**
- * 受治理的 SymPy 公式计算执行器。
+ * 受治理的 Wolfram 公式计算执行器。
  *
  * API 路由与 KAQ calculate 工具共用此入口：以受限 JSON 载荷调用
- * scripts/math-calc/calc.py，并将结构化结果（LaTeX + 中间步骤）返回给调用方。
+ * scripts/math-calc/calc.wls，并将结构化结果（LaTeX + 中间步骤）返回给调用方。
  */
 
 import { spawn } from 'node:child_process';
@@ -57,9 +57,9 @@ export interface MathCalculateFailure {
 
 export type MathCalculateResponse = MathCalculateSuccess | MathCalculateFailure;
 
-const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.py');
-const MATH_CALC_TIMEOUT_MS = 10_000;
-const MAX_CONCURRENT_CALCULATIONS = 4;
+const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.wls');
+const MATH_CALC_TIMEOUT_MS = 30_000;
+const MAX_CONCURRENT_CALCULATIONS = 1;
 const MAX_QUEUED_CALCULATIONS = 8;
 
 let activeCalculations = 0;
@@ -148,20 +148,19 @@ function parseMathCalculateResponse(stdout: string): MathCalculateResponse | nul
 }
 
 /**
- * 执行一次 SymPy 计算。
+ * 执行一次 Wolfram 计算。
  *
- * 子进程 10 秒超时；Python 或脚本缺失时抛出
+ * 子进程 30 秒超时；Wolfram 运行时或脚本缺失时抛出
  * MathCalculateUnavailableError，调用方应投影为 503。
  */
 async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
-  const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
   const payload = JSON.stringify(input);
 
   return new Promise<MathCalculateResponse>((resolve, reject) => {
-    const child = spawn(pythonCommand, [MATH_CALC_SCRIPT_PATH], {
+    const child = spawn('wolframscript', ['-file', MATH_CALC_SCRIPT_PATH, payload], {
       cwd: process.cwd(),
       windowsHide: true,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
 
     let stdout = '';
@@ -193,7 +192,7 @@ async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCa
       if (settled) return;
       settled = true;
       if (isErrnoError(error) && error.code === 'ENOENT') {
-        reject(new MathCalculateUnavailableError('Python 运行时不可用'));
+        reject(new MathCalculateUnavailableError('Wolfram 运行时不可用'));
         return;
       }
       reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
@@ -221,11 +220,6 @@ async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCa
       resolve(parsed);
     });
 
-    child.stdin.on('error', () => {
-      // 子进程提前退出时忽略 EPIPE。
-    });
-    child.stdin.write(payload, 'utf8');
-    child.stdin.end();
   });
 }
 
