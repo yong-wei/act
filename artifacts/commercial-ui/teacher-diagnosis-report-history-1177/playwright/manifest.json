@@ -1,9 +1,9 @@
 {
   "schemaVersion": "teacher-diagnosis-report-history-evidence.v1",
   "captureRevision": {
-    "commitSha": "b0e0a3bc82466af85e299da4f645999cd94cda30",
-    "treeSha": "a8d6e53324b9fc8f3eba107c133eba03fe2bb10a",
-    "capturedAt": "2026-08-21T10:49:53Z"
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+    "capturedAt": "2026-08-21T13:03:06Z"
   },
   "generator": {
     "path": "tests/teacher-diagnosis-report-history-evidence.spec.ts",
@@ -88,7 +88,7 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-queued-1440-light.png",
-      "screenshotSha256": "b78919587a026d2f9f7d3286a2cc0012938201f29f9629d025796a851bad7cec",
+      "screenshotSha256": "d240b982062224e09ce8ff185e4d329fbc4dd3facc215d571ccad6437889faed",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false

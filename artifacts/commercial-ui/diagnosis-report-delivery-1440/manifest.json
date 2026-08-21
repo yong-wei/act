@@ -4,18 +4,18 @@
   "captureProfile": "diagnosis-report-delivery",
   "baseUrl": "http://127.0.0.1:3001",
   "revisionProbePath": "/api/internal/local-qa/revision",
-  "sourceRevision": "b0e0a3bc82466af85e299da4f645999cd94cda30",
-  "treeSha": "a8d6e53324b9fc8f3eba107c133eba03fe2bb10a",
+  "sourceRevision": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+  "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
   "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
   "initialServiceRevision": {
-    "commitSha": "b0e0a3bc82466af85e299da4f645999cd94cda30",
-    "treeSha": "a8d6e53324b9fc8f3eba107c133eba03fe2bb10a",
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
     "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
     "clean": true
   },
   "finalServiceRevision": {
-    "commitSha": "b0e0a3bc82466af85e299da4f645999cd94cda30",
-    "treeSha": "a8d6e53324b9fc8f3eba107c133eba03fe2bb10a",
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
     "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
     "clean": true
   },
@@ -115,7 +115,7 @@
   "captures": [
     {
       "file": "teacher-delivery-1440-light.png",
-      "sha256": "f48a921418f71bff7bbd1347f2701be11784883bd80737d80a809f65b9d04b3b",
+      "sha256": "2e7a7b2d7ead9d5dc424a1e790d3aa078b4d601e8824eb31010cbcb8cb8d7bef",
       "viewport": {
         "width": 1440,
         "height": 1050
@@ -131,7 +131,7 @@
     },
     {
       "file": "teacher-print-only-1440-light.png",
-      "sha256": "a8d3a5abe3fb6d9e890000b54a1cc7afcc77ee13115c14ff6eacd61be8b05368",
+      "sha256": "548c348590506d505d3f016285c25516c0ae101be8b22ea31a685c6b775763d7",
       "viewport": {
         "width": 1440,
         "height": 900
