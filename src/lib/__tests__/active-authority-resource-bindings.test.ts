@@ -155,4 +155,30 @@ describe('active Authority resource binding projection', () => {
     expect(shard.node.label).toBe('节点');
     expect(shard.node.description).toBe('说明仍可用');
   });
+
+  it('omits student launch hrefs that resolve onto teacher or admin surfaces', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctc:modeling-node',
+      viewerRole: 'STUDENT',
+      resources: [
+        resource({
+          resourceId: 'act:lesson:1-1',
+          resourceType: 'lesson',
+          title: '看见全貌',
+        }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-1',
+          resourceId: 'act:lesson:1-1',
+          canonicalId: 'ctc:modeling-node',
+          role: 'EXPLAINS',
+        }),
+      ],
+    });
+    expect(projected.state).toBe('available');
+    if (projected.state === 'available') {
+      expect(projected.items[0]?.launch.href).not.toMatch(/^\/(?:teacher|admin)(?:\/|$)/);
+    }
+  });
 });

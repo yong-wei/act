@@ -938,6 +938,28 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(requested.every((url) => url.includes('/active'))).toBe(true);
   });
 
+  it('contains mobile inspector keyboard focus in a dialog drawer', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      await Promise.resolve();
+    });
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    const drawer = container.querySelector('[data-active-inspector-surface="mobile-drawer"]');
+    expect(drawer).not.toBeNull();
+    expect(drawer?.getAttribute('role')).toBe('dialog');
+    expect(drawer?.getAttribute('aria-modal')).toBe('true');
+    expect(drawer?.getAttribute('data-active-inspector-focus-contract')).toBe('mobile-contained-drawer');
+    expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
+  });
+
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {
     await act(async () => {
       root.render(createElement(KnowledgeGraphWorkspace, {

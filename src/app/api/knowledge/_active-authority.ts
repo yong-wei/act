@@ -510,7 +510,10 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);
-      const resourceBindings = attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard);
+      const resourceBindings = attachActiveAuthorityResourceBindings(
+        raw as AuthorityNodeDetailShard,
+        role,
+      );
       if (role === 'STUDENT') {
         const { teachingFields: _teachingFields, ...node } = detail.node;
         return NextResponse.json({

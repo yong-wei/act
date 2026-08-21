@@ -908,6 +908,30 @@ function GraphEdge({
   );
 }
 
+function trapInspectorFocus(event: KeyboardEvent<HTMLElement>, root: HTMLElement | null) {
+  if (event.key !== 'Tab' || !root) return;
+  const focusable = [...root.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => element.tabIndex !== -1 && !element.hasAttribute('disabled'));
+  if (focusable.length === 0) {
+    event.preventDefault();
+    root.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !root.contains(active))) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && (active === last || !root.contains(active))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 function ActiveNodeDetail({
   nodeKey,
   fallbackNode,
@@ -951,12 +975,16 @@ function ActiveNodeDetail({
     <aside
       ref={panelRef}
       tabIndex={-1}
+      role={compact ? 'dialog' : 'complementary'}
+      aria-modal={compact ? true : undefined}
+      onKeyDown={compact ? (event) => trapInspectorFocus(event, panelRef.current) : undefined}
       className={compact
         ? 'absolute inset-x-3 bottom-3 z-20 max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
         : 'absolute inset-y-3 right-3 z-20 w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
       aria-label="节点详情"
       data-active-node-detail={nodeKey}
       data-active-inspector-surface={compact ? 'mobile-drawer' : 'desktop-overlay'}
+      data-active-inspector-focus-contract={compact ? 'mobile-contained-drawer' : 'desktop-overlay'}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -1184,6 +1212,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
+  const graphMainRef = useRef<HTMLElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
@@ -1318,6 +1347,13 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [selectedNodeKey]);
+
+  useEffect(() => {
+    const main = graphMainRef.current;
+    if (!main || !isCompactViewport || !selectedNodeKey) return;
+    main.setAttribute('inert', '');
+    return () => main.removeAttribute('inert');
+  }, [isCompactViewport, selectedNodeKey]);
 
   const searchResults = useMemo(
     () => model ? activeNodeSearch(model, query, typeFilter || undefined) : [],
@@ -1501,7 +1537,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main className="min-h-0 h-full overflow-y-auto p-4" aria-label="知识图谱">
+          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4" aria-label="知识图谱" data-active-authority-main="true">
             <div className="mb-3 flex flex-wrap items-end justify-between gap-3" data-active-authority-toolbar="true">
               <div className="min-w-[15rem] flex-1">
                 <label className="sr-only" htmlFor="active-authority-search">搜索知识对象</label>

@@ -27,6 +27,7 @@ import type {
   ActiveResourceBindingRole,
 } from '@/features/knowledge/active-authority-graph-contracts';
 
+import type { KnowledgeRole } from '@/lib/authoritative-knowledge';
 import type { AuthorityNodeDetailShard } from './contracts';
 
 const ROLE_LABEL: Record<TeachingProjectionRole, ActiveResourceBindingRole> = {
@@ -65,10 +66,16 @@ function isUnsafeHref(href: string, nodeId: string): boolean {
     || /(?:^|\/)\.+\//.test(href);
 }
 
+function isHiddenFromViewer(href: string, role: KnowledgeRole | undefined): boolean {
+  if (role !== 'STUDENT') return false;
+  return /^(?:\/teacher|\/admin|\/api\/teacher|\/api\/admin)(?:\/|$)/.test(href);
+}
+
 export function projectAuthorityNodeResourceBindings(input: {
   nodeId: string;
   bindings: readonly TeachingBindingRuntime[];
   resources: readonly TeachingResourceRuntime[];
+  viewerRole?: KnowledgeRole;
 }): ActiveNodeResourceBindings {
   const matched = input.bindings.filter((binding) => binding.canonicalId === input.nodeId);
   if (matched.length === 0) {
@@ -84,7 +91,11 @@ export function projectAuthorityNodeResourceBindings(input: {
     if (!title) continue;
     const candidateHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
     const resolved = resolveSafeLaunchTarget(candidateHref);
-    const href = resolved.href && !isUnsafeHref(resolved.href, input.nodeId) ? resolved.href : null;
+    const href = resolved.href
+      && !isUnsafeHref(resolved.href, input.nodeId)
+      && !isHiddenFromViewer(resolved.href, input.viewerRole)
+      ? resolved.href
+      : null;
     const kind = href
       ? (launchMaps.resourceRegistryIds[binding.resourceId] ? 'registry-resource' : 'direct-route')
       : 'unavailable';
@@ -107,6 +118,7 @@ export function projectAuthorityNodeResourceBindings(input: {
 
 export function attachActiveAuthorityResourceBindings(
   shard: AuthorityNodeDetailShard,
+  viewerRole?: KnowledgeRole,
 ): ActiveNodeResourceBindings {
   const teaching = shard.envelope.teaching;
   if (
@@ -139,5 +151,6 @@ export function attachActiveAuthorityResourceBindings(
     nodeId: shard.node.id,
     bindings: active.staged.artifacts.bindings,
     resources: active.staged.artifacts.resources,
+    viewerRole,
   });
 }
