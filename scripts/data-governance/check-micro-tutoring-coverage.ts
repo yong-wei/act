@@ -281,7 +281,9 @@ async function main() {
           id: row.id,
           registryId: row.registryId,
           teacherOnly: row.teacherOnly,
+          config: row.config,
         })),
+      captureRevision: options.offline ? undefined : inputCapture.sourceRevision,
     }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
     resolveValidationItems: (sourceQuestionId, _sourceContentHash, knowledgeNodeId, misconceptionTag) =>
       listGovernedRemediationValidationItems({

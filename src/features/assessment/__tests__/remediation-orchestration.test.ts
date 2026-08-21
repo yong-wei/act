@@ -367,6 +367,9 @@ describe('remediation orchestration', () => {
         version: 'resource.v1',
         estimatedMinutes: 3,
         actionPath: `/interactive-learning/resources/${GOVERNED_RESOURCE_ID}`,
+        registryId: GOVERNED_RESOURCE_ID,
+        actionId: `micro-tutoring-action:${GOVERNED_RESOURCE_ID}`,
+        actionVersion: 'micro-tutoring-learning-action.v1',
       }],
       validationQuestion: {
         itemRefId: 'validation-1',

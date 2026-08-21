@@ -45,6 +45,16 @@ describe('micro tutoring resource projection', () => {
       misconceptionTag: sample.misconceptionTag,
       authorityRows: [{ id: 'other', registryId: 'other', teacherOnly: false }],
     })).toEqual([]);
+    expect(listMicroTutoringGovernedResources({
+      knowledgeNodeId: sample.knowledgeNodeId,
+      misconceptionTag: sample.misconceptionTag,
+      authorityRows: [{
+        id: matches[0]!.registryId,
+        registryId: matches[0]!.registryId,
+        teacherOnly: false,
+        config: { resourceNodePlanning: { privacyLevel: 'teacher-scoped' } },
+      }],
+    })).toEqual([]);
   });
 
   it('rejects a forged source, unknown registry and passive-only action', () => {

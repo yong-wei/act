@@ -588,6 +588,22 @@ async function projectResult(
     ) {
       return unavailableProjection(row, 'REFERENCE_DRIFT');
     }
+    const projected = listMicroTutoringGovernedResources({
+      knowledgeNodeId: task.knowledgeNodeId,
+      misconceptionTag: task.misconceptionTag,
+    }).find((candidate) =>
+      candidate.registryId === stored.registryId ||
+      candidate.registryId === stored.id ||
+      candidate.id === stored.id);
+    if (
+      !stored.actionId ||
+      !stored.actionVersion ||
+      !projected ||
+      projected.actionId !== stored.actionId ||
+      projected.actionVersion !== stored.actionVersion
+    ) {
+      return unavailableProjection(row, 'REFERENCE_DRIFT');
+    }
   }
 
   const validation = await db.adaptiveAssessmentItemRef.findFirst({

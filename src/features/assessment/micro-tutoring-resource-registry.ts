@@ -78,6 +78,7 @@ export interface MicroTutoringResourceAuthorityRow {
   id: string;
   registryId: string | null;
   teacherOnly: boolean;
+  config?: unknown;
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -92,6 +93,25 @@ function nonEmptyString(value: unknown): value is string {
 
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort();
+}
+
+export function microTutoringResourceAuthorityAllowsStudentUse(
+  row: MicroTutoringResourceAuthorityRow,
+  captureRevision?: string | null,
+): boolean {
+  if (row.teacherOnly) return false;
+  const planning = record(record(row.config)?.resourceNodePlanning);
+  const privacy = typeof planning?.privacyLevel === 'string' ? planning.privacyLevel : null;
+  const availability = typeof planning?.availability === 'string' ? planning.availability : null;
+  const teacherPolicy = typeof planning?.teacherPolicy === 'string' ? planning.teacherPolicy : null;
+  if (privacy === 'teacher-scoped') return false;
+  if (availability === 'archived' || availability === 'teacher_only') return false;
+  if (teacherPolicy === 'blocked' || teacherPolicy === 'teacher-only') return false;
+  if (captureRevision) {
+    const captured = record(record(row.config)?.remediation)?.captureRevision;
+    if (typeof captured === 'string' && captured.trim() && captured !== captureRevision) return false;
+  }
+  return true;
 }
 
 export function microTutoringResourceAuthorityDigest(registryId: string): string {
@@ -368,6 +388,7 @@ export function listMicroTutoringGovernedResources(input: {
   projection?: unknown;
   optionAttributions?: unknown;
   authorityRows?: MicroTutoringResourceAuthorityRow[];
+  captureRevision?: string | null;
 }): MicroTutoringGovernedResource[] {
   const loaded = loadMicroTutoringResourceProjection(input.projection, input.optionAttributions);
   if (!loaded.projection) return [];
@@ -388,14 +409,14 @@ export function listMicroTutoringGovernedResources(input: {
     .sort((left, right) =>
       left.version.localeCompare(right.version) || left.id.localeCompare(right.id));
   if (!input.authorityRows) return matches;
+  const usable = input.authorityRows.filter((row) =>
+    microTutoringResourceAuthorityAllowsStudentUse(row, input.captureRevision));
   const authorityByRegistryId = new Map(
-    input.authorityRows
-      .filter((row) => !row.teacherOnly && nonEmptyString(row.registryId))
+    usable
+      .filter((row) => nonEmptyString(row.registryId))
       .map((row) => [row.registryId as string, row]),
   );
-  const authorityById = new Map(
-    input.authorityRows.filter((row) => !row.teacherOnly).map((row) => [row.id, row]),
-  );
+  const authorityById = new Map(usable.map((row) => [row.id, row]));
   return matches.filter((resource) =>
     authorityByRegistryId.has(resource.registryId) || authorityById.has(resource.registryId));
 }
