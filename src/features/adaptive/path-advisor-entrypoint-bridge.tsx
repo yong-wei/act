@@ -4,10 +4,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
-import {
-  isAdaptivePracticeGoalId,
-  type AdaptivePathAdvisorGoalContext,
-} from '@/lib/adaptive-path-goal-options-client';
+import type { AdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
 
 interface PathAdvisorEntryPointBridgeProps {
   classId: string | null;
@@ -32,7 +29,7 @@ export function PathAdvisorEntryPointBridge({
   const requestedGoal = searchParams.get('goal');
   const activeGraphNodeId = searchParams.get('graphNodeId');
   const candidateBatchId = searchParams.get('batch');
-  const explicitGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
+  const explicitGoal = requestedGoal && goalContexts[requestedGoal] ? requestedGoal : null;
   const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;
 
   useEffect(() => {
@@ -44,7 +41,7 @@ export function PathAdvisorEntryPointBridge({
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
-    const goalContext = goalContexts[explicitGoal] ?? null;
+    const goalContext = goalContexts[explicitGoal];
     if (!goalContext) {
       updatePageContext({ assistantEntryPoint: null });
       return;

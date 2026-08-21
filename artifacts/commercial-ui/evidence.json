@@ -20812,7 +20812,7 @@
           "theme": "light",
           "role": "student",
           "authState": "authenticated",
-          "navigationState": "role-route-tabs",
+          "navigationState": "mobile-drawer",
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,

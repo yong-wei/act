@@ -77,6 +77,7 @@ function compareRootNodes(left: KnowledgeNodeData, right: KnowledgeNodeData): nu
 }
 
 export function getKnowledgeRootPresentationRadius(node: KnowledgeNodeData): number {
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
   const nodeScale = getKnowledgeNodeScale({
     metadata: node.metadata,
     degree: node.graphDegree,
@@ -87,10 +88,13 @@ export function getKnowledgeRootPresentationRadius(node: KnowledgeNodeData): num
     ? Math.min(semanticRegion.maxRadius, nodeScale.radius * semanticRegion.radiusMultiplier)
     : 0;
   const minimumBodyRadius = Math.max(nodeScale.radius, nodeScale.glowRadius, semanticRadius);
-  return Math.ceil(getKnowledgeRootLabelBounds({
+  const nameRadius = Math.ceil(getKnowledgeRootLabelBounds({
     name: node.name,
     minimumBodyRadius,
   }).collisionRadius * 1000) / 1000;
+  return typeof metadata.presentationRadius === 'number' && Number.isFinite(metadata.presentationRadius)
+    ? Math.max(nameRadius, metadata.presentationRadius)
+    : nameRadius;
 }
 
 export function getKnowledgeRootCollisionBounds(

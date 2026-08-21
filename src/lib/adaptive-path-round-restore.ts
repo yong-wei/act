@@ -57,7 +57,7 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     userId: round.userId,
     goal: {
       id: round.goalId,
-      title: goalOption?.title ?? round.title,
+      title: goalOption?.label ?? round.title,
       knowledgeTargets: [],
     },
     stage: 'stage-1-rules-graph',

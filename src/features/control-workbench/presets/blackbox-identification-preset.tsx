@@ -17,7 +17,7 @@ import {
   type BlackBoxNominalModelConfidenceEvidence,
 } from '@/features/arena/blackbox/engineering-evidence';
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
-import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
+import type { ArenaSubmissionRecord } from '@/features/arena/submissions/types';
 import type { ChallengeTask } from '@/features/arena/types';
 import { useArenaOfficialSubmissionPathSync } from '@/features/arena/arena-official-submission-sync';
 import type {

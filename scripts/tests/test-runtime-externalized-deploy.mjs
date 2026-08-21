@@ -667,6 +667,74 @@ try {
   removePathSync(mediaFixtureRoot);
 }
 
+const appOnlyProvenanceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'app-only-provenance-'));
+try {
+  const imageTar = path.join(appOnlyProvenanceRoot, 'image.tar');
+  const sidecar = `${imageTar}.provenance.json`;
+  fs.writeFileSync(imageTar, 'app-only image payload');
+  const writeAppOnlyResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'write-app-only-sidecar',
+      '--image-tar',
+      imageTar,
+      '--app-revision',
+      '4'.repeat(40),
+      '--output',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(writeAppOnlyResult.status, 0, writeAppOnlyResult.stderr);
+  const appOnlySidecar = JSON.parse(fs.readFileSync(sidecar, 'utf8'));
+  assert.equal(appOnlySidecar.deploymentScope, 'app-only');
+  assert.equal('runtimeSourceRevision' in appOnlySidecar, false);
+  const verifyAppOnlyImageResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-image',
+      '--image-tar',
+      imageTar,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(verifyAppOnlyImageResult.status, 0, verifyAppOnlyImageResult.stderr);
+  assert.equal(
+    JSON.parse(verifyAppOnlyImageResult.stdout).deploymentScope,
+    'app-only',
+    'app-only sidecar 必须显式声明未绑定 runtime 的部署范围',
+  );
+  const appOnlyRuntimeVerifyResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-runtime',
+      '--runtime-root',
+      appOnlyProvenanceRoot,
+      '--index-dir',
+      appOnlyProvenanceRoot,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    appOnlyRuntimeVerifyResult.status,
+    0,
+    'app-only sidecar 不得被误用于 runtime 完整性校验',
+  );
+  assert.match(
+    appOnlyRuntimeVerifyResult.stderr,
+    /textbook-v2-provenance-runtime-unavailable-for-app-only/u,
+  );
+} finally {
+  removePathSync(appOnlyProvenanceRoot);
+}
+
 const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));
 try {
   const imageTar = path.join(tarMismatchRoot, 'image.tar');
