@@ -115,7 +115,7 @@ import {
   isAdaptivePracticeGoalId,
   type AdaptivePathAdvisorQuickPrompt,
   type AdaptivePracticeGoalId,
-} from '@/lib/adaptive-path-goal-options';
+} from '@/lib/adaptive-path-goal-options-client';
 import {
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
