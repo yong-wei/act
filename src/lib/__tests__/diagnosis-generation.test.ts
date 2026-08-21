@@ -5,6 +5,19 @@ import { z } from 'zod';
 
 vi.mock('server-only', () => ({}));
 
+const { providerGenerate } = vi.hoisted(() => ({
+  providerGenerate: vi.fn(),
+}));
+
+vi.mock('@/lib/konling-agent-runtime', () => ({
+  getOrCreateKonlingAgentSession: vi.fn().mockResolvedValue({ id: 'agent-session-1' }),
+  verifyKonlingRuntimeScope: vi.fn().mockResolvedValue({ ok: true, scope: {} }),
+}));
+
+vi.mock('@/lib/smart-lesson-plan/provider-runtime', () => ({
+  resolveSmartLessonStructuredProvider: vi.fn().mockResolvedValue({ generate: providerGenerate }),
+}));
+
 import {
   claimDiagnosisGenerationAttempt,
   DiagnosisGenerationOutputValidationError,
@@ -169,6 +182,69 @@ describe('teacher diagnosis generation contracts', () => {
       code: 'diagnosis-governed-input-digest-mismatch',
     });
     expect(db.class.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('uses report-local aliases instead of student identities in assignment and assessment provider rows', async () => {
+    const providerInput = {
+      schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+      classId: 'class-1',
+      studentIds: ['student-actual-1', 'student-actual-2'],
+      assignmentSubmissions: [{
+        id: 'assignment-submission-1',
+        userId: 'student-actual-1',
+        assignmentRevisionId: 'assignment-revision-1',
+        contentHash: 'assignment-content-sha256',
+        score: 82,
+        totalPoints: 100,
+        reviewedAt: now.toISOString(),
+      }],
+      assessmentSessions: [{
+        id: 'assessment-session-1',
+        userId: 'student-actual-1',
+        assessmentId: 'assessment-1',
+        contentDigest: 'assessment-content-sha256',
+        itemCount: 10,
+        correctCount: 8,
+        score: 80,
+        completedAt: now.toISOString(),
+      }],
+      riskFlags: [],
+      competencySnapshots: [],
+      knowledgeProgress: [],
+    };
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '作业与测验结果显示班级需要继续巩固。',
+        findings: [],
+        evidenceRefs: ['assignment-submission:assignment-submission-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 2 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-1',
+    });
+
+    await generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-privacy-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: providerInput,
+      inputDigest: digestDiagnosisGovernedInput(providerInput),
+    });
+
+    const generatedPrompt = providerGenerate.mock.calls[0]?.[0]?.prompt;
+    expect(typeof generatedPrompt).toBe('string');
+    const governedToolResults = JSON.parse(generatedPrompt as string).governedToolResults;
+    expect(governedToolResults.assignments.assignments[0].learnerAlias).toMatch(/^learner-[a-f0-9]{12}-1$/u);
+    expect(governedToolResults.assessments.assessments[0].learnerAlias)
+      .toBe(governedToolResults.assignments.assignments[0].learnerAlias);
+    expect(JSON.stringify(governedToolResults)).not.toContain('student-actual-1');
+    expect(JSON.stringify(governedToolResults)).not.toContain('student-actual-2');
   });
 
   it('passes the immutable preflight input to the provider after mutable evidence changes', async () => {

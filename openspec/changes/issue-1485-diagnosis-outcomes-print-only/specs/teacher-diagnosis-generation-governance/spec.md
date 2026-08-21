@@ -25,3 +25,14 @@ The system SHALL expose preflight and generation lifecycle data only to the owni
 - **WHEN** the owning teacher reads a completed report that includes assignment or assessment outcomes
 - **THEN** the history surface SHALL display each source's aggregate inclusion and missing counts
 - **AND** SHALL NOT show raw answer content, option keys, files, feedback text or student identifiers.
+## ADDED Requirements
+
+### Requirement: Model-bound outcome rows use report-local learner aliases
+
+The provider-facing projection of frozen assignment submissions and class-bound assessment sessions SHALL NOT contain a real student user identifier. It SHALL use an opaque learner alias that is valid only for the current report attempt, while preserving an identical alias for the same learner across those two source families within that one provider request. The server-side frozen input and persistence validation remain the authority for real user-to-evidence associations.
+
+#### Scenario: Provider receives reviewed outcomes for multiple learners
+
+- **WHEN** a diagnosis provider request includes one or more eligible reviewed assignment submissions or class-bound assessment sessions
+- **THEN** every model-bound outcome row SHALL include only a report-local learner alias rather than the student's real user identifier
+- **AND** the serialized governed tool results SHALL not include a real student user identifier from either outcome source.

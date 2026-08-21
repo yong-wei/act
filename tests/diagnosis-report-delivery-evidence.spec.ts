@@ -102,11 +102,12 @@ test('captures teacher delivery, evidence, registered action and disposition at 
   await page.getByText('查看允许的证据摘要').click();
   await expect(page.getByText('知识点学习进度：1 项')).toBeVisible();
   await expect(page.getByText('完成一次针对性练习后查看新的诊断。')).toBeVisible();
+  await expect(page.getByRole('link', { name: '进入备课工作台' })).toBeVisible();
   await page.getByRole('button', { name: '待处理' }).first().click();
   await expect(page.getByText('处置状态已记录；诊断风险判断保持不变。')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await capture(page, 'teacher-delivery-1440-light.png', { width: 1440, height: 1050 }, [
-    'teacher projection visible', 'bounded evidence visible', 'registered action visible', 'suggestion visible', 'disposition recorded', 'no horizontal overflow',
+    'teacher projection visible', 'bounded evidence visible', 'report-level preparation entry visible', 'suggestion visible', 'disposition recorded', 'no horizontal overflow',
   ]);
 });
 
@@ -129,12 +130,14 @@ test('captures the student-safe report without teacher controls at 320px', async
   await installFixture(page, 'STUDENT');
   await page.goto(`/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
   await expect(page.locator('[data-diagnosis-delivery-role="student"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: '打印' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '导出 PDF' })).toHaveCount(0);
   await expect(page.getByText('学习建议')).toBeVisible();
   await expect(page.getByText('报告处置')).toHaveCount(0);
   await expect(page.getByText('教师强制生成')).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
   await capture(page, 'student-safe-delivery-320-dark.png', { width: 320, height: 844 }, [
-    'student-safe projection visible', 'suggestion visible', 'teacher controls absent', 'force reason absent', 'no horizontal overflow',
+    'student-safe projection visible', 'print control visible', 'PDF export control absent', 'teacher controls absent', 'force reason absent', 'no horizontal overflow',
   ]);
 });
 
@@ -226,7 +229,7 @@ function baseProjection() {
 function teacherActions() {
   return [
     { kind: 'student', label: '查看学生详情', href: `/teacher/classes/${classId}/students/student-evidence`, targetKey: 'report' },
-    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'finding:1' },
+    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'report' },
     { kind: 'remediation', label: '已注册补练资源：稳定裕度补练', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
   ];
 }

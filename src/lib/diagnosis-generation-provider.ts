@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { type Prisma, type PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
@@ -141,11 +143,12 @@ export async function generateGovernedDiagnosisReport(
     },
     permittedTools: [...DIAGNOSIS_TOOLS],
   });
-  const assignments = projectFrozenAssignments(governedInput.data);
-  const assessments = projectFrozenAssessments(governedInput.data);
-  const riskFlags = projectFrozenRiskFlags(governedInput.data);
+  const learnerAliasFor = createReportLearnerAliasResolver(input.attemptId);
+  const assignments = projectFrozenAssignments(governedInput.data, learnerAliasFor);
+  const assessments = projectFrozenAssessments(governedInput.data, learnerAliasFor);
+  const riskFlags = projectFrozenRiskFlags(governedInput.data, learnerAliasFor);
   const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
-  const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data);
+  const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data, learnerAliasFor);
   const toolAudit = [
     auditToolResult('get_class_assignment_outcomes', assignments),
     auditToolResult('get_class_assessment_outcomes', assessments),
@@ -171,7 +174,7 @@ export async function generateGovernedDiagnosisReport(
     ].join('\n'),
     prompt: JSON.stringify({
       scope: input.targetStudentId
-        ? { type: 'student', classId: input.classId, studentId: input.targetStudentId }
+        ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
         : { type: 'class', classId: input.classId },
       evidenceCutoff: input.evidenceCutoff.toISOString(),
       governedToolResults: { assignments, assessments, riskFlags, competency, knowledgeProgress },
@@ -213,9 +216,12 @@ export async function generateGovernedDiagnosisReport(
 
 type GovernedInput = z.infer<typeof governedInputSchema>;
 
-function projectFrozenAssignments(input: GovernedInput) {
+function projectFrozenAssignments(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
   const assignments = (input.assignmentSubmissions ?? []).map((row) => ({
-    studentId: row.userId,
+    learnerAlias: learnerAliasFor(row.userId),
     assignmentRevisionId: row.assignmentRevisionId,
     contentHash: row.contentHash,
     score: row.score,
@@ -234,9 +240,12 @@ function projectFrozenAssignments(input: GovernedInput) {
   };
 }
 
-function projectFrozenAssessments(input: GovernedInput) {
+function projectFrozenAssessments(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
   const assessments = (input.assessmentSessions ?? []).map((row) => ({
-    studentId: row.userId,
+    learnerAlias: learnerAliasFor(row.userId),
     assessmentId: row.assessmentId,
     contentDigest: row.contentDigest,
     itemCount: row.itemCount,
@@ -258,9 +267,9 @@ function projectFrozenAssessments(input: GovernedInput) {
 
 function sourceCoverage(
   studentIds: string[],
-  rows: Array<{ studentId: string; score: number }>,
+  rows: Array<{ learnerAlias: string; score: number }>,
 ) {
-  const includedStudents = new Set(rows.map((row) => row.studentId)).size;
+  const includedStudents = new Set(rows.map((row) => row.learnerAlias)).size;
   return {
     availability: 'available' as const,
     includedStudents,
@@ -270,9 +279,25 @@ function sourceCoverage(
   };
 }
 
-function projectFrozenRiskFlags(input: GovernedInput) {
+function createReportLearnerAliasResolver(attemptId: string) {
+  const aliases = new Map<string, string>();
+  const reportPrefix = createHash('sha256').update(attemptId).digest('hex').slice(0, 12);
+
+  return (userId: string) => {
+    const existing = aliases.get(userId);
+    if (existing) return existing;
+    const alias = `learner-${reportPrefix}-${aliases.size + 1}`;
+    aliases.set(userId, alias);
+    return alias;
+  };
+}
+
+function projectFrozenRiskFlags(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
   const flags = input.riskFlags.map((row) => ({
-    studentId: row.userId,
+    learnerAlias: learnerAliasFor(row.userId),
     type: row.type,
     severity: row.severity,
     summary: row.description,
@@ -283,12 +308,12 @@ function projectFrozenRiskFlags(input: GovernedInput) {
   }));
   return {
     classId: input.classId,
-    students: input.studentIds,
+    learners: input.studentIds.map(learnerAliasFor),
     flags,
     evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
     sourceCoverage: {
       classMembers: input.studentIds.length,
-      includedStudents: new Set(flags.map((flag) => flag.studentId)).size,
+      includedStudents: new Set(flags.map((flag) => flag.learnerAlias)).size,
     },
     confidence: flags.length > 0 ? 'medium' : 'unavailable',
     limitations: flags.length > 0 ? [] : ['no-current-governed-risk-flags'],
@@ -335,9 +360,12 @@ function projectFrozenCompetency(input: GovernedInput) {
   };
 }
 
-function projectFrozenKnowledgeProgress(input: GovernedInput) {
+function projectFrozenKnowledgeProgress(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
   const progress = input.knowledgeProgress.map((row) => ({
-    studentId: row.userId,
+    learnerAlias: learnerAliasFor(row.userId),
     knowledgeNodeId: row.nodeId,
     status: row.status,
     progress: row.progress,
@@ -347,12 +375,12 @@ function projectFrozenKnowledgeProgress(input: GovernedInput) {
   }));
   return {
     classId: input.classId,
-    students: input.studentIds,
+    learners: input.studentIds.map(learnerAliasFor),
     progress,
     evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
     sourceCoverage: {
       classMembers: input.studentIds.length,
-      includedStudents: new Set(progress.map((row) => row.studentId)).size,
+      includedStudents: new Set(progress.map((row) => row.learnerAlias)).size,
       progressRows: progress.length,
     },
     confidence: progress.length > 0 ? 'medium' : 'unavailable',
