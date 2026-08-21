@@ -13,6 +13,7 @@ describe('micro tutoring validation registry', () => {
   it('loads 54 practice items as independent same-node validators without a second question bank', () => {
     const loaded = loadMicroTutoringValidationRegistry();
     expect(loaded.issues).toEqual([]);
+    expect(loaded.registry?.sourceRevision).toMatch(/^[a-f0-9]{40}$/);
     expect(loaded.registry?.entries).toHaveLength(54);
     expect(loaded.registry?.entries.every((entry) => entry.estimatedMinutes === 2)).toBe(true);
     expect(new Set(loaded.registry?.entries.map((entry) => entry.contentHash)).size).toBe(54);
@@ -47,6 +48,7 @@ describe('micro tutoring validation registry', () => {
     expect(matches.every((item) => item.questionId !== sourceId)).toBe(true);
     expect(matches.every((item) => item.contentHash !== source.contentHash)).toBe(true);
     expect(matches[0]?.id).toBe('micro-tutoring-validation:control-correction-practice-02');
+    expect(matches[0]?.itemRevision).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(JSON.stringify(matches)).not.toContain('independenceRationale');
     expect(JSON.stringify(projectMicroTutoringValidationForLearner(matches[0]!))).not.toContain('purposeRationale');
 

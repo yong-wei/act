@@ -12,10 +12,17 @@ import {
   type RemediationOrchestrationDb,
 } from '../remediation-orchestration';
 import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
+import { listMicroTutoringGovernedValidationItems } from '../micro-tutoring-validation-registry';
 
 const HASH_A = 'a'.repeat(64);
 const GOVERNED_VALIDATION_SOURCE_ID = 'control-correction-practice-01';
 const GOVERNED_VALIDATION_HASH = '6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297';
+const GOVERNED_VALIDATION_REVISION = listMicroTutoringGovernedValidationItems({
+  knowledgeNodeId: 'kn:autocontrol:controller-correction',
+  misconceptionTag: 'misconception:control-correction:confuses-overshoot-with-steady-error',
+  sourceQuestionId: 'question-original',
+  sourceContentHash: HASH_A,
+})[0]?.itemRevision;
 const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
 
 vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', () => ({
@@ -238,6 +245,7 @@ function createDb() {
         id: 'attribution-1',
         userId: 'learner-1',
         questionId: 'question-original',
+        itemContentHash: HASH_A,
         state: 'ATTRIBUTED',
         knowledgeNodeIds: [GOVERNED_NODE],
         misconceptionTags: [GOVERNED_TAG],
@@ -327,6 +335,7 @@ describe('remediation orchestration', () => {
       registryId: GOVERNED_RESOURCE_ID,
       resourceRevision: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
     }));
+    expect(create.taskSnapshot.validationQuestion.itemRevision).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(JSON.stringify(result)).not.toContain('correctAnswer');
     expect(JSON.stringify(result)).not.toContain('explanation');
     expect(JSON.stringify(result)).not.toContain('options');
@@ -341,6 +350,7 @@ describe('remediation orchestration', () => {
       id: 'attribution-1',
       userId: 'learner-1',
       questionId: GOVERNED_VALIDATION_SOURCE_ID,
+      itemContentHash: GOVERNED_VALIDATION_HASH,
       state: 'ATTRIBUTED',
       knowledgeNodeIds: [GOVERNED_NODE],
       misconceptionTags: [GOVERNED_TAG],
@@ -422,6 +432,7 @@ describe('remediation orchestration', () => {
         questionId: GOVERNED_VALIDATION_SOURCE_ID,
         contentHash: GOVERNED_VALIDATION_HASH,
         version: 'validation.v1',
+        itemRevision: GOVERNED_VALIDATION_REVISION,
         estimatedMinutes: 2,
         actionPath: '/assessment/adaptive-practice',
       },
@@ -730,6 +741,47 @@ describe('remediation orchestration', () => {
 
     expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'ACCESS_REVOKED' });
     expect(JSON.stringify(result)).not.toContain(GOVERNED_VALIDATION_SOURCE_ID);
+  });
+
+  it('fails closed when the validation registry revision drifts', async () => {
+    const { db, mocks } = createDb();
+    const created = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+    const row = await mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
+    row.taskSnapshot = {
+      ...row.taskSnapshot,
+      validationQuestion: {
+        ...row.taskSnapshot.validationQuestion,
+        itemRevision: `sha256:${'0'.repeat(64)}`,
+      },
+    };
+    mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(row);
+
+    const result = await readRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      resultId: created!.id,
+    });
+
+    expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT' });
+  });
+
+  it('fails closed when the source item content hash is missing', async () => {
+    const { db, mocks } = createDb();
+    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
+      id: 'attribution-1',
+      userId: 'learner-1',
+      questionId: 'question-original',
+      state: 'ATTRIBUTED',
+      knowledgeNodeIds: [GOVERNED_NODE],
+      misconceptionTags: [GOVERNED_TAG],
+    });
+
+    const result = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+
+    expect(result).toMatchObject({
+      status: 'UNAVAILABLE',
+      unavailableReason: 'VALIDATION_QUESTION_UNAVAILABLE',
+    });
   });
 
   it('fails closed when a validation reference drifts', async () => {

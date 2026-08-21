@@ -12,6 +12,7 @@ import {
   MICRO_TUTORING_VALIDATION_ACTION_PATH,
   MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES,
   canonicalMicroTutoringQuestionId,
+  findMicroTutoringGovernedValidationBinding,
   listMicroTutoringGovernedValidationItems,
   microTutoringValidationQuestionIds,
 } from './micro-tutoring-validation-registry';
@@ -34,6 +35,7 @@ interface AttributionRow {
   userId: string;
   sessionId: string;
   questionId: string;
+  itemContentHash?: string;
   state: string;
   knowledgeNodeIds: string[];
   misconceptionTags: string[];
@@ -117,6 +119,7 @@ export interface GovernedRemediationValidationItem {
   questionId: string;
   contentHash: string;
   version: string;
+  itemRevision: string;
   estimatedMinutes: number;
   actionPath: string;
 }
@@ -144,6 +147,7 @@ export interface RemediationTaskSnapshot {
     questionId: string;
     contentHash: string;
     version: string;
+    itemRevision?: string;
     estimatedMinutes: number;
     actionPath: string;
   };
@@ -282,7 +286,7 @@ function parseValidationItem(
   sourceQuestionId: string,
   _knowledgeNodeId: string,
   _misconceptionTag: string,
-): GovernedRemediationValidationItem | null {
+): Omit<GovernedRemediationValidationItem, 'itemRevision'> | null {
   const metadata = record(row.metadata);
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
@@ -411,12 +415,15 @@ export function listGovernedRemediationValidationItems(input: {
     .map((row) => {
       const projectedItem = projectedByQuestionId.get(canonicalMicroTutoringQuestionId(row.questionId));
       if (!projectedItem || projectedItem.contentHash !== row.contentHash) return null;
-      return parseValidationItem(
+      const parsed = parseValidationItem(
         row,
         input.sourceQuestionId,
         input.knowledgeNodeId,
         input.misconceptionTag,
       );
+      return parsed
+        ? { ...parsed, itemRevision: projectedItem.itemRevision }
+        : null;
     })
     .filter((item): item is GovernedRemediationValidationItem => item !== null));
 }
@@ -495,7 +502,14 @@ function learnerTaskProjection(task: RemediationTaskSnapshot): RemediationTaskPr
       estimatedMinutes: resource.estimatedMinutes,
       actionPath: resource.actionPath,
     })),
-    validationQuestion: { ...task.validationQuestion },
+    validationQuestion: {
+      itemRefId: task.validationQuestion.itemRefId,
+      questionId: task.validationQuestion.questionId,
+      contentHash: task.validationQuestion.contentHash,
+      version: task.validationQuestion.version,
+      estimatedMinutes: task.validationQuestion.estimatedMinutes,
+      actionPath: task.validationQuestion.actionPath,
+    },
   };
 }
 
@@ -541,6 +555,7 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
   const questionId = nonEmptyString(validation.questionId);
   const contentHash = nonEmptyString(validation.contentHash);
   const version = nonEmptyString(validation.version);
+  const itemRevision = nonEmptyString(validation.itemRevision) ?? undefined;
   const validationMinutes = governedMinutes(validation.estimatedMinutes);
   const actionPath = governedActionPath(validation.actionPath);
   if (
@@ -568,6 +583,7 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
       questionId,
       contentHash,
       version,
+      ...(itemRevision ? { itemRevision } : {}),
       estimatedMinutes: validationMinutes,
       actionPath,
     },
@@ -647,6 +663,23 @@ async function projectResult(
     parsedValidation.version !== task.validationQuestion.version ||
     parsedValidation.estimatedMinutes !== task.validationQuestion.estimatedMinutes ||
     parsedValidation.actionPath !== task.validationQuestion.actionPath
+  ) {
+    return unavailableProjection(row, 'REFERENCE_DRIFT');
+  }
+  const projectedValidation = task.validationQuestion.itemRevision
+    ? findMicroTutoringGovernedValidationBinding({
+      knowledgeNodeId: task.knowledgeNodeId,
+      misconceptionTag: task.misconceptionTag,
+      questionId: task.validationQuestion.questionId,
+      contentHash: task.validationQuestion.contentHash,
+      itemRevision: task.validationQuestion.itemRevision,
+    })
+    : null;
+  if (
+    !task.validationQuestion.itemRevision ||
+    !projectedValidation ||
+    projectedValidation.itemRevision !== task.validationQuestion.itemRevision ||
+    projectedValidation.contentHash !== task.validationQuestion.contentHash
   ) {
     return unavailableProjection(row, 'REFERENCE_DRIFT');
   }
@@ -742,6 +775,7 @@ async function orchestrateRemediationVersion(input: {
       id: true,
       userId: true,
       questionId: true,
+      itemContentHash: true,
       state: true,
       knowledgeNodeIds: true,
       misconceptionTags: true,
@@ -831,7 +865,15 @@ async function orchestrateRemediationVersion(input: {
     }));
   }
 
-  const sourceContentHash = findAdaptiveAssessmentCatalogSnapshot(attribution.questionId)?.contentHash ?? '';
+  const sourceContentHash = nonEmptyString(attribution.itemContentHash);
+  if (!sourceContentHash || !/^[a-f0-9]{64}$/.test(sourceContentHash)) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
   const projectedValidations = listMicroTutoringGovernedValidationItems({
     knowledgeNodeId,
     misconceptionTag,
@@ -928,6 +970,7 @@ async function orchestrateRemediationVersion(input: {
       questionId: selection.validation.questionId,
       contentHash: selection.validation.contentHash,
       version: selection.validation.version,
+      itemRevision: selection.validation.itemRevision,
       estimatedMinutes: selection.validation.estimatedMinutes,
       actionPath: selection.validation.actionPath,
     },

@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -20,6 +21,14 @@ import {
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OUTPUT_PATH = path.join(GOVERNANCE_DIR, 'micro-tutoring-validation-registry.json');
+const GIT_REVISION = /^[a-f0-9]{40}$/u;
+const SOURCE_PATHS = [
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/adaptive-assessment-item-catalog-items.jsonl`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/assessment-item-semantic-review-snapshots.jsonl`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-practice-baseline.json`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-option-attributions.json`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-goal-node-catalog.json`,
+] as const;
 const REVIEWED_AT = '2026-08-21T00:00:00.000Z';
 const REVIEW_BATCH_ID = 'micro-tutoring-validation-registry.v1';
 const REVIEWER_ID = 'assessment-content-reviewer:issue-1395';
@@ -27,6 +36,31 @@ const REVIEWER_ROLE = 'assessment-content-reviewer';
 
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort();
+}
+
+function git(args: string[]): string {
+  const result = spawnSync('git', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    throw new Error(`微辅导验证登记无法执行 Git ${args.join(' ')}：${result.stderr.trim()}`);
+  }
+  return result.stdout;
+}
+
+function captureSourceRevision(): string {
+  git(['ls-files', '--error-unmatch', '--', ...SOURCE_PATHS]);
+  const dirty = git(['status', '--porcelain=v1', '--untracked-files=no', '--', ...SOURCE_PATHS]).trim();
+  if (dirty) {
+    throw new Error(`微辅导验证登记拒绝脏源文件：\n${dirty}`);
+  }
+  const sourceRevision = git(['rev-parse', '--verify', 'HEAD']).trim();
+  if (!GIT_REVISION.test(sourceRevision)) {
+    throw new Error('微辅导验证登记无法解析有效的 Git 修订');
+  }
+  return sourceRevision;
 }
 
 async function readJsonl<T>(fileName: string): Promise<T[]> {
@@ -151,6 +185,7 @@ async function main() {
   const registry = {
     version: MICRO_TUTORING_VALIDATION_REGISTRY_VERSION,
     source: MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
+    sourceRevision: captureSourceRevision(),
     entries,
   };
   const loaded = loadMicroTutoringValidationRegistry(registry, optionAttributionSource, practiceBaselineSource);
@@ -173,6 +208,7 @@ async function main() {
   await writeFile(OUTPUT_PATH, `${JSON.stringify(registry, null, 2)}\n`);
   console.log(JSON.stringify({
     output: OUTPUT_PATH,
+    sourceRevision: registry.sourceRevision,
     entries: registry.entries.length,
     nodes: byNode.size,
     nodeCounts: Object.fromEntries([...byNode.entries()].sort(([left], [right]) => left.localeCompare(right))),

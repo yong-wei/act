@@ -15,6 +15,7 @@ export const MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE =
   'micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2';
 export const MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES = 2;
 export const MICRO_TUTORING_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
+const GIT_REVISION = /^[a-f0-9]{40}$/u;
 
 export type MicroTutoringValidationRegistryIssueCode =
   | 'REGISTRY_MALFORMED'
@@ -76,6 +77,7 @@ export interface MicroTutoringValidationRegistryEntry {
 export interface MicroTutoringValidationRegistry {
   version: string;
   source: string;
+  sourceRevision: string;
   entries: MicroTutoringValidationRegistryEntry[];
 }
 
@@ -94,6 +96,7 @@ export interface MicroTutoringGovernedValidationItem {
   questionId: string;
   contentHash: string;
   version: string;
+  itemRevision: string;
   estimatedMinutes: number;
   actionPath: string;
 }
@@ -284,7 +287,13 @@ export function loadMicroTutoringValidationRegistry(
 ): LoadedMicroTutoringValidationRegistry {
   const value = record(source);
   const issues: MicroTutoringValidationRegistryIssue[] = [];
-  if (!value || !nonEmptyString(value.version) || !nonEmptyString(value.source) || !Array.isArray(value.entries)) {
+  if (
+    !value ||
+    !nonEmptyString(value.version) ||
+    !nonEmptyString(value.source) ||
+    !nonEmptyString(value.sourceRevision) ||
+    !Array.isArray(value.entries)
+  ) {
     return { registry: null, issues: [{ code: 'REGISTRY_MALFORMED', ref: 'registry' }] };
   }
   if (value.version !== MICRO_TUTORING_VALIDATION_REGISTRY_VERSION) {
@@ -292,6 +301,9 @@ export function loadMicroTutoringValidationRegistry(
   }
   if (value.source !== MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE) {
     issues.push({ code: 'SOURCE_DRIFT', ref: 'registry-source' });
+  }
+  if (!GIT_REVISION.test(value.sourceRevision)) {
+    issues.push({ code: 'SOURCE_DRIFT', ref: 'registry-source-revision' });
   }
 
   const requiredPairs = optionAttributionPairs(optionAttributions);
@@ -480,6 +492,7 @@ export function loadMicroTutoringValidationRegistry(
     registry: {
       version: MICRO_TUTORING_VALIDATION_REGISTRY_VERSION,
       source: MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
+      sourceRevision: value.sourceRevision.trim(),
       entries,
     },
     issues: [],
@@ -511,9 +524,47 @@ export function projectMicroTutoringValidationForLearner(
     questionId: item.questionId,
     contentHash: item.contentHash,
     version: item.version,
+    itemRevision: item.itemRevision,
     estimatedMinutes: item.estimatedMinutes,
     actionPath: item.actionPath,
   };
+}
+
+export function findMicroTutoringGovernedValidationBinding(input: {
+  knowledgeNodeId: string;
+  misconceptionTag: string;
+  questionId: string;
+  contentHash: string;
+  itemRevision: string;
+  registry?: unknown;
+  optionAttributions?: unknown;
+  practiceBaseline?: unknown;
+}): MicroTutoringGovernedValidationItem | null {
+  const loaded = loadMicroTutoringValidationRegistry(
+    input.registry,
+    input.optionAttributions,
+    input.practiceBaseline,
+  );
+  if (!loaded.registry || !input.itemRevision) return null;
+  const questionId = canonicalMicroTutoringQuestionId(input.questionId);
+  const match = loaded.registry.entries.find((entry) =>
+    entry.enabled &&
+    entry.knowledgeNodeId === input.knowledgeNodeId &&
+    entry.relations.some((relation) => relation.misconceptionTag === input.misconceptionTag) &&
+    canonicalMicroTutoringQuestionId(entry.sourceId) === questionId &&
+    entry.contentHash === input.contentHash &&
+    entry.itemRevision === input.itemRevision);
+  return match
+    ? projectMicroTutoringValidationForLearner({
+      id: match.id,
+      questionId: match.sourceId,
+      contentHash: match.contentHash,
+      version: match.snapshotVersion,
+      itemRevision: match.itemRevision,
+      estimatedMinutes: match.estimatedMinutes,
+      actionPath: match.actionPath,
+    })
+    : null;
 }
 
 export function listMicroTutoringGovernedValidationItems(input: {
@@ -546,6 +597,7 @@ export function listMicroTutoringGovernedValidationItems(input: {
       questionId: entry.sourceId,
       contentHash: entry.contentHash,
       version: entry.snapshotVersion,
+      itemRevision: entry.itemRevision,
       estimatedMinutes: entry.estimatedMinutes,
       actionPath: entry.actionPath,
     }))
