@@ -1,0 +1,79 @@
+name: Wolfram Production Image Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and smoke-test production Wolfram image
+    runs-on: ${{ vars.WOLFRAM_VERIFY_RUNNER || 'ubuntu-latest' }}
+    env:
+      IMAGE_TAG: act-wolfram-verify:${{ github.sha }}
+      NEGATIVE_IMAGE_TAG: act-wolfram-negative:${{ github.sha }}
+      WOLFRAM_ACTIVATION_EMAIL: ${{ secrets.WOLFRAM_ACTIVATION_EMAIL }}
+      WOLFRAM_ACTIVATION_PASSWORD: ${{ secrets.WOLFRAM_ACTIVATION_PASSWORD }}
+      WOLFRAMSCRIPT_ENTITLEMENTID: ${{ secrets.WOLFRAMSCRIPT_ENTITLEMENTID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tools/glb-model-optimizer/package-lock.json
+
+      - name: Produce optimized models
+        run: |
+          npm ci --prefix tools/glb-model-optimizer
+          npm run produce --prefix tools/glb-model-optimizer
+          node scripts/assets/validate-optimized-models.mjs \
+            --source-root public/assets \
+            --optimized-root public/assets/models-opt
+
+      - name: Build production image
+        run: |
+          docker buildx build --load \
+            --build-arg "APP_REVISION=${{ github.sha }}" \
+            --build-arg "NPM_REGISTRY=https://registry.npmjs.org" \
+            --build-arg "PRISMA_ENGINES_MIRROR=" \
+            -t "$IMAGE_TAG" \
+            .
+
+      - name: Run in-container Wolfram smoke
+        run: |
+          activation_args=()
+          if [ -n "${WOLFRAM_ACTIVATION_EMAIL:-}" ] && [ -n "${WOLFRAM_ACTIVATION_PASSWORD:-}" ]; then
+            activation_args+=(--env WOLFRAM_ACTIVATION_EMAIL --env WOLFRAM_ACTIVATION_PASSWORD)
+          fi
+          if [ -n "${WOLFRAMSCRIPT_ENTITLEMENTID:-}" ]; then
+            activation_args+=(--env WOLFRAMSCRIPT_ENTITLEMENTID)
+          fi
+          docker run --rm "${activation_args[@]}" \
+            "$IMAGE_TAG" \
+            node scripts/tests/test-math-calc-wolfram.mjs
+
+      - name: Build negative image and assert fail-closed
+        run: |
+          cat > Dockerfile.wolfram-negative <<'EOF'
+          FROM node:20-alpine
+          WORKDIR /app
+          COPY docker-entrypoint.sh ./docker-entrypoint.sh
+          COPY scripts/math-calc/check-wolfram-ready.sh ./scripts/math-calc/check-wolfram-ready.sh
+          ENTRYPOINT ["./docker-entrypoint.sh"]
+          EOF
+          docker build -f Dockerfile.wolfram-negative -t "$NEGATIVE_IMAGE_TAG" .
+          if docker run --rm "$NEGATIVE_IMAGE_TAG" \
+            node -e "process.stdout.write('unexpected-start')" >/tmp/wolfram-negative.out 2>&1; then
+            echo "negative image unexpectedly started" >&2
+            cat /tmp/wolfram-negative.out >&2
+            exit 1
+          fi
+          echo "negative image fail-closed passed"

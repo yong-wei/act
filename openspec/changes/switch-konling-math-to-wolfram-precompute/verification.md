@@ -17,6 +17,11 @@ Stable HEAD for the local run: f720835c8
 - `scripts/math-calc/check-wolfram-ready.sh` passed a real smoke against local WolframScript 1.14.0 / Wolfram Engine 15.0 through WSL, and returned non-zero when the command is missing.
 - After committing the AI-provider remediation as `f720835c8`, `npm run typecheck` and the focused provider-settings Vitest files passed (34/35). The sole failure is the DeepSeek curl abort test, which cannot run on this Windows host because the fixture creates a shebang `curl` file without an executable extension; it is a local-environment issue unrelated to this change and must be re-run on Linux/CI.
 
+## Verification tooling added
+
+- `.github/workflows/docker-wolfram-verify.yml` builds the production-equivalent image, runs the in-container `MATH_CALC_TEST_IMAGE` Wolfram smoke through the default entrypoint, and asserts a Wolfram-less negative image is rejected fail-closed. It is triggered by `workflow_dispatch`; the runner must provide at least 20 GiB Docker VM memory and the repository must expose `WOLFRAM_ACTIVATION_EMAIL`/`WOLFRAM_ACTIVATION_PASSWORD` or `WOLFRAMSCRIPT_ENTITLEMENTID` secrets.
+- `scripts/tests/test-konling-http-e2e.mjs` records the running-chat-service HTTP E2E evidence for the representative inverse-Laplace question and asserts no `calculate` tool call plus Wolfram/verification content. It requires a running service with PostgreSQL, an authenticated session cookie (`KONLING_E2E_AUTH_COOKIE`), and a configured model provider.
+
 ## Not completed in this local environment
 
 - Building and running the final production-equivalent container image: Docker is not available in this Windows workspace. `scripts/tests/test-docker-migration-readiness.mjs` now supports `MATH_CALC_TEST_IMAGE` and `MATH_CALC_TEST_NEGATIVE_IMAGE` for a real in-container Wolfram smoke and for asserting that a Wolfram-less image is rejected by the entrypoint; these must be executed where Docker exists.
