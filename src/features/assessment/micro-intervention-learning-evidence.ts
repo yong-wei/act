@@ -149,6 +149,7 @@ function evidenceId(parts: string[]): string {
 
 export function sealedMicroInterventionProjectionWatermark(
   outcome: Pick<SealedMicroInterventionOutcome, 'id' | 'events' | 'validation'>,
+  identity: MicroInterventionEvidenceIdentity | null = null,
 ): string {
   const events = [...outcome.events]
     .map((event) => `${event.id}:${event.eventType}:${event.occurredAt.toISOString()}`)
@@ -163,19 +164,35 @@ export function sealedMicroInterventionProjectionWatermark(
       outcome.validation.submittedAt.toISOString(),
     ].join(':')
     : 'none';
-  return evidenceId([outcome.id, ...events, validation]);
+  const identityParts = identity
+    ? [
+      identity.canonicalObjectId,
+      identity.aggregateReleaseSetId,
+      identity.aggregateReleaseId,
+      identity.knowledgeProjectionId,
+      identity.captureRevision,
+      identity.courseId ?? '',
+    ]
+    : ['identity-absent'];
+  return evidenceId([outcome.id, ...events, validation, ...identityParts]);
 }
 
 function pendingProjectionDedupeKey(interventionId: string, watermark: string): string {
   return `micro-intervention:pending:${interventionId}:${watermark}`;
 }
 
-function projectionTaskPayload(interventionId: string, watermark: string, attempts = 0) {
+function projectionTaskPayload(
+  interventionId: string,
+  watermark: string,
+  identity: MicroInterventionEvidenceIdentity | null,
+  attempts = 0,
+) {
   return {
     kind: 'projection-task',
     algorithmVersion: MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION,
     interventionId,
     sourceWatermark: watermark,
+    identity,
     attempts,
   };
 }
@@ -323,8 +340,9 @@ export async function enqueueMicroInterventionEvidenceProjection(input: {
       include: { events: true, validation: true },
     })
     : null;
+  const identity = outcome ? await resolveMicroInterventionEvidenceIdentity(outcome) : null;
   const watermark = outcome
-    ? sealedMicroInterventionProjectionWatermark(outcome)
+    ? sealedMicroInterventionProjectionWatermark(outcome, identity)
     : evidenceId([input.interventionId, 'absent']);
   const dedupeKey = pendingProjectionDedupeKey(input.interventionId, watermark);
   await input.db.evidenceOutbox.upsert({
@@ -332,14 +350,14 @@ export async function enqueueMicroInterventionEvidenceProjection(input: {
     update: {
       status: 'pending',
       causationId: watermark,
-      payload: projectionTaskPayload(input.interventionId, watermark),
+      payload: projectionTaskPayload(input.interventionId, watermark, identity),
     },
     create: {
       eventType: 'micro-intervention-evidence',
       correlationId: input.interventionId,
       causationId: watermark,
       ownerUserId: input.ownerUserId,
-      payload: projectionTaskPayload(input.interventionId, watermark),
+      payload: projectionTaskPayload(input.interventionId, watermark, identity),
       dedupeKey,
       status: 'pending',
     },
@@ -387,8 +405,9 @@ export async function processPendingMicroInterventionEvidenceProjections(
         processed += 1;
         continue;
       }
+      const identity = await resolveMicroInterventionEvidenceIdentity(outcome);
       const expectedWatermark = nonEmpty(payload.sourceWatermark);
-      const currentWatermark = sealedMicroInterventionProjectionWatermark(outcome);
+      const currentWatermark = sealedMicroInterventionProjectionWatermark(outcome, identity);
       if (expectedWatermark && expectedWatermark !== currentWatermark) {
         await db.evidenceOutbox.update({
           where: { dedupeKey: task.dedupeKey },
@@ -404,7 +423,7 @@ export async function processPendingMicroInterventionEvidenceProjections(
       await projectMicroInterventionOutcome({
         db,
         outcome,
-        identity: await resolveMicroInterventionEvidenceIdentity(outcome),
+        identity,
       });
       await db.evidenceOutbox.update({
         where: { dedupeKey: task.dedupeKey },

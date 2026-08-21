@@ -9,6 +9,7 @@ import {
   buildPublicMicroInterventionEvidenceReport,
   projectMicroInterventionOutcome,
   readSealedMicroInterventionProjectionSource,
+  sealedMicroInterventionProjectionWatermark,
   summarizeMicroInterventionEvidenceForPath,
   type MicroInterventionEvidenceDb,
   type MicroInterventionEvidenceIdentity,
@@ -388,6 +389,17 @@ describe('micro-intervention learning evidence', () => {
       isCorrect: true,
       occurredAt: new Date('2026-08-01T00:00:00.000Z'),
     }], new Date('2026-08-20T00:00:00.000Z'))).toEqual(late);
+  });
+
+  it('includes projection identity in the sealed watermark', () => {
+    const outcome = sealedOutcome();
+    const first = sealedMicroInterventionProjectionWatermark(outcome, IDENTITY);
+    const shifted = sealedMicroInterventionProjectionWatermark(outcome, {
+      ...IDENTITY,
+      captureRevision: 'other-capture',
+    });
+    expect(shifted).not.toBe(first);
+    expect(sealedMicroInterventionProjectionWatermark(outcome, IDENTITY)).toBe(first);
   });
 
   it('consumes pending projection tasks and records projected or failed status', async () => {
