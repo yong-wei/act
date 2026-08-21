@@ -884,6 +884,19 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
   });
 
+  it('keeps the adaptive practice browser entrypoint free of server-only catalog imports', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const bridgeSource = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+    const restoreSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-round-restore.ts'), 'utf8');
+
+    expect(pageSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(bridgeSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(pageSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
+    expect(bridgeSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
+    expect(restoreSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(restoreSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
+  });
+
   it('builds editable path generation requests from panel controls', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');

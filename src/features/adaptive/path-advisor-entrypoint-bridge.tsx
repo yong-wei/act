@@ -5,10 +5,9 @@ import { useSearchParams } from 'next/navigation';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import {
-  getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,
   type AdaptivePathAdvisorGoalContext,
-} from '@/lib/adaptive-path-goal-options';
+} from '@/lib/adaptive-path-goal-options-client';
 
 interface PathAdvisorEntryPointBridgeProps {
   classId: string | null;
@@ -45,7 +44,7 @@ export function PathAdvisorEntryPointBridge({
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
-    const goalContext = goalContexts[explicitGoal] ?? getAdaptivePracticeGoalOption(explicitGoal)?.konlingContext;
+    const goalContext = goalContexts[explicitGoal] ?? null;
     if (!goalContext) {
       updatePageContext({ assistantEntryPoint: null });
       return;
