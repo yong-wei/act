@@ -3,10 +3,13 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 import {
+  canonicalJson,
   loadTextbookResourceSet,
   sanitizeTextbookResourceSet,
   textbookBookCount,
   textbookBookIds,
+  textbookResourceSetDigest,
+  textbookResourceSetIdentity,
 } from '../release/textbook-resource-set.mjs';
 
 const root = process.cwd();
@@ -57,5 +60,41 @@ for (const [command, expected] of [
   assert.equal(result.status, 0, `${command} should exit 0`);
   assert.equal(result.stdout.trim(), expected);
 }
+
+const identity = textbookResourceSetIdentity(resourceSet);
+assert.deepEqual(identity.bookIds, resourceSet.books);
+assert.match(textbookResourceSetDigest(resourceSet), /^[0-9a-f]{64}$/u);
+assert.equal(
+  canonicalJson({ resourceSetId: 'b', bookIds: ['a'] }),
+  '{"bookIds":["a"],"resourceSetId":"b"}',
+);
+
+const pythonDigest = spawnSync('python3', [
+  path.join(root, 'course-content/scripts/textbook_resource_set.py'),
+  'digest',
+], {
+  cwd: root,
+  encoding: 'utf8',
+});
+assert.equal(pythonDigest.status, 0, pythonDigest.stderr);
+assert.equal(pythonDigest.stdout.trim(), textbookResourceSetDigest(resourceSet));
+
+const pythonIdentity = spawnSync('python3', [
+  path.join(root, 'course-content/scripts/textbook_resource_set.py'),
+  'identity',
+], {
+  cwd: root,
+  encoding: 'utf8',
+});
+assert.equal(pythonIdentity.status, 0, pythonIdentity.stderr);
+assert.equal(pythonIdentity.stdout.trim(), canonicalJson(identity));
+
+assert.throws(
+  () => sanitizeTextbookResourceSet({
+    ...validResourceSet,
+    books: ['alpha-book', 'beta-book', 'alpha-book'],
+  }),
+  /textbook-resource-set-books-invalid/u,
+);
 
 console.log('textbook-resource-set validation: PASS');

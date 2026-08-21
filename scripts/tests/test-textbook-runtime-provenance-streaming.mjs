@@ -139,6 +139,10 @@ try {
     path.join(remoteReleaseDir, 'textbook-resource-set.mjs'),
   );
   fs.copyFileSync(
+    path.join(root, 'scripts', 'release', 'textbook-runtime-input-provenance.mjs'),
+    path.join(remoteReleaseDir, 'textbook-runtime-input-provenance.mjs'),
+  );
+  fs.copyFileSync(
     path.join(root, 'course-content', 'config', 'textbook-resource-set.json'),
     path.join(remoteConfigDir, 'textbook-resource-set.json'),
   );
