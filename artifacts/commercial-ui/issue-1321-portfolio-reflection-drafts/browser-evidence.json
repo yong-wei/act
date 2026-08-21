@@ -1,15 +1,15 @@
 {
   "change": "persist-portfolio-reflection-drafts",
-  "capturedAt": "2026-08-12T02:26:40.847Z",
-  "captureRevision": "a25feb05f90be931e952e9c0bb1bbb69c1057af4",
+  "capturedAt": "2026-08-21T15:53:29.161Z",
+  "captureRevision": "55d03a12c508a153052b217b892c6eee392aa380",
   "generator": "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/capture-portfolio-reflection-drafts-evidence.mjs",
   "sourceHashes": {
-    "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/capture-portfolio-reflection-drafts-evidence.mjs": "84ed2d24d2fe376cfc0d8a971f03d34b06966154339d5c12cb22c73211b2ec74",
-    "tests/portfolio-reflection-drafts-1321.spec.ts": "7072a6b5f783f72ce1bd0ea6e767a42d2bf08fda262ce33ecfeedc177591cf35",
-    "src/app/(main)/profile/portfolio/page.tsx": "f7f5751403a69b49bcbca9ce0308f1307a2653595affd09b1b0be99554d121ab",
-    "src/app/api/profile/portfolio-reflection-drafts/route.ts": "4e34c46063da9685b9e4aef24bbb8592df53a6fa5da6d8db087159bb983966b0",
-    "src/app/api/profile/portfolio-reflection-drafts/[draftId]/route.ts": "f2b4d310ddda54f0f155c5610baff9cb56671c6b9797ad7167288e8054ee7826",
-    "src/lib/ai-task-boundary-contracts.ts": "5dd7064f592f13abed570adb3e01db1e1609c6b64e63039a69a5ec2346790213"
+    "artifacts/commercial-ui/issue-1321-portfolio-reflection-drafts/capture-portfolio-reflection-drafts-evidence.mjs": "a5bcf40b4f0f755943afe823679dd4952d2f0c5482794519df36a767546f378d",
+    "tests/portfolio-reflection-drafts-1321.spec.ts": "e0b6fe997472e70e1fe0a3cf38ecdfc270d09b577e7887711f9cb22aebc269ff",
+    "src/app/(main)/profile/portfolio/page.tsx": "8a885a21cb3f5ba17fc1e3b39123f3824e558ac3a66f2985c63550a1a8985e27",
+    "src/app/api/profile/portfolio-reflection-drafts/route.ts": "ae3c28a375e42cddc04eebc50c9751360e09deda5c4cbbf224163cce1f45cfcd",
+    "src/app/api/profile/portfolio-reflection-drafts/[draftId]/route.ts": "4c334de61a84d3e5c806e9e8b5ba44e65384f13ee1cb908edcc4b86327c3241d",
+    "src/lib/ai-task-boundary-contracts.ts": "478d99d4c861ebda7eaedf9892cc3dfe3aab8b2c02e1040a30f43cd50ae61caf"
   },
   "route": "/profile/portfolio?category=reflection&intent=create&source=portfolio&taskIntent=create-portfolio-reflection",
   "screenshots": [
@@ -19,7 +19,7 @@
         "width": 1440,
         "height": 1000
       },
-      "sha256": "d8688a5d83a8bd49ba03a86ea2fa5c8b25283a158652c7b25d8774dd8dcb0fad",
+      "sha256": "b944cce233c4830667b08db6900a6712d8b16bf7d284484996d34fef5553ccd0",
       "dimensions": {
         "width": 1440,
         "height": 1000
@@ -31,7 +31,7 @@
         "width": 320,
         "height": 900
       },
-      "sha256": "1da045cbdd1ddecb9f83229ffa643406fdab00b90a27af27523209808570f2bc",
+      "sha256": "956c78cba5f2d495c5417c7d7a562525dc319a4557449b3efa472e86c2ac4da9",
       "dimensions": {
         "width": 320,
         "height": 1320
