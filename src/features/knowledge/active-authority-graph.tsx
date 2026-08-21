@@ -19,6 +19,8 @@ import {
 import type {
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 import {
   activeModelRelationSummaries,
   activeNodeRelationSummaries,
@@ -985,6 +987,16 @@ function ActiveNodeDetail({
             </p>
             {node?.aliases && node.aliases.length > 0 ? (
               <p className="mt-2 text-xs text-platform-fg-muted">别名：{node.aliases.join('、')}</p>
+            ) : null}
+            {node?.mathematics?.state === 'available' ? (
+              <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
+                <BlockMath
+                  math={node.mathematics.expression}
+                  renderError={() => (
+                    <p className="text-sm text-platform-fg-muted">该公式暂不可渲染。</p>
+                  )}
+                />
+              </div>
             ) : null}
           </div>
           <section aria-labelledby="active-detail-relations">

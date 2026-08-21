@@ -128,6 +128,24 @@ export interface ActiveNodeAdjacency {
   releaseTier?: string | null;
 }
 
+export type ActiveNodeMathematics =
+  | { state: 'available'; expression: string; display: 'block' }
+  | { state: 'missing' };
+
+export function projectActiveNodeMathematics(
+  teachingFields: Record<string, unknown> | null | undefined,
+): ActiveNodeMathematics {
+  const expression = teachingFields?.formula_latex;
+  if (typeof expression !== 'string' || expression.trim().length === 0) {
+    return { state: 'missing' };
+  }
+  return {
+    state: 'available',
+    expression: expression.trim(),
+    display: 'block',
+  };
+}
+
 export interface ActiveNodeDetailResponse {
   projectionVersion: 'act.node-detail.v2';
   source: ActiveAuthoritySource;
@@ -147,6 +165,7 @@ export interface ActiveNodeDetailResponse {
     releaseTier?: string;
     aliases?: string[];
     teachingFields?: Record<string, unknown>;
+    mathematics?: ActiveNodeMathematics;
     governance?: {
       reviewStatus: string | null;
       publicationStatus: string | null;

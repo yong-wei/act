@@ -16,11 +16,12 @@ import {
   resolveAuthorityStorePaths,
   type AuthorityStorePaths,
 } from '@/lib/authoritative-knowledge/authority-store';
-import type {
-  ActiveAuthorityProvenance,
-  ActiveAuthoritySource,
-  ActiveCanvasResponse,
-  ActiveNodeDetailResponse,
+import {
+  projectActiveNodeMathematics,
+  type ActiveAuthorityProvenance,
+  type ActiveAuthoritySource,
+  type ActiveCanvasResponse,
+  type ActiveNodeDetailResponse,
 } from '@/features/knowledge/active-authority-graph-contracts';
 import type {
   KnowledgeRole,
@@ -504,9 +505,17 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
 ): NextResponse {
   try {
     const shard = projectAuthorityLearnerShard(read());
-    if (role === 'STUDENT' && shard.shardClass === 'node-detail') {
-      const { teachingFields: _teachingFields, ...node } = (shard as unknown as PublicAuthorityNodeDetailShard).node;
-      return NextResponse.json({ ...shard, node });
+    if (shard.shardClass === 'node-detail') {
+      const detail = shard as unknown as PublicAuthorityNodeDetailShard;
+      const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);
+      if (role === 'STUDENT') {
+        const { teachingFields: _teachingFields, ...node } = detail.node;
+        return NextResponse.json({ ...detail, node: { ...node, mathematics } });
+      }
+      return NextResponse.json({
+        ...detail,
+        node: { ...detail.node, mathematics },
+      });
     }
     return NextResponse.json(shard);
   } catch (error) {

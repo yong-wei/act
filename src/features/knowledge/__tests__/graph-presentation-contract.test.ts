@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { projectActiveNodeMathematics } from '../active-authority-graph-contracts';
 import {
   KNOWLEDGE_GRAPH_PRODUCT_VERSION,
   knowledgeGraphProductVersionLabel,
@@ -24,6 +25,16 @@ describe('shared graph presentation contract', () => {
     const root = layoutKnowledgeRootLabel('传递函数、系统模型与时域分析方法');
     expect(root.lines.length).toBeGreaterThan(1);
     expect(root.truncated).toBe(false);
+  });
+
+  it('projects only declared formula_latex as governed mathematics', () => {
+    expect(projectActiveNodeMathematics({ formula_latex: 'G(s)=\\frac{1}{s}' })).toEqual({
+      state: 'available',
+      expression: 'G(s)=\\frac{1}{s}',
+      display: 'block',
+    });
+    expect(projectActiveNodeMathematics({ concept_kind: 'engineering' })).toEqual({ state: 'missing' });
+    expect(projectActiveNodeMathematics({ formula_latex: '   ' })).toEqual({ state: 'missing' });
   });
 
   it('keeps the active graph on shared presentation contracts without Legacy DTOs', () => {
