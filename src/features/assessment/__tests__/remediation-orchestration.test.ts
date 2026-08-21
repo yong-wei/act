@@ -14,6 +14,8 @@ import {
 import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
 
 const HASH_A = 'a'.repeat(64);
+const GOVERNED_VALIDATION_SOURCE_ID = 'control-correction-practice-01';
+const GOVERNED_VALIDATION_HASH = '6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297';
 const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
 
 vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', () => ({
@@ -105,14 +107,14 @@ function validation(input: {
   misconceptionTags?: string[];
   sourceQuestionIds?: string[];
   reviewState?: AdaptiveAssessmentCatalogReviewState;
-  stage?: 'remediation' | 'checkpoint';
+  stage?: 'remediation' | 'checkpoint' | 'low-stakes-practice';
   reviewSourceHash?: string;
   omitRemediationValidation?: boolean;
 }) {
   const id = input.id ?? 'validation-1';
-  const questionId = input.questionId ?? 'question-variant';
-  const contentHash = input.contentHash ?? HASH_A;
-  const catalogContentHash = input.catalogContentHash ?? HASH_A;
+  const questionId = input.questionId ?? GOVERNED_VALIDATION_SOURCE_ID;
+  const contentHash = input.contentHash ?? GOVERNED_VALIDATION_HASH;
+  const catalogContentHash = input.catalogContentHash ?? GOVERNED_VALIDATION_HASH;
   const stage = input.stage ?? 'remediation';
   const knowledgeNodeId = input.knowledgeNodeId ?? GOVERNED_NODE;
   const decisionWithoutHash = {
@@ -295,7 +297,8 @@ describe('remediation orchestration', () => {
         resources: [{ id: GOVERNED_RESOURCE_ID }],
         validationQuestion: {
           itemRefId: 'validation-1',
-          contentHash: HASH_A,
+          questionId: GOVERNED_VALIDATION_SOURCE_ID,
+          contentHash: GOVERNED_VALIDATION_HASH,
           actionPath: '/assessment/adaptive-practice',
         },
       },
@@ -327,6 +330,43 @@ describe('remediation orchestration', () => {
     expect(JSON.stringify(result)).not.toContain('correctAnswer');
     expect(JSON.stringify(result)).not.toContain('explanation');
     expect(JSON.stringify(result)).not.toContain('options');
+    expect(JSON.stringify(result)).not.toContain('independenceRationale');
+    expect(JSON.stringify(result)).not.toContain('purposeRationale');
+    expect(JSON.stringify(result)).not.toContain('PRIVATE_CORRECT_ANSWER');
+  });
+
+  it('excludes the source practice item when selecting a frozen validation question', async () => {
+    const { db, mocks, validations } = createDb();
+    mocks.wrongAnswerAttribution.findFirst.mockResolvedValue({
+      id: 'attribution-1',
+      userId: 'learner-1',
+      questionId: GOVERNED_VALIDATION_SOURCE_ID,
+      state: 'ATTRIBUTED',
+      knowledgeNodeIds: [GOVERNED_NODE],
+      misconceptionTags: [GOVERNED_TAG],
+    });
+    validations.push(validation({
+      id: 'validation-2',
+      questionId: 'control-correction-practice-02',
+      contentHash: 'f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7',
+      catalogContentHash: 'f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7',
+    }));
+
+    const result = await orchestrateRemediation({
+      db,
+      authenticatedUserId: 'learner-1',
+      attributionId: 'attribution-1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'AVAILABLE',
+      task: {
+        validationQuestion: {
+          itemRefId: 'validation-2',
+          questionId: 'control-correction-practice-02',
+        },
+      },
+    });
   });
 
   it('binds action identity when TeachingResource id is a cuid and registryId matches the projection', async () => {
@@ -379,8 +419,8 @@ describe('remediation orchestration', () => {
       }],
       validationQuestion: {
         itemRefId: 'validation-1',
-        questionId: 'question-variant',
-        contentHash: HASH_A,
+        questionId: GOVERNED_VALIDATION_SOURCE_ID,
+        contentHash: GOVERNED_VALIDATION_HASH,
         version: 'validation.v1',
         estimatedMinutes: 2,
         actionPath: '/assessment/adaptive-practice',
@@ -414,7 +454,7 @@ describe('remediation orchestration', () => {
         actionPath: `/interactive-learning/resources/${GOVERNED_RESOURCE_ID}`,
       }],
       validationQuestion: {
-        itemRefId: 'validation-1', questionId: 'question-variant', contentHash: HASH_A,
+        itemRefId: 'validation-1', questionId: GOVERNED_VALIDATION_SOURCE_ID, contentHash: HASH_A,
         version: 'validation.v1', estimatedMinutes: 2, actionPath: '/assessment/items/validation-1',
       },
     };
@@ -461,8 +501,6 @@ describe('remediation orchestration', () => {
   it('discovers a production catalog item without remediationValidation metadata', async () => {
     const { db, mocks, validations } = createDb();
     validations[0] = validation({
-      contentHash: 'b'.repeat(64),
-      catalogContentHash: HASH_A,
       omitRemediationValidation: true,
     });
 
@@ -476,7 +514,8 @@ describe('remediation orchestration', () => {
       task: {
         estimatedMinutes: 5,
         validationQuestion: {
-          contentHash: 'b'.repeat(64),
+          questionId: GOVERNED_VALIDATION_SOURCE_ID,
+          contentHash: GOVERNED_VALIDATION_HASH,
           estimatedMinutes: 2,
           actionPath: '/assessment/adaptive-practice',
         },
@@ -484,15 +523,14 @@ describe('remediation orchestration', () => {
     });
     expect(mocks.adaptiveAssessmentItemRef.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
-        metadata: {
-          path: ['adaptiveAssessmentItemRef', 'semanticRefs', 'graphNodeIds'],
-          array_contains: [GOVERNED_NODE],
+        questionId: {
+          in: expect.arrayContaining([GOVERNED_VALIDATION_SOURCE_ID]),
         },
       }),
     }));
   });
 
-  it('uses a reviewed remediation item on the attributed node as transfer validation', async () => {
+  it('uses an independent same-node practice item even when catalog misconception tags differ', async () => {
     const { db, validations } = createDb();
     validations[0] = validation({
       misconceptionTags: ['transfer-misconception'],
@@ -510,7 +548,7 @@ describe('remediation orchestration', () => {
       task: {
         validationQuestion: {
           itemRefId: 'validation-1',
-          questionId: 'question-variant',
+          questionId: GOVERNED_VALIDATION_SOURCE_ID,
         },
       },
     });
@@ -633,7 +671,7 @@ describe('remediation orchestration', () => {
     ['imported-unreviewed', { reviewState: 'imported-unreviewed' }],
     ['deprecated', { reviewState: 'deprecated' }],
     ['stale-review', { reviewSourceHash: 'stale-review-hash' }],
-    ['wrong-stage', { stage: 'checkpoint' as const }],
+    ['wrong-stage', { stage: 'checkpoint' as const, questionId: 'checkpoint-only-item' }],
   ] as const)('fails closed for a %s validation catalog snapshot', async (_label, overrides) => {
     const { db, mocks } = createDb();
     mocks.adaptiveAssessmentItemRef.findMany.mockResolvedValue([validation(overrides)]);
@@ -677,6 +715,23 @@ describe('remediation orchestration', () => {
     expect(JSON.stringify(result)).not.toContain(`Resource ${GOVERNED_RESOURCE_ID}`);
   });
 
+  it('fails closed when validation access is revoked during retrieval', async () => {
+    const { db, mocks, validations } = createDb();
+    const created = await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
+    const row = mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
+    mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(await row);
+    validations[0] = validation({ learnerVisible: false });
+
+    const result = await readRemediationOrchestration({
+      db,
+      authenticatedUserId: 'learner-1',
+      resultId: created!.id,
+    });
+
+    expect(result).toMatchObject({ status: 'UNAVAILABLE', unavailableReason: 'ACCESS_REVOKED' });
+    expect(JSON.stringify(result)).not.toContain(GOVERNED_VALIDATION_SOURCE_ID);
+  });
+
   it('fails closed when a validation reference drifts', async () => {
     const { db, mocks, validations } = createDb();
     await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
@@ -694,7 +749,7 @@ describe('remediation orchestration', () => {
     await orchestrateRemediation({ db, authenticatedUserId: 'learner-1', attributionId: 'attribution-1' });
     const row = await mocks.remediationOrchestrationResult.upsert.mock.results[0].value;
     mocks.remediationOrchestrationResult.findFirst.mockResolvedValue(row);
-    currentCatalogSnapshots.delete('question-variant');
+    currentCatalogSnapshots.delete(GOVERNED_VALIDATION_SOURCE_ID);
 
     const result = await readRemediationOrchestration({
       db,
