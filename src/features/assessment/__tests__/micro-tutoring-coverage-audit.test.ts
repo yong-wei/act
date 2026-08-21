@@ -291,6 +291,32 @@ describe('micro tutoring coverage audit', () => {
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
 
+  it('blocks a catalog node that differs from its governed attribution group', () => {
+    const attributions = publishedOptionAttributions.entries as MicroTutoringOptionAttribution[];
+    const catalogSource = readJson<{
+      entries: Array<Record<string, unknown>>;
+      [key: string]: unknown;
+    }>('micro-tutoring-goal-node-catalog.json');
+    const forgedEntries = catalogSource.entries.map((entry, index) => index === 0
+      ? { ...entry, knowledgeNodeId: 'kn:autocontrol:feedback-loop' }
+      : entry);
+    const resolveResources = vi.fn(() => []);
+    const resolveValidationItems = vi.fn(() => []);
+    const result = report({
+      optionAttributions: attributions,
+      goalNodeCatalogSource: { ...catalogSource, entries: forgedEntries },
+      resolveResources,
+      resolveValidationItems,
+    });
+
+    expect(result.attributionIssues).toHaveLength(108);
+    expect(result.attributionIssues.every((issue) =>
+      issue.reason === 'GOAL_NODE_CATALOG_INVALID')).toBe(true);
+    expect(resolveResources).not.toHaveBeenCalled();
+    expect(resolveValidationItems).not.toHaveBeenCalled();
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
+  });
+
   it('reports content hash drift and duplicate baseline identifiers without changing the denominator', () => {
     const result = report({
       baseline: {

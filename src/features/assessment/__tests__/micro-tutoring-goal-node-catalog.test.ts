@@ -193,4 +193,24 @@ describe('micro tutoring goal node catalog', () => {
       });
     }
   });
+
+  it('rejects a catalog node that differs from the governed attribution group node', () => {
+    const forgedCatalogNode = {
+      ...activeEntry,
+      knowledgeNodeId: 'kn:autocontrol:time-domain-performance',
+    };
+    const loaded = loadMicroTutoringGoalNodeCatalog(
+      source([forgedCatalogNode]),
+      sourceContext([activeEntry]),
+    );
+
+    expect(loaded.issues).toContainEqual({
+      code: 'SOURCE_DRIFT',
+      ref: activeEntry.learningGoalId,
+    });
+    expect(resolveMicroTutoringGoalNode(activeEntry.learningGoalId, loaded)).toEqual({
+      ok: false,
+      reason: 'CATALOG_INVALID',
+    });
+  });
 });

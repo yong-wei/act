@@ -145,6 +145,7 @@ export function loadMicroTutoringGoalNodeCatalog(
     attributionsByCatalogItemId.set(entry.catalogItemId, records);
   }
   const bindingsByGoalId = new Map<string, string[]>();
+  const knowledgeNodesByGoalId = new Map<string, Set<string>>();
   for (const [catalogItemId, contentHash] of baselineByCatalogItemId) {
     const records = attributionsByCatalogItemId.get(catalogItemId) ?? [];
     const validRecords = records.filter((entry) =>
@@ -172,6 +173,9 @@ export function loadMicroTutoringGoalNodeCatalog(
     const [knowledgeNodeId] = knowledgeNodeIds;
     bindings.push(`${catalogItemId}\0${contentHash}\0${itemReviewSourceHash}\0${knowledgeNodeId}`);
     bindingsByGoalId.set(learningGoalId, bindings);
+    const governedNodes = knowledgeNodesByGoalId.get(learningGoalId) ?? new Set<string>();
+    governedNodes.add(knowledgeNodeId);
+    knowledgeNodesByGoalId.set(learningGoalId, governedNodes);
   }
   const attributionVersion = nonEmptyString(attributionSource?.version)
     ? attributionSource.version
@@ -219,6 +223,8 @@ export function loadMicroTutoringGoalNodeCatalog(
     }
     if (
       !bindingsByGoalId.has(normalized.learningGoalId) ||
+      knowledgeNodesByGoalId.get(normalized.learningGoalId)?.size !== 1 ||
+      !knowledgeNodesByGoalId.get(normalized.learningGoalId)?.has(normalized.knowledgeNodeId) ||
       !sameStrings(normalized.sourceRefs, governedSourceRefs(
         normalized.learningGoalId,
         String(value.baselineVersion),
