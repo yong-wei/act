@@ -14,8 +14,11 @@ import {
 import {
   evaluateAssessmentEvidenceAuthority,
 } from './assessment-evidence-authority';
+import {
+  loadFrozenTerminalValidationOverlay,
+} from './adaptive-assessment-lifecycle-coverage';
 
-export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation';
+export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
 
 export interface CatalogSelectionLimitation {
   code: 'path-assessment-catalog-coverage-incomplete';
@@ -79,7 +82,12 @@ function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArt
   if (cachedArtifacts) return cachedArtifacts;
   const items = readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, CATALOG_ITEMS_PATH));
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
-  cachedArtifacts = buildRuntimeCatalogArtifacts(items, decisions);
+  const overlay = loadFrozenTerminalValidationOverlay();
+  const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
+  cachedArtifacts = buildRuntimeCatalogArtifacts(
+    [...items.filter((item) => !overlayIds.has(item.catalogItemId)), ...overlay.items],
+    [...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId)), ...overlay.decisions],
+  );
   return cachedArtifacts;
 }
 
@@ -111,6 +119,7 @@ function decisionStageMatches(
       decision.selectedStagePurpose === 'precheck';
   }
   if (requestedStage === 'checkpoint') return decision.selectedStagePurpose === 'checkpoint';
+  if (requestedStage === 'terminal-validation') return decision.selectedStagePurpose === 'terminal-validation';
   return decision.selectedStagePurpose === 'remediation';
 }
 
@@ -140,12 +149,13 @@ function isReviewedPathEligibleSelection(
         requestedStage,
       })
     : null;
-  return Boolean(
-    decision &&
-    authority &&
-    authority[requestedStage] &&
-    decisionStageMatches(decision, requestedStage),
-  );
+  if (!decision || !authority || !decisionStageMatches(decision, requestedStage)) return false;
+  if (requestedStage === 'terminal-validation') {
+    return authority.limitations.length === 0
+      && item.sourceFamily !== 'generated-adaptive-question'
+      && item.eligibilityState === 'path-eligible';
+  }
+  return Boolean(authority[requestedStage]);
 }
 
 export function selectCatalogBackedAssessmentItem(params: {

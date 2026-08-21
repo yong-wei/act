@@ -173,7 +173,7 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 ## 数据治理、学习路径与智能助教
 
-数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。
+数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。自适应题库生命周期覆盖 v2 按九个学习目标和 readiness / practice / checkpoint / remediation / terminal-validation 分别报告登记、允许、审核、资格、运行时注册与可选择数量；`practice-v1` 的 54 题分母保持不变。题目型终结验证是独立 scope，可与仿真或 Arena 终验并存，不得静默替代。
 
 主要数据表与链路：
 
