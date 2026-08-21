@@ -7,6 +7,7 @@ import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metada
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import { listMicroTutoringGovernedResources } from './micro-tutoring-resource-registry';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
 export const REMEDIATION_MANUAL_PRACTICE_PATH = '/assessment/adaptive-practice?intent=practice';
@@ -126,6 +127,10 @@ export interface RemediationTaskSnapshot {
     version: string;
     estimatedMinutes: number;
     actionPath: string;
+    registryId?: string;
+    actionId?: string;
+    actionVersion?: string;
+    resourceRevision?: string;
   }>;
   validationQuestion: {
     itemRefId: string;
@@ -468,7 +473,13 @@ function learnerTaskProjection(task: RemediationTaskSnapshot): RemediationTaskPr
     version: task.version,
     goal: task.goal,
     estimatedMinutes: task.estimatedMinutes,
-    resources: task.resources.map((resource) => ({ ...resource })),
+    resources: task.resources.map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      version: resource.version,
+      estimatedMinutes: resource.estimatedMinutes,
+      actionPath: resource.actionPath,
+    })),
     validationQuestion: { ...task.validationQuestion },
   };
 }
@@ -493,8 +504,22 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
     const version = nonEmptyString(resource?.version);
     const minutes = governedMinutes(resource?.estimatedMinutes);
     const actionPath = governedActionPath(resource?.actionPath);
+    const registryId = nonEmptyString(resource?.registryId) ?? undefined;
+    const actionId = nonEmptyString(resource?.actionId) ?? undefined;
+    const actionVersion = nonEmptyString(resource?.actionVersion) ?? undefined;
+    const resourceRevision = nonEmptyString(resource?.resourceRevision) ?? undefined;
     return id && title && version && minutes && actionPath
-      ? { id, title, version, estimatedMinutes: minutes, actionPath }
+      ? {
+        id,
+        title,
+        version,
+        estimatedMinutes: minutes,
+        actionPath,
+        ...(registryId ? { registryId } : {}),
+        ...(actionId ? { actionId } : {}),
+        ...(actionVersion ? { actionVersion } : {}),
+        ...(resourceRevision ? { resourceRevision } : {}),
+      }
       : null;
   });
   const itemRefId = nonEmptyString(validation.itemRefId);
@@ -563,6 +588,24 @@ async function projectResult(
       parsed.version !== stored.version ||
       parsed.estimatedMinutes !== stored.estimatedMinutes ||
       parsed.actionPath !== stored.actionPath
+    ) {
+      return unavailableProjection(row, 'REFERENCE_DRIFT');
+    }
+    const projected = listMicroTutoringGovernedResources({
+      knowledgeNodeId: task.knowledgeNodeId,
+      misconceptionTag: task.misconceptionTag,
+    }).find((candidate) =>
+      candidate.registryId === stored.registryId ||
+      candidate.registryId === stored.id ||
+      candidate.id === stored.id);
+    if (
+      !stored.actionId ||
+      !stored.actionVersion ||
+      !stored.resourceRevision ||
+      !projected ||
+      projected.actionId !== stored.actionId ||
+      projected.actionVersion !== stored.actionVersion ||
+      projected.version !== stored.resourceRevision
     ) {
       return unavailableProjection(row, 'REFERENCE_DRIFT');
     }
@@ -734,6 +777,19 @@ async function orchestrateRemediationVersion(input: {
     }));
   }
 
+  const projectedResources = listMicroTutoringGovernedResources({
+    knowledgeNodeId,
+    misconceptionTag,
+  });
+  if (projectedResources.length === 0) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+  const projectedKeys = new Set(projectedResources.flatMap((resource) => [resource.id, resource.registryId]));
   const resourceRows = await input.db.teachingResource.findMany({
     where: {
       teacherOnly: false,
@@ -744,8 +800,10 @@ async function orchestrateRemediationVersion(input: {
     },
     select: remediationResourceSelect(),
   });
+  const matchingRows = resourceRows.filter((row) =>
+    projectedKeys.has(row.id) || (row.registryId !== null && projectedKeys.has(row.registryId)));
   const resources = listGovernedRemediationResources({
-    rows: resourceRows,
+    rows: matchingRows,
     knowledgeNodeId,
     misconceptionTag,
   });
@@ -803,6 +861,30 @@ async function orchestrateRemediationVersion(input: {
     }));
   }
 
+  const boundResources = selection.resources.map(({ tier: _tier, ...resource }) => {
+    const row = matchingRows.find((candidate) => candidate.id === resource.id);
+    const projected = projectedResources.find((candidate) =>
+      candidate.registryId === resource.id ||
+      candidate.id === resource.id ||
+      (row?.registryId !== null && row?.registryId === candidate.registryId));
+    if (!projected?.actionId || !projected.actionVersion) return null;
+    return {
+      ...resource,
+      registryId: projected.registryId,
+      actionId: projected.actionId,
+      actionVersion: projected.actionVersion,
+      resourceRevision: projected.version,
+    };
+  });
+  if (boundResources.some((resource) => resource === null)) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+
   const taskSnapshot: RemediationTaskSnapshot = {
     version: 'remediation-task-snapshot.v1',
     goal: `巩固“${knowledgeNode.name}”的关键概念`,
@@ -811,7 +893,7 @@ async function orchestrateRemediationVersion(input: {
     sourceQuestionId: attribution.questionId,
     knowledgeNodeId,
     misconceptionTag,
-    resources: selection.resources.map(({ tier: _tier, ...resource }) => resource),
+    resources: boundResources as RemediationTaskSnapshot['resources'],
     validationQuestion: {
       itemRefId: selection.validation.id,
       questionId: selection.validation.questionId,
