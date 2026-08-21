@@ -101,6 +101,13 @@ import {
   settlePathGenerationRequest,
   type PathGenerationRequestStatus,
 } from '@/lib/path-generation-request-lifecycle';
+import {
+  buildAdaptivePathComparisonKey,
+  buildAdaptivePathComparisonVersion,
+  enumerateAdaptivePathComparisonPairs,
+  normalizeAdaptivePathComparisonPair,
+  type AdaptivePathComparisonPair,
+} from '@/lib/adaptive-path-comparison';
 import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
 import {
   adaptivePracticeGoalLabel,
@@ -214,6 +221,7 @@ interface LearningPathRoundResponse {
     alternativePayload?: unknown[] | null;
     terminalValidation?: Record<string, unknown> | null;
     lastExecutionMetadata?: Record<string, unknown> | null;
+    updatedAt?: string | null;
     executions?: Array<Record<string, unknown>>;
     deviations?: Array<Record<string, unknown>>;
     interventions?: Array<Record<string, unknown>>;
@@ -222,7 +230,28 @@ interface LearningPathRoundResponse {
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-type PathOptionView = AdaptivePathOptionWriteOption & { batchId?: string; candidateId?: string };
+type PathOptionView = AdaptivePathOptionWriteOption & {
+  batchId?: string;
+  candidateId?: string;
+  candidateFingerprint?: string;
+  checkpointNodeIds?: string[];
+  summaryFactAvailability?: {
+    nodeIds: boolean;
+    resourceMix: boolean;
+    rhythm: boolean;
+    readinessSummary: boolean;
+    checkpointNodeIds: boolean;
+    lockedNodeIds: boolean;
+    terminalValidationNodeIds: boolean;
+  };
+};
+
+function isPersistedCandidatePathOption(
+  option: AdaptivePathOptionWriteOption | null | undefined,
+): option is PathOptionView {
+  const candidate = option as PathOptionView | null | undefined;
+  return Boolean(candidate?.batchId && candidate.candidateId && candidate.candidateFingerprint);
+}
 type PathRecommendationProvenanceEntry = NonNullable<
   AdaptivePathOptionWriteOption['recommendationProvenance']
 >['entries'][number];
@@ -236,8 +265,10 @@ interface AdaptivePathCandidateBatchView {
   id: string;
   goalId: string;
   sourcePathId: string;
+  sourcePathVersion: string;
   candidates: Array<{
     id: string;
+    fingerprint: string;
     styleId: string;
     label: string;
     snapshot: Record<string, unknown>;
@@ -258,6 +289,7 @@ interface PathDifferenceNode {
 interface PathDifferenceExplanation {
   status: PathDifferenceStatus;
   pathId: string;
+  comparisonKey?: string;
   options: Array<{
     optionId: string;
     styleId: string;
@@ -1508,6 +1540,12 @@ function getRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function readPathProgressVersion(value: unknown): string | null {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+  return null;
+}
+
 function getStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
@@ -1614,6 +1652,7 @@ function readPathDifferenceExplanation(value: unknown): PathDifferenceExplanatio
   return {
     status,
     pathId,
+    comparisonKey: typeof record.comparisonKey === 'string' ? record.comparisonKey : undefined,
     options,
     commonNodes,
     optionOnlyNodes,
@@ -1631,11 +1670,15 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     const option = getRecord(item);
     const effort = getRecord(option.effort);
     const terminalValidationStrategy = getRecord(option.terminalValidationStrategy);
+    const hasResourceMix = typeof option.resourceMix === 'object'
+      && option.resourceMix !== null
+      && !Array.isArray(option.resourceMix);
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
       nodeIds: getStringArray(option.nodeIds),
       activeNodeIds: getStringArray(option.activeNodeIds),
+      checkpointNodeIds: getStringArray(option.checkpointNodeIds),
       nodeSummaries: Array.isArray(option.nodeSummaries)
         ? option.nodeSummaries.map((item) => {
             const summary = getRecord(item);
@@ -1694,6 +1737,15 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
       recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
+      summaryFactAvailability: {
+        nodeIds: Array.isArray(option.nodeIds),
+        resourceMix: hasResourceMix,
+        rhythm: typeof effort.relative === 'string',
+        readinessSummary: Array.isArray(option.readinessSummary),
+        checkpointNodeIds: Array.isArray(option.checkpointNodeIds),
+        lockedNodeIds: Array.isArray(option.lockedNodeIds),
+        terminalValidationNodeIds: Array.isArray(option.terminalValidationNodeIds),
+      },
     };
   });
 }
@@ -1723,7 +1775,12 @@ function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | nu
       panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
     } as ControlCorrectionLearningCenterView)[0];
     return projected && projected.optionId !== 'unknown-option'
-      ? [{ ...projected, batchId: batch.id, candidateId: candidate.id }]
+      ? [{
+          ...projected,
+          batchId: batch.id,
+          candidateId: candidate.id,
+          candidateFingerprint: candidate.fingerprint,
+        }]
       : [];
   });
 }
@@ -1918,6 +1975,26 @@ function formatReadinessState(state: string): string {
   return '待确认';
 }
 
+function formatPathRhythm(relative?: string): string {
+  if (relative === 'short') return '较短';
+  if (relative === 'medium') return '中等';
+  if (relative === 'long') return '较长';
+  return '数据不足';
+}
+
+function formatReadinessDistribution(
+  readinessSummary: Array<{ state: string }>,
+): string {
+  const counts = new Map<string, number>();
+  for (const item of readinessSummary) {
+    counts.set(item.state, (counts.get(item.state) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([state, count]) => `${formatReadinessState(state)} ${count}`)
+    .join('、');
+}
+
 function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDifferenceExplanation }) {
   const [left, right] = explanation.options;
   if (!left || !right) return null;
@@ -2049,6 +2126,165 @@ function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDiff
           </ul>
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function CandidateBatchComparisonWorkspace({
+  options,
+  pairs,
+  draft,
+  selectedPair,
+  explanation,
+  pending,
+  onDraftChange,
+  onConfirm,
+}: {
+  options: PathOptionView[];
+  pairs: AdaptivePathComparisonPair[];
+  draft: { leftOptionId: string; rightOptionId: string };
+  selectedPair: AdaptivePathComparisonPair | null;
+  explanation?: PathDifferenceExplanation;
+  pending: boolean;
+  onDraftChange: (side: 'leftOptionId' | 'rightOptionId', value: string) => void;
+  onConfirm: () => void;
+}) {
+  const optionById = new Map(options.map((option) => [option.optionId, option]));
+  const leftOption = selectedPair ? optionById.get(selectedPair.leftOptionId) : null;
+  const rightOption = selectedPair ? optionById.get(selectedPair.rightOptionId) : null;
+  const draftPair = normalizeAdaptivePathComparisonPair(
+    draft.leftOptionId,
+    draft.rightOptionId,
+    options.map((option) => option.optionId),
+  );
+  const summaryFacts = options.map((option) => ({
+    duration: typeof option.effort.estimatedMinutes === 'number'
+      ? String(option.effort.estimatedMinutes)
+      : null,
+    rhythm: typeof option.effort.relative === 'string' ? option.effort.relative : null,
+    nodeCount: option.summaryFactAvailability?.nodeIds
+      ? String(option.nodeIds?.length ?? 0)
+      : null,
+    readiness: option.summaryFactAvailability?.readinessSummary
+      ? JSON.stringify([...option.readinessSummary].sort((left, right) => left.nodeId.localeCompare(right.nodeId)))
+      : null,
+    resourceMix: option.summaryFactAvailability?.resourceMix
+      ? JSON.stringify(Object.entries(option.resourceMix).sort(([left], [right]) => left.localeCompare(right)))
+      : null,
+    checkpoints: option.summaryFactAvailability?.checkpointNodeIds
+      ? JSON.stringify([...(option.checkpointNodeIds ?? [])].sort())
+      : null,
+    lockedNodes: option.summaryFactAvailability?.lockedNodeIds
+      ? JSON.stringify([...option.lockedNodeIds].sort())
+      : null,
+    terminalValidation: option.summaryFactAvailability?.terminalValidationNodeIds
+      ? JSON.stringify([...option.terminalValidationNodeIds].sort())
+      : null,
+  }));
+  const hasNoDifference = (dimension: keyof (typeof summaryFacts)[number]) => (
+    summaryFacts.length > 1
+    && summaryFacts[0]?.[dimension] !== null
+    && summaryFacts.every((facts) => facts[dimension] === summaryFacts[0]?.[dimension])
+  );
+  const noDifferenceLabel = (dimension: keyof (typeof summaryFacts)[number]) => (
+    hasNoDifference(dimension) ? '（候选在当前维度无差异）' : ''
+  );
+  return (
+    <section
+      className="mt-4 min-w-0 space-y-4 rounded-lg border border-primary/30 bg-primary/5 p-4"
+      data-learning-path-candidate-comparison
+      aria-labelledby="learning-path-candidate-comparison-title"
+    >
+      <div>
+        <p className="text-xs font-medium text-primary">Candidate comparison</p>
+        <h3 id="learning-path-candidate-comparison-title" className="mt-1 text-base font-semibold text-foreground">
+          比较候选方案
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-subtle">
+          先查看当前批次的事实摘要，再明确选择两条不同路径；比较结果不会修改已保存的学习路径。
+        </p>
+        {options.length >= 2 ? <p className="mt-1 text-xs text-subtle">当前可选比较关系：{pairs.length} 组</p> : null}
+      </div>
+
+      {options.length === 0 ? (
+        <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-sm text-subtle" data-learning-path-comparison-state="empty">
+          当前没有可比较的候选方案。
+        </p>
+      ) : (
+        <>
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3" data-learning-path-comparison-summary>
+            {options.map((option) => (
+              <article key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-3">
+                <h4 className="break-words text-sm font-semibold text-foreground">{option.label}</h4>
+                <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
+                  <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">路径节点数：</dt><dd className="inline">{option.summaryFactAvailability?.nodeIds ? `${option.nodeIds?.length ?? 0} 个节点` : '数据不足'}{noDifferenceLabel('nodeCount')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">节奏：</dt><dd className="inline">{option.summaryFactAvailability?.rhythm ? formatPathRhythm(option.effort.relative) : '数据不足'}{noDifferenceLabel('rhythm')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">准备度：</dt><dd className="inline">{option.summaryFactAvailability?.readinessSummary ? (option.readinessSummary.length > 0 ? formatReadinessDistribution(option.readinessSummary) : '无') : '数据不足'}{noDifferenceLabel('readiness')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">资源组合：</dt><dd className="inline">{option.summaryFactAvailability?.resourceMix ? (Object.entries(option.resourceMix).map(([type, count]) => `${formatResourceType(type)} ${count}`).join('、') || '无') : '数据不足'}{noDifferenceLabel('resourceMix')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">检查点：</dt><dd className="inline">{option.summaryFactAvailability?.checkpointNodeIds ? ((option.checkpointNodeIds?.length ?? 0) > 0 ? `${option.checkpointNodeIds?.length ?? 0} 个检查点` : '无') : '数据不足'}{noDifferenceLabel('checkpoints')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">锁定节点：</dt><dd className="inline">{option.summaryFactAvailability?.lockedNodeIds ? (option.lockedNodeIds.length > 0 ? `${option.lockedNodeIds.length} 个锁定节点` : '无') : '数据不足'}{noDifferenceLabel('lockedNodes')}</dd></div>
+                  <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.summaryFactAvailability?.terminalValidationNodeIds ? (option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无') : '数据不足'}{noDifferenceLabel('terminalValidation')}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+
+          {options.length < 2 ? (
+            <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-sm text-subtle" data-learning-path-comparison-state="insufficient-candidates">
+              当前只有一条候选路径，暂不提供两两比较；你仍可以继续这条路径或生成新的候选方案。
+            </p>
+          ) : (
+            <div className="grid min-w-0 gap-3 rounded-md border border-border bg-background/60 p-3" data-learning-path-comparison-selector>
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                <label className="grid min-w-0 gap-1 text-sm font-medium text-foreground" htmlFor="learning-path-comparison-left">
+                  方案一
+                  <select
+                    id="learning-path-comparison-left"
+                    value={draft.leftOptionId}
+                    onChange={(event) => onDraftChange('leftOptionId', event.target.value)}
+                    className="min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm font-normal"
+                  >
+                    <option value="">请选择方案</option>
+                    {options.map((option) => <option key={option.optionId} value={option.optionId}>{option.label}</option>)}
+                  </select>
+                </label>
+                <label className="grid min-w-0 gap-1 text-sm font-medium text-foreground" htmlFor="learning-path-comparison-right">
+                  方案二
+                  <select
+                    id="learning-path-comparison-right"
+                    value={draft.rightOptionId}
+                    onChange={(event) => onDraftChange('rightOptionId', event.target.value)}
+                    className="min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm font-normal"
+                  >
+                    <option value="">请选择方案</option>
+                    {options.map((option) => <option key={option.optionId} value={option.optionId}>{option.label}</option>)}
+                  </select>
+                </label>
+              </div>
+              <button
+                type="button"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60 sm:w-fit"
+                disabled={!draftPair || pending}
+                onClick={onConfirm}
+                data-learning-path-confirm-comparison
+              >
+                {pending ? '正在加载比较结果…' : '比较这两条路径'}
+              </button>
+              {draft.leftOptionId && draft.leftOptionId === draft.rightOptionId ? (
+                <p className="text-xs text-subtle" role="alert">请选择两条不同的路径。</p>
+              ) : null}
+            </div>
+          )}
+        </>
+      )}
+
+      {selectedPair && leftOption && rightOption && !explanation && !pending ? (
+        <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-sm text-subtle" data-learning-path-comparison-state="awaiting-result">
+          已选择：{leftOption.label} ↔ {rightOption.label}。确认后显示服务端提供的事实差异。
+        </p>
+      ) : null}
+      {explanation ? <PathDifferenceExplanationPanel explanation={explanation} /> : null}
     </section>
   );
 }
@@ -2642,6 +2878,9 @@ export default function AdaptivePracticePage() {
   const activeOptionId = searchParams.get('optionId');
   const requestedBatchId = searchParams.get('batch');
   const requestedCandidateId = searchParams.get('candidate');
+  const requestedCompareLeft = searchParams.get('compareLeft');
+  const requestedCompareRight = searchParams.get('compareRight');
+  const requestedCompareVersion = searchParams.get('compareVersion');
   const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId);
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
@@ -2655,6 +2894,9 @@ export default function AdaptivePracticePage() {
     : '/assessment/adaptive-practice');
   const compareAllCandidateQuery = new URLSearchParams(searchParams.toString());
   compareAllCandidateQuery.delete('candidate');
+  compareAllCandidateQuery.delete('compareLeft');
+  compareAllCandidateQuery.delete('compareRight');
+  compareAllCandidateQuery.delete('compareVersion');
   const compareAllCandidateHref = withFeedbackTaskHref(
     `/assessment/adaptive-practice?${compareAllCandidateQuery.toString()}`,
   );
@@ -2710,10 +2952,16 @@ export default function AdaptivePracticePage() {
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathOptionFeedback, setPathOptionFeedback] = useState<Record<string, string>>({});
   const [pathDifferenceExplanations, setPathDifferenceExplanations] = useState<Record<string, PathDifferenceExplanation>>({});
+  const [comparisonDraft, setComparisonDraft] = useState<{ leftOptionId: string; rightOptionId: string }>({
+    leftOptionId: '',
+    rightOptionId: '',
+  });
+  const [selectedComparisonPair, setSelectedComparisonPair] = useState<AdaptivePathComparisonPair | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
   const pathGenerationRequestLifecycleRef = useRef(INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE);
+  const activePathAdjustmentRequestIdRef = useRef<string | null>(null);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
@@ -2777,6 +3025,54 @@ export default function AdaptivePracticePage() {
   ].join('|'), [activePathPlan?.id, activePathRound?.id, pathOptions]);
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
   pathOptionVersionKeyRef.current = pathOptionVersionKey;
+  const pathAdjustmentContextVersionKey = useMemo(() => [
+    activeGoal ?? 'no-goal',
+    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? 'no-path',
+    readPathProgressVersion(activePathRound?.updatedAt) ?? 'no-progress',
+    activeCandidateBatch?.id ?? 'no-batch',
+    ...candidatePathOptions.map((option) => (
+      `${option.candidateId ?? 'no-candidate'}:${option.candidateFingerprint ?? 'no-fingerprint'}`
+    )),
+  ].join('|'), [
+    activeCandidateBatch?.id,
+    activeGoal,
+    activePathId,
+    activePathPlan?.id,
+    activePathRound?.id,
+    activePathRound?.updatedAt,
+    candidatePathOptions,
+  ]);
+  const pathAdjustmentContextVersionKeyRef = useRef(pathAdjustmentContextVersionKey);
+  pathAdjustmentContextVersionKeyRef.current = pathAdjustmentContextVersionKey;
+  const comparisonPathVersion = activeCandidateBatch?.sourcePathVersion ?? 'no-comparison-path-version';
+  const comparisonOptionIds = useMemo(
+    () => pathOptions.map((option) => option.optionId),
+    [pathOptions],
+  );
+  const candidateBatchComparisonVersion = useMemo(
+    () => buildAdaptivePathComparisonVersion(activeCandidateBatch?.id, comparisonPathVersion, comparisonOptionIds),
+    [activeCandidateBatch?.id, comparisonOptionIds, comparisonPathVersion],
+  );
+  const candidateComparisonPairs = useMemo(
+    () => enumerateAdaptivePathComparisonPairs(comparisonOptionIds),
+    [comparisonOptionIds],
+  );
+  const requestedComparisonPair = useMemo(
+    () => requestedCompareVersion === candidateBatchComparisonVersion
+      ? normalizeAdaptivePathComparisonPair(requestedCompareLeft, requestedCompareRight, comparisonOptionIds)
+      : null,
+    [candidateBatchComparisonVersion, comparisonOptionIds, requestedCompareLeft, requestedCompareRight, requestedCompareVersion],
+  );
+  const selectedComparisonKey = selectedComparisonPair && activeCandidateBatch
+    ? buildAdaptivePathComparisonKey({
+        candidateBatchId: activeCandidateBatch.id,
+        pathVersion: comparisonPathVersion,
+        pairKey: selectedComparisonPair.pairKey,
+      })
+    : null;
+  const comparisonPathVersionRef = useRef(comparisonPathVersion);
+  comparisonPathVersionRef.current = comparisonPathVersion;
+  const activeComparisonRequestKeyRef = useRef<string | null>(null);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback),
@@ -2793,9 +3089,34 @@ export default function AdaptivePracticePage() {
   const hasGeneratedPathOptions = pathOptions.length > 0;
 
   useEffect(() => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
     setPathOptionFeedback({});
     setPathDifferenceExplanations({});
-  }, [pathOptionVersionKey]);
+    setSelectedComparisonPair(requestedComparisonPair);
+    setComparisonDraft({
+      leftOptionId: requestedComparisonPair?.leftOptionId ?? '',
+      rightOptionId: requestedComparisonPair?.rightOptionId ?? '',
+    });
+    if (
+      activeCandidateBatch &&
+      (requestedCompareLeft || requestedCompareRight || requestedCompareVersion) &&
+      !requestedComparisonPair
+    ) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete('compareLeft');
+      nextUrl.searchParams.delete('compareRight');
+      nextUrl.searchParams.delete('compareVersion');
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
+  }, [
+    activeCandidateBatch,
+    comparisonPathVersion,
+    requestedCompareLeft,
+    requestedCompareRight,
+    requestedCompareVersion,
+    requestedComparisonPair,
+  ]);
   const selectedExecutionOption = useMemo(
     () => pathOptions.find((option) => option.optionId === activeOptionId) ?? null,
     [activeOptionId, pathOptions],
@@ -2863,6 +3184,32 @@ export default function AdaptivePracticePage() {
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
   );
+  const pathAdjustmentRequestVersionKey = useMemo(() => JSON.stringify({
+    goalId: pathGenerationPanel.goalId,
+    routeIntent,
+    timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
+    difficultyRhythm: pathGenerationPanel.difficultyRhythm,
+    resourcePreference: [...pathGenerationPanel.resourcePreference].sort(),
+    checkpointPreference: pathGenerationPanel.checkpointPreference,
+    allowExternalResources: pathGenerationPanel.allowExternalResources,
+    naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent.trim(),
+    excludedNodeIds: pathExecutionNodes
+      .filter((node) => node.status === 'skipped' || node.status === 'blocked')
+      .map((node) => node.nodeId)
+      .sort(),
+  }), [
+    pathExecutionNodes,
+    pathGenerationPanel.allowExternalResources,
+    pathGenerationPanel.checkpointPreference,
+    pathGenerationPanel.difficultyRhythm,
+    pathGenerationPanel.goalId,
+    pathGenerationPanel.naturalLanguageIntent,
+    pathGenerationPanel.resourcePreference,
+    pathGenerationPanel.timeBudgetMinutes,
+    routeIntent,
+  ]);
+  const pathAdjustmentRequestVersionKeyRef = useRef(pathAdjustmentRequestVersionKey);
+  pathAdjustmentRequestVersionKeyRef.current = pathAdjustmentRequestVersionKey;
   const requestedPathContextKey = activeGoal
     ? `${activeGoal}:${activePathId ? `path:${activePathId}` : 'implicit'}`
     : null;
@@ -3613,6 +3960,7 @@ export default function AdaptivePracticePage() {
   const submitPathGeneration = useCallback(async (
     operation: PathGenerationOperation,
     option?: PathOptionView,
+    comparisonOption?: PathOptionView,
     requestedGenerationRequestId?: string,
   ) => {
     if (authStatus !== 'authenticated') {
@@ -3638,29 +3986,73 @@ export default function AdaptivePracticePage() {
       return;
     }
     const currentPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
-    if (operation !== 'generate' && !currentPathId) {
+    const comparisonPathId = activeCandidateBatch?.sourcePathId;
+    if (operation === 'explain' && !comparisonPathId) {
+      setPathChoiceMessage('候选路径批次已失效，请重新生成候选方案后再比较。');
+      return;
+    }
+    if (operation !== 'generate' && operation !== 'explain' && !currentPathId) {
       setPathChoiceMessage('请先生成路径后再请求调整或解释。');
       return;
     }
     if (operation === 'generate' && pathGenerationRequestStatus === 'pending') return;
+    const activeProgressVersion = readPathProgressVersion(activePathRound?.updatedAt);
+    if (
+      operation === 'revise' &&
+      (!option?.batchId || !option.candidateId || !option.candidateFingerprint || !activeProgressVersion)
+    ) {
+      setPathChoiceMessage('候选路径来源或当前进度已更新，请刷新后重新调整。');
+      return;
+    }
     const generationRequestId = operation === 'generate'
       ? requestedGenerationRequestId ?? crypto.randomUUID()
       : undefined;
-    const explanationRequestVersionKey = operation === 'explain'
-      ? pathOptionVersionKeyRef.current
+    const adjustmentRequestId = operation === 'revise' ? crypto.randomUUID() : undefined;
+    const adjustmentRequestVersionKey = operation === 'revise'
+      ? pathAdjustmentContextVersionKeyRef.current
       : null;
+    const adjustmentRequestInputVersionKey = operation === 'revise'
+      ? pathAdjustmentRequestVersionKeyRef.current
+      : null;
+    const normalizedComparisonPair = operation === 'explain' && activeCandidateBatch && option && comparisonOption
+      ? normalizeAdaptivePathComparisonPair(option.optionId, comparisonOption.optionId, comparisonOptionIds)
+      : null;
+    if (operation === 'explain' && (!activeCandidateBatch || !option || !comparisonOption || !normalizedComparisonPair)) {
+      setPathChoiceMessage('请选择两条不同的候选路径后再请求比较。');
+      return;
+    }
+    const explanationRequestVersionKey = operation === 'explain'
+      ? buildAdaptivePathComparisonKey({
+          candidateBatchId: activeCandidateBatch!.id,
+          pathVersion: comparisonPathVersionRef.current,
+          pairKey: normalizedComparisonPair!.pairKey,
+        })
+      : null;
+    const isCurrentAdjustmentRequest = () => operation !== 'revise' || (
+      adjustmentRequestId === activePathAdjustmentRequestIdRef.current &&
+      adjustmentRequestVersionKey === pathAdjustmentContextVersionKeyRef.current &&
+      adjustmentRequestInputVersionKey === pathAdjustmentRequestVersionKeyRef.current
+    );
+    if (adjustmentRequestId) {
+      activePathAdjustmentRequestIdRef.current = adjustmentRequestId;
+    }
     if (generationRequestId) {
       setPathGenerationRequestStatus('pending');
       publishPathGenerationStatus('pending', generationRequestId, '已接收路径生成请求，正在准备生成。');
     }
     let generationFailureIsDefinitive = false;
+    if (operation === 'explain') {
+      activeComparisonRequestKeyRef.current = explanationRequestVersionKey;
+    }
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
     if (option?.optionId) {
       if (operation === 'explain') {
         setPathDifferenceExplanations((current) => {
           const next = { ...current };
-          delete next[option.optionId];
+          delete next[activeCandidateBatch && normalizedComparisonPair
+            ? explanationRequestVersionKey ?? ''
+            : option.optionId];
           return next;
         });
       }
@@ -3681,7 +4073,9 @@ export default function AdaptivePracticePage() {
           operation,
           generationRequestId,
           goalId: pathGenerationPanel.goalId,
-          pathId: operation !== 'generate' ? currentPathId : undefined,
+          pathId: operation === 'explain'
+            ? comparisonPathId
+            : operation !== 'generate' ? currentPathId : undefined,
           routeIntent,
           timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
           difficultyRhythm: pathGenerationPanel.difficultyRhythm,
@@ -3694,21 +4088,32 @@ export default function AdaptivePracticePage() {
                 .filter((node) => node.status === 'skipped' || node.status === 'blocked')
                 .map((node) => node.nodeId)
             : [],
-          preferredOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          preferredOptionId: operation === 'explain' ? option?.optionId : undefined,
+          sourceBatchId: operation === 'revise' ? option?.batchId : undefined,
+          sourceCandidateId: operation === 'revise' ? option?.candidateId : undefined,
+          sourceCandidateFingerprint: operation === 'revise' ? option?.candidateFingerprint : undefined,
+          activeProgressVersion: operation === 'revise' ? activeProgressVersion : undefined,
           requestedAt: new Date().toISOString(),
           modeContextToken,
           graphNodeId,
           agentSessionId: pathAdvisorAgentSessionId ?? undefined,
           priorRequestId: operation === 'revise' ? currentPathId ?? undefined : undefined,
-          selectedOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          selectedOptionId: operation === 'explain' ? option?.optionId : undefined,
           compareWithOptionId: operation === 'explain'
-            ? pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId
+            ? comparisonOption?.optionId
             : undefined,
+          candidateBatchId: operation === 'explain' ? activeCandidateBatch?.id : undefined,
+          comparisonKey: operation === 'explain' ? explanationRequestVersionKey : undefined,
           rejectedOptionIds: undefined,
-          idempotencyKey: generationRequestId ?? `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
+          idempotencyKey: generationRequestId
+            ? `path-generation-request:${generationRequestId}`
+            : adjustmentRequestId
+              ? `path-adjustment-request:${adjustmentRequestId}`
+              : `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
         }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (!isCurrentAdjustmentRequest()) return;
       if (!response.ok) {
         if (payload.generationRequest?.status === 'failed') {
           generationFailureIsDefinitive = true;
@@ -3765,15 +4170,28 @@ export default function AdaptivePracticePage() {
         }
         return;
       }
+      if (operation === 'revise' && payload.result?.generationStatus === 'no_material_difference') {
+        const noDifferenceMessage = typeof payload.result?.comparison?.message === 'string'
+          ? payload.result.comparison.message
+          : '调整后的方案与原候选没有实质差异，请修改调整条件后重试。';
+        setPathChoiceMessage(noDifferenceMessage);
+        if (option?.optionId) {
+          setPathOptionFeedback((current) => ({ ...current, [option.optionId]: noDifferenceMessage }));
+        }
+        return;
+      }
       if (operation !== 'explain') {
-        const generatedBatchId = operation === 'generate' && typeof payload.result?.candidateBatch?.id === 'string'
+        const generatedBatchId = typeof payload.result?.candidateBatch?.id === 'string'
           ? payload.result.candidateBatch.id
           : null;
         if (generatedBatchId && activeGoal) {
           setGeneratedCandidateBatchFailure(false);
-          setActiveCandidateBatch(null);
-          setCandidateBatchLoadState('loading');
+          if (operation !== 'revise') {
+            setActiveCandidateBatch(null);
+            setCandidateBatchLoadState('loading');
+          }
           const loadedBatch = await fetchCandidateBatch(activeGoal, generatedBatchId);
+          if (!isCurrentAdjustmentRequest()) return;
           if (loadedBatch.status === 'loaded') {
             synchronizedCandidateBatchRef.current = {
               goalId: activeGoal,
@@ -3787,6 +4205,16 @@ export default function AdaptivePracticePage() {
             nextUrl.searchParams.set('batch', generatedBatchId);
             nextUrl.searchParams.delete('candidate');
             router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
+          } else if (operation === 'revise') {
+            const adjustedBatchLoadMessage = '调整后的候选路径暂时无法加载，请重试。';
+            setPathChoiceMessage(adjustedBatchLoadMessage);
+            if (option?.optionId) {
+              setPathOptionFeedback((current) => ({
+                ...current,
+                [option.optionId]: adjustedBatchLoadMessage,
+              }));
+            }
+            return;
           } else {
             setCandidateBatchLoadState(loadedBatch.status);
             setGeneratedCandidateBatchFailure(true);
@@ -3836,8 +4264,18 @@ export default function AdaptivePracticePage() {
       if (
         operation === 'explain'
         && (
-          explanationRequestVersionKey !== pathOptionVersionKeyRef.current
-          || (differenceExplanation && differenceExplanation.pathId !== currentPathId)
+          activeComparisonRequestKeyRef.current !== explanationRequestVersionKey
+          || !activeCandidateBatch
+          || !normalizedComparisonPair
+          || explanationRequestVersionKey !== (activeCandidateBatch && normalizedComparisonPair
+            ? buildAdaptivePathComparisonKey({
+                candidateBatchId: activeCandidateBatch.id,
+                pathVersion: comparisonPathVersionRef.current,
+                pairKey: normalizedComparisonPair.pairKey,
+              })
+            : comparisonPathVersionRef.current)
+          || (differenceExplanation && differenceExplanation.pathId !== comparisonPathId)
+          || (differenceExplanation?.comparisonKey && differenceExplanation.comparisonKey !== explanationRequestVersionKey)
         )
       ) {
         return;
@@ -3849,9 +4287,12 @@ export default function AdaptivePracticePage() {
       );
       if (option?.optionId) {
         if (differenceExplanation) {
+          const explanationKey = activeCandidateBatch && normalizedComparisonPair
+            ? explanationRequestVersionKey ?? option.optionId
+            : option.optionId;
           setPathDifferenceExplanations((current) => ({
             ...current,
-            [option.optionId]: differenceExplanation,
+            [explanationKey]: differenceExplanation,
           }));
         }
         setPathOptionFeedback((current) => ({
@@ -3864,6 +4305,10 @@ export default function AdaptivePracticePage() {
         }));
       }
     } catch (generationError) {
+      if (!isCurrentAdjustmentRequest()) return;
+      if (operation === 'explain' && activeComparisonRequestKeyRef.current !== explanationRequestVersionKey) {
+        return;
+      }
       const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
       setPathChoiceMessage(errorMessage);
       if (generationRequestId) {
@@ -3879,12 +4324,21 @@ export default function AdaptivePracticePage() {
         setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
       }
     } finally {
-      setPathGenerationPending(null);
+      if (
+        (operation !== 'revise' || adjustmentRequestId === activePathAdjustmentRequestIdRef.current) &&
+        (operation !== 'explain' || activeComparisonRequestKeyRef.current === explanationRequestVersionKey)
+      ) {
+        if (operation === 'revise') {
+          activePathAdjustmentRequestIdRef.current = null;
+        }
+        setPathGenerationPending(null);
+      }
     }
   }, [
     activeGoal,
     activeGraphNodeId,
     activePathId,
+    activeCandidateBatch,
     assistantEntryPoint,
     authStatus,
     canSubmitPathGeneration,
@@ -3897,10 +4351,68 @@ export default function AdaptivePracticePage() {
     pathGenerationDisplayReadiness,
     pathGenerationRequestStatus,
     pathOptions,
+    comparisonOptionIds,
     refreshLatestLearningPathAfterKonling,
     router,
     routeIntent,
   ]);
+
+  const handleComparisonDraftChange = useCallback((
+    side: 'leftOptionId' | 'rightOptionId',
+    value: string,
+  ) => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
+    setComparisonDraft((current) => ({ ...current, [side]: value }));
+    setSelectedComparisonPair(null);
+    setPathDifferenceExplanations({});
+    setPathChoiceMessage(null);
+  }, []);
+
+  const confirmCandidateComparison = useCallback(() => {
+    if (!activeCandidateBatch) return;
+    const pair = normalizeAdaptivePathComparisonPair(
+      comparisonDraft.leftOptionId,
+      comparisonDraft.rightOptionId,
+      comparisonOptionIds,
+    );
+    if (!pair) {
+      setPathChoiceMessage('请选择两条不同的候选路径后再比较。');
+      return;
+    }
+    const leftOption = pathOptions.find((option) => option.optionId === pair.leftOptionId);
+    const rightOption = pathOptions.find((option) => option.optionId === pair.rightOptionId);
+    if (!leftOption || !rightOption) {
+      setPathChoiceMessage('当前候选路径已经更新，请重新选择比较对象。');
+      return;
+    }
+    setSelectedComparisonPair(pair);
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('batch', activeCandidateBatch.id);
+    nextUrl.searchParams.set('compareLeft', pair.leftOptionId);
+    nextUrl.searchParams.set('compareRight', pair.rightOptionId);
+    nextUrl.searchParams.set('compareVersion', candidateBatchComparisonVersion);
+    nextUrl.searchParams.delete('candidate');
+    window.history.replaceState(window.history.state, '', nextUrl);
+    void submitPathGeneration('explain', leftOption, rightOption);
+  }, [
+    activeCandidateBatch,
+    candidateBatchComparisonVersion,
+    comparisonDraft.leftOptionId,
+    comparisonDraft.rightOptionId,
+    comparisonOptionIds,
+    pathOptions,
+    submitPathGeneration,
+  ]);
+
+  const chooseComparisonCandidate = useCallback((optionId: string) => {
+    activeComparisonRequestKeyRef.current = null;
+    setPathGenerationPending((current) => current === 'explain' ? null : current);
+    setComparisonDraft({ leftOptionId: optionId, rightOptionId: '' });
+    setSelectedComparisonPair(null);
+    setPathDifferenceExplanations({});
+    document.getElementById('learning-path-comparison-right')?.focus();
+  }, []);
 
   const startPathGenerationFromAdvisor = useCallback(() => {
     openPathGenerationAdvisor();
@@ -3910,7 +4422,7 @@ export default function AdaptivePracticePage() {
     );
     if (!claim) return;
     pathGenerationRequestLifecycleRef.current = claim.lifecycle;
-    void submitPathGeneration('generate', undefined, claim.requestId).finally(() => {
+    void submitPathGeneration('generate', undefined, undefined, claim.requestId).finally(() => {
       pathGenerationRequestLifecycleRef.current = releasePathGenerationRequest(
         pathGenerationRequestLifecycleRef.current,
       );
@@ -5260,6 +5772,18 @@ export default function AdaptivePracticePage() {
                 当前可用资源有限，推荐方案差异较小。
               </p>
             ) : null}
+            {activeCandidateBatch ? (
+              <CandidateBatchComparisonWorkspace
+                options={pathOptions}
+                pairs={candidateComparisonPairs}
+                draft={comparisonDraft}
+                selectedPair={selectedComparisonPair}
+                explanation={selectedComparisonKey ? pathDifferenceExplanations[selectedComparisonKey] : undefined}
+                pending={pathGenerationPending === 'explain'}
+                onDraftChange={handleComparisonDraftChange}
+                onConfirm={confirmCandidateComparison}
+              />
+            ) : null}
             <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" data-learning-path-desktop-modules="attached-actions">
               {visiblePathOptions.map((option) => (
                 <article
@@ -5332,10 +5856,11 @@ export default function AdaptivePracticePage() {
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
                         aria-label={`请控灵调整${option.title}`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        title={!isPersistedCandidatePathOption(option.writeOption) ? '请先生成候选路径后再调整' : undefined}
+                        disabled={!isPersistedCandidatePathOption(option.writeOption) || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
+                          if (isPersistedCandidatePathOption(optionForWrite)) {
                             submitPathGeneration('revise', optionForWrite);
                             return;
                           }
@@ -5345,22 +5870,17 @@ export default function AdaptivePracticePage() {
                         <RefreshCw className="size-3.5" aria-hidden="true" />
                         调整
                       </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                        aria-label={`解释${option.title}差异`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                        onClick={() => {
-                          const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
-                            submitPathGeneration('explain', optionForWrite);
-                            return;
-                          }
-                          setPathChoiceUnavailable();
-                        }}
-                      >
-                        解释差异
-                      </button>
+                      {activeCandidateBatch ? (
+                        <button
+                          type="button"
+                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                          aria-label={`选择${option.title}作为比较方案`}
+                          disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                          onClick={() => chooseComparisonCandidate(option.id)}
+                        >
+                          选择比较方案
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
@@ -5503,10 +6023,11 @@ export default function AdaptivePracticePage() {
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
                         aria-label={`请控灵调整${option.title}`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        title={!isPersistedCandidatePathOption(option.writeOption) ? '请先生成候选路径后再调整' : undefined}
+                        disabled={!isPersistedCandidatePathOption(option.writeOption) || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
+                          if (isPersistedCandidatePathOption(optionForWrite)) {
                             submitPathGeneration('revise', optionForWrite);
                             return;
                           }
@@ -5516,22 +6037,17 @@ export default function AdaptivePracticePage() {
                         <RefreshCw className="size-3.5" aria-hidden="true" />
                         调整
                       </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                        aria-label={`解释${option.title}差异`}
-                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                        onClick={() => {
-                          const optionForWrite = option.writeOption;
-                          if (optionForWrite) {
-                            submitPathGeneration('explain', optionForWrite);
-                            return;
-                          }
-                          setPathChoiceUnavailable();
-                        }}
-                      >
-                        解释差异
-                      </button>
+                      {activeCandidateBatch ? (
+                        <button
+                          type="button"
+                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                          aria-label={`选择${option.title}作为比较方案`}
+                          disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                          onClick={() => chooseComparisonCandidate(option.id)}
+                        >
+                          选择比较方案
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"

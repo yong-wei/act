@@ -5,7 +5,10 @@ import { readLatestAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candid
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { getLearningPathRequester } from '../../route-helpers';
-import { resolveCandidateBatchClassScope } from '../route-helpers';
+import {
+  attachCandidateBatchSourcePathVersion,
+  resolveCandidateBatchClassScope,
+} from '../route-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +32,12 @@ export async function GET(request: Request) {
       goalId,
       classId,
     });
-    return NextResponse.json({ batch });
+    if (!batch) return NextResponse.json({ batch: null });
+    const versionedBatch = await attachCandidateBatchSourcePathVersion(batch);
+    if (!versionedBatch) {
+      return NextResponse.json({ error: '候选路径批次的来源路径已失效' }, { status: 409 });
+    }
+    return NextResponse.json({ batch: versionedBatch });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[AdaptivePathCandidateBatchLatest] Error:', error);

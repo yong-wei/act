@@ -6,15 +6,24 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-export const TEXTBOOK_V2_BOOK_IDS = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+import {
+  BOOK_ID_PATTERN,
+  loadTextbookResourceSet,
+  textbookBookCount,
+  textbookBookIds,
+} from './textbook-resource-set.mjs';
+import {
+  TEXTBOOK_INPUT_PROVENANCE_FILE,
+  TEXTBOOK_INPUT_PROVENANCE_V1,
+  TEXTBOOK_INPUT_PROVENANCE_V2,
+  isTextbookInputProvenanceV2,
+  parseTextbookInputProvenance,
+  textbookAuthoringRevision,
+  textbookProvenanceBookIds,
+  textbookProvenanceGeneration,
+} from './textbook-runtime-input-provenance.mjs';
+
+export { loadTextbookResourceSet, textbookBookCount, textbookBookIds };
 
 export const TEXTBOOK_V2_REQUIRED_FILES = [
   'manifest.json',
@@ -38,8 +47,11 @@ export const TEXTBOOK_RETRIEVAL_REQUIRED_FILES = [
 
 export const TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION =
   'act.textbook-runtime-release-provenance.v2';
-const TEXTBOOK_INPUT_PROVENANCE_FILE = 'input-provenance.json';
-const TEXTBOOK_INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
+export {
+  TEXTBOOK_INPUT_PROVENANCE_FILE,
+  TEXTBOOK_INPUT_PROVENANCE_V1,
+  TEXTBOOK_INPUT_PROVENANCE_V2,
+};
 
 const REVISION_PATTERN = /^[0-9a-f]{40}$/u;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
@@ -175,6 +187,27 @@ function resolveRuntimeMediaFile({ assetsRoot, bookId, chapterId, href }) {
   return { relativePath, filePath };
 }
 
+function listRuntimeBookIds(runtimeRoot) {
+  return fs.readdirSync(runtimeRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && BOOK_ID_PATTERN.test(entry.name))
+    .map((entry) => entry.name)
+    .sort();
+}
+
+function sortedBookIds(bookIds) {
+  return [...bookIds].sort();
+}
+
+function assertExactBookSet(expectedBookIds, actualBookIds, context) {
+  const expected = sortedBookIds(expectedBookIds);
+  const actual = sortedBookIds(actualBookIds);
+  if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+    throw new Error(
+      `${context}: expected=${expected.join(',')} actual=${actual.join(',')}`,
+    );
+  }
+}
+
 export function inspectTextbookRuntimeV2(
   runtimeRoot,
   { expectedSourceRevision, assetsRoot = path.join(path.dirname(runtimeRoot), 'textbooks') } = {},
@@ -182,21 +215,15 @@ export function inspectTextbookRuntimeV2(
   if (expectedSourceRevision !== undefined) {
     assertRevision(expectedSourceRevision, 'expected-source-revision');
   }
-  const actualBookIds = fs.readdirSync(runtimeRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const expectedBookIds = [...TEXTBOOK_V2_BOOK_IDS].sort();
-  if (JSON.stringify(actualBookIds) !== JSON.stringify(expectedBookIds)) {
-    throw new Error(
-      `textbook-v2-book-set-mismatch: expected=${expectedBookIds.join(',')} actual=${actualBookIds.join(',')}`,
-    );
+  const actualBookIds = listRuntimeBookIds(runtimeRoot);
+  if (actualBookIds.length === 0) {
+    throw new Error('textbook-v2-book-set-mismatch: expected= actual=');
   }
 
   let sourceRevision = null;
   const runtimeFiles = [];
   const mediaFiles = new Map();
-  for (const bookId of TEXTBOOK_V2_BOOK_IDS) {
+  for (const bookId of actualBookIds) {
     const bookRoot = path.join(runtimeRoot, bookId);
     for (const fileName of TEXTBOOK_V2_REQUIRED_FILES) {
       const filePath = path.join(bookRoot, fileName);
@@ -269,18 +296,29 @@ export function inspectTextbookRuntimeV2(
   if (!fs.existsSync(inputProvenancePath)) {
     throw new Error('textbook-v2-input-provenance-missing');
   }
-  const inputProvenance = JSON.parse(fs.readFileSync(inputProvenancePath, 'utf8'));
-  if (
-    inputProvenance.schemaVersion !== TEXTBOOK_INPUT_PROVENANCE_SCHEMA
-    || inputProvenance.sourceRevision !== sourceRevision
-    || typeof inputProvenance.inputDigest !== 'string'
-    || !SHA256_PATTERN.test(inputProvenance.inputDigest)
-    || !Number.isSafeInteger(inputProvenance.inputFileCount)
-    || inputProvenance.inputFileCount < 1
-  ) {
-    throw new Error('textbook-v2-input-provenance-invalid');
+  let parsedProvenance;
+  try {
+    parsedProvenance = parseTextbookInputProvenance(
+      JSON.parse(fs.readFileSync(inputProvenancePath, 'utf8')),
+    );
+  } catch (cause) {
+    throw new Error(
+      cause instanceof Error && cause.message.startsWith('textbook-v2-')
+        ? cause.message
+        : 'textbook-v2-input-provenance-invalid',
+    );
   }
-  const inputDigest = inputProvenance.inputDigest;
+  const authoringRevision = textbookAuthoringRevision(parsedProvenance);
+  if (authoringRevision !== sourceRevision) {
+    throw new Error(
+      `textbook-v2-input-provenance-revision-mismatch:expected=${sourceRevision} actual=${authoringRevision}`,
+    );
+  }
+  const provenanceBookIds = textbookProvenanceBookIds(parsedProvenance);
+  if (provenanceBookIds) {
+    assertExactBookSet(provenanceBookIds, actualBookIds, 'textbook-v2-book-set-mismatch');
+  }
+  const inputDigest = parsedProvenance.inputDigest;
   runtimeFiles.push({
     relativePath: TEXTBOOK_INPUT_PROVENANCE_FILE,
     filePath: inputProvenancePath,
@@ -301,16 +339,76 @@ export function inspectTextbookRuntimeV2(
   }
   return {
     sourceRevision,
+    authoringSourceRevision: authoringRevision,
+    provenance: parsedProvenance,
+    provenanceGeneration: textbookProvenanceGeneration(parsedProvenance),
+    bookIds: provenanceBookIds ?? actualBookIds,
+    resourceSetId: isTextbookInputProvenanceV2(parsedProvenance) ? parsedProvenance.resourceSetId : null,
     runtimeDigest: digest.digest('hex'),
     inputDigest,
-    fileCount: TEXTBOOK_V2_BOOK_IDS.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
+    inputFileCount: parsedProvenance.inputFileCount,
+    fileCount: actualBookIds.length * TEXTBOOK_V2_REQUIRED_FILES.length + 1,
     mediaFileCount: mediaFiles.size,
   };
 }
 
+function indexBookIds(manifest) {
+  if (!Array.isArray(manifest.books)) return [];
+  return manifest.books.map((book, index) => {
+    const bookId = book && typeof book === 'object' ? book.bookId : book;
+    if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId)) {
+      throw new Error(`textbook-retrieval-book-id-invalid:${index}:${String(bookId)}`);
+    }
+    return bookId;
+  });
+}
+
+function sha256Uri(filePath) {
+  return `sha256:${sha256File(filePath)}`;
+}
+
+function rebuildIndexBookSources(runtimeRoot, expectedBookIds) {
+  return expectedBookIds.map((bookId) => {
+    const manifestPath = path.join(runtimeRoot, bookId, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const sourceHashes = manifest.sourceHashes;
+    if (!sourceHashes || typeof sourceHashes !== 'object' || Array.isArray(sourceHashes) || Object.keys(sourceHashes).length === 0) {
+      throw new Error(`textbook-retrieval-source-hashes-missing:${bookId}`);
+    }
+    return {
+      bookId,
+      edition: manifest.edition,
+      manifestHash: sha256Uri(manifestPath),
+      sourceHashes: Object.fromEntries(Object.entries(sourceHashes).sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))),
+    };
+  });
+}
+
+function assertIndexBookSources(manifest, runtimeRoot, expectedBookIds) {
+  const rebuilt = rebuildIndexBookSources(runtimeRoot, expectedBookIds);
+  const actual = Array.isArray(manifest.books)
+    ? manifest.books.map((book) => ({
+      bookId: book.bookId,
+      edition: book.edition,
+      manifestHash: book.manifestHash,
+      sourceHashes: book.sourceHashes && typeof book.sourceHashes === 'object'
+        ? Object.fromEntries(Object.entries(book.sourceHashes).sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)))
+        : book.sourceHashes,
+    }))
+    : [];
+  if (JSON.stringify(rebuilt) !== JSON.stringify(actual)) {
+    throw new Error('textbook-retrieval-source-manifest-stale');
+  }
+}
+
 export function inspectTextbookRetrievalIndex(
   indexRoot,
-  { expectedSourceRevision } = {},
+  {
+    expectedSourceRevision,
+    expectedResourceSetId,
+    expectedBookIds,
+    runtimeRoot,
+  } = {},
 ) {
   if (expectedSourceRevision !== undefined) {
     assertRevision(expectedSourceRevision, 'expected-index-source-revision');
@@ -324,6 +422,14 @@ export function inspectTextbookRetrievalIndex(
   ) {
     throw new Error('textbook-retrieval-manifest-schema-invalid');
   }
+  if (typeof manifest.resourceSetId !== 'string' || !manifest.resourceSetId) {
+    throw new Error(`textbook-retrieval-resource-set-mismatch:expected= actual=${String(manifest.resourceSetId)}`);
+  }
+  if (expectedResourceSetId !== undefined && manifest.resourceSetId !== expectedResourceSetId) {
+    throw new Error(
+      `textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`,
+    );
+  }
   assertRevision(manifest.sourceRevision, 'index-source-revision');
   if (
     expectedSourceRevision !== undefined
@@ -332,6 +438,18 @@ export function inspectTextbookRetrievalIndex(
     throw new Error(
       `textbook-retrieval-expected-source-revision-mismatch:expected=${expectedSourceRevision} actual=${manifest.sourceRevision}`,
     );
+  }
+  const bookIds = indexBookIds(manifest);
+  if (expectedBookIds !== undefined) {
+    assertExactBookSet(expectedBookIds, bookIds, 'textbook-retrieval-book-set-mismatch');
+  }
+  if (
+    runtimeRoot
+    && Array.isArray(manifest.books)
+    && manifest.books.length > 0
+    && manifest.books.every((book) => book && typeof book === 'object' && typeof book.manifestHash === 'string')
+  ) {
+    assertIndexBookSources(manifest, runtimeRoot, expectedBookIds ?? bookIds);
   }
   const digest = createHash('sha256');
   for (const fileName of TEXTBOOK_RETRIEVAL_REQUIRED_FILES) {
@@ -347,8 +465,38 @@ export function inspectTextbookRetrievalIndex(
   }
   return {
     sourceRevision: manifest.sourceRevision,
+    resourceSetId: manifest.resourceSetId,
+    bookIds,
     indexDigest: digest.digest('hex'),
     fileCount: TEXTBOOK_RETRIEVAL_REQUIRED_FILES.length,
+  };
+}
+
+export function inspectTextbookCorpusView(viewRoot) {
+  const runtimeRoot = path.join(viewRoot, 'resources', 'textbooks-v2');
+  const indexRoot = path.join(viewRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3');
+  const assetsRoot = path.join(viewRoot, 'resources', 'textbooks');
+  const runtime = inspectTextbookRuntimeV2(runtimeRoot, {
+    assetsRoot: fs.existsSync(assetsRoot) ? assetsRoot : undefined,
+  });
+  const index = inspectTextbookRetrievalIndex(indexRoot, {
+    expectedSourceRevision: runtime.authoringSourceRevision,
+    expectedResourceSetId: runtime.resourceSetId ?? undefined,
+    expectedBookIds: runtime.bookIds,
+    runtimeRoot,
+  });
+  return {
+    provenanceGeneration: runtime.provenanceGeneration,
+    resourceSetId: runtime.resourceSetId,
+    bookIds: runtime.bookIds,
+    authoringSourceRevision: runtime.authoringSourceRevision,
+    inputDigest: runtime.inputDigest,
+    inputFileCount: runtime.inputFileCount,
+    runtimeIndexConsistent: (
+      index.sourceRevision === runtime.authoringSourceRevision
+      && JSON.stringify(sortedBookIds(index.bookIds)) === JSON.stringify(sortedBookIds(runtime.bookIds))
+      && (runtime.resourceSetId === null || index.resourceSetId === runtime.resourceSetId)
+    ),
   };
 }
 
@@ -356,6 +504,14 @@ function readSidecar(sidecarPath) {
   const sidecar = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
   if (sidecar.schemaVersion !== TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION) {
     throw new Error(`textbook-v2-provenance-schema-invalid:${String(sidecar.schemaVersion)}`);
+  }
+  if (
+    typeof sidecar.resourceSetId !== 'string'
+    || sidecar.resourceSetId !== loadTextbookResourceSet().resourceSetId
+  ) {
+    throw new Error(
+      `textbook-v2-provenance-resource-set-mismatch:expected=${loadTextbookResourceSet().resourceSetId} actual=${String(sidecar.resourceSetId)}`,
+    );
   }
   assertRevision(sidecar.appRevision, 'provenance-app-revision');
   assertRevision(sidecar.runtimeSourceRevision, 'provenance-runtime-source-revision');
@@ -418,12 +574,16 @@ async function writeSidecar(options) {
       : undefined,
   });
   const index = inspectTextbookRetrievalIndex(indexRoot, {
-    expectedSourceRevision: runtime.sourceRevision,
+    expectedSourceRevision: runtime.authoringSourceRevision,
+    expectedResourceSetId: runtime.resourceSetId ?? undefined,
+    expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
+    runtimeRoot,
   });
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
     appRevision,
     imageTarSha256: await sha256FileStream(imageTar),
+    resourceSetId: index.resourceSetId,
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     runtimeInputDigest: runtime.inputDigest,
@@ -482,6 +642,7 @@ function verifyRuntime(options) {
     );
   }
   process.stdout.write(`${JSON.stringify({
+    resourceSetId: index.resourceSetId,
     runtimeSourceRevision: runtime.sourceRevision,
     runtimeDigest: runtime.runtimeDigest,
     mediaFileCount: runtime.mediaFileCount,
@@ -496,6 +657,7 @@ function printField(options) {
   if (![
     'appRevision',
     'imageTarSha256',
+    'resourceSetId',
     'runtimeSourceRevision',
     'runtimeDigest',
     'indexSourceRevision',
@@ -506,12 +668,18 @@ function printField(options) {
   process.stdout.write(`${sidecar[field]}\n`);
 }
 
+function inspectCorpus(options) {
+  const viewRoot = path.resolve(requireOption(options, 'view-root'));
+  process.stdout.write(`${JSON.stringify(inspectTextbookCorpusView(viewRoot))}\n`);
+}
+
 async function main() {
   const { command, options } = parseArgs(process.argv.slice(2));
   if (command === 'write-sidecar') return writeSidecar(options);
   if (command === 'verify-image') return verifyImage(options);
   if (command === 'verify-runtime') return verifyRuntime(options);
   if (command === 'print-field') return printField(options);
+  if (command === 'inspect-corpus') return inspectCorpus(options);
   throw new Error(`unknown command: ${String(command)}`);
 }
 

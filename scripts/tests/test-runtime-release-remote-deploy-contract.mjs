@@ -3,11 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
-const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
-const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8');
+const remoteDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const podmanDeploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
+const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-release.sh'), 'utf8')
+  .replaceAll('\r\n', '\n');
 
-const ossModeMatch = remoteDeploy.match(/\n\s+ossfs-release\)\n\s+log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"([\s\S]*?)\n\s+\*\)/);
+const ossModeMatch = remoteDeploy.match(/\r?\n\s+ossfs-release\)\r?\n\s+log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"([\s\S]*?)\r?\n\s+\*\)/);
 assert.ok(ossModeMatch, 'remote deploy must have an isolated ossfs-release branch');
 const ossMode = ossModeMatch[0];
 
@@ -17,13 +20,15 @@ const blobViewModeMatch = remoteDeploy.match(/\n\s+ossfs-blob-view\)\n\s+log "- 
 assert.ok(blobViewModeMatch, 'remote deploy must have an isolated ossfs-blob-view branch');
 assert.equal(blobViewModeMatch[0].includes('rsync '), false, 'ossfs-blob-view branch must not copy runtime contents with rsync');
 assert.match(remoteDeploy, /check_remote_blob_view/, 'blob-view deployment must verify the already materialized view');
-assert.ok(
-  remoteDeploy.includes('[ \\"${RUNTIME_DELIVERY_MODE}\\" = \\"legacy-rsync\\" ]; then'),
-  'explicit legacy-rsync full deploys must have a Step 5 branch',
+assert.match(
+  remoteDeploy,
+  /legacy-rsync 已退役/,
+  'legacy-rsync must fail closed instead of offering a Step 5 rsync branch',
 );
-assert.ok(
+assert.equal(
   remoteDeploy.includes('RUNTIME_DELIVERY_MODE=legacy-rsync \\\\\n      RUNTIME_CONTENT_DIR=\\"${REMOTE_RUNTIME_DIR}\\"'),
-  'explicit legacy-rsync full deploys must pass delivery mode and the just-rsync’d runtime tree into 4-deploy',
+  false,
+  'remote deploy must not pass a rsync’d runtime tree into 4-deploy',
 );
 assert.match(
   remoteDeploy,
@@ -36,9 +41,9 @@ assert.match(remoteDeploy, /sync_oss_runtime_release_host_tools/, 'OSS deploymen
 assert.ok(remoteDeploy.includes('--expected-active-release \\"${RUNTIME_EXPECTED_ACTIVE_RELEASE}\\"'), 'OSS activation must fence the expected active release');
 assert.ok(remoteDeploy.includes('ACT_RUNTIME_OSS_RAM_ROLE=\\"${RUNTIME_OSS_RAM_ROLE}\\"'), 'app delivery must use the role name rather than static keys');
 assert.match(remoteDeploy, /findmnt -rn -T '\$\{REMOTE_RUNTIME_DIR\}' -o OPTIONS \| grep -Eq '\(\^\|,\)ro/, 'post-deploy validation must keep the mounted runtime read-only');
-assert.match(remoteDeploy, /REMOTE_RUNTIME_SELECTION_LOCK="\$\{REMOTE_RUNTIME_SELECTION_LOCK:-\$\{REMOTE_PROJECT_DIR\}\/data\/runtime\/\.act-runtime-selection\.lock\}"/, 'Legacy deployment must share the activation and retirement selection lock');
-assert.match(remoteDeploy, /Step 0\/8: 在 runtime 锁内替换 Legacy runtime/, 'Legacy runtime replacement must happen inside the remote lock-held deployment transaction');
-assert.match(remoteDeploy, /active OSS runtime receipt is present; Legacy deployment is forbidden/, 'a Legacy deployment must fail closed once OSS activation is recorded');
+assert.match(remoteDeploy, /REMOTE_RUNTIME_SELECTION_LOCK="\$\{REMOTE_RUNTIME_SELECTION_LOCK:-\$\{REMOTE_PROJECT_DIR\}\/data\/runtime\/\.act-runtime-selection\.lock\}"/, 'remote deploy still records the shared runtime selection lock path');
+assert.doesNotMatch(remoteDeploy, /Step 0\/8: 在 runtime 锁内替换 Legacy runtime/, 'retired legacy-rsync must not replace a remote runtime tree');
+assert.doesNotMatch(remoteDeploy, /rsync "\$\{runtime_rsync_args\[@\]\}"/, 'retired legacy-rsync must not keep a working rsync implementation');
 
 assert.match(podmanDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'Podman deploy must default to the production blob view');
 assert.match(

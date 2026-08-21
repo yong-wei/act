@@ -4,6 +4,7 @@ import {
   buildEvidenceSourceCoverageReport,
   classifyEvidenceRow,
   getEvidenceSourceCatalog,
+  getProfileEligibleEvidenceSourceIds,
   resolveInteractionLogEventType,
 } from '../evidence-source-catalog';
 
@@ -134,6 +135,27 @@ describe('evidence source catalog', () => {
       exclusionReason: 'missing_simulation_run_mapping',
       readinessGaps: ['missing_simulation_run_mapping'],
     });
+  });
+
+  it('keeps prompt assessments as traceable process context instead of profile evidence', () => {
+    const catalogEntry = getEvidenceSourceCatalog().find((entry) => entry.id === 'PromptAssessment');
+    const classification = classifyEvidenceRow({
+      id: 'prompt-assessment-1',
+      sourceId: 'PromptAssessment',
+      userId: 'student-1',
+      occurredAt: '2026-08-15T00:00:00.000Z',
+    });
+
+    expect(catalogEntry).toMatchObject({
+      defaultValueLevel: 'context',
+      defaultEligibility: 'context-only',
+      materializationReadiness: 'future',
+    });
+    expect(classification).toMatchObject({
+      eligibility: 'context-only',
+      materializationReadiness: 'future',
+    });
+    expect(getProfileEligibleEvidenceSourceIds()).not.toContain('PromptAssessment');
   });
 
   it('aggregates coverage counts, windows, users, provenance, and sample references', () => {

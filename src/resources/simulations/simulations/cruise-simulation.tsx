@@ -89,6 +89,16 @@ import {
   buildCruiseTelemetryBridgeSummary,
   type CruiseTelemetryBridgeSummary,
 } from './cruise/telemetry-bridge';
+import {
+  canEmitCruiseCompletionTelemetry,
+  hasFiniteRequiredCruisePerformance,
+  projectCruiseControlEffectDebrief,
+} from './cruise/control-effect-debrief';
+import {
+  CRUISE_DEBRIEF_ACCEPTANCE_QUERY,
+  buildCruiseDebriefProjectionInput,
+} from './cruise/control-effect-debrief-acceptance';
+import { ControlEffectDebriefCard } from './cruise/control-effect-debrief-card';
 
 // ============ 类型定义 ============
 
@@ -1024,6 +1034,7 @@ function CruiseTradeoffPanel({
   consistencyLoading,
   hasRuntimeData,
   runtimeHint,
+  debrief,
   onTargetFormTouch,
   onTargetFormChange,
   onGenerateConsistencyComment,
@@ -1038,6 +1049,7 @@ function CruiseTradeoffPanel({
   consistencyLoading: boolean;
   hasRuntimeData: boolean;
   runtimeHint: string;
+  debrief: ReturnType<typeof projectCruiseControlEffectDebrief>;
   onTargetFormTouch: (key: keyof CruiseTargetForm, touched: boolean) => void;
   onTargetFormChange: (key: keyof CruiseTargetForm, value: number) => void;
   onGenerateConsistencyComment: () => void;
@@ -1078,6 +1090,7 @@ function CruiseTradeoffPanel({
 
   return (
     <div className="space-y-3 text-sm">
+      <ControlEffectDebriefCard debrief={debrief} />
       {isCourseMode ? (
         <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs text-platform-fg-secondary">
           <div className="font-semibold text-platform-fg-primary">性能指标约束</div>
@@ -1565,6 +1578,7 @@ function TelemetryBridge({
   performance,
   consistencyScore,
   hasRuntimeData,
+  isCompleted,
   runId,
   startedAt,
   sampleFrameCount,
@@ -1574,6 +1588,7 @@ function TelemetryBridge({
   performance: RuntimeConsistencyPerformance | null;
   consistencyScore: ReturnType<typeof computeConsistencyScore> | null;
   hasRuntimeData: boolean;
+  isCompleted: boolean;
   runId: string;
   startedAt: string;
   sampleFrameCount: number;
@@ -1582,7 +1597,13 @@ function TelemetryBridge({
   const emittedRunIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!hasRuntimeData || !performance || emittedRunIdRef.current === runId) {
+    if (emittedRunIdRef.current && emittedRunIdRef.current !== runId) {
+      emittedRunIdRef.current = null;
+    }
+  }, [runId]);
+
+  useEffect(() => {
+    if (!isCompleted || !hasRuntimeData || !hasFiniteRequiredCruisePerformance(performance)) {
       return;
     }
 
@@ -1614,6 +1635,14 @@ function TelemetryBridge({
       sampleFrameCount,
       virtualModeEnabled,
     });
+    if (!canEmitCruiseCompletionTelemetry({
+      isCompleted,
+      runId,
+      emittedRunId: emittedRunIdRef.current,
+      summary,
+    })) {
+      return;
+    }
 
     emittedRunIdRef.current = runId;
     window.dispatchEvent(new CustomEvent<CruiseTelemetryBridgeSummary>('simulation:trace-summary', { detail: summary }));
@@ -1656,6 +1685,7 @@ function TelemetryBridge({
   }, [
     consistencyScore,
     hasRuntimeData,
+    isCompleted,
     performance,
     runId,
     sampleFrameCount,
@@ -1672,6 +1702,8 @@ function TelemetryBridge({
 export default function CruiseSimulation() {
   const searchParams = useSearchParams();
   const isCourseMode = true;
+  const isBoundCourseTask = searchParams.get('courseMode') === CRUISE_COURSE_MODE;
+  const debriefAcceptanceId = searchParams.get(CRUISE_DEBRIEF_ACCEPTANCE_QUERY);
   const courseRole = searchParams.get('role') === 'student' ? 'student' : 'teacher';
   const courseStep = searchParams.get('step') || 'engineering-target';
   const isEmbedded = searchParams.get('embed') === '1';
@@ -2124,6 +2156,72 @@ export default function CruiseSimulation() {
     return computeConsistencyScore(state.targetForm, runtimePerformance);
   }, [runtimePerformance, state.targetForm]);
 
+  const debrief = useMemo(() => {
+    const liveSummary = hasRuntimeData && hasFiniteRequiredCruisePerformance(runtimePerformance)
+      ? buildCruiseTelemetryBridgeSummary({
+        runId: telemetryRunIdRef.current,
+        startedAt: telemetryStartedAtRef.current,
+        completedAt: new Date().toISOString(),
+        seed: `${telemetryRunIdRef.current}:${telemetryStartedAtRef.current}`,
+        state: {
+          time: state.time,
+          heading: state.heading,
+          targetHeading: state.targetHeading,
+          yawRate: state.yawRate,
+          rudder: state.rudder,
+          speed: state.speed,
+          rollAngle: state.rollAngle,
+          seaState: state.seaState,
+          waveDirection: state.waveDirection,
+          finStabilizerEnabled: state.finStabilizerEnabled,
+          notchFilterEnabled: state.notchFilterEnabled,
+          comfort: state.comfort,
+          finPower: state.finPower,
+          controlMode: state.controlMode,
+          pidGains: state.pidGains,
+          targetForm: state.targetForm,
+        },
+        performance: runtimePerformance,
+        consistencyScore: consistencyScore ? { score: consistencyScore.score } : null,
+        sampleFrameCount: trajectoryRef.current.length,
+        virtualModeEnabled,
+      })
+      : null;
+    return projectCruiseControlEffectDebrief(buildCruiseDebriefProjectionInput({
+      currentRunId: telemetryRunIdRef.current,
+      isCompleted: state.isCompleted,
+      isPaused: state.isPaused,
+      liveSummary,
+      isBoundCourseTask,
+      acceptanceFixtureId: debriefAcceptanceId,
+    }));
+  }, [
+    consistencyScore,
+    debriefAcceptanceId,
+    hasRuntimeData,
+    isBoundCourseTask,
+    runtimePerformance,
+    state.comfort,
+    state.controlMode,
+    state.finPower,
+    state.finStabilizerEnabled,
+    state.heading,
+    state.isCompleted,
+    state.isPaused,
+    state.notchFilterEnabled,
+    state.pidGains,
+    state.rollAngle,
+    state.rudder,
+    state.seaState,
+    state.speed,
+    state.targetForm,
+    state.targetHeading,
+    state.time,
+    state.waveDirection,
+    state.yawRate,
+    virtualModeEnabled,
+  ]);
+
   const syntheticPerformance = useMemo(() => computePerformanceFromController(state.pidGains), [state.pidGains]);
 
   const generateConsistencyComment = useCallback(async () => {
@@ -2248,6 +2346,7 @@ export default function CruiseSimulation() {
         performance={runtimePerformance}
         consistencyScore={consistencyScore}
         hasRuntimeData={hasRuntimeData}
+        isCompleted={state.isCompleted}
         runId={telemetryRunIdRef.current}
         startedAt={telemetryStartedAtRef.current}
         sampleFrameCount={trajectoryRef.current.length}
@@ -2329,6 +2428,7 @@ export default function CruiseSimulation() {
                 consistencyLoading={consistencyCommentLoading}
                 hasRuntimeData={hasRuntimeData}
                 runtimeHint={runtimeHint}
+                debrief={debrief}
                 onTargetFormTouch={handleTargetFormTouch}
                 onTargetFormChange={handleTargetFormChange}
                 onGenerateConsistencyComment={() => void generateConsistencyComment()}

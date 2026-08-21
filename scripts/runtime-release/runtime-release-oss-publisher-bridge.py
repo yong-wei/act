@@ -494,13 +494,13 @@ def remote_blob_metadata(bucket: str, key: str) -> Optional[Dict[str, Any]]:
     if not isinstance(payload, dict):
         fail(f"ossutil v2 head-object returned an invalid response for {key}")
     size = metadata_field(payload, ["ContentLength", "Content-Length"], "Content-Length")
-    schema = metadata_field(payload, ["x-oss-meta-schema", "schema"], "schema")
-    digest = metadata_field(payload, ["x-oss-meta-sha256", "sha256"], "SHA-256")
-    declared_size = metadata_field(payload, ["x-oss-meta-size", "size"], "declared size")
+    schema = metadata_field(payload, ["x-oss-meta-schema", "x-oss-meta-x-oss-meta-schema", "schema"], "schema")
+    digest = metadata_field(payload, ["x-oss-meta-sha256", "x-oss-meta-x-oss-meta-sha256", "sha256"], "SHA-256")
+    declared_size = metadata_field(payload, ["x-oss-meta-size", "x-oss-meta-x-oss-meta-size", "size"], "declared size")
     metadata_fields = [
-        metadata_field_present(payload, ["x-oss-meta-schema", "schema"]),
-        metadata_field_present(payload, ["x-oss-meta-sha256", "sha256"]),
-        metadata_field_present(payload, ["x-oss-meta-size", "size"]),
+        metadata_field_present(payload, ["x-oss-meta-schema", "x-oss-meta-x-oss-meta-schema", "schema"]),
+        metadata_field_present(payload, ["x-oss-meta-sha256", "x-oss-meta-x-oss-meta-sha256", "sha256"]),
+        metadata_field_present(payload, ["x-oss-meta-size", "x-oss-meta-x-oss-meta-size", "size"]),
     ]
     etag = metadata_field(payload, ["ETag", "etag"], "ETag")
     if not any(metadata_fields):

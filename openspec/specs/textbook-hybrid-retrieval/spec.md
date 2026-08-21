@@ -35,7 +35,7 @@ The runtime SHALL expose a read-only lexical index, contiguous Float32 vector ma
 #### Scenario: Application process loads the index
 - **WHEN** the shared textbook retrieval module initializes
 - **THEN** one read-only index instance SHALL be shared within the application process
-- **AND** its resident index budget SHALL not exceed 150 MiB for the six textbooks and one reference collection.
+- **AND** its resident index budget SHALL not exceed 150 MiB for the current declared resource set.
 
 #### Scenario: Candidate body is needed
 - **WHEN** a retrieval window reaches the bounded candidate set
@@ -117,4 +117,48 @@ Build, release, and remote deployment scripts SHALL reference `resources/textboo
 #### Scenario: Raw runtime route blocks index files
 - **WHEN** a request targets `resources/textbook-hybrid-retrieval/bge-m3/*` through the course-runtime route
 - **THEN** the route SHALL return 404
+
+### Requirement: Hybrid retrieval index generation and verification use the resource set
+The hybrid retrieval index builder and verifier SHALL derive the expected textbook set and expected book count from `course-content/config/textbook-resource-set.json`.
+
+#### Scenario: Index is built
+- **WHEN** the hybrid retrieval index builder runs
+- **THEN** it SHALL build windows and segments for every declared book
+- **AND** the index metadata SHALL record the resourceSetId and sourceRevision used by the build
+
+#### Scenario: Index is verified
+- **WHEN** the index verifier runs
+- **THEN** it SHALL compare the generated index against the declared resource set
+- **AND** it SHALL fail when windows, segments, manifestHash, sourceRevision, or resourceSetId are inconsistent
+
+#### Scenario: Explicit expected count conflicts with resource set
+- **WHEN** a caller passes an explicit expected book count that differs from the resource set
+- **THEN** verification SHALL fail closed
+- **AND** the caller SHALL NOT bypass resource set consistency through a stale count
+
+#### Scenario: Runtime book set diverges
+- **WHEN** the runtime contains the same number of books as the resource set but its book ids differ
+- **THEN** the builder and verifier SHALL fail closed
+- **AND** the generated or accepted index SHALL NOT be considered consistent based on book count alone
+
+#### Scenario: Resource set is invalid
+- **WHEN** the resource set has no books or contains invalid book ids
+- **THEN** the builder and verifier SHALL fail before producing or accepting an index
+
+### Requirement: Hybrid retrieval closes over the admitted textbook corpus
+The hybrid retrieval manifest SHALL bind the same resourceSetId, normalized book IDs and authoring source revision as the textbook corpus admission provenance. Its manifest identity and every per-book runtime manifest identity SHALL be verified before the external bundle is accepted. Equal book counts, shared Blob objects or a historical index SHALL NOT establish corpus consistency.
+
+#### Scenario: Runtime and index describe the same corpus
+- **WHEN** external bundle preflight validates a resource-set-complete textbook corpus
+- **THEN** the hybrid index book IDs SHALL equal the provenance book IDs exactly
+- **AND** its resourceSetId and authoring source revision SHALL equal the provenance and every runtime book manifest
+
+#### Scenario: Same-count index drift occurs
+- **WHEN** the hybrid index contains the same number of books but at least one book ID differs from provenance
+- **THEN** bundle preparation, publication and candidate activation SHALL fail closed
+
+#### Scenario: Historical index is present in OSS
+- **WHEN** a retained or rollback Release contains a valid historical index for a different book set
+- **THEN** that index SHALL remain attributable only to its immutable Release
+- **AND** its OSS reachability SHALL NOT qualify it as the active corpus index
 

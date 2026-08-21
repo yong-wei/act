@@ -4,6 +4,7 @@ import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-asse
 
 import { resolveAdaptiveDiagnosisContext } from '../adaptive-diagnosis-context';
 import { adaptiveAssessmentItemContentHash } from '../adaptive-assessment-item-content-hash';
+import { microTutoringOptionAttributionReviewSourceHash } from '../micro-tutoring-option-attribution';
 import { attributeWrongAnswerEvidence } from '../wrong-answer-attribution';
 
 const RAW_PROMPT = 'RAW_PRIVATE_PROMPT';
@@ -143,6 +144,32 @@ function rehashItemContent(row: any) {
   });
 }
 
+function optionAttributionsFor(row: ReturnType<typeof answer>, overrides: Record<string, unknown> = {}) {
+  const metadata = row.questionRef.metadata as any;
+  const item = metadata.adaptiveAssessmentItemRef;
+  const attribution = {
+    catalogItemId: item.catalogItemId,
+    contentHash: item.contentHash,
+    optionKey: row.selectedOptionKey,
+    learningGoalId: item.semanticRefs.learningGoalIds[0],
+    misconceptionTag: item.semanticRefs.misconceptionTags[0],
+    knowledgeNodeId: item.semanticRefs.graphNodeIds[0],
+    version: 'micro-tutoring-option-attribution.v2',
+    itemReviewSourceHash: item.reviewDecision.reviewSourceHash,
+    reviewerId: 'assessment-content-reviewer:test',
+    reviewerRole: 'assessment-content-reviewer',
+    reviewedAt: '2026-08-20T00:00:00.000Z',
+    reviewBatchId: 'micro-tutoring-option-attribution-review.test',
+    evidenceSummary: 'Reviewed option attribution.',
+    limitations: ['content-hash-bound'],
+    ...overrides,
+  };
+  return [{
+    ...attribution,
+    reviewSourceHash: microTutoringOptionAttributionReviewSourceHash(attribution),
+  }];
+}
+
 function reverseObjectKeyOrder(value: any): any {
   if (Array.isArray(value)) return value.map(reverseObjectKeyOrder);
   if (value === null || typeof value !== 'object') return value;
@@ -158,7 +185,7 @@ function persisted(overrides: Record<string, unknown> = {}) {
   return {
     id: 'attribution-1',
     answerId: 'answer-1',
-    attributionVersion: 'wrong-answer-attribution.v1',
+    attributionVersion: 'wrong-answer-attribution.v2',
     userId: 'student-1',
     sessionId: 'session-1',
     questionRefId: 'item-ref-1',
@@ -195,13 +222,18 @@ function rehashReviewDecision(item: any) {
   };
 }
 
-function dbFor(row: ReturnType<typeof answer> | null, stored = persisted()) {
+function dbFor(
+  row: ReturnType<typeof answer> | null,
+  stored = persisted(),
+  existingAttribution: ReturnType<typeof persisted> | null = null,
+) {
   return {
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn().mockResolvedValue(row),
       findMany: vi.fn().mockResolvedValue(row ? [row] : []),
     },
     wrongAnswerAttribution: {
+      findFirst: vi.fn().mockResolvedValue(existingAttribution),
       upsert: vi.fn().mockResolvedValue(stored),
     },
   };
@@ -295,6 +327,7 @@ describe('attributeWrongAnswerEvidence', () => {
 
   it('accepts a semantically equivalent JSONB snapshot with reordered object keys', async () => {
     const row = answer();
+    const optionAttributions = optionAttributionsFor(row);
     row.questionRef.metadata = reverseObjectKeyOrder(row.questionRef.metadata);
     const db = dbFor(row);
 
@@ -302,13 +335,15 @@ describe('attributeWrongAnswerEvidence', () => {
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions,
     })).resolves.toMatchObject({ state: 'ATTRIBUTED' });
     expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledOnce();
   });
 
   it('persists and projects a deterministic governed attribution', async () => {
     const basePersisted = persisted();
-    const db = dbFor(answer(), persisted({
+    const row = answer();
+    const db = dbFor(row, persisted({
       evidenceSummary: {
         ...(basePersisted.evidenceSummary as Record<string, unknown>),
         rawPrompt: RAW_PROMPT,
@@ -319,13 +354,14 @@ describe('attributeWrongAnswerEvidence', () => {
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions: optionAttributionsFor(row),
     });
 
     expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith({
       where: {
         answerId_attributionVersion: {
           answerId: 'answer-1',
-          attributionVersion: 'wrong-answer-attribution.v1',
+          attributionVersion: 'wrong-answer-attribution.v2',
         },
       },
       update: {},
@@ -334,7 +370,7 @@ describe('attributeWrongAnswerEvidence', () => {
         knowledgeNodeIds: ['knowledge-node-1'],
         misconceptionTags: ['confuses-low-and-high-frequency'],
         confidence: 1,
-        limitations: [],
+        limitations: ['content-hash-bound'],
         nextAction: 'NONE',
       }),
     });
@@ -349,7 +385,7 @@ describe('attributeWrongAnswerEvidence', () => {
         misconceptionTags: ['confuses-low-and-high-frequency'],
       },
       confidence: 1,
-      attributionVersion: 'wrong-answer-attribution.v1',
+      attributionVersion: 'wrong-answer-attribution.v2',
     });
 
     const serializedWriteAndResult = JSON.stringify({
@@ -362,45 +398,97 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(serializedWriteAndResult).not.toContain('raw explanation');
   });
 
-  it('projects ambiguous candidates as uncertain rather than factual attribution', async () => {
-    const ambiguous = answer();
-    const metadata = ambiguous.questionRef.metadata as any;
-    metadata.adaptiveAssessmentItemRef.semanticRefs.graphNodeIds = ['knowledge-node-1', 'knowledge-node-2'];
-    metadata.adaptiveAssessmentItemRef.reviewDecision.selectedGraphNodeIds = [
-      'knowledge-node-1',
-      'knowledge-node-2',
-    ];
-    rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
-    rehashItemContent(ambiguous);
-    const stored = persisted({
-      state: 'UNCERTAIN',
-      knowledgeNodeIds: ['knowledge-node-1', 'knowledge-node-2'],
+  it('returns an existing v1 attribution without writing a v2 record', async () => {
+    const row = answer();
+    const legacy = persisted({
+      attributionVersion: 'wrong-answer-attribution.v1',
+      itemContentHash: 'legacy-item-content-hash',
+      knowledgeNodeIds: ['legacy-knowledge-node'],
+      misconceptionTags: ['legacy-misconception'],
+      evidenceSummary: {
+        version: 'wrong-answer-evidence-summary.v1',
+        outcome: 'incorrect',
+        answeredAt: '2026-07-31T08:00:00.000Z',
+        knowledgeNodeCount: 1,
+        misconceptionCandidateCount: 1,
+      },
       confidence: 0.5,
-      limitations: ['multiple-reviewed-attribution-candidates'],
+      limitations: ['legacy-attribution-preserved'],
       nextAction: 'MANUAL_REVIEW',
     });
-    const db = dbFor(ambiguous, stored);
+    const db = dbFor(row, persisted(), legacy);
 
     const result = await attributeWrongAnswerEvidence({
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions: optionAttributionsFor(row),
     });
 
+    expect(db.wrongAnswerAttribution.findFirst).toHaveBeenCalledWith({
+      where: {
+        answerId: 'answer-1',
+        attributionVersion: { in: ['wrong-answer-attribution.v1', 'wrong-answer-attribution.v2'] },
+      },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+    expect(db.wrongAnswerAttribution.upsert).not.toHaveBeenCalled();
     expect(result).toMatchObject({
-      state: 'UNCERTAIN',
-      attribution: null,
-      confidence: 0.5,
-      limitations: ['multiple-reviewed-attribution-candidates'],
+      attributionVersion: 'wrong-answer-attribution.v1',
+      attribution: {
+        knowledgeNodeId: 'legacy-knowledge-node',
+        misconceptionTag: 'legacy-misconception',
+      },
+      limitations: ['legacy-attribution-preserved'],
       nextAction: 'MANUAL_REVIEW',
     });
   });
 
-  it('uses the single immutable KAQ knowledge node for remediation attribution', async () => {
+  it('fails closed when the selected option has no unique current attribution', async () => {
+    const row = answer();
+    const stored = persisted({
+      state: 'UNCERTAIN',
+      knowledgeNodeIds: [],
+      misconceptionTags: [],
+      confidence: 0,
+      limitations: ['option-attribution-unavailable'],
+      nextAction: 'REPEAT_PRACTICE',
+    });
+    const db = dbFor(row, stored);
+
+    const result = await attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: 'answer-1',
+      optionAttributions: [
+        ...optionAttributionsFor(row),
+        ...optionAttributionsFor(row),
+      ],
+    });
+
+    expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        state: 'UNCERTAIN',
+        knowledgeNodeIds: [],
+        misconceptionTags: [],
+        limitations: ['option-attribution-unavailable'],
+      }),
+    }));
+    expect(result).toMatchObject({
+      state: 'UNCERTAIN',
+      attribution: null,
+      nextAction: 'REPEAT_PRACTICE',
+    });
+  });
+
+  it('uses the reviewed option attribution instead of the legacy KAQ fallback', async () => {
     const multiObjective = answer();
     const metadata = multiObjective.questionRef.metadata as any;
     metadata.kaq.knowledgeNodeIds = ['kn:autocontrol:stability-margin'];
     metadata.adaptiveAssessmentItemRef.semanticRefs.learningGoalIds = [
+      'stability-margin-frequency-analysis',
+    ];
+    metadata.adaptiveAssessmentItemRef.reviewDecision.selectedLearningGoalIds = [
       'stability-margin-frequency-analysis',
     ];
     metadata.adaptiveAssessmentItemRef.semanticRefs.graphNodeIds = [
@@ -413,26 +501,28 @@ describe('attributeWrongAnswerEvidence', () => {
     ];
     rehashReviewDecision(metadata.adaptiveAssessmentItemRef);
     rehashItemContent(multiObjective);
+    const optionAttributions = optionAttributionsFor(multiObjective);
     const db = dbFor(multiObjective, persisted({
-      knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
+      knowledgeNodeIds: ['cap:autocontrol:trade-off-engineering-constraints'],
     }));
 
     const result = await attributeWrongAnswerEvidence({
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions,
     });
 
     expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
         state: 'ATTRIBUTED',
-        knowledgeNodeIds: ['kn:autocontrol:stability-margin'],
+        knowledgeNodeIds: ['cap:autocontrol:trade-off-engineering-constraints'],
       }),
     }));
     expect(result).toMatchObject({
       state: 'ATTRIBUTED',
       attribution: {
-        knowledgeNodeId: 'kn:autocontrol:stability-margin',
+        knowledgeNodeId: 'cap:autocontrol:trade-off-engineering-constraints',
         misconceptionTag: 'confuses-low-and-high-frequency',
       },
     });
@@ -440,6 +530,7 @@ describe('attributeWrongAnswerEvidence', () => {
 
   it('persists missing semantic evidence as uncertain and directs repeated practice', async () => {
     const incomplete = answer();
+    const optionAttributions = optionAttributionsFor(incomplete);
     const metadata = incomplete.questionRef.metadata as any;
     metadata.adaptiveAssessmentItemRef.semanticRefs.misconceptionTags = [];
     metadata.questionSnapshot.misconceptionTags = [];
@@ -457,13 +548,14 @@ describe('attributeWrongAnswerEvidence', () => {
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions,
     });
 
     expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
         state: 'UNCERTAIN',
         confidence: 0,
-        limitations: ['missing-reviewed-semantic-binding'],
+        limitations: ['option-attribution-unavailable'],
         nextAction: 'REPEAT_PRACTICE',
       }),
     }));
@@ -471,11 +563,13 @@ describe('attributeWrongAnswerEvidence', () => {
   });
 
   it('uses an immutable upsert so repeated requests share one answer-version record', async () => {
-    const db = dbFor(answer());
+    const row = answer();
+    const db = dbFor(row);
     const input = {
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions: optionAttributionsFor(row),
     };
 
     await attributeWrongAnswerEvidence(input);
@@ -487,12 +581,14 @@ describe('attributeWrongAnswerEvidence', () => {
   });
 
   it('adds the governed attribution to the existing adaptive diagnosis context', async () => {
-    const db = dbFor(answer());
+    const row = answer();
+    const db = dbFor(row);
 
     const context = await resolveAdaptiveDiagnosisContext({
       db,
       authenticatedUserId: 'student-1',
       answerId: 'answer-1',
+      optionAttributions: optionAttributionsFor(row),
     });
 
     expect(context?.adaptiveAttempt).toMatchObject({

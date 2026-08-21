@@ -1,0 +1,14 @@
+{
+  "contract": "actkg-v022-production-cutover-preflight/v1",
+  "status": "READY",
+  "qualificationDigest": "afd84f5837af925e50728ade620c5ae2509b537a5efa0a4d402ae529343f11b7",
+  "runtimeReceiptDigest": "a2e4d64e88cd1ec6791d4c8f2988c5e7528f5ac92e750fda1bf4cdffbe82fdc0",
+  "predecessorHashes": {
+    "authority": "d0a3dd3de9f176cdd185302d91a67d2c3406fdfb271fea75bd583c3127e8cd9d",
+    "projection": "53cc566e0e590b4127b121291aceeb847e38aa16449767d3c8db3e951f79e812",
+    "prerequisite": "ee266789e779bce9c7bec07d87809f550fb241deebecffb25f250e2467df6db2",
+    "authority-domain-shards": "b128456356799c4382d8e4ccd4c13b28ec7b95f40079389e728fad017892b3b6",
+    "consumer-activation": "8e0a7a69124afcd9d9d6baa324db297c4f4e479bbeca6cc658881fe5b353e881"
+  },
+  "blockers": []
+}

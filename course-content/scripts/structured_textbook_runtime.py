@@ -17,6 +17,13 @@ import tempfile
 from typing import Any
 
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from textbook_resource_set import load_textbook_resource_set
+
+
 SCHEMA_VERSION = 'structured-textbook-runtime.v2'
 CONFIG_VERSION = 'textbook-structure-parser.v2'
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -1709,10 +1716,6 @@ def validate_written_export(output_dir: Path) -> None:
     ))
 
 
-def configured_resource_ids(config_root: Path = CONFIG_ROOT) -> list[str]:
-    return sorted(path.stem for path in config_root.glob('*.json'))
-
-
 def _relevant_input_paths(
     *,
     result: ExportResult,
@@ -1846,9 +1849,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument('--book', action='append', dest='books')
-    selection.add_argument('--all-seven', action='store_true')
+    selection.add_argument('--resource-set', type=Path)
     parser.add_argument('--audit-only', action='store_true')
-    parser.add_argument('--authoring-root', type=Path, default=DEFAULT_AUTHORING_ROOT)
+    parser.add_argument('--authoring-root', type=Path)
     parser.add_argument('--runtime-root', type=Path, default=DEFAULT_RUNTIME_ROOT)
     parser.add_argument('--config-root', type=Path, default=CONFIG_ROOT)
     return parser.parse_args(argv)
@@ -1856,18 +1859,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    book_ids = configured_resource_ids(args.config_root) if args.all_seven else args.books
-    if args.all_seven and len(book_ids) != 7:
-        print(
-            f'expected exactly seven parser configurations, found {len(book_ids)}',
-            file=sys.stderr,
+    if args.resource_set is not None:
+        resource_set = load_textbook_resource_set(args.resource_set)
+        book_ids = resource_set['books']
+        config_root = Path.cwd() / resource_set['configRoot']
+        authoring_root = (
+            args.authoring_root
+            if args.authoring_root is not None
+            else Path.cwd() / resource_set['sourceRoot']
         )
-        return 1
+    else:
+        book_ids = args.books
+        config_root = args.config_root
+        authoring_root = args.authoring_root or DEFAULT_AUTHORING_ROOT
     reports, failures = export_resources(
         book_ids=book_ids,
-        authoring_root=args.authoring_root,
+        authoring_root=authoring_root,
         runtime_root=args.runtime_root,
-        config_root=args.config_root,
+        config_root=config_root,
         audit_only=args.audit_only,
     )
     print(json.dumps(

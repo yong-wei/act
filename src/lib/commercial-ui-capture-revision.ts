@@ -38,6 +38,33 @@ export const CAPTURE_REVISION_SOURCE_FILES = [
   'src/app/api/internal/local-qa/revision/route.ts',
 ] as const;
 
+/**
+ * This list defines the runtime bytes that are allowed to back the #1440
+ * evidence capture. It deliberately excludes the evidence output directory:
+ * the runner verifies a clean worktree before it publishes new screenshots.
+ */
+export const DIAGNOSIS_REPORT_DELIVERY_CAPTURE_SOURCE_FILES = [
+  'prisma/schema.prisma',
+  'src/app/api/diagnosis-reports/[reportId]/student-safe/route.ts',
+  'src/app/api/diagnosis-reports/[reportId]/student-safe/pdf/route.ts',
+  'src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/route.ts',
+  'src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/pdf/route.ts',
+  'src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/dispositions/route.ts',
+  'src/app/diagnosis-reports/[reportId]/page.tsx',
+  'src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx',
+  'src/features/teacher/diagnosis-report-delivery-view.tsx',
+  'src/lib/diagnosis-report-delivery-projection.ts',
+  'src/lib/diagnosis-report-delivery.ts',
+  'src/lib/diagnosis-report-pdf.ts',
+  'src/lib/diagnosis-report-delivery-evidence.ts',
+  'playwright.config.ts',
+  'tests/diagnosis-report-delivery-evidence.spec.ts',
+  'src/lib/commercial-ui-capture-revision.ts',
+  'src/app/api/internal/local-qa/revision/route.ts',
+] as const;
+
+export type CaptureRevisionProfile = 'adaptive-path' | 'diagnosis-report-delivery';
+
 export type CaptureRevisionProof = {
   commitSha: string;
   treeSha: string;
@@ -53,6 +80,14 @@ export type RuntimeCaptureRevisionProbeFetcher = (
 const REVISION_SHA_PATTERN = /^[0-9a-f]{40}$/u;
 const SOURCE_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/u;
 const REVISION_PROOF_KEYS = ['clean', 'commitSha', 'sourceFingerprint', 'treeSha'] as const;
+
+export function captureRevisionSourceFiles(
+  profile = process.env.ACT_LOCAL_QA_CAPTURE_PROFILE,
+): readonly string[] {
+  if (!profile || profile === 'adaptive-path') return CAPTURE_REVISION_SOURCE_FILES;
+  if (profile === 'diagnosis-report-delivery') return DIAGNOSIS_REPORT_DELIVERY_CAPTURE_SOURCE_FILES;
+  throw new Error(`Unsupported commercial UI capture profile: ${profile}`);
+}
 
 function gitOutput(repositoryRoot: string, args: string[], trim = true) {
   const output = execFileSync('git', args, {
@@ -191,7 +226,7 @@ export function assertRuntimeCaptureRevisionProofMatches(
 
 export function computeCaptureRevisionProof(
   repositoryRoot = process.cwd(),
-  sourceFiles: readonly string[] = CAPTURE_REVISION_SOURCE_FILES,
+  sourceFiles: readonly string[] = captureRevisionSourceFiles(),
   ignoredPaths: readonly string[] = [],
 ): CaptureRevisionProof {
   const status = dirtyStatusPaths(repositoryRoot, ignoredPaths);

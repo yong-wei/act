@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { DEFAULT_SILICONFLOW_MODEL } from '@/lib/ai/provider-config';
 import { AI_PROVIDER_SETTINGS_KEY, getDefaultAIProviderSettings } from '@/lib/ai/provider-settings';
 import { syncSiliconFlowQwenDefault } from '../../../scripts/db/set-ai-provider-qwen-default';
 
@@ -62,12 +63,12 @@ describe('set-ai-provider-qwen-default sync', () => {
     const logger = (message: string) => messages.push(message);
 
     const first = await syncSiliconFlowQwenDefault(db as never, logger);
-    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(first).toEqual({ changed: true, selectedModel: DEFAULT_SILICONFLOW_MODEL });
     expect(upsert).toHaveBeenCalledTimes(2);
-    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+    expect(JSON.stringify(current())).toContain(`"selectedModel":"${DEFAULT_SILICONFLOW_MODEL}"`);
 
     const second = await syncSiliconFlowQwenDefault(db as never, logger);
-    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(second).toEqual({ changed: false, selectedModel: DEFAULT_SILICONFLOW_MODEL });
     expect(upsert).toHaveBeenCalledTimes(2);
     expect(messages[1]).toContain('already');
   });
@@ -86,12 +87,12 @@ describe('set-ai-provider-qwen-default sync', () => {
     const logger = (message: string) => messages.push(message);
 
     const first = await syncSiliconFlowQwenDefault(db as never, logger);
-    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(first).toEqual({ changed: true, selectedModel: DEFAULT_SILICONFLOW_MODEL });
     expect(upsert).toHaveBeenCalledTimes(2);
-    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+    expect(JSON.stringify(current())).toContain(`"selectedModel":"${DEFAULT_SILICONFLOW_MODEL}"`);
 
     const second = await syncSiliconFlowQwenDefault(db as never, logger);
-    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(second).toEqual({ changed: false, selectedModel: DEFAULT_SILICONFLOW_MODEL });
     expect(upsert).toHaveBeenCalledTimes(2);
     expect(messages[1]).toContain('already');
   });
@@ -106,9 +107,9 @@ describe('set-ai-provider-qwen-default sync', () => {
     } as unknown as NodeJS.ProcessEnv);
 
     const first = await syncSiliconFlowQwenDefault(db as never, () => undefined, fallback);
-    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.5-35B-A3B' });
     expect(upsert).toHaveBeenCalledTimes(2);
-    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.5-35B-A3B"');
     expect(JSON.stringify(current())).not.toContain('"selectedModel":"custom/model"');
   });
 
@@ -116,12 +117,12 @@ describe('set-ai-provider-qwen-default sync', () => {
     const { db, upsert, current } = fakeDb(null);
 
     const first = await syncSiliconFlowQwenDefault(db as never, () => undefined);
-    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(first).toEqual({ changed: true, selectedModel: 'Qwen/Qwen3.5-35B-A3B' });
     expect(upsert).toHaveBeenCalledTimes(2);
-    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.6-35B-A3B"');
+    expect(JSON.stringify(current())).toContain('"selectedModel":"Qwen/Qwen3.5-35B-A3B"');
 
     const second = await syncSiliconFlowQwenDefault(db as never, () => undefined);
-    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(second).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.5-35B-A3B' });
     expect(upsert).toHaveBeenCalledTimes(2);
   });
 });

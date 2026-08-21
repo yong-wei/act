@@ -19,7 +19,11 @@ export const DEFAULT_AUTHORITY_DOMAIN_CATALOG_AUTHORING_RELATIVE =
 export const DEFAULT_AUTHORITY_DOMAIN_CATALOG_RUNTIME_RELATIVE =
   'course-content/runtime/knowledge/authority-domain-catalog' as const;
 
-/** Exactly eight registered peer engineering domains. Order is the reviewed default. */
+/**
+ * Peer domain IDs currently served by the v0.9 production catalog. This list
+ * is production data, not a size invariant: candidate catalogs derive their
+ * domain entries from the bound release envelope.
+ */
 export const REGISTERED_PEER_DOMAIN_IDS = [
   'system-modeling',
   'time-domain-analysis',
@@ -31,7 +35,9 @@ export const REGISTERED_PEER_DOMAIN_IDS = [
   'state-space-control-analysis-and-design',
 ] as const;
 
-export type RegisteredPeerDomainId = (typeof REGISTERED_PEER_DOMAIN_IDS)[number];
+const PEER_DOMAIN_ID = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
+
+export type RegisteredPeerDomainId = string;
 
 /** Aggregate navigation entry — not a peer domain. */
 export const AGGREGATE_ENTRY_ID = 'control-theory-integration' as const;
@@ -49,6 +55,13 @@ export const DOMAIN_VISUAL_ROLES = [
   'design',
   'discrete',
   'state-space',
+  'nonlinear-analysis',
+  'lyapunov',
+  'discrete-design',
+  'robustness',
+  'optimal',
+  'robust-design',
+  'nonlinear-design',
   'aggregate',
 ] as const;
 export type DomainVisualRole = (typeof DOMAIN_VISUAL_ROLES)[number];
@@ -114,7 +127,7 @@ export interface AggregatePresentationRuntime {
   summary: string;
   presentationRole: 'aggregate';
   visualRole: 'aggregate';
-  /** Always the peer domain count (8); never a ninth peer. */
+  /** Peer domain count of this catalog; never includes the aggregate entry. */
   domainCount: number;
 }
 
@@ -191,7 +204,7 @@ export interface AuthorityNodeEndpoint {
 }
 
 export function isRegisteredPeerDomainId(value: string): value is RegisteredPeerDomainId {
-  return (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).includes(value);
+  return PEER_DOMAIN_ID.test(value) && value !== AGGREGATE_ENTRY_ID;
 }
 
 export function isAggregateEntryId(value: string): value is AggregateEntryId {

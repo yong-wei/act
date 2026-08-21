@@ -1,0 +1,67 @@
+[
+  {
+    "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "scopeId": "act-control-theory-core",
+    "pathEligible": true,
+    "cardPolicy": "REQUIRED",
+    "moduleId": "module-1-modeling",
+    "rationale": "当前 2-1 蓝图以方框图化简连接建模语言与闭环分析。",
+    "sourceKind": "PRIMARY_COVERS",
+    "sourceEvidence": [
+      "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+    ],
+    "nodeDigest": "5803ca7990b3271954bb150a7a0b5f5cd825f58d72cd2f12d5d7340fcda27564"
+  },
+  {
+    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "scopeId": "act-control-theory-core",
+    "pathEligible": true,
+    "cardPolicy": "REQUIRED",
+    "moduleId": "module-1-modeling",
+    "rationale": "当前 1-2 互动课程将传递函数作为由真实对象走向统一分析对象的主绑定。",
+    "sourceKind": "PRIMARY_COVERS",
+    "sourceEvidence": [
+      "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+    ],
+    "nodeDigest": "055821f9282cc51ad0b0ec3f61e42624ec37c740072218fbb3d9ad6b4e65eecf"
+  },
+  {
+    "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "scopeId": "act-control-theory-core",
+    "pathEligible": true,
+    "cardPolicy": "REQUIRED",
+    "moduleId": "module-2-stability",
+    "rationale": "当前 1-1 蓝图以反馈连接建立全课程控制视角。",
+    "sourceKind": "OBJECTIVE",
+    "sourceEvidence": [
+      "course-content/authoring/lessons/1-1/design/1-1-boppps.md"
+    ],
+    "nodeDigest": "ab696db6b97adb047cb0605b37c91d2952cf2c324d6d5a28a0726a636925abbe"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "scopeId": "act-control-theory-core",
+    "pathEligible": true,
+    "cardPolicy": "OPTIONAL",
+    "moduleId": "module-2-stability",
+    "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+    "sourceKind": "PREREQUISITE_ENDPOINT",
+    "sourceEvidence": [
+      "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+    ],
+    "nodeDigest": "156936431f57b7c3ea75cf1769504d511a81f943b0060481136ffa9873ce42c1"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "scopeId": "act-control-theory-core",
+    "pathEligible": true,
+    "cardPolicy": "REQUIRED",
+    "moduleId": "module-1-modeling",
+    "rationale": "当前建模蓝图要求学生以拉普拉斯变换建立可分析的动态模型。",
+    "sourceKind": "OBJECTIVE",
+    "sourceEvidence": [
+      "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+    ],
+    "nodeDigest": "357909224f0ea1de936ecfa1776e056837bb67c0048b848980c41e55942c3a35"
+  }
+]

@@ -43,17 +43,35 @@ export interface ExternalInputBundleFile {
   absolutePath?: string;
 }
 
-export interface ExternalInputBundleProvenance {
-  schemaVersion: 'act.textbook-runtime-input-provenance.v1';
-  sourceRevision: string;
-  inputDigest: string;
-  inputFileCount: number;
-}
+export const TEXTBOOK_INPUT_PROVENANCE_V1 = 'act.textbook-runtime-input-provenance.v1' as const;
+export const TEXTBOOK_INPUT_PROVENANCE_V2 = 'act.textbook-runtime-input-provenance.v2' as const;
 
 export interface ExternalInputBundleGenerator {
   id: string;
   version: string;
 }
+
+export interface ExternalInputBundleProvenanceV1 {
+  schemaVersion: typeof TEXTBOOK_INPUT_PROVENANCE_V1;
+  sourceRevision: string;
+  inputDigest: string;
+  inputFileCount: number;
+}
+
+export interface ExternalInputBundleProvenanceV2 {
+  schemaVersion: typeof TEXTBOOK_INPUT_PROVENANCE_V2;
+  authoringSourceRevision: string;
+  resourceSetId: string;
+  bookIds: string[];
+  resourceSetDigest: string;
+  inputDigest: string;
+  inputFileCount: number;
+  generator: ExternalInputBundleGenerator;
+}
+
+export type ExternalInputBundleProvenance =
+  | ExternalInputBundleProvenanceV1
+  | ExternalInputBundleProvenanceV2;
 
 export interface ExternalInputBundleOverlay {
   baseSourceRevision: string;
@@ -102,6 +120,10 @@ export interface ExternalInputBundleDeclarationInput {
   overlaySha256: string;
   inputDigest: string;
   inputFileCount: number;
+  authoringSourceRevision?: string;
+  resourceSetId?: string;
+  resourceSetDigest?: string;
+  bookIds?: string[];
 }
 
 export interface PreparedExternalInputBundle extends ExternalInputBundle {
@@ -231,19 +253,96 @@ function validateFiles(files: readonly ExternalInputBundleFile[]) {
   return normalized;
 }
 
-function provenance(value: unknown, sourceRevision: string): ExternalInputBundleProvenance {
-  const raw = object(value, 'provenance');
-  assertExactKeys(raw, ['schemaVersion', 'sourceRevision', 'inputDigest', 'inputFileCount'], 'provenance');
-  const parsed = {
-    schemaVersion: string(raw.schemaVersion, 'provenance.schemaVersion'),
-    sourceRevision: validateRevision(raw.sourceRevision, 'provenance.sourceRevision'),
-    inputDigest: validateDigest(raw.inputDigest, 'provenance.inputDigest'),
-    inputFileCount: integer(raw.inputFileCount, 'provenance.inputFileCount'),
-  };
-  if (parsed.schemaVersion !== 'act.textbook-runtime-input-provenance.v1' || parsed.sourceRevision !== sourceRevision || parsed.inputFileCount < 1) {
-    error('input provenance does not match the bundle source revision');
+const BOOK_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/u;
+const DECLARATION_V1_KEYS = [
+  'externalInputId',
+  'prefixes',
+  'bundleSemanticSha256',
+  'bundleWireSha256',
+  'sourceRevision',
+  'baseSourceRevision',
+  'overlaySha256',
+  'inputDigest',
+  'inputFileCount',
+] as const;
+const DECLARATION_V2_KEYS = [
+  ...DECLARATION_V1_KEYS,
+  'authoringSourceRevision',
+  'resourceSetId',
+  'resourceSetDigest',
+  'bookIds',
+] as const;
+
+export function textbookCorpusIdentityDigest(resourceSetId: string, bookIds: readonly string[]) {
+  return digest({ resourceSetId, bookIds: [...bookIds] });
+}
+
+function textbookCorpusDigest(resourceSetId: string, bookIds: readonly string[]) {
+  return textbookCorpusIdentityDigest(resourceSetId, bookIds);
+}
+
+function normalizeBookIds(value: unknown, context: string) {
+  if (!Array.isArray(value) || value.length === 0) error(`${context} must be a unique book id list`);
+  const bookIds = value.map((bookId, index) => string(bookId, `${context}[${index}]`));
+  if (bookIds.some((bookId) => !BOOK_ID_PATTERN.test(bookId)) || new Set(bookIds).size !== bookIds.length) {
+    error(`${context} must be a unique book id list`);
   }
-  return parsed as ExternalInputBundleProvenance;
+  return bookIds;
+}
+
+export function isTextbookInputProvenanceV2(
+  value: ExternalInputBundleProvenance,
+): value is ExternalInputBundleProvenanceV2 {
+  return value.schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V2;
+}
+
+function provenance(value: unknown, captureSourceRevision: string): ExternalInputBundleProvenance {
+  const raw = object(value, 'provenance');
+  const schemaVersion = string(raw.schemaVersion, 'provenance.schemaVersion');
+  if (schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V1) {
+    assertExactKeys(raw, ['schemaVersion', 'sourceRevision', 'inputDigest', 'inputFileCount'], 'provenance');
+    const parsed = {
+      schemaVersion: TEXTBOOK_INPUT_PROVENANCE_V1,
+      sourceRevision: validateRevision(raw.sourceRevision, 'provenance.sourceRevision'),
+      inputDigest: validateDigest(raw.inputDigest, 'provenance.inputDigest'),
+      inputFileCount: integer(raw.inputFileCount, 'provenance.inputFileCount'),
+    };
+    if (parsed.sourceRevision !== captureSourceRevision || parsed.inputFileCount < 1) {
+      error('input provenance does not match the bundle source revision');
+    }
+    return parsed as ExternalInputBundleProvenanceV1;
+  }
+  if (schemaVersion !== TEXTBOOK_INPUT_PROVENANCE_V2) error('input provenance schema is unsupported');
+  assertExactKeys(raw, [
+    'schemaVersion',
+    'authoringSourceRevision',
+    'resourceSetId',
+    'bookIds',
+    'resourceSetDigest',
+    'inputDigest',
+    'inputFileCount',
+    'generator',
+  ], 'provenance');
+  const bookIds = normalizeBookIds(raw.bookIds, 'provenance.bookIds');
+  const resourceSetId = string(raw.resourceSetId, 'provenance.resourceSetId');
+  if (!resourceSetId) error('provenance.resourceSetId is invalid');
+  const resourceSetDigest = validateDigest(raw.resourceSetDigest, 'provenance.resourceSetDigest');
+  if (resourceSetDigest !== textbookCorpusDigest(resourceSetId, bookIds)) {
+    error('provenance resourceSet digest does not match its identity');
+  }
+  const parsedGenerator = generator(raw.generator);
+  const inputFileCount = integer(raw.inputFileCount, 'provenance.inputFileCount');
+  if (inputFileCount < 1) error('provenance.inputFileCount must be positive');
+  return {
+    schemaVersion: TEXTBOOK_INPUT_PROVENANCE_V2,
+    authoringSourceRevision: validateRevision(raw.authoringSourceRevision, 'provenance.authoringSourceRevision'),
+    resourceSetId,
+    bookIds,
+    resourceSetDigest,
+    inputDigest: validateDigest(raw.inputDigest, 'provenance.inputDigest'),
+    inputFileCount,
+    generator: parsedGenerator,
+  };
 }
 
 function generator(value: unknown): ExternalInputBundleGenerator {
@@ -315,6 +414,13 @@ export function buildExternalInputBundle(input: {
   const prefixes = validatePrefixes(input.prefixes ?? EXTERNAL_INPUT_BUNDLE_PREFIXES);
   const parsedProvenance = provenance(input.provenance, sourceRevision);
   const parsedGenerator = generator(input.generator);
+  if (
+    isTextbookInputProvenanceV2(parsedProvenance)
+    && (parsedProvenance.generator.id !== parsedGenerator.id
+      || parsedProvenance.generator.version !== parsedGenerator.version)
+  ) {
+    error('v2 provenance generator does not match the bundle generator');
+  }
   const files = validateFiles(input.files);
   if (files.length === 0) error('bundle must contain at least one file');
   const baseSourceRevision = validateRevision(input.baseSourceRevision ?? sourceRevision, 'baseSourceRevision');
@@ -415,13 +521,20 @@ export function parseExternalInputBundleDeclaration(value: unknown): ExternalInp
   if (raw.schemaVersion !== EXTERNAL_INPUT_BUNDLE_DECLARATION_SCHEMA_VERSION || !Array.isArray(raw.inputs)) error('external input bundle declaration schema is unsupported');
   const inputs = raw.inputs.map((entry, index) => {
     const item = object(entry, `external input bundle declaration.inputs[${index}]`);
-    assertExactKeys(item, ['externalInputId', 'prefixes', 'bundleSemanticSha256', 'bundleWireSha256', 'sourceRevision', 'baseSourceRevision', 'overlaySha256', 'inputDigest', 'inputFileCount'], `external input bundle declaration.inputs[${index}]`);
+    const actualKeys = Object.keys(item).sort();
+    const isV2 = actualKeys.length === [...DECLARATION_V2_KEYS].sort().length
+      && actualKeys.every((key, keyIndex) => key === [...DECLARATION_V2_KEYS].sort()[keyIndex]);
+    if (!isV2) {
+      assertExactKeys(item, [...DECLARATION_V1_KEYS], `external input bundle declaration.inputs[${index}]`);
+    } else {
+      assertExactKeys(item, [...DECLARATION_V2_KEYS], `external input bundle declaration.inputs[${index}]`);
+    }
     const sourceRevision = validateRevision(item.sourceRevision, `declaration.inputs[${index}].sourceRevision`);
     const baseSourceRevision = validateRevision(item.baseSourceRevision, `declaration.inputs[${index}].baseSourceRevision`);
     if (baseSourceRevision !== sourceRevision) error('declaration base source revision must equal source revision');
     const inputFileCount = integer(item.inputFileCount, `declaration.inputs[${index}].inputFileCount`);
     if (inputFileCount < 1) error('declaration inputFileCount must be positive');
-    return {
+    const parsed: ExternalInputBundleDeclarationInput = {
       externalInputId: validateInputId(item.externalInputId, `declaration.inputs[${index}].externalInputId`),
       prefixes: validatePrefixes(Array.isArray(item.prefixes) ? item.prefixes.map((prefix) => string(prefix, `declaration.inputs[${index}].prefixes`)) : []),
       bundleSemanticSha256: validateDigest(item.bundleSemanticSha256, `declaration.inputs[${index}].bundleSemanticSha256`),
@@ -431,6 +544,20 @@ export function parseExternalInputBundleDeclaration(value: unknown): ExternalInp
       overlaySha256: validateDigest(item.overlaySha256, `declaration.inputs[${index}].overlaySha256`),
       inputDigest: validateDigest(item.inputDigest, `declaration.inputs[${index}].inputDigest`),
       inputFileCount,
+    };
+    if (!isV2) return parsed;
+    const bookIds = normalizeBookIds(item.bookIds, `declaration.inputs[${index}].bookIds`);
+    const resourceSetId = string(item.resourceSetId, `declaration.inputs[${index}].resourceSetId`);
+    const resourceSetDigest = validateDigest(item.resourceSetDigest, `declaration.inputs[${index}].resourceSetDigest`);
+    if (resourceSetDigest !== textbookCorpusDigest(resourceSetId, bookIds)) {
+      error('declaration resourceSet digest does not match its identity');
+    }
+    return {
+      ...parsed,
+      authoringSourceRevision: validateRevision(item.authoringSourceRevision, `declaration.inputs[${index}].authoringSourceRevision`),
+      resourceSetId,
+      resourceSetDigest,
+      bookIds,
     };
   });
   const ids = new Set<string>();
@@ -442,6 +569,30 @@ export function parseExternalInputBundleDeclaration(value: unknown): ExternalInp
     error('declaration inputs must be strictly code-point sorted');
   }
   return { schemaVersion: EXTERNAL_INPUT_BUNDLE_DECLARATION_SCHEMA_VERSION, inputs };
+}
+
+export function declarationInputFromBundle(bundle: ExternalInputBundle): ExternalInputBundleDeclarationInput {
+  const input: ExternalInputBundleDeclarationInput = {
+    externalInputId: bundle.externalInputId,
+    prefixes: [...bundle.prefixes],
+    bundleSemanticSha256: bundle.manifestSha256,
+    bundleWireSha256: bundle.wireSha256,
+    sourceRevision: bundle.sourceRevision,
+    baseSourceRevision: bundle.baseSourceRevision,
+    overlaySha256: bundle.overlaySha256,
+    inputDigest: bundle.provenance.inputDigest,
+    inputFileCount: bundle.provenance.inputFileCount,
+  };
+  if (isTextbookInputProvenanceV2(bundle.provenance)) {
+    return {
+      ...input,
+      authoringSourceRevision: bundle.provenance.authoringSourceRevision,
+      resourceSetId: bundle.provenance.resourceSetId,
+      resourceSetDigest: bundle.provenance.resourceSetDigest,
+      bookIds: [...bundle.provenance.bookIds],
+    };
+  }
+  return input;
 }
 
 export function declarationInputForBundle(declaration: ExternalInputBundleDeclaration, bundle: ExternalInputBundle) {
@@ -456,6 +607,21 @@ export function declarationInputForBundle(declaration: ExternalInputBundleDeclar
     || match.inputDigest !== bundle.provenance.inputDigest
     || match.inputFileCount !== bundle.provenance.inputFileCount
   ) error('bundle does not match the tracked declaration identity');
+  const provenanceIsV2 = isTextbookInputProvenanceV2(bundle.provenance);
+  const declarationIsV2 = Boolean(match.authoringSourceRevision);
+  if (provenanceIsV2 !== declarationIsV2) {
+    error('bundle provenance generation does not match the tracked declaration');
+  }
+  if (provenanceIsV2 && isTextbookInputProvenanceV2(bundle.provenance)) {
+    if (
+      match.authoringSourceRevision !== bundle.provenance.authoringSourceRevision
+      || match.resourceSetId !== bundle.provenance.resourceSetId
+      || match.resourceSetDigest !== bundle.provenance.resourceSetDigest
+      || stableStringify(match.bookIds) !== stableStringify(bundle.provenance.bookIds)
+    ) {
+      error('bundle textbook corpus identity does not match the tracked declaration');
+    }
+  }
   return match;
 }
 
@@ -577,17 +743,73 @@ function gitRuntimeTreeDigest(tree: ReadonlyMap<string, string>) {
   return digest([...tree.entries()].sort(([left], [right]) => compareCodePoints(left, right)).map(([relativePath, objectId]) => ({ path: relativePath, objectId })));
 }
 
-async function runTextbookValidators(repoRoot: string, generatedResourcesRoot: string, sourceRevision: string) {
+export async function assertPreparedTextbookCorpusMatchesBundle(
+  repoRoot: string,
+  bundle: ExternalInputBundle,
+) {
+  if (!bundle.generatedRoot) return;
+  const provenancePath = path.join(bundle.generatedRoot, 'textbooks-v2', 'input-provenance.json');
+  try {
+    await lstat(provenancePath);
+  } catch {
+    return;
+  }
+  const runtime = await verifyGeneratedTextbookCorpus(repoRoot, bundle.generatedRoot);
+  if (runtime.inputDigest !== bundle.provenance.inputDigest || runtime.inputFileCount !== bundle.provenance.inputFileCount) {
+    error('generated textbook provenance digest drifted from the bundle');
+  }
+  if (isTextbookInputProvenanceV2(bundle.provenance)) {
+    if (
+      runtime.authoringSourceRevision !== bundle.provenance.authoringSourceRevision
+      || runtime.resourceSetId !== bundle.provenance.resourceSetId
+      || stableStringify(runtime.bookIds) !== stableStringify(bundle.provenance.bookIds)
+    ) {
+      error('generated textbook corpus identity drifted from the bundle');
+    }
+    return;
+  }
+  if (runtime.authoringSourceRevision !== bundle.provenance.sourceRevision) {
+    error('generated textbook authoring revision drifted from the v1 bundle');
+  }
+}
+
+export async function verifyGeneratedTextbookCorpus(repoRoot: string, generatedResourcesRoot: string) {
   const runtimeRoot = path.join(generatedResourcesRoot, 'textbooks-v2');
   const indexRoot = path.join(generatedResourcesRoot, 'textbook-hybrid-retrieval', 'bge-m3');
   const assetsRoot = path.join(generatedResourcesRoot, 'textbooks');
   const provenanceModule = await import(pathToFileURL(path.join(repoRoot, 'scripts/release/textbook-runtime-v2-provenance.mjs')).href);
-  provenanceModule.inspectTextbookRuntimeV2(runtimeRoot, { expectedSourceRevision: sourceRevision, assetsRoot });
-  provenanceModule.inspectTextbookRetrievalIndex(indexRoot, { expectedSourceRevision: sourceRevision });
+  const runtime = provenanceModule.inspectTextbookRuntimeV2(runtimeRoot, { assetsRoot });
   const execFile = promisify(execFileCallback);
+  provenanceModule.inspectTextbookRetrievalIndex(indexRoot, {
+    expectedSourceRevision: runtime.authoringSourceRevision,
+    expectedResourceSetId: runtime.resourceSetId ?? undefined,
+    expectedBookIds: runtime.bookIds,
+    runtimeRoot,
+  });
+  await execFile('python3', [
+    path.join(repoRoot, 'course-content/scripts/textbook_hybrid_retrieval.py'),
+    'verify-index',
+    '--runtime-root',
+    runtimeRoot,
+    '--index-dir',
+    indexRoot,
+    '--resource-set',
+    path.join(repoRoot, 'course-content/config/textbook-resource-set.json'),
+  ], { cwd: repoRoot });
   const runtimeEntries = (await readdir(runtimeRoot, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => path.join(runtimeRoot, entry.name));
   await execFile(process.execPath, [path.join(repoRoot, 'course-content/scripts/validate_structured_textbook_runtime_v2.mjs'), ...runtimeEntries.flatMap((entry) => ['--runtime-dir', entry])], { cwd: repoRoot });
   await execFile('python3', [path.join(repoRoot, 'course-content/scripts/validate_written_textbook_runtime_v2.py'), ...runtimeEntries.flatMap((entry) => ['--runtime-dir', entry])], { cwd: repoRoot });
+  return runtime;
+}
+
+async function runTextbookValidators(repoRoot: string, generatedResourcesRoot: string) {
+  const provenancePath = path.join(generatedResourcesRoot, 'textbooks-v2', 'input-provenance.json');
+  try {
+    await lstat(provenancePath);
+  } catch {
+    return;
+  }
+  await verifyGeneratedTextbookCorpus(repoRoot, generatedResourcesRoot);
 }
 
 function isUnderPrefix(relativePath: string, prefix: string) {
@@ -622,7 +844,7 @@ export async function prepareTextbookExternalInputBundle(input: {
   if (!generatedDetails.isDirectory() || generatedDetails.isSymbolicLink()) error('generated resources root must be a real directory');
   const sourceRevision = validateRevision(input.sourceRevision, 'sourceRevision');
   const gitTree = await listGitRuntimeTree(input.repoRoot, sourceRevision);
-  await runTextbookValidators(input.repoRoot, generatedResourcesRoot, sourceRevision);
+  await runTextbookValidators(input.repoRoot, generatedResourcesRoot);
 
   const baseFiles: ExternalInputBundleFile[] = [];
   const baseCollected: ExternalInputBundleFile[] = [];

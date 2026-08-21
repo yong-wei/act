@@ -4,6 +4,7 @@ import path from 'node:path';
 import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
 
 import { isGlobalCourseCoverageRuntimeSelectorPermitted } from '@/lib/legacy-knowledge-runtime-retirement';
+import { multilingualLabelCountForRelease } from '../actkg-envelope/composite-envelope-registry';
 
 import {
   DEFAULT_AUTHORITY_ROOT_RELATIVE,
@@ -166,7 +167,11 @@ function buildV2Evidence(input: {
   if (sha256(canonicalJson(bindingPayload)) !== binding.bindingDigest) {
     throw new Error('V2 admission binding digest mismatch');
   }
-  if (profiles.length !== 3 || labels.length !== 1909) {
+  const expectedLabelCount = multilingualLabelCountForRelease(input.releaseId);
+  if (
+    profiles.length !== 3
+    || (expectedLabelCount === null ? labels.length <= 0 : labels.length !== expectedLabelCount)
+  ) {
     throw new Error(`V2 typed evidence count mismatch: profiles=${profiles.length}, labels=${labels.length}`);
   }
   for (const row of profiles) {
