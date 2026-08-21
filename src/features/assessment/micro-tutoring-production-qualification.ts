@@ -13,6 +13,7 @@ export const MICRO_TUTORING_PRODUCTION_FEATURE_FLAG = 'micro-tutoring-production
 export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND = 'candidate';
 
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
+const SHA256_DIGEST = /^sha256:[a-f0-9]{64}$/u;
 
 export type MicroTutoringQualificationIssue =
   | 'DIRTY_WORKTREE'
@@ -20,6 +21,10 @@ export type MicroTutoringQualificationIssue =
   | 'STRICT_COVERAGE_INCOMPLETE'
   | 'MIXED_REVISION'
   | 'DIGEST_MISMATCH'
+  | 'TESTS_FAILED'
+  | 'MISSING_DB_CAPTURE'
+  | 'MISSING_BROWSER_EVIDENCE'
+  | 'MISSING_OCI_DIGEST'
   | 'ACTIVATION_UNAUTHORIZED';
 
 export interface MicroTutoringArtifactDigest {
@@ -45,7 +50,7 @@ export interface MicroTutoringProductionQualificationReceipt {
   generatedAt: string;
   sourceRevision: string;
   sourceInputsClean: boolean;
-  governedProjectionRevision: string | null;
+  governedProjectionRevision: string;
   coverageDigest: string;
   gitContentComplete: boolean;
   strictlyComplete: boolean;
@@ -54,8 +59,8 @@ export interface MicroTutoringProductionQualificationReceipt {
   completeOptionCount: number;
   artifactDigests: MicroTutoringArtifactDigest[];
   tests: Array<{ name: string; status: 'passed' | 'failed' | 'skipped'; scope: string }>;
-  browserEvidenceDigest: string | null;
-  ociDigest: string | null;
+  browserEvidenceDigest: string;
+  ociDigest: string;
   featureFlag: {
     key: typeof MICRO_TUTORING_PRODUCTION_FEATURE_FLAG;
     enabled: false;
@@ -107,7 +112,16 @@ export function evaluateMicroTutoringProductionActivation(input: {
       reason: 'activation-unauthorized',
     };
   }
-  if (!input.receipt.strictlyComplete || !input.receipt.gitContentComplete) {
+  if (
+    !input.receipt.strictlyComplete ||
+    !input.receipt.gitContentComplete ||
+    input.receipt.tests.length === 0 ||
+    input.receipt.tests.some((test) => test.status !== 'passed') ||
+    !GIT_REVISION.test(input.receipt.governedProjectionRevision) ||
+    input.receipt.governedProjectionRevision !== input.receipt.sourceRevision ||
+    !SHA256_DIGEST.test(input.receipt.browserEvidenceDigest) ||
+    !SHA256_DIGEST.test(input.receipt.ociDigest)
+  ) {
     return { status: 'blocked', productionUnchanged: true, reason: 'coverage-incomplete' };
   }
   const metrics = input.metrics;
@@ -136,7 +150,11 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
 }): { receipt: MicroTutoringProductionQualificationReceipt | null; issues: MicroTutoringQualificationIssue[] } {
   const issues: MicroTutoringQualificationIssue[] = [];
   const capture = input.report.inputCapture;
-  if (!capture || !GIT_REVISION.test(capture.sourceRevision)) {
+  const sourceRevision = capture?.sourceRevision ?? '';
+  const governedProjectionRevision = capture?.governedProjectionRevision ?? null;
+  const browserEvidenceDigest = input.browserEvidenceDigest?.trim() || null;
+  const ociDigest = input.ociDigest?.trim() || null;
+  if (!capture || !GIT_REVISION.test(sourceRevision)) {
     issues.push('MIXED_REVISION');
   }
   if (capture && !capture.sourceInputsClean) {
@@ -149,26 +167,43 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
   if (input.report.contentDigest !== expectedDigest) {
     issues.push('DIGEST_MISMATCH');
   }
+  if (!microTutoringCoverageAuditIsStrictlyComplete(input.report)) {
+    issues.push('STRICT_COVERAGE_INCOMPLETE');
+  }
+  if (input.tests.length === 0 || input.tests.some((test) => test.status !== 'passed')) {
+    issues.push('TESTS_FAILED');
+  }
+  if (!governedProjectionRevision || !GIT_REVISION.test(governedProjectionRevision)) {
+    issues.push('MISSING_DB_CAPTURE');
+  } else if (GIT_REVISION.test(sourceRevision) && governedProjectionRevision !== sourceRevision) {
+    issues.push('MIXED_REVISION');
+  }
+  if (!browserEvidenceDigest || !SHA256_DIGEST.test(browserEvidenceDigest)) {
+    issues.push('MISSING_BROWSER_EVIDENCE');
+  }
+  if (!ociDigest || !SHA256_DIGEST.test(ociDigest)) {
+    issues.push('MISSING_OCI_DIGEST');
+  }
   if (issues.length > 0) {
-    return { receipt: null, issues };
+    return { receipt: null, issues: [...new Set(issues)] };
   }
   const envelope: Omit<MicroTutoringProductionQualificationReceipt, 'receiptDigest'> = {
     version: MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION,
     kind: MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
-    sourceRevision: capture!.sourceRevision,
+    sourceRevision,
     sourceInputsClean: capture!.sourceInputsClean,
-    governedProjectionRevision: capture!.governedProjectionRevision,
+    governedProjectionRevision: governedProjectionRevision!,
     coverageDigest: input.report.contentDigest,
     gitContentComplete: true,
-    strictlyComplete: microTutoringCoverageAuditIsStrictlyComplete(input.report),
+    strictlyComplete: true,
     qualifiedPracticeItemCount: input.report.qualifiedPracticeItemCount,
     errorOptionCount: input.report.errorOptionCount,
     completeOptionCount: input.report.completeOptionCount,
     artifactDigests: [...input.artifactDigests].sort((left, right) => left.path.localeCompare(right.path)),
     tests: input.tests,
-    browserEvidenceDigest: input.browserEvidenceDigest ?? null,
-    ociDigest: input.ociDigest ?? null,
+    browserEvidenceDigest: browserEvidenceDigest!,
+    ociDigest: ociDigest!,
     featureFlag: {
       key: MICRO_TUTORING_PRODUCTION_FEATURE_FLAG,
       enabled: false,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -34,23 +34,14 @@ try {
     cwd: repoRoot,
     encoding: 'utf8',
   }).trim().length > 0;
+  assert.notEqual(result.status, 0, result.output);
+  assert.equal(existsSync(receiptPath), false, 'fail-closed qualification must not write a candidate receipt');
   if (dirty) {
-    assert.notEqual(result.status, 0, result.output);
     assert.match(result.output, /DIRTY_WORKTREE/);
   } else {
-    assert.equal(result.status, 0, result.output);
-    const receipt = JSON.parse(readFileSync(receiptPath, 'utf8'));
-    assert.equal(receipt.kind, 'candidate');
-    assert.equal(receipt.gitContentComplete, true);
-    assert.equal(receipt.strictlyComplete, true);
-    assert.equal(receipt.activation.authorized, false);
-    assert.equal(receipt.activation.productionUnchanged, true);
-    assert.equal(receipt.featureFlag.enabled, false);
-    assert.equal(receipt.qualifiedPracticeItemCount, 54);
-    assert.equal(receipt.errorOptionCount, 108);
-    assert.match(receipt.receiptDigest, /^sha256:[a-f0-9]{64}$/);
-    assert.equal(JSON.stringify(receipt).includes('answerKey'), false);
-    assert.match(result.output, /candidate-only/);
+    assert.match(result.output, /MISSING_DB_CAPTURE/);
+    assert.match(result.output, /MISSING_BROWSER_EVIDENCE/);
+    assert.match(result.output, /MISSING_OCI_DIGEST/);
   }
   console.log('micro tutoring qualification command contract passed');
 } finally {

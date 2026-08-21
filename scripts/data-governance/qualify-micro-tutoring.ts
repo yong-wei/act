@@ -2,7 +2,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { MicroTutoringCoverageAuditReport } from '@/features/assessment/micro-tutoring-coverage-audit';
@@ -83,9 +83,13 @@ async function main() {
         scope: options.offline ? 'offline-git-content' : 'online-git-db',
       },
     ],
+    browserEvidenceDigest: process.env.MICRO_TUTORING_QUALIFICATION_BROWSER_EVIDENCE_DIGEST?.trim() || null,
     ociDigest: process.env.MICRO_TUTORING_QUALIFICATION_OCI_DIGEST?.trim() || null,
   });
+  await mkdir(options.outputDir, { recursive: true });
+  const receiptPath = path.join(options.outputDir, 'micro-tutoring-candidate-receipt.json');
   if (!built.receipt) {
+    await unlink(receiptPath).catch(() => undefined);
     console.error(JSON.stringify({ issues: built.issues }, null, 2));
     process.exitCode = 1;
     return;
@@ -94,8 +98,19 @@ async function main() {
     receipt: built.receipt,
     authorized: false,
   });
-  await mkdir(options.outputDir, { recursive: true });
-  const receiptPath = path.join(options.outputDir, 'micro-tutoring-candidate-receipt.json');
+  if (
+    !built.receipt.strictlyComplete ||
+    !built.receipt.gitContentComplete ||
+    activation.status !== 'candidate-only'
+  ) {
+    await unlink(receiptPath).catch(() => undefined);
+    console.error(JSON.stringify({
+      issues: ['STRICT_COVERAGE_INCOMPLETE'],
+      activation: activation.status,
+    }, null, 2));
+    process.exitCode = 1;
+    return;
+  }
   await writeFile(receiptPath, `${JSON.stringify(built.receipt, null, 2)}\n`);
   console.log(JSON.stringify({
     receiptPath,
@@ -103,12 +118,10 @@ async function main() {
     gitContentComplete: built.receipt.gitContentComplete,
     strictlyComplete: built.receipt.strictlyComplete,
     sourceRevision: built.receipt.sourceRevision,
+    governedProjectionRevision: built.receipt.governedProjectionRevision,
     activation: activation.status,
     productionUnchanged: activation.productionUnchanged,
   }, null, 2));
-  if (!built.receipt.gitContentComplete || activation.status !== 'candidate-only') {
-    process.exitCode = 1;
-  }
 }
 
 main().catch((error) => {
