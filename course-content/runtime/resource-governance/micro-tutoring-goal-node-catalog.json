@@ -1,0 +1,89 @@
+{
+  "version": "micro-tutoring-goal-node-catalog.v1",
+  "baselineVersion": "micro-tutoring-practice-baseline.v1",
+  "graphVersion": "autocontrol-kaq-graph.v1",
+  "source": "openspec/changes/add-micro-tutoring-goal-node-catalog/design.md",
+  "entries": [
+    {
+      "learningGoalId": "control-correction",
+      "aliases": ["learning-goal:control-correction"],
+      "knowledgeNodeId": "kn:autocontrol:controller-correction",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:control-correction"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "aliases": ["learning-goal:feedback-loop-concept-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:feedback-loop",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:feedback-loop-concept-foundations"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "frequency-response-foundations",
+      "aliases": ["learning-goal:frequency-response-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:frequency-response",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:frequency-response-foundations"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "root-locus-analysis-foundations",
+      "aliases": ["learning-goal:root-locus-analysis-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:root-locus",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:root-locus-analysis-foundations"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "ship-ocean-transfer-application",
+      "aliases": ["learning-goal:ship-ocean-transfer-application"],
+      "knowledgeNodeId": "kn:autocontrol:modern-transfer",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:ship-ocean-transfer-application"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "simulation-validation-practice",
+      "aliases": ["learning-goal:simulation-validation-practice"],
+      "knowledgeNodeId": "kn:autocontrol:simulation-validation",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:simulation-validation-practice"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "aliases": ["learning-goal:stability-margin-frequency-analysis"],
+      "knowledgeNodeId": "kn:autocontrol:stability-margin",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:stability-margin-frequency-analysis"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "time-domain-response-analysis",
+      "aliases": ["learning-goal:time-domain-response-analysis"],
+      "knowledgeNodeId": "kn:autocontrol:time-domain-performance",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:time-domain-response-analysis"],
+      "enabled": true
+    },
+    {
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "aliases": ["learning-goal:transfer-function-modeling-foundations"],
+      "knowledgeNodeId": "kn:autocontrol:transfer-function-model",
+      "catalogVersion": "micro-tutoring-goal-node-catalog.v1",
+      "graphVersion": "autocontrol-kaq-graph.v1",
+      "sourceRefs": ["learning-goal:transfer-function-modeling-foundations"],
+      "enabled": true
+    }
+  ]
+}

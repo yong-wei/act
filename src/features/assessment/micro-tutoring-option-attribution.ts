@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog';
 
 export interface MicroTutoringOptionAttribution {
   catalogItemId: string;
@@ -126,6 +127,7 @@ export function findMicroTutoringOptionAttribution(input: {
   if (matches.length !== 1) return null;
 
   const [attribution] = matches;
+  const goalNode = resolveMicroTutoringGoalNode(attribution.learningGoalId);
   const reusesSiblingEvidence = entries
     .filter(isMicroTutoringOptionAttribution)
     .some((candidate) =>
@@ -139,9 +141,10 @@ export function findMicroTutoringOptionAttribution(input: {
       ));
   if (
     reusesSiblingEvidence ||
+    !goalNode.ok ||
+    attribution.knowledgeNodeId !== goalNode.knowledgeNodeId ||
     attribution.itemReviewSourceHash !== input.itemReviewSourceHash ||
     !input.reviewedLearningGoalIds.includes(attribution.learningGoalId) ||
-    !input.reviewedKnowledgeNodeIds.includes(attribution.knowledgeNodeId) ||
     (
       !input.reviewedMisconceptionTags.includes(attribution.misconceptionTag) &&
       !attribution.misconceptionTag.startsWith(`misconception:${attribution.learningGoalId}:`)
