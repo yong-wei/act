@@ -130,8 +130,12 @@ RUN apt-get update \
     curl openssl unzip ca-certificates python3 python3-pip \
   && rm -rf /var/lib/apt/lists/*
 RUN apt-get update \
-  && (apt-get install -y --no-install-recommends chromium libreoffice \
-      || apt-get install -y --no-install-recommends chromium-browser libreoffice) \
+  && (apt-get install -y --no-install-recommends chromium libreoffice libreoffice-writer \
+      || apt-get install -y --no-install-recommends chromium-browser libreoffice libreoffice-writer) \
+  && apt-get install -y \
+    libfontconfig1 libfreetype6 libx11-6 libxcb1 libxcb-icccm4 \
+    libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xfixes0 \
+    libxext6 libxkbcommon0 libxkbcommon-x11-0 fonts-liberation \
   && rm /tmp/builder-package.json \
   && rm -rf /var/lib/apt/lists/*
 

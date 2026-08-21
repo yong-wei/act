@@ -423,6 +423,11 @@ function main() {
     'docker-entrypoint.sh 必须在 Wolfram 运行时缺失、未激活或 smoke 失败时拒绝启动',
   );
   assert.match(
+    remoteDeployScript,
+    /check-wolfram-ready\.sh/,
+    'remote-deploy 最终阶段必须核验容器内 Wolfram calc.wls 就绪',
+  );
+  assert.match(
     entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,
     'docker-entrypoint.sh 必须通过 Prisma 7 config 执行 migrate deploy'
@@ -706,6 +711,31 @@ function main() {
     deployScript,
     /redis-server --appendonly yes/,
     'Podman 部署脚本必须启动 Redis 容器'
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_LICENSE_VOLUME="\$\{WOLFRAM_LICENSE_VOLUME:-act-obe-wolfram-license\}"/,
+    'deploy.sh 必须为 Wolfram 激活状态提供持久卷',
+  );
+  assert.match(
+    deployScript,
+    /-v "\$\{WOLFRAM_LICENSE_VOLUME\}:\$\{WOLFRAM_CONTAINER_LICENSE_ROOT\}"/,
+    'deploy.sh 必须把 Wolfram 许可卷挂载到运行账户 home',
+  );
+  assert.match(
+    deployScript,
+    /check-wolfram-ready\.sh/,
+    'deploy.sh 必须用生产镜像执行真实 Wolfram smoke 后再启动应用',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_ACTIVATION_EMAIL="\$WOLFRAM_ACTIVATION_EMAIL"/,
+    'deploy.sh 必须把 Wolfram 激活凭据从运行环境传入容器',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAMSCRIPT_ENTITLEMENTID="\$WOLFRAMSCRIPT_ENTITLEMENTID"/,
+    'deploy.sh 必须支持 on-demand entitlement secret 传入容器',
   );
 
   assert.doesNotMatch(

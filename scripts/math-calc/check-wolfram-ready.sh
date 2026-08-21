@@ -40,6 +40,7 @@ fi
 activated=0
 if [ -n "${WOLFRAMSCRIPT_ENTITLEMENTID:-}" ]; then
   export WOLFRAMSCRIPT_ENTITLEMENTID
+  "$WOLFRAMSCRIPT" -entitlement "$WOLFRAMSCRIPT_ENTITLEMENTID" >/dev/null 2>&1 || true
   activated=1
 fi
 if [ -n "${WOLFRAM_ACTIVATION_EMAIL:-}" ] && [ -n "${WOLFRAM_ACTIVATION_PASSWORD:-}" ]; then
