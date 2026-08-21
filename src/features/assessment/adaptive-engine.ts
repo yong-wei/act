@@ -16,6 +16,7 @@ import {
   checkpointAuthoredQuestionToRuntimeQuestion,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-terminal-validation-question-sets';
 
 export interface AdaptiveAnswerRecord {
   sessionId: string;
@@ -97,7 +98,7 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
-export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint' | 'remediation';
+export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
 
 export interface AbilityReport {
   userId: string;
@@ -162,7 +163,11 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
   if (preset) {
     return preset;
   }
-  const authored = getCheckpointAuthoredQuestionRecordByRuntimeId(questionId);
+  const authored = getCheckpointAuthoredQuestionRecordByRuntimeId(questionId)
+    ?? REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((record) =>
+      checkpointAuthoredQuestionRuntimeId(record.id) === questionId || record.id === questionId
+    )
+    ?? null;
   if (authored) {
     return checkpointAuthoredQuestionToRuntimeQuestion(authored);
   }
@@ -488,8 +493,11 @@ export function selectNextQuestionFromAnswers(
 
 function isPathOwnedCatalogScope(
   questionScope: AdaptiveQuestionScope,
-): questionScope is 'readiness' | 'checkpoint' | 'remediation' {
-  return questionScope === 'readiness' || questionScope === 'checkpoint' || questionScope === 'remediation';
+): questionScope is 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation' {
+  return questionScope === 'readiness'
+    || questionScope === 'checkpoint'
+    || questionScope === 'remediation'
+    || questionScope === 'terminal-validation';
 }
 
 function filterQuestionsByGoal(

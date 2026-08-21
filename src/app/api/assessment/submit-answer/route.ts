@@ -142,10 +142,17 @@ function inferPathAssessmentScope(
   return pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness';
 }
 
-function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation'> | null {
+function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation'> | null {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
+  if (
+    normalized.includes('terminal-validation') ||
+    normalized.includes('终结验证') ||
+    normalized.includes('题目型终结')
+  ) {
+    return 'terminal-validation';
+  }
   if (
     normalized.includes('remediation') ||
     normalized.includes('remedial') ||

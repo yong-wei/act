@@ -640,7 +640,7 @@ function runtimeStage(record: CheckpointAuthoredQuestionRecord): AuthoredStage {
   if (record.stagePurpose === 'readiness' || record.stagePurpose === 'readiness-gate' || record.stagePurpose === 'precheck') {
     return 'readiness';
   }
-  if (record.stagePurpose === 'checkpoint') return 'checkpoint';
+  if (record.stagePurpose === 'checkpoint' || record.stagePurpose === 'terminal-validation') return 'checkpoint';
   if (record.stagePurpose === 'remediation') return 'remediation';
   return 'practice';
 }

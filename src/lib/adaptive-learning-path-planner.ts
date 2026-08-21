@@ -56,6 +56,10 @@ import {
 } from './source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
 import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
+import {
+  resolveItemTypeTerminalValidation,
+  type ItemTypeTerminalValidationResolution,
+} from './adaptive-planning/item-type-terminal-validation';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -537,6 +541,7 @@ export interface AdaptiveLearningPathExplanation {
   fallbackReasons: string[];
   configurationFulfillment: AdaptiveLearningPathConfigurationFulfillment[];
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
+  itemTypeTerminalValidation?: ItemTypeTerminalValidationResolution;
 }
 
 export interface AdaptiveLearningPathScore {
@@ -2202,6 +2207,9 @@ function buildAdaptiveLearningPathPlanInternal(
     planningCompletedNodeIds,
   );
   const score = buildPlanScore(mainPath, alternatives, input.learnerState, input.constraints);
+  const itemTypeTerminalValidation = resolveItemTypeTerminalValidation({
+    learningGoalId: input.goal.id,
+  });
   const explanations: AdaptiveLearningPathExplanation = {
     selectedReasons: mainPath.flatMap((node) => node.reasonCodes),
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
@@ -2210,6 +2218,7 @@ function buildAdaptiveLearningPathPlanInternal(
     associativeRetrieval: sarCandidates
       ? buildAssociativeRetrievalBasis(sarCandidates, mainPath)
       : undefined,
+    itemTypeTerminalValidation,
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
