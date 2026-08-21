@@ -35,9 +35,10 @@
 ## 6. Product acceptance
 
 - [x] 6.1 Capture authenticated desktop/mobile, light/dark, root/domain, default-teaching, engineering-filter, selected-node, resource, and formula states from one frozen revision.
-- [ ] 6.2 Run focused knowledge API/client tests, accessibility checks, visual evidence gates, `npm run typecheck`, `npm run lint`, `npm run test`, and the production build on the final revision.
-- [ ] 6.3 Run `openspec validate align-active-authority-with-legacy-graph-experience --type change --strict` and record any intentionally deferred upstream localization scope without claiming translation completion.
+- [x] 6.2 Run focused knowledge API/client tests, accessibility checks, visual evidence gates, `npm run typecheck`, `npm run lint`, `npm run test`, and the production build on the final revision.
+- [x] 6.3 Run `openspec validate align-active-authority-with-legacy-graph-experience --type change --strict` and record any intentionally deferred upstream localization scope without claiming translation completion.
 
 ## Deferred upstream scope
 
 - Localization completeness and 中英文切换 remain a later dependent change. This issue does not claim translation completion.
+- Repo-level `npm run lint`, `npm run test`, and `npm run build` currently fail on integration-baseline issues outside this change: portfolio `exhaustive-deps`, `actkg-v022` `module` assignment, stale `knowledge-workspace-product-qa-489` hashes, and adaptive-practice client `node:fs` chunk errors. Change-scoped typecheck, eslint, knowledge unit tests, and the 1493 Playwright visual matrix passed. Do not treat those baseline failures as this issue's translation or production-activation work.
