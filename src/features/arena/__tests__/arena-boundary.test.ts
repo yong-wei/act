@@ -69,5 +69,8 @@ describe('arena module boundaries', () => {
     expect(blackBoxClient).not.toContain('blackbox/controller-preview');
     expect(blackBoxEvidence).toContain("from './contracts'");
     expect(blackBoxEvidence).not.toContain("from './controller-preview'");
+    const feedbackRules = source('src/features/arena/student/arena-feedback-rules.ts');
+    expect(feedbackRules).toContain("from '../submissions/evidence-status'");
+    expect(feedbackRules).not.toContain("from '../evidence-writeback'");
   });
 });
