@@ -157,6 +157,7 @@ describe('active Authority role-safe projections', () => {
     const response = activeShardResponse(() => nodeShard, role);
     const body = await response.json();
     expect(Object.prototype.hasOwnProperty.call(body.node, 'teachingFields')).toBe(includesTeachingFields);
+    expect(body.node.mathematics).toEqual({ state: 'missing' });
     if (!includesTeachingFields) expect(JSON.stringify(body)).not.toContain('concept_kind');
   });
 
