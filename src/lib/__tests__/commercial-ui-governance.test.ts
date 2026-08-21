@@ -4645,7 +4645,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:expanded-dock-missing`');
     expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
     expect(globalsSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
-    expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');
+    expect(globalsSource).toMatch(/data-knowledge-desktop-command-system\]\s*\{\s*display: none !important;/);
     expect(readFileSync(join(process.cwd(), 'src/components/shared/page-floating-controls.tsx'), 'utf8')).toContain('knowledgeInspectorAvoidanceActive');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');
@@ -4656,9 +4656,9 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
     expect(scriptSource).toContain('governanceScriptSourcePath');
-    expect(scriptSource).toContain('stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)');
+    expect(scriptSource).toContain('stringRecordsEqual(reviewedSourceSha256, currentSourceSha256)');
     expect(scriptSource).toContain('`${sourcePath}:sha-missing`');
-    expect(scriptSource).toContain('Object.entries(sourceHashes).map');
+    expect(scriptSource).toContain('knowledgeWorkspaceProductQaSourceHashProblems');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
@@ -4680,7 +4680,9 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('blockingFindings.length !== 0');
     expect(captureScriptSource).toContain('stringRecordsMatch(reviewedStateSha256, currentStateSha256)');
     expect(captureScriptSource).toContain('stringRecordsMatch(reviewedSourceSha256, currentSourceSha256)');
-    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)');
+    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(');
+    expect(captureScriptSource).toContain('stateMatrix,');
+    expect(captureScriptSource).toContain('currentSourceSha256,');
     expect(captureScriptSource).not.toContain('parsed.stateMatrix');
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
     expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
@@ -4731,11 +4733,12 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain('路径管理');
     expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
     const internalPathOptionVersionKey = pageSource.match(
-      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|',?\)?,?\s*\[[^\n]*\]\);/,
+      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|'\),\s*\[[^\n]*\]\);/,
     )?.[0] ?? null;
     expect(internalPathOptionVersionKey).not.toBeNull();
     const studentVisibleSource = pageSource
       .replaceAll('data-learner-record-missing-source', '')
+      .replaceAll("'demo-missing-target'", "'fixture-target'")
       .replace(internalPathOptionVersionKey ?? '', '');
     expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
@@ -5027,7 +5030,8 @@ describe('commercial UI governance', () => {
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-gate-'));
-    const fakeNpx = join(tmp, 'npx');
+    const fakeNpx = join(tmp, process.platform === 'win32' ? 'npx.cmd' : 'npx');
+    const fakeNpxScript = join(tmp, 'fake-npx.js');
     const diagnostics = [
       { filePath: 'src/app/page.tsx', severity: 'error', category: 'Bugs', rule: 'bug-rule', title: 'Owned app error', line: 1, column: 1 },
       { filePath: join(process.cwd(), 'src/app/absolute-page.tsx'), severity: 'error', category: 'Bugs', rule: 'absolute-bug-rule', title: 'Owned absolute app error', line: 1, column: 1 },
@@ -5062,16 +5066,19 @@ describe('commercial UI governance', () => {
         column: 1,
       })),
     ];
-    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`, { mode: 0o755 });
+    writeFileSync(fakeNpxScript, `console.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`);
+    writeFileSync(fakeNpx, process.platform === 'win32'
+      ? `@echo off\r\n"${process.execPath}" "%~dp0fake-npx.js" %*\r\n`
+      : `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`, { mode: 0o755 });
 
     const runGate = (mode: 'errors' | 'security' | 'warnings') => {
       const result = spawnSync(process.execPath, [
         join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
         `--mode=${mode}`,
       ], {
-        cwd: process.cwd(),
+      cwd: process.cwd(),
         encoding: 'utf8',
-        env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+        env: { ...process.env, REACT_DOCTOR_NPX_COMMAND: fakeNpxScript },
         maxBuffer: 8 * 1024 * 1024,
       });
       return {
@@ -5206,8 +5213,12 @@ describe('commercial UI governance', () => {
 
   it('fails React Doctor owned-surface gates when the scanner returns an error report', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-failure-'));
-    const fakeNpx = join(tmp, 'npx');
-    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`, { mode: 0o755 });
+    const fakeNpx = join(tmp, process.platform === 'win32' ? 'npx.cmd' : 'npx');
+    const fakeNpxScript = join(tmp, 'fake-npx.js');
+    writeFileSync(fakeNpxScript, `console.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`);
+    writeFileSync(fakeNpx, process.platform === 'win32'
+      ? `@echo off\r\n"${process.execPath}" "%~dp0fake-npx.js" %*\r\n`
+      : `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`, { mode: 0o755 });
 
     const result = spawnSync(process.execPath, [
       join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
@@ -5215,7 +5226,7 @@ describe('commercial UI governance', () => {
     ], {
       cwd: process.cwd(),
       encoding: 'utf8',
-      env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+      env: { ...process.env, REACT_DOCTOR_NPX_COMMAND: fakeNpxScript },
     });
 
     expect(result.status).toBe(1);

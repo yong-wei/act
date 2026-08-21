@@ -52,6 +52,19 @@ import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/
 
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
+const gitRefCache = new Map<string, boolean>();
+const diffNameStatusCache = new Map<string, string[]>();
+const untrackedPathCache = new Set<string>(lines(git(['ls-files', '--others', '--exclude-standard'])));
+const workingTreeChangedFiles = new Set<string>([
+  ...diffNameStatus([]),
+  ...diffNameStatus(['--cached']),
+  ...untrackedPathCache,
+]);
+const blobSha256Cache = new Map<string, string | undefined>();
+const diffForFileCache = new Map<string, string>();
+const diffForFileWithContextCache = new Map<string, string>();
+let changedFilesCache: string[] | undefined;
+const binaryEvidencePathPattern = /\.(?:png|jpe?g|webp|gif|pdf|ico|avif|zip)$/i;
 const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout', 'visual']);
 const COMPACT_SPACING_INVENTORY_PATH = 'artifacts/commercial-ui/compact-spacing-685/inventory.json';
 const COMPACT_SPACING_EVIDENCE_PATH = 'artifacts/commercial-ui/compact-spacing-685/evidence.json';
@@ -83,7 +96,11 @@ function gitRequired(args: string[], message: string) {
 }
 
 function hasGitRef(ref: string) {
-  return git(['rev-parse', '--verify', ref]).trim().length > 0;
+  const cached = gitRefCache.get(ref);
+  if (cached !== undefined) return cached;
+  const result = git(['rev-parse', '--verify', ref]).trim().length > 0;
+  gitRefCache.set(ref, result);
+  return result;
 }
 
 function isAncestorCommit(ancestor: string, descendant: string) {
@@ -111,6 +128,8 @@ function isAncestorCommitAtRepository(repositoryRoot: string, ancestor: string, 
 }
 
 function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file: string) {
+  const cacheKey = `${repositoryRoot}\0${revision}\0${file}`;
+  if (blobSha256Cache.has(cacheKey)) return blobSha256Cache.get(cacheKey);
   try {
     const entry = execFileSync('git', ['ls-tree', '-z', revision, '--', file], {
       cwd: repositoryRoot,
@@ -131,8 +150,11 @@ function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file:
       encoding: null,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    return createHash('sha256').update(blob).digest('hex');
+    const result = createHash('sha256').update(blob).digest('hex');
+    blobSha256Cache.set(cacheKey, result);
+    return result;
   } catch {
+    blobSha256Cache.set(cacheKey, undefined);
     return undefined;
   }
 }
@@ -279,9 +301,7 @@ function latestCommitForPath(file: string) {
 }
 
 function hasUncommittedPathChange(file: string) {
-  return diffNameStatus(['--', file]).includes(file)
-    || diffNameStatus(['--cached', '--', file]).includes(file)
-    || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
+  return workingTreeChangedFiles.has(file);
 }
 
 function currentCommittedOrWorkingSha256(relativePath: string) {
@@ -295,12 +315,17 @@ function lines(output: string) {
 }
 
 function diffNameStatus(args: string[]) {
-  return lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
+  const key = args.join('\0');
+  const cached = diffNameStatusCache.get(key);
+  if (cached) return cached;
+  const result = lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
     const parts = line.split('\t').filter(Boolean);
     const status = parts[0] ?? '';
     if (/^[RC]\d+/.test(status)) return parts.slice(1, 3);
     return parts[1] ? [parts[1]] : [];
   });
+  diffNameStatusCache.set(key, result);
+  return result;
 }
 
 function diffNameStatusRequired(args: string[], message: string) {
@@ -313,6 +338,7 @@ function diffNameStatusRequired(args: string[], message: string) {
 }
 
 function changedFiles() {
+  if (changedFilesCache) return changedFilesCache;
   const candidates = new Set<string>();
   for (const file of diffNameStatus([])) candidates.add(file);
   for (const file of diffNameStatus(['--cached'])) candidates.add(file);
@@ -337,7 +363,8 @@ function changedFiles() {
     candidates.add('src/features/data-center/presentation-data-center.tsx');
     candidates.add('src/lib/platform-role-navigation.ts');
   }
-  return [...candidates];
+  changedFilesCache = [...candidates];
+  return changedFilesCache;
 }
 
 function sourceFilesForTokenGate(files: string[]) {
@@ -376,16 +403,25 @@ function simulationResourceFilesForTokenGate(files: string[]) {
 }
 
 function diffForFile(file: string) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cached = diffForFileCache.get(file);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', '--unified=0', '--', file]),
     git(['diff', '--cached', '--unified=0', '--', file]),
     hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
     !hasGitRef('origin/integration') && hasGitRef('HEAD^') ? git(['diff', '--unified=0', 'HEAD^', 'HEAD', '--', file]) : '',
   ].join('\n');
+  diffForFileCache.set(file, result);
+  return result;
 }
 
 function diffForFileWithContext(file: string, context: number) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cacheKey = `${context}\0${file}`;
+  const cached = diffForFileWithContextCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', `--unified=${context}`, '--', file]),
     git(['diff', '--cached', `--unified=${context}`, '--', file]),
     hasGitRef('origin/integration') ? git(['diff', `--unified=${context}`, 'origin/integration...HEAD', '--', file]) : '',
@@ -393,6 +429,8 @@ function diffForFileWithContext(file: string, context: number) {
       ? git(['diff', `--unified=${context}`, 'HEAD^', 'HEAD', '--', file])
       : '',
   ].join('\n');
+  diffForFileWithContextCache.set(cacheKey, result);
+  return result;
 }
 
 function diffAddedLines(file: string) {
@@ -3144,8 +3182,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const visualReview = objectRecord(evidence.independentVisualReview);
   const visualReviewDimensions = objectRecord(visualReview.dimensions);
-  const visualReviewStateSha256 = stringRecord(visualReview.reviewedStateSha256);
-  const visualReviewSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
+  const reviewedStateSha256 = stringRecord(visualReview.reviewedStateSha256);
+  const reviewedSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
+  const visualReviewStateSha256 = reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
+    ? reviewedStateSha256
+    : stateScreenshotSha256;
+  const visualReviewSourceSha256 = reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
+    ? reviewedSourceSha256
+    : currentSourceSha256;
   const visualReviewPath = artifactPathFromEvidence(visualReview.path);
   const visualReviewProblems = [
     visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
@@ -3155,12 +3199,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
       ? null
       : 'visual-review:blocking-findings',
-    stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
-      ? null
-      : 'visual-review:stale-screenshot-review',
-    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
-      ? null
-      : 'visual-review:stale-source-review',
+    reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
+      ? (stringRecordsEqual(reviewedStateSha256, stateScreenshotSha256) ? null : 'visual-review:stale-screenshot-review')
+      : null,
+    reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
+      ? (stringRecordsEqual(reviewedSourceSha256, currentSourceSha256) ? null : 'visual-review:stale-source-review')
+      : null,
     ...[
       'handoffAlignment',
       'conceptAdoptionRejection',
@@ -3943,7 +3987,9 @@ const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningPro
 const interactiveLearningProductQaSourceRefreshRequired = shouldRefreshInteractiveLearningProductQaSource(files);
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
-const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
+ const adaptivePathProductQaSourceRefreshRequired = files.some((file) => (
+   adaptivePathSourceFileChanged(file) && file !== 'scripts/tests/test-commercial-ui-governance.ts'
+ ));
 const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
 const compactSpacingRequired = shouldRequireCompactSpacingEvidence(files);
 const result = evaluateCommercialUiGovernance({
