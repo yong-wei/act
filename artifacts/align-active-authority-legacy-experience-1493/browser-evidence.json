@@ -1,0 +1,17 @@
+{
+  "change": "align-active-authority-with-legacy-graph-experience",
+  "issue": 1493,
+  "capturedAt": "2026-08-21T15:39:19.607Z",
+  "states": [
+    "root-desktop-light",
+    "root-desktop-dark",
+    "root-mobile-light",
+    "domain-teaching-desktop-light",
+    "domain-engineering-filter-desktop-light",
+    "inspector-resource-formula-desktop-light",
+    "inspector-mobile-dark"
+  ],
+  "deferred": [
+    "upstream localization / language switching"
+  ]
+}

@@ -180,7 +180,7 @@ test.describe('issue 1445 active circular root', () => {
       await page.screenshot({ path: join(evidenceDir, 'inspector-desktop-light.png'), fullPage: true });
     }
 
-    await expect(page.getByRole('button', { name: '历史 Legacy' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '旧版' })).toBeVisible();
     expect(errors.filter((item) => !item.includes('favicon'))).toEqual([]);
   });
 });

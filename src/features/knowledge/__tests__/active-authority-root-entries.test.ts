@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_AUTHORITY_ROOT_UNAVAILABLE_LABEL,
   activeAuthorityRootPackingMetadataKeys,
+  getActiveAuthorityRootLabelBounds,
   packActiveAuthorityRootEntries,
   toActiveAuthorityRootPackingNodes,
 } from '../active-authority-root-entries';
@@ -52,7 +53,7 @@ describe('active Authority root packing adapter', () => {
 
   it('keeps packing metadata free of Authority identities', () => {
     const keys = new Set(activeAuthorityRootPackingMetadataKeys(catalog(3)));
-    expect([...keys].sort()).toEqual(['isCollapsedRoot', 'nodeCount', 'presentationKind']);
+    expect([...keys].sort()).toEqual(['isCollapsedRoot', 'nodeCount', 'presentationKind', 'presentationRadius']);
     expect(toActiveAuthorityRootPackingNodes(catalog(3)).map((node) => node.id)).toEqual([
       'root-entry-00',
       'root-entry-01',
@@ -77,5 +78,20 @@ describe('active Authority root packing adapter', () => {
     expect(packed[0]?.unavailable).toBe(true);
     expect(packed[0]?.name).toBe(ACTIVE_AUTHORITY_ROOT_UNAVAILABLE_LABEL);
     expect(packed[0]?.name).not.toContain('state-space');
+  });
+
+  it('packs collision radius from the combined name and summary text block', () => {
+    const longSummary = catalog(1, {
+      displayName: '传递函数',
+      summary: '从对象到系统模型的完整教学入口说明需要多行换行',
+    });
+    const packed = packActiveAuthorityRootEntries(longSummary, { viewportWidth: 1440, viewportHeight: 900 });
+    const expected = getActiveAuthorityRootLabelBounds(
+      longSummary.domains[0]!.displayName,
+      longSummary.domains[0]!.summary,
+    );
+    expect(packed[0]?.radius).toBeGreaterThanOrEqual(expected.collisionRadius);
+    const nameOnly = getActiveAuthorityRootLabelBounds(longSummary.domains[0]!.displayName, '');
+    expect(packed[0]?.radius).toBeGreaterThan(nameOnly.collisionRadius);
   });
 });

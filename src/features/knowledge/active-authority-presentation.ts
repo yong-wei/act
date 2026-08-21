@@ -547,6 +547,7 @@ export function activeNodeRelationSummaries(
   relationLabel: string;
   directionLabel: string;
   neighborLabel: string;
+  neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
 }> {
   return detail.adjacency
@@ -559,6 +560,7 @@ export function activeNodeRelationSummaries(
         relationLabel: semantic.label,
         directionLabel: semantic.directionLabel,
         neighborLabel,
+        neighborKey: relation.neighborId,
         traversal: relation.traversal,
       };
     })
@@ -574,6 +576,7 @@ export function activeModelRelationSummaries(
   relationLabel: string;
   directionLabel: string;
   neighborLabel: string;
+  neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
 }> {
   return (model.adjacency.get(nodeKey) ?? [])
@@ -584,6 +587,7 @@ export function activeModelRelationSummaries(
         relationLabel: relation.semantic.label,
         directionLabel: relation.semantic.directionLabel,
         neighborLabel: model.nodeByKey.get(neighborKey)?.label ?? '对象名称暂不可用',
+        neighborKey,
         traversal: (relation.sourceKey === nodeKey ? 'outgoing' : 'incoming') as ActiveNodeAdjacency['traversal'],
       };
     })

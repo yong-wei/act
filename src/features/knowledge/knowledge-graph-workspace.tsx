@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { ActiveAuthorityGraph } from './active-authority-graph';
 import { CandidateAuthoritativeGraph } from './candidate-authoritative-graph';
+import { knowledgeGraphProductVersionLabel } from './graph/graph-presentation-contract';
 
 interface KnowledgeGraphWorkspaceProps {
   viewerRole: PlatformRole;
@@ -36,19 +37,21 @@ export function KnowledgeGraphWorkspace({
           type="button"
           aria-pressed={mode === 'active'}
           data-knowledge-mode="active"
+          aria-label={knowledgeGraphProductVersionLabel('active')}
           onClick={() => setMode('active')}
           className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'active' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
-          当前 Authority
+          {knowledgeGraphProductVersionLabel('active')}
         </button>
         <button
           type="button"
           aria-pressed={mode === 'legacy'}
           data-knowledge-mode="legacy"
+          aria-label={knowledgeGraphProductVersionLabel('legacy')}
           onClick={() => setMode('legacy')}
           className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'legacy' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
-          历史 Legacy
+          {knowledgeGraphProductVersionLabel('legacy')}
         </button>
         {candidateDiagnosticEnabled ? (
           <button
