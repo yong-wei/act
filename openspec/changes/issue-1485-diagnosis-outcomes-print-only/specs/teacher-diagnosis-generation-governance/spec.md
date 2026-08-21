@@ -1,0 +1,27 @@
+## MODIFIED Requirements
+
+### Requirement: Preflight reports effective changes by governed category
+
+The system SHALL compare current eligible assignment, assessment, learning-behavior, risk, and eligibility inputs with the previous formal report. A source that is not integrated into the diagnosis evidence contract SHALL be marked unavailable and SHALL NOT be counted as new evidence. An integrated source with no qualifying results SHALL be available with a zero count rather than represented as unavailable.
+
+#### Scenario: Reviewed assignment results arrive
+
+- **WHEN** a class member has a submitted assignment with a frozen class binding, published revision, reviewed total and review timestamp at or before the evidence cutoff
+- **THEN** preflight SHALL include only its structured outcome, revision content hash and audit identity
+- **AND** SHALL NOT include the original answer, attachment, reviewer comment or raw grading payload.
+
+#### Scenario: Class-bound assessment results arrive
+
+- **WHEN** an assessment session has a valid class-assessment binding whose class and content digest match the frozen session data
+- **THEN** preflight SHALL include its aggregate score and completion identity for that class
+- **AND** SHALL NOT count ordinary adaptive-practice sessions without the binding as class assessment coverage.
+
+### Requirement: Preflight and lifecycle projections are role-safe
+
+The system SHALL expose preflight and generation lifecycle data only to the owning teacher and only for an authorized class or current member. Public projections SHALL contain aggregate category counts and audit metadata, not raw evidence payloads or identities of other students. Persisted report source coverage SHALL include deterministic assignment and assessment inclusion, missing, evidence and scored counts when those sources are integrated.
+
+#### Scenario: Teacher reads an integrated class report
+
+- **WHEN** the owning teacher reads a completed report that includes assignment or assessment outcomes
+- **THEN** the history surface SHALL display each source's aggregate inclusion and missing counts
+- **AND** SHALL NOT show raw answer content, option keys, files, feedback text or student identifiers.

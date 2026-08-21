@@ -47,7 +47,7 @@ const projection: TeacherDiagnosisDeliveryProjection = {
 };
 
 describe('DiagnosisReportDeliveryView', () => {
-  it('renders fixed delivery, print/PDF, safe evidence and auditable actions', () => {
+  it('keeps teacher delivery print-only while preserving safe evidence and auditable actions', () => {
     const html = renderToStaticMarkup(
       <DiagnosisReportDeliveryView
         projection={projection}
@@ -56,7 +56,6 @@ describe('DiagnosisReportDeliveryView', () => {
           { kind: 'remediation', label: '已注册补练资源', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
         ]}
         dispositionEvents={[]}
-        pdfHref="/api/pdf"
         dispositionHref="/api/dispositions"
         returnHref="/teacher/classes/class-1"
         teacherMode
@@ -64,7 +63,8 @@ describe('DiagnosisReportDeliveryView', () => {
     );
     expect(html).toContain('data-diagnosis-delivery-role="teacher"');
     expect(html).toContain('查看允许的证据摘要');
-    expect(html).toContain('导出 PDF');
+    expect(html).toContain('打印');
+    expect(html).not.toContain('导出 PDF');
     expect(html).toContain('标记已安排干预');
     expect(html).toContain('学习建议');
     expect(html).toContain('完成一次针对性练习');
@@ -91,6 +91,7 @@ describe('DiagnosisReportDeliveryView', () => {
       />,
     );
     expect(html).toContain('data-diagnosis-delivery-role="student"');
+    expect(html).toContain('导出 PDF');
     expect(html).not.toContain('报告处置');
     expect(html).not.toContain('标记已安排干预');
   });
@@ -104,7 +105,6 @@ describe('DiagnosisReportDeliveryView', () => {
           { id: 'new', targetKind: 'finding', targetKey: 'finding:1', action: 'pending', actionRef: null, result: 'recorded', createdAt: '2026-08-19T10:00:00.000Z' },
           { id: 'old', targetKind: 'finding', targetKey: 'finding:1', action: 'completed', actionRef: null, result: 'recorded', createdAt: '2026-08-19T09:00:00.000Z' },
         ]}
-        pdfHref="/api/pdf"
         dispositionHref="/api/dispositions"
         returnHref="/teacher/classes/class-1"
         teacherMode

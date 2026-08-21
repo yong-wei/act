@@ -4,6 +4,7 @@ vi.mock('server-only', () => ({}));
 
 import {
   DIAGNOSIS_PREFLIGHT_RULE_VERSION,
+  digestDiagnosisGovernedInput,
   preflightDiagnosisGeneration,
   projectDiagnosisGenerationPreflight,
 } from '@/lib/diagnosis-generation-preflight';
@@ -49,6 +50,12 @@ function fixture() {
         calculationVersion: 'v1',
       }]),
     },
+    assignmentSubmission: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    adaptiveAssessmentSession: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   };
 }
 
@@ -73,8 +80,8 @@ describe('diagnosis generation preflight', () => {
       generationReason: 'first-generation',
     });
     expect(result.categories).toMatchObject({
-      assignment: { availability: 'unavailable', changedCount: null },
-      assessment: { availability: 'unavailable', changedCount: null },
+      assignment: { availability: 'available', currentCount: 0, changedCount: 0 },
+      assessment: { availability: 'available', currentCount: 0, changedCount: 0 },
       learningBehavior: { availability: 'available', currentCount: 1, changedCount: 1 },
       eligibility: { availability: 'available', currentCount: 1, changedCount: 1 },
     });
@@ -278,5 +285,57 @@ describe('diagnosis generation preflight', () => {
       canForce: false,
       activeJob: { id: 'job-active', state: 'RUNNING' },
     });
+  });
+
+  it('includes reviewed assignments and class-bound assessment sessions without raw answers', async () => {
+    db.assignmentSubmission.findMany.mockResolvedValue([{
+      id: 'submission-1',
+      studentId: 'student-1',
+      assignmentRevisionId: 'revision-1',
+      reviewState: 'REVIEWED',
+      approvedTotal: 82,
+      reviewedAt: new Date('2026-08-19T02:00:00.000Z'),
+      revision: {
+        contentHash: 'assignment-content-1',
+        totalPoints: 100,
+        publishedAt: new Date('2026-08-18T02:00:00.000Z'),
+      },
+    }]);
+    const contentDigest = digestDiagnosisGovernedInput(['assessment-item-1']);
+    db.adaptiveAssessmentSession.findMany.mockResolvedValue([{
+      id: 'assessment-session-1',
+      userId: 'student-1',
+      metadata: {
+        diagnosisClassAssessment: {
+          schemaVersion: 'diagnosis-class-assessment-session.v1',
+          classId: 'class-1',
+          assessmentId: 'assessment-1',
+          contentDigest,
+        },
+      },
+      answers: [{
+        id: 'answer-1',
+        isCorrect: true,
+        score: 100,
+        answeredAt: new Date('2026-08-19T02:30:00.000Z'),
+        questionRef: { contentHash: 'assessment-item-1' },
+      }],
+    }]);
+
+    const result = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      now,
+    });
+
+    expect(result.categories).toMatchObject({
+      assignment: { availability: 'available', currentCount: 1, changedCount: 1 },
+      assessment: { availability: 'available', currentCount: 1, changedCount: 1 },
+    });
+    expect(result.governedInput).toMatchObject({
+      assignmentSubmissions: [{ id: 'submission-1', score: 82, totalPoints: 100 }],
+      assessmentSessions: [{ id: 'assessment-session-1', score: 100, correctCount: 1 }],
+    });
+    expect(JSON.stringify(result.governedInput)).not.toContain('selectedOptionKey');
   });
 });

@@ -1334,6 +1334,8 @@ describe('konling agent runtime', () => {
       privacyPolicy: { payload: 'teacher-scoped-summary' },
     });
     expect(teacherDiagnosis.permittedTools).toEqual([
+      'get_class_assignment_outcomes',
+      'get_class_assessment_outcomes',
       'get_student_risk_flags',
       'get_class_competency_summary',
       'get_student_knowledge_progress',

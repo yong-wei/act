@@ -93,6 +93,12 @@ function dbFixture() {
     studentCompetencySnapshot: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    assignmentSubmission: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    adaptiveAssessmentSession: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     diagnosisGenerationJob: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),

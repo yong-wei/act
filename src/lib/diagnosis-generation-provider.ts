@@ -16,6 +16,8 @@ import {
 import { resolveSmartLessonStructuredProvider } from '@/lib/smart-lesson-plan/provider-runtime';
 
 const DIAGNOSIS_TOOLS = [
+  'get_class_assignment_outcomes',
+  'get_class_assessment_outcomes',
   'get_student_risk_flags',
   'get_class_competency_summary',
   'get_student_knowledge_progress',
@@ -25,6 +27,25 @@ const governedInputSchema = z.object({
   schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
   classId: z.string(),
   studentIds: z.array(z.string()),
+  assignmentSubmissions: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    assignmentRevisionId: z.string(),
+    contentHash: z.string(),
+    score: z.number(),
+    totalPoints: z.number(),
+    reviewedAt: z.string(),
+  })).optional(),
+  assessmentSessions: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    assessmentId: z.string(),
+    contentDigest: z.string(),
+    itemCount: z.number().int().positive(),
+    correctCount: z.number().int().nonnegative(),
+    score: z.number(),
+    completedAt: z.string(),
+  })).optional(),
   riskFlags: z.array(z.object({
     id: z.string(),
     userId: z.string(),
@@ -120,10 +141,14 @@ export async function generateGovernedDiagnosisReport(
     },
     permittedTools: [...DIAGNOSIS_TOOLS],
   });
+  const assignments = projectFrozenAssignments(governedInput.data);
+  const assessments = projectFrozenAssessments(governedInput.data);
   const riskFlags = projectFrozenRiskFlags(governedInput.data);
   const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
   const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data);
   const toolAudit = [
+    auditToolResult('get_class_assignment_outcomes', assignments),
+    auditToolResult('get_class_assessment_outcomes', assessments),
     auditToolResult('get_student_risk_flags', riskFlags),
     ...(competency ? [auditToolResult('get_class_competency_summary', competency)] : []),
     auditToolResult('get_student_knowledge_progress', knowledgeProgress),
@@ -149,7 +174,7 @@ export async function generateGovernedDiagnosisReport(
         ? { type: 'student', classId: input.classId, studentId: input.targetStudentId }
         : { type: 'class', classId: input.classId },
       evidenceCutoff: input.evidenceCutoff.toISOString(),
-      governedToolResults: { riskFlags, competency, knowledgeProgress },
+      governedToolResults: { assignments, assessments, riskFlags, competency, knowledgeProgress },
     }),
     idempotencyKey: input.attemptId,
     maxOutputTokens: 8_000,
@@ -160,7 +185,14 @@ export async function generateGovernedDiagnosisReport(
   if (!parsedReportBody.success) {
     throw new DiagnosisGenerationOutputValidationError(parsedReportBody.error);
   }
-  const reportBody = parsedReportBody.data as DiagnosisReportBody;
+  const reportBody = {
+    ...parsedReportBody.data,
+    sourceCoverage: {
+      ...parsedReportBody.data.sourceCoverage,
+      assignment: assignments.sourceCoverage,
+      assessment: assessments.sourceCoverage,
+    },
+  } as DiagnosisReportBody;
   if (reportBody.evidenceCutoff !== input.evidenceCutoff.toISOString()) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-cutoff-mismatch');
   }
@@ -180,6 +212,63 @@ export async function generateGovernedDiagnosisReport(
 }
 
 type GovernedInput = z.infer<typeof governedInputSchema>;
+
+function projectFrozenAssignments(input: GovernedInput) {
+  const assignments = (input.assignmentSubmissions ?? []).map((row) => ({
+    studentId: row.userId,
+    assignmentRevisionId: row.assignmentRevisionId,
+    contentHash: row.contentHash,
+    score: row.score,
+    totalPoints: row.totalPoints,
+    reviewedAt: row.reviewedAt,
+    evidenceRefs: [`assignment-submission:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    assignments,
+    evidenceRefs: assignments.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: sourceCoverage(input.studentIds, assignments),
+    confidence: assignments.length > 0 ? 'high' : 'unavailable',
+    limitations: assignments.length > 0 ? [] : ['no-reviewed-assignment-outcomes'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenAssessments(input: GovernedInput) {
+  const assessments = (input.assessmentSessions ?? []).map((row) => ({
+    studentId: row.userId,
+    assessmentId: row.assessmentId,
+    contentDigest: row.contentDigest,
+    itemCount: row.itemCount,
+    correctCount: row.correctCount,
+    score: row.score,
+    completedAt: row.completedAt,
+    evidenceRefs: [`adaptive-assessment-session:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    assessments,
+    evidenceRefs: assessments.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: sourceCoverage(input.studentIds, assessments),
+    confidence: assessments.length > 0 ? 'high' : 'unavailable',
+    limitations: assessments.length > 0 ? [] : ['no-class-assessment-outcomes'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function sourceCoverage(
+  studentIds: string[],
+  rows: Array<{ studentId: string; score: number }>,
+) {
+  const includedStudents = new Set(rows.map((row) => row.studentId)).size;
+  return {
+    availability: 'available' as const,
+    includedStudents,
+    missingStudents: Math.max(studentIds.length - includedStudents, 0),
+    evidenceCount: rows.length,
+    scoredCount: rows.filter((row) => Number.isFinite(row.score)).length,
+  };
+}
 
 function projectFrozenRiskFlags(input: GovernedInput) {
   const flags = input.riskFlags.map((row) => ({
