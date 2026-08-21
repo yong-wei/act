@@ -289,6 +289,60 @@ describe('generated candidate governance', () => {
     expect(store.receipts[0]?.receiptHash).toBe(receipt.receiptHash);
   });
 
+  it('hydrates from a RepeatableRead snapshot and does not freeze torn publication lineage', async () => {
+    const store = createGeneratedCandidateStore();
+    const created = createGeneratedCandidate(store, envelope(validContent(), 'ai'));
+    reviewGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      reviewerUserId: 'reviewer-1',
+      reviewerRole: 'assessment-content-reviewer',
+      outcome: 'approved',
+      rationale: '答案、干扰项、目标和难度均核对通过。',
+      itemDecisions: {
+        answer: 'accept',
+        distractors: 'accept',
+        semantics: 'accept',
+        stage: 'accept',
+        source: 'accept',
+      },
+    });
+    const receipt = publishGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      publisherUserId: 'publisher-1',
+      catalogReleaseId: 'generated-catalog.r1',
+    });
+    const {
+      findAdaptiveAssessmentCatalogSnapshot,
+      isGeneratedRuntimeOverlayReady,
+      resetGeneratedRuntimeOverlay,
+    } = await import('../adaptive-assessment-catalog-selector');
+    const { ensureGeneratedCatalogHydrated } = await import('../generated-catalog-runtime');
+    const completeDb = persistenceDbFromStore(store);
+    let isolationLevel: string | undefined;
+    resetGeneratedRuntimeOverlay();
+    await ensureGeneratedCatalogHydrated(persistenceDbFromStore({
+      ...store,
+      revisions: [],
+      reviews: [],
+    }));
+    expect(isGeneratedRuntimeOverlayReady()).toBe(false);
+
+    await ensureGeneratedCatalogHydrated({
+      ...completeDb,
+      $transaction: async (
+        fn: (tx: typeof completeDb) => Promise<unknown>,
+        options?: { isolationLevel?: string },
+      ) => {
+        isolationLevel = options?.isolationLevel;
+        return fn(completeDb);
+      },
+    });
+    expect(isolationLevel).toBe('RepeatableRead');
+    expect(isGeneratedRuntimeOverlayReady()).toBe(true);
+    expect(findAdaptiveAssessmentCatalogSnapshot(created.revision.revisionId)?.catalogItemId)
+      .toBe(receipt.catalogItemId);
+  });
+
   it('stales the previous approval when content changes and does not rewrite the old receipt identity', () => {
     const store = createGeneratedCandidateStore();
     const created = createGeneratedCandidate(store, envelope(validContent(), 'human'));

@@ -10,7 +10,11 @@ import {
 import {
   loadGeneratedCandidateStore,
 } from './generated-candidate-persistence';
-import type { GeneratedCandidateStore } from './generated-candidate-governance';
+import {
+  currentPublishedReceipts,
+  isCurrentPublicationReceipt,
+  type GeneratedCandidateStore,
+} from './generated-candidate-governance';
 
 type GeneratedCandidatePersistenceDb = Parameters<typeof loadGeneratedCandidateStore>[0];
 
@@ -44,8 +48,13 @@ export async function ensureGeneratedCatalogHydrated(db: unknown) {
 
 async function hydrateGeneratedCatalogFromPersistence(db: GeneratedCandidatePersistenceDb) {
   const store = await loadGeneratedCandidateStore(db);
+  if (!publishedReceiptsHaveClosedLineage(store)) return;
   if (isGeneratedRuntimeOverlayReady()) return;
   applyGeneratedCandidateStoreToRuntimeOverlay(store);
+}
+
+function publishedReceiptsHaveClosedLineage(store: GeneratedCandidateStore) {
+  return currentPublishedReceipts(store).every((receipt) => isCurrentPublicationReceipt(store, receipt));
 }
 
 function isGeneratedCandidatePersistenceDb(db: unknown): db is GeneratedCandidatePersistenceDb {

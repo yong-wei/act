@@ -132,14 +132,39 @@ export async function persistGeneratedCandidateStore(
   });
 }
 
+type GeneratedCandidateTables = Pick<PrismaClient,
+  'adaptiveAssessmentGeneratedCandidate' |
+  'adaptiveAssessmentGeneratedCandidateRevision' |
+  'adaptiveAssessmentGeneratedCandidateEvent' |
+  'adaptiveAssessmentGeneratedCandidateReview' |
+  'adaptiveAssessmentGeneratedPublicationReceipt'
+>;
+
+type RepeatableReadReader = GeneratedCandidateTables & {
+  $transaction: <T>(
+    fn: (tx: GeneratedCandidateTables) => Promise<T>,
+    options?: { isolationLevel?: Prisma.TransactionIsolationLevel | 'RepeatableRead' },
+  ) => Promise<T>;
+};
+
 export async function loadGeneratedCandidateStore(
-  db: Pick<PrismaClient,
-    'adaptiveAssessmentGeneratedCandidate' |
-    'adaptiveAssessmentGeneratedCandidateRevision' |
-    'adaptiveAssessmentGeneratedCandidateEvent' |
-    'adaptiveAssessmentGeneratedCandidateReview' |
-    'adaptiveAssessmentGeneratedPublicationReceipt'
-  >,
+  db: GeneratedCandidateTables,
+): Promise<GeneratedCandidateStore> {
+  if (hasRepeatableReadTransaction(db)) {
+    return db.$transaction(
+      (tx) => readGeneratedCandidateStore(tx),
+      { isolationLevel: 'RepeatableRead' },
+    );
+  }
+  return readGeneratedCandidateStore(db);
+}
+
+function hasRepeatableReadTransaction(db: GeneratedCandidateTables): db is RepeatableReadReader {
+  return typeof (db as RepeatableReadReader).$transaction === 'function';
+}
+
+async function readGeneratedCandidateStore(
+  db: GeneratedCandidateTables,
 ): Promise<GeneratedCandidateStore> {
   const store = createGeneratedCandidateStore();
   const [candidates, revisions, events, reviews, receipts] = await Promise.all([
