@@ -22,6 +22,7 @@ import {
 } from '../micro-tutoring-option-attribution';
 import { resolveMicroTutoringGoalNode } from '../micro-tutoring-goal-node-catalog';
 import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
+import { listMicroTutoringGovernedValidationItems } from '../micro-tutoring-validation-registry';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
@@ -167,6 +168,32 @@ describe('micro tutoring coverage audit', () => {
       resolveValidationItems: () => [],
     });
     expect(authorityResult.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
+  });
+
+  it('zeros known VALIDATION_QUESTION_UNAVAILABLE content gaps from the published validation registry', () => {
+    const result = reportWithPublishedAttributions({
+      resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
+        knowledgeNodeId,
+        misconceptionTag,
+      }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
+      resolveValidationItems: (sourceQuestionId, sourceContentHash, knowledgeNodeId, misconceptionTag) =>
+        listMicroTutoringGovernedValidationItems({
+          knowledgeNodeId,
+          misconceptionTag,
+          sourceQuestionId,
+          sourceContentHash,
+        }),
+    });
+
+    expect(result.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
+    expect(result.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE).toBe(0);
+    expect(result.rows.every((row) => row.resources.length === 1)).toBe(true);
+    expect(result.rows.every((row) => row.validationItems.length === 5)).toBe(true);
+    expect(result.rows.every((row) =>
+      row.validationItems.every((item) => item.contentHash !== row.contentHash))).toBe(true);
+    expect(JSON.stringify(result)).not.toContain('independenceRationale');
+    expect(JSON.stringify(result)).not.toContain('purposeRationale');
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(true);
   });
 
   it('resolves only an exact published option attribution', () => {
@@ -521,6 +548,22 @@ describe('micro tutoring coverage audit', () => {
       }],
     });
     expect(sameQuestionResult.rows
+      .filter((row) => row.catalogItemId === sourceItem.catalogItemId)
+      .every((row) => row.reasons.includes('VALIDATION_QUESTION_UNAVAILABLE')))
+      .toBe(true);
+
+    const sameHashResult = report({
+      optionAttributions: attributions,
+      resolveValidationItems: () => [{
+        id: 'renamed-copy',
+        questionId: `${sourceItem.sourceId}-copy`,
+        contentHash: sourceItem.contentHash,
+        version: 'validation.v1',
+        estimatedMinutes: 2,
+        actionPath: '/assessment/adaptive-practice',
+      }],
+    });
+    expect(sameHashResult.rows
       .filter((row) => row.catalogItemId === sourceItem.catalogItemId)
       .every((row) => row.reasons.includes('VALIDATION_QUESTION_UNAVAILABLE')))
       .toBe(true);

@@ -37,7 +37,9 @@ try {
   assert.equal(report.errorOptionCount, 108);
   assert.equal(report.gapOptionCount, 108);
   assert.equal(report.gapReasonCounts.RESOURCE_UNAVAILABLE, 0);
+  assert.equal(report.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE, 0);
   assert.equal(report.rows.every((row) => row.resources.length === 1), true);
+  assert.equal(report.rows.every((row) => row.validationItems.length >= 1), true);
   assert.equal(report.baselineIssues.length, 0);
   assert.match(report.inputCapture.sourceRevision, /^[a-f0-9]{40}$/);
   assert.equal(typeof report.inputCapture.sourceInputsClean, 'boolean');

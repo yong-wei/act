@@ -14,12 +14,12 @@ import {
 } from '@/features/assessment/micro-tutoring-coverage-audit';
 import {
   listGovernedRemediationResources,
-  listGovernedRemediationValidationItems,
   remediationResourceSelect,
   type RemediationResourceRow,
   type RemediationValidationItemRow,
 } from '@/features/assessment/remediation-orchestration';
 import { listMicroTutoringGovernedResources } from '@/features/assessment/micro-tutoring-resource-registry';
+import { listMicroTutoringGovernedValidationItems } from '@/features/assessment/micro-tutoring-validation-registry';
 import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { prisma } from '@/lib/prisma';
@@ -33,9 +33,11 @@ const GOVERNANCE_CAPTURE_PATHS = [
   `${GOVERNANCE_DIR}/micro-tutoring-option-attributions.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
   'src/features/assessment/micro-tutoring-coverage-audit.ts',
   'src/features/assessment/micro-tutoring-goal-node-catalog.ts',
   'src/features/assessment/micro-tutoring-resource-registry.ts',
+  'src/features/assessment/micro-tutoring-validation-registry.ts',
   'src/features/assessment/micro-tutoring-learning-actions.ts',
   'src/features/assessment/remediation-orchestration.ts',
   'src/lib/adaptive-learning-path-planner.ts',
@@ -241,12 +243,13 @@ async function main() {
   if (!optionReferenceSecret) {
     throw new Error('MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET is required');
   }
-  const [catalogItems, reviewDecisions, baselineSource, attributionSource, resourceProjectionSource, governedRows] = await Promise.all([
+  const [catalogItems, reviewDecisions, baselineSource, attributionSource, resourceProjectionSource, validationRegistrySource, governedRows] = await Promise.all([
     readJsonl<AdaptiveAssessmentCatalogItem>(inputCapture, 'adaptive-assessment-item-catalog-items.jsonl'),
     readJsonl<AssessmentItemSemanticReviewDecision>(inputCapture, 'assessment-item-semantic-review-snapshots.jsonl'),
     readJson<MicroTutoringPracticeBaseline>(inputCapture, 'micro-tutoring-practice-baseline.json'),
     readJson<{ entries: unknown[] }>(inputCapture, 'micro-tutoring-option-attributions.json'),
     readJson<unknown>(inputCapture, 'micro-tutoring-resource-projection.json'),
+    readJson<unknown>(inputCapture, 'micro-tutoring-validation-registry.json'),
     loadGovernedRows(options.offline, inputCapture.sourceRevision),
   ]);
   const baseline: MicroTutoringPracticeBaseline = {
@@ -304,12 +307,22 @@ async function main() {
         .filter((resource) => parsedKeys.has(resource.registryId))
         .map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource);
     },
-    resolveValidationItems: (sourceQuestionId, _sourceContentHash, knowledgeNodeId, misconceptionTag) =>
-      listGovernedRemediationValidationItems({
-        rows: governedRows.validations,
-        sourceQuestionId,
+    resolveValidationItems: (sourceQuestionId, sourceContentHash, knowledgeNodeId, misconceptionTag) =>
+      listMicroTutoringGovernedValidationItems({
         knowledgeNodeId,
         misconceptionTag,
+        sourceQuestionId,
+        sourceContentHash,
+        registry: validationRegistrySource,
+        authorityRows: options.offline
+          ? undefined
+          : governedRows.validations.map((row) => ({
+            id: row.id,
+            questionId: row.questionId,
+            contentHash: row.contentHash,
+            metadata: row.metadata,
+          })),
+        captureRevision: options.offline ? undefined : inputCapture.sourceRevision,
       }),
     resolveResourceAccessDenied: (knowledgeNodeId) =>
       resourceAccessDenied(governedRows.resources, knowledgeNodeId),
