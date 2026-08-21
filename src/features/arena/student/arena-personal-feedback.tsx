@@ -2,7 +2,7 @@
 
 import { AlertTriangle, CheckCircle2, DatabaseZap, TrendingUp } from 'lucide-react';
 
-import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import type { ArenaSubmissionRecord } from '../submissions/types';
 import {
   buildArenaSubmissionFeedback,
   type ArenaFeedbackMode,

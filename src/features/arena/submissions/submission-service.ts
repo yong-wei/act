@@ -1,39 +1,8 @@
 import { evaluateArenaSubmission } from '../evaluation/evaluator';
-import type { ArenaEvaluationResult } from '../evaluation/types';
-import type { ArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
-import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from './artifact-hash';
+import type { ArenaSubmissionRecord, CreateArenaSubmissionInput } from './types';
 
-export interface ArenaSubmissionRecord {
-  id: string;
-  taskId: string;
-  userId?: string;
-  classId?: string;
-  seasonId?: string;
-  publicationId?: string;
-  isLate?: boolean;
-  studentLabel: string;
-  studentNumber?: string;
-  artifactHash: string;
-  artifact: ControllerArtifact;
-  evaluation: ArenaEvaluationResult;
-  evaluationProtocolVersion?: string;
-  evidenceWriteback?: ArenaSubmissionEvidenceWriteback;
-  submittedAt: string;
-  reusedEvaluation: boolean;
-}
-
-export interface CreateArenaSubmissionInput {
-  taskId: string;
-  artifact: ControllerArtifact;
-  studentLabel: string;
-  classId?: string;
-  seasonId?: string;
-  publicationId?: string;
-  isLate?: boolean;
-  submittedAt: string;
-  existingSubmissions: ArenaSubmissionRecord[];
-}
+export type { ArenaSubmissionRecord, CreateArenaSubmissionInput } from './types';
 
 export async function createArenaSubmission(input: CreateArenaSubmissionInput): Promise<ArenaSubmissionRecord> {
   const artifact = { ...input.artifact, taskId: input.taskId };

@@ -1,29 +1,19 @@
-import type { KaqEvidenceWritebackProjection, KaqEvidenceWritebackStatus } from '@/lib/data-governance/kaq-evidence-writeback';
 import { materializeKaqEvidenceWriteback, projectKaqEvidenceWritebackForConsumer } from '@/lib/data-governance/kaq-evidence-writeback';
 import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 
-import type { ArenaSubmissionRecord } from './submissions/submission-service';
+import type {
+  ArenaAttemptStatus,
+  ArenaEvidenceVisibilityState,
+  ArenaSubmissionEvidenceWriteback,
+  ArenaSubmissionRecord,
+} from './submissions/types';
 import { isArenaSubmissionEffectiveForRanking } from './submissions/ranking-policy';
 
-export type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid' | 'duplicate-only';
-export type ArenaEvidenceVisibilityState = 'materialized' | 'diagnostic-only' | 'unavailable';
-
-export interface ArenaSubmissionEvidenceWriteback {
-  status: KaqEvidenceWritebackStatus;
-  sourceRef: {
-    kind: 'ArenaSubmission';
-    id: string;
-  };
-  attemptStatus: ArenaAttemptStatus;
-  visibilityState: ArenaEvidenceVisibilityState;
-  targetLabel: string;
-  summary: string;
-  recoveryAction: string;
-  limitationCodes: string[];
-  overlayCount: number;
-  terminalValidationAccepted: boolean;
-  projected?: KaqEvidenceWritebackProjection;
-}
+export type {
+  ArenaAttemptStatus,
+  ArenaEvidenceVisibilityState,
+  ArenaSubmissionEvidenceWriteback,
+} from './submissions/types';
 
 const ARENA_OFFICIAL_TARGET = {
   learningGoalId: 'control-correction',

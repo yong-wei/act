@@ -1,4 +1,4 @@
-import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import type { ArenaSubmissionRecord } from '../submissions/types';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { formatArenaMetric } from '../display-labels';
 import {

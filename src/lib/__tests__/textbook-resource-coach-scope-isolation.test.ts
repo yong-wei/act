@@ -34,6 +34,8 @@ describe('textbook resource coach scope isolation', () => {
     const route = read('src/features/textbook-reader/textbook-reader-route.tsx');
     expect(coaching).toContain('STRUCTURED_TEXTBOOK_UNIT_KIND');
     expect(coaching).toContain('对本页提问');
+    expect(coaching).toContain("from '@/lib/textbook-reader-contracts'");
+    expect(coaching).not.toContain("from '@/lib/textbook-reader'");
     expect(route).toContain('TextbookReaderCoachingSurface');
   });
 });
