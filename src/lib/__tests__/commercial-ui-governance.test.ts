@@ -38,6 +38,7 @@ import {
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
   knowledgeWorkspaceProductQaCaptureRevisionProblems,
+  knowledgeWorkspaceProductQaVisualReviewHashProblems,
   knowledgeWorkspaceProductQaSourceHashProblems,
 } from '../../../scripts/tests/test-commercial-ui-governance';
 import {
@@ -97,6 +98,9 @@ function runTempGit(cwd: string, args: string[]) {
   }
   return result.stdout.trim();
 }
+
+const TEST_CAPTURE_COMMIT_SHA = runTempGit(process.cwd(), ['rev-parse', 'HEAD']);
+const TEST_CAPTURE_TREE_SHA = runTempGit(process.cwd(), ['rev-parse', 'HEAD^{tree}']);
 
 function initTempGitRepo(prefix: string) {
   const repo = mkdtempSync(join(tmpdir(), prefix));
@@ -407,8 +411,8 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
   const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
   if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
   const captureRevision = {
-    commitSha: 'a'.repeat(40),
-    treeSha: 'b'.repeat(40),
+    commitSha: TEST_CAPTURE_COMMIT_SHA,
+    treeSha: TEST_CAPTURE_TREE_SHA,
   } as const;
   const runtimeRevisionProof = {
     endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
@@ -612,26 +616,26 @@ function simulationFullMatrixVisualQa() {
     change: 'govern-simulation-full-matrix-visual-qa' as const,
     generatedAt: '2026-06-15T00:00:00.000Z',
     captureRevision: {
-      commitSha: 'a'.repeat(40),
-      treeSha: 'b'.repeat(40),
+      commitSha: TEST_CAPTURE_COMMIT_SHA,
+      treeSha: TEST_CAPTURE_TREE_SHA,
     },
     runtimeRevisionProof: {
       endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
       expected: {
-        commitSha: 'a'.repeat(40),
-        treeSha: 'b'.repeat(40),
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
         sourceFingerprint: 'c'.repeat(64),
         clean: true,
       },
       beforeCapture: {
-        commitSha: 'a'.repeat(40),
-        treeSha: 'b'.repeat(40),
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
         sourceFingerprint: 'c'.repeat(64),
         clean: true,
       },
       afterCapture: {
-        commitSha: 'a'.repeat(40),
-        treeSha: 'b'.repeat(40),
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
         sourceFingerprint: 'c'.repeat(64),
         clean: true,
       },
@@ -4691,6 +4695,31 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('visual-review:stale-source-review');
     expect(scriptSource).toContain("'tabletBreakpoint'");
     expect(scriptSource).toContain("'canvasGeometry'");
+  });
+
+  it('fails closed when an independent knowledge visual review omits either evidence hash map', () => {
+    expect(knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview: {
+        reviewedStateSha256: {},
+        reviewedSourceSha256: {},
+      },
+      stateScreenshotSha256: { 'state.png': 'state-sha' },
+      currentSourceSha256: { 'src/page.tsx': 'source-sha' },
+    })).toEqual([
+      'visual-review:missing-screenshot-review',
+      'visual-review:missing-source-review',
+    ]);
+    expect(knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview: {
+        reviewedStateSha256: { 'state.png': 'old-state-sha' },
+        reviewedSourceSha256: { 'src/page.tsx': 'old-source-sha' },
+      },
+      stateScreenshotSha256: { 'state.png': 'state-sha' },
+      currentSourceSha256: { 'src/page.tsx': 'source-sha' },
+    })).toEqual([
+      'visual-review:stale-screenshot-review',
+      'visual-review:stale-source-review',
+    ]);
   });
 
   it('keeps general commercial source palette governance limited to added lines', () => {

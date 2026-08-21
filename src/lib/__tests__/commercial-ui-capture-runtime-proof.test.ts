@@ -12,7 +12,10 @@ import {
   fetchRuntimeCaptureRevisionProof,
   parseRuntimeCaptureRevisionProof,
 } from '../commercial-ui-capture-revision';
-import { commercialRuntimeRevisionProofProblems } from '../commercial-ui-governance';
+import {
+  commercialRuntimeRevisionProofObjectProblems,
+  commercialRuntimeRevisionProofProblems,
+} from '../commercial-ui-governance';
 
 const localProof = {
   commitSha: 'a'.repeat(40),
@@ -57,6 +60,35 @@ describe('commercial UI runtime capture proof', () => {
       ...manifestRuntimeProof,
       extra: true,
     })).toContain('runtimeRevisionProof:fields');
+  });
+
+  it('rejects runtime proofs whose commit and tree are not real related Git objects', () => {
+    const repositoryRoot = mkdtempSync(path.join(os.tmpdir(), 'commercial-ui-runtime-proof-git-'));
+    try {
+      mkdirSync(path.join(repositoryRoot, 'src'), { recursive: true });
+      writeFileSync(path.join(repositoryRoot, 'src/source.ts'), 'export const source = true;\n');
+      git(repositoryRoot, ['init']);
+      git(repositoryRoot, ['config', 'user.name', 'Capture Test']);
+      git(repositoryRoot, ['config', 'user.email', 'capture-test@example.invalid']);
+      git(repositoryRoot, ['add', 'src/source.ts']);
+      git(repositoryRoot, ['commit', '-m', 'capture proof']);
+      const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
+      const treeSha = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
+      expect(commercialRuntimeRevisionProofObjectProblems({
+        ...manifestRuntimeProof,
+        expected: { ...localProof, commitSha, treeSha },
+        beforeCapture: { ...localProof, commitSha, treeSha },
+        afterCapture: { ...localProof, commitSha, treeSha },
+      }, repositoryRoot)).toEqual([]);
+      expect(commercialRuntimeRevisionProofObjectProblems(manifestRuntimeProof, repositoryRoot))
+        .toContain('runtimeRevisionProof.expected.commitSha:object');
+      expect(commercialRuntimeRevisionProofObjectProblems({
+        ...manifestRuntimeProof,
+        expected: { ...localProof, commitSha, treeSha: '0'.repeat(40) },
+      }, repositoryRoot)).toContain('runtimeRevisionProof.expected.treeSha=commit');
+    } finally {
+      rmSync(repositoryRoot, { recursive: true, force: true });
+    }
   });
 
   it('reads the same-origin probe before accepting a capture', async () => {

@@ -35,7 +35,9 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
-import { commercialRuntimeRevisionProofProblems } from '../../src/lib/commercial-ui-governance';
+import {
+  commercialRuntimeRevisionProofObjectProblems,
+} from '../../src/lib/commercial-ui-governance';
 import {
   assertRuntimeRelationStyleCoverage,
   getKnowledgeGraphEffectiveEdgeOpacity,
@@ -1855,6 +1857,32 @@ function stringRecordsEqual(left: Record<string, string>, right: Record<string, 
     && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
 }
 
+export function knowledgeWorkspaceProductQaVisualReviewHashProblems({
+  visualReview: rawVisualReview,
+  stateScreenshotSha256,
+  currentSourceSha256,
+}: {
+  visualReview: unknown;
+  stateScreenshotSha256: Record<string, string>;
+  currentSourceSha256: Record<string, string>;
+}) {
+  const visualReview = objectRecord(rawVisualReview);
+  const reviewedStateSha256 = stringRecord(visualReview.reviewedStateSha256);
+  const reviewedSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
+  return [
+    reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
+      ? (stringRecordsEqual(reviewedStateSha256, stateScreenshotSha256)
+        ? null
+        : 'visual-review:stale-screenshot-review')
+      : 'visual-review:missing-screenshot-review',
+    reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
+      ? (stringRecordsEqual(reviewedSourceSha256, currentSourceSha256)
+        ? null
+        : 'visual-review:stale-source-review')
+      : 'visual-review:missing-source-review',
+  ].filter((entry): entry is string => Boolean(entry));
+}
+
 function stringRecordsEqualForPaths(
   left: Record<string, string>,
   right: Record<string, string>,
@@ -3030,7 +3058,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     currentSourceSha256,
     productQaSourcePaths,
   });
-  const runtimeRevisionProofProblems = commercialRuntimeRevisionProofProblems(evidence.runtimeRevisionProof);
+  const runtimeRevisionProofProblems = commercialRuntimeRevisionProofObjectProblems(
+    evidence.runtimeRevisionProof,
+    repoRoot,
+    'runtimeRevisionProof',
+  );
   const runtimeRevisionProofExpected = objectRecord(objectRecord(evidence.runtimeRevisionProof).expected);
   const runtimeRevisionConsistencyProblems = [
     captureCommitSha && runtimeRevisionProofExpected.commitSha !== captureCommitSha
@@ -3182,14 +3214,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const visualReview = objectRecord(evidence.independentVisualReview);
   const visualReviewDimensions = objectRecord(visualReview.dimensions);
-  const reviewedStateSha256 = stringRecord(visualReview.reviewedStateSha256);
-  const reviewedSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
-  const visualReviewStateSha256 = reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
-    ? reviewedStateSha256
-    : stateScreenshotSha256;
-  const visualReviewSourceSha256 = reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
-    ? reviewedSourceSha256
-    : currentSourceSha256;
   const visualReviewPath = artifactPathFromEvidence(visualReview.path);
   const visualReviewProblems = [
     visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
@@ -3199,12 +3223,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
       ? null
       : 'visual-review:blocking-findings',
-    reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
-      ? (stringRecordsEqual(reviewedStateSha256, stateScreenshotSha256) ? null : 'visual-review:stale-screenshot-review')
-      : null,
-    reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
-      ? (stringRecordsEqual(reviewedSourceSha256, currentSourceSha256) ? null : 'visual-review:stale-source-review')
-      : null,
+    ...knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview,
+      stateScreenshotSha256,
+      currentSourceSha256,
+    }),
     ...[
       'handoffAlignment',
       'conceptAdoptionRejection',

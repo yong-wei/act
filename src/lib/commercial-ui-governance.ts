@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+
 import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
@@ -422,6 +424,78 @@ export function commercialRuntimeRevisionProofProblems(value: unknown) {
       if (expected?.[field] !== snapshot?.[field]) {
         problems.push(`runtimeRevisionProof.${pathName}.${field}=expected`);
       }
+    }
+  }
+  return problems;
+}
+
+export function commercialRuntimeRevisionProofObjectProblems(
+  value: unknown,
+  repositoryRoot: string,
+  pathName = 'runtimeRevisionProof',
+) {
+  const problems = commercialRuntimeRevisionProofProblems(value)
+    .map((problem) => problem.replace(/^runtimeRevisionProof/u, pathName));
+  if (!isCommercialRecord(value)) return problems;
+
+  const objectCache = new Map<string, { valid: boolean; treeMatches: boolean }>();
+  const snapshots = ['expected', 'beforeCapture', 'afterCapture'] as const;
+  for (const snapshotName of snapshots) {
+    const snapshot = value[snapshotName];
+    if (!isCommercialRecord(snapshot)) continue;
+    const commitSha = typeof snapshot.commitSha === 'string' ? snapshot.commitSha : '';
+    const treeSha = typeof snapshot.treeSha === 'string' ? snapshot.treeSha : '';
+    if (!/^[0-9a-f]{40}$/u.test(commitSha) || !/^[0-9a-f]{40}$/u.test(treeSha)) continue;
+    const cacheKey = `${repositoryRoot}\0${commitSha}\0${treeSha}`;
+    const cached = objectCache.get(cacheKey);
+    if (cached) {
+      if (!cached.valid) problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+      else if (!cached.treeMatches) problems.push(`${pathName}.${snapshotName}.treeSha=commit`);
+      continue;
+    }
+    try {
+      const commitType = execFileSync('git', ['cat-file', '-t', `${commitSha}^{commit}`], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (commitType !== 'commit') {
+        objectCache.set(cacheKey, { valid: false, treeMatches: false });
+        problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+        continue;
+      }
+      const resolvedTree = execFileSync('git', ['rev-parse', '--verify', `${commitSha}^{tree}`], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (resolvedTree !== treeSha) {
+        objectCache.set(cacheKey, { valid: true, treeMatches: false });
+        problems.push(`${pathName}.${snapshotName}.treeSha=commit`);
+      } else {
+        objectCache.set(cacheKey, { valid: true, treeMatches: true });
+      }
+    } catch {
+      objectCache.set(cacheKey, { valid: false, treeMatches: false });
+      problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+    }
+  }
+
+  const expected = isCommercialRecord(value.expected) ? value.expected : undefined;
+  const expectedCommitSha = typeof expected?.commitSha === 'string' ? expected.commitSha : '';
+  if (/^[0-9a-f]{40}$/u.test(expectedCommitSha)) {
+    try {
+      const currentHead = execFileSync('git', ['rev-parse', '--verify', 'HEAD^{commit}'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      execFileSync('git', ['merge-base', '--is-ancestor', expectedCommitSha, currentHead], {
+        cwd: repositoryRoot,
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
+    } catch {
+      problems.push(`${pathName}.expected.commitSha=current-head`);
     }
   }
   return problems;
@@ -2639,7 +2713,11 @@ function buildSimulationFullMatrixVisualQaViolations(
 
   const missing = [
     ...commercialCaptureRevisionProblems(fullMatrixEvidence.captureRevision, 'simulationFullMatrixVisualQa.captureRevision'),
-    ...commercialRuntimeRevisionProofProblems(fullMatrixEvidence.runtimeRevisionProof),
+    ...commercialRuntimeRevisionProofObjectProblems(
+      fullMatrixEvidence.runtimeRevisionProof,
+      process.cwd(),
+      'simulationFullMatrixVisualQa.runtimeRevisionProof',
+    ),
     fullMatrixEvidence.change !== SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE
       ? `simulationFullMatrixVisualQa.change=${SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE}`
       : '',
@@ -2848,7 +2926,11 @@ function buildSimulationVisualQaViolations(
 
     const missing = [
       ...(simulationEvidence.commandDeckGeometry
-        ? commercialRuntimeRevisionProofProblems(simulationEvidence.commandDeckGeometry.runtimeRevisionProof)
+        ? commercialRuntimeRevisionProofObjectProblems(
+            simulationEvidence.commandDeckGeometry.runtimeRevisionProof,
+            process.cwd(),
+            'commandDeckGeometry.runtimeRevisionProof',
+          )
         : []),
       simulationEvidence.archetype !== route.archetype ? `archetype=${route.archetype}` : '',
       route.finalBehavior && simulationEvidence.virtualLabFinalBehavior !== route.finalBehavior
