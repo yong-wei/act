@@ -1021,6 +1021,7 @@ async function persistAdaptiveAssessmentSubmission(
     microInterventionEvidence: await loadMicroInterventionMasteryEvidence(
       tx,
       effectiveDetails.record.userId,
+      answeredAt,
     ),
   });
   const currentUpdates = rebuiltUpdates.filter((update) => update.answerId === answer.id);
@@ -1124,6 +1125,7 @@ export async function submitAnswerWithPersistenceFallback(
 async function loadMicroInterventionMasteryEvidence(
   tx: AdaptiveAssessmentPersistenceTx,
   userId: string,
+  now: Date,
 ): Promise<MicroInterventionMasteryEvidence[]> {
   if (typeof tx.learningFact.findMany !== 'function') return [];
   const rows = await tx.learningFact.findMany({
@@ -1148,7 +1150,7 @@ async function loadMicroInterventionMasteryEvidence(
       occurredAt: row.startedAt,
     }];
   });
-  return applyMicroInterventionMasteryPolicy(raw);
+  return applyMicroInterventionMasteryPolicy(raw, now);
 }
 
 async function loadPersistedAnswerRecords(

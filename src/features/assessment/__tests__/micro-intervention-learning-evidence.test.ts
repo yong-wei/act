@@ -4,6 +4,8 @@ import { rebuildMasteryUpdatesFromAnswers } from '../adaptive-mastery';
 import {
   applyMicroInterventionEvidenceSummaryToPathPlan,
   applyMicroInterventionMasteryPolicy,
+  enqueueMicroInterventionEvidenceProjection,
+  processPendingMicroInterventionEvidenceProjections,
   buildPublicMicroInterventionEvidenceReport,
   projectMicroInterventionOutcome,
   readSealedMicroInterventionProjectionSource,
@@ -63,7 +65,13 @@ function sealedOutcome(overrides: Partial<SealedMicroInterventionOutcome> = {}):
 
 function createDb() {
   const facts: Array<{ sourceEventId?: string | null; contextJson?: unknown; factType: string }> = [];
-  const outbox = new Map<string, { status: string; payload: unknown; ownerUserId: string; dedupeKey: string }>();
+  const outbox = new Map<string, {
+    status: string;
+    payload: unknown;
+    ownerUserId: string;
+    dedupeKey: string;
+    correlationId?: string;
+  }>();
   const db: MicroInterventionEvidenceDb = {
     learningFact: {
       createMany: async ({ data, skipDuplicates }) => {
@@ -102,13 +110,24 @@ function createDb() {
           payload: create.payload,
           ownerUserId: create.ownerUserId,
           dedupeKey: create.dedupeKey,
+          correlationId: create.correlationId,
         };
         outbox.set(create.dedupeKey, created);
         return { id: create.dedupeKey, ...created };
       },
       findMany: async ({ where }) => [...outbox.values()]
         .filter((row) => !where.ownerUserId || row.ownerUserId === where.ownerUserId)
+        .filter((row) => !where.status || row.status === where.status)
+        .filter((row) => !where.correlationId || row.correlationId === where.correlationId)
         .map((row) => ({ id: row.dedupeKey, ...row })),
+      update: async ({ where, data }) => {
+        const key = where.dedupeKey ?? where.id;
+        const existing = key ? outbox.get(key) : undefined;
+        if (!existing) return {};
+        const next = { ...existing, ...data };
+        outbox.set(existing.dedupeKey, next);
+        return next;
+      },
     },
   };
   return { db, facts, outbox };
@@ -259,6 +278,68 @@ describe('micro-intervention learning evidence', () => {
       }]),
     });
     expect(mapped[0]?.knowledgeTag).toBe('controller-tuning');
+    expect(mapped[0]?.prerequisiteEvidence.microInterventionLimitations).toEqual(['not-terminal-mastery']);
+    const conflicted = rebuildMasteryUpdatesFromAnswers([{
+      id: 'answer-1',
+      questionId: 'q-1',
+      isCorrect: true,
+      answeredAt: new Date('2026-08-21T00:10:00.000Z'),
+      knowledgeTags: ['controller-tuning'],
+    }], {
+      consumeMicroInterventionEvidence: true,
+      microInterventionEvidence: applyMicroInterventionMasteryPolicy([
+        {
+          evidenceId: 'pass',
+          canonicalNodeId: 'kn:autocontrol:controller-correction',
+          isCorrect: true,
+          occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+        },
+        {
+          evidenceId: 'fail',
+          canonicalNodeId: 'kn:autocontrol:controller-correction',
+          isCorrect: false,
+          occurredAt: new Date('2026-08-22T00:05:00.000Z'),
+        },
+      ]),
+    });
+    expect(conflicted[0]?.prerequisiteEvidence.microInterventionLimitations).toContain('conflict');
+    const early = applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:controller-correction',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-01T00:00:00.000Z'),
+    }], new Date('2026-08-02T00:00:00.000Z'));
+    const late = applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:controller-correction',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-01T00:00:00.000Z'),
+    }], new Date('2026-08-20T00:00:00.000Z'));
+    expect(early[0]?.profileWeight).toBeGreaterThan(late[0]?.profileWeight ?? 0);
+    expect(applyMicroInterventionMasteryPolicy([{
+      evidenceId: 'src',
+      canonicalNodeId: 'kn:autocontrol:controller-correction',
+      isCorrect: true,
+      occurredAt: new Date('2026-08-01T00:00:00.000Z'),
+    }], new Date('2026-08-20T00:00:00.000Z'))).toEqual(late);
+  });
+
+  it('consumes pending projection tasks and records projected or failed status', async () => {
+    const { db, facts, outbox } = createDb();
+    await enqueueMicroInterventionEvidenceProjection({
+      db,
+      interventionId: 'intervention-1',
+      ownerUserId: 'learner-1',
+    });
+    const result = await processPendingMicroInterventionEvidenceProjections({
+      ...db,
+      microInterventionOutcome: {
+        findFirst: async () => sealedOutcome(),
+      },
+    } as never, { interventionId: 'intervention-1' });
+    expect(result.processed).toBe(1);
+    expect([...outbox.values()][0]?.status).toBe('projected');
+    expect(facts.length).toBeGreaterThan(0);
   });
 
   it('does not consume micro-intervention evidence when the consumer flag is off', () => {

@@ -98,13 +98,22 @@ interface EvidenceOutboxDelegate {
       status: string;
     };
   }): Promise<{ id: string; status: string; payload: unknown; dedupeKey: string }>;
-  findMany(args: { where: { eventType: string; ownerUserId?: string } }): Promise<Array<{
+  findMany(args: {
+    where: { eventType: string; ownerUserId?: string; status?: string; correlationId?: string };
+    take?: number;
+    orderBy?: unknown;
+  }): Promise<Array<{
     id: string;
     ownerUserId: string;
     payload: unknown;
     status: string;
     dedupeKey: string;
+    correlationId?: string;
   }>>;
+  update(args: {
+    where: { id?: string; dedupeKey?: string };
+    data: { status?: string; payload?: unknown; processedAt?: Date };
+  }): Promise<unknown>;
 }
 
 export interface MicroInterventionEvidenceDb extends LearningFactSink {
@@ -284,15 +293,68 @@ export async function enqueueMicroInterventionEvidenceProjection(input: {
   });
 }
 
-export async function scheduleMicroInterventionEvidenceProjection(input: {
-  db: MicroInterventionEvidenceDb & {
-    microInterventionOutcome: {
-      findFirst(args: {
-        where: { id: string };
-        include: { events: true; validation: true };
-      }): Promise<SealedMicroInterventionOutcome | null>;
-    };
+type MicroInterventionProjectionDb = MicroInterventionEvidenceDb & {
+  microInterventionOutcome: {
+    findFirst(args: {
+      where: { id: string };
+      include: { events: true; validation: true };
+    }): Promise<SealedMicroInterventionOutcome | null>;
   };
+};
+
+export async function processPendingMicroInterventionEvidenceProjections(
+  db: MicroInterventionProjectionDb,
+  options: { interventionId?: string; limit?: number } = {},
+): Promise<{ processed: number; failed: number }> {
+  if (typeof db.evidenceOutbox?.findMany !== 'function') {
+    return { processed: 0, failed: 0 };
+  }
+  const pending = await db.evidenceOutbox.findMany({
+    where: {
+      eventType: 'micro-intervention-evidence',
+      status: 'pending',
+      ...(options.interventionId ? { correlationId: options.interventionId } : {}),
+    },
+    take: options.limit ?? 20,
+    orderBy: { createdAt: 'asc' },
+  });
+  let processed = 0;
+  let failed = 0;
+  for (const task of pending) {
+    const payload = task.payload && typeof task.payload === 'object' && !Array.isArray(task.payload)
+      ? task.payload as Record<string, unknown>
+      : {};
+    if (payload.kind && payload.kind !== 'projection-task') continue;
+    const interventionId = nonEmpty(payload.interventionId) ?? nonEmpty(task.correlationId) ?? '';
+    if (!interventionId) continue;
+    const attempts = typeof payload.attempts === 'number' ? payload.attempts : 0;
+    try {
+      await scheduleMicroInterventionEvidenceProjection({
+        db,
+        interventionId,
+      });
+      await db.evidenceOutbox.update({
+        where: { dedupeKey: task.dedupeKey },
+        data: { status: 'projected', processedAt: new Date(), payload: { ...payload, attempts: attempts + 1 } },
+      });
+      processed += 1;
+    } catch {
+      const nextAttempts = attempts + 1;
+      await db.evidenceOutbox.update({
+        where: { dedupeKey: task.dedupeKey },
+        data: {
+          status: nextAttempts >= 5 ? 'failed' : 'pending',
+          payload: { ...payload, attempts: nextAttempts },
+        },
+      });
+      failed += 1;
+    }
+  }
+  return { processed, failed };
+}
+
+export async function scheduleMicroInterventionEvidenceProjection(input: {
+  db: MicroInterventionProjectionDb;
   interventionId: string;
   identity?: MicroInterventionEvidenceIdentity | null;
 }): Promise<void> {

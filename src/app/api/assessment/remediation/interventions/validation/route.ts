@@ -10,7 +10,7 @@ import {
 } from '@/features/assessment/micro-intervention-outcomes';
 import {
   enqueueMicroInterventionEvidenceProjection,
-  scheduleMicroInterventionEvidenceProjection,
+  processPendingMicroInterventionEvidenceProjections,
 } from '@/features/assessment/micro-intervention-learning-evidence';
 
 export const dynamic = 'force-dynamic';
@@ -85,10 +85,7 @@ export async function POST(request: Request) {
         ownerUserId: authenticated.userId,
       });
       try {
-        await scheduleMicroInterventionEvidenceProjection({
-          db: prisma as never,
-          interventionId,
-        });
+        await processPendingMicroInterventionEvidenceProjections(prisma as never, { interventionId });
       } catch (error) {
         console.error('[MicroIntervention] evidence projection failed:', error);
       }

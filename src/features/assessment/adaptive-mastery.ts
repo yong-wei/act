@@ -75,6 +75,7 @@ export interface RebuiltMasteryUpdate {
   prerequisiteEvidence: {
     missing: string[];
     stale: string[];
+    microInterventionLimitations?: string[];
   };
 }
 
@@ -145,9 +146,12 @@ export function rebuildMasteryUpdatesFromAnswers(
   const algorithmVersion = options.algorithmVersion ?? ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION;
   const parameters = options.parameters ?? ADAPTIVE_ASSESSMENT_BKT_PARAMETERS;
   const prerequisitesByTag = options.prerequisitesByTag ?? DEFAULT_PREREQUISITES_BY_TAG;
+  const microInterventionLimitations = options.consumeMicroInterventionEvidence
+    ? [...new Set((options.microInterventionEvidence ?? []).flatMap((item) => item.limitations))]
+    : [];
   const microEvidence = options.consumeMicroInterventionEvidence
     ? (options.microInterventionEvidence ?? [])
-      .filter((item) => item.profileWeight > 0 && !item.limitations.includes('conflict'))
+      .filter((item) => item.profileWeight > 0)
       .map((item) => ({
         id: item.evidenceId,
         questionId: item.evidenceId,
@@ -199,13 +203,18 @@ export function rebuildMasteryUpdatesFromAnswers(
         attemptCount,
         algorithmVersion,
         evidenceKind: answer.evidenceKind,
-        prerequisiteEvidence: resolvePrerequisiteEvidence(
-          tag,
-          observedTags,
-          prerequisitesByTag,
-          answer.answeredAt,
-          options.prerequisiteStaleAfterMs,
-        ),
+        prerequisiteEvidence: {
+          ...resolvePrerequisiteEvidence(
+            tag,
+            observedTags,
+            prerequisitesByTag,
+            answer.answeredAt,
+            options.prerequisiteStaleAfterMs,
+          ),
+          ...(microInterventionLimitations.length > 0
+            ? { microInterventionLimitations }
+            : {}),
+        },
       });
 
       masteryByTag.set(tag, {
