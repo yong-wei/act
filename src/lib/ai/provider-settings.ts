@@ -56,10 +56,17 @@ export const AI_MODEL_TEST_PROMPT = [
 
 const BUILTIN_SILICONFLOW_MODELS: AIProviderModelSetting[] = [
   {
+    id: 'qwen-3-5-35b-a3b',
+    label: 'Qwen3.5 35B A3B',
+    model: 'Qwen/Qwen3.5-35B-A3B',
+    description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
+    options: { enableThinking: false },
+  },
+  {
     id: 'qwen-3-6-35b-a3b',
     label: 'Qwen3.6 35B A3B',
     model: 'Qwen/Qwen3.6-35B-A3B',
-    description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
+    description: '保留为可选模型。',
     options: { enableThinking: false },
   },
   {

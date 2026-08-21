@@ -6,7 +6,12 @@ import type { AIProviderAdapter } from './types';
 
 const execFileAsync = promisify(execFile);
 const DEEPSEEK_V4_FLASH_MODEL = 'deepseek-ai/DeepSeek-V4-Flash';
+const QWEN_3_5_35B_A3B_MODEL = 'Qwen/Qwen3.5-35B-A3B';
 const QWEN_3_6_35B_A3B_MODEL = 'Qwen/Qwen3.6-35B-A3B';
+const QWEN_MAIN_MODELS = new Set([
+  QWEN_3_5_35B_A3B_MODEL,
+  QWEN_3_6_35B_A3B_MODEL,
+]);
 const SILICONFLOW_CURL_TIMEOUT_SECONDS = 240;
 const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 300;
 const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 60;
@@ -182,7 +187,7 @@ function prepareSiliconFlowRequestBody(
 ): Record<string, unknown> {
   const { stream_options: _streamOptions, ...providerBody } = requestBody;
 
-  if (providerBody.model === QWEN_3_6_35B_A3B_MODEL) {
+  if (typeof providerBody.model === 'string' && QWEN_MAIN_MODELS.has(providerBody.model)) {
     return {
       ...providerBody,
       enable_thinking: config.modelOptions?.enableThinking ?? false,

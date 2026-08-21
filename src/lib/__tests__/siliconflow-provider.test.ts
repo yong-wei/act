@@ -77,7 +77,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
       apiKey: 'test-key',
       authMode: 'bearer-api-key',
       secretRef: 'env:SILICONFLOW_API_KEY',
-      model: 'Qwen/Qwen3.6-35B-A3B',
+      model: 'Qwen/Qwen3.5-35B-A3B',
       enabled: true,
       priority: 100,
       health: 'unknown',
@@ -91,7 +91,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     await providerFetch?.('https://api.siliconflow.cn/v1/chat/completions', {
       method: 'POST',
       body: JSON.stringify({
-        model: 'Qwen/Qwen3.6-35B-A3B',
+        model: 'Qwen/Qwen3.5-35B-A3B',
         messages: [{ role: 'user', content: 'hello' }],
         stream: true,
         stream_options: { include_usage: true },
@@ -103,7 +103,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     ) as Record<string, unknown>;
     expect(forwardedBody).not.toHaveProperty('stream_options');
     expect(forwardedBody).toMatchObject({
-      model: 'Qwen/Qwen3.6-35B-A3B',
+      model: 'Qwen/Qwen3.5-35B-A3B',
       stream: true,
       enable_thinking: false,
     });

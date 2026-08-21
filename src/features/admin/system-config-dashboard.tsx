@@ -121,7 +121,7 @@ const DEFAULT_AI_SETTINGS: AIProviderSettings = {
       baseURL: 'https://api.siliconflow.cn/v1',
       authMode: 'bearer-api-key',
       secretRef: 'env:SILICONFLOW_API_KEY',
-      selectedModel: 'Qwen/Qwen3.6-35B-A3B',
+      selectedModel: 'Qwen/Qwen3.5-35B-A3B',
       enabled: true,
       priority: 100,
       health: 'unknown',
@@ -135,10 +135,16 @@ const DEFAULT_AI_SETTINGS: AIProviderSettings = {
       },
       models: [
         {
+          id: 'qwen-3-5-35b-a3b',
+          label: 'Qwen3.5 35B A3B',
+          model: 'Qwen/Qwen3.5-35B-A3B',
+          description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
+        },
+        {
           id: 'qwen-3-6-35b-a3b',
           label: 'Qwen3.6 35B A3B',
           model: 'Qwen/Qwen3.6-35B-A3B',
-          description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
+          description: '保留为可选模型。',
         },
         {
           id: 'deepseek-v4-flash',
