@@ -12,7 +12,6 @@ import {
 } from './generated-candidate-persistence';
 import {
   currentPublishedReceipts,
-  isCurrentPublicationReceipt,
   type GeneratedCandidateStore,
 } from './generated-candidate-governance';
 
@@ -48,13 +47,20 @@ export async function ensureGeneratedCatalogHydrated(db: unknown) {
 
 async function hydrateGeneratedCatalogFromPersistence(db: GeneratedCandidatePersistenceDb) {
   const store = await loadGeneratedCandidateStore(db);
-  if (!publishedReceiptsHaveClosedLineage(store)) return;
+  if (hasTornPublicationLineage(store)) return;
   if (isGeneratedRuntimeOverlayReady()) return;
   applyGeneratedCandidateStoreToRuntimeOverlay(store);
 }
 
-function publishedReceiptsHaveClosedLineage(store: GeneratedCandidateStore) {
-  return currentPublishedReceipts(store).every((receipt) => isCurrentPublicationReceipt(store, receipt));
+function hasTornPublicationLineage(store: GeneratedCandidateStore) {
+  return currentPublishedReceipts(store).some((receipt) => {
+    const candidate = store.candidates.find((item) => item.candidateId === receipt.candidateId);
+    const revision = store.revisions.find((item) => item.revisionId === receipt.revisionId);
+    const review = store.reviews.find((item) => item.reviewId === receipt.reviewId);
+    if (!candidate || !revision || !review) return true;
+    const revisionHash = revision.envelope.contentHash;
+    return receipt.contentHash !== revisionHash || review.contentHash !== revisionHash;
+  });
 }
 
 function isGeneratedCandidatePersistenceDb(db: unknown): db is GeneratedCandidatePersistenceDb {

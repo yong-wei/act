@@ -341,6 +341,17 @@ describe('generated candidate governance', () => {
     expect(isGeneratedRuntimeOverlayReady()).toBe(true);
     expect(findAdaptiveAssessmentCatalogSnapshot(created.revision.revisionId)?.catalogItemId)
       .toBe(receipt.catalogItemId);
+
+    reviseGeneratedCandidate(store, created.record.candidateId, {
+      promptTemplateVersion: 'adaptive-question-template.v1',
+      knowledgeSourceRefs: [{ ref: 'goal:control-correction', hash: 'abc123' }],
+      generationParams: { temperature: 0 },
+      content: validContent({ stem: '修订后的题干必须重新审核。' }),
+    });
+    resetGeneratedRuntimeOverlay();
+    await ensureGeneratedCatalogHydrated(persistenceDbFromStore(store));
+    expect(isGeneratedRuntimeOverlayReady()).toBe(true);
+    expect(findAdaptiveAssessmentCatalogSnapshot(created.revision.revisionId)).toBeNull();
   });
 
   it('stales the previous approval when content changes and does not rewrite the old receipt identity', () => {
