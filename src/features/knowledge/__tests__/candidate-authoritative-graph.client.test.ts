@@ -338,7 +338,7 @@ describe('candidate authoritative graph client isolation', () => {
       .not.toMatch(/出向|入向/);
 
     const legacy = [...container.querySelectorAll('button')]
-      .find((button) => button.textContent === '历史 Legacy')!;
+      .find((button) => button.textContent === '旧版')!;
     await act(async () => legacy.click());
     expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
     expect(globalAIMocks.clearDynamicPageContext).toHaveBeenCalled();
