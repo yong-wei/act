@@ -23,6 +23,10 @@
 ## Impact
 
 - 代码：`scripts/math-calc/`、`src/lib/math-calc.ts`、新增 `src/lib/konling-math-precompute.ts`、`src/app/api/ai/chat/route.ts` 及相关测试。
-- 运行环境：部署主机必须安装并激活 Wolfram Engine 或 Mathematica，使 `wolframscript` 可执行。
+- 运行环境：生产镜像内供给 Wolfram Engine 可执行运行时；激活凭据由运行环境 secret 或预激活 licensing 卷提供，`wolframscript` 缺失、未激活或无法执行 `calc.wls` 时部署必须失败关闭。
 - 外部依赖：个人/教学用途可使用免费 Wolfram Engine；商用部署需要匹配的 Wolfram 授权。
 - API 与前端：现有数学计算 API 和控灵前端契约不变。
+
+## Tracking
+
+- 本变更是历史 SymPy 能力来源 [#1154](https://github.com/yong-wei/act/issues/1154) 的 follow-up；合并前需要登记唯一追踪 Issue，并在合并时同步该 Issue 状态。

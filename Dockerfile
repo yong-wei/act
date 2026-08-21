@@ -95,8 +95,23 @@ RUN --mount=type=secret,id=database_url,required=false \
   DATABASE_URL="$(cat /run/secrets/database_url 2>/dev/null || true)" \
   && DATABASE_URL="${DATABASE_URL:-postgresql://prisma-generate:prisma-generate@localhost:5432/prisma_generate}" npm run build
 
+# Wolfram Engine 供给：只从官方镜像取可执行运行时，激活凭据不进入镜像。
+FROM wolframresearch/wolframengine:15.0 AS wolfram-provider
+RUN set -eu; \
+  WOLFRAM_ROOT=""; \
+  if [ -d /usr/local/Wolfram ]; then WOLFRAM_ROOT=/usr/local/Wolfram; \
+  elif [ -d /opt/Wolfram ]; then WOLFRAM_ROOT=/opt/Wolfram; \
+  else echo "Wolfram Engine not found in official wolframresearch/wolframengine image" >&2; exit 1; \
+  fi; \
+  mkdir -p /wolfram-runtime /wolframscript-bin; \
+  cp -a "$WOLFRAM_ROOT/." /wolfram-runtime/; \
+  if command -v wolframscript >/dev/null 2>&1; then \
+    WOLFRAMSCRIPT_DIR="$(dirname "$(readlink -f "$(command -v wolframscript)")")"; \
+    cp -a "$WOLFRAMSCRIPT_DIR/." /wolframscript-bin/; \
+  fi
+
 # Runner stage
-FROM base AS runner
+FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ARG APP_REVISION
 
@@ -105,18 +120,34 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 ENV APP_REVISION=${APP_REVISION}
+ENV HOME=/home/nextjs
 
 # BuildKit otherwise installs the large browser/office runtime in parallel with
 # the memory-intensive Next.js build. This copy is an explicit stage barrier.
 COPY --from=builder /app/package.json /tmp/builder-package.json
-RUN (apk add --no-cache chromium libreoffice \
-  || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
-    && apk add --no-cache chromium libreoffice)) \
-  && rm /tmp/builder-package.json
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    curl openssl unzip ca-certificates python3 python3-pip \
+  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+  && (apt-get install -y --no-install-recommends chromium libreoffice \
+      || apt-get install -y --no-install-recommends chromium-browser libreoffice) \
+  && rm /tmp/builder-package.json \
+  && rm -rf /var/lib/apt/lists/*
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN mkdir -p /home/nextjs && chown nextjs:nodejs /home/nextjs && usermod -d /home/nextjs nextjs
+
+# Wolfram Engine 可执行运行时来自官方镜像；激活凭据只允许由运行环境 secret
+# 提供，绝不写入镜像或仓库。
+COPY --from=wolfram-provider /wolfram-runtime /usr/local/Wolfram
+COPY --from=wolfram-provider /wolframscript-bin/. /opt/wolframscript-bin/
+RUN find /usr/local/Wolfram -type f -name wolfram -exec ln -sf {} /usr/local/bin/wolfram \; ; \
+  find /usr/local/Wolfram -type f -name wolframscript -exec ln -sf {} /usr/local/bin/wolframscript \; ; \
+  if [ -x /opt/wolframscript-bin/wolframscript ]; then ln -sf /opt/wolframscript-bin/wolframscript /usr/local/bin/wolframscript; fi ; \
+  test -x /usr/local/bin/wolframscript && test -x /usr/local/bin/wolfram
 
 # Copy built application
 COPY --from=builder /app/public ./public
@@ -160,12 +191,10 @@ RUN rm -f \
 COPY --from=builder /app/.app-revision ./.app-revision
 COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 
-# Wolfram Engine 受许可证约束，不在镜像构建中嵌入安装包或激活凭据。
-# 部署环境必须额外提供已激活的 wolframscript；entrypoint 会报告其可用性。
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+RUN chmod +x scripts/math-calc/check-wolfram-ready.sh
 
 # Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

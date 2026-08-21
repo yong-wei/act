@@ -46,9 +46,9 @@ The route computes from the latest effective user message after conversation/run
 
 Before `streamText`, the route creates a new tool object without `calculate` for every request. Other scoped tools remain available. Model capability requirements are recomputed from the resulting tool set so ordinary requests without remaining tools do not require provider tool support.
 
-### Treat installation and activation as an environment prerequisite
+### Treat Wolfram runtime as a provisioned image dependency with runtime-only activation secrets
 
-The repository supplies smoke tests and explicit verification commands but does not store activation material. Workstations or servers install Wolfram Engine/Mathematica and activate it under the runtime account. Missing or inactive runtimes fail through the stable unavailable boundary.
+The production runner copies the executable Wolfram Engine runtime from the official `wolframresearch/wolframengine:15.0` image. The image never embeds Wolfram ID, password, or entitlement material. Activation is provided at runtime by one of: a pre-activated `$HOME/.WolframEngine/Licensing` volume, `WOLFRAM_ACTIVATION_EMAIL`/`WOLFRAM_ACTIVATION_PASSWORD` secrets consumed by `wolframscript -activate`, or `WOLFRAMSCRIPT_ENTITLEMENTID` for on-demand licensing. `docker-entrypoint.sh` runs a real `calc.wls` smoke before migrations and exits non-zero when the command, activation, or script execution is unavailable, so deployment cannot succeed while the governed math backend is unusable.
 
 ## Risks / Trade-offs
 
@@ -61,8 +61,8 @@ The repository supplies smoke tests and explicit verification commands but does 
 
 ## Migration Plan
 
-1. Install Wolfram Engine or Mathematica and activate `wolframscript` for the application runtime account.
-2. Deploy the Wolfram script, shared executor switch, precompute helper, and route integration together.
+1. Provision the runner image with the Wolfram Engine runtime and activate `wolframscript` for the application runtime account.
+2. Deploy the Wolfram script, shared executor switch, precompute helper, route integration, and fail-closed readiness check together.
 3. Run direct simplify, partial-fraction, and inverse-Laplace smoke tests, then related unit tests and typecheck.
 4. Verify a representative控灵 inverse-Laplace question completes without a model `calculate` tool call.
 5. Roll back by reverting this change and restoring the prior SymPy runtime dependencies if Wolfram provisioning cannot be sustained.

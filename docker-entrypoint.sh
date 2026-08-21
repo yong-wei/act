@@ -1,15 +1,10 @@
 #!/bin/sh
 set -eu
 
-# 公式推导依赖就绪检查：Wolfram Engine 必须由部署环境安装并激活。
-if command -v wolframscript >/dev/null 2>&1; then
-  if wolframscript --version >/dev/null 2>&1; then
-    echo "[entrypoint] Wolfram 公式计算运行时可用。"
-  else
-    echo "[entrypoint] WARNING: wolframscript 未激活，/api/math/calculate 将返回 503。"
-  fi
-else
-  echo "[entrypoint] WARNING: wolframscript 不可用，/api/math/calculate 将返回 503。"
+echo "[entrypoint] 检查 Wolfram 公式计算运行时..."
+if ! ./scripts/math-calc/check-wolfram-ready.sh; then
+  echo "[entrypoint] Wolfram 运行时就绪检查失败，拒绝启动。" >&2
+  exit 1
 fi
 
 if [ "${RUN_MIGRATIONS_ON_START:-1}" = "1" ]; then

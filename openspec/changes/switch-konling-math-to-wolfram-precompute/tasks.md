@@ -13,7 +13,7 @@
 
 ## 3. Runtime provisioning and verification
 
-- [x] 3.1 Install and activate Wolfram Engine or Mathematica for the local runtime account and verify `wolframscript --version`. Wolfram Engine 15.0 is activated for the local Windows account.
+- [x] 3.1 Install and activate Wolfram Engine or Mathematica for the local runtime account and verify `wolframscript --version`; add the production runner provisioning path from `wolframresearch/wolframengine:15.0` with activation secrets injected only from the runtime environment. Wolfram Engine 15.0 is activated for the local Windows account.
 - [x] 3.2 Run the focused Vitest suites, `npm run typecheck`, and the real Wolfram script regression.
 - [x] 3.3 Validate the OpenSpec change strictly and inspect the final diff for unrelated modifications.
-- [ ] 3.4 Manually verify the representative控灵 inverse-Laplace question completes promptly without a model `calculate` tool call; the local calculator regression is complete, but the running chat service still needs an end-to-end manual check.
+- [ ] 3.4 Manually verify the representative控灵 inverse-Laplace question completes promptly without a model `calculate` tool call. Local Wolfram script, shared executor and Konling precompute real smokes are complete; the running chat service HTTP end-to-end check still requires a PostgreSQL/model service environment and must be recorded before merge.

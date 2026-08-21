@@ -21,6 +21,61 @@ function runNode(script, options = {}) {
   );
 }
 
+function runImageWolframSmoke() {
+  const image = process.env.MATH_CALC_TEST_IMAGE;
+  if (!image) return;
+  const passThrough = [
+    'WOLFRAMSCRIPT_ENTITLEMENTID',
+    'WOLFRAM_ACTIVATION_EMAIL',
+    'WOLFRAM_ACTIVATION_PASSWORD',
+  ].filter((name) => process.env[name] !== undefined);
+  const dockerArgs = [
+    'run',
+    '--rm',
+    ...passThrough.flatMap((name) => ['-e', name]),
+    image,
+    'node',
+    'scripts/tests/test-math-calc-wolfram.mjs',
+  ];
+  try {
+    const output = execFileSync('docker', dockerArgs, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+    assert.match(
+      output,
+      /math-calc Wolfram real-script regression tests passed/,
+      '生产等价镜像必须通过容器内真实 Wolfram smoke',
+    );
+  } catch (error) {
+    throw new Error(`生产镜像 Wolfram smoke 失败：${error.message}`);
+  }
+}
+
+function assertMissingWolframImageFailsClosed() {
+  const image = process.env.MATH_CALC_TEST_NEGATIVE_IMAGE;
+  if (!image) return;
+  let failedClosed = false;
+  try {
+    execFileSync(
+      'docker',
+      ['run', '--rm', image, 'node', '-e', 'process.stdout.write("unexpected-start")'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+  } catch {
+    failedClosed = true;
+  }
+  assert.ok(
+    failedClosed,
+    '缺少 Wolfram 运行时的镜像必须被 entrypoint 拒绝启动',
+  );
+}
+
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
@@ -62,7 +117,12 @@ function main() {
       `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
     );
   }
-  const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM base AS runner'));
+  const runnerStage = dockerfile.slice(
+    Math.max(
+      dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+      dockerfile.indexOf('FROM wolframresearch/wolframengine:15.0 AS wolfram-provider'),
+    ),
+  );
   assert.match(
     runnerStage,
     /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
@@ -181,8 +241,13 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /Wolfram Engine[\s\S]*wolframscript/,
-    'Dockerfile 必须说明 Wolfram Engine 由部署环境提供，且不得嵌入激活凭据',
+    /FROM wolframresearch\/wolframengine:15\.0 AS wolfram-provider[\s\S]*COPY --from=wolfram-provider \/wolfram-runtime \/usr\/local\/Wolfram/,
+    'Dockerfile 必须从官方 Wolfram Engine 镜像把可执行运行时复制进生产 runner',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /WOLFRAM_ACTIVATION_PASSWORD|WOLFRAM_ID_PASSWORD|WOLFRAM_ACTIVATION_EMAIL/i,
+    'Dockerfile 不得嵌入 Wolfram 激活凭据',
   );
   assert.doesNotMatch(
     dockerfile,
@@ -349,8 +414,13 @@ function main() {
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
   assert.match(
     entrypointScript,
-    /command -v wolframscript[\s\S]*wolframscript --version/,
-    'docker-entrypoint.sh 必须检查 Wolfram 运行时与激活状态',
+    /check-wolfram-ready\.sh/,
+    'docker-entrypoint.sh 必须调用 Wolfram 运行时就绪检查',
+  );
+  assert.match(
+    entrypointScript,
+    /exit 1/,
+    'docker-entrypoint.sh 必须在 Wolfram 运行时缺失、未激活或 smoke 失败时拒绝启动',
   );
   assert.match(
     entrypointScript,
@@ -574,6 +644,9 @@ function main() {
     /\.\/node_modules\/\.bin\/tsx scripts\/workers\/data-governance-worker\.ts/,
     'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
   );
+
+  runImageWolframSmoke();
+  assertMissingWolframImageFailsClosed();
 
   assert.match(
     deployScript,
