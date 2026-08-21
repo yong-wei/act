@@ -44,11 +44,22 @@ export interface MasteryConfidenceInput {
   attemptCount: number;
 }
 
+export interface MicroInterventionMasteryEvidence {
+  evidenceId: string;
+  knowledgeTag: string;
+  isCorrect: boolean;
+  occurredAt: Date;
+  profileWeight: number;
+  limitations: string[];
+}
+
 export interface MasteryRebuildOptions {
   algorithmVersion?: string;
   parameters?: AdaptiveAssessmentBktParameters;
   prerequisitesByTag?: Record<string, string[]>;
   prerequisiteStaleAfterMs?: number;
+  microInterventionEvidence?: MicroInterventionMasteryEvidence[];
+  consumeMicroInterventionEvidence?: boolean;
 }
 
 export interface RebuiltMasteryUpdate {
@@ -134,7 +145,22 @@ export function rebuildMasteryUpdatesFromAnswers(
   const algorithmVersion = options.algorithmVersion ?? ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION;
   const parameters = options.parameters ?? ADAPTIVE_ASSESSMENT_BKT_PARAMETERS;
   const prerequisitesByTag = options.prerequisitesByTag ?? DEFAULT_PREREQUISITES_BY_TAG;
-  const sortedAnswers = [...answers].sort((left, right) => {
+  const microEvidence = options.consumeMicroInterventionEvidence
+    ? (options.microInterventionEvidence ?? [])
+      .filter((item) => item.profileWeight > 0 && !item.limitations.includes('conflict'))
+      .map((item) => ({
+        id: item.evidenceId,
+        questionId: item.evidenceId,
+        isCorrect: item.isCorrect,
+        answeredAt: item.occurredAt,
+        knowledgeTags: [item.knowledgeTag],
+        evidenceKind: 'non_assessment' as const,
+      }))
+    : [];
+  const sortedAnswers = [...answers.map((answer) => ({
+    ...answer,
+    evidenceKind: 'assessment' as const,
+  })), ...microEvidence].sort((left, right) => {
     const timeDelta = left.answeredAt.getTime() - right.answeredAt.getTime();
     return timeDelta !== 0 ? timeDelta : left.id.localeCompare(right.id);
   });
@@ -161,14 +187,14 @@ export function rebuildMasteryUpdatesFromAnswers(
         priorMastery: round(previous.posterior),
         posteriorMastery: round(posterior),
         confidence: resolveMasteryConfidence({
-          evidenceKind: 'assessment',
-          calibrated: true,
+          evidenceKind: answer.evidenceKind,
+          calibrated: answer.evidenceKind === 'assessment',
           posteriorMastery: posterior,
           attemptCount,
         }),
         attemptCount,
         algorithmVersion,
-        evidenceKind: 'assessment',
+        evidenceKind: answer.evidenceKind,
         prerequisiteEvidence: resolvePrerequisiteEvidence(
           tag,
           observedTags,
