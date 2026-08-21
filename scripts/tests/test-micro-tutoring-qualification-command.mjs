@@ -42,6 +42,7 @@ try {
     assert.match(result.output, /MISSING_DB_CAPTURE/);
     assert.match(result.output, /MISSING_BROWSER_EVIDENCE/);
     assert.match(result.output, /MISSING_OCI_DIGEST/);
+    assert.match(result.output, /REQUIRED_TESTS_INCOMPLETE/);
   }
   console.log('micro tutoring qualification command contract passed');
 } finally {

@@ -11,6 +11,11 @@ import {
 export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION = 'micro-tutoring-production-qualification.v1';
 export const MICRO_TUTORING_PRODUCTION_FEATURE_FLAG = 'micro-tutoring-production-canary';
 export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND = 'candidate';
+export const MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS = [
+  'verify:micro-tutoring-coverage',
+  'test:micro-tutoring-qualification-postgres',
+  'test:micro-tutoring-qualification',
+] as const;
 
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
 const SHA256_DIGEST = /^sha256:[a-f0-9]{64}$/u;
@@ -22,10 +27,23 @@ export type MicroTutoringQualificationIssue =
   | 'MIXED_REVISION'
   | 'DIGEST_MISMATCH'
   | 'TESTS_FAILED'
+  | 'REQUIRED_TESTS_INCOMPLETE'
   | 'MISSING_DB_CAPTURE'
   | 'MISSING_BROWSER_EVIDENCE'
   | 'MISSING_OCI_DIGEST'
   | 'ACTIVATION_UNAUTHORIZED';
+
+export interface MicroTutoringRevisionBoundDigest {
+  sourceRevision: string;
+  digest: string;
+}
+
+export interface MicroTutoringQualificationTestProof {
+  name: string;
+  status: 'passed' | 'failed' | 'skipped';
+  scope: string;
+  sourceRevision: string;
+}
 
 export interface MicroTutoringArtifactDigest {
   path: string;
@@ -58,9 +76,9 @@ export interface MicroTutoringProductionQualificationReceipt {
   errorOptionCount: number;
   completeOptionCount: number;
   artifactDigests: MicroTutoringArtifactDigest[];
-  tests: Array<{ name: string; status: 'passed' | 'failed' | 'skipped'; scope: string }>;
-  browserEvidenceDigest: string;
-  ociDigest: string;
+  tests: MicroTutoringQualificationTestProof[];
+  browserEvidence: MicroTutoringRevisionBoundDigest;
+  ociImage: MicroTutoringRevisionBoundDigest;
   featureFlag: {
     key: typeof MICRO_TUTORING_PRODUCTION_FEATURE_FLAG;
     enabled: false;
@@ -89,6 +107,43 @@ function sha256Hex(value: string): string {
   return `sha256:${createHash('sha256').update(value).digest('hex')}`;
 }
 
+function isGitRevision(value: string | null | undefined): value is string {
+  return typeof value === 'string' && GIT_REVISION.test(value);
+}
+
+function isSha256Digest(value: string | null | undefined): value is string {
+  return typeof value === 'string' && SHA256_DIGEST.test(value);
+}
+
+function isRevisionBoundDigest(
+  value: MicroTutoringRevisionBoundDigest | null | undefined,
+  expectedRevision: string,
+): value is MicroTutoringRevisionBoundDigest {
+  return Boolean(
+    value &&
+      isGitRevision(value.sourceRevision) &&
+      isSha256Digest(value.digest) &&
+      value.sourceRevision === expectedRevision,
+  );
+}
+
+function qualificationTestsAreBound(
+  tests: MicroTutoringQualificationTestProof[],
+  expectedRevision: string,
+): boolean {
+  return MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS.every((name) =>
+    tests.some((test) =>
+      test.name === name &&
+      test.status === 'passed' &&
+      test.sourceRevision === expectedRevision,
+    )) &&
+    tests.length > 0 &&
+    tests.every((test) =>
+      test.status === 'passed' &&
+      isGitRevision(test.sourceRevision) &&
+      test.sourceRevision === expectedRevision);
+}
+
 export function microTutoringQualificationReceiptDigest(
   receipt: Omit<MicroTutoringProductionQualificationReceipt, 'receiptDigest'>,
 ): string {
@@ -115,12 +170,11 @@ export function evaluateMicroTutoringProductionActivation(input: {
   if (
     !input.receipt.strictlyComplete ||
     !input.receipt.gitContentComplete ||
-    input.receipt.tests.length === 0 ||
-    input.receipt.tests.some((test) => test.status !== 'passed') ||
-    !GIT_REVISION.test(input.receipt.governedProjectionRevision) ||
+    !isGitRevision(input.receipt.governedProjectionRevision) ||
     input.receipt.governedProjectionRevision !== input.receipt.sourceRevision ||
-    !SHA256_DIGEST.test(input.receipt.browserEvidenceDigest) ||
-    !SHA256_DIGEST.test(input.receipt.ociDigest)
+    !qualificationTestsAreBound(input.receipt.tests, input.receipt.sourceRevision) ||
+    !isRevisionBoundDigest(input.receipt.browserEvidence, input.receipt.sourceRevision) ||
+    !isRevisionBoundDigest(input.receipt.ociImage, input.receipt.sourceRevision)
   ) {
     return { status: 'blocked', productionUnchanged: true, reason: 'coverage-incomplete' };
   }
@@ -144,17 +198,17 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
   report: MicroTutoringCoverageAuditReport;
   generatedAt?: string;
   artifactDigests: MicroTutoringArtifactDigest[];
-  tests: MicroTutoringProductionQualificationReceipt['tests'];
-  browserEvidenceDigest?: string | null;
-  ociDigest?: string | null;
+  tests: MicroTutoringQualificationTestProof[];
+  browserEvidence?: MicroTutoringRevisionBoundDigest | null;
+  ociImage?: MicroTutoringRevisionBoundDigest | null;
 }): { receipt: MicroTutoringProductionQualificationReceipt | null; issues: MicroTutoringQualificationIssue[] } {
   const issues: MicroTutoringQualificationIssue[] = [];
   const capture = input.report.inputCapture;
   const sourceRevision = capture?.sourceRevision ?? '';
   const governedProjectionRevision = capture?.governedProjectionRevision ?? null;
-  const browserEvidenceDigest = input.browserEvidenceDigest?.trim() || null;
-  const ociDigest = input.ociDigest?.trim() || null;
-  if (!capture || !GIT_REVISION.test(sourceRevision)) {
+  const browserEvidence = input.browserEvidence ?? null;
+  const ociImage = input.ociImage ?? null;
+  if (!capture || !isGitRevision(sourceRevision)) {
     issues.push('MIXED_REVISION');
   }
   if (capture && !capture.sourceInputsClean) {
@@ -170,19 +224,31 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
   if (!microTutoringCoverageAuditIsStrictlyComplete(input.report)) {
     issues.push('STRICT_COVERAGE_INCOMPLETE');
   }
+  const requiredTestsPresent = MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS.every((name) =>
+    input.tests.some((test) => test.name === name));
+  if (!requiredTestsPresent) {
+    issues.push('REQUIRED_TESTS_INCOMPLETE');
+  }
   if (input.tests.length === 0 || input.tests.some((test) => test.status !== 'passed')) {
     issues.push('TESTS_FAILED');
   }
-  if (!governedProjectionRevision || !GIT_REVISION.test(governedProjectionRevision)) {
-    issues.push('MISSING_DB_CAPTURE');
-  } else if (GIT_REVISION.test(sourceRevision) && governedProjectionRevision !== sourceRevision) {
+  if (input.tests.some((test) => !isGitRevision(test.sourceRevision) || test.sourceRevision !== sourceRevision)) {
     issues.push('MIXED_REVISION');
   }
-  if (!browserEvidenceDigest || !SHA256_DIGEST.test(browserEvidenceDigest)) {
-    issues.push('MISSING_BROWSER_EVIDENCE');
+  if (!isGitRevision(governedProjectionRevision)) {
+    issues.push('MISSING_DB_CAPTURE');
+  } else if (isGitRevision(sourceRevision) && governedProjectionRevision !== sourceRevision) {
+    issues.push('MIXED_REVISION');
   }
-  if (!ociDigest || !SHA256_DIGEST.test(ociDigest)) {
+  if (!browserEvidence || !isGitRevision(browserEvidence.sourceRevision) || !isSha256Digest(browserEvidence.digest)) {
+    issues.push('MISSING_BROWSER_EVIDENCE');
+  } else if (isGitRevision(sourceRevision) && browserEvidence.sourceRevision !== sourceRevision) {
+    issues.push('MIXED_REVISION');
+  }
+  if (!ociImage || !isGitRevision(ociImage.sourceRevision) || !isSha256Digest(ociImage.digest)) {
     issues.push('MISSING_OCI_DIGEST');
+  } else if (isGitRevision(sourceRevision) && ociImage.sourceRevision !== sourceRevision) {
+    issues.push('MIXED_REVISION');
   }
   if (issues.length > 0) {
     return { receipt: null, issues: [...new Set(issues)] };
@@ -202,8 +268,8 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
     completeOptionCount: input.report.completeOptionCount,
     artifactDigests: [...input.artifactDigests].sort((left, right) => left.path.localeCompare(right.path)),
     tests: input.tests,
-    browserEvidenceDigest: browserEvidenceDigest!,
-    ociDigest: ociDigest!,
+    browserEvidence: browserEvidence!,
+    ociImage: ociImage!,
     featureFlag: {
       key: MICRO_TUTORING_PRODUCTION_FEATURE_FLAG,
       enabled: false,

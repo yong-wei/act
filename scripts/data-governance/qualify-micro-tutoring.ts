@@ -9,6 +9,8 @@ import type { MicroTutoringCoverageAuditReport } from '@/features/assessment/mic
 import {
   buildMicroTutoringProductionQualificationReceipt,
   evaluateMicroTutoringProductionActivation,
+  type MicroTutoringQualificationTestProof,
+  type MicroTutoringRevisionBoundDigest,
 } from '@/features/assessment/micro-tutoring-production-qualification';
 
 const GOVERNANCE_DIR = 'course-content/runtime/resource-governance';
@@ -33,6 +35,47 @@ function git(args: string[]): string {
     throw new Error(`微辅导资格无法执行 Git ${args.join(' ')}：${result.stderr.trim()}`);
   }
   return result.stdout;
+}
+
+function parseBoundDigest(raw: string | undefined): MicroTutoringRevisionBoundDigest | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<MicroTutoringRevisionBoundDigest>;
+    if (typeof parsed.sourceRevision === 'string' && typeof parsed.digest === 'string') {
+      return { sourceRevision: parsed.sourceRevision, digest: parsed.digest };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function parseTestProofs(raw: string | undefined): MicroTutoringQualificationTestProof[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((entry) => {
+      if (!entry || typeof entry !== 'object') return [];
+      const proof = entry as Partial<MicroTutoringQualificationTestProof>;
+      if (
+        typeof proof.name === 'string' &&
+        typeof proof.scope === 'string' &&
+        typeof proof.sourceRevision === 'string' &&
+        (proof.status === 'passed' || proof.status === 'failed' || proof.status === 'skipped')
+      ) {
+        return [{
+          name: proof.name,
+          status: proof.status,
+          scope: proof.scope,
+          sourceRevision: proof.sourceRevision,
+        }];
+      }
+      return [];
+    });
+  } catch {
+    return [];
+  }
 }
 
 function parseArgs(args: string[]): { outputDir: string; offline: boolean } {
@@ -73,18 +116,22 @@ async function main() {
     path: filePath,
     sha256: `sha256:${createHash('sha256').update(git(['show', `${sourceRevision}:${filePath}`])).digest('hex')}`,
   }));
+  const extraTests = parseTestProofs(process.env.MICRO_TUTORING_QUALIFICATION_TEST_PROOFS);
+  const tests = [
+    {
+      name: 'verify:micro-tutoring-coverage',
+      status: coverage.status === 0 ? 'passed' as const : 'failed' as const,
+      scope: options.offline ? 'offline-git-content' : 'online-git-db',
+      sourceRevision,
+    },
+    ...extraTests.filter((test) => test.name !== 'verify:micro-tutoring-coverage'),
+  ];
   const built = buildMicroTutoringProductionQualificationReceipt({
     report,
     artifactDigests,
-    tests: [
-      {
-        name: 'verify:micro-tutoring-coverage',
-        status: coverage.status === 0 ? 'passed' : 'failed',
-        scope: options.offline ? 'offline-git-content' : 'online-git-db',
-      },
-    ],
-    browserEvidenceDigest: process.env.MICRO_TUTORING_QUALIFICATION_BROWSER_EVIDENCE_DIGEST?.trim() || null,
-    ociDigest: process.env.MICRO_TUTORING_QUALIFICATION_OCI_DIGEST?.trim() || null,
+    tests,
+    browserEvidence: parseBoundDigest(process.env.MICRO_TUTORING_QUALIFICATION_BROWSER_EVIDENCE_PROOF),
+    ociImage: parseBoundDigest(process.env.MICRO_TUTORING_QUALIFICATION_OCI_PROOF),
   });
   await mkdir(options.outputDir, { recursive: true });
   const receiptPath = path.join(options.outputDir, 'micro-tutoring-candidate-receipt.json');
@@ -119,6 +166,8 @@ async function main() {
     strictlyComplete: built.receipt.strictlyComplete,
     sourceRevision: built.receipt.sourceRevision,
     governedProjectionRevision: built.receipt.governedProjectionRevision,
+    browserEvidence: built.receipt.browserEvidence,
+    ociImage: built.receipt.ociImage,
     activation: activation.status,
     productionUnchanged: activation.productionUnchanged,
   }, null, 2));

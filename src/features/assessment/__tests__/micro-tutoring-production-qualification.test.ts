@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { MicroTutoringCoverageAuditReport } from '../micro-tutoring-coverage-audit';
 import {
   MICRO_TUTORING_PRODUCTION_FEATURE_FLAG,
+  MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS,
   buildMicroTutoringProductionQualificationReceipt,
   evaluateMicroTutoringProductionActivation,
 } from '../micro-tutoring-production-qualification';
@@ -65,6 +66,15 @@ function completeReport(overrides: Partial<MicroTutoringCoverageAuditReport> = {
   };
 }
 
+function boundTests() {
+  return MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS.map((name) => ({
+    name,
+    status: 'passed' as const,
+    scope: name,
+    sourceRevision: SOURCE_REVISION,
+  }));
+}
+
 function boundReceiptInput(
   report: MicroTutoringCoverageAuditReport = completeReport(),
   overrides: Partial<Parameters<typeof buildMicroTutoringProductionQualificationReceipt>[0]> = {},
@@ -73,9 +83,9 @@ function boundReceiptInput(
     report,
     generatedAt: '2026-08-21T00:00:00.000Z',
     artifactDigests: [{ path: 'a.json', sha256: `sha256:${'d'.repeat(64)}` }],
-    tests: [{ name: 'coverage', status: 'passed' as const, scope: 'offline-git-content' }],
-    browserEvidenceDigest: BROWSER_EVIDENCE_DIGEST,
-    ociDigest: OCI_DIGEST,
+    tests: boundTests(),
+    browserEvidence: { sourceRevision: SOURCE_REVISION, digest: BROWSER_EVIDENCE_DIGEST },
+    ociImage: { sourceRevision: SOURCE_REVISION, digest: OCI_DIGEST },
     ...overrides,
   };
 }
@@ -88,8 +98,14 @@ describe('micro tutoring production qualification', () => {
     expect(built.receipt?.gitContentComplete).toBe(true);
     expect(built.receipt?.strictlyComplete).toBe(true);
     expect(built.receipt?.governedProjectionRevision).toBe(SOURCE_REVISION);
-    expect(built.receipt?.browserEvidenceDigest).toBe(BROWSER_EVIDENCE_DIGEST);
-    expect(built.receipt?.ociDigest).toBe(OCI_DIGEST);
+    expect(built.receipt?.browserEvidence).toEqual({
+      sourceRevision: SOURCE_REVISION,
+      digest: BROWSER_EVIDENCE_DIGEST,
+    });
+    expect(built.receipt?.ociImage).toEqual({
+      sourceRevision: SOURCE_REVISION,
+      digest: OCI_DIGEST,
+    });
     expect(built.receipt?.featureFlag).toEqual({
       key: MICRO_TUTORING_PRODUCTION_FEATURE_FLAG,
       enabled: false,
@@ -116,8 +132,12 @@ describe('micro tutoring production qualification', () => {
     }))).issues).toContain('STRICT_COVERAGE_INCOMPLETE');
 
     expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport(), {
-      tests: [{ name: 'coverage', status: 'failed', scope: 'offline-git-content' }],
+      tests: boundTests().map((test) => ({ ...test, status: 'failed' as const })),
     })).issues).toContain('TESTS_FAILED');
+
+    expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport(), {
+      tests: boundTests().slice(0, 1),
+    })).issues).toContain('REQUIRED_TESTS_INCOMPLETE');
 
     expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport({
       inputCapture: {
@@ -128,12 +148,17 @@ describe('micro tutoring production qualification', () => {
     }))).issues).toEqual(['MISSING_DB_CAPTURE']);
 
     expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport(), {
-      browserEvidenceDigest: null,
+      browserEvidence: null,
     })).issues).toEqual(['MISSING_BROWSER_EVIDENCE']);
 
     expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport(), {
-      ociDigest: null,
+      ociImage: null,
     })).issues).toEqual(['MISSING_OCI_DIGEST']);
+
+    expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(completeReport(), {
+      browserEvidence: { sourceRevision: 'e'.repeat(40), digest: BROWSER_EVIDENCE_DIGEST },
+      ociImage: { sourceRevision: 'f'.repeat(40), digest: OCI_DIGEST },
+    })).issues).toEqual(['MIXED_REVISION']);
   });
 
   it('fail-closes a dirty worktree or mixed digest and rolls back an over-threshold canary', () => {
