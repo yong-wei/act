@@ -181,6 +181,7 @@ function main() {
       expectedSourceRevision: runtime.authoringSourceRevision,
       expectedResourceSetId: runtime.resourceSetId ?? undefined,
       expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
+      runtimeRoot,
     });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);

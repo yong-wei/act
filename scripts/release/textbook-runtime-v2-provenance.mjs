@@ -363,12 +363,51 @@ function indexBookIds(manifest) {
   });
 }
 
+function sha256Uri(filePath) {
+  return `sha256:${sha256File(filePath)}`;
+}
+
+function rebuildIndexBookSources(runtimeRoot, expectedBookIds) {
+  return expectedBookIds.map((bookId) => {
+    const manifestPath = path.join(runtimeRoot, bookId, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const sourceHashes = manifest.sourceHashes;
+    if (!sourceHashes || typeof sourceHashes !== 'object' || Array.isArray(sourceHashes) || Object.keys(sourceHashes).length === 0) {
+      throw new Error(`textbook-retrieval-source-hashes-missing:${bookId}`);
+    }
+    return {
+      bookId,
+      edition: manifest.edition,
+      manifestHash: sha256Uri(manifestPath),
+      sourceHashes: Object.fromEntries(Object.entries(sourceHashes).sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))),
+    };
+  });
+}
+
+function assertIndexBookSources(manifest, runtimeRoot, expectedBookIds) {
+  const rebuilt = rebuildIndexBookSources(runtimeRoot, expectedBookIds);
+  const actual = Array.isArray(manifest.books)
+    ? manifest.books.map((book) => ({
+      bookId: book.bookId,
+      edition: book.edition,
+      manifestHash: book.manifestHash,
+      sourceHashes: book.sourceHashes && typeof book.sourceHashes === 'object'
+        ? Object.fromEntries(Object.entries(book.sourceHashes).sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)))
+        : book.sourceHashes,
+    }))
+    : [];
+  if (JSON.stringify(rebuilt) !== JSON.stringify(actual)) {
+    throw new Error('textbook-retrieval-source-manifest-stale');
+  }
+}
+
 export function inspectTextbookRetrievalIndex(
   indexRoot,
   {
     expectedSourceRevision,
     expectedResourceSetId,
     expectedBookIds,
+    runtimeRoot,
   } = {},
 ) {
   if (expectedSourceRevision !== undefined) {
@@ -404,6 +443,14 @@ export function inspectTextbookRetrievalIndex(
   if (expectedBookIds !== undefined) {
     assertExactBookSet(expectedBookIds, bookIds, 'textbook-retrieval-book-set-mismatch');
   }
+  if (
+    runtimeRoot
+    && Array.isArray(manifest.books)
+    && manifest.books.length > 0
+    && manifest.books.every((book) => book && typeof book === 'object' && typeof book.manifestHash === 'string')
+  ) {
+    assertIndexBookSources(manifest, runtimeRoot, expectedBookIds ?? bookIds);
+  }
   const digest = createHash('sha256');
   for (const fileName of TEXTBOOK_RETRIEVAL_REQUIRED_FILES) {
     const filePath = path.join(indexRoot, fileName);
@@ -436,6 +483,7 @@ export function inspectTextbookCorpusView(viewRoot) {
     expectedSourceRevision: runtime.authoringSourceRevision,
     expectedResourceSetId: runtime.resourceSetId ?? undefined,
     expectedBookIds: runtime.bookIds,
+    runtimeRoot,
   });
   return {
     provenanceGeneration: runtime.provenanceGeneration,
@@ -529,6 +577,7 @@ async function writeSidecar(options) {
     expectedSourceRevision: runtime.authoringSourceRevision,
     expectedResourceSetId: runtime.resourceSetId ?? undefined,
     expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
+    runtimeRoot,
   });
   const sidecar = {
     schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,

@@ -779,12 +779,23 @@ export async function verifyGeneratedTextbookCorpus(repoRoot: string, generatedR
   const assetsRoot = path.join(generatedResourcesRoot, 'textbooks');
   const provenanceModule = await import(pathToFileURL(path.join(repoRoot, 'scripts/release/textbook-runtime-v2-provenance.mjs')).href);
   const runtime = provenanceModule.inspectTextbookRuntimeV2(runtimeRoot, { assetsRoot });
+  const execFile = promisify(execFileCallback);
   provenanceModule.inspectTextbookRetrievalIndex(indexRoot, {
     expectedSourceRevision: runtime.authoringSourceRevision,
     expectedResourceSetId: runtime.resourceSetId ?? undefined,
     expectedBookIds: runtime.bookIds,
+    runtimeRoot,
   });
-  const execFile = promisify(execFileCallback);
+  await execFile('python3', [
+    path.join(repoRoot, 'course-content/scripts/textbook_hybrid_retrieval.py'),
+    'verify-index',
+    '--runtime-root',
+    runtimeRoot,
+    '--index-dir',
+    indexRoot,
+    '--resource-set',
+    path.join(repoRoot, 'course-content/config/textbook-resource-set.json'),
+  ], { cwd: repoRoot });
   const runtimeEntries = (await readdir(runtimeRoot, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => path.join(runtimeRoot, entry.name));
   await execFile(process.execPath, [path.join(repoRoot, 'course-content/scripts/validate_structured_textbook_runtime_v2.mjs'), ...runtimeEntries.flatMap((entry) => ['--runtime-dir', entry])], { cwd: repoRoot });
   await execFile('python3', [path.join(repoRoot, 'course-content/scripts/validate_written_textbook_runtime_v2.py'), ...runtimeEntries.flatMap((entry) => ['--runtime-dir', entry])], { cwd: repoRoot });

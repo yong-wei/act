@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import json
 import tempfile
@@ -55,14 +56,27 @@ def write_book(runtime_root: Path, book_id: str, revision: str) -> None:
             (book / name).write_text(json.dumps({
                 "recordType": "export-manifest",
                 "schemaVersion": "structured-textbook-runtime.v2",
+                "bookId": book_id,
+                "edition": "1",
                 "sourceRevision": revision,
+                "sourceHashes": {"textbooks/%s/chapter-01/textbook.md" % book_id: "sha256:" + "1" * 64},
             }), encoding="utf-8")
         else:
             (book / name).write_text("", encoding="utf-8")
 
 
-def write_index(index_root: Path, book_ids, revision: str, resource_set_id: str) -> None:
+def write_index(index_root: Path, runtime_root: Path, book_ids, revision: str, resource_set_id: str) -> None:
     index_root.mkdir(parents=True)
+    books = []
+    for book_id in book_ids:
+        manifest_path = runtime_root / book_id / "manifest.json"
+        digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        books.append({
+            "bookId": book_id,
+            "edition": "1",
+            "manifestHash": "sha256:" + digest,
+            "sourceHashes": {"textbooks/%s/chapter-01/textbook.md" % book_id: "sha256:" + "1" * 64},
+        })
     for name in REQUIRED_INDEX:
         if name == "manifest.json":
             (index_root / name).write_text(json.dumps({
@@ -70,7 +84,7 @@ def write_index(index_root: Path, book_ids, revision: str, resource_set_id: str)
                 "formatVersion": "textbook-hybrid-retrieval.v1",
                 "sourceRevision": revision,
                 "resourceSetId": resource_set_id,
-                "books": [{"bookId": book_id, "edition": "1", "manifestHash": "sha256:" + "0" * 64, "sourceHashes": {"manifest.json": "sha256:" + "1" * 64}} for book_id in book_ids],
+                "books": books,
             }), encoding="utf-8")
         else:
             (index_root / name).write_text("", encoding="utf-8")
@@ -110,7 +124,7 @@ def write_view(view: Path, ident, book_ids, revision: str, schema="v1") -> None:
         }
         resource_set_id = "current-authoring-bundle-v1"
     (runtime / "input-provenance.json").write_text(json.dumps(provenance), encoding="utf-8")
-    write_index(view / "resources" / "textbook-hybrid-retrieval" / "bge-m3", book_ids, revision, resource_set_id)
+    write_index(view / "resources" / "textbook-hybrid-retrieval" / "bge-m3", runtime, book_ids, revision, resource_set_id)
 
 
 class TextbookCorpusInspectTests(unittest.TestCase):
