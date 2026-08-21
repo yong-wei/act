@@ -184,9 +184,18 @@ describe('generated candidate governance', () => {
     const { writeGeneratedCatalogRelease } = await import('../generated-candidate-catalog');
     const dir = mkdtempSync(join(tmpdir(), 'generated-catalog-'));
     writeGeneratedCatalogRelease(store, dir, catalog.items.filter((item) => item.eligibilityState === 'path-eligible'));
-    const release = JSON.parse(readFileSync(join(dir, 'course-content/runtime/resource-governance/generated-assessment-catalog-release.json'), 'utf8')) as { catalogItemIds: string[] };
+    const release = JSON.parse(readFileSync(join(dir, 'data/generated-assessment-catalog/generated-assessment-catalog-release.json'), 'utf8')) as { catalogItemIds: string[] };
     expect(release.catalogItemIds).toContain(receipt.catalogItemId);
     rmSync(dir, { recursive: true, force: true });
+
+    const { replaceGeneratedRuntimeOverlay, findAdaptiveAssessmentCatalogSnapshot } = await import('../adaptive-assessment-catalog-selector');
+    const { generatedReviewDecisionsFromStore } = await import('../generated-candidate-catalog');
+    findAdaptiveAssessmentCatalogSnapshot('warmup-missing');
+    replaceGeneratedRuntimeOverlay({
+      items: catalog.items.filter((item) => item.eligibilityState === 'path-eligible'),
+      decisions: generatedReviewDecisionsFromStore(store),
+    });
+    expect(findAdaptiveAssessmentCatalogSnapshot(question.id)?.catalogItemId).toBe(receipt.catalogItemId);
 
     const retired = retireGeneratedPublication(store, {
       receiptId: receipt.receiptId,

@@ -16,7 +16,7 @@ import {
 } from './generated-candidate-governance';
 import type { GeneratedQuestionCatalogRow } from './adaptive-assessment-item-catalog';
 
-export const GENERATED_CATALOG_RELEASE_DIR = 'course-content/runtime/resource-governance';
+export const GENERATED_CATALOG_RELEASE_DIR = 'data/generated-assessment-catalog';
 export const GENERATED_CANDIDATE_STORE_PATH = `${GENERATED_CATALOG_RELEASE_DIR}/generated-assessment-candidate-store.json`;
 export const GENERATED_CATALOG_ITEMS_PATH = `${GENERATED_CATALOG_RELEASE_DIR}/generated-assessment-catalog-items.jsonl`;
 export const GENERATED_CATALOG_REVIEWS_PATH = `${GENERATED_CATALOG_RELEASE_DIR}/generated-assessment-review-snapshots.jsonl`;

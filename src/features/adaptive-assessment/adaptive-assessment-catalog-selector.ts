@@ -75,6 +75,25 @@ interface RuntimeCatalogArtifacts {
 }
 
 let cachedArtifacts: RuntimeCatalogArtifacts | null = null;
+let generatedRuntimeOverlay: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+} = { items: [], decisions: [] };
+
+export function invalidateRuntimeCatalogCache() {
+  cachedArtifacts = null;
+}
+
+export function replaceGeneratedRuntimeOverlay(input: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+}) {
+  generatedRuntimeOverlay = {
+    items: [...input.items],
+    decisions: [...input.decisions],
+  };
+  cachedArtifacts = null;
+}
 
 function readJsonl<T>(filePath: string): T[] {
   const content = readFileSync(filePath, 'utf8').trim();
@@ -88,12 +107,16 @@ function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArt
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
   const overlay = loadFrozenTerminalValidationOverlay();
   const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
-  const generatedItems = existsSync(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
-    ? readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
-    : [];
-  const generatedDecisions = existsSync(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
-    ? readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
-    : [];
+  const generatedItems = generatedRuntimeOverlay.items.length > 0
+    ? generatedRuntimeOverlay.items
+    : existsSync(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
+      ? readJsonl<AdaptiveAssessmentCatalogItem>(path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH))
+      : [];
+  const generatedDecisions = generatedRuntimeOverlay.decisions.length > 0
+    ? generatedRuntimeOverlay.decisions
+    : existsSync(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
+      ? readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH))
+      : [];
   const generatedIds = new Set(generatedItems.map((item) => item.catalogItemId));
   cachedArtifacts = buildRuntimeCatalogArtifacts(
     [

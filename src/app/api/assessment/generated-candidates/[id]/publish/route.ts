@@ -3,7 +3,12 @@ import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { buildAdaptiveAssessmentItemCatalog } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { writeGeneratedCatalogRelease, generatedQuestionsFromStore } from '@/features/adaptive-assessment/generated-candidate-catalog';
+import { replaceGeneratedRuntimeOverlay } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import {
+  generatedQuestionsFromStore,
+  generatedReviewDecisionsFromStore,
+  writeGeneratedCatalogRelease,
+} from '@/features/adaptive-assessment/generated-candidate-catalog';
 import { publishGeneratedCandidate } from '@/features/adaptive-assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
@@ -32,16 +37,25 @@ export async function POST(
       publisherUserId: session.user.id,
       catalogReleaseId: body.catalogReleaseId ?? 'generated-catalog.r1',
     });
-    await persistGeneratedCandidateStore(prisma, store);
     const catalog = buildAdaptiveAssessmentItemCatalog({
       generatedCandidateStore: store,
       generatedQuestions: generatedQuestionsFromStore(store),
       checkpointQuestions: [],
       presetQuestions: [],
     });
-    writeGeneratedCatalogRelease(store, process.cwd(), catalog.items.filter((item) => (
+    const publishedItems = catalog.items.filter((item) => (
       item.sourceFamily === 'generated-adaptive-question' && item.eligibilityState === 'path-eligible'
-    )));
+    ));
+    await persistGeneratedCandidateStore(prisma, store);
+    replaceGeneratedRuntimeOverlay({
+      items: publishedItems,
+      decisions: generatedReviewDecisionsFromStore(store),
+    });
+    try {
+      writeGeneratedCatalogRelease(store, process.cwd(), publishedItems);
+    } catch {
+      // Sidecar export is optional and must not write the read-only production runtime mount.
+    }
     return NextResponse.json({
       receiptId: receipt.receiptId,
       receiptHash: receipt.receiptHash,
