@@ -793,6 +793,48 @@ describe('portrait v2 incremental updates', () => {
     ]);
   });
 
+  it('materializes anchored workbench and native grading facts into a portrait snapshot', async () => {
+    const previous = baseline();
+    const workbenchFact = {
+      ...fact('fact-workbench-grading', { controlModeling: 1 }, {}),
+      sourceEventId: 'grading:run-workbench-1:criterion-modeling:rubric-v1',
+      sourceLogId: 'draft-approved-1',
+    };
+    const nativeFact = {
+      ...fact('fact-native-grading', { engineeringDecision: 1 }, {}),
+      sourceEventId: 'adaptive-assessment:document-rubric-grading:run-native-1:criterion-decision:rubric-v1',
+      sourceLogId: 'audit-1',
+    };
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
+      previous,
+      [workbenchFact, nativeFact],
+      0,
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(result).toMatchObject({
+      written: true,
+      stateKind: 'SNAPSHOT',
+      evidenceCount: 2,
+    });
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        stateKind: 'SNAPSHOT',
+        trustedFactIds: expect.arrayContaining([workbenchFact.id, nativeFact.id]),
+      }),
+    }));
+    const payload = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    expect(payload.dimensions.find((dimension) =>
+      dimension.id === 'controlModelingRepresentation')?.score).toBeGreaterThan(
+      previous.dimensions.find((dimension) => dimension.id === 'controlModelingRepresentation')!.score,
+    );
+    expect(payload.dimensions.find((dimension) =>
+      dimension.id === 'engineeringConstraintSafety')?.evidenceSummary.totalCount).toBeGreaterThan(0);
+  });
+
   it('projects governed task evidence into only the seventh dimension in the fenced learner lane', async () => {
     const previous = baseline();
     const existing = {

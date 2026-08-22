@@ -21,6 +21,7 @@ import {
   validateGradingMutationOrigin,
 } from '@/lib/data-governance/math-document-grading-contracts';
 import {
+  buildPipelineReviewFactCandidates,
   buildPipelineReviewFacts,
   assertPipelineReviewActor,
   isPipelineRunReviewable,
@@ -244,6 +245,7 @@ export async function POST(request: Request) {
         rubric: parsed.rubric,
         studentId: draft.ownerUserId,
         goalContext: parsed.goalContext,
+        sourceLogId: currentDraft.id,
       });
       await requestCumulativeLearnerReconciliation(tx, {
         userId: draft.ownerUserId,
@@ -370,8 +372,44 @@ async function approvePipelineRun(input: {
       if (saved.count !== 1) throw new GradingMutationError('grading-review-conflict', 409);
     }
 
+    const factCandidates = input.decision === 'approved'
+      ? buildPipelineReviewFactCandidates({ run: current, edits: input.edits, reviewedAt })
+      : [];
+    const audit = await writeGradingAudit(tx as any, {
+      actor: { id: input.reviewerId, role: input.reviewerRole === UserRole.ADMIN ? 'ADMIN' : 'TEACHER' },
+      action: 'grading-run.teacher-reviewed',
+      purpose: 'teacher-review',
+      resourceType: 'GradingRun',
+      resourceId: current.id,
+      assignmentId: scope.assignmentId,
+      answerId: scope.answerId,
+      classId: scope.classId,
+      metadata: {
+        decision: input.decision,
+        state: finalState,
+        rubric: { idDigest: reviewAuditHmac(String(current.rubricId), 'rubric'), version: current.rubricVersion },
+        evaluator: { idDigest: reviewAuditHmac(current.evaluatorId, 'evaluator'), version: current.evaluatorVersion },
+        assignmentRevisionDigest: reviewAuditHmac(scope.assignmentRevisionId!, 'assignment-revision'),
+        replayKey: reviewAuditHmac(requestIdentity.idempotencyKey, 'idempotency'),
+        reviewRequestDigest: reviewAuditHmac(requestIdentity.requestHash, 'review-request'),
+        sourceEventDigests: factCandidates.map((fact: any) => reviewAuditHmac(fact.sourceEventId, 'source-event')),
+        factVerification: { count: factCandidates.length, allGoverned: factCandidates.every((fact: any) => String(fact.sourceEventId).startsWith('adaptive-assessment:document-rubric-grading:')) },
+        notesPresent: Boolean(input.notes?.trim()),
+        gradeChanges: finalGrades.map(({ assessment, criterionId, levelId, score, feedbackPresent }) => {
+          const edit = editMap.get(criterionId);
+          return {
+            criterionDigest: reviewAuditHmac(criterionId, 'criterion'),
+            ai: { rationalePresent: Boolean(assessment.rationale), rationaleLengthBucket: textLengthBucket(assessment.rationale) },
+            final: { feedbackPresent, feedbackLengthBucket: edit ? textLengthBucket(edit.comment) : 'none' },
+            diff: { levelChanged: levelId !== assessment.levelId, scoreChanged: score !== assessment.score, feedbackChanged: (edit?.comment ?? assessment.teacherComment ?? '').trim() !== (assessment.teacherComment ?? '').trim() },
+            anchorDigests: current.annotations.filter((annotation) => annotation.criterionId === criterionId).map((annotation) => reviewAuditHmac(stableStringify({ annotationId: annotation.id, assessmentId: annotation.assessmentId, blockId: annotation.blockId, precision: annotation.precision, spanStart: annotation.spanStart, spanEnd: annotation.spanEnd, pageNumber: annotation.pageNumber }), 'anchor')),
+          };
+        }),
+      },
+    });
+    if (!audit?.id) throw new Error('grading-audit-id-required');
     const facts = input.decision === 'approved'
-      ? buildPipelineReviewFacts({ run: current, edits: input.edits, reviewedAt })
+      ? buildPipelineReviewFacts({ run: current, edits: input.edits, reviewedAt, sourceLogId: audit.id })
       : [];
     const existingFacts = facts.length > 0 ? await tx.learningFact.findMany({ where: { sourceEventId: { in: facts.map((fact: any) => fact.sourceEventId) } } }) : [];
     const existingBySource = new Map(existingFacts.map((fact: any) => [fact.sourceEventId, fact]));
@@ -422,38 +460,6 @@ async function approvePipelineRun(input: {
         now: reviewedAt,
       });
     }
-    await writeGradingAudit(tx as any, {
-      actor: { id: input.reviewerId, role: input.reviewerRole === UserRole.ADMIN ? 'ADMIN' : 'TEACHER' },
-      action: 'grading-run.teacher-reviewed',
-      purpose: 'teacher-review',
-      resourceType: 'GradingRun',
-      resourceId: current.id,
-      assignmentId: scope.assignmentId,
-      answerId: scope.answerId,
-      classId: scope.classId,
-      metadata: {
-        decision: input.decision,
-        state: finalState,
-        rubric: { idDigest: reviewAuditHmac(String(current.rubricId), 'rubric'), version: current.rubricVersion },
-        evaluator: { idDigest: reviewAuditHmac(current.evaluatorId, 'evaluator'), version: current.evaluatorVersion },
-        assignmentRevisionDigest: reviewAuditHmac(scope.assignmentRevisionId!, 'assignment-revision'),
-        replayKey: reviewAuditHmac(requestIdentity.idempotencyKey, 'idempotency'),
-        reviewRequestDigest: reviewAuditHmac(requestIdentity.requestHash, 'review-request'),
-        sourceEventDigests: facts.map((fact: any) => reviewAuditHmac(fact.sourceEventId, 'source-event')),
-        factVerification: { count: facts.length, allGoverned: facts.every((fact: any) => String(fact.sourceEventId).startsWith('adaptive-assessment:document-rubric-grading:')) },
-        notesPresent: Boolean(input.notes?.trim()),
-        gradeChanges: finalGrades.map(({ assessment, criterionId, levelId, score, feedbackPresent }) => {
-          const edit = editMap.get(criterionId);
-          return {
-            criterionDigest: reviewAuditHmac(criterionId, 'criterion'),
-            ai: { rationalePresent: Boolean(assessment.rationale), rationaleLengthBucket: textLengthBucket(assessment.rationale) },
-            final: { feedbackPresent, feedbackLengthBucket: edit ? textLengthBucket(edit.comment) : 'none' },
-            diff: { levelChanged: levelId !== assessment.levelId, scoreChanged: score !== assessment.score, feedbackChanged: (edit?.comment ?? assessment.teacherComment ?? '').trim() !== (assessment.teacherComment ?? '').trim() },
-            anchorDigests: current.annotations.filter((annotation) => annotation.criterionId === criterionId).map((annotation) => reviewAuditHmac(stableStringify({ annotationId: annotation.id, assessmentId: annotation.assessmentId, blockId: annotation.blockId, precision: annotation.precision, spanStart: annotation.spanStart, spanEnd: annotation.spanEnd, pageNumber: annotation.pageNumber }), 'anchor')),
-          };
-        }),
-      },
-    });
     return { facts, written: written.count };
   });
 
@@ -479,7 +485,7 @@ async function findApprovedReviewReplay(runId: string, reviewerId: string, ident
 }
 
 function pipelineApprovalResponse(run: any, edits: Array<{ criterionId: string; levelId: string | null; score: number; comment: string }>, reviewedAt: Date, written: number) {
-  const facts = buildPipelineReviewFacts({ run, edits, reviewedAt: new Date(reviewedAt) });
+  const facts = buildPipelineReviewFactCandidates({ run, edits, reviewedAt: new Date(reviewedAt) });
   return NextResponse.json({ status: 'approved', gradingRunId: run.id, createdFacts: written, skippedFacts: Math.max(facts.length - written, 0), blockedFacts: 0, evidenceSourceEventIds: facts.map((fact: any) => fact.sourceEventId) });
 }
 
