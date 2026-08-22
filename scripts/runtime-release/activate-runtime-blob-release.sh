@@ -30,6 +30,7 @@ replace_existing=0
 old_active="none"
 parent_view=""
 overlay_stash=""
+rebuild_staging=""
 rollback_app_image=""
 candidate_current_selected=0
 candidate_deploy_attempted=0
@@ -61,7 +62,7 @@ done
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 
-for command in flock podman python3 findmnt mount curl mktemp; do
+for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
 for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$DEPLOY_SCRIPT"; do
@@ -361,6 +362,12 @@ cleanup_lifecycle_identity() {
   if [[ -n "${overlay_stash:-}" && -d "$overlay_stash" ]]; then
     rm -rf -- "$overlay_stash"
   fi
+  if [[ -n "${rebuild_staging:-}" && -d "$rebuild_staging" ]]; then
+    if findmnt -rn -M "$rebuild_staging/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$rebuild_staging/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$rebuild_staging"
+  fi
 }
 
 trap cleanup_lifecycle_identity EXIT
@@ -448,8 +455,15 @@ if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; 
 elif [[ -n "$parent_view" ]]; then
   prepare_args+=(--parent-view "$parent_view")
 fi
-python3 "$MATERIALIZER" "${prepare_args[@]}" >/dev/null
-candidate_view="$VIEW_ROOT/views/$release_id"
+prepare_result="$(python3 "$MATERIALIZER" "${prepare_args[@]}")"
+candidate_view="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["viewPath"])' <<<"$prepare_result")"
+if python3 -c 'import json,sys; raise SystemExit(0 if json.load(sys.stdin).get("rebuilt") else 1)' <<<"$prepare_result"; then
+  rebuild_staging="$candidate_view"
+fi
+[[ -n "$candidate_view" && -d "$candidate_view" && ! -L "$candidate_view" ]] || {
+  echo "ERROR: materializer did not return a candidate view" >&2
+  exit 1
+}
 ensure_helper_mount "$candidate_view/.act-runtime-blobs"
 if [[ -n "${overlay_source:-}" ]]; then
   restore_parent_host_overlays "$overlay_source" "$candidate_view"
@@ -463,6 +477,30 @@ if [[ -n "$parent_view" && "$parent_view" != "$candidate_view" ]]; then
   verify_args+=(--parent-runtime-root "$parent_view")
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
+if [[ -n "$rebuild_staging" ]]; then
+  final_view="$VIEW_ROOT/views/$release_id"
+  backup_view="$VIEW_ROOT/views/.$release_id.replaced"
+  [[ "$rebuild_staging" != "$final_view" && -d "$rebuild_staging" ]] || {
+    echo "ERROR: rebuild staging view is invalid" >&2
+    exit 1
+  }
+  if findmnt -rn -M "$final_view/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$final_view/.act-runtime-blobs" || {
+      echo "ERROR: could not unmount the live runtime helper before rebuild swap" >&2
+      exit 1
+    }
+  fi
+  [[ ! -e "$backup_view" ]] || {
+    echo "ERROR: rebuild backup view already exists" >&2
+    exit 1
+  }
+  mv "$final_view" "$backup_view"
+  mv "$rebuild_staging" "$final_view"
+  rebuild_staging=""
+  candidate_view="$final_view"
+  ensure_helper_mount "$candidate_view/.act-runtime-blobs"
+  rm -rf -- "$backup_view"
+fi
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
 stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \

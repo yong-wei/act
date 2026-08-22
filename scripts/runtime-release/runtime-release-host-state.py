@@ -26,14 +26,7 @@ V2_RELEASE_RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 V2_MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
 V2_MANIFEST_OBJECT_PREFIX = "runtime/blob-releases/"
 V2_MANIFEST_FILENAME = "manifest.json"
-CONTROL_PLANE_OVERLAY_PATHS = (
-    "knowledge/projection/current.json",
-    "knowledge/prerequisites/current.json",
-    "knowledge/authority-domain-catalog/current.json",
-    "knowledge/authority-domain-shards/current.json",
-    "knowledge/consumer-activation/current.json",
-    "knowledge/production-cutover-transactions/current.json",
-)
+
 
 
 def fail(message: str) -> None:
@@ -274,7 +267,7 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
     skip_dirs = {materializer.RUNTIME_BLOB_HELPER_NAME}
     skip_files = {materializer.LOCAL_MANIFEST, materializer.LOCAL_RECEIPT}
     cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS)
-    allowlist = set(CONTROL_PLANE_OVERLAY_PATHS)
+    allowlist = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
     copied = []
     skipped = []
     os.chmod(candidate, 0o755)
@@ -349,7 +342,7 @@ def verify_mounted_v2(
     view_receipt, _ = materializer.verify_view_structure(
         root,
         release_id,
-        allowed_extra_regular_paths=set(CONTROL_PLANE_OVERLAY_PATHS),
+        allowed_extra_regular_paths=set(materializer.CONTROL_PLANE_OVERLAY_PATHS),
     )
     verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
     if (
@@ -360,7 +353,7 @@ def verify_mounted_v2(
     cached_paths = set(materializer.cached_logical_paths(view_receipt))
     inherited_paths = inherited_v2_paths(parent_runtime_root, manifest, materializer)
     changed_paths = {entry["path"] for entry in manifest["files"]} - inherited_paths
-    overlay_paths = set(CONTROL_PLANE_OVERLAY_PATHS)
+    overlay_paths = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
     textbook_cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(
         materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS
     )

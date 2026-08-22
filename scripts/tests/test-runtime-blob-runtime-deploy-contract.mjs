@@ -108,6 +108,16 @@ assert.match(
 );
 assert.match(
   activation,
+  /umount "\$final_view\/\.act-runtime-blobs"/,
+  'rebuild swap must unmount the live helper before replacing the active view',
+);
+assert.match(
+  activation,
+  /prepare_result="\$\(python3 "\$MATERIALIZER" "\$\{prepare_args\[@\]\}"\)"/,
+  'activation must use the materializer viewPath, including rebuild staging views',
+);
+assert.match(
+  activation,
   /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
   'ERR recovery must revert current even when consumers were not switched',
 );

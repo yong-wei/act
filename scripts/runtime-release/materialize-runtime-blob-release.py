@@ -41,6 +41,14 @@ TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin",
     "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32",
 )
+CONTROL_PLANE_OVERLAY_PATHS = (
+    "knowledge/projection/current.json",
+    "knowledge/prerequisites/current.json",
+    "knowledge/authority-domain-catalog/current.json",
+    "knowledge/authority-domain-shards/current.json",
+    "knowledge/consumer-activation/current.json",
+    "knowledge/production-cutover-transactions/current.json",
+)
 LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
     "resources/textbook-retrieval/lexical-postings.bin",
@@ -432,14 +440,27 @@ def write_regular(path: Path, value: bytes) -> None:
     os.chmod(path, 0o444)
 
 
-def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = True) -> Dict[str, Any]:
-    receipt, manifest = verify_view_structure(view, release_id)
+def verify_view(
+    view: Path,
+    release_id: str,
+    *,
+    require_helper_contents: bool = True,
+    allowed_extra_regular_paths: Optional[Set[str]] = None,
+) -> Dict[str, Any]:
+    allowed_extra = set(allowed_extra_regular_paths or ())
+    receipt, manifest = verify_view_structure(
+        view,
+        release_id,
+        allowed_extra_regular_paths=allowed_extra,
+    )
     cached_paths = set(cached_logical_paths(receipt))
     if not require_helper_contents:
         return receipt
     helper = require_helper_directory(view)
     for entry in manifest["files"]:
         logical = view / entry["path"]
+        if entry["path"] in allowed_extra and not os.path.islink(str(logical)):
+            continue
         if entry["path"] in cached_paths:
             details = os.lstat(logical)
             if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
@@ -661,23 +682,12 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 os.chmod(str(Path(current) / directory), 0o555)
         os.chmod(str(temporary), 0o555)
         result = verify_view(temporary, manifest["releaseId"], require_helper_contents=False)
-        if final.exists():
-            backup = views / (".%s.replacing" % manifest["releaseId"])
-            if backup.exists() or backup.is_symlink():
-                fail("materialized view replacement backup already exists")
-            for current, directories, _ in os.walk(str(final), topdown=True, followlinks=False):
-                os.chmod(current, 0o755)
-                directories[:] = [name for name in directories if name != RUNTIME_BLOB_HELPER_NAME]
-            os.chmod(str(final), 0o755)
-            os.rename(str(final), str(backup))
-            try:
-                os.replace(str(temporary), str(final))
-            except Exception:
-                os.rename(str(backup), str(final))
-                raise
-            shutil.rmtree(str(backup))
-        else:
-            os.replace(str(temporary), str(final))
+        target = final
+        if replace_existing and final.exists():
+            target = views / (".%s.rebuild" % manifest["releaseId"])
+            if target.exists() or target.is_symlink():
+                fail("materialized rebuild staging view already exists")
+        os.replace(str(temporary), str(target))
         temporary = None
         directory = os.open(str(views), os.O_DIRECTORY)
         try:
@@ -689,7 +699,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             result,
             prepared=True,
             reused=False,
-            viewPath=str(final),
+            rebuilt=target != final,
+            viewPath=str(target),
             inheritedPathCount=inherited_path_count,
             verifiedChangedPathCount=len(verified_changed_paths),
             verifiedChangedBytes=sum(item["sizeBytes"] for item in manifest["files"] if item["path"] in changed_paths),
@@ -762,7 +773,11 @@ def select(args: argparse.Namespace) -> Dict[str, Any]:
     try:
         view = view_root / "views" / release_id
         require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
-        receipt, _ = verify_view_structure(view, release_id)
+        receipt, _ = verify_view_structure(
+            view,
+            release_id,
+            allowed_extra_regular_paths=set(CONTROL_PLANE_OVERLAY_PATHS),
+        )
         current = view_root / "current"
         temporary = view_root / (".current.%d" % os.getpid())
         if temporary.exists() or temporary.is_symlink():
@@ -795,7 +810,12 @@ def verify(args: argparse.Namespace) -> Dict[str, Any]:
     release_id = require_release_id(args.release_id)
     view = view_root / "views" / release_id
     require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
-    return verify_view(view, release_id, require_helper_contents=True)
+    return verify_view(
+        view,
+        release_id,
+        require_helper_contents=True,
+        allowed_extra_regular_paths=set(CONTROL_PLANE_OVERLAY_PATHS),
+    )
 
 
 def audit(args: argparse.Namespace) -> Dict[str, Any]:

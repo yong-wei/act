@@ -671,10 +671,31 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             )
             self.assertTrue(rebuilt["prepared"])
             self.assertFalse(rebuilt["reused"])
+            self.assertTrue(rebuilt["rebuilt"])
+            staging = Path(rebuilt["viewPath"])
+            self.assertNotEqual(staging, view)
+            self.assertEqual((view / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"stale-parent-cache\n")
+            self.assertEqual((staging / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
+
+    def test_select_accepts_restored_control_plane_overlay(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
             self.attach_helper(view_root, release_id, blob_root)
-            self.assertEqual((view / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
-            verified = self.call("verify", "--release-id", release_id, "--view-root", str(view_root))
-            self.assertEqual(verified["releaseId"], release_id)
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            overlay = view / "knowledge/projection/current.json"
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text('{"selector":"v0.18"}\n', encoding="utf-8")
+            selected = self.call("select", "--release-id", release_id, "--view-root", str(view_root))
+            self.assertTrue(selected["selected"])
+            self.assertEqual((view_root / "current").readlink().as_posix(), "views/" + release_id)
 
 
 if __name__ == "__main__":
