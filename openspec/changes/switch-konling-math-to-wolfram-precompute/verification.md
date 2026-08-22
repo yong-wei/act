@@ -1,7 +1,7 @@
 # Verification
 
 Date: 2026-08-21
-Stable HEAD for the local run: f720835c8
+Stable HEAD for the local run: f720835c8`nLatest verified HEAD: 6475f9146
 
 ## Remediation status (2026-08-22)
 
@@ -37,4 +37,4 @@ Stable HEAD for the local run: f720835c8
 
 - Building and running the final production-equivalent container image: Docker is not available in this Windows workspace. `scripts/tests/test-docker-migration-readiness.mjs` now supports `MATH_CALC_TEST_IMAGE` and `MATH_CALC_TEST_NEGATIVE_IMAGE` for a real in-container Wolfram smoke and for asserting that a Wolfram-less image is rejected by the entrypoint; these must be executed where Docker exists.
 - Running-chat-service HTTP E2E: no PostgreSQL/model service is available locally, so `tasks.md` 3.4 remains unchecked and the PR body must not claim this acceptance as final evidence.
-- Re-running the full verification on the final test-merge revision: `origin/integration` is currently at `b0314b1e2`; branch HEAD is `09e17b217`; merge-base is `661c09a1e`; branch is behind 26 / ahead 13. The commit gate suite must be re-run on the intended merge revision after runtime acceptance and final sync.
+- Re-running the full verification on the final test-merge revision: `origin/integration` is currently at `b0314b1e2`; branch HEAD is `09e17b217`; merge-base is `661c09a1e`; branch is behind 27 / ahead 16. The commit gate suite must be re-run on the intended merge revision after runtime acceptance and final sync.
