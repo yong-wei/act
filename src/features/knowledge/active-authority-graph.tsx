@@ -46,6 +46,7 @@ import {
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
   mergeAuthorityShard,
+  completeAuthorityLocaleRefresh,
   resetAuthorityShardDomain,
   shardIdentityDrift,
   visibleAuthorityShardRelations,
@@ -350,6 +351,14 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
             'node-neighborhood',
             controller.signal,
           ).then((neighborhood) => applyShard(neighborhood, generation, domainRevision)).catch(() => undefined);
+          await fetchAuthorityShard(
+            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(selectedId)}`, locale),
+            'node-detail',
+            controller.signal,
+          ).then((detail) => applyShard(detail, generation, domainRevision)).catch(() => undefined);
+        }
+        if (generation === requestGenerationRef.current) {
+          updateWorkspace(completeAuthorityLocaleRefresh);
         }
       })
       .catch((error: unknown) => {

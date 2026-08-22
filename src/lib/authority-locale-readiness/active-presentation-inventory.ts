@@ -7,18 +7,16 @@ import {
   type AuthorityShardObject,
   type AuthorityShardRelation,
 } from '@/lib/authority-domain-shards/contracts';
-import { join } from 'node:path';
-
 import {
   loadActiveShardContext,
   loadDomainDefaultShard,
   loadRelationFamilyShard,
+  loadVerifiedShardRelative,
 } from '@/lib/authority-domain-shards/loader';
 import {
   resolveActiveShardIdentity,
   type ActiveShardIdentity,
 } from '@/lib/authority-domain-shards/identity';
-import { readJsonViaIo } from '@/lib/authority-domain-shards/store';
 import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
 
 import type { LocalePresentationInventory } from './presentation-denominator';
@@ -95,23 +93,15 @@ export function loadActivePresentationInventory(
 }
 
 function collectSourceIds(repoRoot: string, identity: ActiveShardIdentity): string[] {
+  const context = loadActiveShardContext({ repoRoot, identity });
   const sourceIds = new Set<string>();
-  try {
-    const context = loadActiveShardContext({ repoRoot, identity });
-    for (const relative of Object.keys(context.manifest.files)) {
-      if (!relative.startsWith('details/')) continue;
-      const shard = readJsonViaIo<AuthorityNodeDetailShard>(
-        context.io,
-        join(context.setDir, relative),
-      );
-      for (const source of shard.node?.sources ?? []) {
-        const recordId = sourcePresentationRecordId(source);
-        if (recordId) sourceIds.add(recordId);
-      }
+  for (const relative of Object.keys(context.manifest.files).sort()) {
+    if (!relative.startsWith('details/')) continue;
+    const shard = loadVerifiedShardRelative<AuthorityNodeDetailShard>(relative, 'node-detail', context);
+    for (const source of shard.node.sources) {
+      const recordId = sourcePresentationRecordId(source);
+      if (recordId) sourceIds.add(recordId);
     }
-  } catch {
-    // Missing detail artifacts fail closed to an empty source set; qualification
-    // then rejects a manifest that still declares readable-sources.
   }
   return [...sourceIds];
 }

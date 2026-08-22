@@ -8,10 +8,12 @@ import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
   createEmptyAuthorityShardWorkspace,
   mergeAuthorityShard,
+  completeAuthorityLocaleRefresh,
 } from '../active-authority-shard-store';
 import type {
   AuthorityShardPublicEnvelope,
   PublicAuthorityDomainDefaultShard,
+  PublicAuthorityRelationFamilyShard,
   PublicAuthorityRootShard,
 } from '@/lib/authority-domain-shards/contracts';
 import { GRAPH_INTERFACE_CATALOG, GRAPH_INTERFACE_KEYS } from '@/lib/authority-locale-readiness/graph-interface-catalog';
@@ -254,8 +256,36 @@ describe('active authority language switch', () => {
       },
     } as PublicAuthorityDomainDefaultShard);
     expect(afterDomain.rejectedShardKeys).toEqual([]);
-    expect(afterDomain.localeRefreshPending).toBe(false);
+    expect(afterDomain.localeRefreshPending).toBe(true);
     expect(afterDomain.objectsByCanonicalId['node-concept']?.label).toBe('Transfer function');
+    const afterFamily = mergeAuthorityShard(afterDomain, {
+      shardClass: 'relation-family',
+      envelope: englishEnvelope,
+      domainId: 'system-modeling',
+      family: 'association',
+      objects: [{
+        id: 'node-concept',
+        canonicalType: 'DomainConcept',
+        label: 'Transfer function',
+        aliases: ['TF'],
+        description: 'English explanation',
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        semanticSupport: { supported: true, readOnly: true },
+        memberships: [{ domainId: 'system-modeling', visualRole: 'modeling', preferred: true }],
+      }],
+      relations: [],
+      boundaries: [{
+        canonicalId: 'node-boundary',
+        label: 'Neighbor object',
+        aliases: [],
+        canonicalType: 'DomainConcept',
+        adjacentDomainIds: ['time-domain-analysis'],
+      }],
+    } as PublicAuthorityRelationFamilyShard);
+    expect(afterFamily.rejectedShardKeys).toEqual([]);
+    expect(afterFamily.localeRefreshPending).toBe(true);
+    expect(afterFamily.boundaryRefsByCanonicalId['node-boundary']?.label).toBe('Neighbor object');
+    expect(completeAuthorityLocaleRefresh(afterFamily).localeRefreshPending).toBe(false);
   });
 
   it('scans registered interface keys for one locale without raw identifiers', () => {

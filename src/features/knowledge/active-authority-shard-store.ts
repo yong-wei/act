@@ -311,7 +311,7 @@ export function mergeAuthorityShard(
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
-      localeRefreshPending: false,
+      localeRefreshPending: current.localeRefreshPending || localeChanged,
     };
   }
 
@@ -340,7 +340,7 @@ export function mergeAuthorityShard(
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
-      localeRefreshPending: false,
+      localeRefreshPending: current.localeRefreshPending || localeChanged,
     };
   }
 
@@ -354,8 +354,15 @@ export function mergeAuthorityShard(
     selectedCanonicalId: current.selectedCanonicalId,
     inspectorOpen: current.inspectorOpen,
     positionsByCanonicalId: current.positionsByCanonicalId,
-    localeRefreshPending: false,
+    localeRefreshPending: current.localeRefreshPending || localeChanged,
   };
+}
+
+export function completeAuthorityLocaleRefresh(
+  current: AuthorityShardWorkspaceState,
+): AuthorityShardWorkspaceState {
+  if (!current.localeRefreshPending) return current;
+  return { ...current, localeRefreshPending: false };
 }
 
 export function rememberAuthorityShardPositions(
