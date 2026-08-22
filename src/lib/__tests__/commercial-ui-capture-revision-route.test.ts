@@ -100,4 +100,10 @@ describe('development-only commercial UI capture revision probe', () => {
     expect(secondResponse.status).toBe(200);
     expect(await secondResponse.json()).toEqual(firstProof);
   });
+
+  it('does not expose a test-only route export', async () => {
+    expect(await import('../../app/api/internal/local-qa/revision/route')).not.toHaveProperty(
+      'resetRuntimeCaptureRevisionProofForTests',
+    );
+  });
 });

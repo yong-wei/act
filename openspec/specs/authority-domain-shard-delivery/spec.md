@@ -82,4 +82,3 @@ Trusted Formula expressions and governed knowledge-content math nodes SHALL be p
 - **WHEN** the selected object has trusted Formula content
 - **THEN** the detail shard SHALL distinguish the reviewed mathematical expression from localized explanatory prose
 - **AND** both fields SHALL remain bound to the same selected object and shard envelope
-

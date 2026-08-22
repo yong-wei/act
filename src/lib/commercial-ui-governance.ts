@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+
 import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
@@ -330,10 +332,190 @@ export interface CommercialSimulationCommandDeckCruiseComparisonEvidence {
 export interface CommercialSimulationCommandDeckGeometryEvidence {
   change: 'normalize-simulation-command-deck-layout' | 'unify-simulation-chrome-and-camera-views';
   generatedAt?: string;
+  captureRevision?: Pick<CommercialRuntimeRevisionSnapshot, 'commitSha' | 'treeSha'>;
   sourceSha256?: Record<string, string>;
   currentSourceSha256?: Record<string, string>;
+  runtimeRevisionProof?: CommercialRuntimeRevisionProof;
   viewports: readonly CommercialSimulationCommandDeckViewportEvidence[];
   cruiseComparison?: CommercialSimulationCommandDeckCruiseComparisonEvidence;
+}
+
+export interface CommercialRuntimeRevisionSnapshot {
+  commitSha: string;
+  treeSha: string;
+  sourceFingerprint: string;
+  clean: boolean;
+}
+
+export interface CommercialRuntimeRevisionProof {
+  endpoint: string;
+  expected: CommercialRuntimeRevisionSnapshot;
+  beforeCapture: CommercialRuntimeRevisionSnapshot;
+  afterCapture: CommercialRuntimeRevisionSnapshot;
+}
+
+const COMMERCIAL_RUNTIME_REVISION_SHA = /^[0-9a-f]{40}$/u;
+const COMMERCIAL_RUNTIME_SOURCE_FINGERPRINT = /^[0-9a-f]{64}$/u;
+
+function isCommercialRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function commercialRuntimeRevisionSnapshotProblems(
+  value: unknown,
+  pathName: string,
+) {
+  if (!isCommercialRecord(value)) return [`${pathName}:object`];
+  const expectedKeys = ['clean', 'commitSha', 'sourceFingerprint', 'treeSha'];
+  const actualKeys = Object.keys(value).sort();
+  const problems = actualKeys.length === expectedKeys.length
+    && actualKeys.every((key, index) => key === expectedKeys[index])
+    ? []
+    : [`${pathName}:fields`];
+  if (typeof value.commitSha !== 'string' || !COMMERCIAL_RUNTIME_REVISION_SHA.test(value.commitSha)) {
+    problems.push(`${pathName}.commitSha`);
+  }
+  if (typeof value.treeSha !== 'string' || !COMMERCIAL_RUNTIME_REVISION_SHA.test(value.treeSha)) {
+    problems.push(`${pathName}.treeSha`);
+  }
+  if (
+    typeof value.sourceFingerprint !== 'string'
+    || !COMMERCIAL_RUNTIME_SOURCE_FINGERPRINT.test(value.sourceFingerprint)
+  ) {
+    problems.push(`${pathName}.sourceFingerprint`);
+  }
+  if (value.clean !== true) problems.push(`${pathName}.clean=true`);
+  return problems;
+}
+
+export function commercialRuntimeRevisionProofProblems(value: unknown) {
+  if (!isCommercialRecord(value)) return ['runtimeRevisionProof:missing'];
+  const expectedKeys = ['afterCapture', 'beforeCapture', 'endpoint', 'expected'];
+  const actualKeys = Object.keys(value).sort();
+  const problems = actualKeys.length === expectedKeys.length
+    && actualKeys.every((key, index) => key === expectedKeys[index])
+    ? []
+    : ['runtimeRevisionProof:fields'];
+  if (typeof value.endpoint !== 'string' || !value.endpoint) {
+    problems.push('runtimeRevisionProof.endpoint');
+  } else {
+    try {
+      if (new URL(value.endpoint).pathname !== '/api/internal/local-qa/revision') {
+        problems.push('runtimeRevisionProof.endpoint:path');
+      }
+    } catch {
+      problems.push('runtimeRevisionProof.endpoint:url');
+    }
+  }
+
+  const snapshots = {
+    expected: value.expected,
+    beforeCapture: value.beforeCapture,
+    afterCapture: value.afterCapture,
+  } as const;
+  for (const [pathName, snapshot] of Object.entries(snapshots)) {
+    problems.push(...commercialRuntimeRevisionSnapshotProblems(snapshot, `runtimeRevisionProof.${pathName}`));
+  }
+
+  const expected = isCommercialRecord(value.expected) ? value.expected : undefined;
+  for (const pathName of ['beforeCapture', 'afterCapture'] as const) {
+    const snapshot = isCommercialRecord(value[pathName]) ? value[pathName] : undefined;
+    for (const field of ['commitSha', 'treeSha', 'sourceFingerprint', 'clean'] as const) {
+      if (expected?.[field] !== snapshot?.[field]) {
+        problems.push(`runtimeRevisionProof.${pathName}.${field}=expected`);
+      }
+    }
+  }
+  return problems;
+}
+
+export function commercialRuntimeRevisionProofObjectProblems(
+  value: unknown,
+  repositoryRoot: string,
+  pathName = 'runtimeRevisionProof',
+) {
+  const problems = commercialRuntimeRevisionProofProblems(value)
+    .map((problem) => problem.replace(/^runtimeRevisionProof/u, pathName));
+  if (!isCommercialRecord(value)) return problems;
+
+  const objectCache = new Map<string, { valid: boolean; treeMatches: boolean }>();
+  const snapshots = ['expected', 'beforeCapture', 'afterCapture'] as const;
+  for (const snapshotName of snapshots) {
+    const snapshot = value[snapshotName];
+    if (!isCommercialRecord(snapshot)) continue;
+    const commitSha = typeof snapshot.commitSha === 'string' ? snapshot.commitSha : '';
+    const treeSha = typeof snapshot.treeSha === 'string' ? snapshot.treeSha : '';
+    if (!/^[0-9a-f]{40}$/u.test(commitSha) || !/^[0-9a-f]{40}$/u.test(treeSha)) continue;
+    const cacheKey = `${repositoryRoot}\0${commitSha}\0${treeSha}`;
+    const cached = objectCache.get(cacheKey);
+    if (cached) {
+      if (!cached.valid) problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+      else if (!cached.treeMatches) problems.push(`${pathName}.${snapshotName}.treeSha=commit`);
+      continue;
+    }
+    try {
+      const commitType = execFileSync('git', ['cat-file', '-t', commitSha], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (commitType !== 'commit') {
+        objectCache.set(cacheKey, { valid: false, treeMatches: false });
+        problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+        continue;
+      }
+      const resolvedTree = execFileSync('git', ['rev-parse', '--verify', `${commitSha}^{tree}`], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (resolvedTree !== treeSha) {
+        objectCache.set(cacheKey, { valid: true, treeMatches: false });
+        problems.push(`${pathName}.${snapshotName}.treeSha=commit`);
+      } else {
+        objectCache.set(cacheKey, { valid: true, treeMatches: true });
+      }
+    } catch {
+      objectCache.set(cacheKey, { valid: false, treeMatches: false });
+      problems.push(`${pathName}.${snapshotName}.commitSha:object`);
+    }
+  }
+
+  const expected = isCommercialRecord(value.expected) ? value.expected : undefined;
+  const expectedCommitSha = typeof expected?.commitSha === 'string' ? expected.commitSha : '';
+  if (/^[0-9a-f]{40}$/u.test(expectedCommitSha)) {
+    try {
+      const currentHead = execFileSync('git', ['rev-parse', '--verify', 'HEAD^{commit}'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      execFileSync('git', ['merge-base', '--is-ancestor', expectedCommitSha, currentHead], {
+        cwd: repositoryRoot,
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
+    } catch {
+      problems.push(`${pathName}.expected.commitSha=current-head`);
+    }
+  }
+  return problems;
+}
+
+export function commercialCaptureRevisionProblems(value: unknown, pathName = 'captureRevision') {
+  if (!isCommercialRecord(value)) return [`${pathName}:missing`];
+  const expectedKeys = ['commitSha', 'treeSha'];
+  const actualKeys = Object.keys(value).sort();
+  const problems = actualKeys.length === expectedKeys.length
+    && actualKeys.every((key, index) => key === expectedKeys[index])
+    ? []
+    : [`${pathName}:fields`];
+  if (typeof value.commitSha !== 'string' || !COMMERCIAL_RUNTIME_REVISION_SHA.test(value.commitSha)) {
+    problems.push(`${pathName}.commitSha`);
+  }
+  if (typeof value.treeSha !== 'string' || !COMMERCIAL_RUNTIME_REVISION_SHA.test(value.treeSha)) {
+    problems.push(`${pathName}.treeSha`);
+  }
+  return problems;
 }
 
 export interface CommercialSimulationReactDoctorEvidence {
@@ -459,6 +641,8 @@ export interface CommercialSimulationFullMatrixReviewEvidence {
 export interface CommercialSimulationFullMatrixQaEvidence {
   change: 'govern-simulation-full-matrix-visual-qa';
   generatedAt?: string;
+  captureRevision?: Pick<CommercialRuntimeRevisionSnapshot, 'commitSha' | 'treeSha'>;
+  runtimeRevisionProof?: CommercialRuntimeRevisionProof;
   activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene';
   routeCount: 7;
   requiredThemes: readonly CommercialVisualQaTheme[];
@@ -2466,6 +2650,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -2527,6 +2712,12 @@ function buildSimulationFullMatrixVisualQaViolations(
     && reviewImplementationScreenshots.every((screenshot, index) => screenshot === expectedImplementationScreenshots[index]);
 
   const missing = [
+    ...commercialCaptureRevisionProblems(fullMatrixEvidence.captureRevision, 'simulationFullMatrixVisualQa.captureRevision'),
+    ...commercialRuntimeRevisionProofObjectProblems(
+      fullMatrixEvidence.runtimeRevisionProof,
+      process.cwd(),
+      'simulationFullMatrixVisualQa.runtimeRevisionProof',
+    ),
     fullMatrixEvidence.change !== SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE
       ? `simulationFullMatrixVisualQa.change=${SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE}`
       : '',
@@ -2597,6 +2788,16 @@ function buildSimulationFullMatrixVisualQaViolations(
       ? 'simulationFullMatrixVisualQa.entries=28'
       : '',
   ].filter(Boolean);
+
+  const fullMatrixExpected = fullMatrixEvidence.runtimeRevisionProof?.expected;
+  if (fullMatrixExpected && fullMatrixEvidence.captureRevision) {
+    if (fullMatrixExpected.commitSha !== fullMatrixEvidence.captureRevision.commitSha) {
+      missing.push('simulationFullMatrixVisualQa.runtimeRevisionProof.expected.commitSha=captureRevision.commitSha');
+    }
+    if (fullMatrixExpected.treeSha !== fullMatrixEvidence.captureRevision.treeSha) {
+      missing.push('simulationFullMatrixVisualQa.runtimeRevisionProof.expected.treeSha=captureRevision.treeSha');
+    }
+  }
 
   const allowedDetailRouteHrefs = new Set(requiredDetailRoutes.map((route) => route.href));
   for (const entry of fullMatrixEvidence.entries) {
@@ -2724,6 +2925,13 @@ function buildSimulationVisualQaViolations(
       : null;
 
     const missing = [
+      ...(simulationEvidence.commandDeckGeometry
+        ? commercialRuntimeRevisionProofObjectProblems(
+            simulationEvidence.commandDeckGeometry.runtimeRevisionProof,
+            process.cwd(),
+            'commandDeckGeometry.runtimeRevisionProof',
+          )
+        : []),
       simulationEvidence.archetype !== route.archetype ? `archetype=${route.archetype}` : '',
       route.finalBehavior && simulationEvidence.virtualLabFinalBehavior !== route.finalBehavior
         ? `virtualLabFinalBehavior=${route.finalBehavior}`
@@ -2950,6 +3158,19 @@ function buildSimulationVisualQaViolations(
       if (!commandDeckGeometry) {
         missing.push('commandDeckGeometry');
       } else {
+        missing.push(...commercialCaptureRevisionProblems(
+          commandDeckGeometry.captureRevision,
+          'commandDeckGeometry.captureRevision',
+        ));
+        const runtimeExpected = commandDeckGeometry.runtimeRevisionProof?.expected;
+        if (runtimeExpected && commandDeckGeometry.captureRevision) {
+          if (runtimeExpected.commitSha !== commandDeckGeometry.captureRevision.commitSha) {
+            missing.push('commandDeckGeometry.runtimeRevisionProof.expected.commitSha=captureRevision.commitSha');
+          }
+          if (runtimeExpected.treeSha !== commandDeckGeometry.captureRevision.treeSha) {
+            missing.push('commandDeckGeometry.runtimeRevisionProof.expected.treeSha=captureRevision.treeSha');
+          }
+        }
         if (
           commandDeckGeometry.change !== 'normalize-simulation-command-deck-layout'
           && commandDeckGeometry.change !== 'unify-simulation-chrome-and-camera-views'
@@ -4312,8 +4533,14 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
     ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
-    ...buildSimulationFullMatrixVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
-    ...buildSimulationVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
+    ...buildSimulationFullMatrixVisualQaViolations(
+      simulationVisualQaMatrix,
+      input.visualEvidence,
+    ),
+    ...buildSimulationVisualQaViolations(
+      simulationVisualQaMatrix,
+      input.visualEvidence,
+    ),
     ...buildInteractiveLearningProductQaViolations(
       input.interactiveLearningProductQa,
       input.interactiveLearningProductQaRequired,

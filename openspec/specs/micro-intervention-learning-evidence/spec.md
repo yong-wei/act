@@ -60,4 +60,3 @@ TBD - created by archiving change contribute-micro-intervention-evidence-to-adap
 - **WHEN** 系统汇总证据质量、通过率或路径影响
 - **THEN** 报告 SHALL 只包含抑制后的聚合计数和不可逆治理身份
 - **AND** 不得输出可还原个人作答或提示内容的数据
-

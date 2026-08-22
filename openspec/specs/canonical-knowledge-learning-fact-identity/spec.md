@@ -79,4 +79,3 @@ The system MUST NOT write both Legacy and Canonical knowledge identities for a p
 - **WHEN** outcome 的规范节点、Authority Release、Projection 或 capture revision 与当前写入边界不一致
 - **THEN** producer SHALL 拒绝正式 LearningFact
 - **AND** 仅记录私有 drift/limitation 供审计
-
