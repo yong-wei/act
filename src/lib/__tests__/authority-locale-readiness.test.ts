@@ -53,7 +53,10 @@ import {
   FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC,
 } from '@/lib/authority-locale-readiness';
 import { loadActivePresentationInventory } from '@/lib/authority-locale-readiness/active-presentation-inventory';
-import { resolveActiveLocaleQualification } from '@/lib/authority-locale-readiness/request';
+import {
+  localeManifestQualificationDigest,
+  resolveActiveLocaleQualification,
+} from '@/lib/authority-locale-readiness/request';
 import { FUTURE_RELEASE_BOUNDARY, qualifyPublishedLatestComposite } from '@/lib/authority-locale-readiness/published';
 import { activeLocaleCapability, resolveActiveLocaleRequest } from '@/lib/authority-locale-readiness/request';
 
@@ -450,6 +453,33 @@ describe('locale request gate', () => {
     expect(capability.bilingualReady).toBe(false);
     expect(capability.mode).toBe('historical');
     expect(capability.availableLocales).toEqual(['zh-CN']);
+  });
+
+  it('changes the locale cache fingerprint when qualification inputs other than records change', () => {
+    const bilingual = completeBilingualLocaleFixture();
+    const base = localeManifestQualificationDigest(bilingual);
+    expect(localeManifestQualificationDigest({
+      ...bilingual,
+      locales: ['zh-CN'],
+    })).not.toBe(base);
+    expect(localeManifestQualificationDigest({
+      ...bilingual,
+      identity: {
+        ...bilingual.identity,
+        schemaId: 'act-authority-locale-manifest/v0' as typeof bilingual.identity.schemaId,
+      },
+    })).not.toBe(base);
+    expect(localeManifestQualificationDigest({
+      ...bilingual,
+      identity: {
+        ...bilingual.identity,
+        languageComponentDigest: 'b'.repeat(64),
+      },
+    })).not.toBe(base);
+    expect(localeManifestQualificationDigest({
+      ...bilingual,
+      languageNeutralRecordIds: ['math:other'],
+    })).not.toBe(base);
   });
 
   it('does not qualify the active selector with a null expected denominator', () => {

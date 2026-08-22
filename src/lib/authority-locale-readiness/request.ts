@@ -23,6 +23,7 @@ import {
   type PublicLocaleCapability,
   type ReleaseLocaleQualification,
 } from './contracts';
+import { localeDigest } from './digest';
 import { contentDigestFor, denominatorDigestFor, isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
 import { loadActivePresentationInventory } from './active-presentation-inventory';
@@ -60,6 +61,29 @@ function historicalQualification(): ActiveLocaleQualification {
 
 const qualificationByEvidence = new Map<string, ActiveLocaleQualification>();
 
+export function localeManifestQualificationDigest(
+  manifest: AuthorityLocaleManifest,
+): string {
+  const contentDigest = contentDigestFor(manifest.records);
+  const denominatorDigest = denominatorDigestFor(manifest.denominators);
+  if (
+    contentDigest !== manifest.contentDigest
+    || denominatorDigest !== manifest.denominatorDigest
+  ) {
+    throw new Error('locale manifest digest drifted from the on-disk records');
+  }
+  return localeDigest({
+    contract: manifest.contract,
+    identity: manifest.identity,
+    locales: manifest.locales,
+    languageNeutralRecordIds: manifest.languageNeutralRecordIds,
+    contentDigest,
+    denominatorDigest,
+    records: manifest.records,
+    denominators: manifest.denominators,
+  });
+}
+
 function localeEvidenceFingerprint(
   repoRoot: string,
   snapshotHash: string,
@@ -91,29 +115,13 @@ function localeEvidenceFingerprint(
     throw new Error('active shard-set seal drifted from the current pointer');
   }
   const localeManifest = readPublishedLocaleManifest(repoRoot);
-  let localeName = 'missing';
-  let contentDigest = 'missing';
-  let denominatorDigest = 'missing';
-  if (localeManifest) {
-    contentDigest = contentDigestFor(localeManifest.records);
-    denominatorDigest = denominatorDigestFor(localeManifest.denominators);
-    if (
-      contentDigest !== localeManifest.contentDigest
-      || denominatorDigest !== localeManifest.denominatorDigest
-    ) {
-      throw new Error('locale manifest digest drifted from the on-disk records');
-    }
-    localeName = localeManifest.identity.compositeReleaseName;
-  }
   return [
     snapshotHash,
     releaseId,
     catalogHash,
     recomputedSetHash,
     pointer.shardSetId,
-    localeName,
-    contentDigest,
-    denominatorDigest,
+    localeManifest ? localeManifestQualificationDigest(localeManifest) : 'missing',
   ].join(':');
 }
 
