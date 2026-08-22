@@ -440,7 +440,7 @@ export async function preflightDiagnosisGeneration(
     const score = asFiniteNumber(row.approvedTotal);
     const totalPoints = asFiniteNumber(row.revision.totalPoints);
     if (!hasConsistentFrozenAssignmentSubmissionLineage(row, input.classId)
-      || row.reviewState !== 'REVIEWED' || score === null || totalPoints === null
+      || row.reviewState !== 'REVIEWED' || score === null || totalPoints === null || totalPoints <= 0
       || !row.revision.contentHash || !row.revision.publishedAt || !row.reviewedAt
       || row.revision.publishedAt > evidenceCutoff || row.reviewedAt > evidenceCutoff) {
       return [];

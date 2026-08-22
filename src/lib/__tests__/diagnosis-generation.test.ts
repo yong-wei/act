@@ -247,6 +247,74 @@ describe('teacher diagnosis generation contracts', () => {
     expect(JSON.stringify(governedToolResults)).not.toContain('student-actual-2');
   });
 
+  it('normalizes assignment aggregates against their reviewed total points', async () => {
+    const providerInput = {
+      schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+      classId: 'class-1',
+      studentIds: ['student-1', 'student-2'],
+      assignmentSubmissions: [
+        {
+          id: 'assignment-submission-1',
+          userId: 'student-1',
+          assignmentRevisionId: 'assignment-revision-1',
+          contentHash: 'assignment-content-sha256',
+          score: 20,
+          totalPoints: 20,
+          reviewedAt: now.toISOString(),
+        },
+        {
+          id: 'assignment-submission-2',
+          userId: 'student-2',
+          assignmentRevisionId: 'assignment-revision-2',
+          contentHash: 'assignment-content-sha256',
+          score: 10,
+          totalPoints: 20,
+          reviewedAt: now.toISOString(),
+        },
+      ],
+      riskFlags: [],
+      competencySnapshots: [],
+      knowledgeProgress: [],
+    };
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '作业结果需要复核。',
+        findings: [],
+        evidenceRefs: ['assignment-submission:assignment-submission-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 2 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-normalized-assignment',
+    });
+
+    await generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-normalized-assignment-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: providerInput,
+      inputDigest: digestDiagnosisGovernedInput(providerInput),
+    });
+
+    const assignments = JSON.parse(providerGenerate.mock.calls.at(-1)?.[0]?.prompt as string)
+      .governedToolResults.assignments;
+    expect(assignments.assignments.map((assignment: { scorePercent: number }) => assignment.scorePercent))
+      .toEqual([50, 100]);
+    expect(assignments.aggregate).toEqual({
+      count: 2,
+      mean: 75,
+      min: 50,
+      max: 100,
+      below60: 1,
+      atLeast85: 1,
+    });
+  });
+
   it('bounds a large class provider projection while retaining complete governed coverage', async () => {
     const studentIds = Array.from({ length: 100 }, (_value, index) => `student-${index}`);
     const providerInput = {

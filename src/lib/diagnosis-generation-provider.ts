@@ -45,7 +45,7 @@ const governedInputSchema = z.object({
     assignmentRevisionId: z.string(),
     contentHash: z.string(),
     score: z.number(),
-    totalPoints: z.number(),
+    totalPoints: z.number().positive(),
     reviewedAt: z.string(),
   })).optional(),
   assessmentSessions: z.array(z.object({
@@ -290,6 +290,7 @@ function projectFrozenAssignments(
     contentHash: row.contentHash,
     score: row.score,
     totalPoints: row.totalPoints,
+    scorePercent: normalizeAssignmentScore(row.score, row.totalPoints),
     reviewedAt: row.reviewedAt,
     evidenceRefs: [`assignment-submission:${row.id}`],
   }));
@@ -454,18 +455,26 @@ function projectFrozenKnowledgeProgress(
 }
 
 function compactAssignmentsForProvider(projection: ReturnType<typeof projectFrozenAssignments>) {
-  const assignments = selectRepresentativeScoredRows(projection.assignments, MAX_PROVIDER_OUTCOME_ROWS);
+  const assignments = selectRepresentativeScoredRows(
+    projection.assignments,
+    MAX_PROVIDER_OUTCOME_ROWS,
+    (assignment) => assignment.scorePercent,
+  );
   return {
     ...projection,
     assignments,
     evidenceRefs: assignments.flatMap((row) => row.evidenceRefs),
-    aggregate: scoreAggregate(projection.assignments),
+    aggregate: assignmentScoreAggregate(projection.assignments),
     providerProjection: providerProjectionMetadata(projection.assignments.length, assignments.length),
   };
 }
 
 function compactAssessmentsForProvider(projection: ReturnType<typeof projectFrozenAssessments>) {
-  const assessments = selectRepresentativeScoredRows(projection.assessments, MAX_PROVIDER_OUTCOME_ROWS);
+  const assessments = selectRepresentativeScoredRows(
+    projection.assessments,
+    MAX_PROVIDER_OUTCOME_ROWS,
+    (assessment) => assessment.score,
+  );
   return {
     ...projection,
     assessments,
@@ -547,9 +556,15 @@ function compactKnowledgeProgressForProvider(projection: ReturnType<typeof proje
   };
 }
 
-function selectRepresentativeScoredRows<T extends { score: number; evidenceRefs: string[] }>(rows: T[], limit: number) {
+function selectRepresentativeScoredRows<T extends { evidenceRefs: string[] }>(
+  rows: T[],
+  limit: number,
+  scoreFor: (row: T) => number,
+) {
   return takeEvenlyDistributed(
-    [...rows].sort((left, right) => left.score - right.score || left.evidenceRefs[0].localeCompare(right.evidenceRefs[0])),
+    [...rows].sort((left, right) => (
+      scoreFor(left) - scoreFor(right) || left.evidenceRefs[0].localeCompare(right.evidenceRefs[0])
+    )),
     limit,
   );
 }
@@ -572,6 +587,24 @@ function scoreAggregate(rows: Array<{ score: number }>) {
     below60: scores.filter((score) => score < 60).length,
     atLeast85: scores.filter((score) => score >= 85).length,
   };
+}
+
+function assignmentScoreAggregate(rows: Array<{ score: number; totalPoints: number; scorePercent: number }>) {
+  if (rows.length === 0) return { count: 0, mean: null, min: null, max: null, below60: 0, atLeast85: 0 };
+  const totalPoints = rows.reduce((sum, row) => sum + row.totalPoints, 0);
+  const scores = rows.map((row) => row.scorePercent);
+  return {
+    count: rows.length,
+    mean: round((rows.reduce((sum, row) => sum + row.score, 0) / totalPoints) * 100),
+    min: Math.min(...scores),
+    max: Math.max(...scores),
+    below60: scores.filter((score) => score < 60).length,
+    atLeast85: scores.filter((score) => score >= 85).length,
+  };
+}
+
+function normalizeAssignmentScore(score: number, totalPoints: number) {
+  return round((score / totalPoints) * 100);
 }
 
 function countBy<T>(rows: T[], keyFor: (row: T) => string) {
