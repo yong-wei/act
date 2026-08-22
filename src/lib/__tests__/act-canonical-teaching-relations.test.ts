@@ -146,7 +146,7 @@ describe('act-canonical-teaching-relations', () => {
     const failed = qualifyPipeline({
       pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
       pipelineConfigDigest: pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, {
-        courseRootIds: [],
+        courseRoots: [],
         parents: [],
       }),
       gold,
@@ -379,7 +379,10 @@ describe('act-canonical-teaching-relations', () => {
     const scope = threeMemberScope();
     expect(() => buildActTeachingProjection({
       scope,
-      evidence: { courseRootIds: ['ctc:a'], parents: [] },
+      evidence: {
+        courseRoots: [{ canonicalId: 'ctc:a', evidenceRefs: ['evidence:handout-course-root-a'] }],
+        parents: [],
+      },
       gold: {
         name: 'gold',
         items: representativeGold().items.filter((item) => (
@@ -423,5 +426,30 @@ describe('act-canonical-teaching-relations', () => {
       decisions: artifacts.decisions,
     });
     expect(next.packHash).not.toBe(artifacts.reviewPack.packHash);
+  });
+
+  it('rejects COURSE_ROOT ids that are not gold/holdout admitted items', () => {
+    const scope = threeMemberScope();
+    expect(() => buildActTeachingProjection({
+      scope,
+      evidence: {
+        courseRoots: [
+          { canonicalId: 'ctc:a', evidenceRefs: ['evidence:handout-course-root-a'] },
+          { canonicalId: 'real:x', evidenceRefs: ['evidence:unrelated'] },
+        ],
+        parents: FIXTURE_CONTAINMENT_EVIDENCE.parents,
+      },
+      gold: representativeGold(),
+      holdout: representativeHoldout(),
+      threshold: 0.99,
+    })).toThrow(/not a gold\/holdout admitted item/);
+  });
+
+  it('rejects published containment without the matching edge set', () => {
+    const artifacts = qualifiedArtifacts();
+    expect(() => publishActTeachingProjection({
+      ...artifacts,
+      edges: [],
+    })).toThrow(/exactly one matching containment parent edge|containment edge/);
   });
 });

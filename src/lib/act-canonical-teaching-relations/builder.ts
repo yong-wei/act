@@ -3,6 +3,7 @@ import type { ActTeachingProjectionArtifacts, ActTeachingScope } from './contrac
 import { emptyDispositions } from './families';
 import {
   COURSE_ROOT_PIPELINE_VERSION,
+  assertEvidenceBoundToQualificationDatasets,
   generateContainmentCandidates,
   generatePendingFamilyPlaceholders,
   measurePipelineDataset,
@@ -22,6 +23,7 @@ export function buildActTeachingProjection(input: {
   threshold: number;
   kaqFallbacks?: readonly KaqFallbackRelation[];
 }): ActTeachingProjectionArtifacts {
+  assertEvidenceBoundToQualificationDatasets(input.evidence, input.gold, input.holdout);
   const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, input.evidence);
   const qualification = qualifyPipeline({
     pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,

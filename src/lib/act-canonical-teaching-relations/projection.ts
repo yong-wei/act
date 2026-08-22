@@ -74,6 +74,7 @@ export function publishActTeachingProjection(input: {
     assertContainmentSkeleton({
       scope: input.scope,
       dispositions: input.dispositions,
+      edges: input.edges,
     });
   }
 

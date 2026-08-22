@@ -9,13 +9,27 @@ import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const COURSE_ROOT_PIPELINE_VERSION = 'act-explicit-containment-evidence/v1' as const;
 
+export interface CourseRootEvidence {
+  readonly canonicalId: string;
+  readonly evidenceRefs: readonly string[];
+}
+
 export interface ContainmentEvidence {
-  readonly courseRootIds: readonly string[];
+  readonly courseRoots: readonly CourseRootEvidence[];
   readonly parents: readonly {
     readonly childCanonicalId: string;
     readonly parentCanonicalId: string;
     readonly evidenceRefs: readonly string[];
   }[];
+}
+
+function assertVerifiableRefs(refs: readonly string[], label: string): void {
+  if (refs.length === 0) {
+    throw new Error(`${label} requires verifiable evidence refs`);
+  }
+  if (refs.some((ref) => ref.startsWith('course-root:') || ref.startsWith('scope:'))) {
+    throw new Error(`${label} cannot self-certify identity as evidence`);
+  }
 }
 
 export function pipelineConfigDigest(
@@ -25,7 +39,10 @@ export function pipelineConfigDigest(
   return projectionDigest({
     version,
     rule: 'explicit-root-or-parent-evidence',
-    courseRootIds: [...evidence.courseRootIds].sort(),
+    courseRoots: evidence.courseRoots.map((row) => ({
+      canonicalId: row.canonicalId,
+      evidenceRefs: [...row.evidenceRefs].sort(),
+    })).sort((a, b) => a.canonicalId.localeCompare(b.canonicalId)),
     parents: evidence.parents.map((row) => ({
       childCanonicalId: row.childCanonicalId,
       parentCanonicalId: row.parentCanonicalId,
@@ -50,12 +67,11 @@ export function generateContainmentCandidates(
   const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
   const members = new Set(scope.memberIds);
   const rows: ActTeachingCandidate[] = [];
-  for (const canonicalId of evidence.courseRootIds) {
-    if (!members.has(canonicalId)) continue;
-    const evidenceRefs = [
-      `scope:${scope.scopeHash}`,
-      `course-root:${canonicalId}`,
-    ];
+  for (const root of evidence.courseRoots) {
+    if (!members.has(root.canonicalId)) continue;
+    assertVerifiableRefs(root.evidenceRefs, `COURSE_ROOT ${root.canonicalId}`);
+    const evidenceRefs = [...root.evidenceRefs];
+    const canonicalId = root.canonicalId;
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({
@@ -86,6 +102,7 @@ export function generateContainmentCandidates(
     if (!members.has(parent.childCanonicalId) || !members.has(parent.parentCanonicalId)) {
       continue;
     }
+    assertVerifiableRefs(parent.evidenceRefs, `parent ${parent.childCanonicalId}`);
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({
@@ -128,7 +145,7 @@ export function generatePendingFamilyPlaceholders(
   scope: ActTeachingScope,
   family: 'containment' | 'prerequisite' | 'association',
 ): ActTeachingCandidate[] {
-  const evidence: ContainmentEvidence = { courseRootIds: [], parents: [] };
+  const evidence: ContainmentEvidence = { courseRoots: [], parents: [] };
   const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
   return scope.memberIds.map((canonicalId) => ({
     contract: ACT_TEACHING_CANDIDATE_CONTRACT,
@@ -166,7 +183,9 @@ export function pipelineAdmitsItem(
   evidence: ContainmentEvidence,
 ): boolean {
   if (item.family === 'containment' && item.targetCanonicalId === null) {
-    return evidence.courseRootIds.includes(item.sourceCanonicalId);
+    return evidence.courseRoots.some((row) => (
+      row.canonicalId === item.sourceCanonicalId && row.evidenceRefs.length > 0
+    ));
   }
   if (item.family === 'containment' && item.targetCanonicalId) {
     return evidence.parents.some((row) => (
@@ -184,4 +203,32 @@ export function measurePipelineDataset(
   return dataset.items
     .filter((item) => pipelineAdmitsItem(item, evidence))
     .map((item) => item.id);
+}
+
+export function assertEvidenceBoundToQualificationDatasets(
+  evidence: ContainmentEvidence,
+  gold: QualificationDataset,
+  holdout: QualificationDataset,
+): void {
+  const admitted = [...gold.items, ...holdout.items].filter((item) => item.expected === 'admit');
+  for (const root of evidence.courseRoots) {
+    const matched = admitted.some((item) => (
+      item.family === 'containment'
+      && item.sourceCanonicalId === root.canonicalId
+      && item.targetCanonicalId === null
+    ));
+    if (!matched) {
+      throw new Error(`COURSE_ROOT ${root.canonicalId} is not a gold/holdout admitted item`);
+    }
+  }
+  for (const parent of evidence.parents) {
+    const matched = admitted.some((item) => (
+      item.family === 'containment'
+      && item.sourceCanonicalId === parent.childCanonicalId
+      && item.targetCanonicalId === parent.parentCanonicalId
+    ));
+    if (!matched) {
+      throw new Error(`parent ${parent.childCanonicalId} is not a gold/holdout admitted item`);
+    }
+  }
 }

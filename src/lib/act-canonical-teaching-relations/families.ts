@@ -142,6 +142,7 @@ export function replaceDisposition(
 export function assertContainmentSkeleton(input: {
   scope: ActTeachingScope;
   dispositions: readonly ActTeachingFamilyDisposition[];
+  edges?: readonly ActTeachingPublishedEdge[];
 }): void {
   if (input.scope.memberIds.length === 0) return;
   const byMember = new Map<string, ActTeachingFamilyDisposition>();
@@ -174,6 +175,42 @@ export function assertContainmentSkeleton(input: {
         'containment-incomplete',
         `member ${memberId} published containment is missing its edge`,
       );
+    }
+  }
+  const edges = input.edges ?? [];
+  const containmentEdges = edges.filter((edge) => edge.family === 'containment');
+  const members = new Set(input.scope.memberIds);
+  for (const edge of containmentEdges) {
+    if (!members.has(edge.sourceCanonicalId) || !members.has(edge.targetCanonicalId)) {
+      throw new ActTeachingRelationError(
+        'containment-incomplete',
+        `containment edge ${edge.edgeId} has an endpoint outside the scope`,
+      );
+    }
+    const row = byMember.get(edge.sourceCanonicalId);
+    if (!row || row.kind !== PUBLISHED_EDGE_DISPOSITION || row.edgeId !== edge.edgeId) {
+      throw new ActTeachingRelationError(
+        'containment-edge-mismatch',
+        `containment edge ${edge.edgeId} is not the unique published parent for ${edge.sourceCanonicalId}`,
+      );
+    }
+  }
+  for (const memberId of input.scope.memberIds) {
+    const row = byMember.get(memberId)!;
+    const sourced = containmentEdges.filter((edge) => edge.sourceCanonicalId === memberId);
+    if (row.kind === COURSE_ROOT_DISPOSITION && sourced.length > 0) {
+      throw new ActTeachingRelationError(
+        'containment-root-parent-conflict',
+        `member ${memberId} cannot be COURSE_ROOT and also have parent edges`,
+      );
+    }
+    if (row.kind === PUBLISHED_EDGE_DISPOSITION) {
+      if (sourced.length !== 1 || sourced[0]?.edgeId !== row.edgeId) {
+        throw new ActTeachingRelationError(
+          'containment-edge-mismatch',
+          `member ${memberId} must have exactly one matching containment parent edge`,
+        );
+      }
     }
   }
 }

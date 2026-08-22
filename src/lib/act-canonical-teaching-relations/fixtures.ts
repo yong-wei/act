@@ -71,7 +71,12 @@ export function fixtureCatalog(input: {
 }
 
 export const FIXTURE_CONTAINMENT_EVIDENCE = {
-  courseRootIds: ['ctc:a'],
+  courseRoots: [
+    {
+      canonicalId: 'ctc:a',
+      evidenceRefs: ['evidence:handout-course-root-a'],
+    },
+  ],
   parents: [
     {
       childCanonicalId: 'ctc:b',
