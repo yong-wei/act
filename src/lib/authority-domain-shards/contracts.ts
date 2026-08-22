@@ -132,6 +132,8 @@ export interface AuthorityShardObject {
   semanticSupport: { supported: boolean; readOnly: true };
   memberships: readonly AuthorityShardMembership[];
   conceptKind?: string | null;
+  /** Complete-locale type term; omitted on sealed historical shards. */
+  typeLabel?: string | null;
 }
 
 export interface AuthorityShardMembership {
@@ -155,6 +157,10 @@ export interface AuthorityShardRelation {
   semanticSupport: { supported: boolean; readOnly: true };
   layer: AuthorityRelationLayer;
   relationFamily: EngineeringRelationFamily | 'teaching-prerequisite' | null;
+  /** Complete-locale relation term; omitted on sealed historical shards. */
+  predicateLabel?: string | null;
+  /** Complete-locale direction term; omitted on sealed historical shards. */
+  directionLabel?: string | null;
 }
 
 export interface AuthorityShardBoundaryRef {
@@ -232,7 +238,9 @@ export interface AuthorityNodeDetailShard {
       publicationStatus: string | null;
       lifecycleStatus: string | null;
     };
-    sources: Array<{ sourceEditionId: string; sectionId: string }>;
+    /** Complete-locale type term; omitted on sealed historical shards. */
+    typeLabel?: string | null;
+    sources: Array<{ sourceEditionId: string; sectionId: string; label?: string | null }>;
     media: {
       cardAvailable: false;
       infographAvailable: false;

@@ -10,6 +10,7 @@ import {
   type LocalePresentationRecord,
   type MandatoryLocaleCategory,
 } from './contracts';
+import type { LocalePresentationInventory } from './presentation-denominator';
 import { contentDigestFor, denominatorDigestFor } from './qualify';
 import { localeDigest } from './digest';
 
@@ -86,6 +87,27 @@ function manifest(
     languageNeutralRecordIds: [],
     optionalMedia: [{ recordId: 'card:transfer-function', availableLocales: ['zh-CN'] }],
     ...extras,
+  };
+}
+
+export function v022IndependentPresentationInventory(): LocalePresentationInventory {
+  return {
+    domains: [CATEGORY_SEEDS.domains.id],
+    objectNames: [CATEGORY_SEEDS['object-names'].id],
+    objectExplanations: [CATEGORY_SEEDS['object-explanations'].id],
+    types: [CATEGORY_SEEDS.types.id],
+    relations: [CATEGORY_SEEDS.relations.id],
+    directions: [CATEGORY_SEEDS.directions.id],
+    aliasIds: [CATEGORY_SEEDS['approved-aliases'].id],
+    sourceIds: [CATEGORY_SEEDS['readable-sources'].id],
+  };
+}
+
+export function v022BilingualIndependentPresentationInventory(): LocalePresentationInventory {
+  const base = v022IndependentPresentationInventory();
+  return {
+    ...base,
+    objectNames: [...base.objectNames, 'math:characteristic-equation'].sort(),
   };
 }
 

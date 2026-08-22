@@ -6,4 +6,5 @@ export * from './fixtures';
 export * from './resolver';
 export * from './cache';
 export * from './presentation-state';
+export * from './presentation-denominator';
 export * from './project-shard';

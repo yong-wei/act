@@ -58,13 +58,10 @@ import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-sh
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
 import {
-  activeLocaleCapability,
+  resolveActiveLocaleQualification,
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
-import { readPublishedLocaleManifest } from '@/lib/authority-locale-readiness/published';
-import { qualifyLocaleManifest } from '@/lib/authority-locale-readiness/qualify';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
-import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -517,29 +514,23 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   request?: Request,
 ): NextResponse {
   try {
-    const capability = request ? activeLocaleCapability() : historicalLocaleCapability();
+    const qualification = request ? resolveActiveLocaleQualification() : null;
+    const capability = qualification?.capability ?? historicalLocaleCapability();
     const resolved = request
       ? resolveActiveLocaleRequest(request, capability)
       : { ok: true as const, locale: 'zh-CN' as const, capability };
     if (!resolved.ok) return resolved.response;
     const raw = read();
     const activeIdentity = resolveActiveShardIdentity();
-    const envelopeName = loadCompositeEnvelopeRegistry().find((row) => (
-      row.authorityReleaseId === activeIdentity.envelope.authority.releaseId
-      && row.authoritySnapshotId === activeIdentity.envelope.authority.snapshotId
-    ))?.name ?? null;
-    const manifest = envelopeName && capability.mode === 'complete-locale'
-      ? readPublishedLocaleManifest()
+    const receipt = capability.mode === 'complete-locale' && qualification?.qualification
+      ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
       : null;
-    const receipt = manifest
-      ? qualifyLocaleManifest(manifest, {
-        name: manifest.identity.compositeReleaseName,
-        authorityReleaseId: manifest.identity.authorityReleaseId,
-        authoritySnapshotId: manifest.identity.authoritySnapshotId,
-        authoritySnapshotHash: manifest.identity.authoritySnapshotHash,
-      }, resolved.locale, null)
-      : null;
-    const localized = applyLocaleToLearnerShard(raw, resolved.locale, manifest, receipt);
+    const localized = applyLocaleToLearnerShard(
+      raw,
+      resolved.locale,
+      capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+      receipt,
+    );
     const shard = projectAuthorityLearnerShard(localized, {
       localeBinding: localeBindingForCapability(
         resolved.locale,

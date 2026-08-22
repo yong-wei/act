@@ -74,6 +74,7 @@ import {
   familyLabel,
   formatLoadMore,
   formatLoadMoreAria,
+  formatSearchShownCount,
   graphCopy,
   reviewedDomainHeaderCopy,
   shardUrl,
@@ -324,7 +325,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     const families = [...current.enabledFamilies];
     const selectedId = current.selectedCanonicalId;
     updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
-    const generation = requestGenerationRef.current;
+    const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
     const controller = new AbortController();
     const requestControllers = requestControllersRef.current;
@@ -1033,7 +1034,10 @@ function ActiveNodeDetail({
     setInfographFailed(false);
   }, [nodeKey, detail?.node.learningContent?.infograph.state]);
   const node = detail?.node;
-  const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
+  const type = presentActiveNodeType(
+    node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '',
+    node?.typeLabel ?? fallbackNode?.type.label,
+  );
   const summaries = node && node.adjacency.length > 0
     ? activeNodeRelationSummaries(node, model)
     : activeModelRelationSummaries(model, nodeKey);
@@ -1181,7 +1185,7 @@ function ActiveNodeDetail({
               </div>
             ) : (
               <p className="mt-2 text-sm text-platform-fg-muted">
-                {node?.resourceBindings?.message ?? '暂无已授权系统资源。'}
+                {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
               </p>
             )}
           </section>
@@ -1200,9 +1204,9 @@ function ActiveNodeDetail({
                 >
                   <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
                   <span className="ml-2 text-platform-fg-muted">
-                    {relation.directionLabel === '关联关系'
-                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
-                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                    {relation.kind === 'undirected'
+                      ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
+                      : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
                   </span>
                 </button>
               ))}
@@ -1244,7 +1248,7 @@ function SearchResults({
   return (
     <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
       <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
-        已显示 {visibleResults.length} / {results.length} 个匹配对象
+        {formatSearchShownCount(locale, visibleResults.length, results.length)}
       </div>
       {visibleResults.map((node) => (
         <button
@@ -1360,12 +1364,15 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
           key: `${relation.layer}:${relation.id}:${boundary.id}`,
           nodeId: boundary.id,
           domainName: domain.displayName,
-          relationLabel: presentActiveRelation(relation.predicate, relation.direction).label,
-          objectLabel: presentActiveHumanText(boundary.label, '名称暂不可用'),
+          relationLabel: presentActiveRelation(relation.predicate, relation.direction, {
+            label: relation.predicateLabel,
+            directionLabel: relation.directionLabel,
+          }).label,
+          objectLabel: presentActiveHumanText(boundary.label, graphCopy(locale, 'inspector.nameUnavailable')),
         }];
       })
       .sort((left, right) => left.domainName.localeCompare(right.domainName) || left.objectLabel.localeCompare(right.objectLabel) || left.key.localeCompare(right.key));
-  }, [workspace]);
+  }, [workspace, locale]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
   const modelReady = Boolean(model);
@@ -1695,7 +1702,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary"
                   >
                     <option value="">{graphCopy(locale, 'filter.allTypes')}</option>
-                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{presentActiveNodeType(canonicalType).label}</option>)}
+                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{model.nodes.find((node) => node.type.canonicalType === canonicalType)?.type.label ?? presentActiveNodeType(canonicalType).label}</option>)}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
                 </div>
@@ -1798,7 +1805,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 viewBox={isCompactViewport ? ACTIVE_MOBILE_VIEWBOX : ACTIVE_DESKTOP_VIEWBOX}
                 className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none"
                 role="application"
-                aria-label="新版语义关系画布"
+                aria-label={graphCopy(locale, 'a11y.canvas')}
                 onPointerDown={onStagePointerDown}
                 onPointerMove={onStagePointerMove}
                 onPointerUp={onStagePointerUp}

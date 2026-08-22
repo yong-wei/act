@@ -192,8 +192,12 @@ export function presentActiveHumanText(value: string | null | undefined, fallbac
 }
 
 /** Return a controlled type state; never return the unknown raw value. */
-export function presentActiveNodeType(canonicalType: string): ActiveNodeTypePresentation {
+export function presentActiveNodeType(
+  canonicalType: string,
+  projectedLabel?: string | null,
+): ActiveNodeTypePresentation {
   const known = NODE_TYPES[canonicalType];
+  const overlay = nonEmpty(projectedLabel);
   if (!known) {
     return {
       canonicalType: 'unknown',
@@ -203,7 +207,7 @@ export function presentActiveNodeType(canonicalType: string): ActiveNodeTypePres
       supported: false,
     };
   }
-  return { canonicalType, ...known };
+  return { canonicalType, ...known, label: overlay ?? known.label };
 }
 
 export const presentActiveType = presentActiveNodeType;
@@ -227,6 +231,7 @@ export function presentActivePredicate(predicate: string): ActivePredicatePresen
 export function presentActiveRelation(
   predicate: string,
   direction: string | null,
+  projected?: { label?: string | null; directionLabel?: string | null },
 ): ActiveRelationPresentation {
   const known = RELATION_TYPES[predicate];
   const isUndirected = direction === 'unordered' || direction === 'undirected';
@@ -244,9 +249,10 @@ export function presentActiveRelation(
   }
   return {
     predicate,
-    label: known.label,
+    label: nonEmpty(projected?.label) ?? known.label,
     kind: isUndirected ? 'undirected' : 'directed',
-    directionLabel: isUndirected ? '关联关系' : known.directionLabel,
+    directionLabel: nonEmpty(projected?.directionLabel)
+      ?? (isUndirected ? '关联关系' : known.directionLabel),
     supported: true,
   };
 }
@@ -279,6 +285,10 @@ export function presentGovernanceLabel(value: string | null | undefined): string
 export function presentSourceCitation(
   sources: ActiveNodeDetailResponse['node']['sources'] | undefined,
 ): string {
+  const labels = (sources ?? [])
+    .map((source) => nonEmpty(source.label))
+    .filter((label): label is string => Boolean(label));
+  if (labels.length > 0) return labels.join(' · ');
   return sources && sources.length > 0 ? '来源定位暂不可用' : '暂无公开来源';
 }
 
@@ -337,7 +347,7 @@ export function createActiveAuthorityGraphModel(
       label: safeNodeLabel(sourceNode) as string,
       aliases: sourceNode.aliases ?? [],
       description: safeDescription(sourceNode),
-      type: presentActiveNodeType(sourceNode.canonicalType),
+      type: presentActiveNodeType(sourceNode.canonicalType, sourceNode.typeLabel),
       sourceNode,
     } satisfies ActiveNodePresentation))
     .sort(compareKey);
@@ -348,7 +358,10 @@ export function createActiveAuthorityGraphModel(
       key: sourceRelation.id,
       sourceKey: sourceRelation.sourceId,
       targetKey: sourceRelation.targetId,
-      semantic: presentActiveRelation(sourceRelation.predicate, sourceRelation.direction),
+      semantic: presentActiveRelation(sourceRelation.predicate, sourceRelation.direction, {
+        label: sourceRelation.predicateLabel,
+        directionLabel: sourceRelation.directionLabel,
+      }),
       qualityLabel: relationQualityLabel(sourceRelation),
       sourceRelation,
     } satisfies ActiveRelationView))
@@ -549,6 +562,7 @@ export function activeNodeRelationSummaries(
   neighborLabel: string;
   neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
+  kind: ActiveRelationKind;
 }> {
   return detail.adjacency
     .map((relation) => {
@@ -562,6 +576,7 @@ export function activeNodeRelationSummaries(
         neighborLabel,
         neighborKey: relation.neighborId,
         traversal: relation.traversal,
+        kind: semantic.kind,
       };
     })
     .filter((value): value is NonNullable<typeof value> => Boolean(value))
@@ -578,6 +593,7 @@ export function activeModelRelationSummaries(
   neighborLabel: string;
   neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
+  kind: ActiveRelationKind;
 }> {
   return (model.adjacency.get(nodeKey) ?? [])
     .map((relation) => {
@@ -589,11 +605,12 @@ export function activeModelRelationSummaries(
         neighborLabel: model.nodeByKey.get(neighborKey)?.label ?? '对象名称暂不可用',
         neighborKey,
         traversal: (relation.sourceKey === nodeKey ? 'outgoing' : 'incoming') as ActiveNodeAdjacency['traversal'],
+        kind: relation.semantic.kind,
       };
     })
     .sort((left, right) => left.key.localeCompare(right.key));
 }
 
 export function knownActiveNodeTypes(): ActiveNodeTypePresentation[] {
-  return Object.keys(NODE_TYPES).sort().map(presentActiveNodeType);
+  return Object.keys(NODE_TYPES).sort().map((canonicalType) => presentActiveNodeType(canonicalType));
 }

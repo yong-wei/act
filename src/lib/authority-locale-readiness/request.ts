@@ -5,11 +5,17 @@ import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identi
 
 import {
   HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
+  type AdmittedEnvelopeIdentity,
   type AdmittedLocale,
+  type AuthorityLocaleManifest,
+  type LocaleCategoryDenominator,
   type PublicLocaleCapability,
+  type ReleaseLocaleQualification,
 } from './contracts';
 import { isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
+import { loadActivePresentationInventory } from './active-presentation-inventory';
+import { expectedDenominatorsFromInventory } from './presentation-denominator';
 import { readPublishedLocaleManifest } from './published';
 
 export interface LocaleRequestResolution {
@@ -23,7 +29,27 @@ export interface LocaleRequestRejection {
   readonly response: NextResponse;
 }
 
-export function activeLocaleCapability(repoRoot = process.cwd()): PublicLocaleCapability {
+export interface ActiveLocaleQualification {
+  readonly capability: PublicLocaleCapability;
+  readonly manifest: AuthorityLocaleManifest | null;
+  readonly envelope: AdmittedEnvelopeIdentity | null;
+  readonly expectedDenominators: readonly LocaleCategoryDenominator[] | null;
+  readonly qualification: ReleaseLocaleQualification | null;
+}
+
+function historicalQualification(): ActiveLocaleQualification {
+  return {
+    capability: historicalLocaleCapability(),
+    manifest: null,
+    envelope: null,
+    expectedDenominators: null,
+    qualification: null,
+  };
+}
+
+export function resolveActiveLocaleQualification(
+  repoRoot = process.cwd(),
+): ActiveLocaleQualification {
   try {
     const active = resolveActiveShardIdentity({ repoRoot });
     const match = loadCompositeEnvelopeRegistry(repoRoot).find((row) => (
@@ -31,28 +57,50 @@ export function activeLocaleCapability(repoRoot = process.cwd()): PublicLocaleCa
       && row.authoritySnapshotId === active.envelope.authority.snapshotId
       && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
     ));
-    if (!match) return historicalLocaleCapability();
-    const manifest = readPublishedLocaleManifest(repoRoot);
-    if (manifest && manifest.identity.compositeReleaseName !== match.name) {
-      return historicalLocaleCapability();
-    }
-    const qualified = qualifyReleaseLocales(manifest, {
+    if (!match) return historicalQualification();
+    const envelope: AdmittedEnvelopeIdentity = {
       name: match.name,
       authorityReleaseId: match.authorityReleaseId,
       authoritySnapshotId: match.authoritySnapshotId,
       authoritySnapshotHash: match.authoritySnapshotHash,
-    }, null);
-    if (!qualified.bilingualReady) return historicalLocaleCapability();
+    };
+    const manifest = readPublishedLocaleManifest(repoRoot);
+    if (!manifest || manifest.identity.compositeReleaseName !== match.name) {
+      return historicalQualification();
+    }
+    const expectedDenominators = expectedDenominatorsFromInventory(
+      loadActivePresentationInventory(repoRoot, active),
+    );
+    const qualification = qualifyReleaseLocales(manifest, envelope, expectedDenominators);
+    if (!qualification.bilingualReady) {
+      return {
+        capability: historicalLocaleCapability(),
+        manifest,
+        envelope,
+        expectedDenominators,
+        qualification,
+      };
+    }
     return {
-      availableLocales: ['zh-CN', 'en'],
-      bilingualReady: true,
-      englishUnavailableReason: null,
-      mode: 'complete-locale',
-      languageComponentDigest: qualified.zhCN?.identity.languageComponentDigest ?? null,
+      capability: {
+        availableLocales: ['zh-CN', 'en'],
+        bilingualReady: true,
+        englishUnavailableReason: null,
+        mode: 'complete-locale',
+        languageComponentDigest: qualification.zhCN?.identity.languageComponentDigest ?? null,
+      },
+      manifest,
+      envelope,
+      expectedDenominators,
+      qualification,
     };
   } catch {
-    return historicalLocaleCapability();
+    return historicalQualification();
   }
+}
+
+export function activeLocaleCapability(repoRoot = process.cwd()): PublicLocaleCapability {
+  return resolveActiveLocaleQualification(repoRoot).capability;
 }
 
 export function resolveActiveLocaleRequest(

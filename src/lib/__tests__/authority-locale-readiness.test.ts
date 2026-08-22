@@ -6,6 +6,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { envelopeByName } from '@/lib/actkg-envelope/composite-envelope-registry';
+import type {
+  AuthorityNodeDetailShard,
+  AuthorityRelationFamilyShard,
+} from '@/lib/authority-domain-shards/contracts';
 import {
   GRAPH_INTERFACE_KEYS,
   changedContentLocaleFixture,
@@ -29,6 +33,7 @@ import {
   overlayExcludedLocaleFixture,
   partialEnglishLocaleFixture,
   applyLocaleToLearnerShard,
+  expectedDenominatorsFromInventory,
   projectOptionalContentForLocale,
   PUBLISHED_LATEST_COMPOSITE_NAME,
   qualifyLocaleManifest,
@@ -43,8 +48,12 @@ import {
   validateGraphInterfaceCatalog,
   GRAPH_INTERFACE_CATALOG,
   V022_ENVELOPE_IDENTITY,
+  v022BilingualIndependentPresentationInventory,
+  v022IndependentPresentationInventory,
   FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC,
 } from '@/lib/authority-locale-readiness';
+import { loadActivePresentationInventory } from '@/lib/authority-locale-readiness/active-presentation-inventory';
+import { resolveActiveLocaleQualification } from '@/lib/authority-locale-readiness/request';
 import { FUTURE_RELEASE_BOUNDARY, qualifyPublishedLatestComposite } from '@/lib/authority-locale-readiness/published';
 import { activeLocaleCapability, resolveActiveLocaleRequest } from '@/lib/authority-locale-readiness/request';
 
@@ -104,6 +113,36 @@ describe('complete-locale qualification', () => {
     expect(result.en?.status).toBe('ready');
     expect(result.interfaceCatalogReady).toBe(true);
     expect(result.bilingualReady).toBe(true);
+  });
+
+  it('qualifies bilingual-ready from independently computed presentation IDs', () => {
+    const expected = expectedDenominatorsFromInventory(v022BilingualIndependentPresentationInventory());
+    const result = qualifyReleaseLocales(completeBilingualLocaleFixture(), V022_ENVELOPE_IDENTITY, expected);
+    expect(result.bilingualReady).toBe(true);
+    expect(expected).toEqual(expectedDenominatorsFromInventory(v022BilingualIndependentPresentationInventory()));
+  });
+
+  it('fails closed when expected denominators are omitted even if the manifest is complete', () => {
+    const receipt = qualifyLocaleManifest(
+      completeBilingualLocaleFixture(),
+      V022_ENVELOPE_IDENTITY,
+      'en',
+      null,
+    );
+    expect(receipt.status).toBe('failed');
+    expect(receipt.failures.map((row) => row.code)).toContain('changed-denominator');
+  });
+
+  it('rejects a complete manifest whose declared IDs differ from the independent inventory', () => {
+    const expected = expectedDenominatorsFromInventory(v022IndependentPresentationInventory());
+    const receipt = qualifyLocaleManifest(
+      completeBilingualLocaleFixture(),
+      V022_ENVELOPE_IDENTITY,
+      'en',
+      expected,
+    );
+    expect(receipt.status).toBe('failed');
+    expect(receipt.failures.map((row) => row.code)).toContain('changed-denominator');
   });
 
   it('rejects unclassified TeX-like language-neutral claims', () => {
@@ -280,6 +319,78 @@ describe('complete-locale resolver and cache', () => {
     expect(projected.objects[0]?.label).not.toBe('传递函数');
   });
 
+  it('projects English types, relations, directions, and readable sources', () => {
+    const manifest = completeBilingualLocaleFixture();
+    const receipt = qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'en', expectedOf(manifest));
+    const envelope = {
+      contract: 'act-authority-shard-envelope/v1' as const,
+      authority: {
+        snapshotId: V022_ENVELOPE_IDENTITY.authoritySnapshotId,
+        snapshotHash: V022_ENVELOPE_IDENTITY.authoritySnapshotHash,
+        releaseId: V022_ENVELOPE_IDENTITY.authorityReleaseId,
+        releaseSetId: 'set',
+        activationId: 'act',
+        activationHash: 'h'.repeat(64),
+        projectionId: null,
+        projectionHash: null,
+      },
+      catalog: { catalogId: 'c', catalogHash: 'd'.repeat(64), catalogVersion: '1' },
+      teaching: { status: 'unavailable' as const, projectionId: null, projectionHash: null, teachingCacheFamily: null },
+      match: { authority: true as const, catalog: true as const, teaching: null },
+    };
+    const family = applyLocaleToLearnerShard({
+      shardClass: 'relation-family',
+      envelope,
+      domainId: 'system-modeling',
+      family: 'application-and-analysis',
+      objects: [{
+        id: 'object:transfer-function',
+        canonicalType: 'DomainConcept',
+        label: '传递函数',
+        aliases: [],
+        description: '用传递函数描述输入输出关系',
+        governance: { reviewStatus: null, publicationStatus: null, lifecycleStatus: null },
+        semanticSupport: { supported: true, readOnly: true },
+        memberships: [],
+      }],
+      relations: [{
+        id: 'rel-1',
+        predicate: 'applies_to',
+        sourceId: 'object:transfer-function',
+        targetId: 'object:plant',
+        direction: 'source_to_target',
+        direct: true,
+        qualityTier: 'GOLD',
+        governance: { reviewStatus: null, publicationStatus: null },
+        semanticSupport: { supported: true, readOnly: true },
+        layer: 'ENGINEERING',
+        relationFamily: 'application-and-analysis',
+      }],
+      boundaries: [],
+    } as AuthorityRelationFamilyShard, 'en', manifest, receipt);
+    expect(family.objects[0]?.typeLabel).toBe('Domain concept');
+    expect(family.relations[0]?.predicateLabel).toBe('Applies to');
+    expect(family.relations[0]?.directionLabel).toBe('From the former to the latter');
+
+    const detail = applyLocaleToLearnerShard({
+      shardClass: 'node-detail',
+      envelope,
+      node: {
+        id: 'object:transfer-function',
+        canonicalType: 'DomainConcept',
+        label: '传递函数',
+        description: '用传递函数描述输入输出关系',
+        teachingFields: {},
+        governance: { reviewStatus: null, publicationStatus: null, lifecycleStatus: null },
+        sources: [{ sourceEditionId: 'textbook-section', sectionId: 'ch2' }],
+        media: { cardAvailable: false, infographAvailable: false },
+        semanticSupport: { supported: true, readOnly: true },
+      },
+    } as AuthorityNodeDetailShard, 'en', manifest, receipt);
+    expect(detail.node.typeLabel).toBe('Domain concept');
+    expect(detail.node.sources[0]?.label).toBe('Textbook chapter 2 system models');
+  });
+
   it('omits other-language optional content instead of mixing it', () => {
     expect(projectOptionalContentForLocale({
       availableLocales: ['zh-CN'],
@@ -315,6 +426,24 @@ describe('locale request gate', () => {
     expect(capability.bilingualReady).toBe(false);
     expect(capability.mode).toBe('historical');
     expect(capability.availableLocales).toEqual(['zh-CN']);
+  });
+
+  it('does not qualify the active selector with a null expected denominator', () => {
+    const resolved = resolveActiveLocaleQualification();
+    expect(resolved.capability.bilingualReady).toBe(false);
+    expect(resolved.expectedDenominators).toBeNull();
+    expect(resolved.qualification).toBeNull();
+  });
+
+  it('rebuilds a non-empty presentation inventory from the active sealed shards', () => {
+    const inventory = loadActivePresentationInventory();
+    expect(inventory.domains.length).toBeGreaterThan(0);
+    expect(inventory.objectNames.length).toBeGreaterThan(0);
+    expect(inventory.types.length).toBeGreaterThan(0);
+    expect(inventory.relations.length).toBeGreaterThan(0);
+    expect(inventory.directions.length).toBeGreaterThan(0);
+    const expected = expectedDenominatorsFromInventory(inventory);
+    expect(expected.find((row) => row.category === 'object-names')?.recordIds).toEqual([...inventory.objectNames].sort());
   });
 
   it('rejects unknown locales and English when not bilingual-ready', async () => {

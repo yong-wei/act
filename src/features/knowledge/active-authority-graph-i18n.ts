@@ -56,3 +56,11 @@ export function formatLoadMore(locale: AdmittedLocale, count: number): string {
 export function formatLoadMoreAria(locale: AdmittedLocale, count: number): string {
   return formatGraphInterfaceText('search.loadMoreAria', locale, { count });
 }
+
+export function formatSearchShownCount(
+  locale: AdmittedLocale,
+  visible: number,
+  total: number,
+): string {
+  return formatGraphInterfaceText('search.shownCount', locale, { visible, total });
+}
