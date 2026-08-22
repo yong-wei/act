@@ -25,11 +25,11 @@ export function teachingEdgeId(input: {
   return `edge-${projectionDigest(input).slice(0, 24)}`;
 }
 
-export function freezeEvidenceRef(ref: string, body: string): { ref: string; sha256: string } {
-  if (!ref || ref.startsWith('course-root:') || ref.startsWith('scope:') || ref.startsWith('pending:')) {
+export function freezeEvidenceRef(ref: string, body: string): { ref: string; body: string } {
+  if (!ref || !body || ref.startsWith('course-root:') || ref.startsWith('scope:') || ref.startsWith('pending:')) {
     throw new ActTeachingRelationError('invalid-evidence-ref', `evidence ref is not independently verifiable: ${ref}`);
   }
-  return { ref, sha256: projectionSha256(body) };
+  return { ref, body };
 }
 
 export function requireNonEmpty(value: string, code: string, field: string): string {

@@ -469,4 +469,18 @@ describe('act-canonical-teaching-relations', () => {
       edges: [],
     })).toThrow(/exactly one matching containment parent edge|containment edge/);
   });
+
+  it('rejects containment edges whose runtime semantics drifted', () => {
+    const artifacts = qualifiedArtifacts();
+    const [edge, ...rest] = artifacts.edges;
+    expect(() => publishActTeachingProjection({
+      scope: artifacts.scope,
+      dispositions: artifacts.dispositions,
+      edges: [{ ...edge, relationType: 'PREREQUISITE', direction: 'symmetric', layer: 'ENGINEERING' as 'ACT_TEACHING', domainKeys: ['forged'] }, ...rest],
+      reviewPack: artifacts.reviewPack,
+      qualification: artifacts.qualification,
+      candidates: artifacts.candidates,
+      decisions: artifacts.decisions,
+    })).toThrow(/invalid runtime semantics|domainKeys drifted/);
+  });
 });

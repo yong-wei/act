@@ -81,7 +81,7 @@ export function publishActTeachingProjection(input: {
   const familyCounts = familyCountsFor(input.scope, input.dispositions, input.edges);
   const pendingCount = familyCounts.reduce((sum, row) => sum + row.pendingCount, 0);
   const body: Omit<ActTeachingProjectionReceipt, 'projectionId' | 'projectionHash'> & {
-    edgeIds: string[];
+    edges: ActTeachingPublishedEdge[];
   } = {
     contract: ACT_TEACHING_PROJECTION_RECEIPT_CONTRACT,
     builderVersion: ACT_TEACHING_RELATION_GOVERNANCE_BUILDER_VERSION,
@@ -97,10 +97,19 @@ export function publishActTeachingProjection(input: {
     reviewPackHash: input.reviewPack.packHash,
     qualificationReceiptId: input.qualification.receiptId,
     pipelineVersion: input.qualification.pipelineVersion,
-    edgeIds: input.edges.map((edge) => edge.edgeId).sort(),
+    edges: [...input.edges].map((edge) => ({
+      edgeId: edge.edgeId,
+      family: edge.family,
+      relationType: edge.relationType,
+      sourceCanonicalId: edge.sourceCanonicalId,
+      targetCanonicalId: edge.targetCanonicalId,
+      direction: edge.direction,
+      domainKeys: [...edge.domainKeys].sort(),
+      layer: edge.layer,
+    })).sort((a, b) => a.edgeId.localeCompare(b.edgeId)),
   };
   const projectionHash = projectionDigest(body);
-  const { edgeIds: _edgeIds, ...receiptBody } = body;
+  const { edges: _edges, ...receiptBody } = body;
   const receipt: ActTeachingProjectionReceipt = {
     ...receiptBody,
     projectionId: `atr-${projectionHash}`,

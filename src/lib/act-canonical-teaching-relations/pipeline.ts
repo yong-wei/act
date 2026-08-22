@@ -16,7 +16,7 @@ export interface CourseRootEvidence {
 
 export interface FrozenEvidenceRecord {
   readonly ref: string;
-  readonly sha256: string;
+  readonly body: string;
 }
 
 export interface ContainmentEvidence {
@@ -40,7 +40,7 @@ function assertVerifiableRefs(
   const byRef = new Map(records.map((row) => [row.ref, row]));
   for (const ref of refs) {
     const record = byRef.get(ref);
-    if (!record || !/^[a-f0-9]{64}$/u.test(record.sha256)) {
+    if (!record?.body) {
       throw new ActTeachingRelationError(
         'invalid-evidence-ref',
         `${label} evidence ref is not bound to a frozen source digest: ${ref}`,
@@ -58,7 +58,7 @@ export function pipelineConfigDigest(
     rule: 'explicit-root-or-parent-evidence',
     records: evidence.records.map((row) => ({
       ref: row.ref,
-      sha256: row.sha256,
+      digest: projectionDigest(row.body),
     })).sort((a, b) => a.ref.localeCompare(b.ref)),
     courseRoots: evidence.courseRoots.map((row) => ({
       canonicalId: row.canonicalId,

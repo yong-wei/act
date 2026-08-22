@@ -196,6 +196,21 @@ export function assertContainmentSkeleton(input: {
     if (edge.sourceCanonicalId === edge.targetCanonicalId) {
       throw new ActTeachingRelationError('self-loop', `containment edge ${edge.edgeId} is a self-loop`);
     }
+    if (edge.relationType !== 'CONTAINMENT' || edge.direction !== 'source_to_target' || edge.layer !== 'ACT_TEACHING') {
+      throw new ActTeachingRelationError(
+        'containment-edge-mismatch',
+        `containment edge ${edge.edgeId} has invalid runtime semantics`,
+      );
+    }
+    const sourceDomains = domainKeysForMember(input.scope, edge.sourceCanonicalId);
+    const targetDomains = domainKeysForMember(input.scope, edge.targetCanonicalId);
+    const expectedDomains = [...new Set([...sourceDomains, ...targetDomains])].sort();
+    if (JSON.stringify([...(edge.domainKeys ?? [])].sort()) !== JSON.stringify(expectedDomains)) {
+      throw new ActTeachingRelationError(
+        'containment-edge-mismatch',
+        `containment edge ${edge.edgeId} domainKeys drifted from scope membership`,
+      );
+    }
     if (wouldIntroduceCycle('containment', containmentEdges, edge.sourceCanonicalId, edge.targetCanonicalId)) {
       throw new ActTeachingRelationError(
         'illegal-cycle',
