@@ -16,6 +16,7 @@ export function qualifyPipeline(input: {
   holdout: readonly PipelineGoldItem[];
   admittedGoldIds: readonly string[];
   admittedHoldoutIds: readonly string[];
+  outputHash: string;
 }): FormalQualificationReceipt {
   const goldScore = balancedScore(input.gold, new Set(input.admittedGoldIds));
   const holdoutScore = balancedScore(input.holdout, new Set(input.admittedHoldoutIds));
@@ -33,6 +34,7 @@ export function qualifyPipeline(input: {
     admittedHoldoutIds: [...input.admittedHoldoutIds].sort(),
     goldScore,
     holdoutScore,
+    outputHash: input.outputHash,
     passed,
   }).slice(0, 24)}`;
   return {
@@ -41,6 +43,7 @@ export function qualifyPipeline(input: {
     pipelineConfigDigest: input.pipelineConfigDigest,
     goldDigest,
     holdoutDigest,
+    outputHash: input.outputHash,
     threshold: FROZEN_PIPELINE_THRESHOLD,
     passed,
     receiptId,

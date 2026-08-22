@@ -143,6 +143,7 @@ export interface FormalQualificationReceipt {
   readonly pipelineConfigDigest: string;
   readonly goldDigest: string;
   readonly holdoutDigest: string;
+  readonly outputHash: string;
   readonly threshold: number;
   readonly passed: boolean;
   readonly receiptId: string;

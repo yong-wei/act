@@ -81,6 +81,7 @@ export function closeIncludedResource(input: {
   candidate: FormalResourceCandidate;
   atoms: readonly FormalResourceAtom[];
   bindings: readonly FormalBinding[];
+  envelopeHash: string;
 }): FormalResourceCandidate {
   let boundCount = 0;
   for (const atom of input.atoms) {
@@ -89,8 +90,11 @@ export function closeIncludedResource(input: {
     }
     if (atom.disposition === 'BOUND') {
       const matched = input.bindings.some((row) => (
-        row.resourceId === input.candidate.resourceId
+        row.contract === FORMAL_RESOURCE_BINDING_CONTRACT
+        && row.resourceId === input.candidate.resourceId
         && row.atomId === atom.atomId
+        && row.envelopeHash === input.envelopeHash
+        && row.source.contentSha256 === atom.source.contentSha256
       ));
       if (!matched) {
         return closeCandidate(input.candidate, 'EXCLUDED', [`unbound-atom:${atom.atomId}`]);

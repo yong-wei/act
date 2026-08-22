@@ -42,6 +42,7 @@ function mappingReceipt() {
     holdout: FIXTURE_MAPPING_HOLDOUT,
     admittedGoldIds: ['map-bound'],
     admittedHoldoutIds: ['map-holdout'],
+    outputHash: projectionDigest({ mapping: ['ctc:a'] }),
   });
 }
 
@@ -130,6 +131,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidate: video,
       atoms: [intro, explain],
       bindings: [binding],
+      envelopeHash: envelope.envelopeHash,
     });
     expect(included.disposition).toBe('INCLUDED');
     expect(binding.role).toBe('EXPLAINS');
@@ -146,7 +148,12 @@ describe('formal-runtime-atomic-resource-binding', () => {
       resource: card,
       paragraphs: [{ paragraphId: 'p1', body: 'definition' }],
     });
-    const closed = closeIncludedResource({ candidate: card, atoms, bindings: [] });
+    const closed = closeIncludedResource({
+      candidate: card,
+      atoms,
+      bindings: [],
+      envelopeHash: 'draft',
+    });
     expect(closed.disposition).toBe('EXCLUDED');
     expect(inventory.candidateHash).toBe(buildCandidateInventory({
       courseScopeId: 'act-control-theory',
@@ -201,6 +208,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidate: { ...video, deliveryMode: 'OPTIONAL' },
       atoms: [applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk'])],
       bindings: [],
+      envelopeHash: envelope.envelopeHash,
     }).disposition).toBe('EXCLUDED');
   });
 
@@ -222,6 +230,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       holdout: [{ id: 'h1', expected: 'admit' }],
       admittedGoldIds: ['a1'],
       admittedHoldoutIds: ['h1'],
+      outputHash: projectionDigest({ transcript: 'closed loop' }),
     });
     const seg = qualifyPipeline({
       pipelineKind: 'segmentation',
@@ -231,6 +240,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       holdout: [{ id: 'sh1', expected: 'admit' }],
       admittedGoldIds: ['s1'],
       admittedHoldoutIds: ['sh1'],
+      outputHash: projectionDigest({ paragraphs: ['p1'] }),
     });
     const align = qualifyPipeline({
       pipelineKind: 'time-alignment',
@@ -240,6 +250,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       holdout: [{ id: 'th1', expected: 'admit' }],
       admittedGoldIds: ['t1'],
       admittedHoldoutIds: ['th1'],
+      outputHash: projectionDigest({ starts: [0] }),
     });
     expect(resolveCourseMediaTranscript({
       hasProductionScript: false,
@@ -335,7 +346,12 @@ describe('formal-runtime-atomic-resource-binding', () => {
       mappingVersion: 'map/v1',
       mappingConfig: 'cfg-map',
     });
-    const closed = closeIncludedResource({ candidate: video, atoms: [bound], bindings: [binding] });
+    const closed = closeIncludedResource({
+      candidate: video,
+      atoms: [bound],
+      bindings: [binding],
+      envelopeHash: draftEnvelope.envelopeHash,
+    });
     const sealed = buildFormalResourceEnvelope({
       releaseId: 'rel-formal-test',
       sourceRevision: 'a'.repeat(40),
