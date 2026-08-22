@@ -1,5 +1,6 @@
 import { type Prisma } from '@prisma/client';
 
+import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
 import { prisma } from '@/lib/prisma';
 import { buildDiagnosisPrepLink } from '@/lib/diagnosis-prep-link';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
@@ -149,9 +150,18 @@ export interface DiagnosisPersistenceDb {
     findMany(args: Record<string, unknown>): Promise<Array<{
       id: string;
       studentId: string;
+      frozenStudentId: string;
       frozenAudienceClassId: string;
+      assignmentRevisionId: string;
       reviewState: string;
       reviewedAt: Date | null;
+      audience: {
+        classId: string;
+        assignmentRevisionId: string;
+      };
+      revision: {
+        id: string;
+      };
     }>>;
   };
   adaptiveAssessmentSession?: {
@@ -331,9 +341,20 @@ async function assertEvidenceScope(
           select: {
             id: true,
             studentId: true,
+            frozenStudentId: true,
             frozenAudienceClassId: true,
+            assignmentRevisionId: true,
             reviewState: true,
             reviewedAt: true,
+            audience: {
+              select: {
+                classId: true,
+                assignmentRevisionId: true,
+              },
+            },
+            revision: {
+              select: { id: true },
+            },
           },
         }),
     assessmentSessionIds.length === 0 || !db.adaptiveAssessmentSession
@@ -376,11 +397,15 @@ async function assertEvidenceScope(
       userId: row.userId,
       observedAt: row.lastVisited,
     })),
-    ...assignmentSubmissions.map((row) => ({
-      ref: `assignment-submission:${row.id}`,
-      userId: row.studentId,
-      observedAt: row.reviewedAt!,
-    })),
+    ...assignmentSubmissions.flatMap((row) => (
+      hasConsistentFrozenAssignmentSubmissionLineage(row, input.classId) && row.reviewedAt
+        ? [{
+            ref: `assignment-submission:${row.id}`,
+            userId: row.studentId,
+            observedAt: row.reviewedAt,
+          }]
+        : []
+    )),
     ...assessmentSessions.flatMap((row) => {
       const metadata = classAssessmentSessionMetadata(row.metadata);
       const observedAt = row.answers[0]?.answeredAt;

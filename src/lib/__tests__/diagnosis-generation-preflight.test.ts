@@ -12,6 +12,30 @@ import { DIAGNOSIS_REPORT_GENERATOR_VERSION } from '@/lib/diagnosis-persistence'
 
 const now = new Date('2026-08-19T03:00:00.000Z');
 
+function reviewedAssignment(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'submission-1',
+    studentId: 'student-1',
+    frozenStudentId: 'student-1',
+    frozenAudienceClassId: 'class-1',
+    assignmentRevisionId: 'revision-1',
+    reviewState: 'REVIEWED',
+    approvedTotal: 82,
+    reviewedAt: new Date('2026-08-19T02:00:00.000Z'),
+    audience: {
+      classId: 'class-1',
+      assignmentRevisionId: 'revision-1',
+    },
+    revision: {
+      id: 'revision-1',
+      contentHash: 'assignment-content-1',
+      totalPoints: 100,
+      publishedAt: new Date('2026-08-18T02:00:00.000Z'),
+    },
+    ...overrides,
+  };
+}
+
 function fixture() {
   return {
     class: {
@@ -288,19 +312,7 @@ describe('diagnosis generation preflight', () => {
   });
 
   it('includes reviewed assignments and class-bound assessment sessions without raw answers', async () => {
-    db.assignmentSubmission.findMany.mockResolvedValue([{
-      id: 'submission-1',
-      studentId: 'student-1',
-      assignmentRevisionId: 'revision-1',
-      reviewState: 'REVIEWED',
-      approvedTotal: 82,
-      reviewedAt: new Date('2026-08-19T02:00:00.000Z'),
-      revision: {
-        contentHash: 'assignment-content-1',
-        totalPoints: 100,
-        publishedAt: new Date('2026-08-18T02:00:00.000Z'),
-      },
-    }]);
+    db.assignmentSubmission.findMany.mockResolvedValue([reviewedAssignment()]);
     const contentDigest = digestDiagnosisGovernedInput(['assessment-item-1']);
     db.adaptiveAssessmentSession.findMany.mockResolvedValue([{
       id: 'assessment-session-1',
@@ -337,5 +349,38 @@ describe('diagnosis generation preflight', () => {
       assessmentSessions: [{ id: 'assessment-session-1', score: 100, correctCount: 1 }],
     });
     expect(JSON.stringify(result.governedInput)).not.toContain('selectedOptionKey');
+  });
+
+  it.each([
+    {
+      label: 'cross-class audience',
+      row: reviewedAssignment({
+        audience: { classId: 'class-2', assignmentRevisionId: 'revision-1' },
+      }),
+    },
+    {
+      label: 'frozen student mismatch',
+      row: reviewedAssignment({ frozenStudentId: 'student-2' }),
+    },
+    {
+      label: 'revision mismatch',
+      row: reviewedAssignment({
+        audience: { classId: 'class-1', assignmentRevisionId: 'revision-2' },
+      }),
+    },
+  ])('excludes reviewed assignments with $label from governed input', async ({ row }) => {
+    db.assignmentSubmission.findMany.mockResolvedValue([row]);
+
+    const result = await preflightDiagnosisGeneration(db as never, {
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      now,
+    });
+
+    expect(result.categories.assignment).toMatchObject({
+      availability: 'available',
+      currentCount: 0,
+    });
+    expect(result.governedInput.assignmentSubmissions).toEqual([]);
   });
 });

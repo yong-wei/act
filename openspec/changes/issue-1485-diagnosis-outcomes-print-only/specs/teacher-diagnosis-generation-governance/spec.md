@@ -21,9 +21,15 @@ The system SHALL compare current eligible assignment, assessment, learning-behav
 
 #### Scenario: Reviewed assignment results arrive
 
-- **WHEN** a class member has a submitted assignment with a frozen class binding, published revision, reviewed total and review timestamp at or before the evidence cutoff
+- **WHEN** a class member has a submitted assignment whose student equals its frozen student, whose audience class equals its frozen class, whose audience and submission reference the same revision, and whose published revision, reviewed total and review timestamp are at or before the evidence cutoff
 - **THEN** preflight SHALL include only its structured outcome, revision content hash and audit identity
 - **AND** SHALL NOT include the original answer, attachment, reviewer comment or raw grading payload.
+
+#### Scenario: Reviewed assignment lineage drifts
+
+- **WHEN** a reviewed assignment submission has a student, frozen student, audience class, frozen class, audience revision, submission revision, or related revision that does not agree with the requested class scope
+- **THEN** preflight SHALL exclude it from the governed input
+- **AND** persistence SHALL reject a report reference to it.
 
 #### Scenario: Class-bound assessment results arrive
 

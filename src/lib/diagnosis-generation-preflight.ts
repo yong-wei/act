@@ -6,6 +6,7 @@ import {
   assertTeacherClassScope,
   DIAGNOSIS_REPORT_GENERATOR_VERSION,
 } from '@/lib/diagnosis-persistence';
+import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 
 export const DIAGNOSIS_PREFLIGHT_RULE_VERSION = 'teacher-diagnosis-preflight.v1';
@@ -359,12 +360,21 @@ export async function preflightDiagnosisGeneration(
           select: {
             id: true,
             studentId: true,
+            frozenStudentId: true,
+            frozenAudienceClassId: true,
             assignmentRevisionId: true,
             reviewState: true,
             approvedTotal: true,
             reviewedAt: true,
+            audience: {
+              select: {
+                classId: true,
+                assignmentRevisionId: true,
+              },
+            },
             revision: {
               select: {
+                id: true,
                 contentHash: true,
                 totalPoints: true,
                 publishedAt: true,
@@ -429,7 +439,8 @@ export async function preflightDiagnosisGeneration(
   const assignmentInput = assignmentRows.flatMap((row) => {
     const score = asFiniteNumber(row.approvedTotal);
     const totalPoints = asFiniteNumber(row.revision.totalPoints);
-    if (row.reviewState !== 'REVIEWED' || score === null || totalPoints === null
+    if (!hasConsistentFrozenAssignmentSubmissionLineage(row, input.classId)
+      || row.reviewState !== 'REVIEWED' || score === null || totalPoints === null
       || !row.revision.contentHash || !row.revision.publishedAt || !row.reviewedAt
       || row.revision.publishedAt > evidenceCutoff || row.reviewedAt > evidenceCutoff) {
       return [];
