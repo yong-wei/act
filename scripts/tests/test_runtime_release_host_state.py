@@ -54,7 +54,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
 
     def v2_release(self, root: Path, contents, cache_textbook_retrieval: bool = False):
         blob_root = root / "blob-root"
-        blob_root.mkdir()
+        blob_root.mkdir(parents=True)
         files = []
         for relative, body in sorted(contents.items()):
             file_sha = hashlib.sha256(body).hexdigest()
@@ -595,6 +595,56 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
             )
             self.assertIn("non-symlink logical file", rejected.stderr)
+
+    def test_restore_overlays_keeps_candidate_textbook_cache(self):
+        overlay_path = "knowledge/projection/current.json"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", {
+                **TEXTBOOK_CACHE_CONTENTS,
+                "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8": b"old-body\n",
+            }, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            overlay = parent["view"] / overlay_path
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text('{"selector":"v0.18"}\n', encoding="utf-8")
+            restored = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+            )
+            self.assertEqual(restored["copied"], [overlay_path])
+            self.assertIn(TEXTBOOK_CACHE_PATHS[0], restored["skipped"])
+            self.assertEqual(
+                (candidate["view"] / overlay_path).read_text(encoding="utf-8"),
+                '{"selector":"v0.18"}\n',
+            )
+            self.assertEqual((candidate["view"] / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_post_overlay_verification_rejects_stale_textbook_cache(self):
+        overlay_path = "knowledge/consumer-activation/current.json"
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            overlay = fixture["view"] / overlay_path
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text('{"selector":"ok"}\n', encoding="utf-8")
+            cached = fixture["view"] / TEXTBOOK_CACHE_PATHS[2]
+            os.chmod(cached, 0o644)
+            cached.write_bytes(b"stale-parent-cache\n")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("does not match manifest content", rejected.stderr)
 
 
 if __name__ == "__main__":

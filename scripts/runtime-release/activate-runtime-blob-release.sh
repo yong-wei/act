@@ -26,8 +26,10 @@ manifest=""
 release_receipt=""
 verification_receipt=""
 ram_role=""
+replace_existing=0
 old_active="none"
 parent_view=""
+overlay_stash=""
 rollback_app_image=""
 candidate_current_selected=0
 candidate_deploy_attempted=0
@@ -46,6 +48,7 @@ while [[ $# -gt 0 ]]; do
     --release-receipt) release_receipt="$2"; shift 2 ;;
     --verification-receipt) verification_receipt="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
+    --replace-existing) replace_existing=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -266,8 +269,8 @@ capture_rollback_image() {
 # Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
 # as regular files on the active view. Rematerialize rebuilds the Git/blob
 # forest and would otherwise replace those pointers with the Git v0.9 leaves.
-# Copy the parent view's regular files after verify-mounted so production
-# authority stays put. This does not change the immutable OSS release.
+# Copy only the declared control-plane allowlist, never textbook retrieval
+# caches or other runtime data, then re-verify before consumers switch.
 restore_parent_host_overlays() {
   local parent="$1"
   local candidate="$2"
@@ -276,39 +279,9 @@ restore_parent_host_overlays() {
     echo "ERROR: candidate view is missing for overlay restore" >&2
     return 1
   }
-  python3 - "$parent" "$candidate" <<'PY'
-import os
-import shutil
-import stat
-import sys
-
-parent, candidate = sys.argv[1], sys.argv[2]
-skip_dirs = {".act-runtime-blobs"}
-skip_files = {
-    ".act-runtime-release.v2.json",
-    ".act-runtime-release-materialization.v1.json",
-}
-copied = 0
-for root, dirs, files in os.walk(parent):
-    dirs[:] = [name for name in dirs if name not in skip_dirs]
-    for name in files:
-        if name in skip_files:
-            continue
-        source = os.path.join(root, name)
-        details = os.lstat(source)
-        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
-            continue
-        relative = os.path.relpath(source, parent)
-        destination = os.path.join(candidate, relative)
-        os.makedirs(os.path.dirname(destination), exist_ok=True)
-        if os.path.lexists(destination):
-            os.unlink(destination)
-        shutil.copy2(source, destination)
-        copied += 1
-if copied == 0:
-    raise SystemExit("ERROR: parent view had no regular overlay files to restore")
-print(copied)
-PY
+  python3 "$HOST_STATE_SCRIPT" restore-overlays \
+    --parent-runtime-root "$parent" \
+    --candidate-runtime-root "$candidate" >/dev/null
 }
 
 write_lifecycle_identity() {
@@ -385,6 +358,9 @@ cleanup_lifecycle_identity() {
   if [[ -n "$lifecycle_identity" && -f "$lifecycle_identity" ]]; then
     rm -f -- "$lifecycle_identity"
   fi
+  if [[ -n "${overlay_stash:-}" && -d "$overlay_stash" ]]; then
+    rm -rf -- "$overlay_stash"
+  fi
 }
 
 trap cleanup_lifecycle_identity EXIT
@@ -456,16 +432,34 @@ if [[ -z "$parent_view" && "$old_active" == "none" && ! -d "$LEGACY_RUNTIME_ROOT
 fi
 capture_rollback_image
 
+if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
+  replace_existing=1
+fi
 prepare_args=(prepare --manifest "$manifest" --receipt "$release_receipt" --blob-root "$BLOB_ROOT" --view-root "$VIEW_ROOT" --cache-textbook-retrieval)
-if [[ -n "$parent_view" ]]; then
+if [[ "$replace_existing" == "1" ]]; then
+  prepare_args+=(--replace-existing)
+fi
+overlay_source="$parent_view"
+overlay_stash=""
+if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
+  overlay_stash="$(mktemp -d "$STATE_DIR/.act-runtime-overlay-stash.XXXXXX")"
+  restore_parent_host_overlays "$parent_view" "$overlay_stash"
+  overlay_source="$overlay_stash"
+elif [[ -n "$parent_view" ]]; then
   prepare_args+=(--parent-view "$parent_view")
 fi
 python3 "$MATERIALIZER" "${prepare_args[@]}" >/dev/null
 candidate_view="$VIEW_ROOT/views/$release_id"
 ensure_helper_mount "$candidate_view/.act-runtime-blobs"
+if [[ -n "${overlay_source:-}" ]]; then
+  restore_parent_host_overlays "$overlay_source" "$candidate_view"
+fi
+if [[ -n "$overlay_stash" ]]; then
+  rm -rf -- "$overlay_stash"
+fi
 
 verify_args=(verify-mounted --format v2 --runtime-root "$candidate_view" --blob-root "$candidate_view/.act-runtime-blobs" --release-id "$release_id" --verification-receipt "$verification_receipt")
-if [[ -n "$parent_view" ]]; then
+if [[ -n "$parent_view" && "$parent_view" != "$candidate_view" ]]; then
   verify_args+=(--parent-runtime-root "$parent_view")
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
@@ -478,9 +472,6 @@ python3 "$HOST_STATE_SCRIPT" select \
 trap restore_runtime_consumers ERR
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
 candidate_current_selected=1
-if [[ -n "${parent_view:-}" ]]; then
-  restore_parent_host_overlays "$parent_view" "$candidate_view"
-fi
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \

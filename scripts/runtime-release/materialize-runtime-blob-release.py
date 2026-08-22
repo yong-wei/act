@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 MANIFEST_SCHEMA = "act-runtime-release.v2"
@@ -458,7 +458,11 @@ def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = 
     return receipt
 
 
-def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def verify_view_structure(
+    view: Path,
+    release_id: str,
+    allowed_extra_regular_paths: Optional[Set[str]] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     require_real_directory(view, "materialized view")
     require_helper_directory(view)
     manifest, wire = parse_manifest(view / LOCAL_MANIFEST)
@@ -470,6 +474,7 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
     expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
     cached_paths = set(cached_logical_paths(expected_receipt))
     expected_paths = set(item["path"] for item in manifest["files"])
+    allowed_extra = set(allowed_extra_regular_paths or ())
     actual_paths = set()
     for current, directories, filenames in os.walk(str(view), followlinks=False):
         current_path = Path(current)
@@ -487,10 +492,16 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
                 details = os.lstat(absolute)
                 if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
                     fail("declared cache entry is not a regular file: %s" % relative)
+            elif relative in allowed_extra:
+                details = os.lstat(absolute)
+                if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+                    fail("mounted runtime overlay is not a regular file: %s" % relative)
             elif not os.path.islink(str(absolute)):
                 fail("materialized view contains a non-symlink logical file: %s (mode=%s)" % (relative, oct(os.lstat(str(absolute)).st_mode)))
             actual_paths.add(relative)
-    if actual_paths != expected_paths:
+    if actual_paths - expected_paths - allowed_extra:
+        fail("materialized view file set differs from manifest")
+    if expected_paths - actual_paths:
         fail("materialized view file set differs from manifest")
     for entry in manifest["files"]:
         logical = view / entry["path"]
@@ -499,6 +510,9 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
             details = os.lstat(logical)
             if details.st_size != entry["sizeBytes"]:
                 fail("materialized logical file size does not match manifest content: %s" % entry["path"])
+            continue
+        if entry["path"] in allowed_extra and not os.path.islink(str(logical)):
+            require_regular(logical, "control-plane overlay %s" % entry["path"])
             continue
         require_relative_helper_link(logical, entry["path"], entry["sha256"])
     return expected_receipt, manifest
@@ -586,7 +600,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         views.mkdir(mode=0o700, parents=True, exist_ok=True)
         require_real_directory(views, "view collection")
         final = views / manifest["releaseId"]
-        if final.exists():
+        replace_existing = bool(getattr(args, "replace_existing", False))
+        if final.exists() and not replace_existing:
             result = verify_view(final, manifest["releaseId"], require_helper_contents=False)
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
@@ -596,8 +611,11 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         parent_cache_enabled = False
         if parent_view is not None:
             parent_view = require_real_directory(parent_view, "parent materialized view")
-            parent_by_path, parent_receipt = parent_entries(parent_view)
-            parent_cache_enabled = parent_receipt.get("textbookRetrievalCacheEnabled") is True
+            if replace_existing and final.exists() and parent_view.resolve() == final.resolve():
+                parent_view = None
+            else:
+                parent_by_path, parent_receipt = parent_entries(parent_view)
+                parent_cache_enabled = parent_receipt.get("textbookRetrievalCacheEnabled") is True
         temporary = Path(tempfile.mkdtemp(prefix=".%s." % manifest["releaseId"], dir=str(views)))
         helper = temporary / RUNTIME_BLOB_HELPER_NAME
         helper.mkdir(mode=0o755)
@@ -643,7 +661,23 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 os.chmod(str(Path(current) / directory), 0o555)
         os.chmod(str(temporary), 0o555)
         result = verify_view(temporary, manifest["releaseId"], require_helper_contents=False)
-        os.replace(str(temporary), str(final))
+        if final.exists():
+            backup = views / (".%s.replacing" % manifest["releaseId"])
+            if backup.exists() or backup.is_symlink():
+                fail("materialized view replacement backup already exists")
+            for current, directories, _ in os.walk(str(final), topdown=True, followlinks=False):
+                os.chmod(current, 0o755)
+                directories[:] = [name for name in directories if name != RUNTIME_BLOB_HELPER_NAME]
+            os.chmod(str(final), 0o755)
+            os.rename(str(final), str(backup))
+            try:
+                os.replace(str(temporary), str(final))
+            except Exception:
+                os.rename(str(backup), str(final))
+                raise
+            shutil.rmtree(str(backup))
+        else:
+            os.replace(str(temporary), str(final))
         temporary = None
         directory = os.open(str(views), os.O_DIRECTORY)
         try:
@@ -825,6 +859,7 @@ def main() -> None:
         command.add_argument("--parent-view")
         command.add_argument("--cache-textbook-retrieval", action="store_true")
         command.add_argument("--skip-blob-hash", action="store_true")
+        command.add_argument("--replace-existing", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)
     selector.add_argument("--view-root", required=True)

@@ -77,14 +77,34 @@ assert.ok(
   'ERR recovery must be installed before current view selection',
 );
 assert.ok(
-  activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"') <
-    activation.lastIndexOf('restore_parent_host_overlays "$parent_view" "$candidate_view"'),
-  'parent overlay restore must happen after current view selection',
+  activation.lastIndexOf('restore_parent_host_overlays "$overlay_source" "$candidate_view"') <
+    activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"'),
+  'control-plane overlay restore must happen before post-overlay verification',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'post-overlay verification must happen before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_current_selected=1'),
+  'failed post-overlay verification must not mark the candidate current view selected',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_deploy_attempted=1'),
+  'failed post-overlay verification must not restart runtime consumers',
 );
 assert.match(
   activation,
-  /candidate_current_selected=1[\s\S]*restore_parent_host_overlays "\$parent_view" "\$candidate_view"/,
-  'current-view selection must be durable before overlay restore can fail',
+  /restore-overlays/,
+  'overlay restore must use the host-state allowlist command',
+);
+assert.match(
+  activation,
+  /--replace-existing/,
+  'activation must be able to rematerialize an existing host view from immutable blobs',
 );
 assert.match(
   activation,
