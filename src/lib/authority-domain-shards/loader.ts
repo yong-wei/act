@@ -274,3 +274,17 @@ export function loadActiveShardContext(
 ): LoadedAuthorityShardContext {
   return loadContext(options);
 }
+
+export function loadVerifiedShardRelative<T extends {
+  envelope: AuthorityRootShard['envelope'];
+  shardClass: string;
+}>(
+  relative: string,
+  expectedClass: T['shardClass'],
+  options: LoadAuthorityShardOptions | LoadedAuthorityShardContext = {},
+): T {
+  const context = 'manifest' in options && 'setDir' in options
+    ? options
+    : loadContext(options);
+  return readVerifiedShard<T>(context, relative, expectedClass);
+}

@@ -55,6 +55,26 @@ describe('active Authority presentation adapter', () => {
     expect(JSON.stringify(presentActiveRelation('internal_predicate', 'internal_direction'))).not.toContain('internal_');
   });
 
+  it('prefers complete-locale projected type and relation labels over historical Chinese maps', () => {
+    expect(presentActiveNodeType('DomainConcept', 'Domain concept').label).toBe('Domain concept');
+    expect(presentActiveRelation('applies_to', 'source_to_target', {
+      label: 'Applies to',
+      directionLabel: 'From the former to the latter',
+    })).toMatchObject({
+      label: 'Applies to',
+      directionLabel: 'From the former to the latter',
+      supported: true,
+    });
+    const model = createActiveAuthorityGraphModel({
+      nodes: [{
+        ...node('a', 'DomainConcept', 'Transfer function'),
+        typeLabel: 'Domain concept',
+      }],
+      relations: [],
+    });
+    expect(model.nodes[0]?.type.label).toBe('Domain concept');
+  });
+
   it('keeps only valid nodes and exact real edges with deterministic adjacency', () => {
     const response = {
       nodes: [
