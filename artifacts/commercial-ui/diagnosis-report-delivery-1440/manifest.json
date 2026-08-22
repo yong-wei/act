@@ -2,28 +2,28 @@
   "schemaVersion": "commercial-ui-evidence.v1",
   "status": "passed",
   "captureProfile": "diagnosis-report-delivery",
-  "baseUrl": "http://localhost:3220",
+  "baseUrl": "http://127.0.0.1:3001",
   "revisionProbePath": "/api/internal/local-qa/revision",
-  "sourceRevision": "cf31c13a761653628a1c5433c7eba685006a5b02",
-  "treeSha": "67ed98f9693c695f398d019aa23c110f45e3731c",
-  "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
+  "sourceRevision": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+  "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+  "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
   "initialServiceRevision": {
-    "commitSha": "cf31c13a761653628a1c5433c7eba685006a5b02",
-    "treeSha": "67ed98f9693c695f398d019aa23c110f45e3731c",
-    "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+    "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
     "clean": true
   },
   "finalServiceRevision": {
-    "commitSha": "cf31c13a761653628a1c5433c7eba685006a5b02",
-    "treeSha": "67ed98f9693c695f398d019aa23c110f45e3731c",
-    "sourceFingerprint": "e13209a45f3ed50226800a8dc2f77e0795d1279a0372098d2e5da57ece723bab",
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+    "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
     "clean": true
   },
   "sourceFiles": [
     {
       "file": "prisma/schema.prisma",
-      "gitBlobId": "0064040be40ec93f411cf3480a175db4eaf046e9",
-      "sha256": "567d5da55cda2303a1baf800c70072cc6b7ac9f7e7d0f93f98be603bb51dff05"
+      "gitBlobId": "fdb0907fb39222efd61f70f8cb04f517cfe71d57",
+      "sha256": "79190abd6b4186961a659c984268ee9db8a513ced21af484774362dcc77a5fb2"
     },
     {
       "file": "src/app/api/diagnosis-reports/[reportId]/student-safe/route.ts",
@@ -52,18 +52,18 @@
     },
     {
       "file": "src/app/diagnosis-reports/[reportId]/page.tsx",
-      "gitBlobId": "498e38d1d410966de1ce7436434282b00ea09f70",
-      "sha256": "c6e71249f67e85023736a94cc31d0f9caa447bff2f5d0ed57b5d11ebb7c52c90"
+      "gitBlobId": "e4493c9d527dca86ef12c0bdab4752895bab9b74",
+      "sha256": "8b2b5b7ddc2ab19bc634c0a3122627df15cea73cdc0af1aebcf246f343dff70d"
     },
     {
       "file": "src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx",
-      "gitBlobId": "cff18ecc8c2a33fa8c048a4977acd302ad52429a",
-      "sha256": "e8de1ecef28168f62c645113e73a3281d279535503aaba3ca96a3391df1b77f9"
+      "gitBlobId": "892df48b298ccf3033d612a2b873131092fbb8e3",
+      "sha256": "a420028d95547ef8ace89ccadc3f7c2d3b3b25ecf7ebabb1882d8aa1a9c4839e"
     },
     {
       "file": "src/features/teacher/diagnosis-report-delivery-view.tsx",
-      "gitBlobId": "ec4b5f84c8fa071c6f2d4a6c43cd23b983e5c6ac",
-      "sha256": "22602c5fd7624ecfcdbe26715b5f7981c70c3128c4823cae47858b1436f0e8f2"
+      "gitBlobId": "3d211deeb5dd568de0ee45f9f08d2fe20e3bf0b7",
+      "sha256": "124f6b1f2eb59ff3b10df0f1be5b30dd015962943d0a87b94b92540ef539b8d5"
     },
     {
       "file": "src/lib/diagnosis-report-delivery-projection.ts",
@@ -72,8 +72,8 @@
     },
     {
       "file": "src/lib/diagnosis-report-delivery.ts",
-      "gitBlobId": "ed1444c6bcd2723dca4ab6070f4dd211a419736b",
-      "sha256": "4731bc1902be855aedb073782a77163093d3e5f86d842bd1a25e55d91e42cb80"
+      "gitBlobId": "39a0c672a1eca399fbfd124402e362662a51740c",
+      "sha256": "b023b197bb9db1820cc21b787c00950dff241db479d37343cd26be5601951363"
     },
     {
       "file": "src/lib/diagnosis-report-pdf.ts",
@@ -87,30 +87,35 @@
     },
     {
       "file": "playwright.config.ts",
-      "gitBlobId": "d30e1cedafa9bfb4c9022d2ffe576147014db247",
-      "sha256": "5b113f990156bfb2501bfd8eca7efc49b8d45c254c2dc68bb06f979b37be15ba"
+      "gitBlobId": "dc35a7cd2c709c94261bb3d72748d985e2e1f10f",
+      "sha256": "659f960aeb4b1baf8b6d365dd7a8a57fd447bd8366fe153a22f835e0d090cf1a"
     },
     {
       "file": "tests/diagnosis-report-delivery-evidence.spec.ts",
-      "gitBlobId": "ce61694785626f69a7b7787562d8e6e29f5fbb6d",
-      "sha256": "2b481d8db8463a8afd67ecf377b88130cc0c5984b6ccd9d2d2efb9c7a1b7e4e1"
+      "gitBlobId": "350f6f9564008863c7c3cbe9933665d2795e4d59",
+      "sha256": "3f4744ddc1c0171ac847b29d0049c0301159c404a1a777a8262b99f1e75d49fb"
     },
     {
       "file": "src/lib/commercial-ui-capture-revision.ts",
-      "gitBlobId": "d75d1f5821b87060d83dcd16300c4972a6be9199",
-      "sha256": "7a67a55cd9223f95cfce6639b83dfe4f0818e25911ec2e48942553c5164fff5f"
+      "gitBlobId": "efa6b48f62265161edb6e5e1ed1b3cd873a6f0f9",
+      "sha256": "a77b59d3b97cd24f67ac8912278ee94c6480bd2b23875217f904ac91c6b67db1"
+    },
+    {
+      "file": "src/lib/commercial-ui-capture-revision-runtime.ts",
+      "gitBlobId": "f5c0eef56884252afa56c6f6e593df1bc1fe8e8e",
+      "sha256": "654379d126d3d1773d89d4a185ece3885c716d71363f8afc592dc6a8d90976eb"
     },
     {
       "file": "src/app/api/internal/local-qa/revision/route.ts",
-      "gitBlobId": "c8a8fb215e611def4373a376958f22ab64890f58",
-      "sha256": "ee7f1e153a6302c88fc504673cc11408b480ba9169854bcf69945e42d31338dc"
+      "gitBlobId": "a2f4cc3313ac5f7f241d97ecb7f1d04b8c39c0ac",
+      "sha256": "f83032a982397066052adaaf7b3743b9cd024b6f1ca93e173a57b05d4d468857"
     }
   ],
   "provenance": "The dedicated Playwright service is non-reusable. Capture reads the actual baseUrl revision probe before and after every state, rejects dirty or mismatched runtime bytes, and publishes output only after the final proof.",
   "captures": [
     {
       "file": "teacher-delivery-1440-light.png",
-      "sha256": "0d5e428cf8e7d9a4bed06c3f3a0dce481d0cf8ba33707c83338e5ddf3ac8ae19",
+      "sha256": "2e7a7b2d7ead9d5dc424a1e790d3aa078b4d601e8824eb31010cbcb8cb8d7bef",
       "viewport": {
         "width": 1440,
         "height": 1050
@@ -118,34 +123,35 @@
       "assertions": [
         "teacher projection visible",
         "bounded evidence visible",
-        "registered action visible",
+        "report-level preparation entry visible",
         "suggestion visible",
         "disposition recorded",
         "no horizontal overflow"
       ]
     },
     {
-      "file": "teacher-export-failure-1440-light.png",
-      "sha256": "122a571d82838c1684d7b16f45a7ed991e98ddc9b3fbe34915c60b9fa6d8ac24",
+      "file": "teacher-print-only-1440-light.png",
+      "sha256": "548c348590506d505d3f016285c25516c0ae101be8b22ea31a685c6b775763d7",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "assertions": [
-        "explicit PDF failure",
-        "recoverable retry guidance"
+        "print control visible",
+        "PDF export control absent"
       ]
     },
     {
       "file": "student-safe-delivery-320-dark.png",
-      "sha256": "d35ce9248c0ace97ff53bb261b94458afa8cba61ec64cfb488abf222cd89a951",
+      "sha256": "c68610e370034a3638b82b0b599fc61c0b5bbebc6afb4a7c5dbdfcfc5be0c3a9",
       "viewport": {
         "width": 320,
         "height": 844
       },
       "assertions": [
         "student-safe projection visible",
-        "suggestion visible",
+        "print control visible",
+        "PDF export control absent",
         "teacher controls absent",
         "force reason absent",
         "no horizontal overflow"

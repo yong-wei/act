@@ -83,6 +83,41 @@ describe('teacher diagnosis report history projection', () => {
     }).generationReason).toContain('用于教学复盘会议留档');
   });
 
+  it('renders persisted assignment and assessment coverage when the report includes governed outcomes', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        sourceCoverage: {
+          ...baseline.reportBody.sourceCoverage,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+      },
+    });
+
+    expect(projection.evidenceGroups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'assignment', state: 'available', includedLabel: '100 人', missingLabel: '0 人' }),
+      expect.objectContaining({ id: 'assessment', state: 'available', includedLabel: '100 人', missingLabel: '0 人' }),
+    ]));
+    expect(projection.confidenceReasons).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: '当前报告尚未纳入作业证据。' }),
+      expect.objectContaining({ reason: '当前报告尚未纳入测验证据。' }),
+    ]));
+  });
+
   it('does not treat generated prose changes as learning changes when governed structure is unchanged', () => {
     const current: DiagnosisReportApiItem = {
       ...baseline,
