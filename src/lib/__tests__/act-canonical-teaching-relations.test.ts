@@ -570,5 +570,18 @@ describe('act-canonical-teaching-relations', () => {
     });
     expect(again.pending.some((row) => row.exceptionReasons.includes('family-unqualified'))).toBe(true);
     expect(again.edges.every((edge) => edge.family !== 'prerequisite')).toBe(true);
+
+    const relabeled = { ...forged, candidateId: 'cand-forged-prereq-origin', origin: 'AUTHOR_PROPOSAL' as const };
+    const bypass = admitQualifiedCandidates({
+      scope: artifacts.scope,
+      candidates: [relabeled],
+      dispositions: artifacts.dispositions,
+      edges: artifacts.edges,
+      qualification: artifacts.qualification,
+      pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+      pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
+    });
+    expect(bypass.pending.some((row) => row.exceptionReasons.includes('family-unqualified'))).toBe(true);
+    expect(bypass.edges.every((edge) => edge.family !== 'prerequisite')).toBe(true);
   });
 });
