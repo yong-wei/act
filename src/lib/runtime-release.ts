@@ -735,6 +735,7 @@ export function assertRuntimeBlobReleaseReceiptMatchesManifest(
 ) {
   const expected = buildRuntimeBlobReleaseReceipt(manifest, {
     sourceProvenanceProofSha256: receipt.sourceProvenanceProofSha256,
+    formalResourceEnvelopeHash: receipt.formalResourceEnvelopeHash,
   });
   if (serializeRuntimeBlobReleaseReceipt(receipt) !== serializeRuntimeBlobReleaseReceipt(expected)) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'Runtime blob release receipt does not match the manifest identity and reachable blobs.');

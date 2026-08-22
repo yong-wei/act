@@ -29,6 +29,11 @@ export function qualifyPipeline(input: {
     goldDigest,
     holdoutDigest,
     threshold: FROZEN_PIPELINE_THRESHOLD,
+    admittedGoldIds: [...input.admittedGoldIds].sort(),
+    admittedHoldoutIds: [...input.admittedHoldoutIds].sort(),
+    goldScore,
+    holdoutScore,
+    passed,
   }).slice(0, 24)}`;
   return {
     pipelineKind: input.pipelineKind,

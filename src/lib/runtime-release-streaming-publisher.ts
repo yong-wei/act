@@ -114,6 +114,7 @@ export function assertRuntimeBlobPlanningReceipt(
   }
   const expected = buildRuntimeBlobReleaseReceipt(manifest, {
     sourceProvenanceProofSha256: parsed.sourceProvenanceProofSha256,
+    formalResourceEnvelopeHash: parsed.formalResourceEnvelopeHash,
   });
   if (serializeRuntimeBlobReleaseReceipt(parsed) !== serializeRuntimeBlobReleaseReceipt(expected)) {
     throw new RuntimeReleaseStreamingPublisherError(
@@ -771,6 +772,7 @@ function parseBlobPublishReceipt(
 ): RuntimeBlobReleaseVerificationReceipt {
   const receipt = buildRuntimeBlobReleaseReceipt(manifest, {
     sourceProvenanceProofSha256: planningReceipt?.sourceProvenanceProofSha256,
+    formalResourceEnvelopeHash: planningReceipt?.formalResourceEnvelopeHash,
   });
   const acceptableReceiptWireSha256 = new Set([
     receipt,

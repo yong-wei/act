@@ -330,6 +330,7 @@ async function openPlannedGitManifest(sourceRevision: string) {
   validateSourceProofSnapshot(proof, snapshot);
   const expectedReceipt = buildRuntimeBlobReleaseReceipt(manifest, {
     sourceProvenanceProofSha256: proof.proofSha256,
+    formalResourceEnvelopeHash: receipt.formalResourceEnvelopeHash,
   });
   if (serializeRuntimeBlobReleaseReceipt(receipt) !== serializeRuntimeBlobReleaseReceipt(expectedReceipt)) {
     throw new Error('Submitted v2 planning receipt identity does not match the canonical manifest.');
@@ -402,6 +403,7 @@ async function main() {
     if (receiptOutput) {
       const receipt = buildRuntimeBlobReleaseReceipt(snapshot.manifest, {
         sourceProvenanceProofSha256: proof?.proofSha256,
+        formalResourceEnvelopeHash: argument('--formal-resource-envelope-hash') || undefined,
       });
       await mkdir(path.dirname(receiptOutput), { recursive: true });
       await writeFile(receiptOutput, serializeRuntimeBlobReleaseReceipt(receipt), 'utf8');

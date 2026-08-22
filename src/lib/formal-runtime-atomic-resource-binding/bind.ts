@@ -82,14 +82,23 @@ export function closeIncludedResource(input: {
   atoms: readonly FormalResourceAtom[];
   bindings: readonly FormalBinding[];
 }): FormalResourceCandidate {
+  let boundCount = 0;
   for (const atom of input.atoms) {
     if (atom.disposition === 'UNRESOLVED') {
       return closeCandidate(input.candidate, 'EXCLUDED', [`unresolved-atom:${atom.atomId}`]);
     }
+    if (atom.disposition === 'BOUND') {
+      const matched = input.bindings.some((row) => (
+        row.resourceId === input.candidate.resourceId
+        && row.atomId === atom.atomId
+      ));
+      if (!matched) {
+        return closeCandidate(input.candidate, 'EXCLUDED', [`unbound-atom:${atom.atomId}`]);
+      }
+      boundCount += 1;
+    }
   }
-  const bound = input.atoms.some((atom) => atom.disposition === 'BOUND')
-    || input.bindings.some((row) => row.resourceId === input.candidate.resourceId);
-  if (!bound) {
+  if (boundCount === 0) {
     return closeCandidate(input.candidate, 'EXCLUDED', ['no-bound-atom']);
   }
   return closeCandidate(input.candidate, 'INCLUDED');

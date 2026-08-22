@@ -199,7 +199,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
     expect(migrateLegacyBinding({ projectionMode: 'NONE', method: 'identity' })).toBe('candidate');
     expect(closeIncludedResource({
       candidate: { ...video, deliveryMode: 'OPTIONAL' },
-      atoms,
+      atoms: [applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk'])],
       bindings: [],
     }).disposition).toBe('EXCLUDED');
   });
@@ -307,15 +307,14 @@ describe('formal-runtime-atomic-resource-binding', () => {
     });
     const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
     const receipt = mappingReceipt();
-    const closed = closeIncludedResource({ candidate: video, atoms: [bound], bindings: [] });
     const others = inventory.candidates.filter((row) => row.resourceId !== video.resourceId);
-    const envelope = buildFormalResourceEnvelope({
+    const draftEnvelope = buildFormalResourceEnvelope({
       releaseId: 'rel-formal-test',
       sourceRevision: 'a'.repeat(40),
       treeSha256: 'f'.repeat(64),
       authority: FIXTURE_AUTHORITY,
       courseScopeId: 'act-control-theory',
-      candidates: [closed, ...others],
+      candidates: inventory.candidates,
       bindings: [],
       qualifications: [receipt],
     });
@@ -331,11 +330,12 @@ describe('formal-runtime-atomic-resource-binding', () => {
         evidenceRefs: ['evidence:identity-crosswalk'],
       },
       atom: bound,
-      envelopeHash: envelope.envelopeHash,
+      envelopeHash: draftEnvelope.envelopeHash,
       mappingReceipt: receipt,
       mappingVersion: 'map/v1',
       mappingConfig: 'cfg-map',
     });
+    const closed = closeIncludedResource({ candidate: video, atoms: [bound], bindings: [binding] });
     const sealed = buildFormalResourceEnvelope({
       releaseId: 'rel-formal-test',
       sourceRevision: 'a'.repeat(40),
