@@ -17,6 +17,7 @@ import {
 import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const COURSE_ROOT_PIPELINE_VERSION = 'act-explicit-containment-evidence/v1' as const;
+export const FROZEN_QUALIFICATION_THRESHOLD = 0.99;
 
 export const FROZEN_TEACHING_EVIDENCE_REGISTRY = Object.freeze([
   freezeEvidenceRecord(

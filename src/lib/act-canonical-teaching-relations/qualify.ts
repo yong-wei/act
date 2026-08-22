@@ -7,7 +7,16 @@ import {
   type ActTeachingRelationType,
 } from './contracts';
 import { ActTeachingRelationError, projectionDigest } from './hash';
-import { authorizedAutoAdmitFamilies } from './pipeline';
+import {
+  COURSE_ROOT_PIPELINE_VERSION,
+  FROZEN_QUALIFICATION_THRESHOLD,
+  authorizedAutoAdmitFamilies,
+  frozenQualificationGold,
+  frozenQualificationHoldout,
+  measurePipelineDataset,
+  pipelineConfigDigest,
+  sealEvidence,
+} from './pipeline';
 
 export interface GoldRelationItem {
   readonly id: string;
@@ -147,27 +156,38 @@ export function qualificationReceiptId(input: {
   }).slice(0, 24)}`;
 }
 
+export function rebuildFrozenQualificationReceipt(
+  pipelineVersion: string,
+  configDigest: string,
+): ActTeachingQualificationReceipt {
+  const expectedConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, sealEvidence());
+  if (pipelineVersion !== COURSE_ROOT_PIPELINE_VERSION || configDigest !== expectedConfig) {
+    throw new ActTeachingRelationError(
+      'pipeline-unqualified',
+      'automatic admission requires a matching successful qualification receipt',
+    );
+  }
+  const gold = frozenQualificationGold();
+  const holdout = frozenQualificationHoldout();
+  const evidence = sealEvidence();
+  return qualifyPipeline({
+    pipelineVersion,
+    pipelineConfigDigest: expectedConfig,
+    gold,
+    holdout,
+    admittedGoldIds: measurePipelineDataset(gold, evidence),
+    admittedHoldoutIds: measurePipelineDataset(holdout, evidence),
+    threshold: FROZEN_QUALIFICATION_THRESHOLD,
+  });
+}
+
 export function assertQualifiedReceipt(
   receipt: ActTeachingQualificationReceipt,
   pipelineVersion: string,
-  pipelineConfigDigest: string,
+  configDigest: string,
 ): void {
-  const expectedFamilies = authorizedAutoAdmitFamilies();
-  const expectedId = qualificationReceiptId({
-    pipelineVersion: receipt.pipelineVersion,
-    pipelineConfigDigest: receipt.pipelineConfigDigest,
-    goldDigest: receipt.goldDigest,
-    holdoutDigest: receipt.holdoutDigest,
-    threshold: receipt.threshold,
-    autoAdmitFamilies: expectedFamilies,
-  });
-  if (
-    !receipt.passed
-    || receipt.pipelineVersion !== pipelineVersion
-    || receipt.pipelineConfigDigest !== pipelineConfigDigest
-    || receipt.receiptId !== expectedId
-    || JSON.stringify([...receipt.autoAdmitFamilies].sort()) !== JSON.stringify([...expectedFamilies])
-  ) {
+  const expected = rebuildFrozenQualificationReceipt(pipelineVersion, configDigest);
+  if (!expected.passed || projectionDigest(receipt) !== projectionDigest(expected)) {
     throw new ActTeachingRelationError(
       'pipeline-unqualified',
       'automatic admission requires a matching successful qualification receipt',

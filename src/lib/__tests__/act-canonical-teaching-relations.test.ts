@@ -26,6 +26,7 @@ import {
   projectPublishedTeachingRelations,
   publicTeachingCoverage,
   publishActTeachingProjection,
+  qualificationReceiptId,
   qualifyPipeline,
   representativeGold,
   representativeHoldout,
@@ -594,6 +595,39 @@ describe('act-canonical-teaching-relations', () => {
       dispositions: artifacts.dispositions,
       edges: artifacts.edges,
       qualification: mutatedReceipt,
+      pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+      pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
+    })).toThrow(/matching successful qualification receipt/);
+
+    const zeroMetrics = {
+      truePositives: 0,
+      falsePositives: 0,
+      falseNegatives: 0,
+      precision: 0,
+      recall: 0,
+      balancedScore: 0,
+    };
+    const forgedReceipt = {
+      ...artifacts.qualification,
+      goldDigest: '0'.repeat(64),
+      holdoutDigest: '0'.repeat(64),
+      gold: zeroMetrics,
+      holdout: zeroMetrics,
+      passed: true as const,
+    };
+    const forgedId = qualificationReceiptId({
+      pipelineVersion: forgedReceipt.pipelineVersion,
+      pipelineConfigDigest: forgedReceipt.pipelineConfigDigest,
+      goldDigest: forgedReceipt.goldDigest,
+      holdoutDigest: forgedReceipt.holdoutDigest,
+      threshold: forgedReceipt.threshold,
+      autoAdmitFamilies: forgedReceipt.autoAdmitFamilies,
+    });
+    expect(() => admitQualifiedCandidates({
+      scope: artifacts.scope,
+      candidates: generateCourseRootCandidates(artifacts.scope, FIXTURE_CONTAINMENT_EVIDENCE),
+      dispositions: emptyDispositions(artifacts.scope),
+      qualification: { ...forgedReceipt, receiptId: forgedId },
       pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
       pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
     })).toThrow(/matching successful qualification receipt/);

@@ -3,6 +3,7 @@ import type { ActTeachingProjectionArtifacts, ActTeachingScope } from './contrac
 import { emptyDispositions } from './families';
 import {
   COURSE_ROOT_PIPELINE_VERSION,
+  FROZEN_QUALIFICATION_THRESHOLD,
   assertEvidenceBoundToQualificationDatasets,
   frozenQualificationGold,
   frozenQualificationHoldout,
@@ -40,7 +41,7 @@ export function buildActTeachingProjection(input: {
     holdout,
     admittedGoldIds: measurePipelineDataset(gold, evidence),
     admittedHoldoutIds: measurePipelineDataset(holdout, evidence),
-    threshold: input.threshold,
+    threshold: FROZEN_QUALIFICATION_THRESHOLD,
   });
   const generated = generateContainmentCandidates(input.scope, evidence);
   const covered = new Set(generated.map((row) => row.sourceCanonicalId));
