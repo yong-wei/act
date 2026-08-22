@@ -55,6 +55,7 @@ async function main() {
     learningFacts,
     documentGradingRuns,
     documentRubricDrafts,
+    documentGradingAudits,
     historicalSimulationLogs,
     historicalUserAnswers,
     historicalAiInterventions,
@@ -142,6 +143,10 @@ async function main() {
       where: { sourceType: 'document_rubric_grading' },
       select: { id: true, ownerUserId: true, reviewerState: true, summary: true },
     }),
+    prisma.gradingAuditEvent.findMany({
+      where: { action: 'grading-run.teacher-reviewed', resourceType: 'GradingRun' },
+      select: { id: true, action: true, resourceType: true, resourceId: true, metadata: true },
+    }),
     prisma.simulationLog.findMany({ select: { id: true, userId: true } }),
     prisma.userAnswer.findMany({ select: { id: true, userId: true } }),
     prisma.aIIntervention.findMany({ select: { id: true, userId: true } }),
@@ -199,6 +204,9 @@ async function main() {
     documentRubricDrafts: documentRubricDrafts
       .map(toDocumentRubricDraftAuditInput)
       .filter((draft): draft is NonNullable<ReturnType<typeof toDocumentRubricDraftAuditInput>> => Boolean(draft)),
+    documentGradingAudits: documentGradingAudits
+      .map(toDocumentGradingAuditInput)
+      .filter((audit): audit is NonNullable<ReturnType<typeof toDocumentGradingAuditInput>> => Boolean(audit)),
     historicalSourceLogIds: [
       ...historicalSimulationLogs,
       ...historicalUserAnswers,
@@ -361,6 +369,38 @@ function countByUser(rows: Array<{ userId: string; _count: { _all: number } }>) 
 
 function normalizeErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function toDocumentGradingAuditInput(event: {
+  id: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  metadata: unknown;
+}) {
+  const metadata = asRecord(event.metadata);
+  const rubric = asRecord(metadata?.rubric);
+  const decision = asString(metadata?.decision);
+  const rubricVersion = asString(rubric?.version);
+  const sourceEventDigests = Array.isArray(metadata?.sourceEventDigests)
+    ? metadata.sourceEventDigests.filter((value): value is string => typeof value === 'string' && Boolean(value))
+    : [];
+  const criterionDigests = Array.isArray(metadata?.gradeChanges)
+    ? metadata.gradeChanges
+      .map((change) => asString(asRecord(change)?.criterionDigest))
+      .filter((value): value is string => Boolean(value))
+    : [];
+  if (!event.id || !event.resourceId || !decision || !rubricVersion) return null;
+  return {
+    id: event.id,
+    action: event.action,
+    resourceType: event.resourceType,
+    resourceId: event.resourceId,
+    decision,
+    rubricVersion,
+    sourceEventDigests,
+    criterionDigests,
+  };
 }
 
 function toDocumentRubricDraftAuditInput(draft: { id: string; ownerUserId: string; reviewerState: string; summary: unknown }) {

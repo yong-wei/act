@@ -652,6 +652,7 @@ describe('document rubric grading workbench', () => {
       run: draft,
       rubric: rubric(),
       studentId: asset().studentId,
+      sourceLogId: 'draft-blocked',
       goalContext: {
         classId: 'class-1',
         assignmentId: 'report-1',
@@ -982,7 +983,6 @@ describe('document rubric grading workbench', () => {
           moduleId: null,
           sessionId: null,
           lessonId: null,
-          sourceLogId: null,
           courseId: 'automatic-control',
           createdAt: now,
           ...fact,

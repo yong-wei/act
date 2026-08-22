@@ -7,9 +7,11 @@ import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-re
 import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
+  type DataCompletenessDocumentGradingAuditInput,
   type DataCompletenessDocumentRubricDraftInput,
   type DataCompletenessLearningFactInput,
 } from '../data-completeness-audit';
+import { pseudonymousAuditId } from '../math-document-grading-contracts';
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
 
 function workbenchSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
@@ -29,6 +31,49 @@ function approvedWorkbenchDraft(
     approvedCriterionIds: ['criterion-1'],
     ...overrides,
   };
+}
+
+function pipelineSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
+  return `adaptive-assessment:document-rubric-grading:${[runId, criterionId, rubricVersion].map(encodeURIComponent).join(':')}`;
+}
+
+function teacherReviewDigest(value: string, field: string) {
+  return pseudonymousAuditId(`${field}:${value}`, `teacher-review:${field}`);
+}
+
+function approvedPipelineAudit(
+  overrides: Partial<DataCompletenessDocumentGradingAuditInput> = {},
+): DataCompletenessDocumentGradingAuditInput {
+  const sourceEventId = pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question');
+  return {
+    id: 'audit-1',
+    action: 'grading-run.teacher-reviewed',
+    resourceType: 'GradingRun',
+    resourceId: 'run-1',
+    decision: 'approved',
+    rubricVersion: 'sha256:question',
+    sourceEventDigests: [teacherReviewDigest(sourceEventId, 'source-event')],
+    criterionDigests: [teacherReviewDigest('criterion-1', 'criterion')],
+    ...overrides,
+  };
+}
+
+function pipelineFact(
+  overrides: Partial<DataCompletenessLearningFactInput> = {},
+): DataCompletenessLearningFactInput {
+  return {
+    id: 'fact-document-grading-1',
+    userId: 'student-1',
+    factType: 'document_rubric_grading',
+    sourceEventId: pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question'),
+    sourceLogId: 'audit-1',
+    contextJson: { gradingRunId: 'run-1', criterionId: 'criterion-1', rubricVersion: 'sha256:question' },
+    ...overrides,
+  };
+}
+
+function approvedPipelineRun() {
+  return { id: 'run-1', state: 'APPROVED', rubricVersion: 'sha256:question', studentId: 'student-1', assessments: [{ criterionId: 'criterion-1' }] };
 }
 
 function workbenchFact(
@@ -54,8 +99,9 @@ describe('data completeness audit', () => {
   it('accepts governed document-rubric grading source events without dangling lineage', () => {
     const report = buildDataCompletenessAuditReport({
       generatedAt: '2026-07-14T00:00:00.000Z',
-      learningFacts: [{ id: 'fact-document-grading-1', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion', sourceLogId: null, contextJson: { gradingRunId: 'run-1', criterionId: 'criterion-1', rubricVersion: 'sha256:question' } }],
-      documentGradingRuns: [{ id: 'run-1', state: 'APPROVED', rubricVersion: 'sha256:question', studentId: 'student-1', assessments: [{ criterionId: 'criterion-1' }] }],
+      learningFacts: [pipelineFact()],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits: [approvedPipelineAudit()],
     });
     const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
     expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(0);
@@ -65,11 +111,28 @@ describe('data completeness audit', () => {
   it('rejects forged or missing document-rubric grading lineage', () => {
     for (const documentGradingRuns of [[], [{ id: 'run-1', state: 'AWAITING_REVIEW', rubricVersion: 'rubric-v1', studentId: 'other-student', assessments: [{ criterionId: 'other-criterion' }] }]]) {
       const report = buildDataCompletenessAuditReport({
-        learningFacts: [{ id: 'forged-fact', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion' }],
+        learningFacts: [pipelineFact({ id: 'forged-fact', sourceLogId: null })],
         documentGradingRuns,
       });
       expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(1);
     }
+  });
+
+  it.each([
+    ['rejects a missing pipeline audit anchor', pipelineFact({ sourceLogId: null }), [approvedPipelineAudit()], 1],
+    ['rejects a tampered pipeline sourceLogId', pipelineFact({ sourceLogId: 'audit-forged-1' }), [approvedPipelineAudit()], 1],
+    ['rejects a pipeline audit for another run', pipelineFact(), [approvedPipelineAudit({ resourceId: 'run-2' })], 1],
+    ['rejects a non-teacher-reviewed pipeline audit action', pipelineFact(), [approvedPipelineAudit({ action: 'grading-run.created' })], 1],
+    ['rejects a pipeline audit that is not approved', pipelineFact(), [approvedPipelineAudit({ decision: 'returned' })], 1],
+    ['rejects a mismatched pipeline source-event digest', pipelineFact(), [approvedPipelineAudit({ sourceEventDigests: [teacherReviewDigest('forged-source', 'source-event')] })], 1],
+    ['rejects a mismatched pipeline criterion digest', pipelineFact(), [approvedPipelineAudit({ criterionDigests: [teacherReviewDigest('criterion-2', 'criterion')] })], 1],
+  ])('%s', (_label, learningFact, documentGradingAudits, expectedDanglingEvents) => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [learningFact],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits,
+    });
+    expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(expectedDanglingEvents);
   });
 
   it.each([

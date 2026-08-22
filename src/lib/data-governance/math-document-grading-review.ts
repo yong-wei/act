@@ -242,7 +242,7 @@ export function buildPipelineReviewFacts(input: { run: any; edits: any[]; review
   if (!sourceLogId) {
     throw new Error('pipeline-review-source-log-required');
   }
-  return buildPipelineReviewFactCandidates(input).map((fact) => ({
+  return buildPipelineReviewFactCandidates(input).map((fact: { sourceEventId: string }) => ({
     ...fact,
     sourceLogId,
   }));
