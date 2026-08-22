@@ -26,6 +26,11 @@ Validated media manifests SHALL project into ResourceSegment, CitationTarget, Re
 - **THEN** the projection SHALL preserve source and media hashes, paragraph identity/hash, start time and deterministic end rule, graph refs, scene availability, citation readiness, evidence capability, privacy scope, exact subtype, qualification identity, formal eligibility, and limitations
 - **AND** raw media, transcript text, hidden source internals, or temporary access URLs SHALL NOT be copied into unrelated runtime records
 
+#### Scenario: Media segment is citation-ready
+- **WHEN** a media semantic paragraph has a stable source identity, deterministic anchor, graph binding, citation policy, and formal eligibility
+- **THEN** it MAY be cited or retrieved according to existing scope and verification policy
+- **AND** it SHALL NOT become a PathNode or formal launch target from citation readiness alone
+
 #### Scenario: Projection is not formally eligible
 - **WHEN** a media resource has valid development metadata but fails one formal source, timing, qualification, binding, or launch gate
 - **THEN** its development projection MAY retain bounded limitations

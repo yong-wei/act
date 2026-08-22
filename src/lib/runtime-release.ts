@@ -106,6 +106,8 @@ export interface ActRuntimeBlobReleaseReceipt {
   blobs: ActRuntimeBlobReleaseReceiptBlob[];
   /** Digest of the immutable source-provenance proof used for planning. */
   sourceProvenanceProofSha256?: string;
+  /** Present only when the candidate declares the formal-resource contract. */
+  formalResourceEnvelopeHash?: string;
   receiptSha256: string;
 }
 
@@ -396,11 +398,14 @@ function blobReceiptDigestBody(receipt: Omit<ActRuntimeBlobReleaseReceipt, 'rece
 
 export function buildRuntimeBlobReleaseReceipt(
   manifest: ActRuntimeBlobReleaseManifest,
-  options: { sourceProvenanceProofSha256?: string } = {},
+  options: { sourceProvenanceProofSha256?: string; formalResourceEnvelopeHash?: string } = {},
 ): ActRuntimeBlobReleaseReceipt {
   const parsed = parseRuntimeBlobReleaseManifest(manifest);
   if (options.sourceProvenanceProofSha256 !== undefined && !SHA256_PATTERN.test(options.sourceProvenanceProofSha256)) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'Source-provenance proof digest is invalid.');
+  }
+  if (options.formalResourceEnvelopeHash !== undefined && !SHA256_PATTERN.test(options.formalResourceEnvelopeHash)) {
+    throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'Formal-resource envelope digest is invalid.');
   }
   const withoutReceiptDigest = {
     schemaVersion: ACT_RUNTIME_BLOB_RELEASE_RECEIPT_SCHEMA_VERSION,
@@ -415,6 +420,7 @@ export function buildRuntimeBlobReleaseReceipt(
     totalBytes: parsed.totalBytes,
     blobs: blobReceiptBlobs(parsed),
     ...(options.sourceProvenanceProofSha256 ? { sourceProvenanceProofSha256: options.sourceProvenanceProofSha256 } : {}),
+    ...(options.formalResourceEnvelopeHash ? { formalResourceEnvelopeHash: options.formalResourceEnvelopeHash } : {}),
   } satisfies Omit<ActRuntimeBlobReleaseReceipt, 'receiptSha256'>;
   return {
     ...withoutReceiptDigest,
@@ -630,6 +636,7 @@ export function parseRuntimeBlobReleaseManifest(value: unknown): ActRuntimeBlobR
 export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobReleaseReceipt {
   const raw = object(value, 'receipt');
   const hasSourceProof = Object.hasOwn(raw, 'sourceProvenanceProofSha256');
+  const hasFormalEnvelope = Object.hasOwn(raw, 'formalResourceEnvelopeHash');
   assertExactKeys(raw, [
     'schemaVersion',
     'releaseId',
@@ -643,6 +650,7 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
     'totalBytes',
     'blobs',
     ...(hasSourceProof ? ['sourceProvenanceProofSha256'] : []),
+    ...(hasFormalEnvelope ? ['formalResourceEnvelopeHash'] : []),
     'receiptSha256',
   ], 'receipt');
   if (raw.schemaVersion !== ACT_RUNTIME_BLOB_RELEASE_RECEIPT_SCHEMA_VERSION) {
@@ -672,6 +680,12 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
     : undefined;
   if (sourceProvenanceProofSha256 !== undefined && !SHA256_PATTERN.test(sourceProvenanceProofSha256)) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'receipt.sourceProvenanceProofSha256 is invalid.');
+  }
+  const formalResourceEnvelopeHash = hasFormalEnvelope
+    ? string(raw.formalResourceEnvelopeHash, 'receipt.formalResourceEnvelopeHash')
+    : undefined;
+  if (formalResourceEnvelopeHash !== undefined && !SHA256_PATTERN.test(formalResourceEnvelopeHash)) {
+    throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'receipt.formalResourceEnvelopeHash is invalid.');
   }
   if (!Array.isArray(raw.blobs) || raw.blobs.length === 0) {
     throw new RuntimeReleaseValidationError('runtime-release-receipt-invalid', 'receipt.blobs must be a non-empty array.');
@@ -705,6 +719,7 @@ export function parseRuntimeBlobReleaseReceipt(value: unknown): ActRuntimeBlobRe
     totalBytes,
     blobs,
     ...(sourceProvenanceProofSha256 ? { sourceProvenanceProofSha256 } : {}),
+    ...(formalResourceEnvelopeHash ? { formalResourceEnvelopeHash } : {}),
     receiptSha256,
   } satisfies ActRuntimeBlobReleaseReceipt;
   const { receiptSha256: _ignored, ...withoutReceiptDigest } = parsed;

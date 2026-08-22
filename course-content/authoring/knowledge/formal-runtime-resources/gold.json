@@ -1,0 +1,12 @@
+{
+  "name": "gold",
+  "pipelines": {
+    "asr": [{ "id": "a1", "expected": "admit" }],
+    "segmentation": [{ "id": "s1", "expected": "admit" }],
+    "time-alignment": [{ "id": "t1", "expected": "admit" }],
+    "canonical-mapping": [
+      { "id": "map-bound", "expected": "admit" },
+      { "id": "map-label", "expected": "exclude" }
+    ]
+  }
+}
