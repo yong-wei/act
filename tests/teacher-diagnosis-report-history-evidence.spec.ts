@@ -55,7 +55,7 @@ test('captures the class production route with loading, history selection, and p
   await expect(page.locator('[data-selected-diagnosis-report="report-class-older"]')).toBeVisible();
   await expect(page.locator('[data-report-comparison="no-baseline"]')).toBeVisible();
   await expect(page.locator('[data-diagnosis-delivery-primary="true"]')).toBeVisible();
-  await expect(page.locator(`a[href*="/teacher/preparation?"]`)).toBeVisible();
+  await expect(page.locator(`a[href*="/teacher/preparation?"]`)).toHaveCount(0);
   await assertPrivateEvidenceHidden(page);
   await expectNoHorizontalOverflow(page);
   expect(diagnostics.consoleErrors).toEqual([]);
@@ -155,7 +155,7 @@ test('captures degraded student history at the 320px production route', async ({
   await expect(page.locator('[data-report-degraded="true"]')).toBeVisible();
   await expect(page.locator('[data-report-availability="证据受限"]')).toBeVisible();
   await expect(page.locator('[data-diagnosis-delivery-primary="true"]')).toBeVisible();
-  await expect(page.locator(`a[href*="/teacher/preparation?"]`)).toBeVisible();
+  await expect(page.locator(`a[href*="/teacher/preparation?"]`)).toHaveCount(0);
   await assertPrivateEvidenceHidden(page);
   await expectNoHorizontalOverflow(page);
   expect(diagnostics.consoleErrors).toEqual([]);
