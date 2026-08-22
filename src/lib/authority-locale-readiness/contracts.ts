@@ -148,6 +148,7 @@ export interface PublicLocaleCapability {
   readonly bilingualReady: boolean;
   readonly englishUnavailableReason: string | null;
   readonly mode: 'historical' | 'complete-locale';
+  readonly languageComponentDigest: string | null;
 }
 
 export const HISTORICAL_ENGLISH_UNAVAILABLE_ZH =

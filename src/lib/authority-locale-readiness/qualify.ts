@@ -113,10 +113,22 @@ function coverageFor(
   });
 }
 
+function denominatorsMatch(
+  expected: readonly LocaleCategoryDenominator[],
+  declared: readonly LocaleCategoryDenominator[],
+): boolean {
+  return MANDATORY_LOCALE_CATEGORIES.every((category) => {
+    const left = [...(expected.find((row) => row.category === category)?.recordIds ?? [])].sort();
+    const right = [...(declared.find((row) => row.category === category)?.recordIds ?? [])].sort();
+    return left.length === right.length && left.every((id, index) => id === right[index]);
+  });
+}
+
 export function qualifyLocaleManifest(
   manifest: AuthorityLocaleManifest | null | undefined,
   envelope: AdmittedEnvelopeIdentity,
   locale: AdmittedLocale,
+  expectedDenominators: readonly LocaleCategoryDenominator[] | null = null,
 ): LocaleQualificationReceipt {
   const placeholderIdentity = manifest?.identity ?? {
     compositeReleaseName: envelope.name,
@@ -163,16 +175,29 @@ export function qualifyLocaleManifest(
     }]);
   }
 
-  const recomputedDenominators = MANDATORY_LOCALE_CATEGORIES.map((category) => {
-    const declared = manifest.denominators.find((row) => row.category === category);
-    const recordIds = [...(declared?.recordIds ?? [])].sort();
-    return { category, recordIds, digest: localeDigest(recordIds) };
-  });
-  const recomputedDenominatorDigest = denominatorDigestFor(recomputedDenominators);
-  if (recomputedDenominatorDigest !== manifest.denominatorDigest) {
+  if (!expectedDenominators) {
     return fail(manifest.identity, locale, [{
       code: 'changed-denominator',
-      message: 'locale denominator digest drifted from the admitted manifest',
+      message: 'complete-locale requires an independently computed presentation denominator',
+    }]);
+  }
+  const expectedNormalized = MANDATORY_LOCALE_CATEGORIES.map((category) => {
+    const recordIds = [...(expectedDenominators.find((row) => row.category === category)?.recordIds ?? [])].sort();
+    return { category, recordIds, digest: localeDigest(recordIds) };
+  });
+  const declaredNormalized = MANDATORY_LOCALE_CATEGORIES.map((category) => {
+    const recordIds = [...(manifest.denominators.find((row) => row.category === category)?.recordIds ?? [])].sort();
+    return { category, recordIds, digest: localeDigest(recordIds) };
+  });
+  const recomputedDenominatorDigest = denominatorDigestFor(expectedNormalized);
+  if (
+    !denominatorsMatch(expectedNormalized, declaredNormalized)
+    || denominatorDigestFor(declaredNormalized) !== manifest.denominatorDigest
+    || recomputedDenominatorDigest !== manifest.denominatorDigest
+  ) {
+    return fail(manifest.identity, locale, [{
+      code: 'changed-denominator',
+      message: 'locale denominator drifted from the independently computed presentation set',
     }], { recomputedDenominatorDigest });
   }
 
@@ -237,7 +262,7 @@ export function qualifyLocaleManifest(
     present.set(key, record);
   }
 
-  const categoryCoverage = coverageFor(recomputedDenominators, present);
+  const categoryCoverage = coverageFor(expectedNormalized, present);
   for (const row of categoryCoverage) {
     for (const recordId of row.missingRecordIds) {
       failures.push({
@@ -276,9 +301,10 @@ export function qualifyLocaleManifest(
 export function qualifyReleaseLocales(
   manifest: AuthorityLocaleManifest | null | undefined,
   envelope: AdmittedEnvelopeIdentity,
+  expectedDenominators: readonly LocaleCategoryDenominator[] | null = null,
 ): ReleaseLocaleQualification {
-  const zhCN = qualifyLocaleManifest(manifest, envelope, 'zh-CN');
-  const en = qualifyLocaleManifest(manifest, envelope, 'en');
+  const zhCN = qualifyLocaleManifest(manifest, envelope, 'zh-CN', expectedDenominators);
+  const en = qualifyLocaleManifest(manifest, envelope, 'en', expectedDenominators);
   const interfaceCatalogReady = graphInterfaceCatalogReady();
   const chineseReady = zhCN.status === 'ready';
   const bilingualReady = chineseReady && en.status === 'ready' && interfaceCatalogReady;

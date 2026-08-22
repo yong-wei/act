@@ -13,6 +13,7 @@ import {
   completeBilingualLocaleFixture,
   completeZhCnLocaleFixture,
   contentDigestFor,
+  denominatorDigestFor,
   createGraphLanguageState,
   crossReleaseLocaleFixture,
   displayNameExcludedLocaleFixture,
@@ -27,6 +28,7 @@ import {
   missingZhCnLocaleFixture,
   overlayExcludedLocaleFixture,
   partialEnglishLocaleFixture,
+  applyLocaleToLearnerShard,
   projectOptionalContentForLocale,
   PUBLISHED_LATEST_COMPOSITE_NAME,
   qualifyLocaleManifest,
@@ -44,7 +46,7 @@ import {
   FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC,
 } from '@/lib/authority-locale-readiness';
 import { FUTURE_RELEASE_BOUNDARY, qualifyPublishedLatestComposite } from '@/lib/authority-locale-readiness/published';
-import { resolveActiveLocaleRequest } from '@/lib/authority-locale-readiness/request';
+import { activeLocaleCapability, resolveActiveLocaleRequest } from '@/lib/authority-locale-readiness/request';
 
 const PRODUCTION_SELECTORS = [
   'course-content/runtime/knowledge/authority-domain-shards/current.json',
@@ -54,6 +56,10 @@ const PRODUCTION_SELECTORS = [
   'course-content/runtime/knowledge/projection/current.json',
   'course-content/authoring/knowledge/authority/current.json',
 ];
+
+function expectedOf(manifest: { denominators: readonly unknown[] }) {
+  return manifest.denominators as Parameters<typeof qualifyLocaleManifest>[3];
+}
 
 describe('complete-locale qualification', () => {
   it('pins fixtures to the published v0.22 envelope and never latest', () => {
@@ -65,26 +71,27 @@ describe('complete-locale qualification', () => {
   });
 
   it('accepts complete Chinese from the release language component', () => {
-    const receipt = qualifyLocaleManifest(completeZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN');
+    const fixture = completeZhCnLocaleFixture();
+    const receipt = qualifyLocaleManifest(fixture, V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(fixture));
     expect(receipt.status).toBe('ready');
     expect(receipt.chineseReady).toBe(true);
     expect(receipt.usedExcludedSources).toBe(false);
   });
 
   it('fails missing, duplicate, unsafe, overlay, display_name, cross-release, denominator, content, and unknown schema', () => {
-    expect(qualifyLocaleManifest(missingZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('missing');
-    expect(qualifyLocaleManifest(duplicateZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('duplicate');
-    expect(qualifyLocaleManifest(unsafeZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('unsafe');
-    expect(qualifyLocaleManifest(overlayExcludedLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').usedExcludedSources).toBe(true);
-    expect(qualifyLocaleManifest(displayNameExcludedLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('excluded-source');
-    expect(qualifyLocaleManifest(crossReleaseLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('cross-release');
-    expect(qualifyLocaleManifest(changedDenominatorLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('changed-denominator');
-    expect(qualifyLocaleManifest(changedContentLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('changed-content');
-    expect(qualifyLocaleManifest(unknownSchemaLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN').failures.map((row) => row.code)).toContain('unknown-schema');
+    expect(qualifyLocaleManifest(missingZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(missingZhCnLocaleFixture())).failures.map((row) => row.code)).toContain('missing');
+    expect(qualifyLocaleManifest(duplicateZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(duplicateZhCnLocaleFixture())).failures.map((row) => row.code)).toContain('duplicate');
+    expect(qualifyLocaleManifest(unsafeZhCnLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(unsafeZhCnLocaleFixture())).failures.map((row) => row.code)).toContain('unsafe');
+    expect(qualifyLocaleManifest(overlayExcludedLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(overlayExcludedLocaleFixture())).usedExcludedSources).toBe(true);
+    expect(qualifyLocaleManifest(displayNameExcludedLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(displayNameExcludedLocaleFixture())).failures.map((row) => row.code)).toContain('excluded-source');
+    expect(qualifyLocaleManifest(crossReleaseLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(crossReleaseLocaleFixture())).failures.map((row) => row.code)).toContain('cross-release');
+    expect(qualifyLocaleManifest(changedDenominatorLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(completeZhCnLocaleFixture())).failures.map((row) => row.code)).toContain('changed-denominator');
+    expect(qualifyLocaleManifest(changedContentLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(changedContentLocaleFixture())).failures.map((row) => row.code)).toContain('changed-content');
+    expect(qualifyLocaleManifest(unknownSchemaLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(unknownSchemaLocaleFixture())).failures.map((row) => row.code)).toContain('unknown-schema');
   });
 
   it('does not let partial English invalidate complete Chinese or enable product English', () => {
-    const result = qualifyReleaseLocales(partialEnglishLocaleFixture(), V022_ENVELOPE_IDENTITY);
+    const result = qualifyReleaseLocales(partialEnglishLocaleFixture(), V022_ENVELOPE_IDENTITY, expectedOf(partialEnglishLocaleFixture()));
     expect(result.chineseReady).toBe(true);
     expect(result.en?.status).toBe('failed');
     expect(result.bilingualReady).toBe(false);
@@ -92,7 +99,7 @@ describe('complete-locale qualification', () => {
   });
 
   it('marks bilingual-ready only when both locales and the interface catalog pass', () => {
-    const result = qualifyReleaseLocales(completeBilingualLocaleFixture(), V022_ENVELOPE_IDENTITY);
+    const result = qualifyReleaseLocales(completeBilingualLocaleFixture(), V022_ENVELOPE_IDENTITY, expectedOf(completeBilingualLocaleFixture()));
     expect(result.chineseReady).toBe(true);
     expect(result.en?.status).toBe('ready');
     expect(result.interfaceCatalogReady).toBe(true);
@@ -100,8 +107,24 @@ describe('complete-locale qualification', () => {
   });
 
   it('rejects unclassified TeX-like language-neutral claims', () => {
-    const receipt = qualifyLocaleManifest(unclassifiedMathLocaleFixture(), V022_ENVELOPE_IDENTITY, 'zh-CN');
+    const fixture = unclassifiedMathLocaleFixture();
+    const receipt = qualifyLocaleManifest(fixture, V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(fixture));
     expect(receipt.failures.map((row) => row.code)).toContain('unclassified-language-neutral');
+  });
+
+  it('rejects a self-consistent shrunk denominator against the independent presentation set', () => {
+    const honest = completeZhCnLocaleFixture();
+    const empty = honest.denominators.map((row) => ({ ...row, recordIds: [] as string[], digest: '' }));
+    const consistent = {
+      ...honest,
+      denominators: empty.map((row) => ({ ...row, digest: denominatorDigestFor([row]) })),
+      denominatorDigest: denominatorDigestFor(empty.map((row) => ({ ...row, recordIds: [] }))),
+      records: [],
+      contentDigest: contentDigestFor([]),
+    };
+    const receipt = qualifyLocaleManifest(consistent, V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(honest));
+    expect(receipt.status).toBe('failed');
+    expect(receipt.failures.map((row) => row.code)).toContain('changed-denominator');
   });
 
   it('does not mutate selectors while qualifying the published latest composite', () => {
@@ -121,7 +144,7 @@ describe('complete-locale qualification', () => {
 describe('complete-locale resolver and cache', () => {
   it('never falls back across languages or display_name', () => {
     const manifest = completeBilingualLocaleFixture();
-    const zh = qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'zh-CN');
+    const zh = qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(manifest));
     const missing = resolveCompleteLocaleValue(manifest, zh, 'zh-CN', 'object-names', 'object:missing');
     expect(missing.status).toBe('unavailable');
     expect(missing.value).toBeNull();
@@ -137,14 +160,14 @@ describe('complete-locale resolver and cache', () => {
     expect(enMath.value).toBe(zhMath.value);
     const zhName = resolveCompleteLocaleValue(
       manifest,
-      qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'zh-CN'),
+      qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'zh-CN', expectedOf(manifest)),
       'zh-CN',
       'object-names',
       'object:transfer-function',
     );
     const enName = resolveCompleteLocaleValue(
       manifest,
-      qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'en'),
+      qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'en', expectedOf(manifest)),
       'en',
       'object-names',
       'object:transfer-function',
@@ -210,6 +233,53 @@ describe('complete-locale resolver and cache', () => {
     expect(selectGraphLanguage(state, 'en').englishUnavailableReason).toContain('English');
   });
 
+  it('projects English object labels from the requested locale records', () => {
+    const manifest = completeBilingualLocaleFixture();
+    const receipt = qualifyLocaleManifest(manifest, V022_ENVELOPE_IDENTITY, 'en', expectedOf(manifest));
+    const projected = applyLocaleToLearnerShard({
+      shardClass: 'domain-default',
+      envelope: {
+        contract: 'act-authority-shard-envelope/v1',
+        authority: {
+          snapshotId: V022_ENVELOPE_IDENTITY.authoritySnapshotId,
+          snapshotHash: V022_ENVELOPE_IDENTITY.authoritySnapshotHash,
+          releaseId: V022_ENVELOPE_IDENTITY.authorityReleaseId,
+          releaseSetId: 'set',
+          activationId: 'act',
+          activationHash: 'h'.repeat(64),
+          projectionId: null,
+          projectionHash: null,
+        },
+        catalog: { catalogId: 'c', catalogHash: 'd'.repeat(64), catalogVersion: '1' },
+        teaching: { status: 'unavailable', projectionId: null, projectionHash: null, teachingCacheFamily: null },
+        match: { authority: true, catalog: true, teaching: null },
+      },
+      visualRole: 'modeling',
+      domainId: 'system-modeling',
+      objects: [{
+        id: 'object:transfer-function',
+        canonicalType: 'DomainConcept',
+        label: '传递函数',
+        aliases: [],
+        description: '用传递函数描述输入输出关系',
+        governance: { reviewStatus: null, publicationStatus: null, lifecycleStatus: null },
+        semanticSupport: { supported: true, readOnly: true },
+        memberships: [],
+      }],
+      teachingRelations: [],
+      teachingCoverage: {
+        status: 'unavailable',
+        domainId: 'system-modeling',
+        relationCount: 0,
+        coreNodeCount: 0,
+        uncoveredCoreNodeCount: 0,
+        note: 'x',
+      },
+    } as const, 'en', manifest, receipt);
+    expect(projected.objects[0]?.label).toBe('Transfer function');
+    expect(projected.objects[0]?.label).not.toBe('传递函数');
+  });
+
   it('omits other-language optional content instead of mixing it', () => {
     expect(projectOptionalContentForLocale({
       availableLocales: ['zh-CN'],
@@ -240,6 +310,13 @@ describe('ACT graph-interface catalog', () => {
 });
 
 describe('locale request gate', () => {
+  it('keeps English unavailable for the active v0.9 selector even if a later composite is published', () => {
+    const capability = activeLocaleCapability();
+    expect(capability.bilingualReady).toBe(false);
+    expect(capability.mode).toBe('historical');
+    expect(capability.availableLocales).toEqual(['zh-CN']);
+  });
+
   it('rejects unknown locales and English when not bilingual-ready', async () => {
     const unknown = resolveActiveLocaleRequest(new Request('http://localhost/api/knowledge/shards/active?locale=fr'));
     expect(unknown.ok).toBe(false);

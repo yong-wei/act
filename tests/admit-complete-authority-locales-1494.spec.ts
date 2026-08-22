@@ -17,6 +17,7 @@ const rootShard = {
     bilingualReady: false,
     englishUnavailableReason: '当前发布尚未通过完整英文资格，暂不能切换到 English。',
     mode: 'historical',
+    languageComponentDigest: null,
   },
   root: {
     kind: 'presentation-root-catalog',

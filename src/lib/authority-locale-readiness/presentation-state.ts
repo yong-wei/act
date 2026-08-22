@@ -89,5 +89,6 @@ export function historicalLocaleCapability(): PublicLocaleCapability {
     bilingualReady: false,
     englishUnavailableReason: HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
     mode: 'historical',
+    languageComponentDigest: null,
   };
 }

@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 
+import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
+import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+
 import {
   HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
   type AdmittedLocale,
   type PublicLocaleCapability,
 } from './contracts';
-import { isAdmittedLocale } from './qualify';
+import { isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
-import { qualifyPublishedLatestComposite } from './published';
+import { readPublishedLocaleManifest } from './published';
 
 export interface LocaleRequestResolution {
   readonly ok: true;
@@ -22,19 +25,34 @@ export interface LocaleRequestRejection {
 
 export function activeLocaleCapability(repoRoot = process.cwd()): PublicLocaleCapability {
   try {
-    const published = qualifyPublishedLatestComposite(repoRoot);
-    if (published.bilingualReady) {
-      return {
-        availableLocales: ['zh-CN', 'en'],
-        bilingualReady: true,
-        englishUnavailableReason: null,
-        mode: 'complete-locale',
-      };
+    const active = resolveActiveShardIdentity({ repoRoot });
+    const match = loadCompositeEnvelopeRegistry(repoRoot).find((row) => (
+      row.authorityReleaseId === active.envelope.authority.releaseId
+      && row.authoritySnapshotId === active.envelope.authority.snapshotId
+      && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
+    ));
+    if (!match) return historicalLocaleCapability();
+    const manifest = readPublishedLocaleManifest(repoRoot);
+    if (manifest && manifest.identity.compositeReleaseName !== match.name) {
+      return historicalLocaleCapability();
     }
+    const qualified = qualifyReleaseLocales(manifest, {
+      name: match.name,
+      authorityReleaseId: match.authorityReleaseId,
+      authoritySnapshotId: match.authoritySnapshotId,
+      authoritySnapshotHash: match.authoritySnapshotHash,
+    }, null);
+    if (!qualified.bilingualReady) return historicalLocaleCapability();
+    return {
+      availableLocales: ['zh-CN', 'en'],
+      bilingualReady: true,
+      englishUnavailableReason: null,
+      mode: 'complete-locale',
+      languageComponentDigest: qualified.zhCN?.identity.languageComponentDigest ?? null,
+    };
   } catch {
     return historicalLocaleCapability();
   }
-  return historicalLocaleCapability();
 }
 
 export function resolveActiveLocaleRequest(

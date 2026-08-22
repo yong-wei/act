@@ -33,6 +33,7 @@ const rootShard: PublicAuthorityRootShard = {
     bilingualReady: false,
     englishUnavailableReason: '当前发布尚未通过完整英文资格，暂不能切换到 English。',
     mode: 'historical',
+    languageComponentDigest: null,
   },
   root: {
     kind: 'presentation-root-catalog',
@@ -188,6 +189,7 @@ describe('active authority language switch', () => {
       bilingualReady: true,
       englishUnavailableReason: null,
       mode: 'complete-locale',
+      languageComponentDigest: 'a'.repeat(64),
     });
     const english = selectGraphLanguage(bilingual, 'en');
     expect(english.selectedLocale).toBe('en');

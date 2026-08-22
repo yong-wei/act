@@ -60,7 +60,7 @@ export function qualifyPublishedLatestComposite(
 ): ReleaseLocaleQualification {
   const envelope = loadPublishedLatestEnvelopeIdentity(repoRoot);
   const manifest = readPublishedLocaleManifest(repoRoot);
-  return qualifyReleaseLocales(manifest, envelope);
+  return qualifyReleaseLocales(manifest, envelope, null);
 }
 
 export const FUTURE_RELEASE_BOUNDARY = FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC;
