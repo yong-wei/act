@@ -38,6 +38,8 @@ import {
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
   knowledgeWorkspaceProductQaCaptureRevisionProblems,
+  knowledgeWorkspaceProductQaVisualReviewHashProblems,
+  knowledgeWorkspaceProductQaSourceHashProblems,
 } from '../../../scripts/tests/test-commercial-ui-governance';
 import {
   resolveSimulationSceneThemeMode,
@@ -96,6 +98,9 @@ function runTempGit(cwd: string, args: string[]) {
   }
   return result.stdout.trim();
 }
+
+const TEST_CAPTURE_COMMIT_SHA = runTempGit(process.cwd(), ['rev-parse', 'HEAD']);
+const TEST_CAPTURE_TREE_SHA = runTempGit(process.cwd(), ['rev-parse', 'HEAD^{tree}']);
 
 function initTempGitRepo(prefix: string) {
   const repo = mkdtempSync(join(tmpdir(), prefix));
@@ -405,15 +410,40 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
 function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
   const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
   if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  const captureRevision = {
+    commitSha: TEST_CAPTURE_COMMIT_SHA,
+    treeSha: TEST_CAPTURE_TREE_SHA,
+  } as const;
+  const runtimeRevisionProof = {
+    endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
+    expected: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+    beforeCapture: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+    afterCapture: {
+      ...captureRevision,
+      sourceFingerprint: 'c'.repeat(64),
+      clean: true,
+    },
+  } as const;
   const commandDeckGeometry = scenario.requiresNonblankScene
     ? {
         change: 'normalize-simulation-command-deck-layout' as const,
         generatedAt: '2026-06-15T00:00:00.000Z',
+        captureRevision,
+        runtimeRevisionProof,
         sourceSha256: Object.fromEntries([
           scenario.routeFile,
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
           'src/resources/simulations/components/camera-view-switcher.tsx',
+          'src/lib/evidence-artifact-path.ts',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         currentSourceSha256: Object.fromEntries([
@@ -421,6 +451,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
           'src/resources/simulations/components/camera-view-switcher.tsx',
+          'src/lib/evidence-artifact-path.ts',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         viewports: scenario.requiredThemes.flatMap((theme) => commandDeckGeometryWidths.map((width) => {
@@ -584,6 +615,31 @@ function simulationFullMatrixVisualQa() {
   return {
     change: 'govern-simulation-full-matrix-visual-qa' as const,
     generatedAt: '2026-06-15T00:00:00.000Z',
+    captureRevision: {
+      commitSha: TEST_CAPTURE_COMMIT_SHA,
+      treeSha: TEST_CAPTURE_TREE_SHA,
+    },
+    runtimeRevisionProof: {
+      endpoint: 'http://localhost:3000/api/internal/local-qa/revision',
+      expected: {
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+      beforeCapture: {
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+      afterCapture: {
+        commitSha: TEST_CAPTURE_COMMIT_SHA,
+        treeSha: TEST_CAPTURE_TREE_SHA,
+        sourceFingerprint: 'c'.repeat(64),
+        clean: true,
+      },
+    },
     activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene' as const,
     routeCount: 7 as const,
     requiredThemes: ['light', 'dark'] as const,
@@ -4403,7 +4459,10 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("'src/app/simulations/_components/simulation-shell.tsx'");
     expect(scriptSource).toContain("'src/resources/simulations/components/simulation-ui.tsx'");
     expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
+    expect(scriptSource).toContain("'src/lib/evidence-artifact-path.ts'");
     expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
+    expect(scriptSource).toContain("gitBlobSha256AtRevision(repoRoot, 'HEAD', sourcePath) ?? fileSha256(sourcePath)");
+    expect(governanceSource).toContain("'src/lib/evidence-artifact-path.ts'");
     expect(governanceSource).toContain('bottomToolsWithinViewport');
     expect(governanceSource).toContain('themeApplied');
     expect(governanceSource).toContain('bottomToolSegmentRoles');
@@ -4414,6 +4473,11 @@ describe('commercial UI governance', () => {
     expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
     expect(simulationCaptureScriptSource).toContain("change: 'unify-simulation-chrome-and-camera-views'");
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
+    expect(simulationCaptureScriptSource).toContain("import { execFileSync } from 'node:child_process';");
+    expect(simulationCaptureScriptSource).toContain('evidenceCaptureRevisionProblems,');
+    expect(simulationCaptureScriptSource).toContain("from '../../src/lib/evidence-capture-guard';");
+    expect(simulationCaptureScriptSource).toContain('function readCleanCaptureRevision()');
+    expect(simulationCaptureScriptSource).toContain('assertCaptureRevisionUnchanged(captureRevision,');
     expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
     expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
     expect(simulationCaptureScriptSource).toContain('root.classList.contains(expectedTheme) && root.style.colorScheme === expectedTheme');
@@ -4497,8 +4561,8 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-mobile-tools`');
     expect(scriptSource).toContain('overlaps.dockOverlapsInspector');
     expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
-    expect(captureScriptSource).toContain('async function captureFocusEvidence(browser: Browser)');
-    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
+    expect(captureScriptSource).toContain("async function captureFocusEvidence(browser: Browser, storageState: RoleSession['storageState'])");
+    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser, studentSession.storageState);');
     expect(captureScriptSource).toContain('focusEvidence,');
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
     expect(captureScriptSource).toContain("'src/app/knowledge/page.tsx'");
@@ -4585,7 +4649,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:expanded-dock-missing`');
     expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
     expect(globalsSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
-    expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');
+    expect(globalsSource).toMatch(/data-knowledge-desktop-command-system\]\s*\{\s*display: none !important;/);
     expect(readFileSync(join(process.cwd(), 'src/components/shared/page-floating-controls.tsx'), 'utf8')).toContain('knowledgeInspectorAvoidanceActive');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');
@@ -4596,9 +4660,9 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
     expect(scriptSource).toContain('governanceScriptSourcePath');
-    expect(scriptSource).toContain('stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)');
+    expect(scriptSource).toContain('stringRecordsEqual(reviewedSourceSha256, currentSourceSha256)');
     expect(scriptSource).toContain('`${sourcePath}:sha-missing`');
-    expect(scriptSource).toContain('Object.entries(sourceHashes).map');
+    expect(scriptSource).toContain('knowledgeWorkspaceProductQaSourceHashProblems');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
@@ -4620,13 +4684,42 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('blockingFindings.length !== 0');
     expect(captureScriptSource).toContain('stringRecordsMatch(reviewedStateSha256, currentStateSha256)');
     expect(captureScriptSource).toContain('stringRecordsMatch(reviewedSourceSha256, currentSourceSha256)');
-    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)');
+    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(');
+    expect(captureScriptSource).toContain('stateMatrix,');
+    expect(captureScriptSource).toContain('currentSourceSha256,');
     expect(captureScriptSource).not.toContain('parsed.stateMatrix');
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
+    expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
+    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
     expect(scriptSource).toContain("'tabletBreakpoint'");
     expect(scriptSource).toContain("'canvasGeometry'");
+  });
+
+  it('fails closed when an independent knowledge visual review omits either evidence hash map', () => {
+    expect(knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview: {
+        reviewedStateSha256: {},
+        reviewedSourceSha256: {},
+      },
+      stateScreenshotSha256: { 'state.png': 'state-sha' },
+      currentSourceSha256: { 'src/page.tsx': 'source-sha' },
+    })).toEqual([
+      'visual-review:missing-screenshot-review',
+      'visual-review:missing-source-review',
+    ]);
+    expect(knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview: {
+        reviewedStateSha256: { 'state.png': 'old-state-sha' },
+        reviewedSourceSha256: { 'src/page.tsx': 'old-source-sha' },
+      },
+      stateScreenshotSha256: { 'state.png': 'state-sha' },
+      currentSourceSha256: { 'src/page.tsx': 'source-sha' },
+    })).toEqual([
+      'visual-review:stale-screenshot-review',
+      'visual-review:stale-source-review',
+    ]);
   });
 
   it('keeps general commercial source palette governance limited to added lines', () => {
@@ -4639,6 +4732,17 @@ describe('commercial UI governance', () => {
     expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
     expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
     expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('allows active Authority capture when optional relation-family shards are unpublished', () => {
+    const captureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8',
+    );
+
+    expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
+    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
+    expect(captureScriptSource).toContain("await page.waitForSelector('[data-active-graph-stage=\"authority\"]'");
   });
 
   it('keeps the adaptive path center default student branch free of internal status strings', () => {
@@ -4658,11 +4762,12 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain('路径管理');
     expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
     const internalPathOptionVersionKey = pageSource.match(
-      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|',?\)?,?\s*\[[^\n]*\]\);/,
+      /const pathOptionVersionKey = useMemo\(\(\) => \[[\s\S]*?\n  \]\.join\('\|'\),\s*\[[^\n]*\]\);/,
     )?.[0] ?? null;
     expect(internalPathOptionVersionKey).not.toBeNull();
     const studentVisibleSource = pageSource
       .replaceAll('data-learner-record-missing-source', '')
+      .replaceAll("'demo-missing-target'", "'fixture-target'")
       .replace(internalPathOptionVersionKey ?? '', '');
     expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
@@ -4817,6 +4922,27 @@ describe('commercial UI governance', () => {
     })).toContain(`capture-revision:source-changed:${ancestorSource}`);
   });
 
+  it('validates captured product QA source hashes against committed bytes, not CRLF checkout bytes', () => {
+    const repo = initTempGitRepo('knowledge-product-qa-crlf-');
+    const sourcePath = 'src/features/knowledge/source.ts';
+    const captureCommitSha = commitTempFile(
+      repo,
+      sourcePath,
+      'export const source = 1;\n',
+      'capture source',
+    );
+    const captureTreeSha = runTempGit(repo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+    const committedHash = tempFileSha256(repo, sourcePath);
+
+    writeFileSync(join(repo, sourcePath), 'export const source = 1;\r\n');
+
+    expect(knowledgeWorkspaceProductQaSourceHashProblems({
+      repositoryRoot: repo,
+      revision: captureCommitSha,
+      currentSourceSha256: { [sourcePath]: committedHash },
+    })).toEqual([]);
+  });
+
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
 
@@ -4933,7 +5059,8 @@ describe('commercial UI governance', () => {
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-gate-'));
-    const fakeNpx = join(tmp, 'npx');
+    const fakeNpx = join(tmp, process.platform === 'win32' ? 'npx.cmd' : 'npx');
+    const fakeNpxScript = join(tmp, 'fake-npx.js');
     const diagnostics = [
       { filePath: 'src/app/page.tsx', severity: 'error', category: 'Bugs', rule: 'bug-rule', title: 'Owned app error', line: 1, column: 1 },
       { filePath: join(process.cwd(), 'src/app/absolute-page.tsx'), severity: 'error', category: 'Bugs', rule: 'absolute-bug-rule', title: 'Owned absolute app error', line: 1, column: 1 },
@@ -4968,16 +5095,19 @@ describe('commercial UI governance', () => {
         column: 1,
       })),
     ];
-    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`, { mode: 0o755 });
+    writeFileSync(fakeNpxScript, `console.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`);
+    writeFileSync(fakeNpx, process.platform === 'win32'
+      ? `@echo off\r\n"${process.execPath}" "%~dp0fake-npx.js" %*\r\n`
+      : `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`, { mode: 0o755 });
 
     const runGate = (mode: 'errors' | 'security' | 'warnings') => {
       const result = spawnSync(process.execPath, [
         join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
         `--mode=${mode}`,
       ], {
-        cwd: process.cwd(),
+      cwd: process.cwd(),
         encoding: 'utf8',
-        env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+        env: { ...process.env, REACT_DOCTOR_NPX_COMMAND: fakeNpxScript },
         maxBuffer: 8 * 1024 * 1024,
       });
       return {
@@ -5112,8 +5242,12 @@ describe('commercial UI governance', () => {
 
   it('fails React Doctor owned-surface gates when the scanner returns an error report', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-failure-'));
-    const fakeNpx = join(tmp, 'npx');
-    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`, { mode: 0o755 });
+    const fakeNpx = join(tmp, process.platform === 'win32' ? 'npx.cmd' : 'npx');
+    const fakeNpxScript = join(tmp, 'fake-npx.js');
+    writeFileSync(fakeNpxScript, `console.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`);
+    writeFileSync(fakeNpx, process.platform === 'win32'
+      ? `@echo off\r\n"${process.execPath}" "%~dp0fake-npx.js" %*\r\n`
+      : `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`, { mode: 0o755 });
 
     const result = spawnSync(process.execPath, [
       join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
@@ -5121,7 +5255,7 @@ describe('commercial UI governance', () => {
     ], {
       cwd: process.cwd(),
       encoding: 'utf8',
-      env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+      env: { ...process.env, REACT_DOCTOR_NPX_COMMAND: fakeNpxScript },
     });
 
     expect(result.status).toBe(1);

@@ -15,6 +15,7 @@ import {
   isSafeCitationAddress,
   type LearningEvidenceCorpusChunk,
 } from './learning-evidence-rag-corpus';
+import { pseudonymousAuditId } from './math-document-grading-contracts';
 
 export type DataCompletenessLayerId =
   | 'graphCore'
@@ -114,6 +115,27 @@ export interface DataCompletenessDocumentGradingRunInput {
   assessments: Array<{ criterionId: string }>;
 }
 
+export interface DataCompletenessDocumentRubricDraftInput {
+  id: string;
+  ownerUserId: string;
+  reviewerState: string;
+  runId: string;
+  rubricId: string;
+  rubricVersion: string;
+  approvedCriterionIds: string[];
+}
+
+export interface DataCompletenessDocumentGradingAuditInput {
+  id: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  decision: string;
+  rubricVersion: string;
+  sourceEventDigests: string[];
+  criterionDigests: string[];
+}
+
 export interface DataCompletenessDerivedEvidenceInput {
   userId: string;
 }
@@ -171,6 +193,8 @@ export interface DataCompletenessAuditInput {
   learningEventBatches?: DataCompletenessLearningEventBatchInput[];
   learningFacts?: DataCompletenessLearningFactInput[];
   documentGradingRuns?: DataCompletenessDocumentGradingRunInput[];
+  documentRubricDrafts?: DataCompletenessDocumentRubricDraftInput[];
+  documentGradingAudits?: DataCompletenessDocumentGradingAuditInput[];
   historicalSourceLogIds?: DataCompletenessHistoricalSourceLogInput[];
   studentCompetencySnapshots?: DataCompletenessDerivedEvidenceInput[];
   studentProfileSummaries?: DataCompletenessDerivedEvidenceInput[];
@@ -858,7 +882,12 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     .map((log) => clientEventDedupeKey(log))
     .filter((value): value is string => Boolean(value));
   const clientEventIdCounts = countValues(clientEventIds);
-  const sourceEventIndex = buildValidSourceEventIndex(logs, input.documentGradingRuns ?? []);
+  const sourceEventIndex = buildValidSourceEventIndex(
+    logs,
+    input.documentGradingRuns ?? [],
+    input.documentRubricDrafts ?? [],
+    input.documentGradingAudits ?? [],
+  );
   const findings = [
     ...logs.filter((log) => !log.clientEventId).map((log) => finding('interaction-log-client-event-id-missing', 'partial', `InteractionLog:${log.id}`, 'InteractionLog lacks clientEventId.', 'repair-source-event-lineage')),
     ...logs.filter((log) => !log.attemptKey).map((log) => finding('interaction-log-attempt-key-missing', 'advisory', `InteractionLog:${log.id}`, 'InteractionLog lacks attemptKey for dedupe grouping.', 'repair-source-event-lineage')),
@@ -1055,11 +1084,18 @@ function clientEventDedupeKey(log: DataCompletenessInteractionLogInput): string 
   return `${userId}:${clientEventId}`;
 }
 
-function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[], documentGradingRuns: DataCompletenessDocumentGradingRunInput[] = []): {
+function buildValidSourceEventIndex(
+  logs: DataCompletenessInteractionLogInput[],
+  documentGradingRuns: DataCompletenessDocumentGradingRunInput[] = [],
+  documentRubricDrafts: DataCompletenessDocumentRubricDraftInput[] = [],
+  documentGradingAudits: DataCompletenessDocumentGradingAuditInput[] = [],
+): {
   logDerivedIds: Set<string>;
   logIdsByUser: Map<string, Set<string>>;
   clientEventIdsByUser: Map<string, Set<string>>;
   documentGradingRuns: Map<string, DataCompletenessDocumentGradingRunInput>;
+  documentRubricDrafts: Map<string, DataCompletenessDocumentRubricDraftInput>;
+  documentGradingAudits: Map<string, DataCompletenessDocumentGradingAuditInput>;
 } {
   const logDerivedIds = new Set<string>();
   const logIdsByUser = new Map<string, Set<string>>();
@@ -1092,7 +1128,14 @@ function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[],
       clientEventIdsByUser.set(userId, ids);
     }
   }
-  return { logDerivedIds, logIdsByUser, clientEventIdsByUser, documentGradingRuns: new Map(documentGradingRuns.map((run) => [run.id, run])) };
+  return {
+    logDerivedIds,
+    logIdsByUser,
+    clientEventIdsByUser,
+    documentGradingRuns: new Map(documentGradingRuns.map((run) => [run.id, run])),
+    documentRubricDrafts: new Map(documentRubricDrafts.map((draft) => [draft.id, draft])),
+    documentGradingAudits: new Map(documentGradingAudits.map((audit) => [audit.id, audit])),
+  };
 }
 
 function buildHistoricalSourceLogIndex(logs: DataCompletenessHistoricalSourceLogInput[]): HistoricalSourceLogIndex {
@@ -1152,6 +1195,15 @@ function hasDanglingLearningFactSourceEvent(
   return classifyLearningFactSource(fact, sourceEventIndex, EMPTY_HISTORICAL_SOURCE_LOG_INDEX) !== 'governed-external';
 }
 
+function teacherReviewFieldDigest(value: string, field: string): string | null {
+  if (!value) return null;
+  try {
+    return pseudonymousAuditId(`${field}:${value}`, `teacher-review:${field}`);
+  } catch {
+    return null;
+  }
+}
+
 function classifyLearningFactSource(
   fact: DataCompletenessLearningFactInput,
   sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
@@ -1174,6 +1226,29 @@ function classifyLearningFactSource(
   if (sourceEventId.startsWith('yangfan-diagnostic-fixture:')) {
     return 'unknown';
   }
+  const workbenchDocumentRubricPrefix = 'grading:';
+  if (sourceEventId.startsWith(workbenchDocumentRubricPrefix)) {
+    const encodedParts = sourceEventId.slice(workbenchDocumentRubricPrefix.length).split(':');
+    let parts: string[] = [];
+    try {
+      if (encodedParts.length === 3 && encodedParts.every(Boolean)) parts = encodedParts.map((part) => decodeURIComponent(part));
+    } catch { /* malformed governed identity remains unknown */ }
+    const [runId, criterionId, rubricVersion] = parts;
+    const draft = sourceLogId ? sourceEventIndex.documentRubricDrafts.get(sourceLogId) : undefined;
+    const context = readRecord(fact.contextJson);
+    return fact.factType === 'document_rubric_grading'
+      && sourceLogId === draft?.id
+      && draft?.ownerUserId === fact.userId
+      && draft?.reviewerState === 'approved'
+      && draft?.runId === runId
+      && draft?.rubricVersion === rubricVersion
+      && draft?.approvedCriterionIds.includes(criterionId)
+      && context.gradingRunId === runId
+      && context.rubricId === draft?.rubricId
+      && context.rubricVersion === rubricVersion
+      && context.criterionId === criterionId
+      ? 'governed-external' : 'unknown';
+  }
   const documentRubricPrefix = 'adaptive-assessment:document-rubric-grading:';
   if (sourceEventId.startsWith(documentRubricPrefix)) {
     const encodedParts = sourceEventId.slice(documentRubricPrefix.length).split(':');
@@ -1182,14 +1257,28 @@ function classifyLearningFactSource(
       if (encodedParts.length === 3 && encodedParts.every(Boolean)) parts = encodedParts.map((part) => decodeURIComponent(part));
     } catch { /* malformed governed identity remains unknown */ }
     const [runId, criterionId, rubricVersion] = parts;
-    const run = (sourceEventIndex as any).documentGradingRuns?.get(runId);
-    const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson) ? fact.contextJson as Record<string, unknown> : {};
+    const run = sourceEventIndex.documentGradingRuns.get(runId);
+    const audit = sourceLogId ? sourceEventIndex.documentGradingAudits.get(sourceLogId) : undefined;
+    const context = readRecord(fact.contextJson);
+    const sourceEventDigest = teacherReviewFieldDigest(sourceEventId, 'source-event');
+    const criterionDigest = teacherReviewFieldDigest(criterionId, 'criterion');
     return fact.factType === 'document_rubric_grading'
+      && Boolean(sourceLogId)
+      && sourceLogId === audit?.id
+      && audit.action === 'grading-run.teacher-reviewed'
+      && audit.resourceType === 'GradingRun'
+      && audit.resourceId === teacherReviewFieldDigest(runId, 'resource')
+      && audit.decision === 'approved'
+      && audit.rubricVersion === rubricVersion
+      && sourceEventDigest !== null
+      && audit.sourceEventDigests.includes(sourceEventDigest)
+      && criterionDigest !== null
+      && audit.criterionDigests.includes(criterionDigest)
       && context.gradingRunId === runId && context.criterionId === criterionId && context.rubricVersion === rubricVersion
       && run?.state === 'APPROVED'
       && run.rubricVersion === rubricVersion
       && run.studentId === fact.userId
-      && run.assessments.some((assessment: any) => assessment.criterionId === criterionId)
+      && run.assessments.some((assessment) => assessment.criterionId === criterionId)
       ? 'governed-external' : 'unknown';
   }
   if (

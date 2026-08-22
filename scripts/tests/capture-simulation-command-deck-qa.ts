@@ -1,14 +1,34 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { chromium, type Browser, type Page } from 'playwright';
 
+import { toRepositoryArtifactPath } from '../../src/lib/evidence-artifact-path';
+import {
+  evidenceCaptureRevisionProblems,
+  type EvidenceCaptureRevision,
+} from '../../src/lib/evidence-capture-guard';
+import {
+  CAPTURE_REVISION_SOURCE_FILES,
+  assertRuntimeCaptureRevisionProofMatches,
+  computeCaptureRevisionProof,
+  createRuntimeCaptureRevisionProbeUrl,
+  fetchRuntimeCaptureRevisionProof,
+  type CaptureRevisionProof,
+} from '../../src/lib/commercial-ui-capture-revision';
+
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-command-deck-535');
 const fullMatrixOutputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-full-matrix-qa-537');
 const fullMatrixReviewReport = 'artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md';
 const baseUrl = process.env.SIMULATION_COMMAND_DECK_QA_BASE_URL ?? 'http://127.0.0.1:3001';
+const captureOutputPrefixes = [
+  'artifacts/commercial-ui/evidence.json',
+  'artifacts/commercial-ui/simulation-command-deck-535/',
+  'artifacts/commercial-ui/simulation-full-matrix-qa-537/',
+] as const;
 
 type Theme = 'light' | 'dark';
 type RectEvidence = { left: number; top: number; right: number; bottom: number; width: number; height: number };
@@ -81,7 +101,9 @@ type CommandDeckRouteEvidence = {
   commandDeckGeometry: {
     change: 'unify-simulation-chrome-and-camera-views';
     generatedAt: string;
+    captureRevision?: Pick<EvidenceCaptureRevision, 'commitSha' | 'treeSha'>;
     sourceSha256: Record<string, string>;
+    runtimeRevisionProof?: RuntimeRevisionProofEvidence;
     viewports: CommandDeckViewportEvidence[];
     cruiseComparison?: {
       comparedRoutes: string[];
@@ -91,6 +113,12 @@ type CommandDeckRouteEvidence = {
       mobileSceneFirst: boolean;
     };
   };
+};
+type RuntimeRevisionProofEvidence = {
+  endpoint: string;
+  expected: CaptureRevisionProof;
+  beforeCapture: CaptureRevisionProof;
+  afterCapture: CaptureRevisionProof;
 };
 type ExistingRouteVisualQa = {
   sceneThemeParameters?: {
@@ -145,6 +173,77 @@ const fullMatrixReviewInputs = {
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function gitSha256(relativePath: string) {
+  return createHash('sha256').update(execFileSync(
+    'git',
+    ['show', `HEAD:${relativePath}`],
+    { cwd: repoRoot, maxBuffer: 32 * 1024 * 1024 },
+  )).digest('hex');
+}
+
+function readGitCaptureState() {
+  const status = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const dirtyPaths = status
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((entry) => entry.slice(3).split(' -> ').at(-1) ?? entry)
+    .map((entry) => entry.replace(/^"|"$/gu, '').replace(/\\/gu, '/'));
+  return {
+    revision: {
+      commitSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{commit}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+      treeSha: execFileSync(
+        'git',
+        ['rev-parse', '--verify', 'HEAD^{tree}'],
+        { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      ).trim(),
+    } satisfies EvidenceCaptureRevision,
+    dirtyPaths,
+  };
+}
+
+function readCleanCaptureRevision() {
+  const state = readGitCaptureState();
+  if (state.dirtyPaths.length > 0) {
+    throw new Error(
+      `simulation command-deck QA capture requires a clean Git worktree; commit or remove these changes first:\n${state.dirtyPaths.join('\n')}`,
+    );
+  }
+  return state.revision;
+}
+
+function readRuntimeCaptureRevision(allowedDirtyPrefixes: readonly string[] = []): CaptureRevisionProof {
+  const proof = computeCaptureRevisionProof(
+    repoRoot,
+    CAPTURE_REVISION_SOURCE_FILES,
+    allowedDirtyPrefixes,
+  );
+  if (!proof.clean) {
+    throw new Error('simulation command-deck QA runtime revision requires a clean source worktree.');
+  }
+  return proof;
+}
+
+function assertCaptureRevisionUnchanged(expected: EvidenceCaptureRevision, phase: string) {
+  const actual = readGitCaptureState();
+  const problems = evidenceCaptureRevisionProblems(
+    expected,
+    actual.revision,
+    actual.dirtyPaths,
+    captureOutputPrefixes,
+  );
+  if (problems.length > 0) {
+    throw new Error(`simulation command-deck QA capture ${phase} failed closed: ${problems.join(', ')}`);
+  }
 }
 
 function artifactSha256(relativePath: string | undefined) {
@@ -205,6 +304,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -213,7 +313,7 @@ function commandDeckGeometrySourceSha256(routeFile: string) {
   return Object.fromEntries(
     commandDeckGeometrySourcePaths(routeFile)
       .filter((sourcePath) => existsSync(path.join(repoRoot, sourcePath)))
-      .map((sourcePath) => [sourcePath, sha256(sourcePath)]),
+      .map((sourcePath) => [sourcePath, gitSha256(sourcePath)]),
   );
 }
 
@@ -423,7 +523,7 @@ async function captureRouteViewport(
     });
     writeFileSync(screenshotPath, Buffer.from(cdpScreenshot.data, 'base64'));
     await waitForFile(screenshotPath, 12000);
-    const screenshot = path.relative(repoRoot, screenshotPath);
+    const screenshot = toRepositoryArtifactPath(repoRoot, screenshotPath);
     return {
       width: viewport.width,
       theme,
@@ -572,7 +672,11 @@ function buildSimulationFullMatrixVisualQa(
   };
 }
 
-function writeSimulationFullMatrixManifest(fullMatrixVisualQa: Record<string, unknown>, generatedAt: string) {
+function writeSimulationFullMatrixManifest(
+  fullMatrixVisualQa: Record<string, unknown>,
+  generatedAt: string,
+  runtimeRevisionProof: RuntimeRevisionProofEvidence,
+) {
   mkdirSync(fullMatrixOutputDir, { recursive: true });
   writeFileSync(
     path.join(fullMatrixOutputDir, 'manifest.json'),
@@ -580,12 +684,17 @@ function writeSimulationFullMatrixManifest(fullMatrixVisualQa: Record<string, un
       generatedAt,
       change: 'govern-simulation-full-matrix-visual-qa',
       baseUrl,
+      runtimeRevisionProof,
       simulationFullMatrixVisualQa: fullMatrixVisualQa,
     }, null, 2)}\n`,
   );
 }
 
-function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], generatedAt: string) {
+function updateCommercialEvidence(
+  routeEvidence: CommandDeckRouteEvidence[],
+  generatedAt: string,
+  runtimeRevisionProof: RuntimeRevisionProofEvidence,
+) {
   const evidencePath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(evidencePath)) return;
   const manifest = JSON.parse(readFileSync(evidencePath, 'utf8')) as {
@@ -593,13 +702,21 @@ function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], gen
   };
   const routesFromEvidence = manifest.routes ?? [];
   const fullMatrixVisualQa = buildSimulationFullMatrixVisualQa(routeEvidence, routesFromEvidence, generatedAt);
-  writeSimulationFullMatrixManifest(fullMatrixVisualQa, generatedAt);
+  const governedFullMatrixVisualQa = {
+    ...fullMatrixVisualQa,
+    captureRevision: {
+      commitSha: runtimeRevisionProof.expected.commitSha,
+      treeSha: runtimeRevisionProof.expected.treeSha,
+    },
+    runtimeRevisionProof,
+  };
+  writeSimulationFullMatrixManifest(governedFullMatrixVisualQa, generatedAt, runtimeRevisionProof);
   const evidenceByHref = new Map(routeEvidence.map((entry) => [entry.href, entry.commandDeckGeometry]));
   manifest.routes = (manifest.routes ?? []).map((route) => {
     if (route.href === '/simulations') {
       return {
         ...route,
-        simulationFullMatrixVisualQa: fullMatrixVisualQa as Record<string, unknown>,
+        simulationFullMatrixVisualQa: governedFullMatrixVisualQa as Record<string, unknown>,
       };
     }
     if (!route.href || !evidenceByHref.has(route.href) || !route.simulationVisualQa) return route;
@@ -615,6 +732,14 @@ function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], gen
 }
 
 async function main() {
+  const captureRevision = readCleanCaptureRevision();
+  const initialLocalRuntimeProof = readRuntimeCaptureRevision();
+  const initialServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+  assertRuntimeCaptureRevisionProofMatches(
+    initialLocalRuntimeProof,
+    initialServiceRuntimeProof,
+    'simulation command-deck target service revision proof before capture',
+  );
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const generatedAt = new Date().toISOString();
@@ -643,14 +768,43 @@ async function main() {
     await browser.close();
   }
   attachCruiseComparison(routeEvidence);
+  assertCaptureRevisionUnchanged(captureRevision, 'before manifest write');
+  const finalLocalRuntimeProof = readRuntimeCaptureRevision(captureOutputPrefixes);
+  assertRuntimeCaptureRevisionProofMatches(
+    initialLocalRuntimeProof,
+    finalLocalRuntimeProof,
+    'simulation command-deck local runtime revision proof after capture',
+  );
+  const finalServiceRuntimeProof = await fetchRuntimeCaptureRevisionProof(baseUrl);
+  assertRuntimeCaptureRevisionProofMatches(
+    finalLocalRuntimeProof,
+    finalServiceRuntimeProof,
+    'simulation command-deck target service revision proof after capture',
+  );
+  const runtimeRevisionProof: RuntimeRevisionProofEvidence = {
+    endpoint: createRuntimeCaptureRevisionProbeUrl(baseUrl),
+    expected: finalLocalRuntimeProof,
+    beforeCapture: initialServiceRuntimeProof,
+    afterCapture: finalServiceRuntimeProof,
+  };
+  for (const routeEvidenceEntry of routeEvidence) {
+    routeEvidenceEntry.commandDeckGeometry.captureRevision = {
+      commitSha: captureRevision.commitSha,
+      treeSha: captureRevision.treeSha,
+    };
+    routeEvidenceEntry.commandDeckGeometry.runtimeRevisionProof = runtimeRevisionProof;
+  }
   const manifest = {
     generatedAt,
+    captureRevision,
     change: 'unify-simulation-chrome-and-camera-views',
     baseUrl,
+    runtimeRevisionProof,
     routes: routeEvidence,
   };
   writeFileSync(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-  updateCommercialEvidence(routeEvidence, generatedAt);
+  updateCommercialEvidence(routeEvidence, generatedAt, runtimeRevisionProof);
+  assertCaptureRevisionUnchanged(captureRevision, 'after manifest write');
 }
 
 main().catch((error) => {
