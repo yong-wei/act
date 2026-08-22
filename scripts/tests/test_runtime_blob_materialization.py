@@ -697,6 +697,36 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertTrue(selected["selected"])
             self.assertEqual((view_root / "current").readlink().as_posix(), "views/" + release_id)
 
+    def test_select_accepts_restored_selector_payload_closure(self):
+        projection_id = "proj-" + ("a" * 64)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            blob_root, manifest, receipt, release_id = write_release(root, TEXTBOOK_CACHE_CONTENTS)
+            view_root = root / "views-root"
+            self.call(
+                "prepare", "--manifest", str(manifest), "--receipt", str(receipt),
+                "--blob-root", str(blob_root), "--view-root", str(view_root),
+                "--cache-textbook-retrieval",
+            )
+            self.attach_helper(view_root, release_id, blob_root)
+            view = view_root / "views" / release_id
+            make_view_writable(view)
+            overlay = view / "knowledge/projection/current.json"
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text(json.dumps({
+                "contract": "act-teaching-projection-current/v1",
+                "projectionId": projection_id,
+                "projectionHash": "b" * 64,
+                "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+                "activatedAt": "2026-08-16T00:00:00.000Z",
+            }) + "\n", encoding="utf-8")
+            payload = view / "knowledge/projection/releases" / projection_id / "projection-manifest.json"
+            payload.parent.mkdir(parents=True, exist_ok=True)
+            payload.write_text('{"projectionId":"%s"}\n' % projection_id, encoding="utf-8")
+            selected = self.call("select", "--release-id", release_id, "--view-root", str(view_root))
+            self.assertTrue(selected["selected"])
+            self.assertEqual((view_root / "current").readlink().as_posix(), "views/" + release_id)
+
 
 if __name__ == "__main__":
     unittest.main()

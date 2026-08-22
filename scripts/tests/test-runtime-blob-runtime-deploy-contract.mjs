@@ -121,6 +121,21 @@ assert.match(
   /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
   'ERR recovery must revert current even when consumers were not switched',
 );
+assert.match(
+  activation,
+  /Same-identity host view repair must not enter begin-publish\/set-desired/,
+  'same-identity rebuild must skip lifecycle publish transitions',
+);
+assert.match(
+  activation,
+  /same-identity repair did not keep the active lifecycle identity/,
+  'same-identity rebuild must keep the existing active lifecycle identity',
+);
+assert.ok(
+  activation.lastIndexOf('if [[ "$release_id" == "$old_active" ]]; then') <
+    activation.lastIndexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
+  'same-identity repair must decide before lifecycle activate',
+);
 assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
   'v2 cross-state activation must complete before clearing rollback handling',

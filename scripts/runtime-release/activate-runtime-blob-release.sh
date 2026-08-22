@@ -270,8 +270,9 @@ capture_rollback_image() {
 # Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
 # as regular files on the active view. Rematerialize rebuilds the Git/blob
 # forest and would otherwise replace those pointers with the Git v0.9 leaves.
-# Copy only the declared control-plane allowlist, never textbook retrieval
-# caches or other runtime data, then re-verify before consumers switch.
+# Copy the declared selector allowlist plus the sealed payload closure each
+# selector binds, never textbook retrieval caches or other runtime data, then
+# re-verify before consumers switch.
 restore_parent_host_overlays() {
   local parent="$1"
   local candidate="$2"
@@ -328,6 +329,11 @@ stage_lifecycle_desired() {
     exit 1
   }
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
+  if [[ "$release_id" == "$old_active" ]]; then
+    # Same-identity host view repair must not enter begin-publish/set-desired;
+    # those transitions reject an identity that already occupies active.
+    return 0
+  fi
   desired_id="$(python3 -c 'import json,sys; print((json.load(sys.stdin)["desired"] or {}).get("releaseId", ""))' <<<"$snapshot")"
   if [[ -n "$desired_id" && "$desired_id" != "$release_id" ]]; then
     echo "ERROR: v2 lifecycle already records a different desired release" >&2
@@ -520,20 +526,30 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
 source "$ENV_FILE"
 wait_for_readyz
 run_candidate_consumer_smoke
-activation_attempted=1
-python3 "$ACTIVATION_TRANSACTION" activate \
-  --state-dir "$STATE_DIR" \
-  --lifecycle-script "$LIFECYCLE_SCRIPT" \
-  --host-state-script "$HOST_STATE_SCRIPT" \
-  --expected-generation "$lifecycle_generation" \
-  --identity "$lifecycle_identity" >/dev/null
-activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
-activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
-activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
-[[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
-  echo "ERROR: lifecycle activation did not commit the candidate release" >&2
-  exit 1
-}
+if [[ "$release_id" == "$old_active" ]]; then
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: same-identity repair did not keep the active lifecycle identity" >&2
+    exit 1
+  }
+else
+  activation_attempted=1
+  python3 "$ACTIVATION_TRANSACTION" activate \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" >/dev/null
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: lifecycle activation did not commit the candidate release" >&2
+    exit 1
+  }
+fi
 run_active_media_resolver_smoke
 post_activation_media_smoke_passed=1
 trap - ERR

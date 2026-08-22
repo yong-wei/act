@@ -628,6 +628,93 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(verified["releaseId"], candidate["release_id"])
 
+    def test_restore_overlays_copies_selector_payload_closure(self):
+        projection_id = "proj-" + ("a" * 64)
+        overlay_path = "knowledge/projection/current.json"
+        catalog_path = "knowledge/authority-domain-catalog/current.json"
+        payload_path = "knowledge/projection/releases/%s/projection-manifest.json" % projection_id
+        catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
+        pointer = {
+            "contract": "act-teaching-projection-current/v1",
+            "projectionId": projection_id,
+            "projectionHash": "b" * 64,
+            "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+            "activatedAt": "2026-08-16T00:00:00.000Z",
+        }
+        catalog_pointer = {
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("c" * 64),
+            "catalogHash": "d" * 64,
+            "snapshotId": "snap-" + ("e" * 64),
+            "snapshotHash": "f" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.18",
+            "activatedAt": "2026-08-16T00:00:00.000Z",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            overlay = parent["view"] / overlay_path
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text(json.dumps(pointer) + "\n", encoding="utf-8")
+            payload = parent["view"] / payload_path
+            payload.parent.mkdir(parents=True, exist_ok=True)
+            payload.write_text('{"projectionId":"%s"}\n' % projection_id, encoding="utf-8")
+            catalog = parent["view"] / catalog_path
+            catalog.parent.mkdir(parents=True, exist_ok=True)
+            catalog.write_text(json.dumps(catalog_pointer) + "\n", encoding="utf-8")
+            (parent["view"] / catalog_payload).write_text('{"catalog":"v0.18"}\n', encoding="utf-8")
+            restored = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+            )
+            self.assertEqual(sorted(restored["copied"]), sorted([
+                overlay_path, payload_path, catalog_path, catalog_payload,
+            ]))
+            self.assertEqual(
+                (candidate["view"] / payload_path).read_text(encoding="utf-8"),
+                '{"projectionId":"%s"}\n' % projection_id,
+            )
+            self.assertEqual(
+                (candidate["view"] / catalog_payload).read_text(encoding="utf-8"),
+                '{"catalog":"v0.18"}\n',
+            )
+            self.assertEqual((candidate["view"] / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_restore_overlays_rejects_selector_without_payload(self):
+        projection_id = "proj-" + ("a" * 64)
+        overlay_path = "knowledge/projection/current.json"
+        pointer = {
+            "contract": "act-teaching-projection-current/v1",
+            "projectionId": projection_id,
+            "projectionHash": "b" * 64,
+            "authorityReleaseId": "ctr:release:control-theory-engineering-v0.18",
+            "activatedAt": "2026-08-16T00:00:00.000Z",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            overlay = parent["view"] / overlay_path
+            overlay.parent.mkdir(parents=True, exist_ok=True)
+            overlay.write_text(json.dumps(pointer) + "\n", encoding="utf-8")
+            rejected = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+                expect_ok=False,
+            )
+            self.assertIn("control-plane overlay payload is missing", rejected.stderr)
+
     def test_post_overlay_verification_rejects_stale_textbook_cache(self):
         overlay_path = "knowledge/consumer-activation/current.json"
         with tempfile.TemporaryDirectory() as directory:

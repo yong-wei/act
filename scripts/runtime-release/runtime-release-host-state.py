@@ -270,6 +270,33 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
     allowlist = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
     copied = []
     skipped = []
+
+    def copy_regular(relative: str, *, replace_symlink: bool = False) -> bool:
+        source = parent / relative
+        try:
+            details = os.lstat(source)
+        except OSError:
+            return False
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            skipped.append(relative)
+            return False
+        if relative in cache_paths or relative in skip_files:
+            skipped.append(relative)
+            return False
+        destination = candidate / relative
+        if destination.is_symlink():
+            if not replace_symlink:
+                skipped.append(relative)
+                return False
+            destination.unlink()
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        os.chmod(destination.parent, 0o755)
+        if destination.exists() or destination.is_symlink():
+            destination.unlink()
+        shutil.copy2(source, destination)
+        copied.append(relative)
+        return True
+
     os.chmod(candidate, 0o755)
     for root, directories, filenames in os.walk(parent, followlinks=False):
         directories[:] = [name for name in directories if name not in skip_dirs]
@@ -284,16 +311,27 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
             if relative in cache_paths or relative not in allowlist:
                 skipped.append(relative)
                 continue
-            destination = candidate / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            os.chmod(destination.parent, 0o755)
-            if destination.exists() or destination.is_symlink():
-                destination.unlink()
-            shutil.copy2(source, destination)
-            copied.append(relative)
+            copy_regular(relative, replace_symlink=True)
+    for pointer_relative in materializer.CONTROL_PLANE_OVERLAY_PATHS:
+        pointer_path = candidate / pointer_relative
+        try:
+            details = os.lstat(pointer_path)
+        except OSError:
+            continue
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        pointer = materializer.read_control_plane_pointer(pointer_path)
+        for kind, relative in materializer.control_plane_payload_targets(pointer_relative, pointer):
+            if kind in {"file", "optional_file"}:
+                copy_regular(relative)
+            else:
+                for source_relative in sorted(materializer.regular_files_under(parent, relative)):
+                    copy_regular(source_relative)
+    materializer.require_control_plane_overlay_payloads(candidate)
+    copied_set = set(copied)
     return {
-        "copied": sorted(copied),
-        "skipped": sorted(skipped),
+        "copied": sorted(copied_set),
+        "skipped": sorted(set(skipped) - copied_set),
         "allowlist": sorted(allowlist),
     }
 
@@ -339,10 +377,13 @@ def verify_mounted_v2(
     if materializer.canonical(manifest) + b"\n" != manifest_wire:
         fail("mounted runtime manifest wire bytes are not canonical")
     receipt_identity = verify_v2_receipt(Path(verification_receipt), manifest, manifest_wire, release_id, materializer)
+    overlay_paths = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
+    overlay_paths.update(materializer.discover_control_plane_overlay_regular_paths(root))
+    materializer.require_control_plane_overlay_payloads(root)
     view_receipt, _ = materializer.verify_view_structure(
         root,
         release_id,
-        allowed_extra_regular_paths=set(materializer.CONTROL_PLANE_OVERLAY_PATHS),
+        allowed_extra_regular_paths=overlay_paths,
     )
     verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
     if (
@@ -353,7 +394,6 @@ def verify_mounted_v2(
     cached_paths = set(materializer.cached_logical_paths(view_receipt))
     inherited_paths = inherited_v2_paths(parent_runtime_root, manifest, materializer)
     changed_paths = {entry["path"] for entry in manifest["files"]} - inherited_paths
-    overlay_paths = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
     textbook_cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(
         materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS
     )
