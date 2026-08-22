@@ -1,29 +1,29 @@
 {
-  "generatedAt": "2026-08-20T05:19:13.205Z",
+  "generatedAt": "2026-08-22T14:13:20.047Z",
   "captureRevision": {
-    "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-    "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+    "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+    "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
   },
   "change": "unify-simulation-chrome-and-camera-views",
   "baseUrl": "http://localhost:3001",
   "runtimeRevisionProof": {
     "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
     "expected": {
-      "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-      "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-      "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+      "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+      "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+      "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
       "clean": true
     },
     "beforeCapture": {
-      "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-      "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-      "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+      "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+      "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+      "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
       "clean": true
     },
     "afterCapture": {
-      "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-      "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-      "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+      "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+      "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+      "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
       "clean": true
     }
   },
@@ -33,7 +33,7 @@
       "routeFile": "src/app/simulations/destroyer/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/destroyer/page.tsx": "016a0d1f09f64ea6e808e09c8feeaaa283d42a85f29e68f93f9dbe90a2690383",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -47,7 +47,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
-            "screenshotSha256": "526f4db3b545bcd6337f41bb713b97c62ac94448f6bce5b41f0759574c102001",
+            "screenshotSha256": "1306414a99fe4e6df92ada0426c0b64ca2f8b224fa4e0e18739fac8c12db1877",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -107,9 +107,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -134,7 +134,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1024.png",
-            "screenshotSha256": "36403629771ba1ca852dd117857f7a6ff9c7a6cd4eab18c256a899b665e185e5",
+            "screenshotSha256": "3610eaeb28c59a67d8994cc43839a225363c7d8a1b17b1bc795cd1af5f6f4033",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -178,9 +178,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -205,7 +205,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
-            "screenshotSha256": "0e56901c966d6c9856db9a14025903e493ce492d0aa74c7e727b586e0fb510f0",
+            "screenshotSha256": "b053437e590731ef361c3d3f02079a8a21d5ff6c4d0fccae74fc9c1f3dbfef1c",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -231,42 +231,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -276,7 +276,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
-            "screenshotSha256": "acb904fd65b4fb489889768adb8103b7c28a1ba6ec7f13af981408495f20ac3a",
+            "screenshotSha256": "26628b2532b188c33742880440a8ee13bbe3ace7317372ade43930cc7dc442b9",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -336,9 +336,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -363,7 +363,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1024.png",
-            "screenshotSha256": "a6e942085effb7a05307976c701b13d3da7aebeeec4aa0715e8a44b19edc6323",
+            "screenshotSha256": "abdff02661f3a83418bdd80ff2e04596369ae4c4f3a182c04b608b244f704c00",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -407,9 +407,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -434,7 +434,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
-            "screenshotSha256": "debcce31971ce594f8d7a7b0dc662838dd6bfbc9675e28762685431e53ecd3f9",
+            "screenshotSha256": "9244d63324dd175305b87a9e6e31bdfa9c39dedcc17dff2ba88558ba868ceb6e",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/destroyer",
@@ -460,42 +460,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -503,27 +503,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -534,7 +534,7 @@
       "routeFile": "src/app/simulations/lng/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/lng/page.tsx": "c1b9fa74dbdebe08be72777d178dae0bde7ce27ab00246cb5617bd99c163a9a0",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -548,7 +548,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
-            "screenshotSha256": "95a247406b485791c49b1c86c3014bcf730c39344ebad8515d292e792f9b4202",
+            "screenshotSha256": "660250e31ae2d16afa25a98db02031ea2f022f57bb9ecb46e5730ed78de68104",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -592,9 +592,9 @@
               "left": 1047,
               "top": 126,
               "right": 1399,
-              "bottom": 474,
+              "bottom": 473,
               "width": 352,
-              "height": 348
+              "height": 347
             },
             "bottomToolRects": [
               {
@@ -608,9 +608,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -635,7 +635,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1024.png",
-            "screenshotSha256": "0fc943c0f8b0a17c5f4fd28f54a60212127d03350d3899822c4a3e336ae75459",
+            "screenshotSha256": "97393850d43828c9dfc9477770816b8c3767aaf3980241ff1a80db57c3f5c60c",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -679,9 +679,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -706,7 +706,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
-            "screenshotSha256": "e1d4a12e88d0745b623e33f1820147861fb76bac755df77de84a421b5a252355",
+            "screenshotSha256": "c366e959bd5e9c42048ae24508f6062f18df768c0f3c1cfb6bb845581161114f",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -732,42 +732,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -777,7 +777,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
-            "screenshotSha256": "7e9b24640be9faba35b90df793e5eba80b6a728d50e22989302df5da5d831a73",
+            "screenshotSha256": "53a99df6024151d3614bc3be834fbc8811c5f8f753163745e9dc2d8d4c733c76",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -821,9 +821,9 @@
               "left": 1047,
               "top": 126,
               "right": 1399,
-              "bottom": 474,
+              "bottom": 473,
               "width": 352,
-              "height": 348
+              "height": 347
             },
             "bottomToolRects": [
               {
@@ -837,9 +837,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -864,7 +864,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1024.png",
-            "screenshotSha256": "c75c3ecafa1eb4358be55dd0a391a762a802536ff109de47bc811758ce9cbeb5",
+            "screenshotSha256": "e88333b9449b22fae8780c4a8473738bffe22fc5427dc23500f55b248208b08a",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -908,9 +908,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -935,7 +935,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
-            "screenshotSha256": "9afedc08d4c96087cb726da13c2708ffd4017fac4156c4f7ab23c957d15acc63",
+            "screenshotSha256": "b0cb8a08a741fcbaf305e5374a88d660e68b027baf5c2d127f1f09527fdbffd9",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/lng",
@@ -961,42 +961,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -1004,27 +1004,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -1035,7 +1035,7 @@
       "routeFile": "src/app/simulations/container/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/container/page.tsx": "35c5ebad26a19cfbbc033d88fa8c886e3790f299bbe6d0c221c45617c86d30e6",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -1049,7 +1049,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
-            "screenshotSha256": "ec1cdb51dbe604a181bbf0848f3cbec7c53f3991fe8bf4c2bb9341154dbd3afa",
+            "screenshotSha256": "fa87efbf6afc0f10564e77edc1d81b0a7fde5b9faef676bef7462ea96c255271",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1109,9 +1109,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -1136,7 +1136,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1024.png",
-            "screenshotSha256": "795fa04c57f653be536224d66b2ca41b308eb6abe262dbaea6a4113299601562",
+            "screenshotSha256": "197c6dbf3adf1cff738ebffb7cd677798bf790508a49f05bef3fb66a5ebf41ae",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1180,9 +1180,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -1207,7 +1207,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
-            "screenshotSha256": "fc4e376f0f7472007342213f1ebcc68b2a45148fdb44718e8c62a00b02c01a67",
+            "screenshotSha256": "6a35968f1475944a36831ff02ae807fd071d9c50d134cd85a42ee7c82e5ce8b4",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1233,42 +1233,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -1278,7 +1278,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
-            "screenshotSha256": "f0d9b6425a99a3e0aec406279cda9b616645a66764e11ea2ca5b6586a4563700",
+            "screenshotSha256": "6562a49d626f4fe9c852d3556deee7057689ae7448b2ad63039f40714e11d9a8",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1338,9 +1338,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -1365,7 +1365,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1024.png",
-            "screenshotSha256": "6246c0f9e3257dd6217d589d9c65648216e3360f244b3b75c8608e89bf028241",
+            "screenshotSha256": "4bfa4968c467fc81b380f7f99e0c52791ac1cdaf8cc967b8d5e373ef74b892bb",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1409,9 +1409,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -1436,7 +1436,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
-            "screenshotSha256": "cd6dd8cc7fbd6119eb7d94814ce98928571e0e2d6df9a5c671c2d2e79d392d44",
+            "screenshotSha256": "7a1f78b25491a6edc2956f613be2214d7137d8f29d1c18e53b6530672af652f2",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/container",
@@ -1462,42 +1462,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -1505,27 +1505,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -1536,7 +1536,7 @@
       "routeFile": "src/app/simulations/cruise/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/cruise/page.tsx": "8c035b667471d5d321d9c5f5446cfb9ea93cf7c29b23a87bd2c72cec28ea92b2",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -1550,7 +1550,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
-            "screenshotSha256": "003cf758fc24a2551e3f8621a6c5b4f9c2a5d39977430e330ec582753388d902",
+            "screenshotSha256": "20de177fd3b221ee179cc0a707eeba63e9bf1de29b3428f99269f846aadfeb13",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1611,9 +1611,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -1638,7 +1638,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1024.png",
-            "screenshotSha256": "68d49fa41100d0df6363753c34b16ed2cc3b20aac671e6566992486f710bdec5",
+            "screenshotSha256": "871962fa01002d2c64e3d7912dfac60a692d3a52f722f1a2d3fb8c3cc62aa880",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1683,9 +1683,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -1710,7 +1710,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
-            "screenshotSha256": "0cd5e56e8094e44aabf728288bf9f6a3652f111df61ee7c81bca06e7be08c217",
+            "screenshotSha256": "b3a4ff32f8ceaaa6521122c4240a5f7e412eeeeae52557e6d821e9c26b51f840",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1737,42 +1737,42 @@
             "structuredSurfacesBelowScene": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -1782,7 +1782,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
-            "screenshotSha256": "e3197baf260ce30123931d86b05dee3925de1304adeeddc54b08edb10d72122e",
+            "screenshotSha256": "90321565300e932b06f3a8f2949ca05657dacb0adacb84fd7d30133a86757db2",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1843,9 +1843,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -1870,7 +1870,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1024.png",
-            "screenshotSha256": "351537de8323facbc80a05a660f833899e9fd9754d7f53f101e3921ab6765374",
+            "screenshotSha256": "05c825e58db0e1bebfa3b081b4b818d7b7bc0b40b70ed33c0f25dca37f1aaab4",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1915,9 +1915,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -1942,7 +1942,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
-            "screenshotSha256": "8624546bdab0e18c57791690137528fdc49d477711a96921d76e5b7905e70d93",
+            "screenshotSha256": "1ee28da5550adbd1191daf4a5dada8c03742bd04055344c7dc9cd154ac511098",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/cruise",
@@ -1969,42 +1969,42 @@
             "structuredSurfacesBelowScene": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -2022,27 +2022,27 @@
           "mobileSceneFirst": true
         },
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -2053,7 +2053,7 @@
       "routeFile": "src/app/simulations/drilling/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/drilling/page.tsx": "185aaa67734d35283bc927a2d941dc2bee76bce31aa9afec2ff073a6cbf2166c",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -2067,7 +2067,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
-            "screenshotSha256": "f3aa5709afad991872626fe695cc5f8a12d702fb1c4c840f0677a721b57eac99",
+            "screenshotSha256": "1bb3ea8c1fbf2f72c16efcdf3c252b9b8b9ae8cf6885480429c28fc913c8bdca",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2127,9 +2127,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -2154,7 +2154,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1024.png",
-            "screenshotSha256": "eee54a0923e8149f6af81680671fc53a19f1ce6c5916d7f61a24d5bdd6e11c65",
+            "screenshotSha256": "74ba69afe1d405a2932147eb0bc9fb208d3f66ced370b29d48b9d37e15aefd9b",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2198,9 +2198,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -2225,7 +2225,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
-            "screenshotSha256": "689b191af71bbc4323ae947ae46478e622221d840170b9bc5af2f66809492d97",
+            "screenshotSha256": "7e2edea7810a85fc0df274be6ce4ee7cea79cd65703dfe087b7587dfc1cdefb1",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2251,42 +2251,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -2296,7 +2296,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
-            "screenshotSha256": "fb49ae852a811916a29baea80d2f437f84a178b9cc8b00ba8d20aeea6f3d0497",
+            "screenshotSha256": "93ec8469074888d7c630b527dc21ef7e0dadaa91beca109938f792d81a68d0b0",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2356,9 +2356,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -2383,7 +2383,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1024.png",
-            "screenshotSha256": "8eb2ff285c079d035bd42ccdffd41ba99aa098259e5ca77363a8e7b032150bcb",
+            "screenshotSha256": "d4a3d618856ce1b1e6262b34fe669e52461035f369615404a205875876fe64a0",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2427,9 +2427,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -2454,7 +2454,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
-            "screenshotSha256": "1a8703b5b2e84fbb3dab3baf6f9ca373caeb71ced3970a1fc5dbff09f856c128",
+            "screenshotSha256": "b0fe78febb47be448bc94f8da5026d348e4d31736c4fb28b93eeb55f342fb7e1",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/drilling",
@@ -2480,42 +2480,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -2523,27 +2523,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -2554,7 +2554,7 @@
       "routeFile": "src/app/simulations/icebreaker/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/icebreaker/page.tsx": "365cc67c64027689eebc3377c7409e2135474f64b8810c5a3788083b69a42015",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -2568,7 +2568,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
-            "screenshotSha256": "1df7caddbd1752536b8f36257e760c4847351de0da283a6a2489467c51da2835",
+            "screenshotSha256": "49f43b5e486e96dc7d3619f125ce472d769928896602df7a0ebdb5557f42aaa9",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2628,9 +2628,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -2655,7 +2655,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1024.png",
-            "screenshotSha256": "5917689b76c7cdd857b2e704864bde28197c5ed17ba01f05b3f033e607f7e980",
+            "screenshotSha256": "13e62430b32891328581dfad8438eb451b1213fbbdb45c0c28fb79e53e465617",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2699,9 +2699,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -2726,7 +2726,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
-            "screenshotSha256": "85e89e5e311785f00291db4bf363dd4b3c224126a4851523af004f05e51e52c9",
+            "screenshotSha256": "38dc39ff503c8d6cfaa6a837b48168b1301c20177f1567e2b426d0a094c77314",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2752,42 +2752,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -2797,7 +2797,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
-            "screenshotSha256": "009013d11cd92c37e5549065417d252307c66e3812c2506dd75e708e00fbf8dc",
+            "screenshotSha256": "05edfe40dfe527cf6f1ac53c368a4c1371642108f82c825a54fcd20ea82e9be7",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2857,9 +2857,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -2884,7 +2884,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1024.png",
-            "screenshotSha256": "3a30e88086fb189486664729c59ca7a0cefd6ae7356def1e0507a9f4e360cd38",
+            "screenshotSha256": "27a0ed149f186cc7395f258cbdc24c4f198554b68e84ab0e0595612348ada506",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2928,9 +2928,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -2955,7 +2955,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
-            "screenshotSha256": "f64eece06072ecbc6f2f1d8bf19dd762d724b3960d1f4988fbcdf1f36a80f312",
+            "screenshotSha256": "bebbc047bc2f4913480055a5bc1e576d459a6a24db6af65913a4e0410d9e74e2",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/icebreaker",
@@ -2981,42 +2981,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -3024,27 +3024,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
@@ -3055,7 +3055,7 @@
       "routeFile": "src/app/simulations/dredger/page.tsx",
       "commandDeckGeometry": {
         "change": "unify-simulation-chrome-and-camera-views",
-        "generatedAt": "2026-08-20T05:19:13.205Z",
+        "generatedAt": "2026-08-22T14:13:20.047Z",
         "sourceSha256": {
           "src/app/simulations/dredger/page.tsx": "3d09bb4598c76abf908344672facb02b22da30207d90b87d457c25aad41e3dcb",
           "src/app/simulations/_components/simulation-shell.tsx": "399b9f0f4b82b39ecb257be20c51a522d25611f56153ef381ef981f25df604c4",
@@ -3069,7 +3069,7 @@
             "width": 1440,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
-            "screenshotSha256": "98e76c09cfa54e2aaceddb601af0c205ea3177a3ffd3160716a0f3355e7ab446",
+            "screenshotSha256": "86d5f1e007da07967b8045c3020e6d05954907ae17841002eb01d73dd601aac7",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3129,9 +3129,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -3156,7 +3156,7 @@
             "width": 1024,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1024.png",
-            "screenshotSha256": "e3fb142d3d939f8c430aa70a66796d438735a7ac59df957934a8ddd7dd0c35da",
+            "screenshotSha256": "bb40ccfe571928d1f315329a6e6b8317b62342f534c9695a20ff6a5d6beedf45",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3200,9 +3200,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -3227,7 +3227,7 @@
             "width": 320,
             "theme": "light",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
-            "screenshotSha256": "ac95fd825278c3cc8c55e5371101cfdeef8d91a453a8d4d69fa836f900d91760",
+            "screenshotSha256": "4d4b516e9a06959fc38dbe0e7586e55887a430dcc9925cc2f9dbee7f4f8aabb7",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3253,42 +3253,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -3298,7 +3298,7 @@
             "width": 1440,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
-            "screenshotSha256": "dc7b9957db58500ac9bde9f9529756a7cfa2b4d6598774a9edf30172515612b4",
+            "screenshotSha256": "838b8cb394531c3f2b6b097ed2595a9d2e87898e41fc08b17fefce25c3e6903d",
             "screenshotWidth": 1440,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3358,9 +3358,9 @@
               {
                 "left": 652,
                 "top": 792,
-                "right": 741,
+                "right": 740,
                 "bottom": 834,
-                "width": 89,
+                "width": 88,
                 "height": 42
               },
               {
@@ -3385,7 +3385,7 @@
             "width": 1024,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1024.png",
-            "screenshotSha256": "a1ceb524b0bfe155274d0db0dc155d758be087a57f193beb756d8341f5786284",
+            "screenshotSha256": "445c55adcffdbbce3c0394a16106b59033687e8eab96111007c2fe3d4d5229d6",
             "screenshotWidth": 1024,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3429,9 +3429,9 @@
               {
                 "left": 348,
                 "top": 845,
-                "right": 425,
+                "right": 424,
                 "bottom": 887,
-                "width": 77,
+                "width": 76,
                 "height": 42
               },
               {
@@ -3456,7 +3456,7 @@
             "width": 320,
             "theme": "dark",
             "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png",
-            "screenshotSha256": "41eab7a5f6abe97c96624e2df09fd5cc99b07b3766fd2393b0d7f4f4567c8fbf",
+            "screenshotSha256": "942f30e84b1dda33e2cb011dff4a6a1ff3da94c5b70afb76a8769d7094e8ab68",
             "screenshotWidth": 320,
             "screenshotHeight": 900,
             "finalUrl": "http://localhost:3001/simulations/dredger",
@@ -3482,42 +3482,42 @@
             "primarySceneNonblank": true,
             "sceneRect": {
               "left": 17,
-              "top": 295,
+              "top": 339,
               "right": 303,
-              "bottom": 855,
+              "bottom": 899,
               "width": 286,
               "height": 560
             },
             "bottomToolRects": [
               {
                 "left": 58,
-                "top": 813,
+                "top": 857,
                 "right": 92,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 92,
-                "top": 813,
+                "top": 857,
                 "right": 126,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 228,
-                "top": 813,
+                "top": 857,
                 "right": 262,
-                "bottom": 839,
+                "bottom": 883,
                 "width": 34,
                 "height": 26
               },
               {
                 "left": 29,
-                "top": 713,
+                "top": 757,
                 "right": 291,
-                "bottom": 779,
+                "bottom": 823,
                 "width": 262,
                 "height": 66
               }
@@ -3525,27 +3525,27 @@
           }
         ],
         "captureRevision": {
-          "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-          "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f"
+          "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+          "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b"
         },
         "runtimeRevisionProof": {
           "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
           "expected": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "beforeCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           },
           "afterCapture": {
-            "commitSha": "a86317e287a2995c0434c379501257cbfeb6a1ee",
-            "treeSha": "542a0186cc5652701ce541edfb484b9c54d3905f",
-            "sourceFingerprint": "102f13f5632983dacb7964e0bff63ef295b2df35e50af65b8ae72b8eeed8b47d",
+            "commitSha": "2dc6b84b5362e50894810c33de5d8a4d63efa796",
+            "treeSha": "f32999fa23430e5c5eff2ff71cbefed6ac6abf5b",
+            "sourceFingerprint": "c52f83ed0fe670df3ee1ae7e74d22dd11e7bbcae2d2bda77898e403fb7482f74",
             "clean": true
           }
         }
