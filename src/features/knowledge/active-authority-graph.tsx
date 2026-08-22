@@ -325,6 +325,12 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     const visualRole = current.activeVisualRole;
     const families = [...current.enabledFamilies];
     const selectedId = current.selectedCanonicalId;
+    const loadedNodeIds = [...new Set([
+      ...current.loadedShardKeys
+        .filter((key) => key.startsWith('node-neighborhood:') || key.startsWith('node-detail:'))
+        .map((key) => key.slice(key.indexOf(':') + 1)),
+      ...selectedId ? [selectedId] : [],
+    ])];
     updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
     const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
@@ -350,15 +356,15 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
           );
           if (!applyRequired(familyShard)) return;
         }
-        if (selectedId) {
+        for (const nodeId of loadedNodeIds) {
           const neighborhood = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(selectedId)}`, locale),
+            shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
             'node-neighborhood',
             controller.signal,
           );
           if (!applyRequired(neighborhood)) return;
           const detail = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(selectedId)}`, locale),
+            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
             'node-detail',
             controller.signal,
           );

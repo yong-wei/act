@@ -81,9 +81,23 @@ export function loadActivePresentationInventory(
   }
 
   const context = loadActiveShardContext({ repoRoot, identity: active });
-  for (const objectId of [...objectNames].sort()) {
+  const pending = [...objectNames];
+  const visitedNeighborhoods = new Set<string>();
+  while (pending.length > 0) {
+    const objectId = pending.pop()!;
+    if (visitedNeighborhoods.has(objectId)) continue;
+    visitedNeighborhoods.add(objectId);
     const neighborhoodRelative = shardRelativePaths({ canonicalId: objectId }).neighborhood;
-    if (!neighborhoodRelative || !context.manifest.files[neighborhoodRelative]) continue;
+    if (!neighborhoodRelative) {
+      throw new AuthorityShardStoreError('shard-absent', `neighborhood path missing for ${objectId}`);
+    }
+    if (!context.manifest.files[neighborhoodRelative]) {
+      throw new AuthorityShardStoreError(
+        'shard-absent',
+        `expected neighborhood ${neighborhoodRelative} is not in the sealed shard set`,
+      );
+    }
+    const before = objectNames.size;
     const neighborhood = loadVerifiedShardRelative<AuthorityNodeNeighborhoodShard>(
       neighborhoodRelative,
       'node-neighborhood',
@@ -91,6 +105,11 @@ export function loadActivePresentationInventory(
     );
     collectObjects(neighborhood.objects, objectNames, types, aliasIds);
     collectRelations(neighborhood.relations, predicates, directions);
+    if (objectNames.size > before) {
+      for (const object of neighborhood.objects) {
+        if (!visitedNeighborhoods.has(object.id)) pending.push(object.id);
+      }
+    }
   }
 
   const objectIds = uniqueSorted(objectNames);
