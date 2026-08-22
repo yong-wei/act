@@ -1267,7 +1267,7 @@ function classifyLearningFactSource(
       && sourceLogId === audit?.id
       && audit.action === 'grading-run.teacher-reviewed'
       && audit.resourceType === 'GradingRun'
-      && audit.resourceId === runId
+      && audit.resourceId === teacherReviewFieldDigest(runId, 'resource')
       && audit.decision === 'approved'
       && audit.rubricVersion === rubricVersion
       && sourceEventDigest !== null

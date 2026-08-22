@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
@@ -11,6 +11,7 @@ import {
   type DataCompletenessDocumentRubricDraftInput,
   type DataCompletenessLearningFactInput,
 } from '../data-completeness-audit';
+import { writeGradingAudit } from '../math-document-grading-persistence';
 import { pseudonymousAuditId } from '../math-document-grading-contracts';
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
 
@@ -49,7 +50,7 @@ function approvedPipelineAudit(
     id: 'audit-1',
     action: 'grading-run.teacher-reviewed',
     resourceType: 'GradingRun',
-    resourceId: 'run-1',
+    resourceId: teacherReviewDigest('run-1', 'resource'),
     decision: 'approved',
     rubricVersion: 'sha256:question',
     sourceEventDigests: [teacherReviewDigest(sourceEventId, 'source-event')],
@@ -121,7 +122,7 @@ describe('data completeness audit', () => {
   it.each([
     ['rejects a missing pipeline audit anchor', pipelineFact({ sourceLogId: null }), [approvedPipelineAudit()], 1],
     ['rejects a tampered pipeline sourceLogId', pipelineFact({ sourceLogId: 'audit-forged-1' }), [approvedPipelineAudit()], 1],
-    ['rejects a pipeline audit for another run', pipelineFact(), [approvedPipelineAudit({ resourceId: 'run-2' })], 1],
+    ['rejects a pipeline audit for another run', pipelineFact(), [approvedPipelineAudit({ resourceId: teacherReviewDigest('run-2', 'resource') })], 1],
     ['rejects a non-teacher-reviewed pipeline audit action', pipelineFact(), [approvedPipelineAudit({ action: 'grading-run.created' })], 1],
     ['rejects a pipeline audit that is not approved', pipelineFact(), [approvedPipelineAudit({ decision: 'returned' })], 1],
     ['rejects a mismatched pipeline source-event digest', pipelineFact(), [approvedPipelineAudit({ sourceEventDigests: [teacherReviewDigest('forged-source', 'source-event')] })], 1],
@@ -133,6 +134,48 @@ describe('data completeness audit', () => {
       documentGradingAudits,
     });
     expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(expectedDanglingEvents);
+  });
+
+  it('accepts pipeline facts whose resourceId was stored by writeGradingAudit', async () => {
+    let stored: { action: string; resourceType: string; resourceId: string; metadata: Record<string, unknown> } | undefined;
+    const db = {
+      gradingAuditEvent: {
+        create: vi.fn(async ({ data }: { data: typeof stored }) => {
+          stored = data;
+          return { id: 'audit-1' };
+        }),
+      },
+    };
+    const sourceEventId = pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question');
+    await writeGradingAudit(db as never, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      action: 'grading-run.teacher-reviewed',
+      purpose: 'teacher-review',
+      resourceType: 'GradingRun',
+      resourceId: 'run-1',
+      metadata: {
+        decision: 'approved',
+        rubric: { version: 'sha256:question' },
+        sourceEventDigests: [teacherReviewDigest(sourceEventId, 'source-event')],
+        gradeChanges: [{ criterionDigest: teacherReviewDigest('criterion-1', 'criterion') }],
+      },
+    });
+    expect(stored?.resourceId).not.toBe('run-1');
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [pipelineFact()],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits: [{
+        id: 'audit-1',
+        action: stored!.action,
+        resourceType: stored!.resourceType,
+        resourceId: stored!.resourceId,
+        decision: 'approved',
+        rubricVersion: 'sha256:question',
+        sourceEventDigests: stored!.metadata.sourceEventDigests as string[],
+        criterionDigests: [(stored!.metadata.gradeChanges as Array<{ criterionDigest: string }>)[0].criterionDigest],
+      }],
+    });
+    expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(0);
   });
 
   it.each([
