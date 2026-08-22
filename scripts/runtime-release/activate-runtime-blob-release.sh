@@ -31,6 +31,7 @@ old_active="none"
 parent_view=""
 overlay_stash=""
 rebuild_staging=""
+rebuild_backup=""
 rollback_app_image=""
 candidate_current_selected=0
 candidate_deploy_attempted=0
@@ -361,6 +362,33 @@ stage_lifecycle_desired() {
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
 }
 
+restore_rebuild_backup() {
+  [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]] || return 0
+  local final_view="$VIEW_ROOT/views/$release_id"
+  local failed_view="$VIEW_ROOT/views/.$release_id.failed-rebuild"
+  if findmnt -rn -M "$final_view/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$final_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+  fi
+  if [[ -e "$final_view" || -L "$final_view" ]]; then
+    if findmnt -rn -M "$failed_view/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$failed_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$failed_view"
+    mv "$final_view" "$failed_view" || true
+  fi
+  mv "$rebuild_backup" "$final_view" || true
+  rebuild_backup=""
+  if [[ -d "$final_view" ]]; then
+    ensure_helper_mount "$final_view/.act-runtime-blobs" || true
+  fi
+  if [[ -d "$failed_view" ]]; then
+    if findmnt -rn -M "$failed_view/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$failed_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$failed_view"
+  fi
+}
+
 cleanup_lifecycle_identity() {
   if [[ -n "$lifecycle_identity" && -f "$lifecycle_identity" ]]; then
     rm -f -- "$lifecycle_identity"
@@ -374,6 +402,9 @@ cleanup_lifecycle_identity() {
     fi
     rm -rf -- "$rebuild_staging"
   fi
+  if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" && "$post_activation_media_smoke_passed" != "1" ]]; then
+    restore_rebuild_backup
+  fi
 }
 
 trap cleanup_lifecycle_identity EXIT
@@ -381,6 +412,11 @@ trap cleanup_lifecycle_identity EXIT
 restore_runtime_consumers() {
   local status=$?
   set +e
+  local restored_rebuild=0
+  if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
+    restore_rebuild_backup
+    restored_rebuild=1
+  fi
   python3 "$ACTIVATION_TRANSACTION" recover \
     --state-dir "$STATE_DIR" \
     --lifecycle-script "$LIFECYCLE_SCRIPT" \
@@ -418,6 +454,13 @@ restore_runtime_consumers() {
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
+        APP_IMAGE="$rollback_app_image" \
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+    elif [[ "$restored_rebuild" == "1" ]]; then
+      RUNTIME_DELIVERY_MODE=ossfs-blob-view \
+        ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
     fi
@@ -501,11 +544,11 @@ if [[ -n "$rebuild_staging" ]]; then
     exit 1
   }
   mv "$final_view" "$backup_view"
+  rebuild_backup="$backup_view"
   mv "$rebuild_staging" "$final_view"
   rebuild_staging=""
   candidate_view="$final_view"
   ensure_helper_mount "$candidate_view/.act-runtime-blobs"
-  rm -rf -- "$backup_view"
 fi
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
 stage_lifecycle_desired
@@ -552,6 +595,10 @@ else
 fi
 run_active_media_resolver_smoke
 post_activation_media_smoke_passed=1
+if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
+  rm -rf -- "$rebuild_backup"
+  rebuild_backup=""
+fi
 trap - ERR
 cleanup_lifecycle_identity
 printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$old_active"

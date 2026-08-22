@@ -113,6 +113,21 @@ assert.match(
 );
 assert.match(
   activation,
+  /rebuild_backup="\$backup_view"/,
+  'same-release rebuild must keep the replaced live view as a backup',
+);
+assert.match(
+  activation,
+  /restore_rebuild_backup/,
+  'failed same-release rebuild must restore the replaced live view',
+);
+assert.ok(
+  activation.lastIndexOf('post_activation_media_smoke_passed=1') <
+    activation.lastIndexOf('rm -rf -- "$rebuild_backup"'),
+  'rebuild backup must be deleted only after consumer switch and media smoke succeed',
+);
+assert.match(
+  activation,
   /prepare_result="\$\(python3 "\$MATERIALIZER" "\$\{prepare_args\[@\]\}"\)"/,
   'activation must use the materializer viewPath, including rebuild staging views',
 );
