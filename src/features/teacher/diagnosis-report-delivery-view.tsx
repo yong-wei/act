@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Download, ExternalLink, FileCheck2, Printer, ShieldCheck } from 'lucide-react';
+import { ExternalLink, FileCheck2, Printer, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { DiagnosisDeliveryAction } from '@/lib/diagnosis-report-delivery';
@@ -21,7 +21,6 @@ export function DiagnosisReportDeliveryView({
   projection,
   actions,
   dispositionEvents: initialEvents,
-  pdfHref,
   dispositionHref,
   returnHref,
   teacherMode,
@@ -29,7 +28,6 @@ export function DiagnosisReportDeliveryView({
   projection: DiagnosisDeliveryProjection;
   actions: DiagnosisDeliveryAction[];
   dispositionEvents: DeliveryEvent[];
-  pdfHref: string;
   dispositionHref?: string;
   returnHref: string;
   teacherMode: boolean;
@@ -37,8 +35,6 @@ export function DiagnosisReportDeliveryView({
   const [events, setEvents] = useState(initialEvents);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [downloadState, setDownloadState] = useState<'idle' | 'loading' | 'error'>('idle');
-  const [downloadError, setDownloadError] = useState<string | null>(null);
   const latestByTarget = useMemo(
     () => new Map([...events].reverse().map((event) => [event.targetKey, event])),
     [events],
@@ -71,29 +67,6 @@ export function DiagnosisReportDeliveryView({
     }
   };
 
-  const downloadPdf = async () => {
-    setDownloadState('loading');
-    setDownloadError(null);
-    try {
-      const response = await fetch(pdfHref);
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(payload?.error || 'PDF 生成失败，请返回报告后重试。');
-      }
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = `diagnosis-${projection.reportId}-${projection.role}.pdf`;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      setDownloadState('idle');
-    } catch (error) {
-      setDownloadState('error');
-      setDownloadError(error instanceof Error ? error.message : 'PDF 生成失败，请返回报告后重试。');
-    }
-  };
-
   return (
     <div
       className="min-h-screen bg-background text-foreground"
@@ -107,12 +80,8 @@ export function DiagnosisReportDeliveryView({
             <button type="button" onClick={() => window.print()} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
               <Printer className="h-4 w-4" />打印
             </button>
-            <button type="button" onClick={() => void downloadPdf()} disabled={downloadState === 'loading'} className="btn-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm disabled:opacity-60">
-              <Download className="h-4 w-4" />{downloadState === 'loading' ? '生成中…' : '导出 PDF'}
-            </button>
           </div>
         </div>
-        {downloadError ? <p className="mx-auto mt-3 max-w-5xl text-sm text-red-600" role="alert">{downloadError}</p> : null}
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-8 print:max-w-none print:px-0 print:py-0">

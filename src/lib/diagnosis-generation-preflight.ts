@@ -6,6 +6,7 @@ import {
   assertTeacherClassScope,
   DIAGNOSIS_REPORT_GENERATOR_VERSION,
 } from '@/lib/diagnosis-persistence';
+import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 
 export const DIAGNOSIS_PREFLIGHT_RULE_VERSION = 'teacher-diagnosis-preflight.v1';
@@ -50,6 +51,8 @@ export interface DiagnosisGovernedInput extends Prisma.JsonObject {
   schemaVersion: 'teacher-diagnosis-governed-input.v1';
   classId: string;
   studentIds: string[];
+  assignmentSubmissions: Prisma.JsonArray;
+  assessmentSessions: Prisma.JsonArray;
   riskFlags: Prisma.JsonArray;
   competencySnapshots: Prisma.JsonArray;
   knowledgeProgress: Prisma.JsonArray;
@@ -149,8 +152,40 @@ function publicCategories(
   ) as Record<CategoryName, DiagnosisPreflightCategory>;
 }
 
-function unavailableCategory(): StoredCategorySummary {
-  return { availability: 'unavailable', currentCount: null, itemDigests: [] };
+function availableCategory(rows: unknown[]): StoredCategorySummary {
+  return {
+    availability: 'available',
+    currentCount: rows.length,
+    itemDigests: itemDigests(rows),
+  };
+}
+
+function asFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (value instanceof Prisma.Decimal) {
+    const numeric = value.toNumber();
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+  return null;
+}
+
+function recordValue(value: Prisma.JsonValue): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function classAssessmentSessionMetadata(value: Prisma.JsonValue) {
+  const record = recordValue(value);
+  const fixture = recordValue(record?.diagnosisClassAssessment as Prisma.JsonValue);
+  if (!fixture || fixture.schemaVersion !== 'diagnosis-class-assessment-session.v1') return null;
+  if (typeof fixture.classId !== 'string' || typeof fixture.assessmentId !== 'string'
+    || typeof fixture.contentDigest !== 'string') return null;
+  return {
+    classId: fixture.classId,
+    assessmentId: fixture.assessmentId,
+    contentDigest: fixture.contentDigest,
+  };
 }
 
 function projectRiskEvidenceSummary(value: Prisma.JsonValue) {
@@ -258,8 +293,8 @@ export async function preflightDiagnosisGeneration(
         }),
   ]);
   const studentIds = members.map((member) => member.userId);
-  const [riskRows, progressRows, competencyRows] = studentIds.length === 0
-    ? [[], [], []]
+  const [riskRows, progressRows, competencyRows, assignmentRows, assessmentSessionRows] = studentIds.length === 0
+    ? [[], [], [], [], []]
     : await Promise.all([
         db.studentRiskFlag.findMany({
           where: {
@@ -312,7 +347,62 @@ export async function preflightDiagnosisGeneration(
                 competencyVector: true,
                 calculationVersion: true,
               },
-            }),
+        }),
+        db.assignmentSubmission.findMany({
+          where: {
+            frozenAudienceClassId: input.classId,
+            studentId: { in: studentIds },
+            state: 'SUBMITTED',
+            reviewedAt: { not: null, lte: evidenceCutoff },
+          },
+          orderBy: [{ reviewedAt: 'desc' }, { id: 'asc' }],
+          take: 1_000,
+          select: {
+            id: true,
+            studentId: true,
+            frozenStudentId: true,
+            frozenAudienceClassId: true,
+            assignmentRevisionId: true,
+            reviewState: true,
+            approvedTotal: true,
+            reviewedAt: true,
+            audience: {
+              select: {
+                classId: true,
+                assignmentRevisionId: true,
+              },
+            },
+            revision: {
+              select: {
+                id: true,
+                contentHash: true,
+                totalPoints: true,
+                publishedAt: true,
+              },
+            },
+          },
+        }),
+        db.adaptiveAssessmentSession.findMany({
+          where: { userId: { in: studentIds } },
+          orderBy: [{ lastAnsweredAt: 'desc' }, { id: 'asc' }],
+          take: 1_000,
+          select: {
+            id: true,
+            userId: true,
+            metadata: true,
+            answers: {
+              where: { answeredAt: { lte: evidenceCutoff } },
+              orderBy: [{ answeredAt: 'asc' }, { id: 'asc' }],
+              select: {
+                id: true,
+                isCorrect: true,
+                score: true,
+                answeredAt: true,
+                questionRef: { select: { contentHash: true } },
+              },
+            },
+          },
+        }),
       ]);
   const riskInput = riskRows.map((row) => ({
     id: row.id,
@@ -346,10 +436,54 @@ export async function preflightDiagnosisGeneration(
   })).sort((left, right) => left.userId.localeCompare(right.userId)
     || right.snapshotAt.localeCompare(left.snapshotAt)
     || left.id.localeCompare(right.id));
+  const assignmentInput = assignmentRows.flatMap((row) => {
+    const score = asFiniteNumber(row.approvedTotal);
+    const totalPoints = asFiniteNumber(row.revision.totalPoints);
+    if (!hasConsistentFrozenAssignmentSubmissionLineage(row, input.classId)
+      || row.reviewState !== 'REVIEWED' || score === null || totalPoints === null
+      || !row.revision.contentHash || !row.revision.publishedAt || !row.reviewedAt
+      || row.revision.publishedAt > evidenceCutoff || row.reviewedAt > evidenceCutoff) {
+      return [];
+    }
+    return [{
+      id: row.id,
+      userId: row.studentId,
+      assignmentRevisionId: row.assignmentRevisionId,
+      contentHash: row.revision.contentHash,
+      score,
+      totalPoints,
+      reviewedAt: row.reviewedAt.toISOString(),
+    }];
+  }).sort((left, right) => left.userId.localeCompare(right.userId)
+    || right.reviewedAt.localeCompare(left.reviewedAt)
+    || left.id.localeCompare(right.id));
+  const assessmentInput = assessmentSessionRows.flatMap((session) => {
+    const assessment = classAssessmentSessionMetadata(session.metadata);
+    if (!assessment || assessment.classId !== input.classId || session.answers.length === 0) return [];
+    const itemContentHashes = session.answers.map((answer) => answer.questionRef.contentHash).sort();
+    if (assessment.contentDigest !== sha256(JSON.stringify(itemContentHashes))) return [];
+    const totalScore = session.answers.reduce((sum, answer) => sum + answer.score, 0);
+    const completedAt = session.answers.at(-1)?.answeredAt;
+    if (!completedAt) return [];
+    return [{
+      id: session.id,
+      userId: session.userId,
+      assessmentId: assessment.assessmentId,
+      contentDigest: assessment.contentDigest,
+      itemCount: session.answers.length,
+      correctCount: session.answers.filter((answer) => answer.isCorrect).length,
+      score: Math.round((totalScore / session.answers.length) * 100) / 100,
+      completedAt: completedAt.toISOString(),
+    }];
+  }).sort((left, right) => left.userId.localeCompare(right.userId)
+    || right.completedAt.localeCompare(left.completedAt)
+    || left.id.localeCompare(right.id));
   const governedInput: DiagnosisGovernedInput = {
     schemaVersion: 'teacher-diagnosis-governed-input.v1',
     classId: input.classId,
     studentIds,
+    assignmentSubmissions: assignmentInput,
+    assessmentSessions: assessmentInput,
     riskFlags: riskInput,
     competencySnapshots: competencyInput,
     knowledgeProgress: progressInput,
@@ -376,8 +510,8 @@ export async function preflightDiagnosisGeneration(
   const inputSummary: DiagnosisInputSummary = {
     schemaVersion: 'teacher-diagnosis-input-summary.v1',
     categories: {
-      assignment: unavailableCategory(),
-      assessment: unavailableCategory(),
+      assignment: availableCategory(assignmentInput),
+      assessment: availableCategory(assessmentInput),
       learningBehavior: {
         availability: 'available',
         currentCount: progressItems.length,
@@ -406,7 +540,8 @@ export async function preflightDiagnosisGeneration(
     ruleVersion: DIAGNOSIS_PREFLIGHT_RULE_VERSION,
   }));
   const previousSummary = readPreviousSummary(previousReport?.inputSummary ?? null);
-  const hasEligibleInput = riskItems.length + progressItems.length + competencyRows.length > 0;
+  const hasEligibleInput = assignmentInput.length + assessmentInput.length
+    + riskItems.length + progressItems.length + competencyRows.length > 0;
   let status: DiagnosisPreflightStatus;
   let generationReason: DiagnosisGenerationPreflight['generationReason'] = null;
   if (activeJob) {

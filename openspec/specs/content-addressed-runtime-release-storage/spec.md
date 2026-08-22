@@ -65,7 +65,7 @@ The local production release writer SHALL upload only a changed or otherwise unk
 - **THEN** the publisher SHALL fail before receipt or terminal manifest publication
 
 ### Requirement: Materialized runtime preserves the selected logical release
-The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`.
+The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`. If the host restores persistent control-plane state after materialization, it SHALL copy only repository-defined control-plane paths, SHALL NOT copy a textbook retrieval cache or other runtime data merely because it is a regular file, and SHALL repeat a coverage-aware materialized-view verification before any consumer switch or active lifecycle commit.
 
 #### Scenario: Missing or mismatched blob blocks selection
 - **WHEN** a selected manifest references a missing blob, a blob with a different size or SHA-256, or a dangling materialized entry
@@ -74,6 +74,12 @@ The system SHALL build a temporary host-owned materialized runtime view only fro
 #### Scenario: Candidate materialization proves filesystem compatibility
 - **WHEN** the materialization strategy is evaluated before production selection
 - **THEN** the system SHALL run the declared filesystem-consumer, route, media and textbook-retrieval evidence against the candidate view and SHALL not select it when any required contract differs
+
+#### Scenario: Host control-plane restoration encounters a regular textbook cache
+- **WHEN** a parent view contains regular textbook retrieval cache files and a candidate release declares different cache hashes
+- **THEN** restoration SHALL leave the candidate cache bound to its own manifest
+- **AND** it SHALL preserve only explicit control-plane overlays
+- **AND** it SHALL reject the candidate before consumer switch if post-restoration verification finds any non-overlay logical file that differs from the candidate manifest
 
 ### Requirement: Runtime blob garbage collection is reachability-safe
 The system SHALL persist one durable v2 lifecycle record under the host lock and recovery journal. It SHALL record normalized desired, active, rollback and publishing identities, plus retained leases containing an immutable identity, UTC retention time, signed-media maximum lifetime, derived release deadline and policy version, with a monotonic lifecycle generation. It SHALL preserve desired-versus-active divergence after a failed candidate activation. Garbage collection SHALL compute deletion candidates only from a locked snapshot of that record and verified immutable manifests and receipts for desired, active, rollback, publishing and explicitly retained leases. It SHALL delete a blob only when the blob is absent from that protected reachable set and all selector generations and lifecycle state remain unchanged through revalidation. It SHALL record the input identities, retention leases, candidate set, deletion results and post-operation verification in a GC receipt.

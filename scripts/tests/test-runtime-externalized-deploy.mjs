@@ -178,6 +178,12 @@ const deployScript = read('deploy/podman/deploy.sh');
 const remoteDeployScript = read('scripts/remote-deploy.sh');
 const graphCenterSources = read('src/lib/data-governance/graph-center-sources.ts');
 const learningGoalBaselineRuntime = read('src/lib/learning-goal-resource-baseline-runtime.ts');
+const microTutoringRuntimeSources = [
+  'src/features/assessment/micro-tutoring-goal-node-catalog.ts',
+  'src/features/assessment/micro-tutoring-option-attribution.ts',
+  'src/features/assessment/micro-tutoring-resource-registry.ts',
+  'src/features/assessment/micro-tutoring-validation-registry.ts',
+].map(read);
 
 assert.equal(
   dockerignore.includes('course-content/runtime'),
@@ -187,7 +193,8 @@ assert.equal(
 
 assert.equal(
   /from ['"].*resource-field-completion-summary\.json['"]/.test(graphCenterSources) ||
-    /from ['"].*learning-goal-resource-baseline-matrix\.json['"]/.test(learningGoalBaselineRuntime),
+    /from ['"].*learning-goal-resource-baseline-matrix\.json['"]/.test(learningGoalBaselineRuntime) ||
+    microTutoringRuntimeSources.some((source) => /from ['"].*micro-tutoring-.*\.json['"]/.test(source)),
   false,
   '源码不得静态 import 外置 runtime governance JSON，否则 Docker 构建上下文排除 runtime 后会失败',
 );

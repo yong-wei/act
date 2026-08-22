@@ -62,5 +62,15 @@ describe('arena module boundaries', () => {
       expect(entrySource).toMatch(/from ['"][^'"]*(?:submissions\/types|\.\/types)['"]/);
       expect(entrySource).not.toContain('submissions/submission-service');
     }
+    const blackBoxClient = source('src/features/control-workbench/presets/blackbox-identification-preset.tsx');
+    const blackBoxEvidence = source('src/features/arena/blackbox/engineering-evidence.ts');
+    expect(blackBoxClient).toContain('blackbox/contracts');
+    expect(blackBoxClient).not.toContain('blackbox/experiment-service');
+    expect(blackBoxClient).not.toContain('blackbox/controller-preview');
+    expect(blackBoxEvidence).toContain("from './contracts'");
+    expect(blackBoxEvidence).not.toContain("from './controller-preview'");
+    const feedbackRules = source('src/features/arena/student/arena-feedback-rules.ts');
+    expect(feedbackRules).toContain("from '../submissions/evidence-status'");
+    expect(feedbackRules).not.toContain("from '../evidence-writeback'");
   });
 });

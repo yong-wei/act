@@ -596,9 +596,11 @@ function ReportDetail({
         <div className="mt-5 flex flex-wrap gap-2" data-diagnosis-delivery-entry>
           <Link
             href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}`}
-            className="btn-themed rounded-lg px-3 py-2 text-sm"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,box-shadow,transform] hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-px"
+            data-diagnosis-delivery-primary="true"
           >
             打开教师交付版
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
           {report.scopeType === 'student' ? (
             <Link

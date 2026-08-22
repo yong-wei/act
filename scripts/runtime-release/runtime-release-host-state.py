@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import stat
 import sys
 import tempfile
@@ -25,6 +26,7 @@ V2_RELEASE_RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 V2_MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
 V2_MANIFEST_OBJECT_PREFIX = "runtime/blob-releases/"
 V2_MANIFEST_FILENAME = "manifest.json"
+
 
 
 def fail(message: str) -> None:
@@ -258,6 +260,82 @@ def verify_v2_receipt(path: Path, manifest: dict, manifest_wire: bytes, release_
     fail("v2 verification receipt schema is unsupported")
 
 
+def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_root: Path):
+    materializer = load_v2_materializer()
+    parent = materializer.require_real_directory(Path(parent_runtime_root), "parent overlay view")
+    candidate = materializer.require_real_directory(Path(candidate_runtime_root), "candidate overlay view")
+    skip_dirs = {materializer.RUNTIME_BLOB_HELPER_NAME}
+    skip_files = {materializer.LOCAL_MANIFEST, materializer.LOCAL_RECEIPT}
+    cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS)
+    allowlist = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
+    copied = []
+    skipped = []
+
+    def copy_regular(relative: str, *, replace_symlink: bool = False) -> bool:
+        source = parent / relative
+        try:
+            details = os.lstat(source)
+        except OSError:
+            return False
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            skipped.append(relative)
+            return False
+        if relative in cache_paths or relative in skip_files:
+            skipped.append(relative)
+            return False
+        destination = candidate / relative
+        if destination.is_symlink():
+            if not replace_symlink:
+                skipped.append(relative)
+                return False
+            destination.unlink()
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        os.chmod(destination.parent, 0o755)
+        if destination.exists() or destination.is_symlink():
+            destination.unlink()
+        shutil.copy2(source, destination)
+        copied.append(relative)
+        return True
+
+    os.chmod(candidate, 0o755)
+    for root, directories, filenames in os.walk(parent, followlinks=False):
+        directories[:] = [name for name in directories if name not in skip_dirs]
+        for name in filenames:
+            source = Path(root) / name
+            relative = source.relative_to(parent).as_posix()
+            if relative in skip_files:
+                continue
+            details = os.lstat(source)
+            if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+                continue
+            if relative in cache_paths or relative not in allowlist:
+                skipped.append(relative)
+                continue
+            copy_regular(relative, replace_symlink=True)
+    for pointer_relative in materializer.CONTROL_PLANE_OVERLAY_PATHS:
+        pointer_path = candidate / pointer_relative
+        try:
+            details = os.lstat(pointer_path)
+        except OSError:
+            continue
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        pointer = materializer.read_control_plane_pointer(pointer_path)
+        for kind, relative in materializer.control_plane_payload_targets(pointer_relative, pointer):
+            if kind in {"file", "optional_file", "any_file"}:
+                copy_regular(relative)
+            else:
+                for source_relative in sorted(materializer.regular_files_under(parent, relative)):
+                    copy_regular(source_relative)
+    materializer.require_control_plane_overlay_payloads(candidate)
+    copied_set = set(copied)
+    return {
+        "copied": sorted(copied_set),
+        "skipped": sorted(set(skipped) - copied_set),
+        "allowlist": sorted(allowlist),
+    }
+
+
 def inherited_v2_paths(parent_runtime_root: Optional[Path], manifest: dict, materializer):
     if parent_runtime_root in {None, ""}:
         return set()
@@ -299,7 +377,14 @@ def verify_mounted_v2(
     if materializer.canonical(manifest) + b"\n" != manifest_wire:
         fail("mounted runtime manifest wire bytes are not canonical")
     receipt_identity = verify_v2_receipt(Path(verification_receipt), manifest, manifest_wire, release_id, materializer)
-    view_receipt, _ = materializer.verify_view_structure(root, release_id)
+    overlay_paths = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
+    overlay_paths.update(materializer.discover_control_plane_overlay_regular_paths(root))
+    materializer.require_control_plane_overlay_payloads(root)
+    view_receipt, _ = materializer.verify_view_structure(
+        root,
+        release_id,
+        allowed_extra_regular_paths=overlay_paths,
+    )
     verification_value, _ = read_regular_json(Path(verification_receipt), "v2 verification receipt")
     if (
         verification_value.get("schemaVersion") in {V2_MATERIALIZATION_SCHEMA, materializer.MATERIALIZATION_CACHE_SCHEMA}
@@ -309,6 +394,9 @@ def verify_mounted_v2(
     cached_paths = set(materializer.cached_logical_paths(view_receipt))
     inherited_paths = inherited_v2_paths(parent_runtime_root, manifest, materializer)
     changed_paths = {entry["path"] for entry in manifest["files"]} - inherited_paths
+    textbook_cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(
+        materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS
+    )
 
     expected_paths = {entry["path"] for entry in manifest["files"]}
     expected_directories = set()
@@ -334,9 +422,18 @@ def verify_mounted_v2(
             if relative in {materializer.LOCAL_MANIFEST, materializer.LOCAL_RECEIPT}:
                 continue
             actual_paths.add(relative)
-    if actual_paths != expected_paths:
+    undeclared = actual_paths - expected_paths - overlay_paths
+    if undeclared:
+        fail("mounted runtime contains undeclared non-overlay files")
+    if expected_paths - actual_paths:
         fail("mounted runtime file set differs from manifest")
-    if actual_directories != expected_directories:
+    overlay_directories = set()
+    for relative in (actual_paths & overlay_paths) | (expected_paths & overlay_paths):
+        parts = relative.split("/")[:-1]
+        overlay_directories.update("/".join(parts[:index]) for index in range(1, len(parts) + 1))
+    if actual_directories - expected_directories - overlay_directories:
+        fail("mounted runtime directory set differs from manifest")
+    if expected_directories - actual_directories:
         fail("mounted runtime directory set differs from manifest")
 
     representative_candidates = [entry for entry in manifest["files"] if entry["sizeBytes"] <= REPRESENTATIVE_MAX_BYTES]
@@ -344,10 +441,14 @@ def verify_mounted_v2(
         fail("mounted runtime has no bounded representative file for content smoke")
     representative_indexes = sorted({0, len(representative_candidates) // 2, len(representative_candidates) - 1})
     representative_paths = {representative_candidates[index]["path"] for index in representative_indexes}
-    verified_body_paths = changed_paths | representative_paths
+    verified_body_paths = changed_paths | representative_paths | (textbook_cache_paths & expected_paths)
     for entry in manifest["files"]:
         logical = root / entry["path"]
         details = os.lstat(logical)
+        if entry["path"] in overlay_paths and not stat.S_ISLNK(details.st_mode):
+            if not stat.S_ISREG(details.st_mode):
+                fail(f"mounted runtime overlay is not a regular file: {entry['path']}")
+            continue
         if entry["path"] in cached_paths:
             if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
                 fail(f"mounted runtime cache entry is not a regular file: {entry['path']}")
@@ -479,6 +580,10 @@ def active(args: argparse.Namespace):
         "activeReleaseId": receipt["selection"]["releaseId"] if receipt else None,
         "selection": receipt["selection"] if receipt else None,
     }
+
+
+def restore_overlays(args: argparse.Namespace):
+    return restore_control_plane_overlays(Path(args.parent_runtime_root), Path(args.candidate_runtime_root))
 
 
 def verify_mounted(args: argparse.Namespace):
@@ -614,10 +719,20 @@ def main() -> None:
     mounted.add_argument("--format", choices=("v1", "v2"), default="v1")
     mounted.add_argument("--blob-root")
     mounted.add_argument("--parent-runtime-root")
+    restore = subcommands.add_parser("restore-overlays")
+    restore.add_argument("--parent-runtime-root", required=True)
+    restore.add_argument("--candidate-runtime-root", required=True)
     args = parser.parse_args()
     if args.command is None:
         parser.error("a command is required")
-    result = {"select": select, "mark-active": mark_active, "mark-active-v2": mark_active_v2, "active": active, "verify-mounted": verify_mounted}[args.command](args)
+    result = {
+        "select": select,
+        "mark-active": mark_active,
+        "mark-active-v2": mark_active_v2,
+        "active": active,
+        "verify-mounted": verify_mounted,
+        "restore-overlays": restore_overlays,
+    }[args.command](args)
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))
 
 

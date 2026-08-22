@@ -118,13 +118,34 @@ describe('diagnosis report delivery service', () => {
     }));
   });
 
-  it('returns only registered remediation destinations and existing student/preparation routes', async () => {
+  it('returns the report-level preparation entry alongside registered remediation and student routes', async () => {
     const delivery = await readTeacherDiagnosisDelivery({
       teacherId: 'teacher-1', classId: 'class-1', reportId: 'report-1', role: 'teacher',
     });
-    expect(delivery.actions.map((action) => action.kind)).toEqual(['student', 'preparation', 'remediation']);
-    expect(delivery.actions.find((action) => action.kind === 'preparation')?.href).toBe('/teacher/smart-prep');
+    expect(delivery.actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'preparation', targetKey: 'report', href: '/teacher/smart-prep' }),
+      expect.objectContaining({ kind: 'student', targetKey: 'report' }),
+      expect.objectContaining({ kind: 'preparation', targetKey: 'finding:1', href: '/teacher/smart-prep' }),
+    ]));
     expect(delivery.actions.find((action) => action.kind === 'remediation')?.href).toContain('/teacher/resources/resource-nodes?q=');
+  });
+
+  it('keeps the report-level preparation entry for a class report without mapped knowledge nodes', async () => {
+    mocks.diagnosisReportFindFirst.mockResolvedValueOnce({
+      ...report,
+      scopeType: 'class',
+      scopeId: 'class-1',
+      targetUserId: null,
+      reportBody: { ...report.reportBody, findings: [] },
+    });
+
+    const delivery = await readTeacherDiagnosisDelivery({
+      teacherId: 'teacher-1', classId: 'class-1', reportId: 'report-1', role: 'teacher',
+    });
+
+    expect(delivery.actions).toEqual([
+      expect.objectContaining({ kind: 'preparation', targetKey: 'report', href: '/teacher/smart-prep' }),
+    ]);
   });
 
   it('keeps teacher-only actions and dispositions out of the student-safe preview payload', async () => {

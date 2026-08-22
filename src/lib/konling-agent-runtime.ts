@@ -209,6 +209,8 @@ export type KonlingToolName =
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
   | 'analyze_attempt'
+  | 'get_class_assignment_outcomes'
+  | 'get_class_assessment_outcomes'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
   | 'calculate'
@@ -804,6 +806,8 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     requiredContext: ['evidence-citations'],
     optionalContext: ['class-report', 'diagnosis-view', 'learner-state-summary', 'resource-node'],
     permittedTools: [
+      'get_class_assignment_outcomes',
+      'get_class_assessment_outcomes',
       'get_student_risk_flags',
       'get_class_competency_summary',
       'get_student_knowledge_progress',
@@ -2495,6 +2499,8 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   calculate: toolRegistryEntry('calculate', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+  get_class_assignment_outcomes: toolRegistryEntry('get_class_assignment_outcomes', 'read'),
+  get_class_assessment_outcomes: toolRegistryEntry('get_class_assessment_outcomes', 'read'),
   get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
   get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
   get_student_knowledge_progress: toolRegistryEntry('get_student_knowledge_progress', 'read'),
@@ -3154,6 +3160,8 @@ export async function buildKonlingRuntimeContext(
     ? ['propose_smart_lesson_task_change']
     : citationMode.id === 'teacher-diagnosis'
       ? [
+          'get_class_assignment_outcomes',
+          'get_class_assessment_outcomes',
           'get_student_risk_flags',
           'get_class_competency_summary',
           'get_student_knowledge_progress',

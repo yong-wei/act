@@ -52,6 +52,7 @@ describe('TeacherDiagnosisReportHistoryView', () => {
         reports={[report]}
         selectedReportId={report.id}
         subjectLabel="控制 1 班 · 班级范围"
+        classId="class-1"
       />,
     );
 
@@ -67,6 +68,10 @@ describe('TeacherDiagnosisReportHistoryView', () => {
     expect(html).toContain('2 条');
     expect(html).toContain('1 条受治理证据');
     expect(html).toContain('/teacher/preparation?knowledgeNodeId=node-1&amp;classId=class-1');
+    expect(html).toContain('data-diagnosis-delivery-primary="true"');
+    expect(html).toContain('bg-primary');
+    expect(html).toContain('/teacher/classes/class-1/diagnosis-reports/report-1');
+    expect(html).toContain('打开教师交付版');
     expect(html).not.toContain('private-row-1');
     expect(html).not.toContain('private-row-2');
   });

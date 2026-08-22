@@ -259,6 +259,12 @@ async function resolveTeacherDeliveryActions(
     orderBy: [{ displayOrder: 'asc' }, { title: 'asc' }],
   });
   const actions: DiagnosisDeliveryAction[] = [];
+  actions.push({
+    kind: 'preparation',
+    label: '进入备课工作台',
+    href: '/teacher/smart-prep',
+    targetKey: 'report',
+  });
   if (report.targetUserId) {
     actions.push({
       kind: 'student',

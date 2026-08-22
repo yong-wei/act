@@ -60,6 +60,7 @@ export const DIAGNOSIS_REPORT_DELIVERY_CAPTURE_SOURCE_FILES = [
   'playwright.config.ts',
   'tests/diagnosis-report-delivery-evidence.spec.ts',
   'src/lib/commercial-ui-capture-revision.ts',
+  'src/lib/commercial-ui-capture-revision-runtime.ts',
   'src/app/api/internal/local-qa/revision/route.ts',
 ] as const;
 

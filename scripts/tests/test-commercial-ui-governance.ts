@@ -808,6 +808,14 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'lesson handout print is an export view launched from registered interactive learning routes',
   ],
   [
+    'src/app/diagnosis-reports/[reportId]/page.tsx',
+    'student-safe diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
+  ],
+  [
+    'src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx',
+    'teacher diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
+  ],
+  [
     'src/app/textbook-citations/[...targetPath]/page.tsx',
     'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
