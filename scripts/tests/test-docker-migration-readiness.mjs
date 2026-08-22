@@ -252,7 +252,7 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /FROM wolframresearch\/wolframengine:15\.0 AS wolfram-provider[\s\S]*COPY --from=wolfram-provider \/wolfram-runtime \/usr\/local\/Wolfram/,
+    /FROM wolframresearch\/wolframengine:15\.0 AS wolfram-provider[\s\S]*COPY --from=wolfram-provider \/usr\/local\/Wolfram \/usr\/local\/Wolfram/,
     'Dockerfile 必须从官方 Wolfram Engine 镜像把可执行运行时复制进生产 runner',
   );
   assert.doesNotMatch(
