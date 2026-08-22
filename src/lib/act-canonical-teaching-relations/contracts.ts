@@ -194,6 +194,7 @@ export interface ActTeachingQualificationReceipt {
   readonly holdout: ActTeachingQualificationMetrics;
   readonly threshold: number;
   readonly passed: boolean;
+  readonly autoAdmitFamilies: readonly ActTeachingFamily[];
 }
 
 export interface ActTeachingPublishedEdge {

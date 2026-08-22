@@ -70,6 +70,12 @@ export function admitQualifiedCandidates(input: {
       continue;
     }
     const failures = itemAdmissionFailures({ scope: input.scope, candidate });
+    if (
+      candidate.origin === 'QUALIFIED_PIPELINE'
+      && !input.qualification.autoAdmitFamilies.includes(candidate.family)
+    ) {
+      failures.push('family-unqualified');
+    }
     const target = candidate.targetCanonicalId;
     if (
       target

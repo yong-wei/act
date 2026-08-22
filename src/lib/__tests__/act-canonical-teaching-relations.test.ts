@@ -536,4 +536,39 @@ describe('act-canonical-teaching-relations', () => {
       decisions: artifacts.decisions,
     })).toThrow(/invalid runtime semantics|domainKeys drifted/);
   });
+
+  it('records only families with gold true positives as auto-admissible', () => {
+    const artifacts = qualifiedArtifacts();
+    expect(artifacts.qualification.autoAdmitFamilies).toEqual(['containment']);
+    expect(artifacts.qualification.passed).toBe(true);
+  });
+
+  it('does not auto-publish a high-confidence prerequisite from a containment-only receipt', () => {
+    const artifacts = qualifiedArtifacts();
+    const forged: ActTeachingCandidate = {
+      ...generateCourseRootCandidates(artifacts.scope, FIXTURE_CONTAINMENT_EVIDENCE)[0],
+      candidateId: 'cand-forged-prereq',
+      family: 'prerequisite',
+      relationType: 'PREREQUISITE',
+      sourceCanonicalId: 'ctc:b',
+      targetCanonicalId: 'ctc:c',
+      direction: 'source_to_target',
+      confidence: 1,
+      evidenceRefs: ['evidence:handout-course-root-a'],
+      pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+      pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
+      exceptionReasons: [],
+    };
+    const again = admitQualifiedCandidates({
+      scope: artifacts.scope,
+      candidates: [forged],
+      dispositions: artifacts.dispositions,
+      edges: artifacts.edges,
+      qualification: artifacts.qualification,
+      pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+      pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
+    });
+    expect(again.pending.some((row) => row.exceptionReasons.includes('family-unqualified'))).toBe(true);
+    expect(again.edges.every((edge) => edge.family !== 'prerequisite')).toBe(true);
+  });
 });

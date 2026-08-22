@@ -1,6 +1,8 @@
 import {
+  ACT_TEACHING_FAMILIES,
   ACT_TEACHING_QUALIFICATION_CONTRACT,
   type ActTeachingCandidate,
+  type ActTeachingFamily,
   type ActTeachingQualificationMetrics,
   type ActTeachingQualificationReceipt,
   type ActTeachingRelationType,
@@ -82,10 +84,16 @@ export function qualifyPipeline(input: {
       'gold and holdout datasets must keep their frozen roles',
     );
   }
-  const gold = metricsFor(input.gold.items, new Set(input.admittedGoldIds));
-  const holdout = metricsFor(input.holdout.items, new Set(input.admittedHoldoutIds));
+  const admittedGold = new Set(input.admittedGoldIds);
+  const admittedHoldout = new Set(input.admittedHoldoutIds);
+  const gold = metricsFor(input.gold.items, admittedGold);
+  const holdout = metricsFor(input.holdout.items, admittedHoldout);
+  const autoAdmitFamilies = ACT_TEACHING_FAMILIES.filter((family) => (
+    familyHasTruePositive(input.gold.items, admittedGold, family)
+  ));
   const passed = gold.balancedScore >= input.threshold
-    && holdout.balancedScore >= input.threshold;
+    && holdout.balancedScore >= input.threshold
+    && autoAdmitFamilies.length > 0;
   const goldDigest = datasetDigest(input.gold);
   const holdoutDigest = datasetDigest(input.holdout);
   const receiptId = `qual-${projectionDigest({
@@ -94,6 +102,7 @@ export function qualifyPipeline(input: {
     goldDigest,
     holdoutDigest,
     threshold: input.threshold,
+    autoAdmitFamilies,
   }).slice(0, 24)}`;
   return {
     contract: ACT_TEACHING_QUALIFICATION_CONTRACT,
@@ -106,7 +115,18 @@ export function qualifyPipeline(input: {
     holdout,
     threshold: input.threshold,
     passed,
+    autoAdmitFamilies,
   };
+}
+
+function familyHasTruePositive(
+  items: readonly GoldRelationItem[],
+  emitted: ReadonlySet<string>,
+  family: ActTeachingFamily,
+): boolean {
+  return items.some((item) => (
+    item.family === family && item.expected === 'admit' && emitted.has(item.id)
+  ));
 }
 
 export function assertQualifiedReceipt(
