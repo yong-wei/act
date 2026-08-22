@@ -63,6 +63,8 @@ export type DomainFragmentCoreSourceKind =
 /** Registered teaching relation kinds and presentation families (data-driven). */
 export const REGISTERED_TEACHING_RELATION_TYPES = [
   'PREREQUISITE',
+  'CONTAINMENT',
+  'PEDAGOGICAL_ASSOCIATION',
 ] as const;
 
 export type RegisteredTeachingRelationType =
@@ -70,6 +72,8 @@ export type RegisteredTeachingRelationType =
 
 export const TEACHING_RELATION_PRESENTATION_FAMILIES = [
   'teaching-prerequisite',
+  'teaching-containment',
+  'teaching-association',
 ] as const;
 
 export type TeachingRelationPresentationFamily =
@@ -81,8 +85,8 @@ export interface TeachingRelationPresentationContract {
   presentationFamily: TeachingRelationPresentationFamily;
   /** Human-readable Chinese label for product surfaces. */
   labelZh: string;
-  direction: 'source-to-target';
-  kind: 'directed';
+  direction: 'source-to-target' | 'symmetric';
+  kind: 'directed' | 'symmetric';
   supported: boolean;
 }
 
@@ -100,6 +104,24 @@ export const TEACHING_RELATION_PRESENTATION_REGISTRY: Readonly<
     labelZh: '先修',
     direction: 'source-to-target',
     kind: 'directed',
+    supported: true,
+  },
+  CONTAINMENT: {
+    contract: DOMAIN_TEACHING_RELATION_PRESENTATION_CONTRACT,
+    relationType: 'CONTAINMENT',
+    presentationFamily: 'teaching-containment',
+    labelZh: '包含',
+    direction: 'source-to-target',
+    kind: 'directed',
+    supported: true,
+  },
+  PEDAGOGICAL_ASSOCIATION: {
+    contract: DOMAIN_TEACHING_RELATION_PRESENTATION_CONTRACT,
+    relationType: 'PEDAGOGICAL_ASSOCIATION',
+    presentationFamily: 'teaching-association',
+    labelZh: '教学关联',
+    direction: 'symmetric',
+    kind: 'symmetric',
     supported: true,
   },
 };

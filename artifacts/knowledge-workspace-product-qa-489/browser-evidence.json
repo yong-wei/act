@@ -2,20 +2,20 @@
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
   "capturedAt": "2026-08-22T14:06:21.920Z",
-  "headCommit": "56994b407431ff549c4f2bd825b4c6d7b726a743",
+  "headCommit": "65daa3e794b9e85616b1984cd544bc8857028697",
   "captureRevision": {
-    "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-    "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0"
+    "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+    "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea"
   },
   "captureGuard": {
     "before": {
-      "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-      "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0",
+      "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+      "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea",
       "dirty": false
     },
     "afterBrowserCapture": {
-      "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-      "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0",
+      "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+      "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea",
       "dirty": true
     },
     "allowedOutputPrefixes": [
@@ -31,21 +31,21 @@
     "endpoint": "http://localhost:3001/api/internal/local-qa/revision",
     "expected": {
       "clean": true,
-      "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-      "sourceFingerprint": "be24a59302e86afe8d53af17ebabf1cbe0b3e8d076e77578aeb2fdf200850dcf",
-      "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0"
+      "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+      "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea",
+      "sourceFingerprint": "7c329d269ae9c062383c59e690f41ef633ba7b3cdcf4098831886aca86c5d4ee"
     },
     "beforeCapture": {
       "clean": true,
-      "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-      "sourceFingerprint": "be24a59302e86afe8d53af17ebabf1cbe0b3e8d076e77578aeb2fdf200850dcf",
-      "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0"
+      "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+      "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea",
+      "sourceFingerprint": "7c329d269ae9c062383c59e690f41ef633ba7b3cdcf4098831886aca86c5d4ee"
     },
     "afterCapture": {
       "clean": true,
-      "commitSha": "56994b407431ff549c4f2bd825b4c6d7b726a743",
-      "sourceFingerprint": "be24a59302e86afe8d53af17ebabf1cbe0b3e8d076e77578aeb2fdf200850dcf",
-      "treeSha": "05c9f913332e0b68e2a989b8a28dbc3391d291f0"
+      "commitSha": "65daa3e794b9e85616b1984cd544bc8857028697",
+      "treeSha": "b6ae49df9d7258d82202986b98a8715a311b65ea",
+      "sourceFingerprint": "7c329d269ae9c062383c59e690f41ef633ba7b3cdcf4098831886aca86c5d4ee"
     }
   },
   "selectedNodeConfigured": true,
@@ -83,7 +83,7 @@
     "src/features/knowledge/active-authority-shard-store.ts": "b73b79c92a023f77ff4681d8ba3fce709a9517d08b386736c9bf83b497e56f79",
     "src/features/knowledge/active-authority-presentation.ts": "fe40525d6f04c2099d56eb5e7588b27a78a5da8dde90878a040379dbfd1d91bf",
     "src/features/knowledge/active-authority-graph-contracts.ts": "54ec5b6341a7e364fc153b8f372bbd0e581a83b48cd0b60d27e0d0d01a6cbab5",
-    "src/lib/authority-domain-shards/contracts.ts": "16ba581a6d69b07c26b5bceecb030f2b54ee18e3f9ea43c4e51f7579207a1f3b",
+    "src/lib/authority-domain-shards/contracts.ts": "055c0968ac155070f201a3c17b73db8a28d1931b46e6667366a7ec2678683120",
     "src/lib/authority-domain-shards/envelope.ts": "8b162e9a750959ccfdc7d719ec2844c6eff401ddc7fae9adf5d676b7b2753921",
     "src/lib/authority-domain-shards/loader.ts": "eaea3dfb093e1144b70109ed1c52641e1c80f3069faf5694c444631771b9a53a",
     "src/lib/authority-domain-shards/materialize.ts": "b1043809fc24d5d42ce46856681529ad0b2c6ac63e2bfe975b4b2c3597ed8d84",
@@ -97,7 +97,7 @@
     "src/app/api/knowledge/shards/active/nodes/[id]/infograph/route.ts": "74f5fdfe54984ff29843d35345e1cfb7d84cc79aa14cdc052d0f7677bc1a58b1",
     "src/lib/authority-domain-shards/learning-content.ts": "0a972a1c64536749201c0cbae8ba7d2727b30d2376bc625f750a1d96b3f28aa9",
     "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
-    "src/app/assessment/adaptive-practice/page.tsx": "838cf1692a6075d7f7f3a327e26be8bffafb86dd2bc9fac20f484c1cba96898e",
+    "src/app/assessment/adaptive-practice/page.tsx": "8abadd17bf67f34b01c8cd23d4bf8014d66f2c909027e9374197736b0d5aba43",
     "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
     "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "2a34823ab0c39743983fed99ec25f435210e9a68fc2971f07afb2f86106757c4",
     "src/features/knowledge/graph/relation-family-control.tsx": "6525e3ae4d5071f0db149c9acdba60de088b30db1f45ec3ff8bd24b622139f24",
@@ -8025,7 +8025,7 @@
       "src/features/knowledge/active-authority-shard-store.ts": "b73b79c92a023f77ff4681d8ba3fce709a9517d08b386736c9bf83b497e56f79",
       "src/features/knowledge/active-authority-presentation.ts": "fe40525d6f04c2099d56eb5e7588b27a78a5da8dde90878a040379dbfd1d91bf",
       "src/features/knowledge/active-authority-graph-contracts.ts": "54ec5b6341a7e364fc153b8f372bbd0e581a83b48cd0b60d27e0d0d01a6cbab5",
-      "src/lib/authority-domain-shards/contracts.ts": "16ba581a6d69b07c26b5bceecb030f2b54ee18e3f9ea43c4e51f7579207a1f3b",
+      "src/lib/authority-domain-shards/contracts.ts": "055c0968ac155070f201a3c17b73db8a28d1931b46e6667366a7ec2678683120",
       "src/lib/authority-domain-shards/envelope.ts": "8b162e9a750959ccfdc7d719ec2844c6eff401ddc7fae9adf5d676b7b2753921",
       "src/lib/authority-domain-shards/loader.ts": "eaea3dfb093e1144b70109ed1c52641e1c80f3069faf5694c444631771b9a53a",
       "src/lib/authority-domain-shards/materialize.ts": "b1043809fc24d5d42ce46856681529ad0b2c6ac63e2bfe975b4b2c3597ed8d84",
@@ -8039,7 +8039,7 @@
       "src/app/api/knowledge/shards/active/nodes/[id]/infograph/route.ts": "74f5fdfe54984ff29843d35345e1cfb7d84cc79aa14cdc052d0f7677bc1a58b1",
       "src/lib/authority-domain-shards/learning-content.ts": "0a972a1c64536749201c0cbae8ba7d2727b30d2376bc625f750a1d96b3f28aa9",
       "src/app/knowledge/page.tsx": "185dcc4d6535435e1613afc111ce520479dcbe6ca7ff4c7dbb277e629035a9cc",
-      "src/app/assessment/adaptive-practice/page.tsx": "838cf1692a6075d7f7f3a327e26be8bffafb86dd2bc9fac20f484c1cba96898e",
+      "src/app/assessment/adaptive-practice/page.tsx": "8abadd17bf67f34b01c8cd23d4bf8014d66f2c909027e9374197736b0d5aba43",
       "src/features/knowledge/graph/knowledge-graph-2d.tsx": "cf4470e1a527bced705b4f46e9b83b7ce7c052766cec6f36bb02dbe2d7f67898",
       "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "2a34823ab0c39743983fed99ec25f435210e9a68fc2971f07afb2f86106757c4",
       "src/features/knowledge/graph/relation-family-control.tsx": "6525e3ae4d5071f0db149c9acdba60de088b30db1f45ec3ff8bd24b622139f24",

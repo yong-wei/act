@@ -313,21 +313,26 @@ export function teachingCoverageFromState(
 export function projectTeachingRelation(
   relation: DomainTeachingComposedArtifacts['relations'][number],
 ): AuthorityShardRelation {
+  const relationFamily = relation.relationType === 'CONTAINMENT'
+    ? 'teaching-containment'
+    : relation.relationType === 'PEDAGOGICAL_ASSOCIATION'
+      ? 'teaching-association'
+      : 'teaching-prerequisite';
   return {
     id: relation.edgeId,
     predicate: relation.relationType,
     sourceId: relation.sourceNodeId,
     targetId: relation.targetNodeId,
-    direction: 'source_to_target',
+    direction: relationFamily === 'teaching-association' ? 'symmetric' : 'source_to_target',
     direct: true,
     qualityTier: 'GOLD',
     governance: {
-      reviewStatus: 'approved',
+      reviewStatus: null,
       publicationStatus: 'published',
     },
     semanticSupport: { supported: true, readOnly: true },
     layer: TEACHING_LAYER,
-    relationFamily: 'teaching-prerequisite',
+    relationFamily,
   };
 }
 

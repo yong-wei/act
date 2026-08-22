@@ -1,0 +1,83 @@
+import { admitQualifiedCandidates } from './admit';
+import type { ActTeachingProjectionArtifacts, ActTeachingScope } from './contracts';
+import { emptyDispositions } from './families';
+import {
+  COURSE_ROOT_PIPELINE_VERSION,
+  FROZEN_QUALIFICATION_THRESHOLD,
+  assertEvidenceBoundToQualificationDatasets,
+  frozenQualificationGold,
+  frozenQualificationHoldout,
+  generateContainmentCandidates,
+  generatePendingFamilyPlaceholders,
+  measurePipelineDataset,
+  pipelineConfigDigest,
+  sealEvidence,
+  type ContainmentEvidence,
+} from './pipeline';
+import { publishActTeachingProjection } from './projection';
+import { qualifyPipeline, type QualificationDataset } from './qualify';
+import { buildReviewPack } from './review-pack';
+import { detectKaqConflicts, type KaqFallbackRelation } from './kaq-conflict';
+import { assertScopeIntegrity } from './scope';
+
+export function buildActTeachingProjection(input: {
+  scope: ActTeachingScope;
+  evidence: ContainmentEvidence;
+  gold: QualificationDataset;
+  holdout: QualificationDataset;
+  threshold: number;
+  kaqFallbacks?: readonly KaqFallbackRelation[];
+}): ActTeachingProjectionArtifacts {
+  assertScopeIntegrity(input.scope);
+  const evidence = sealEvidence(input.evidence);
+  const gold = frozenQualificationGold();
+  const holdout = frozenQualificationHoldout();
+  assertEvidenceBoundToQualificationDatasets(evidence, gold, holdout);
+  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
+  const qualification = qualifyPipeline({
+    pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+    pipelineConfigDigest: pipelineConfig,
+    gold,
+    holdout,
+    admittedGoldIds: measurePipelineDataset(gold, evidence),
+    admittedHoldoutIds: measurePipelineDataset(holdout, evidence),
+    threshold: FROZEN_QUALIFICATION_THRESHOLD,
+  });
+  const generated = generateContainmentCandidates(input.scope, evidence);
+  const covered = new Set(generated.map((row) => row.sourceCanonicalId));
+  const pendingGaps = [
+    ...generatePendingFamilyPlaceholders(input.scope, 'containment')
+      .filter((row) => !covered.has(row.sourceCanonicalId)),
+    ...generatePendingFamilyPlaceholders(input.scope, 'prerequisite'),
+    ...generatePendingFamilyPlaceholders(input.scope, 'association'),
+  ];
+  const candidates = detectKaqConflicts({
+    candidates: [...generated, ...pendingGaps],
+    kaqFallbacks: input.kaqFallbacks ?? [],
+  });
+  const admitted = admitQualifiedCandidates({
+    scope: input.scope,
+    candidates,
+    dispositions: emptyDispositions(input.scope),
+    qualification,
+    pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+    pipelineConfigDigest: pipelineConfig,
+  });
+  const reviewPack = buildReviewPack({
+    scope: input.scope,
+    candidates: admitted.pending,
+    decisions: [],
+  });
+  if (reviewPack.pendingCount !== admitted.pending.length) {
+    throw new Error('review pack pending count drifted from admission');
+  }
+  return publishActTeachingProjection({
+    scope: input.scope,
+    dispositions: admitted.dispositions,
+    edges: admitted.edges,
+    reviewPack,
+    qualification,
+    candidates: admitted.pending,
+    decisions: [],
+  });
+}

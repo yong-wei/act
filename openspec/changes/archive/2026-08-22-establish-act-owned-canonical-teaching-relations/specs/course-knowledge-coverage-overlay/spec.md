@@ -8,7 +8,7 @@ The system MUST NOT require every member of an ActKG Release to receive an ACT c
 - **THEN** Engineering Authority MAY still activate after integrity validation
 - **AND** the ACT relation projection SHALL report `NOT_PROJECTED` rather than treating missing governance as complete or as an Engineering block
 
-#### Scenario: Baseline has an unaccounted active-domain object
+#### Scenario: Baseline has an unaccounted object
 - **WHEN** a Canonical Object in the sealed active-domain selection lacks any of its three family dispositions
 - **THEN** the relation governance receipt SHALL remain incomplete and containment gaps SHALL block a new formal relation projection
 - **AND** unrelated upstream Engineering objects outside the course scope SHALL not create the failure
@@ -18,7 +18,12 @@ The system MUST NOT require every member of an ActKG Release to receive an ACT c
 - **THEN** the object SHALL remain outside that course's teaching-relation denominator
 - **AND** it SHALL not enter an ACT relation review denominator or teaching activation gate
 
-#### Scenario: Active-domain member has no resource binding
+#### Scenario: Required ACT resource has no binding
+- **WHEN** an in-scope resource is marked `REQUIRED` but has no valid Canonical binding
+- **THEN** the affected resource-binding Teaching Projection SHALL fail closed
+- **AND** the ActKG Authority and object-to-object relation governance SHALL remain independently evaluable
+
+#### Scenario: Active-domain member has no resource
 - **WHEN** an in-scope Canonical Object has no learning resource
 - **THEN** it SHALL still receive containment, prerequisite, and association dispositions
 - **AND** resource absence SHALL not be interpreted as an upstream object exclusion or a no-relation decision
@@ -31,7 +36,7 @@ The system MUST NOT require every member of an ActKG Release to receive an ACT c
 ### Requirement: Coverage updates follow ReleaseSet Delta
 After Authority changes, ACT SHALL recompute impact against the exact target course active-domain member set and current relation decisions. Unaffected members and decisions MAY be carried forward deterministically only when their Canonical semantic identity, scope membership, evidence, and governing inputs remain compatible. A new object SHALL create three-family governance work only when it enters the target active-domain scope; unrelated new Engineering objects SHALL not create course work.
 
-#### Scenario: Compatible Release adds an active-domain object
+#### Scenario: Compatible Release adds objects
 - **WHEN** an accepted Delta adds a Canonical Object to the target course active-domain member set
 - **THEN** ACT SHALL create containment, prerequisite, and association dispositions for that object
 - **AND** the new relation projection SHALL fail if its containment disposition is not closed

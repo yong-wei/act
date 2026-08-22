@@ -7,7 +7,7 @@ The system MUST build the Teaching Projection from ACT authoring and governance 
 - **WHEN** identical authoring, Authority identity, active-domain scope, decisions, qualification receipts, source hashes, and builder version are processed twice
 - **THEN** all projection artifacts, governance receipt, review-pack binding, and `projectionHash` SHALL be byte-identical
 
-#### Scenario: Authoring or runtime identity drifts
+#### Scenario: Authoring/runtime identity drifts
 - **WHEN** a runtime artifact, scope, decision set, qualification receipt, or review-pack hash does not match its manifest source or projection hash
 - **THEN** the projection SHALL be rejected before activation
 
@@ -45,7 +45,7 @@ The activation manifest MUST map each consumer to an explicit Authority release 
 - **THEN** the Engineering Graph/RAG combination MAY become ready
 - **AND** teaching consumers SHALL remain `NOT_PROJECTED` or pinned to their prior exact matching combination
 
-#### Scenario: Empty projection is built for an empty scope
+#### Scenario: Empty projection is built
 - **WHEN** ACT has a sealed empty or Engineering-only scope with no selected teaching-relation members
 - **THEN** an empty Projection SHALL be legal and receive a deterministic manifest/hash
 - **AND** it SHALL NOT satisfy a non-empty course active-domain selection
@@ -62,7 +62,7 @@ The Teaching Projection builder MUST accept immutable reviewed domain fragments 
 - **WHEN** the same ordered fragments, Authority identity, scope hash, governance inputs and builder version are composed twice
 - **THEN** the composed manifest and projection hash SHALL be byte-identical
 
-#### Scenario: One domain scope is actually empty
+#### Scenario: One domain remains empty
 - **WHEN** a valid fragment declares an empty member denominator for a domain
 - **THEN** composition MAY publish with explicit empty scope
 - **AND** the empty domain SHALL NOT make unrelated fragments review-required
