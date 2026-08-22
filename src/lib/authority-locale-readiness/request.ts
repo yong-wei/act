@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 
 import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import {
+  readCurrentShardPointer,
+  resolveAuthorityDomainShardPaths,
+} from '@/lib/authority-domain-shards/store';
 
 import {
   HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
@@ -47,15 +51,40 @@ function historicalQualification(): ActiveLocaleQualification {
   };
 }
 
-const qualificationBySnapshotHash = new Map<string, ActiveLocaleQualification>();
+const qualificationByEvidence = new Map<string, ActiveLocaleQualification>();
+
+function localeEvidenceFingerprint(
+  repoRoot: string,
+  snapshotHash: string,
+  releaseId: string,
+  catalogHash: string,
+): string {
+  const pointer = readCurrentShardPointer(resolveAuthorityDomainShardPaths(repoRoot));
+  const manifest = readPublishedLocaleManifest(repoRoot);
+  return [
+    snapshotHash,
+    releaseId,
+    catalogHash,
+    pointer.shardSetHash,
+    pointer.shardSetId,
+    manifest?.identity.compositeReleaseName ?? 'missing',
+    manifest?.contentDigest ?? 'missing',
+    manifest?.denominatorDigest ?? 'missing',
+  ].join(':');
+}
 
 export function resolveActiveLocaleQualification(
   repoRoot = process.cwd(),
 ): ActiveLocaleQualification {
   try {
     const active = resolveActiveShardIdentity({ repoRoot });
-    const cacheKey = `${active.envelope.authority.snapshotHash}:${active.envelope.authority.releaseId}`;
-    const cached = qualificationBySnapshotHash.get(cacheKey);
+    const cacheKey = localeEvidenceFingerprint(
+      repoRoot,
+      active.envelope.authority.snapshotHash,
+      active.envelope.authority.releaseId,
+      active.envelope.catalog.catalogHash,
+    );
+    const cached = qualificationByEvidence.get(cacheKey);
     if (cached) return cached;
     const match = loadCompositeEnvelopeRegistry(repoRoot).find((row) => (
       row.authorityReleaseId === active.envelope.authority.releaseId
@@ -64,7 +93,7 @@ export function resolveActiveLocaleQualification(
     ));
     if (!match) {
       const historical = historicalQualification();
-      qualificationBySnapshotHash.set(cacheKey, historical);
+      qualificationByEvidence.set(cacheKey, historical);
       return historical;
     }
     const envelope: AdmittedEnvelopeIdentity = {
@@ -76,7 +105,7 @@ export function resolveActiveLocaleQualification(
     const manifest = readPublishedLocaleManifest(repoRoot);
     if (!manifest || manifest.identity.compositeReleaseName !== match.name) {
       const historical = historicalQualification();
-      qualificationBySnapshotHash.set(cacheKey, historical);
+      qualificationByEvidence.set(cacheKey, historical);
       return historical;
     }
     const expectedDenominators = expectedDenominatorsFromInventory(
@@ -91,7 +120,7 @@ export function resolveActiveLocaleQualification(
         expectedDenominators,
         qualification,
       };
-      qualificationBySnapshotHash.set(cacheKey, result);
+      qualificationByEvidence.set(cacheKey, result);
       return result;
     }
     const ready: ActiveLocaleQualification = {
@@ -107,7 +136,7 @@ export function resolveActiveLocaleQualification(
       expectedDenominators,
       qualification,
     };
-    qualificationBySnapshotHash.set(cacheKey, ready);
+    qualificationByEvidence.set(cacheKey, ready);
     return ready;
   } catch {
     return historicalQualification();

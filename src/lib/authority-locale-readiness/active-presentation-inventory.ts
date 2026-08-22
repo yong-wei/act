@@ -54,15 +54,16 @@ function collectRelations(
   }
 }
 
-const inventoryBySnapshotHash = new Map<string, LocalePresentationInventory>();
+const inventoryByEvidence = new Map<string, LocalePresentationInventory>();
 
 export function loadActivePresentationInventory(
   repoRoot = process.cwd(),
   identity?: ActiveShardIdentity,
 ): LocalePresentationInventory {
   const active = identity ?? resolveActiveShardIdentity({ repoRoot });
-  const cacheKey = active.envelope.authority.snapshotHash;
-  const cached = inventoryBySnapshotHash.get(cacheKey);
+  const context = loadActiveShardContext({ repoRoot, identity: active });
+  const cacheKey = `${active.envelope.authority.snapshotHash}:${context.manifest.shardSetHash}`;
+  const cached = inventoryByEvidence.get(cacheKey);
   if (cached) return cached;
   const domains = uniqueSorted(active.catalog.domains.map((domain) => domain.visualRole));
   const objectNames = new Set<string>();
@@ -85,7 +86,6 @@ export function loadActivePresentationInventory(
     }
   }
 
-  const context = loadActiveShardContext({ repoRoot, identity: active });
   const pending = [...objectNames];
   const visitedNeighborhoods = new Set<string>();
   while (pending.length > 0) {
@@ -128,7 +128,7 @@ export function loadActivePresentationInventory(
     aliasIds: uniqueSorted(aliasIds),
     sourceIds: uniqueSorted(collectSourceIds(context, objectIds)),
   };
-  inventoryBySnapshotHash.set(cacheKey, inventory);
+  inventoryByEvidence.set(cacheKey, inventory);
   return inventory;
 }
 
