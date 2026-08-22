@@ -17,7 +17,11 @@ import {
   resolveActiveShardIdentity,
   type ActiveShardIdentity,
 } from '@/lib/authority-domain-shards/identity';
-import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
+import type {
+  AuthorityNodeDetailShard,
+  AuthorityNodeNeighborhoodShard,
+} from '@/lib/authority-domain-shards/contracts';
+import { AuthorityShardStoreError, shardRelativePaths } from '@/lib/authority-domain-shards/store';
 
 import type { LocalePresentationInventory } from './presentation-denominator';
 import { sourcePresentationRecordId } from './presentation-denominator';
@@ -67,36 +71,57 @@ export function loadActivePresentationInventory(
     collectObjects(shard.objects, objectNames, types, aliasIds);
     collectRelations(shard.teachingRelations, predicates, directions);
     for (const family of ENGINEERING_RELATION_FAMILIES) {
-      try {
-        const familyShard = loadRelationFamilyShard(domain.domainId, family, {
-          repoRoot,
-          identity: active,
-        });
-        collectObjects(familyShard.objects, objectNames, types, aliasIds);
-        collectRelations(familyShard.relations, predicates, directions);
-      } catch {
-        // A missing optional family does not remove the remaining presentation set.
-      }
+      const familyShard = loadRelationFamilyShard(domain.domainId, family, {
+        repoRoot,
+        identity: active,
+      });
+      collectObjects(familyShard.objects, objectNames, types, aliasIds);
+      collectRelations(familyShard.relations, predicates, directions);
     }
   }
 
+  const context = loadActiveShardContext({ repoRoot, identity: active });
+  for (const objectId of [...objectNames].sort()) {
+    const neighborhoodRelative = shardRelativePaths({ canonicalId: objectId }).neighborhood;
+    if (!neighborhoodRelative || !context.manifest.files[neighborhoodRelative]) continue;
+    const neighborhood = loadVerifiedShardRelative<AuthorityNodeNeighborhoodShard>(
+      neighborhoodRelative,
+      'node-neighborhood',
+      context,
+    );
+    collectObjects(neighborhood.objects, objectNames, types, aliasIds);
+    collectRelations(neighborhood.relations, predicates, directions);
+  }
+
+  const objectIds = uniqueSorted(objectNames);
   return {
     domains,
-    objectNames: uniqueSorted(objectNames),
-    objectExplanations: uniqueSorted(objectNames),
+    objectNames: objectIds,
+    objectExplanations: objectIds,
     types: uniqueSorted(types),
     relations: uniqueSorted(predicates),
     directions: uniqueSorted(directions),
     aliasIds: uniqueSorted(aliasIds),
-    sourceIds: uniqueSorted(collectSourceIds(repoRoot, active)),
+    sourceIds: uniqueSorted(collectSourceIds(context, objectIds)),
   };
 }
 
-function collectSourceIds(repoRoot: string, identity: ActiveShardIdentity): string[] {
-  const context = loadActiveShardContext({ repoRoot, identity });
+function collectSourceIds(
+  context: ReturnType<typeof loadActiveShardContext>,
+  objectIds: readonly string[],
+): string[] {
   const sourceIds = new Set<string>();
-  for (const relative of Object.keys(context.manifest.files).sort()) {
-    if (!relative.startsWith('details/')) continue;
+  for (const objectId of objectIds) {
+    const relative = shardRelativePaths({ canonicalId: objectId }).detail;
+    if (!relative) {
+      throw new AuthorityShardStoreError('shard-absent', `detail path missing for ${objectId}`);
+    }
+    if (!context.manifest.files[relative]) {
+      throw new AuthorityShardStoreError(
+        'shard-absent',
+        `expected detail ${relative} is not in the sealed shard set`,
+      );
+    }
     const shard = loadVerifiedShardRelative<AuthorityNodeDetailShard>(relative, 'node-detail', context);
     for (const source of shard.node.sources) {
       const recordId = sourcePresentationRecordId(source);

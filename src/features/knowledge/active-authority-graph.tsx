@@ -333,29 +333,36 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     requestControllers.add(controller);
     fetchAuthorityShard(shardUrl('/api/knowledge/shards/active', locale), 'root', controller.signal)
       .then(async (shard) => {
-        if (!applyShard(shard, generation, domainRevision) || controller.signal.aborted) return;
+        const applyRequired = (next: IncomingAuthorityShard): boolean => (
+          applyShard(next, generation, domainRevision) && !controller.signal.aborted
+        );
+        if (!applyRequired(shard)) return;
         if (visualRole) {
-          await fetchDomainDefault(visualRole, generation, domainRevision);
+          const domainOk = await fetchDomainDefault(visualRole, generation, domainRevision);
+          if (!domainOk || controller.signal.aborted) return;
         }
         for (const family of families) {
           if (!visualRole) break;
-          await fetchAuthorityShard(
+          const familyShard = await fetchAuthorityShard(
             shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
             'relation-family',
             controller.signal,
-          ).then((familyShard) => applyShard(familyShard, generation, domainRevision));
+          );
+          if (!applyRequired(familyShard)) return;
         }
         if (selectedId) {
-          await fetchAuthorityShard(
+          const neighborhood = await fetchAuthorityShard(
             shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(selectedId)}`, locale),
             'node-neighborhood',
             controller.signal,
-          ).then((neighborhood) => applyShard(neighborhood, generation, domainRevision)).catch(() => undefined);
-          await fetchAuthorityShard(
+          );
+          if (!applyRequired(neighborhood)) return;
+          const detail = await fetchAuthorityShard(
             shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(selectedId)}`, locale),
             'node-detail',
             controller.signal,
-          ).then((detail) => applyShard(detail, generation, domainRevision)).catch(() => undefined);
+          );
+          if (!applyRequired(detail)) return;
         }
         if (generation === requestGenerationRef.current) {
           updateWorkspace(completeAuthorityLocaleRefresh);
