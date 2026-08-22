@@ -61,6 +61,12 @@ export interface AuthorityShardWorkspaceState {
   boundaryRefsByCanonicalId: Record<string, AuthorityShardBoundaryRef>;
   /** Monotonic domain epoch used to reject responses started before reset. */
   domainRevision: number;
+  /**
+   * True after a root shard commits a new locale profile while object
+   * display caches still hold the previous locale. The next object-bearing
+   * shard may replace labels.
+   */
+  localeRefreshPending: boolean;
 }
 
 export type IncomingAuthorityShard =
@@ -91,6 +97,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     detailsByCanonicalId: {},
     boundaryRefsByCanonicalId: {},
     domainRevision: 0,
+    localeRefreshPending: false,
   };
 }
 
@@ -156,7 +163,8 @@ export function validateIncomingShard(
   if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
     return 'reject';
   }
-  const localeChanged = !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope);
+  const localeChanged = !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope)
+    || current.localeRefreshPending;
   const incomingObjects = shard.shardClass === 'domain-default'
     || shard.shardClass === 'relation-family'
     || shard.shardClass === 'node-neighborhood'
@@ -212,6 +220,7 @@ function mergeObject(
       label: incoming.label,
       aliases: incoming.aliases ?? [],
       description: incoming.description,
+      typeLabel: incoming.typeLabel ?? null,
       memberships,
     };
   }
@@ -241,7 +250,10 @@ export function mergeAuthorityShard(
   }
 
   const localeChanged = Boolean(
-    current.envelope && !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope),
+    current.envelope && (
+      !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope)
+      || current.localeRefreshPending
+    ),
   );
   const envelope = decision === 'establish' || localeChanged ? shard.envelope : current.envelope;
   if (!envelope) return current;
@@ -270,6 +282,7 @@ export function mergeAuthorityShard(
       loadedShardKeys,
       loadedDisplayKeys,
       localeCapability: capability ?? current.localeCapability,
+      localeRefreshPending: localeChanged || current.localeRefreshPending,
     };
   }
 
@@ -298,6 +311,7 @@ export function mergeAuthorityShard(
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
+      localeRefreshPending: false,
     };
   }
 
@@ -326,6 +340,7 @@ export function mergeAuthorityShard(
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
+      localeRefreshPending: false,
     };
   }
 
@@ -339,6 +354,7 @@ export function mergeAuthorityShard(
     selectedCanonicalId: current.selectedCanonicalId,
     inspectorOpen: current.inspectorOpen,
     positionsByCanonicalId: current.positionsByCanonicalId,
+    localeRefreshPending: false,
   };
 }
 

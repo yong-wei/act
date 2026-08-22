@@ -27,6 +27,15 @@ function uniqueSorted(ids: Iterable<string>): string[] {
   return [...new Set([...ids].filter((id) => id.length > 0))].sort();
 }
 
+export function sourcePresentationRecordId(source: {
+  sourceEditionId: string;
+  sectionId: string;
+}): string {
+  return source.sectionId
+    ? `${source.sourceEditionId}::${source.sectionId}`
+    : source.sourceEditionId;
+}
+
 export function expectedDenominatorsFromInventory(
   inventory: LocalePresentationInventory,
 ): LocaleCategoryDenominator[] {

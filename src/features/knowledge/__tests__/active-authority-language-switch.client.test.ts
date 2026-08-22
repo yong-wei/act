@@ -183,6 +183,81 @@ describe('active authority language switch', () => {
     expect(switched.envelope?.authorityCatalogVersion).toBe(shardEnvelope.authorityCatalogVersion);
   });
 
+  it('keeps English domain objects after the root shard commits the new locale first', () => {
+    const established = mergeAuthorityShard(createEmptyAuthorityShardWorkspace(), rootShard);
+    const withDomain = mergeAuthorityShard(established, {
+      shardClass: 'domain-default',
+      envelope: shardEnvelope,
+      visualRole: 'modeling',
+      domainId: 'system-modeling',
+      objects: [{
+        id: 'node-concept',
+        canonicalType: 'DomainConcept',
+        label: '传递函数',
+        aliases: [],
+        description: '中文说明',
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        semanticSupport: { supported: true, readOnly: true },
+        memberships: [{ domainId: 'system-modeling', visualRole: 'modeling', preferred: true }],
+      }],
+      teachingRelations: [],
+      teachingCoverage: {
+        status: 'available',
+        domainId: 'system-modeling',
+        relationCount: 0,
+        coreNodeCount: 0,
+        uncoveredCoreNodeCount: 0,
+        note: '教学关系可用',
+      },
+    } as PublicAuthorityDomainDefaultShard);
+    const englishEnvelope = {
+      ...shardEnvelope,
+      localeProfileVersion: 'alp-test-complete-en',
+    };
+    const englishRoot = {
+      ...rootShard,
+      envelope: englishEnvelope,
+      localeCapability: {
+        availableLocales: ['zh-CN', 'en'] as const,
+        bilingualReady: true,
+        englishUnavailableReason: null,
+        mode: 'complete-locale' as const,
+        languageComponentDigest: 'a'.repeat(64),
+      },
+    };
+    const afterRoot = mergeAuthorityShard(withDomain, englishRoot);
+    expect(afterRoot.localeRefreshPending).toBe(true);
+    expect(afterRoot.envelope?.localeProfileVersion).toBe('alp-test-complete-en');
+    const afterDomain = mergeAuthorityShard(afterRoot, {
+      shardClass: 'domain-default',
+      envelope: englishEnvelope,
+      visualRole: 'modeling',
+      domainId: 'system-modeling',
+      objects: [{
+        id: 'node-concept',
+        canonicalType: 'DomainConcept',
+        label: 'Transfer function',
+        aliases: ['TF'],
+        description: 'English explanation',
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        semanticSupport: { supported: true, readOnly: true },
+        memberships: [{ domainId: 'system-modeling', visualRole: 'modeling', preferred: true }],
+      }],
+      teachingRelations: [],
+      teachingCoverage: {
+        status: 'available',
+        domainId: 'system-modeling',
+        relationCount: 0,
+        coreNodeCount: 0,
+        uncoveredCoreNodeCount: 0,
+        note: 'Teaching relations available',
+      },
+    } as PublicAuthorityDomainDefaultShard);
+    expect(afterDomain.rejectedShardKeys).toEqual([]);
+    expect(afterDomain.localeRefreshPending).toBe(false);
+    expect(afterDomain.objectsByCanonicalId['node-concept']?.label).toBe('Transfer function');
+  });
+
   it('scans registered interface keys for one locale without raw identifiers', () => {
     const bilingual = createGraphLanguageState({
       availableLocales: ['zh-CN', 'en'],

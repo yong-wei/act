@@ -170,6 +170,7 @@ export interface AuthorityShardBoundaryRef {
   aliases?: readonly string[];
   canonicalType: string;
   adjacentDomainIds: readonly RegisteredPeerDomainId[];
+  typeLabel?: string | null;
 }
 
 export interface AuthorityShardTeachingCoverage {

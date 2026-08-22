@@ -7,7 +7,10 @@ import {
   type AuthorityShardObject,
   type AuthorityShardRelation,
 } from '@/lib/authority-domain-shards/contracts';
+import { join } from 'node:path';
+
 import {
+  loadActiveShardContext,
   loadDomainDefaultShard,
   loadRelationFamilyShard,
 } from '@/lib/authority-domain-shards/loader';
@@ -15,8 +18,11 @@ import {
   resolveActiveShardIdentity,
   type ActiveShardIdentity,
 } from '@/lib/authority-domain-shards/identity';
+import { readJsonViaIo } from '@/lib/authority-domain-shards/store';
+import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
 
 import type { LocalePresentationInventory } from './presentation-denominator';
+import { sourcePresentationRecordId } from './presentation-denominator';
 
 function uniqueSorted(ids: Iterable<string>): string[] {
   return [...new Set([...ids].filter((id) => id.length > 0))].sort();
@@ -84,6 +90,28 @@ export function loadActivePresentationInventory(
     relations: uniqueSorted(predicates),
     directions: uniqueSorted(directions),
     aliasIds: uniqueSorted(aliasIds),
-    sourceIds: [],
+    sourceIds: uniqueSorted(collectSourceIds(repoRoot, active)),
   };
+}
+
+function collectSourceIds(repoRoot: string, identity: ActiveShardIdentity): string[] {
+  const sourceIds = new Set<string>();
+  try {
+    const context = loadActiveShardContext({ repoRoot, identity });
+    for (const relative of Object.keys(context.manifest.files)) {
+      if (!relative.startsWith('details/')) continue;
+      const shard = readJsonViaIo<AuthorityNodeDetailShard>(
+        context.io,
+        join(context.setDir, relative),
+      );
+      for (const source of shard.node?.sources ?? []) {
+        const recordId = sourcePresentationRecordId(source);
+        if (recordId) sourceIds.add(recordId);
+      }
+    }
+  } catch {
+    // Missing detail artifacts fail closed to an empty source set; qualification
+    // then rejects a manifest that still declares readable-sources.
+  }
+  return [...sourceIds];
 }

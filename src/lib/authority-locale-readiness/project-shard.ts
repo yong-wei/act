@@ -5,6 +5,7 @@ import type {
   AuthorityNodeNeighborhoodShard,
   AuthorityRelationFamilyShard,
   AuthorityRootShard,
+  AuthorityShardBoundaryRef,
   AuthorityShardObject,
   AuthorityShardRelation,
 } from '@/lib/authority-domain-shards/contracts';
@@ -113,6 +114,35 @@ function mapObject(
   };
 }
 
+function mapBoundary(
+  boundary: AuthorityShardBoundaryRef,
+  manifest: AuthorityLocaleManifest,
+  receipt: LocaleQualificationReceipt,
+  locale: AdmittedLocale,
+): AuthorityShardBoundaryRef {
+  const name = firstLocaleValue(manifest, receipt, locale, 'object-names', [boundary.canonicalId]);
+  const aliases = firstLocaleValue(
+    manifest,
+    receipt,
+    locale,
+    'approved-aliases',
+    aliasRecordIds(boundary.canonicalId),
+  );
+  const typeLabel = firstLocaleValue(
+    manifest,
+    receipt,
+    locale,
+    'types',
+    typeRecordIds(boundary.canonicalType),
+  );
+  return {
+    ...boundary,
+    label: name ?? boundary.label,
+    aliases: aliases ? Object.freeze([aliases]) : boundary.aliases,
+    typeLabel: typeLabel ?? boundary.typeLabel ?? null,
+  };
+}
+
 function mapRelation(
   relation: AuthorityShardRelation,
   manifest: AuthorityLocaleManifest,
@@ -184,6 +214,7 @@ export function applyLocaleToLearnerShard<T extends AuthorityLearnerShard>(
       ...next,
       objects: next.objects.map((object) => mapObject(object, manifest, receipt, locale)),
       relations: next.relations.map((relation) => mapRelation(relation, manifest, receipt, locale)),
+      boundaries: next.boundaries.map((boundary) => mapBoundary(boundary, manifest, receipt, locale)),
     } as unknown as T;
   }
   const detail = shard as AuthorityNodeDetailShard;

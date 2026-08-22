@@ -133,6 +133,23 @@ describe('complete-locale qualification', () => {
     expect(receipt.failures.map((row) => row.code)).toContain('changed-denominator');
   });
 
+  it('rejects a complete manifest that drops readable-sources against the independent inventory', () => {
+    const honest = completeZhCnLocaleFixture();
+    const expected = expectedDenominatorsFromInventory(v022IndependentPresentationInventory());
+    const droppedSources = honest.denominators.map((row) => (
+      row.category === 'readable-sources'
+        ? { ...row, recordIds: [] as string[], digest: denominatorDigestFor([{ ...row, recordIds: [] }]) }
+        : row
+    ));
+    const receipt = qualifyLocaleManifest({
+      ...honest,
+      denominators: droppedSources,
+      denominatorDigest: denominatorDigestFor(droppedSources),
+    }, V022_ENVELOPE_IDENTITY, 'zh-CN', expected);
+    expect(receipt.status).toBe('failed');
+    expect(receipt.failures.map((row) => row.code)).toContain('changed-denominator');
+  });
+
   it('rejects a complete manifest whose declared IDs differ from the independent inventory', () => {
     const expected = expectedDenominatorsFromInventory(v022IndependentPresentationInventory());
     const receipt = qualifyLocaleManifest(
@@ -366,11 +383,18 @@ describe('complete-locale resolver and cache', () => {
         layer: 'ENGINEERING',
         relationFamily: 'application-and-analysis',
       }],
-      boundaries: [],
+      boundaries: [{
+        canonicalId: 'object:transfer-function',
+        label: '传递函数',
+        canonicalType: 'DomainConcept',
+        adjacentDomainIds: ['time-domain-analysis'],
+      }],
     } as AuthorityRelationFamilyShard, 'en', manifest, receipt);
     expect(family.objects[0]?.typeLabel).toBe('Domain concept');
     expect(family.relations[0]?.predicateLabel).toBe('Applies to');
     expect(family.relations[0]?.directionLabel).toBe('From the former to the latter');
+    expect(family.boundaries[0]?.label).toBe('Transfer function');
+    expect(family.boundaries[0]?.typeLabel).toBe('Domain concept');
 
     const detail = applyLocaleToLearnerShard({
       shardClass: 'node-detail',
