@@ -77,7 +77,7 @@ jobs:
           cat > Dockerfile.wolfram-negative <<'EOF'
           FROM node:20-alpine
           WORKDIR /app
-          COPY docker-entrypoint.sh ./docker-entrypoint.sh
+          COPY --chmod=755 docker-entrypoint.sh ./docker-entrypoint.sh
           COPY scripts/math-calc/check-wolfram-ready.sh ./scripts/math-calc/check-wolfram-ready.sh
           ENTRYPOINT ["./docker-entrypoint.sh"]
           EOF

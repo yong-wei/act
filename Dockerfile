@@ -109,11 +109,11 @@ RUN set -eu; \
   elif [ -d /opt/Wolfram ]; then WOLFRAM_ROOT=/opt/Wolfram; \
   else echo "Wolfram Engine not found in official wolframresearch/wolframengine image" >&2; exit 1; \
   fi; \
-  mkdir -p /wolfram-runtime /wolframscript-bin; \
-  cp -a "$WOLFRAM_ROOT/." /wolfram-runtime/; \
+  mkdir -p /tmp/wolfram-runtime /tmp/wolframscript-bin; \
+  cp -a "$WOLFRAM_ROOT/." /tmp/wolfram-runtime/; \
   if command -v wolframscript >/dev/null 2>&1; then \
     WOLFRAMSCRIPT_DIR="$(dirname "$(readlink -f "$(command -v wolframscript)")")"; \
-    cp -a "$WOLFRAMSCRIPT_DIR/." /wolframscript-bin/; \
+    cp -a "$WOLFRAMSCRIPT_DIR/." /tmp/wolframscript-bin/; \
   fi
 
 # Runner stage
@@ -152,8 +152,8 @@ RUN mkdir -p /home/nextjs && chown nextjs:nodejs /home/nextjs && usermod -d /hom
 
 # Wolfram Engine 可执行运行时来自官方镜像；激活凭据只允许由运行环境 secret
 # 提供，绝不写入镜像或仓库。
-COPY --from=wolfram-provider /wolfram-runtime /usr/local/Wolfram
-COPY --from=wolfram-provider /wolframscript-bin/. /opt/wolframscript-bin/
+COPY --from=wolfram-provider /tmp/wolfram-runtime /usr/local/Wolfram
+COPY --from=wolfram-provider /tmp/wolframscript-bin/. /opt/wolframscript-bin/
 RUN find /usr/local/Wolfram -type f -name wolfram -exec ln -sf {} /usr/local/bin/wolfram \; ; \
   find /usr/local/Wolfram -type f -name wolframscript -exec ln -sf {} /usr/local/bin/wolframscript \; ; \
   if [ -x /opt/wolframscript-bin/wolframscript ]; then ln -sf /opt/wolframscript-bin/wolframscript /usr/local/bin/wolframscript; fi ; \
