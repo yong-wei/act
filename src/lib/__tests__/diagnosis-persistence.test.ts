@@ -139,7 +139,6 @@ describe('diagnosis report persistence', () => {
           findings: [
             expect.objectContaining({
               knowledgeNodeId: 'node-1',
-              prepLink: '/teacher/preparation?knowledgeNodeId=node-1&classId=class-1',
             }),
           ],
         }),
@@ -159,6 +158,10 @@ describe('diagnosis report persistence', () => {
         generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
       }),
     });
+    const createCall = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { reportBody: { findings: Array<Record<string, unknown>> } };
+    };
+    expect(createCall.data.reportBody.findings[0]).not.toHaveProperty('prepLink');
   });
 
   it('binds generation governance audit metadata to the formal report', async () => {
@@ -452,7 +455,7 @@ describe('diagnosis report persistence', () => {
 
   it('reads only the requested class-level reports with a bounded limit', async () => {
     const db = createDb();
-    await readDiagnosisReports({
+    const reports = await readDiagnosisReports({
       teacherId: 'teacher-1',
       classId: 'class-1',
       limit: 500,
@@ -465,5 +468,7 @@ describe('diagnosis report persistence', () => {
       },
       take: 100,
     }));
+    expect(reports[0]?.reportBody.findings[0]).toMatchObject({ knowledgeNodeId: 'node-1' });
+    expect(reports[0]?.reportBody.findings[0]).not.toHaveProperty('prepLink');
   });
 });

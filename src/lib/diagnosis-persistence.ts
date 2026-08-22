@@ -2,7 +2,6 @@ import { type Prisma } from '@prisma/client';
 
 import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
 import { prisma } from '@/lib/prisma';
-import { buildDiagnosisPrepLink } from '@/lib/diagnosis-prep-link';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 import { z } from 'zod';
 
@@ -35,9 +34,7 @@ const diagnosisFindingSchema = z.object({
 }).strict();
 
 export type DiagnosisReportFindingInput = z.output<typeof diagnosisFindingSchema>;
-export type DiagnosisReportFinding = DiagnosisReportFindingInput & {
-  prepLink?: string;
-};
+export type DiagnosisReportFinding = DiagnosisReportFindingInput;
 
 const diagnosisOutcomeCoverageSchema = z.object({
   availability: z.literal('available'),
@@ -68,6 +65,26 @@ export const diagnosisReportBodySchema = z.object({
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
 }).strict();
+
+/**
+ * Older reports incorrectly persisted the UI-only preparation link in each
+ * finding. Accept that one legacy field when reading reports, but keep the
+ * canonical stored report body strict for every other field.
+ */
+export function parseStoredDiagnosisReportBody(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return diagnosisReportBodySchema.safeParse(value);
+  }
+  const body = value as Record<string, unknown>;
+  const findings = Array.isArray(body.findings)
+    ? body.findings.map((finding) => {
+        if (!finding || typeof finding !== 'object' || Array.isArray(finding)) return finding;
+        const { prepLink: _prepLink, ...canonicalFinding } = finding as Record<string, unknown>;
+        return canonicalFinding;
+      })
+    : body.findings;
+  return diagnosisReportBodySchema.safeParse({ ...body, findings });
+}
 
 export type DiagnosisReportBody = Omit<z.output<typeof diagnosisReportBodySchema>, 'findings'> & {
   findings: DiagnosisReportFinding[];
@@ -492,7 +509,6 @@ export async function persistDiagnosisReport(
         ? {
             ...finding,
             knowledgeNodeId,
-            prepLink: buildDiagnosisPrepLink(knowledgeNodeId, params.classId),
           }
         : finding;
     }),
@@ -538,7 +554,7 @@ export async function readDiagnosisReports(
     targetStudentId: params.targetStudentId,
   });
   const limit = Math.min(Math.max(params.limit ?? 20, 1), 100);
-  return db.diagnosisReport.findMany({
+  const reports = await db.diagnosisReport.findMany({
     where: {
       classId: params.classId,
       ...(params.targetStudentId
@@ -564,5 +580,10 @@ export async function readDiagnosisReports(
       inputSummary: true,
       generatedAt: true,
     },
+  });
+  return reports.map((report) => {
+    const parsed = parseStoredDiagnosisReportBody(report.reportBody);
+    if (!parsed.success) throw parsed.error;
+    return { ...report, reportBody: parsed.data };
   });
 }

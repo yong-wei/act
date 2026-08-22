@@ -59,6 +59,25 @@ describe('diagnosis report delivery projection', () => {
     expect(JSON.stringify(projection)).not.toContain('progress-secret');
   });
 
+  it('accepts a legacy persisted preparation link without projecting it', () => {
+    const projection = projectTeacherDiagnosisReport({
+      ...report,
+      reportBody: {
+        ...report.reportBody,
+        findings: [{
+          ...report.reportBody.findings[0],
+          prepLink: '/teacher/preparation?knowledgeNodeId=node-margin&classId=class-1',
+        }],
+      },
+    });
+
+    expect(projection.findings[0]).toMatchObject({
+      title: '稳定裕度判断薄弱',
+      hasPreparationEntry: true,
+    });
+    expect(JSON.stringify(projection)).not.toContain('knowledgeNodeId=node-margin');
+  });
+
   it('removes teacher-only and peer fields from the student-safe projection', () => {
     const projection = projectStudentSafeDiagnosisReport(report);
     const serialized = JSON.stringify(projection);

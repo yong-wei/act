@@ -247,6 +247,131 @@ describe('teacher diagnosis generation contracts', () => {
     expect(JSON.stringify(governedToolResults)).not.toContain('student-actual-2');
   });
 
+  it('bounds a large class provider projection while retaining complete governed coverage', async () => {
+    const studentIds = Array.from({ length: 100 }, (_value, index) => `student-${index}`);
+    const providerInput = {
+      schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+      classId: 'class-1',
+      studentIds,
+      assignmentSubmissions: studentIds.map((userId, index) => ({
+        id: `assignment-submission-${index}`,
+        userId,
+        assignmentRevisionId: 'assignment-revision-1',
+        contentHash: 'assignment-content-sha256',
+        score: index,
+        totalPoints: 100,
+        reviewedAt: now.toISOString(),
+      })),
+      assessmentSessions: studentIds.map((userId, index) => ({
+        id: `assessment-session-${index}`,
+        userId,
+        assessmentId: 'assessment-1',
+        contentDigest: 'assessment-content-sha256',
+        itemCount: 10,
+        correctCount: index % 10,
+        score: index,
+        completedAt: now.toISOString(),
+      })),
+      riskFlags: studentIds.slice(0, 25).map((userId, index) => ({
+        id: `risk-${index}`,
+        userId,
+        type: index % 2 === 0 ? 'stagnation' : 'constraint',
+        severity: index % 3 === 0 ? 'high' : 'medium',
+        description: 'Synthetic governed risk summary.',
+        evidenceSummary: { factCount: index + 1 },
+        triggeredAt: now.toISOString(),
+        observedAt: now.toISOString(),
+      })),
+      competencySnapshots: studentIds.map((userId, index) => ({
+        id: `snapshot-${index}`,
+        userId,
+        snapshotAt: now.toISOString(),
+        competencyVector: { modeling: 60 + (index % 30), analysis: 55 + (index % 35) },
+        calculationVersion: 'test-v1',
+      })),
+      knowledgeProgress: studentIds.flatMap((userId, studentIndex) => (
+        Array.from({ length: 7 }, (_value, nodeIndex) => ({
+          id: `progress-${studentIndex}-${nodeIndex}`,
+          userId,
+          nodeId: `node-${nodeIndex}`,
+          status: nodeIndex % 2 === 0 ? 'MASTERED' : 'IN_PROGRESS',
+          progress: 40 + ((studentIndex + nodeIndex) % 60),
+          timeSpent: 120 + studentIndex,
+          lastVisited: now.toISOString(),
+        }))
+      )),
+    };
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '班级证据覆盖完整，建议优先处理低分群体。',
+        findings: [],
+        evidenceRefs: ['assignment-submission:assignment-submission-0'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 100 },
+        confidence: 'high',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-bounded',
+    });
+
+    await generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-bounded-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: providerInput,
+      inputDigest: digestDiagnosisGovernedInput(providerInput),
+    });
+
+    const prompt = providerGenerate.mock.calls.at(-1)?.[0]?.prompt;
+    const governedToolResults = JSON.parse(prompt as string).governedToolResults;
+    expect(governedToolResults.assignments.assignments).toHaveLength(24);
+    expect(governedToolResults.assessments.assessments).toHaveLength(24);
+    expect(governedToolResults.riskFlags.flags).toHaveLength(24);
+    expect(governedToolResults.competency.evidenceRefs).toHaveLength(24);
+    expect(governedToolResults.knowledgeProgress.progress).toHaveLength(7);
+    expect(governedToolResults.assignments.sourceCoverage).toMatchObject({
+      includedStudents: 100,
+      evidenceCount: 100,
+    });
+    expect(governedToolResults.knowledgeProgress.sourceCoverage).toMatchObject({
+      progressRows: 700,
+      includedStudents: 100,
+    });
+    expect(governedToolResults.assignments.providerProjection).toMatchObject({
+      totalRecords: 100,
+      includedRecords: 24,
+    });
+    expect(JSON.stringify(governedToolResults)).not.toContain('student-0');
+    expect((prompt as string).length).toBeLessThan(80_000);
+
+    const providerSchema = providerGenerate.mock.calls.at(-1)?.[0]?.schema as z.ZodType;
+    const providerReport = {
+      summary: '班级证据覆盖完整，建议优先处理低分群体。',
+      findings: [],
+      evidenceRefs: ['assignment-submission:assignment-submission-0'],
+      evidenceCutoff: now.toISOString(),
+      sourceCoverage: { classMembers: 100 },
+      confidence: 'high',
+      limitations: [],
+    };
+    expect(providerSchema.safeParse(providerReport).success).toBe(true);
+    expect(providerSchema.safeParse({
+      ...providerReport,
+      summary: 'a'.repeat(1_001),
+    }).success).toBe(false);
+    expect(providerSchema.safeParse({
+      ...providerReport,
+      findings: Array.from({ length: 7 }, () => ({
+        title: '需要关注的学习表现',
+        evidenceRefs: ['assignment-submission:assignment-submission-0'],
+      })),
+    }).success).toBe(false);
+  });
+
   it('passes the immutable preflight input to the provider after mutable evidence changes', async () => {
     const { db } = workerDbFixture();
     const providerUnavailable = new Error('provider unavailable');
