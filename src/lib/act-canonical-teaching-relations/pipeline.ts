@@ -4,10 +4,23 @@ import {
   type ActTeachingScope,
 } from './contracts';
 import { MIN_AUTO_ADMIT_CONFIDENCE } from './families';
-import { ActTeachingRelationError, projectionDigest } from './hash';
+import { ActTeachingRelationError, freezeEvidenceRef, projectionDigest } from './hash';
 import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const COURSE_ROOT_PIPELINE_VERSION = 'act-explicit-containment-evidence/v1' as const;
+
+export const FROZEN_TEACHING_EVIDENCE_REGISTRY = Object.freeze([
+  freezeEvidenceRef('evidence:handout-course-root-a', 'handout 1-1 names ctc:a as the course root'),
+  freezeEvidenceRef('evidence:handout-a-contains-b', 'handout 1-2 places ctc:b under ctc:a'),
+  freezeEvidenceRef('evidence:handout-a-contains-c', 'handout 1-3 places ctc:c under ctc:a'),
+]);
+
+function sealEvidence(evidence: ContainmentEvidence): ContainmentEvidence {
+  return {
+    ...evidence,
+    records: FROZEN_TEACHING_EVIDENCE_REGISTRY,
+  };
+}
 
 export interface CourseRootEvidence {
   readonly canonicalId: string;
@@ -53,6 +66,7 @@ export function pipelineConfigDigest(
   version: string,
   evidence: ContainmentEvidence,
 ): string {
+  evidence = sealEvidence(evidence);
   return projectionDigest({
     version,
     rule: 'explicit-root-or-parent-evidence',
@@ -85,12 +99,13 @@ export function generateContainmentCandidates(
   scope: ActTeachingScope,
   evidence: ContainmentEvidence,
 ): ActTeachingCandidate[] {
-  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
+  const sealed = sealEvidence(evidence);
+  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, sealed);
   const members = new Set(scope.memberIds);
   const rows: ActTeachingCandidate[] = [];
-  for (const root of evidence.courseRoots) {
+  for (const root of sealed.courseRoots) {
     if (!members.has(root.canonicalId)) continue;
-    assertVerifiableRefs(root.evidenceRefs, evidence.records, `COURSE_ROOT ${root.canonicalId}`);
+    assertVerifiableRefs(root.evidenceRefs, sealed.records, `COURSE_ROOT ${root.canonicalId}`);
     const evidenceRefs = [...root.evidenceRefs];
     const canonicalId = root.canonicalId;
     rows.push({
@@ -119,11 +134,11 @@ export function generateContainmentCandidates(
       exceptionReasons: [],
     });
   }
-  for (const parent of evidence.parents) {
+  for (const parent of sealed.parents) {
     if (!members.has(parent.childCanonicalId) || !members.has(parent.parentCanonicalId)) {
       continue;
     }
-    assertVerifiableRefs(parent.evidenceRefs, evidence.records, `parent ${parent.childCanonicalId}`);
+    assertVerifiableRefs(parent.evidenceRefs, sealed.records, `parent ${parent.childCanonicalId}`);
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({

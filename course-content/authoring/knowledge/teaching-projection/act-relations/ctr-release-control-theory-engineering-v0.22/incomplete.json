@@ -1,7 +1,7 @@
 {
   "publicationState": "INCOMPLETE",
   "reason": "containment-incomplete",
-  "scopeHash": "2b150e1f55dbd515a2f10899d26e7006bcbb1186bb74f6fac140ae404809813f",
+  "scopeHash": "de83a516c13a46eb3fb31146247de2a886921bd7f2a82529b370d07f6d6825d1",
   "memberCount": 7300,
   "courseId": "act-control-theory",
   "authority": {
@@ -15,7 +15,7 @@
     "catalogHash": "0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
     "catalogVersion": "v0.22-candidate"
   },
-  "note": "Explicit parent/root evidence is required before a PARTIAL projection may publish. Ordinary members are not auto-declared COURSE_ROOT.",
   "pendingCount": 21900,
-  "pendingLedger": "pending.jsonl"
+  "pendingLedger": "pending.jsonl",
+  "note": "Explicit parent/root evidence is required before a PARTIAL projection may publish. Ordinary members are not auto-declared COURSE_ROOT."
 }

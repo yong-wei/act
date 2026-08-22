@@ -89,7 +89,11 @@ export function deriveActTeachingScope(input: DeriveActTeachingScopeInput): ActT
     authority: input.authority,
     catalog: catalogSelection,
     contractVersion: ACT_TEACHING_RELATION_GOVERNANCE_CONTRACT,
-    memberIds,
+    members: members.map((member) => ({
+      canonicalId: member.canonicalId,
+      domainIds: member.domainIds,
+      preferredDomainId: member.preferredDomainId,
+    })),
   });
 
   return {

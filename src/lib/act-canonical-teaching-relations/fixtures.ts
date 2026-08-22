@@ -75,7 +75,7 @@ const FIXTURE_EVIDENCE_RECORDS = [
   freezeEvidenceRef('evidence:handout-course-root-a', 'handout 1-1 names ctc:a as the course root'),
   freezeEvidenceRef('evidence:handout-a-contains-b', 'handout 1-2 places ctc:b under ctc:a'),
   freezeEvidenceRef('evidence:handout-a-contains-c', 'handout 1-3 places ctc:c under ctc:a'),
-] as const;
+];
 
 export const FIXTURE_CONTAINMENT_EVIDENCE = {
   courseRoots: [
