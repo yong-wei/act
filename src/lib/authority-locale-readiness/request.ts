@@ -47,17 +47,26 @@ function historicalQualification(): ActiveLocaleQualification {
   };
 }
 
+const qualificationBySnapshotHash = new Map<string, ActiveLocaleQualification>();
+
 export function resolveActiveLocaleQualification(
   repoRoot = process.cwd(),
 ): ActiveLocaleQualification {
   try {
     const active = resolveActiveShardIdentity({ repoRoot });
+    const cacheKey = `${active.envelope.authority.snapshotHash}:${active.envelope.authority.releaseId}`;
+    const cached = qualificationBySnapshotHash.get(cacheKey);
+    if (cached) return cached;
     const match = loadCompositeEnvelopeRegistry(repoRoot).find((row) => (
       row.authorityReleaseId === active.envelope.authority.releaseId
       && row.authoritySnapshotId === active.envelope.authority.snapshotId
       && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
     ));
-    if (!match) return historicalQualification();
+    if (!match) {
+      const historical = historicalQualification();
+      qualificationBySnapshotHash.set(cacheKey, historical);
+      return historical;
+    }
     const envelope: AdmittedEnvelopeIdentity = {
       name: match.name,
       authorityReleaseId: match.authorityReleaseId,
@@ -66,22 +75,26 @@ export function resolveActiveLocaleQualification(
     };
     const manifest = readPublishedLocaleManifest(repoRoot);
     if (!manifest || manifest.identity.compositeReleaseName !== match.name) {
-      return historicalQualification();
+      const historical = historicalQualification();
+      qualificationBySnapshotHash.set(cacheKey, historical);
+      return historical;
     }
     const expectedDenominators = expectedDenominatorsFromInventory(
       loadActivePresentationInventory(repoRoot, active),
     );
     const qualification = qualifyReleaseLocales(manifest, envelope, expectedDenominators);
     if (!qualification.bilingualReady) {
-      return {
+      const result: ActiveLocaleQualification = {
         capability: historicalLocaleCapability(),
         manifest,
         envelope,
         expectedDenominators,
         qualification,
       };
+      qualificationBySnapshotHash.set(cacheKey, result);
+      return result;
     }
-    return {
+    const ready: ActiveLocaleQualification = {
       capability: {
         availableLocales: ['zh-CN', 'en'],
         bilingualReady: true,
@@ -94,6 +107,8 @@ export function resolveActiveLocaleQualification(
       expectedDenominators,
       qualification,
     };
+    qualificationBySnapshotHash.set(cacheKey, ready);
+    return ready;
   } catch {
     return historicalQualification();
   }

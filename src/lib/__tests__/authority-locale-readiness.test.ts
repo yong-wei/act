@@ -466,6 +466,7 @@ describe('locale request gate', () => {
     expect(inventory.types.length).toBeGreaterThan(0);
     expect(inventory.relations.length).toBeGreaterThan(0);
     expect(inventory.directions.length).toBeGreaterThan(0);
+    expect(loadActivePresentationInventory()).toBe(inventory);
     const expected = expectedDenominatorsFromInventory(inventory);
     expect(expected.find((row) => row.category === 'object-names')?.recordIds).toEqual([...inventory.objectNames].sort());
   });

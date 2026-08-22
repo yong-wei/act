@@ -54,11 +54,16 @@ function collectRelations(
   }
 }
 
+const inventoryBySnapshotHash = new Map<string, LocalePresentationInventory>();
+
 export function loadActivePresentationInventory(
   repoRoot = process.cwd(),
   identity?: ActiveShardIdentity,
 ): LocalePresentationInventory {
   const active = identity ?? resolveActiveShardIdentity({ repoRoot });
+  const cacheKey = active.envelope.authority.snapshotHash;
+  const cached = inventoryBySnapshotHash.get(cacheKey);
+  if (cached) return cached;
   const domains = uniqueSorted(active.catalog.domains.map((domain) => domain.visualRole));
   const objectNames = new Set<string>();
   const types = new Set<string>();
@@ -113,7 +118,7 @@ export function loadActivePresentationInventory(
   }
 
   const objectIds = uniqueSorted(objectNames);
-  return {
+  const inventory = {
     domains,
     objectNames: objectIds,
     objectExplanations: objectIds,
@@ -123,6 +128,8 @@ export function loadActivePresentationInventory(
     aliasIds: uniqueSorted(aliasIds),
     sourceIds: uniqueSorted(collectSourceIds(context, objectIds)),
   };
+  inventoryBySnapshotHash.set(cacheKey, inventory);
+  return inventory;
 }
 
 function collectSourceIds(
