@@ -262,6 +262,7 @@ for (const viewport of [
     await page.getByRole('button', { name: '开始学习' }).click();
     await page.waitForURL((url) => url.pathname === resourcePath, { timeout: 20000 });
     await expect(page.getByRole('heading', { name: '阻尼调节实验' })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('调节阻尼系数，让小球在受力后最快平稳下来', { exact: false })).toBeVisible({ timeout: 30000 });
     await expect(page.getByText('路径资源地址未通过平台验证')).toHaveCount(0);
     await capture(page, `resource-${viewport.name}.png`, viewport);
   });
