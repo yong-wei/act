@@ -22,6 +22,7 @@ import {
 import { assertContainmentSkeleton } from './families';
 import { ActTeachingRelationError, projectionDigest } from './hash';
 import { assertReviewPackPrivacy } from './review-pack';
+import { assertScopeIntegrity } from './scope';
 
 export function familyCountsFor(
   scope: ActTeachingScope,
@@ -66,6 +67,8 @@ export function publishActTeachingProjection(input: {
       'unmatched four-prerequisite projection cannot enter the ACT relation layer',
     );
   }
+
+  assertScopeIntegrity(input.scope);
 
   const publicationState = input.scope.memberIds.length === 0
     ? 'EMPTY' as const

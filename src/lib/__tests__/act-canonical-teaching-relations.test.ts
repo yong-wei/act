@@ -17,6 +17,7 @@ import {
   fixtureCatalog,
   FIXTURE_AUTHORITY,
   FIXTURE_CONTAINMENT_EVIDENCE,
+  freezeEvidenceRecord,
   generateCourseRootCandidates,
   itemAdmissionFailures,
   markdownFromReviewPack,
@@ -377,35 +378,39 @@ describe('act-canonical-teaching-relations', () => {
   });
 
   it('fails closed when an ordinary member has no parent or COURSE_ROOT evidence', () => {
-    const scope = threeMemberScope();
+    const scope = deriveActTeachingScope({
+      catalog: fixtureCatalog({
+        members: [
+          { canonicalId: 'ctc:a', domainId: 'system-modeling' },
+          { canonicalId: 'ctc:b', domainId: 'system-modeling' },
+          { canonicalId: 'ctc:c', domainId: 'stability-analysis' },
+          { canonicalId: 'ctc:d', domainId: 'system-modeling' },
+        ],
+      }),
+      authority: FIXTURE_AUTHORITY,
+    });
     expect(() => buildActTeachingProjection({
       scope,
-      evidence: {
-        courseRoots: [{ canonicalId: 'ctc:a', evidenceRefs: ['evidence:handout-course-root-a'] }],
-        parents: [],
-        records: FIXTURE_CONTAINMENT_EVIDENCE.records,
-      },
-      gold: {
-        name: 'gold',
-        items: representativeGold().items.filter((item) => (
-          item.id === 'gold-root-a' || item.id === 'gold-cycle' || item.id === 'gold-low-conf'
-        )),
-      },
-      holdout: {
-        name: 'holdout',
-        items: representativeHoldout().items.filter((item) => item.id === 'holdout-weak'),
-      },
+      evidence: FIXTURE_CONTAINMENT_EVIDENCE,
+      gold: representativeGold(),
+      holdout: representativeHoldout(),
       threshold: 0.99,
     })).toThrow(/lacks an admitted containment parent or COURSE_ROOT/);
   });
 
   it('rejects dispositions copied from another scope hash', () => {
     const artifacts = qualifiedArtifacts();
-    const drifted = {
-      ...artifacts.scope,
-      catalog: { ...artifacts.scope.catalog, catalogHash: 'd'.repeat(64) },
-      scopeHash: 'e'.repeat(64),
-    };
+    const drifted = deriveActTeachingScope({
+      catalog: fixtureCatalog({
+        catalogHash: 'd'.repeat(64),
+        members: [
+          { canonicalId: 'ctc:a', domainId: 'system-modeling' },
+          { canonicalId: 'ctc:b', domainId: 'system-modeling' },
+          { canonicalId: 'ctc:c', domainId: 'stability-analysis' },
+        ],
+      }),
+      authority: FIXTURE_AUTHORITY,
+    });
     expect(() => publishActTeachingProjection({
       scope: drifted,
       dispositions: artifacts.dispositions,
@@ -430,36 +435,84 @@ describe('act-canonical-teaching-relations', () => {
     expect(next.packHash).not.toBe(artifacts.reviewPack.packHash);
   });
 
-  it('rejects evidence refs that are not frozen source records', () => {
-    const scope = threeMemberScope();
-    expect(() => buildActTeachingProjection({
-      scope,
-      evidence: {
-        ...FIXTURE_CONTAINMENT_EVIDENCE,
-        courseRoots: [{ canonicalId: 'ctc:a', evidenceRefs: ['evidence:unrelated'] }],
+  it('rejects COURSE_ROOT evidence that names a parent', () => {
+    expect(() => freezeEvidenceRecord(
+      'evidence:forged-root',
+      'handout names real:x as the course root',
+      {
+        kind: 'COURSE_ROOT',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: 'real:x',
+        targetCanonicalId: 'ctc:a',
       },
-      gold: representativeGold(),
-      holdout: representativeHoldout(),
-      threshold: 0.99,
-    })).toThrow(/not bound to a frozen source digest/);
+    )).toThrow(/cannot name a parent/);
   });
 
-  it('rejects COURSE_ROOT ids that are not gold/holdout admitted items', () => {
-    const scope = threeMemberScope();
+  it('does not let a caller reuse frozen evidence for a different object', () => {
+    const scope = deriveActTeachingScope({
+      catalog: fixtureCatalog({
+        members: [{ canonicalId: 'real:x', domainId: 'system-modeling' }],
+      }),
+      authority: FIXTURE_AUTHORITY,
+    });
     expect(() => buildActTeachingProjection({
       scope,
       evidence: {
-        courseRoots: [
-          { canonicalId: 'ctc:a', evidenceRefs: ['evidence:handout-course-root-a'] },
-          { canonicalId: 'real:x', evidenceRefs: ['evidence:unrelated'] },
-        ],
-        parents: FIXTURE_CONTAINMENT_EVIDENCE.parents,
+        courseRoots: [{ canonicalId: 'real:x', evidenceRefs: ['evidence:handout-course-root-a'] }],
+        parents: [],
         records: FIXTURE_CONTAINMENT_EVIDENCE.records,
       },
-      gold: representativeGold(),
-      holdout: representativeHoldout(),
+      gold: {
+        name: 'gold',
+        items: [{
+          id: 'gold-forged-root',
+          family: 'containment',
+          relationType: 'CONTAINMENT',
+          sourceCanonicalId: 'real:x',
+          targetCanonicalId: null,
+          expected: 'admit',
+        }],
+      },
+      holdout: {
+        name: 'holdout',
+        items: [{
+          id: 'holdout-forged-root',
+          family: 'containment',
+          relationType: 'CONTAINMENT',
+          sourceCanonicalId: 'real:x',
+          targetCanonicalId: null,
+          expected: 'admit',
+        }],
+      },
       threshold: 0.99,
-    })).toThrow(/not a gold\/holdout admitted item/);
+    })).toThrow(/lacks an admitted containment parent or COURSE_ROOT/);
+  });
+
+  it('rejects publish when scope hash does not match member domain memberships', () => {
+    const artifacts = qualifiedArtifacts();
+    const forgedMembers = artifacts.scope.members.map((member) => (
+      member.canonicalId === 'ctc:b'
+        ? { ...member, domainIds: ['forged-domain'], preferredDomainId: 'forged-domain' }
+        : member
+    ));
+    const forgedEdges = artifacts.edges.map((edge) => {
+      if (edge.sourceCanonicalId !== 'ctc:b' && edge.targetCanonicalId !== 'ctc:b') {
+        return edge;
+      }
+      return {
+        ...edge,
+        domainKeys: [...new Set([...edge.domainKeys.filter((key) => key !== 'system-modeling'), 'forged-domain'])].sort(),
+      };
+    });
+    expect(() => publishActTeachingProjection({
+      scope: { ...artifacts.scope, members: forgedMembers },
+      dispositions: artifacts.dispositions,
+      edges: forgedEdges,
+      reviewPack: artifacts.reviewPack,
+      qualification: artifacts.qualification,
+      candidates: artifacts.candidates,
+      decisions: artifacts.decisions,
+    })).toThrow(/scope hash does not match/);
   });
 
   it('rejects published containment without the matching edge set', () => {

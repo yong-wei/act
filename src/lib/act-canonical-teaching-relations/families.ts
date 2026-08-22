@@ -12,6 +12,7 @@ import {
   type ActTeachingScope,
 } from './contracts';
 import { ActTeachingRelationError, teachingEdgeId } from './hash';
+import { assertScopeIntegrity } from './scope';
 
 export const MIN_AUTO_ADMIT_CONFIDENCE = 0.85;
 
@@ -144,6 +145,7 @@ export function assertContainmentSkeleton(input: {
   dispositions: readonly ActTeachingFamilyDisposition[];
   edges?: readonly ActTeachingPublishedEdge[];
 }): void {
+  assertScopeIntegrity(input.scope);
   if (input.scope.memberIds.length === 0) return;
   const byMember = new Map<string, ActTeachingFamilyDisposition>();
   for (const row of input.dispositions) {

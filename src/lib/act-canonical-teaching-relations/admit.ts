@@ -18,6 +18,7 @@ import {
 } from './families';
 import { teachingEdgeId } from './hash';
 import { assertQualifiedReceipt } from './qualify';
+import { assertScopeIntegrity } from './scope';
 
 export interface AdmissionBatch {
   readonly edges: ActTeachingPublishedEdge[];
@@ -44,6 +45,7 @@ export function admitQualifiedCandidates(input: {
   pipelineVersion: string;
   pipelineConfigDigest: string;
 }): AdmissionBatch {
+  assertScopeIntegrity(input.scope);
   assertQualifiedReceipt(
     input.qualification,
     input.pipelineVersion,

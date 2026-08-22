@@ -4,32 +4,54 @@ import {
   type ActTeachingScope,
 } from './contracts';
 import { MIN_AUTO_ADMIT_CONFIDENCE } from './families';
-import { ActTeachingRelationError, freezeEvidenceRef, projectionDigest } from './hash';
+import {
+  ActTeachingRelationError,
+  evidenceAttestsClaim,
+  freezeEvidenceRecord,
+  projectionDigest,
+  type FrozenEvidenceClaim,
+  type FrozenEvidenceRecord,
+} from './hash';
 import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const COURSE_ROOT_PIPELINE_VERSION = 'act-explicit-containment-evidence/v1' as const;
 
 export const FROZEN_TEACHING_EVIDENCE_REGISTRY = Object.freeze([
-  freezeEvidenceRef('evidence:handout-course-root-a', 'handout 1-1 names ctc:a as the course root'),
-  freezeEvidenceRef('evidence:handout-a-contains-b', 'handout 1-2 places ctc:b under ctc:a'),
-  freezeEvidenceRef('evidence:handout-a-contains-c', 'handout 1-3 places ctc:c under ctc:a'),
+  freezeEvidenceRecord(
+    'evidence:handout-course-root-a',
+    'handout 1-1 names ctc:a as the course root',
+    {
+      kind: 'COURSE_ROOT',
+      relationType: 'CONTAINMENT',
+      sourceCanonicalId: 'ctc:a',
+      targetCanonicalId: null,
+    },
+  ),
+  freezeEvidenceRecord(
+    'evidence:handout-a-contains-b',
+    'handout 1-2 places ctc:b under ctc:a',
+    {
+      kind: 'CONTAINMENT_PARENT',
+      relationType: 'CONTAINMENT',
+      sourceCanonicalId: 'ctc:b',
+      targetCanonicalId: 'ctc:a',
+    },
+  ),
+  freezeEvidenceRecord(
+    'evidence:handout-a-contains-c',
+    'handout 1-3 places ctc:c under ctc:a',
+    {
+      kind: 'CONTAINMENT_PARENT',
+      relationType: 'CONTAINMENT',
+      sourceCanonicalId: 'ctc:c',
+      targetCanonicalId: 'ctc:a',
+    },
+  ),
 ]);
-
-function sealEvidence(evidence: ContainmentEvidence): ContainmentEvidence {
-  return {
-    ...evidence,
-    records: FROZEN_TEACHING_EVIDENCE_REGISTRY,
-  };
-}
 
 export interface CourseRootEvidence {
   readonly canonicalId: string;
   readonly evidenceRefs: readonly string[];
-}
-
-export interface FrozenEvidenceRecord {
-  readonly ref: string;
-  readonly body: string;
 }
 
 export interface ContainmentEvidence {
@@ -42,9 +64,34 @@ export interface ContainmentEvidence {
   readonly records: readonly FrozenEvidenceRecord[];
 }
 
-function assertVerifiableRefs(
+export function sealEvidence(_evidence?: ContainmentEvidence): ContainmentEvidence {
+  const courseRoots: CourseRootEvidence[] = [];
+  const parents: ContainmentEvidence['parents'][number][] = [];
+  for (const row of FROZEN_TEACHING_EVIDENCE_REGISTRY) {
+    if (row.claim.kind === 'COURSE_ROOT') {
+      courseRoots.push({
+        canonicalId: row.claim.sourceCanonicalId,
+        evidenceRefs: [row.ref],
+      });
+      continue;
+    }
+    parents.push({
+      childCanonicalId: row.claim.sourceCanonicalId,
+      parentCanonicalId: row.claim.targetCanonicalId as string,
+      evidenceRefs: [row.ref],
+    });
+  }
+  return {
+    courseRoots,
+    parents,
+    records: FROZEN_TEACHING_EVIDENCE_REGISTRY,
+  };
+}
+
+function assertRefsAttestClaim(
   refs: readonly string[],
   records: readonly FrozenEvidenceRecord[],
+  claim: FrozenEvidenceClaim,
   label: string,
 ): void {
   if (refs.length === 0) {
@@ -57,6 +104,12 @@ function assertVerifiableRefs(
       throw new ActTeachingRelationError(
         'invalid-evidence-ref',
         `${label} evidence ref is not bound to a frozen source digest: ${ref}`,
+      );
+    }
+    if (!evidenceAttestsClaim(record, claim)) {
+      throw new ActTeachingRelationError(
+        'invalid-evidence-ref',
+        `${label} evidence ref does not attest the declared relation: ${ref}`,
       );
     }
   }
@@ -73,6 +126,7 @@ export function pipelineConfigDigest(
     records: evidence.records.map((row) => ({
       ref: row.ref,
       digest: projectionDigest(row.body),
+      claim: row.claim,
     })).sort((a, b) => a.ref.localeCompare(b.ref)),
     courseRoots: evidence.courseRoots.map((row) => ({
       canonicalId: row.canonicalId,
@@ -105,9 +159,19 @@ export function generateContainmentCandidates(
   const rows: ActTeachingCandidate[] = [];
   for (const root of sealed.courseRoots) {
     if (!members.has(root.canonicalId)) continue;
-    assertVerifiableRefs(root.evidenceRefs, sealed.records, `COURSE_ROOT ${root.canonicalId}`);
-    const evidenceRefs = [...root.evidenceRefs];
     const canonicalId = root.canonicalId;
+    assertRefsAttestClaim(
+      root.evidenceRefs,
+      sealed.records,
+      {
+        kind: 'COURSE_ROOT',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: canonicalId,
+        targetCanonicalId: null,
+      },
+      `COURSE_ROOT ${canonicalId}`,
+    );
+    const evidenceRefs = [...root.evidenceRefs];
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({
@@ -128,7 +192,15 @@ export function generateContainmentCandidates(
       confidence: MIN_AUTO_ADMIT_CONFIDENCE,
       strength: null,
       evidenceRefs,
-      evidenceDigest: projectionDigest(evidenceRefs),
+      evidenceDigest: projectionDigest({
+        refs: evidenceRefs,
+        claim: {
+          kind: 'COURSE_ROOT',
+          relationType: 'CONTAINMENT',
+          sourceCanonicalId: canonicalId,
+          targetCanonicalId: null,
+        },
+      }),
       authority: scope.authority,
       conflicts: [],
       exceptionReasons: [],
@@ -138,7 +210,17 @@ export function generateContainmentCandidates(
     if (!members.has(parent.childCanonicalId) || !members.has(parent.parentCanonicalId)) {
       continue;
     }
-    assertVerifiableRefs(parent.evidenceRefs, sealed.records, `parent ${parent.childCanonicalId}`);
+    assertRefsAttestClaim(
+      parent.evidenceRefs,
+      sealed.records,
+      {
+        kind: 'CONTAINMENT_PARENT',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: parent.childCanonicalId,
+        targetCanonicalId: parent.parentCanonicalId,
+      },
+      `parent ${parent.childCanonicalId}`,
+    );
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({
@@ -159,7 +241,15 @@ export function generateContainmentCandidates(
       confidence: MIN_AUTO_ADMIT_CONFIDENCE,
       strength: 'REQUIRED',
       evidenceRefs: parent.evidenceRefs,
-      evidenceDigest: projectionDigest(parent.evidenceRefs),
+      evidenceDigest: projectionDigest({
+        refs: parent.evidenceRefs,
+        claim: {
+          kind: 'CONTAINMENT_PARENT',
+          relationType: 'CONTAINMENT',
+          sourceCanonicalId: parent.childCanonicalId,
+          targetCanonicalId: parent.parentCanonicalId,
+        },
+      }),
       authority: scope.authority,
       conflicts: [],
       exceptionReasons: [],
@@ -218,16 +308,27 @@ export function pipelineAdmitsItem(
   item: GoldRelationItem,
   evidence: ContainmentEvidence,
 ): boolean {
+  const sealed = sealEvidence(evidence);
   if (item.family === 'containment' && item.targetCanonicalId === null) {
-    return evidence.courseRoots.some((row) => (
+    return sealed.courseRoots.some((row) => (
       row.canonicalId === item.sourceCanonicalId && row.evidenceRefs.length > 0
-    ));
+    )) && FROZEN_TEACHING_EVIDENCE_REGISTRY.some((record) => evidenceAttestsClaim(record, {
+      kind: 'COURSE_ROOT',
+      relationType: 'CONTAINMENT',
+      sourceCanonicalId: item.sourceCanonicalId,
+      targetCanonicalId: null,
+    }));
   }
   if (item.family === 'containment' && item.targetCanonicalId) {
-    return evidence.parents.some((row) => (
+    return sealed.parents.some((row) => (
       row.childCanonicalId === item.sourceCanonicalId
       && row.parentCanonicalId === item.targetCanonicalId
-    ));
+    )) && FROZEN_TEACHING_EVIDENCE_REGISTRY.some((record) => evidenceAttestsClaim(record, {
+      kind: 'CONTAINMENT_PARENT',
+      relationType: 'CONTAINMENT',
+      sourceCanonicalId: item.sourceCanonicalId,
+      targetCanonicalId: item.targetCanonicalId,
+    }));
   }
   return false;
 }
@@ -239,6 +340,70 @@ export function measurePipelineDataset(
   return dataset.items
     .filter((item) => pipelineAdmitsItem(item, evidence))
     .map((item) => item.id);
+}
+
+export function frozenQualificationGold(): QualificationDataset {
+  return {
+    name: 'gold',
+    items: [
+      {
+        id: 'gold-root-a',
+        family: 'containment',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: 'ctc:a',
+        targetCanonicalId: null,
+        expected: 'admit',
+      },
+      {
+        id: 'gold-parent-b',
+        family: 'containment',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: 'ctc:b',
+        targetCanonicalId: 'ctc:a',
+        expected: 'admit',
+      },
+      {
+        id: 'gold-cycle',
+        family: 'prerequisite',
+        relationType: 'PREREQUISITE',
+        sourceCanonicalId: 'ctc:a',
+        targetCanonicalId: 'ctc:a',
+        expected: 'exclude',
+      },
+      {
+        id: 'gold-low-conf',
+        family: 'association',
+        relationType: 'PEDAGOGICAL_ASSOCIATION',
+        sourceCanonicalId: 'ctc:a',
+        targetCanonicalId: 'ctc:b',
+        expected: 'exclude',
+      },
+    ],
+  };
+}
+
+export function frozenQualificationHoldout(): QualificationDataset {
+  return {
+    name: 'holdout',
+    items: [
+      {
+        id: 'holdout-parent-c',
+        family: 'containment',
+        relationType: 'CONTAINMENT',
+        sourceCanonicalId: 'ctc:c',
+        targetCanonicalId: 'ctc:a',
+        expected: 'admit',
+      },
+      {
+        id: 'holdout-weak',
+        family: 'prerequisite',
+        relationType: 'PREREQUISITE',
+        sourceCanonicalId: 'ctc:c',
+        targetCanonicalId: 'ctc:a',
+        expected: 'exclude',
+      },
+    ],
+  };
 }
 
 export function assertEvidenceBoundToQualificationDatasets(

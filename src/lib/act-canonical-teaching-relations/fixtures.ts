@@ -3,8 +3,12 @@ import { AUTHORITY_DOMAIN_CATALOG_RUNTIME_CONTRACT } from '@/lib/authority-domai
 import { AUTHORITY_DOMAIN_CATALOG_BUILDER_VERSION } from '@/lib/authority-domain-catalog/contracts';
 
 import type { ActTeachingAuthorityIdentity } from './contracts';
-import { freezeEvidenceRef } from './hash';
-import type { GoldRelationItem, QualificationDataset } from './qualify';
+import {
+  frozenQualificationGold,
+  frozenQualificationHoldout,
+  sealEvidence,
+} from './pipeline';
+import type { QualificationDataset } from './qualify';
 
 export const FIXTURE_AUTHORITY: ActTeachingAuthorityIdentity = {
   releaseId: 'ctr:release:control-theory-engineering-v0.22',
@@ -71,92 +75,12 @@ export function fixtureCatalog(input: {
   };
 }
 
-const FIXTURE_EVIDENCE_RECORDS = [
-  freezeEvidenceRef('evidence:handout-course-root-a', 'handout 1-1 names ctc:a as the course root'),
-  freezeEvidenceRef('evidence:handout-a-contains-b', 'handout 1-2 places ctc:b under ctc:a'),
-  freezeEvidenceRef('evidence:handout-a-contains-c', 'handout 1-3 places ctc:c under ctc:a'),
-];
-
-export const FIXTURE_CONTAINMENT_EVIDENCE = {
-  courseRoots: [
-    {
-      canonicalId: 'ctc:a',
-      evidenceRefs: ['evidence:handout-course-root-a'],
-    },
-  ],
-  parents: [
-    {
-      childCanonicalId: 'ctc:b',
-      parentCanonicalId: 'ctc:a',
-      evidenceRefs: ['evidence:handout-a-contains-b'],
-    },
-    {
-      childCanonicalId: 'ctc:c',
-      parentCanonicalId: 'ctc:a',
-      evidenceRefs: ['evidence:handout-a-contains-c'],
-    },
-  ],
-  records: FIXTURE_EVIDENCE_RECORDS,
-} as const;
+export const FIXTURE_CONTAINMENT_EVIDENCE = sealEvidence();
 
 export function representativeGold(): QualificationDataset {
-  const items: GoldRelationItem[] = [
-    {
-      id: 'gold-root-a',
-      family: 'containment',
-      relationType: 'CONTAINMENT',
-      sourceCanonicalId: 'ctc:a',
-      targetCanonicalId: null,
-      expected: 'admit',
-    },
-    {
-      id: 'gold-parent-b',
-      family: 'containment',
-      relationType: 'CONTAINMENT',
-      sourceCanonicalId: 'ctc:b',
-      targetCanonicalId: 'ctc:a',
-      expected: 'admit',
-    },
-    {
-      id: 'gold-cycle',
-      family: 'prerequisite',
-      relationType: 'PREREQUISITE',
-      sourceCanonicalId: 'ctc:a',
-      targetCanonicalId: 'ctc:a',
-      expected: 'exclude',
-    },
-    {
-      id: 'gold-low-conf',
-      family: 'association',
-      relationType: 'PEDAGOGICAL_ASSOCIATION',
-      sourceCanonicalId: 'ctc:a',
-      targetCanonicalId: 'ctc:b',
-      expected: 'exclude',
-    },
-  ];
-  return { name: 'gold', items };
+  return frozenQualificationGold();
 }
 
 export function representativeHoldout(): QualificationDataset {
-  return {
-    name: 'holdout',
-    items: [
-      {
-        id: 'holdout-parent-c',
-        family: 'containment',
-        relationType: 'CONTAINMENT',
-        sourceCanonicalId: 'ctc:c',
-        targetCanonicalId: 'ctc:a',
-        expected: 'admit',
-      },
-      {
-        id: 'holdout-weak',
-        family: 'prerequisite',
-        relationType: 'PREREQUISITE',
-        sourceCanonicalId: 'ctc:c',
-        targetCanonicalId: 'ctc:a',
-        expected: 'exclude',
-      },
-    ],
-  };
+  return frozenQualificationHoldout();
 }

@@ -83,17 +83,12 @@ export function deriveActTeachingScope(input: DeriveActTeachingScopeInput): ActT
     catalogHash: input.catalog.catalogHash,
     catalogVersion: input.catalog.catalogVersion,
   };
-  const scopeHash = projectionDigest({
-    contract: ACT_TEACHING_SCOPE_CONTRACT,
+  const scopeHash = hashActTeachingScope({
     courseId,
     authority: input.authority,
     catalog: catalogSelection,
     contractVersion: ACT_TEACHING_RELATION_GOVERNANCE_CONTRACT,
-    members: members.map((member) => ({
-      canonicalId: member.canonicalId,
-      domainIds: member.domainIds,
-      preferredDomainId: member.preferredDomainId,
-    })),
+    members,
   });
 
   return {
@@ -108,7 +103,58 @@ export function deriveActTeachingScope(input: DeriveActTeachingScopeInput): ActT
   };
 }
 
+export function hashActTeachingScope(input: {
+  courseId: string;
+  authority: ActTeachingAuthorityIdentity;
+  catalog: ActTeachingScope['catalog'];
+  contractVersion: typeof ACT_TEACHING_RELATION_GOVERNANCE_CONTRACT;
+  members: readonly ActTeachingMember[];
+}): string {
+  return projectionDigest({
+    contract: ACT_TEACHING_SCOPE_CONTRACT,
+    courseId: input.courseId,
+    authority: input.authority,
+    catalog: input.catalog,
+    contractVersion: input.contractVersion,
+    members: [...input.members]
+      .map((member) => ({
+        canonicalId: member.canonicalId,
+        domainIds: sortedUnique(member.domainIds),
+        preferredDomainId: member.preferredDomainId,
+      }))
+      .sort((a, b) => a.canonicalId.localeCompare(b.canonicalId)),
+  });
+}
+
+export function assertScopeIntegrity(scope: ActTeachingScope): void {
+  const expectedHash = hashActTeachingScope({
+    courseId: scope.courseId,
+    authority: scope.authority,
+    catalog: scope.catalog,
+    contractVersion: scope.contractVersion,
+    members: scope.members,
+  });
+  if (scope.scopeHash !== expectedHash) {
+    throw new ActTeachingRelationError(
+      'scope-drift',
+      'scope hash does not match normalized member/domain content',
+    );
+  }
+  const expectedIds = [...scope.members]
+    .map((member) => member.canonicalId)
+    .sort((a, b) => a.localeCompare(b));
+  const actualIds = [...scope.memberIds].sort((a, b) => a.localeCompare(b));
+  if (JSON.stringify(expectedIds) !== JSON.stringify(actualIds)) {
+    throw new ActTeachingRelationError(
+      'scope-drift',
+      'memberIds drifted from scope members',
+    );
+  }
+}
+
 export function assertSameScope(expected: ActTeachingScope, actual: ActTeachingScope): void {
+  assertScopeIntegrity(expected);
+  assertScopeIntegrity(actual);
   if (expected.scopeHash !== actual.scopeHash) {
     throw new ActTeachingRelationError(
       'scope-drift',

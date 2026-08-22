@@ -4,16 +4,20 @@ import { emptyDispositions } from './families';
 import {
   COURSE_ROOT_PIPELINE_VERSION,
   assertEvidenceBoundToQualificationDatasets,
+  frozenQualificationGold,
+  frozenQualificationHoldout,
   generateContainmentCandidates,
   generatePendingFamilyPlaceholders,
   measurePipelineDataset,
   pipelineConfigDigest,
+  sealEvidence,
   type ContainmentEvidence,
 } from './pipeline';
 import { publishActTeachingProjection } from './projection';
 import { qualifyPipeline, type QualificationDataset } from './qualify';
 import { buildReviewPack } from './review-pack';
 import { detectKaqConflicts, type KaqFallbackRelation } from './kaq-conflict';
+import { assertScopeIntegrity } from './scope';
 
 export function buildActTeachingProjection(input: {
   scope: ActTeachingScope;
@@ -23,18 +27,22 @@ export function buildActTeachingProjection(input: {
   threshold: number;
   kaqFallbacks?: readonly KaqFallbackRelation[];
 }): ActTeachingProjectionArtifacts {
-  assertEvidenceBoundToQualificationDatasets(input.evidence, input.gold, input.holdout);
-  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, input.evidence);
+  assertScopeIntegrity(input.scope);
+  const evidence = sealEvidence(input.evidence);
+  const gold = frozenQualificationGold();
+  const holdout = frozenQualificationHoldout();
+  assertEvidenceBoundToQualificationDatasets(evidence, gold, holdout);
+  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
   const qualification = qualifyPipeline({
     pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
     pipelineConfigDigest: pipelineConfig,
-    gold: input.gold,
-    holdout: input.holdout,
-    admittedGoldIds: measurePipelineDataset(input.gold, input.evidence),
-    admittedHoldoutIds: measurePipelineDataset(input.holdout, input.evidence),
+    gold,
+    holdout,
+    admittedGoldIds: measurePipelineDataset(gold, evidence),
+    admittedHoldoutIds: measurePipelineDataset(holdout, evidence),
     threshold: input.threshold,
   });
-  const generated = generateContainmentCandidates(input.scope, input.evidence);
+  const generated = generateContainmentCandidates(input.scope, evidence);
   const covered = new Set(generated.map((row) => row.sourceCanonicalId));
   const pendingGaps = [
     ...generatePendingFamilyPlaceholders(input.scope, 'containment')
