@@ -23,8 +23,12 @@ export function buildReviewPack(input: {
   candidates: readonly ActTeachingCandidate[];
   decisions: readonly ActTeachingDecision[];
 }): ActTeachingReviewPackManifest {
-  const candidateDigest = projectionDigest(input.candidates.map((row) => row.candidateId).sort());
-  const decisionDigest = projectionDigest(input.decisions.map((row) => row.decisionId).sort());
+  const candidateDigest = projectionDigest(
+    [...input.candidates].sort((a, b) => a.candidateId.localeCompare(b.candidateId)),
+  );
+  const decisionDigest = projectionDigest(
+    [...input.decisions].sort((a, b) => a.decisionId.localeCompare(b.decisionId)),
+  );
   const pendingCount = input.candidates.filter((candidate) => (
     !input.decisions.some((decision) => (
       decision.candidateId === candidate.candidateId && decision.kind !== 'defer'

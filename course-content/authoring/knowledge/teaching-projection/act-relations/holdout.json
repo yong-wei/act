@@ -4,11 +4,11 @@
   "untouched": true,
   "items": [
     {
-      "id": "holdout-root-c",
+      "id": "holdout-parent-c",
       "family": "containment",
       "relationType": "CONTAINMENT",
       "sourceCanonicalId": "ctc:c",
-      "targetCanonicalId": null,
+      "targetCanonicalId": "ctc:a",
       "expected": "admit"
     },
     {

@@ -11,11 +11,11 @@
       "expected": "admit"
     },
     {
-      "id": "gold-root-b",
+      "id": "gold-parent-b",
       "family": "containment",
       "relationType": "CONTAINMENT",
       "sourceCanonicalId": "ctc:b",
-      "targetCanonicalId": null,
+      "targetCanonicalId": "ctc:a",
       "expected": "admit"
     },
     {

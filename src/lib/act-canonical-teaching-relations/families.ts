@@ -144,17 +144,35 @@ export function assertContainmentSkeleton(input: {
   dispositions: readonly ActTeachingFamilyDisposition[];
 }): void {
   if (input.scope.memberIds.length === 0) return;
-  const byMember = new Map(
-    input.dispositions
-      .filter((row) => row.family === 'containment')
-      .map((row) => [row.canonicalId, row]),
-  );
+  const byMember = new Map<string, ActTeachingFamilyDisposition>();
+  for (const row of input.dispositions) {
+    if (row.family !== 'containment') continue;
+    if (row.scopeHash !== input.scope.scopeHash) {
+      throw new ActTeachingRelationError(
+        'scope-drift',
+        `containment disposition for ${row.canonicalId} belongs to another scope`,
+      );
+    }
+    if (byMember.has(row.canonicalId)) {
+      throw new ActTeachingRelationError(
+        'duplicate-disposition',
+        `member ${row.canonicalId} has more than one containment disposition`,
+      );
+    }
+    byMember.set(row.canonicalId, row);
+  }
   for (const memberId of input.scope.memberIds) {
     const row = byMember.get(memberId);
     if (!row || !containmentClosed(row)) {
       throw new ActTeachingRelationError(
         'containment-incomplete',
         `member ${memberId} lacks an admitted containment parent or COURSE_ROOT`,
+      );
+    }
+    if (row.kind === PUBLISHED_EDGE_DISPOSITION && !row.edgeId) {
+      throw new ActTeachingRelationError(
+        'containment-incomplete',
+        `member ${memberId} published containment is missing its edge`,
       );
     }
   }

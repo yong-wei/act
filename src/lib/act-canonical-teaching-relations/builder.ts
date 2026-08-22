@@ -3,8 +3,11 @@ import type { ActTeachingProjectionArtifacts, ActTeachingScope } from './contrac
 import { emptyDispositions } from './families';
 import {
   COURSE_ROOT_PIPELINE_VERSION,
-  generateCourseRootCandidates,
+  generateContainmentCandidates,
+  generatePendingFamilyPlaceholders,
+  measurePipelineDataset,
   pipelineConfigDigest,
+  type ContainmentEvidence,
 } from './pipeline';
 import { publishActTeachingProjection } from './projection';
 import { qualifyPipeline, type QualificationDataset } from './qualify';
@@ -13,26 +16,32 @@ import { detectKaqConflicts, type KaqFallbackRelation } from './kaq-conflict';
 
 export function buildActTeachingProjection(input: {
   scope: ActTeachingScope;
+  evidence: ContainmentEvidence;
   gold: QualificationDataset;
   holdout: QualificationDataset;
-  admittedGoldIds: readonly string[];
-  admittedHoldoutIds: readonly string[];
   threshold: number;
   kaqFallbacks?: readonly KaqFallbackRelation[];
 }): ActTeachingProjectionArtifacts {
-  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION);
+  const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, input.evidence);
   const qualification = qualifyPipeline({
     pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
     pipelineConfigDigest: pipelineConfig,
     gold: input.gold,
     holdout: input.holdout,
-    admittedGoldIds: input.admittedGoldIds,
-    admittedHoldoutIds: input.admittedHoldoutIds,
+    admittedGoldIds: measurePipelineDataset(input.gold, input.evidence),
+    admittedHoldoutIds: measurePipelineDataset(input.holdout, input.evidence),
     threshold: input.threshold,
   });
-  const rootCandidates = generateCourseRootCandidates(input.scope);
+  const generated = generateContainmentCandidates(input.scope, input.evidence);
+  const covered = new Set(generated.map((row) => row.sourceCanonicalId));
+  const pendingGaps = [
+    ...generatePendingFamilyPlaceholders(input.scope, 'containment')
+      .filter((row) => !covered.has(row.sourceCanonicalId)),
+    ...generatePendingFamilyPlaceholders(input.scope, 'prerequisite'),
+    ...generatePendingFamilyPlaceholders(input.scope, 'association'),
+  ];
   const candidates = detectKaqConflicts({
-    candidates: rootCandidates,
+    candidates: [...generated, ...pendingGaps],
     kaqFallbacks: input.kaqFallbacks ?? [],
   });
   const admitted = admitQualifiedCandidates({
@@ -48,6 +57,9 @@ export function buildActTeachingProjection(input: {
     candidates: admitted.pending,
     decisions: [],
   });
+  if (reviewPack.pendingCount !== admitted.pending.length) {
+    throw new Error('review pack pending count drifted from admission');
+  }
   return publishActTeachingProjection({
     scope: input.scope,
     dispositions: admitted.dispositions,

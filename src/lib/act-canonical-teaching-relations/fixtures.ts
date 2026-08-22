@@ -70,6 +70,22 @@ export function fixtureCatalog(input: {
   };
 }
 
+export const FIXTURE_CONTAINMENT_EVIDENCE = {
+  courseRootIds: ['ctc:a'],
+  parents: [
+    {
+      childCanonicalId: 'ctc:b',
+      parentCanonicalId: 'ctc:a',
+      evidenceRefs: ['evidence:handout-a-contains-b'],
+    },
+    {
+      childCanonicalId: 'ctc:c',
+      parentCanonicalId: 'ctc:a',
+      evidenceRefs: ['evidence:handout-a-contains-c'],
+    },
+  ],
+} as const;
+
 export function representativeGold(): QualificationDataset {
   const items: GoldRelationItem[] = [
     {
@@ -81,11 +97,11 @@ export function representativeGold(): QualificationDataset {
       expected: 'admit',
     },
     {
-      id: 'gold-root-b',
+      id: 'gold-parent-b',
       family: 'containment',
       relationType: 'CONTAINMENT',
       sourceCanonicalId: 'ctc:b',
-      targetCanonicalId: null,
+      targetCanonicalId: 'ctc:a',
       expected: 'admit',
     },
     {
@@ -113,11 +129,11 @@ export function representativeHoldout(): QualificationDataset {
     name: 'holdout',
     items: [
       {
-        id: 'holdout-root-c',
+        id: 'holdout-parent-c',
         family: 'containment',
         relationType: 'CONTAINMENT',
         sourceCanonicalId: 'ctc:c',
-        targetCanonicalId: null,
+        targetCanonicalId: 'ctc:a',
         expected: 'admit',
       },
       {
