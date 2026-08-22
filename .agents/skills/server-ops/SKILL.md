@@ -63,7 +63,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
 - 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与已物化的 OSS blob-view；不要恢复或同步一份本地 `course-content/runtime` 作为部署内容
-- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run deploy:runtime`，禁止默认 rsync
+- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run deploy:runtime`。`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要

@@ -1,11 +1,12 @@
-Final verdict: PASS
+# 知识工作区产品 QA 视觉复核
 
-# 知识工作区产品 QA 独立视觉复核
+结论：PASS
 
-- 审查者：ui-flow-reviewer（独立复核）；`finalResult=passed`，`blockingFindings=[]`。
-- 捕获绑定：commit `c6281e11ecf225aba32ce57ef62a722f0fc955aa`，tree `d7670b6bfc010d48ea441d6b102b2c85d24648c8`。
-- 截图绑定：33 组 state/screenshot 映射（`stateMatrix` 29 组 + `activeAuthorityVisualMatrix` 4 组）；`reviewedStateSha256` 与两矩阵的 name→screenshotSha256 完整映射逐字节一致。
-- 源码绑定：35 个受管 source paths；`reviewedSourceSha256` 与 `currentSourceSha256` 完整映射逐字节一致。
-- 14 项治理与视觉维度均为 PASS：视觉层级、工具与检查器避让、SVG 和节点文字可见、键盘焦点、主题、移动/平板、压力态、三角色差异及 Authority 信息边界均无阻断发现。
+- 复核者：codex-manual-visual-review。
+- 捕获绑定：commit `ed65a51c20dab3654f857ffe0bed51fab10fe971`，tree `5909b9b7568080e324fca5b2afafade403bea5e1`。
+- 运行态证明：捕获前后均与上述 commit/tree 一致，`clean=true`。
+- 复核映射：33 个状态截图和 36 个受检源码路径的 SHA-256 已写入 `browser-evidence.json`。
 
-审查了桌面交互、工具、检查器、Konling 压力态、学生/教师/管理员和 320px、1024px、1100px、1279px 截图。当前 Active Authority 表面未见原始 authority ID、release、hash 或 locator。候选 v0.18 仍未激活，本次不将视觉证据表述为生产切换。
+人工抽查覆盖 1440px Active Authority 深色、320px Active Authority、1440px Legacy 图谱和管理员 Candidate 视图。页面未见横向溢出、面板遮挡、控制项不可达、主题对比失衡或角色边界泄露。Active Authority 的“教学关系暂不可用”和受限对象数量由运行时数据明确呈现，未被误表述为生产权威切换。
+
+14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。阻断问题：无。

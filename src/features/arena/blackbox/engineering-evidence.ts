@@ -1,5 +1,7 @@
-import type { ArenaVirtualSimulationPreviewRun } from './controller-preview';
-import type { ArenaBlackBoxExperimentDataset } from './experiment';
+import type {
+  ArenaBlackBoxExperimentDataset,
+  ArenaVirtualSimulationPreviewRun,
+} from './contracts';
 
 export type BlackBoxEngineeringEvidenceLevel = 'low' | 'medium' | 'high';
 export type BlackBoxPreviewMismatchLevel = 'none' | BlackBoxEngineeringEvidenceLevel;

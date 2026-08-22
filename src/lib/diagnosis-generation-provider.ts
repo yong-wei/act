@@ -1,4 +1,7 @@
-import type { PrismaClient } from '@prisma/client';
+import { createHash } from 'node:crypto';
+
+import { type Prisma, type PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 
 import {
   DiagnosisGenerationOutputValidationError,
@@ -7,19 +10,72 @@ import {
   diagnosisReportBodySchema,
   type DiagnosisReportBody,
 } from '@/lib/diagnosis-persistence';
+import { digestDiagnosisGovernedInput } from '@/lib/diagnosis-generation-preflight';
 import {
-  buildKonlingRuntimeContext,
-  buildKonlingToolRuntime,
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import { resolveSmartLessonStructuredProvider } from '@/lib/smart-lesson-plan/provider-runtime';
 
 const DIAGNOSIS_TOOLS = [
+  'get_class_assignment_outcomes',
+  'get_class_assessment_outcomes',
   'get_student_risk_flags',
   'get_class_competency_summary',
   'get_student_knowledge_progress',
 ] as const;
+
+const governedInputSchema = z.object({
+  schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
+  classId: z.string(),
+  studentIds: z.array(z.string()),
+  assignmentSubmissions: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    assignmentRevisionId: z.string(),
+    contentHash: z.string(),
+    score: z.number(),
+    totalPoints: z.number(),
+    reviewedAt: z.string(),
+  })).optional(),
+  assessmentSessions: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    assessmentId: z.string(),
+    contentDigest: z.string(),
+    itemCount: z.number().int().positive(),
+    correctCount: z.number().int().nonnegative(),
+    score: z.number(),
+    completedAt: z.string(),
+  })).optional(),
+  riskFlags: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    type: z.string(),
+    severity: z.string(),
+    description: z.string(),
+    evidenceSummary: z.record(z.string(), z.unknown()),
+    triggeredAt: z.string(),
+    observedAt: z.string(),
+  })),
+  competencySnapshots: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    snapshotAt: z.string(),
+    // portrait-v2-legacy-compatibility-adapter: validate frozen non-sovereign provider input.
+    competencyVector: z.record(z.string(), z.unknown()),
+    calculationVersion: z.string(),
+  })),
+  knowledgeProgress: z.array(z.object({
+    id: z.string(),
+    userId: z.string(),
+    nodeId: z.string(),
+    status: z.string(),
+    progress: z.number(),
+    timeSpent: z.number(),
+    lastVisited: z.string(),
+  })),
+}).strict();
 
 export class DiagnosisGenerationValidationError extends Error {
   readonly retryable = false;
@@ -40,8 +96,27 @@ export async function generateGovernedDiagnosisReport(
     targetStudentId?: string | null;
     evidenceCutoff: Date;
     generatorVersion: string;
+    governedInput: Prisma.JsonValue | null;
+    inputDigest: string | null;
   },
 ) {
+  const governedInput = governedInputSchema.safeParse(input.governedInput);
+  if (!governedInput.success || !input.inputDigest) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-invalid');
+  }
+  const actualDigest = digestDiagnosisGovernedInput(governedInput.data);
+  if (actualDigest !== input.inputDigest) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-digest-mismatch');
+  }
+  if (governedInput.data.classId !== input.classId) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-scope-mismatch');
+  }
+  if (input.targetStudentId && (
+    governedInput.data.studentIds.length !== 1
+    || governedInput.data.studentIds[0] !== input.targetStudentId
+  )) {
+    throw new DiagnosisGenerationValidationError('diagnosis-governed-input-scope-mismatch');
+  }
   const scopeResult = await verifyKonlingRuntimeScope(db, {
     authenticatedUserId: input.teacherId,
     role: 'TEACHER',
@@ -56,18 +131,6 @@ export async function generateGovernedDiagnosisReport(
     throw new DiagnosisGenerationValidationError('diagnosis-scope-invalid', scopeResult.error);
   }
   const scope = scopeResult.scope;
-  const context = await buildKonlingRuntimeContext(db, {
-    authenticatedUserId: input.teacherId,
-    role: 'TEACHER',
-    targetUserId: scope.targetUserId,
-    classId: input.classId,
-    courseId: scope.courseId,
-    pageId: scope.pageId,
-    teachingAssistantModeId: 'teacher-diagnosis',
-    currentUserQuery: '生成受治理的教师学情诊断报告',
-    evidenceCutoff: input.evidenceCutoff.toISOString(),
-    now: input.evidenceCutoff,
-  });
   const agentSession = await getOrCreateKonlingAgentSession(db, {
     scope,
     phase: 'teacher-diagnosis-generation',
@@ -80,19 +143,15 @@ export async function generateGovernedDiagnosisReport(
     },
     permittedTools: [...DIAGNOSIS_TOOLS],
   });
-  const tools = buildKonlingToolRuntime({
-    db,
-    scope,
-    context: { ...context, permittedTools: [...DIAGNOSIS_TOOLS] },
-    agentSessionId: agentSession.id,
-    permittedTools: [...DIAGNOSIS_TOOLS],
-    evidenceCutoff: input.evidenceCutoff,
-  });
-  const studentArgs = input.targetStudentId ? { studentId: input.targetStudentId } : {};
-  const riskFlags = await tools.getStudentRiskFlags(studentArgs);
-  const competency = input.targetStudentId ? null : await tools.getClassCompetencySummary({});
-  const knowledgeProgress = await tools.getStudentKnowledgeProgress(studentArgs);
+  const learnerAliasFor = createReportLearnerAliasResolver(input.attemptId);
+  const assignments = projectFrozenAssignments(governedInput.data, learnerAliasFor);
+  const assessments = projectFrozenAssessments(governedInput.data, learnerAliasFor);
+  const riskFlags = projectFrozenRiskFlags(governedInput.data, learnerAliasFor);
+  const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
+  const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data, learnerAliasFor);
   const toolAudit = [
+    auditToolResult('get_class_assignment_outcomes', assignments),
+    auditToolResult('get_class_assessment_outcomes', assessments),
     auditToolResult('get_student_risk_flags', riskFlags),
     ...(competency ? [auditToolResult('get_class_competency_summary', competency)] : []),
     auditToolResult('get_student_knowledge_progress', knowledgeProgress),
@@ -115,10 +174,10 @@ export async function generateGovernedDiagnosisReport(
     ].join('\n'),
     prompt: JSON.stringify({
       scope: input.targetStudentId
-        ? { type: 'student', classId: input.classId, studentId: input.targetStudentId }
+        ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
         : { type: 'class', classId: input.classId },
       evidenceCutoff: input.evidenceCutoff.toISOString(),
-      governedToolResults: { riskFlags, competency, knowledgeProgress },
+      governedToolResults: { assignments, assessments, riskFlags, competency, knowledgeProgress },
     }),
     idempotencyKey: input.attemptId,
     maxOutputTokens: 8_000,
@@ -129,7 +188,14 @@ export async function generateGovernedDiagnosisReport(
   if (!parsedReportBody.success) {
     throw new DiagnosisGenerationOutputValidationError(parsedReportBody.error);
   }
-  const reportBody = parsedReportBody.data as DiagnosisReportBody;
+  const reportBody = {
+    ...parsedReportBody.data,
+    sourceCoverage: {
+      ...parsedReportBody.data.sourceCoverage,
+      assignment: assignments.sourceCoverage,
+      assessment: assessments.sourceCoverage,
+    },
+  } as DiagnosisReportBody;
   if (reportBody.evidenceCutoff !== input.evidenceCutoff.toISOString()) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-cutoff-mismatch');
   }
@@ -145,6 +211,181 @@ export async function generateGovernedDiagnosisReport(
     agentSessionId: agentSession.id,
     providerResponseId: generated.normalizedResponseId,
     toolAudit,
+  };
+}
+
+type GovernedInput = z.infer<typeof governedInputSchema>;
+
+function projectFrozenAssignments(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
+  const assignments = (input.assignmentSubmissions ?? []).map((row) => ({
+    learnerAlias: learnerAliasFor(row.userId),
+    assignmentRevisionId: row.assignmentRevisionId,
+    contentHash: row.contentHash,
+    score: row.score,
+    totalPoints: row.totalPoints,
+    reviewedAt: row.reviewedAt,
+    evidenceRefs: [`assignment-submission:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    assignments,
+    evidenceRefs: assignments.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: sourceCoverage(input.studentIds, assignments),
+    confidence: assignments.length > 0 ? 'high' : 'unavailable',
+    limitations: assignments.length > 0 ? [] : ['no-reviewed-assignment-outcomes'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenAssessments(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
+  const assessments = (input.assessmentSessions ?? []).map((row) => ({
+    learnerAlias: learnerAliasFor(row.userId),
+    assessmentId: row.assessmentId,
+    contentDigest: row.contentDigest,
+    itemCount: row.itemCount,
+    correctCount: row.correctCount,
+    score: row.score,
+    completedAt: row.completedAt,
+    evidenceRefs: [`adaptive-assessment-session:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    assessments,
+    evidenceRefs: assessments.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: sourceCoverage(input.studentIds, assessments),
+    confidence: assessments.length > 0 ? 'high' : 'unavailable',
+    limitations: assessments.length > 0 ? [] : ['no-class-assessment-outcomes'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function sourceCoverage(
+  studentIds: string[],
+  rows: Array<{ learnerAlias: string; score: number }>,
+) {
+  const includedStudents = new Set(rows.map((row) => row.learnerAlias)).size;
+  return {
+    availability: 'available' as const,
+    includedStudents,
+    missingStudents: Math.max(studentIds.length - includedStudents, 0),
+    evidenceCount: rows.length,
+    scoredCount: rows.filter((row) => Number.isFinite(row.score)).length,
+  };
+}
+
+function createReportLearnerAliasResolver(attemptId: string) {
+  const aliases = new Map<string, string>();
+  const reportPrefix = createHash('sha256').update(attemptId).digest('hex').slice(0, 12);
+
+  return (userId: string) => {
+    const existing = aliases.get(userId);
+    if (existing) return existing;
+    const alias = `learner-${reportPrefix}-${aliases.size + 1}`;
+    aliases.set(userId, alias);
+    return alias;
+  };
+}
+
+function projectFrozenRiskFlags(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
+  const flags = input.riskFlags.map((row) => ({
+    learnerAlias: learnerAliasFor(row.userId),
+    type: row.type,
+    severity: row.severity,
+    summary: row.description,
+    triggeredAt: row.triggeredAt,
+    evidenceSummary: row.evidenceSummary,
+    evidenceCutoff: row.observedAt,
+    evidenceRefs: [`student-risk-flag:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    learners: input.studentIds.map(learnerAliasFor),
+    flags,
+    evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: new Set(flags.map((flag) => flag.learnerAlias)).size,
+    },
+    confidence: flags.length > 0 ? 'medium' : 'unavailable',
+    limitations: flags.length > 0 ? [] : ['no-current-governed-risk-flags'],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenCompetency(input: GovernedInput) {
+  const totals = new Map<string, { sum: number; count: number }>();
+  for (const row of input.competencySnapshots) {
+    // portrait-v2-legacy-compatibility-adapter: aggregate the frozen non-sovereign input only.
+    for (const [dimension, value] of Object.entries(row.competencyVector)) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+      const current = totals.get(dimension) ?? { sum: 0, count: 0 };
+      current.sum += value;
+      current.count += 1;
+      totals.set(dimension, current);
+    }
+  }
+  const dimensions = Object.fromEntries([...totals.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([dimension, value]) => [dimension, {
+      mean: Math.round((value.sum / value.count) * 100) / 100,
+      evidencedMembers: value.count,
+      missingMembers: Math.max(input.studentIds.length - value.count, 0),
+    }]));
+  const coverage = input.studentIds.length === 0
+    ? 0
+    : input.competencySnapshots.length / input.studentIds.length;
+  return {
+    classId: input.classId,
+    dimensions,
+    evidenceRefs: input.competencySnapshots.map((row) => `student-competency-snapshot:${row.id}`),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: input.competencySnapshots.length,
+      coverage,
+    },
+    confidence: coverage >= 0.8 && input.competencySnapshots.length >= 5
+      ? 'high'
+      : coverage > 0 ? 'medium' : 'unavailable',
+    limitations: coverage === 0 ? ['no-current-competency-snapshots'] : [],
+    privacyClass: 'teacher-scoped',
+  };
+}
+
+function projectFrozenKnowledgeProgress(
+  input: GovernedInput,
+  learnerAliasFor: (userId: string) => string,
+) {
+  const progress = input.knowledgeProgress.map((row) => ({
+    learnerAlias: learnerAliasFor(row.userId),
+    knowledgeNodeId: row.nodeId,
+    status: row.status,
+    progress: row.progress,
+    timeSpentSeconds: row.timeSpent,
+    lastVisitedAt: row.lastVisited,
+    evidenceRefs: [`knowledge-progress:${row.id}`],
+  }));
+  return {
+    classId: input.classId,
+    learners: input.studentIds.map(learnerAliasFor),
+    progress,
+    evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: {
+      classMembers: input.studentIds.length,
+      includedStudents: new Set(progress.map((row) => row.learnerAlias)).size,
+      progressRows: progress.length,
+    },
+    confidence: progress.length > 0 ? 'medium' : 'unavailable',
+    limitations: progress.length > 0 ? [] : ['no-knowledge-progress-evidence'],
+    privacyClass: 'teacher-scoped',
   };
 }
 

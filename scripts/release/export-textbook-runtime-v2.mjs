@@ -7,6 +7,20 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+import {
+  loadTextbookResourceSet,
+  TEXTBOOK_RESOURCE_SET_PATH,
+  textbookBookIds,
+} from './textbook-resource-set.mjs';
+import {
+  TEXTBOOK_INPUT_PROVENANCE_FILE,
+  serializeTextbookInputProvenance,
+  buildTextbookInputProvenanceV2,
+} from './textbook-runtime-input-provenance.mjs';
+
+const TEXTBOOK_GENERATOR_ID = 'act-textbook-runtime-v2-generator';
+const TEXTBOOK_GENERATOR_VERSION = 'v2';
+
 const repoRoot = process.cwd();
 const resourcesRoot = path.resolve(
   process.env.TEXTBOOK_RUNTIME_RESOURCES_ROOT
@@ -22,16 +36,21 @@ const cacheRoot = path.resolve(
 const configPath = path.resolve(
   'course-content/config/textbook-hybrid-retrieval.json',
 );
+const resourceSetConfig = loadTextbookResourceSet();
 const authoringRoot = path.resolve(
   process.env.TEXTBOOK_AUTHORING_ROOT
-    ?? 'course-content/authoring/resources',
+    ?? resourceSetConfig.sourceRoot,
 );
 const TEXTBOOK_GENERATOR_INPUTS = [
   'scripts/release/export-textbook-runtime-v2.mjs',
   'scripts/release/validate-textbook-runtime-v2.mjs',
   'scripts/release/textbook-runtime-v2-provenance.mjs',
+  'scripts/release/textbook-runtime-input-provenance.mjs',
+  'scripts/release/textbook-resource-set.mjs',
   'course-content/scripts/export_structured_textbook_runtime_v2.py',
   'course-content/scripts/structured_textbook_runtime.py',
+  'course-content/scripts/textbook_resource_set.py',
+  'course-content/scripts/textbook_runtime_input_provenance.py',
   'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
   'course-content/scripts/validate_written_textbook_runtime_v2.py',
   'course-content/scripts/textbook_hybrid_retrieval.py',
@@ -40,10 +59,10 @@ const TEXTBOOK_GENERATOR_INPUTS = [
   'course-content/contracts/structured-textbook-runtime-v2.schema.json',
   'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
   'course-content/config/textbook-hybrid-retrieval.json',
-  'course-content/config/textbook-structure-v2',
+  'course-content/config/textbook-resource-set.json',
+  resourceSetConfig.configRoot,
 ];
-const INPUT_PROVENANCE_FILE = 'input-provenance.json';
-const INPUT_PROVENANCE_SCHEMA = 'act.textbook-runtime-input-provenance.v1';
+
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -71,7 +90,7 @@ function toRepoRelativeInput(inputRoot, repositoryRoot) {
   ) {
     throw new Error(`textbook-runtime-v2-input-outside-repository:${inputRoot}`);
   }
-  return relative;
+  return relative.split(path.sep).join('/');
 }
 
 function textbookInputPaths(repositoryRoot, authoringInputRoot) {
@@ -284,12 +303,14 @@ function main() {
   try {
     run('python3', [
       'course-content/scripts/export_structured_textbook_runtime_v2.py',
-      '--all-seven',
+      '--resource-set',
+      TEXTBOOK_RESOURCE_SET_PATH,
       '--authoring-root',
       authoringRoot,
       '--runtime-root',
       stagedRuntime,
     ]);
+    const bookIds = textbookBookIds();
     run('python3', [
       'course-content/scripts/textbook_hybrid_retrieval.py',
       'build-index',
@@ -301,26 +322,35 @@ function main() {
       config.selectedModel,
       '--expected-dimension',
       String(config.selectedObservedDimension),
+      '--resource-set',
+      TEXTBOOK_RESOURCE_SET_PATH,
       '--cache-root',
       cacheRoot,
     ]);
     run('python3', [
       'course-content/scripts/export_textbook_runtime_assets.py',
-      '--config-root',
-      'course-content/config/textbook-structure-v2',
+      '--resource-set',
+      TEXTBOOK_RESOURCE_SET_PATH,
       '--authoring-root',
       authoringRoot,
       '--output-root',
       stagedAssets,
     ]);
+    if (bookIds.length === 0) {
+      throw new Error('textbook-runtime-v2-resource-set-empty');
+    }
     fs.writeFileSync(
-      path.join(stagedRuntime, INPUT_PROVENANCE_FILE),
-      `${JSON.stringify({
-        schemaVersion: INPUT_PROVENANCE_SCHEMA,
-        sourceRevision: revision,
+      path.join(stagedRuntime, TEXTBOOK_INPUT_PROVENANCE_FILE),
+      serializeTextbookInputProvenance(buildTextbookInputProvenanceV2({
+        authoringSourceRevision: revision,
+        resourceSetId: resourceSetConfig.resourceSetId,
+        bookIds: bookIds,
+        sourceRoot: resourceSetConfig.sourceRoot,
+        configRoot: resourceSetConfig.configRoot,
         inputDigest: inputSnapshot.digest,
         inputFileCount: inputSnapshot.fileCount,
-      }, null, 2)}\n`,
+        generator: { id: TEXTBOOK_GENERATOR_ID, version: TEXTBOOK_GENERATOR_VERSION },
+      })),
       { flag: 'wx' },
     );
     run(process.execPath, [
@@ -353,7 +383,9 @@ function main() {
     ]);
     removePathSync(stagingRoot);
     process.stdout.write(`${JSON.stringify({
-      sourceRevision: revision,
+      authoringSourceRevision: revision,
+      resourceSetId: resourceSetConfig.resourceSetId,
+      bookIds,
       inputDigest: inputSnapshot.digest,
       inputFileCount: inputSnapshot.fileCount,
       runtimeRoot,

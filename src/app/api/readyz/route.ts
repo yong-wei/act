@@ -9,6 +9,7 @@ import {
   parseMathDocumentGradingWorkerCapability,
   type MathDocumentGradingWorkerCapabilityStatus,
 } from '@/lib/data-governance/math-document-grading-worker-readiness';
+import { projectRuntimeReadiness } from '@/lib/runtime-readiness';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -46,6 +47,8 @@ export async function GET() {
     mathDocumentGradingWorker = false;
   }
 
+  const runtime = await projectRuntimeReadiness();
+
   const payload = {
     app: true,
     db,
@@ -57,12 +60,13 @@ export async function GET() {
       capabilities: workerCapability?.capabilities ?? null,
       missing: workerRequired ? (workerCapability?.missing ?? ['worker-heartbeat-or-capability']) : [],
     },
+    runtime,
     timestamp,
     version: process.env.npm_package_version ?? 'unknown',
   };
 
   return NextResponse.json(payload, {
-    status: db && redis && mathDocumentGradingWorker ? 200 : 503,
+    status: db && redis && mathDocumentGradingWorker && runtime.ready ? 200 : 503,
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       Pragma: 'no-cache',

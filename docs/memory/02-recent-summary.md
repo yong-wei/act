@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-07-28
-摘要: 初始化时优先读取的最近上下文入口。当前平台主线已经覆盖统一壳层、标准互动课、控制工作台、Arena、资源语义治理、知识图谱、数据治理和智能助教；Issue #1125 已完成 CTKG 0.2 聚合协议变基的实现与文档同步，候选底座锁定 `control-theory-engineering-v0.2`，Legacy 仍为生产权威。
+最后更新: 2026-08-18
+摘要: 初始化时优先读取的最近上下文入口。当前平台主线已经覆盖统一壳层、标准互动课、控制工作台、Arena、资源语义治理、知识图谱、数据治理和智能助教；31 课闲聊自控导入片已发布到生产 OSS blob-view `runtime-7b907428f…`。Issue #1125 已完成 CTKG 0.2 聚合协议变基的实现与文档同步，候选底座锁定 `control-theory-engineering-v0.2`，Legacy 仍为生产权威。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,8 +16,11 @@
 
 ## 最近最重要的稳定变化
 
-- 2026-08-17 Issue #1379 `deduplicate-runtime-releases-with-content-blobs` 已完成 4.4 验证并归档。生产默认 `ossfs-blob-view`，active `runtime-3dcc716…`，rollback `runtime-e47451…`；`deploy:app` 不再 rsync runtime。
-- 2026-08-16 生产 runtime 已切到 OSS v2 blob-view。`deploy:app` / `remote-deploy.sh` 默认 `ossfs-blob-view`，只绑定已物化 view，不再 rsync `course-content/runtime`。runtime 内容更新走 `deploy:runtime`。`legacy-rsync` 仅显式可用，且存在 OSS active receipt 时失败关闭。
+- 2026-08-18 31 课导入片已增量发布到生产 v2 blob-view。active `runtime-7b907428f…`（source `71bbc2db4`），rollback `runtime-3dcc716…`；v0.18 选择器通过 parent overlay 保留。公网媒体走 `/api/course-runtime/assets/lessons/<unit>/media/<unit>-intro-video.mp4`，验收为 307。`remote-deploy.sh` 的 `legacy-rsync` 已退役，不得再 rsync `course-content/runtime`。
+- 2026-08-18 SiliconFlow 主力模型已切到 `Qwen/Qwen3.5-35B-A3B`。运行时真源是 `PlatformSetting.ai_provider_settings.selectedModel`，不是容器里残留的 `AI_MODEL`。切换前本地和生产 siliconflow 实际都是 `deepseek-ai/DeepSeek-V4-Flash`；代码回退默认此前是 Qwen3.6。未因这次切模型重建生产镜像。
+- 2026-08-17 31 课闲聊自控导入片已发布到作者态 `course-content/authoring/lessons/<unit>/media/processed/<unit>-intro-video.mp4`，并用 `course-content/scripts/export-runtime.sh --all` 加单独导出 `1-3` 同步到本地 runtime。成片文件被 `*.mp4` 忽略，不进 Git；清单回写在各课 `design/<unit>-multimedia.md` 与 `media/processed/<unit>-media.md`。生产 runtime 仍走 `deploy:runtime` / OSS blob-view，不会因本地 export 自动上线。
+- 2026-08-17 Issue #1379 `deduplicate-runtime-releases-with-content-blobs` 已完成 4.4 验证并归档。生产默认 `ossfs-blob-view`；`deploy:app` 不再 rsync runtime。
+- 2026-08-16 生产 runtime 已切到 OSS v2 blob-view。`deploy:app` / `remote-deploy.sh` 默认 `ossfs-blob-view`，只绑定已物化 view，不再 rsync `course-content/runtime`。runtime 内容更新走 `deploy:runtime`。
 - 2026-08-16 `dev1` 永久工作树已从 `~/.codex/worktrees/e734/act.just.edu.cn` 迁到 `/Users/YW/.codex/worktrees/act-dev1`。Buddy 认领真源是最新 Claim 的 `worktree_alias: act-dev1` 加 `git config --worktree buddy.worktreealias`。用户要求手工修复认领/进度并按参考流程继续，不要被 lite 的 partial-claim 脚本决策挡住。
 - 2026-08-16 用户授权选项 1 后，v0.18 邻域 25 个对象通过 snapshot 绑定 overlay 获得分类器安全 zh-CN preferred。密封 `multilingual-label-index.jsonl` 仍是 1909 行。正式 qualify CLI 写出真实 READY（文件 sha256 `1444318cc2…`），发布器 pin 已改到该哈希。五个生产选择器仍是 v0.9。用户随后授权完成 #1405 系列（含 #1411/#1412），仍不要认领 parent `#1405`。
 

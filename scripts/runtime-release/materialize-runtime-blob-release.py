@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 MANIFEST_SCHEMA = "act-runtime-release.v2"
@@ -41,6 +41,15 @@ TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-hybrid-retrieval/bge-m3/lexical-postings.bin",
     "resources/textbook-hybrid-retrieval/bge-m3/vectors.f32",
 )
+CONTROL_PLANE_OVERLAY_PATHS = (
+    "knowledge/projection/current.json",
+    "knowledge/prerequisites/current.json",
+    "knowledge/authority-domain-catalog/current.json",
+    "knowledge/authority-domain-shards/current.json",
+    "knowledge/consumer-activation/current.json",
+    "knowledge/production-cutover-transactions/current.json",
+)
+OVERLAY_IDENTITY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,126}$")
 LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
     "resources/textbook-retrieval/bodies.utf8",
     "resources/textbook-retrieval/lexical-postings.bin",
@@ -50,6 +59,146 @@ LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
 
 def fail(message: str) -> None:
     raise ValueError(message)
+
+
+def require_overlay_identity(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not OVERLAY_IDENTITY.fullmatch(value) or ".." in value or "/" in value:
+        fail("control-plane overlay %s is invalid" % label)
+    return value
+
+
+def read_control_plane_pointer(path: Path) -> Dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("control-plane overlay is not valid JSON: %s (%s)" % (path.as_posix(), error))
+    if not isinstance(value, dict):
+        fail("control-plane overlay is not a JSON object: %s" % path.as_posix())
+    return value
+
+
+def control_plane_payload_targets(pointer_relative: str, pointer: Dict[str, Any]) -> List[Tuple[str, str]]:
+    targets: List[Tuple[str, str]] = []
+    if pointer_relative == "knowledge/projection/current.json" and pointer.get("projectionId"):
+        identity = require_overlay_identity(pointer["projectionId"], "projectionId")
+        targets.append(("prefix", "knowledge/projection/releases/%s" % identity))
+    elif pointer_relative == "knowledge/prerequisites/current.json" and pointer.get("publicationId"):
+        identity = require_overlay_identity(pointer["publicationId"], "publicationId")
+        targets.append(("prefix", "knowledge/prerequisites/releases/%s" % identity))
+    elif pointer_relative == "knowledge/authority-domain-catalog/current.json":
+        targets.append(("file", "knowledge/authority-domain-catalog/catalog.json"))
+    elif pointer_relative == "knowledge/authority-domain-shards/current.json" and pointer.get("shardSetId"):
+        identity = require_overlay_identity(pointer["shardSetId"], "shardSetId")
+        targets.append(("prefix", "knowledge/authority-domain-shards/sets/%s" % identity))
+    elif pointer_relative == "knowledge/consumer-activation/current.json":
+        if pointer.get("activationId"):
+            identity = require_overlay_identity(pointer["activationId"], "activationId")
+            targets.append(("prefix", "knowledge/consumer-activation/releases/%s" % identity))
+        if pointer.get("activationReceiptId"):
+            identity = require_overlay_identity(pointer["activationReceiptId"], "activationReceiptId")
+            targets.append(("any_file", "knowledge/consumer-activation/activations/%s.json" % identity))
+            targets.append(("any_file", "knowledge/consumer-activation/rollbacks/%s.json" % identity))
+    elif pointer_relative == "knowledge/production-cutover-transactions/current.json" and pointer.get("transactionId"):
+        identity = require_overlay_identity(pointer["transactionId"], "transactionId")
+        targets.append(("file", "knowledge/production-cutover-transactions/%s.json" % identity))
+        targets.append(("file", "knowledge/consumer-activation/first-activation-transactions/%s.json" % identity))
+        targets.append(("optional_file", "knowledge/production-cutover-transactions/%s.rollback.json" % identity))
+    return targets
+
+
+def regular_files_under(root: Path, prefix: str) -> Set[str]:
+    directory = root / prefix
+    found: Set[str] = set()
+    try:
+        details = os.lstat(directory)
+    except OSError:
+        return found
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        return found
+    for current, directories, filenames in os.walk(str(directory), followlinks=False):
+        current_path = Path(current)
+        directories[:] = [
+            name for name in directories
+            if not os.path.islink(str(current_path / name))
+        ]
+        for name in filenames:
+            absolute = current_path / name
+            file_details = os.lstat(absolute)
+            if stat.S_ISLNK(file_details.st_mode) or not stat.S_ISREG(file_details.st_mode):
+                continue
+            found.add(absolute.relative_to(root).as_posix())
+    return found
+
+
+def payload_present(root: Path, kind: str, relative: str) -> bool:
+    if kind == "file":
+        candidate = root / relative
+        try:
+            details = os.lstat(candidate)
+        except OSError:
+            return False
+        return stat.S_ISREG(details.st_mode) or stat.S_ISLNK(details.st_mode)
+    directory = root / relative
+    try:
+        details = os.lstat(directory)
+    except OSError:
+        return False
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        return False
+    for current, _, filenames in os.walk(str(directory), followlinks=False):
+        if filenames:
+            return True
+    return False
+
+
+def discover_control_plane_overlay_regular_paths(view: Path) -> Set[str]:
+    extras: Set[str] = set()
+    for pointer_relative in CONTROL_PLANE_OVERLAY_PATHS:
+        pointer_path = view / pointer_relative
+        try:
+            details = os.lstat(pointer_path)
+        except OSError:
+            continue
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        extras.add(pointer_relative)
+        pointer = read_control_plane_pointer(pointer_path)
+        for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
+            if kind in {"file", "optional_file", "any_file"}:
+                candidate = view / relative
+                try:
+                    file_details = os.lstat(candidate)
+                except OSError:
+                    continue
+                if stat.S_ISLNK(file_details.st_mode) or not stat.S_ISREG(file_details.st_mode):
+                    continue
+                extras.add(relative)
+            else:
+                extras.update(regular_files_under(view, relative))
+    return extras
+
+
+def require_control_plane_overlay_payloads(view: Path) -> None:
+    for pointer_relative in CONTROL_PLANE_OVERLAY_PATHS:
+        pointer_path = view / pointer_relative
+        try:
+            details = os.lstat(pointer_path)
+        except OSError:
+            continue
+        if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+            continue
+        pointer = read_control_plane_pointer(pointer_path)
+        any_files = []
+        for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
+            if kind == "optional_file":
+                continue
+            if kind == "any_file":
+                any_files.append(relative)
+                continue
+            if not payload_present(view, kind, relative):
+                fail("control-plane overlay payload is missing: %s" % relative)
+        if any_files and not any(payload_present(view, "file", relative) for relative in any_files):
+            fail("control-plane overlay payload is missing: %s" % any_files[0])
 
 
 def canonical(value: Any) -> bytes:
@@ -432,14 +581,27 @@ def write_regular(path: Path, value: bytes) -> None:
     os.chmod(path, 0o444)
 
 
-def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = True) -> Dict[str, Any]:
-    receipt, manifest = verify_view_structure(view, release_id)
+def verify_view(
+    view: Path,
+    release_id: str,
+    *,
+    require_helper_contents: bool = True,
+    allowed_extra_regular_paths: Optional[Set[str]] = None,
+) -> Dict[str, Any]:
+    allowed_extra = set(allowed_extra_regular_paths or ())
+    receipt, manifest = verify_view_structure(
+        view,
+        release_id,
+        allowed_extra_regular_paths=allowed_extra,
+    )
     cached_paths = set(cached_logical_paths(receipt))
     if not require_helper_contents:
         return receipt
     helper = require_helper_directory(view)
     for entry in manifest["files"]:
         logical = view / entry["path"]
+        if entry["path"] in allowed_extra and not os.path.islink(str(logical)):
+            continue
         if entry["path"] in cached_paths:
             details = os.lstat(logical)
             if details.st_size != entry["sizeBytes"] or hash_file(logical) != entry["sha256"]:
@@ -458,7 +620,11 @@ def verify_view(view: Path, release_id: str, *, require_helper_contents: bool = 
     return receipt
 
 
-def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def verify_view_structure(
+    view: Path,
+    release_id: str,
+    allowed_extra_regular_paths: Optional[Set[str]] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     require_real_directory(view, "materialized view")
     require_helper_directory(view)
     manifest, wire = parse_manifest(view / LOCAL_MANIFEST)
@@ -470,6 +636,9 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
     expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
     cached_paths = set(cached_logical_paths(expected_receipt))
     expected_paths = set(item["path"] for item in manifest["files"])
+    allowed_extra = set(allowed_extra_regular_paths or ())
+    allowed_extra.update(discover_control_plane_overlay_regular_paths(view))
+    require_control_plane_overlay_payloads(view)
     actual_paths = set()
     for current, directories, filenames in os.walk(str(view), followlinks=False):
         current_path = Path(current)
@@ -487,10 +656,16 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
                 details = os.lstat(absolute)
                 if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
                     fail("declared cache entry is not a regular file: %s" % relative)
+            elif relative in allowed_extra and not os.path.islink(str(absolute)):
+                details = os.lstat(absolute)
+                if not stat.S_ISREG(details.st_mode):
+                    fail("mounted runtime overlay is not a regular file: %s" % relative)
             elif not os.path.islink(str(absolute)):
                 fail("materialized view contains a non-symlink logical file: %s (mode=%s)" % (relative, oct(os.lstat(str(absolute)).st_mode)))
             actual_paths.add(relative)
-    if actual_paths != expected_paths:
+    if actual_paths - expected_paths - allowed_extra:
+        fail("materialized view file set differs from manifest")
+    if expected_paths - actual_paths:
         fail("materialized view file set differs from manifest")
     for entry in manifest["files"]:
         logical = view / entry["path"]
@@ -499,6 +674,9 @@ def verify_view_structure(view: Path, release_id: str) -> Tuple[Dict[str, Any], 
             details = os.lstat(logical)
             if details.st_size != entry["sizeBytes"]:
                 fail("materialized logical file size does not match manifest content: %s" % entry["path"])
+            continue
+        if entry["path"] in allowed_extra and not os.path.islink(str(logical)):
+            require_regular(logical, "control-plane overlay %s" % entry["path"])
             continue
         require_relative_helper_link(logical, entry["path"], entry["sha256"])
     return expected_receipt, manifest
@@ -540,9 +718,13 @@ def manifest_release_id(view: Path) -> str:
     return manifest["releaseId"]
 
 
-def verify_changed_blob(blob_root: Path, entry: Dict[str, Any]) -> None:
+def verify_changed_blob(blob_root: Path, entry: Dict[str, Any], *, skip_hash: bool = False) -> None:
     blob = blob_path(blob_root, entry["sha256"])
-    if blob.stat().st_size != entry["sizeBytes"] or hash_file(blob) != entry["sha256"]:
+    if blob.stat().st_size != entry["sizeBytes"]:
+        fail("mounted changed blob does not match manifest: %s" % entry["path"])
+    if skip_hash:
+        return
+    if hash_file(blob) != entry["sha256"]:
         fail("mounted changed blob does not match manifest: %s" % entry["path"])
 
 
@@ -571,6 +753,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
     manifest, manifest_wire = parse_manifest(Path(args.manifest))
     receipt = parse_receipt(Path(args.receipt), manifest, manifest_wire)
     cache_enabled = bool(getattr(args, "cache_textbook_retrieval", False))
+    skip_blob_hash = bool(getattr(args, "skip_blob_hash", False))
     if cache_enabled:
         require_textbook_retrieval_cache(manifest)
     cached_paths = set(TEXTBOOK_RETRIEVAL_CACHE_PATHS) if cache_enabled else set()
@@ -581,7 +764,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         views.mkdir(mode=0o700, parents=True, exist_ok=True)
         require_real_directory(views, "view collection")
         final = views / manifest["releaseId"]
-        if final.exists():
+        replace_existing = bool(getattr(args, "replace_existing", False))
+        if final.exists() and not replace_existing:
             result = verify_view(final, manifest["releaseId"], require_helper_contents=False)
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
@@ -591,8 +775,11 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         parent_cache_enabled = False
         if parent_view is not None:
             parent_view = require_real_directory(parent_view, "parent materialized view")
-            parent_by_path, parent_receipt = parent_entries(parent_view)
-            parent_cache_enabled = parent_receipt.get("textbookRetrievalCacheEnabled") is True
+            if replace_existing and final.exists() and parent_view.resolve() == final.resolve():
+                parent_view = None
+            else:
+                parent_by_path, parent_receipt = parent_entries(parent_view)
+                parent_cache_enabled = parent_receipt.get("textbookRetrievalCacheEnabled") is True
         temporary = Path(tempfile.mkdtemp(prefix=".%s." % manifest["releaseId"], dir=str(views)))
         helper = temporary / RUNTIME_BLOB_HELPER_NAME
         helper.mkdir(mode=0o755)
@@ -625,7 +812,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             else:
                 os.symlink(relative_helper_link(entry["path"], entry["sha256"]), str(logical))
                 if not inherited and entry["sha256"] not in verified_changed_blobs:
-                    verify_changed_blob(blob_root, entry)
+                    verify_changed_blob(blob_root, entry, skip_hash=skip_blob_hash)
                     verified_changed_blobs.add(entry["sha256"])
                     verified_changed_blob_sizes[entry["sha256"]] = entry["sizeBytes"]
                 if not inherited:
@@ -638,7 +825,12 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 os.chmod(str(Path(current) / directory), 0o555)
         os.chmod(str(temporary), 0o555)
         result = verify_view(temporary, manifest["releaseId"], require_helper_contents=False)
-        os.replace(str(temporary), str(final))
+        target = final
+        if replace_existing and final.exists():
+            target = views / (".%s.rebuild" % manifest["releaseId"])
+            if target.exists() or target.is_symlink():
+                fail("materialized rebuild staging view already exists")
+        os.replace(str(temporary), str(target))
         temporary = None
         directory = os.open(str(views), os.O_DIRECTORY)
         try:
@@ -650,7 +842,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             result,
             prepared=True,
             reused=False,
-            viewPath=str(final),
+            rebuilt=target != final,
+            viewPath=str(target),
             inheritedPathCount=inherited_path_count,
             verifiedChangedPathCount=len(verified_changed_paths),
             verifiedChangedBytes=sum(item["sizeBytes"] for item in manifest["files"] if item["path"] in changed_paths),
@@ -723,7 +916,11 @@ def select(args: argparse.Namespace) -> Dict[str, Any]:
     try:
         view = view_root / "views" / release_id
         require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
-        receipt, _ = verify_view_structure(view, release_id)
+        receipt, _ = verify_view_structure(
+            view,
+            release_id,
+            allowed_extra_regular_paths=set(CONTROL_PLANE_OVERLAY_PATHS),
+        )
         current = view_root / "current"
         temporary = view_root / (".current.%d" % os.getpid())
         if temporary.exists() or temporary.is_symlink():
@@ -756,7 +953,12 @@ def verify(args: argparse.Namespace) -> Dict[str, Any]:
     release_id = require_release_id(args.release_id)
     view = view_root / "views" / release_id
     require_optional_helper_blob_root(view, getattr(args, "blob_root", None))
-    return verify_view(view, release_id, require_helper_contents=True)
+    return verify_view(
+        view,
+        release_id,
+        require_helper_contents=True,
+        allowed_extra_regular_paths=set(CONTROL_PLANE_OVERLAY_PATHS),
+    )
 
 
 def audit(args: argparse.Namespace) -> Dict[str, Any]:
@@ -819,6 +1021,8 @@ def main() -> None:
         command.add_argument("--view-root", required=True)
         command.add_argument("--parent-view")
         command.add_argument("--cache-textbook-retrieval", action="store_true")
+        command.add_argument("--skip-blob-hash", action="store_true")
+        command.add_argument("--replace-existing", action="store_true")
     selector = commands.add_parser("select")
     selector.add_argument("--release-id", required=True)
     selector.add_argument("--view-root", required=True)

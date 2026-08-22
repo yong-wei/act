@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=d3eeb6e9cb3a911e3455636f90376fc3&v=1778557361128&puid=26652392&enc=911602953f2a5fa00784f31cb774a195&wps=94fc81c39e3d916c12e537184a74038dd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-743507198&timestamp=1778557361128&signature=028fb58062de6c128c2f3420df697c53
 
+本地成品已发布：`media/processed/4-4-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-4-slides.pdf
 
 - 控制系统优化：硬核玩家的通关秘籍

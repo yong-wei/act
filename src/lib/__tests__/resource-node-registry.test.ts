@@ -992,13 +992,14 @@ describe('resource node registry', () => {
 
     expect(registeredResources.length).toBeGreaterThanOrEqual(133);
     expect(unmapped).toEqual([]);
-    expect(registry.nodes.find((node) => node.id === 'registry:lesson09-correction-precheck')).toMatchObject({
+    const correctionPrecheck = registry.nodes.find((node) => node.id === 'registry:lesson09-correction-precheck');
+    expect(correctionPrecheck).toMatchObject({
       renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
       planningMetadata: {
-        knowledgeCoverage: [
+        knowledgeCoverage: expect.arrayContaining([
           '时域指标到目标极点区域_3_36001',
           '根轨迹增益换算_3_4b1d9e6c',
-        ],
+        ]),
         abilityImpact: {
           diagnosticAssessment: expect.any(Number),
           parameterDesign: expect.any(Number),
@@ -1006,6 +1007,7 @@ describe('resource node registry', () => {
       },
       eligibility: { pathEligible: true },
     });
+    expect(correctionPrecheck?.planningMetadata.knowledgeCoverage).toHaveLength(2);
     expect(registry.nodes.find((node) => node.id === 'registry:lesson02-modeling-handout-v1')).toMatchObject({
       planningMetadata: {
         availability: 'archived',

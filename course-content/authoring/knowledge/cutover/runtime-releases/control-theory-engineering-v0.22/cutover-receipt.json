@@ -1,0 +1,296 @@
+{
+  "contract": "actkg-v022-production-cutover-receipt/v1",
+  "transactionId": "v022-cutover-2026-08-20T125026397Z",
+  "status": "READY",
+  "ready": true,
+  "journalHash": "cfa1e9eac01450504addc03886c8736ae654c9d7ad61dd35965968e68ba0f23e",
+  "nextAction": "retain-v09-rollback",
+  "observations": {
+    "membership": {
+      "membershipCount": 7300,
+      "domainCount": 15
+    },
+    "objectCount": 7082,
+    "relationCount": 2932,
+    "readyConsumers": [
+      "course-runtime",
+      "engineering-graph",
+      "engineering-rag",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "consumerBehavior": [
+      {
+        "consumerId": "course-runtime",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "course-runtime-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "course-runtime-graph",
+            "ok": true,
+            "detail": "hasTeaching=true;scope=course-package:3-8"
+          },
+          {
+            "kind": "course-runtime",
+            "ok": true,
+            "detail": "scope=course-package:3-8"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      },
+      {
+        "consumerId": "engineering-graph",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "engineering-graph-authority",
+            "ok": true,
+            "detail": "objects=7082"
+          },
+          {
+            "kind": "graph-root",
+            "ok": true,
+            "detail": "root"
+          },
+          {
+            "kind": "graph-domain",
+            "ok": true,
+            "detail": "objects=103"
+          },
+          {
+            "kind": "graph-family",
+            "ok": true,
+            "detail": "relations=1"
+          },
+          {
+            "kind": "graph-neighborhood",
+            "ok": true,
+            "detail": "node=ctc:0f418dc24d2aacaaafdcdcc0"
+          },
+          {
+            "kind": "graph-detail",
+            "ok": true,
+            "detail": "detail=前向通路上各支路增益之乘积，一般用 p_k 表示。"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      },
+      {
+        "consumerId": "engineering-rag",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "engineering-rag-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "engineering-rag-query",
+            "ok": true,
+            "detail": "shadow"
+          },
+          {
+            "kind": "engineering-rag",
+            "ok": true,
+            "detail": "objects=7082"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      },
+      {
+        "consumerId": "konling",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "konling-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "konling",
+            "ok": true,
+            "detail": "card=ctc_modeling-2088bbde171b2e9ef66070d5"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      },
+      {
+        "consumerId": "learning-path",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "prerequisite",
+            "ok": true,
+            "detail": "edges=4"
+          },
+          {
+            "kind": "learning-path",
+            "ok": true,
+            "detail": "edge-present"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      },
+      {
+        "consumerId": "teaching-resource-rag",
+        "status": "READY",
+        "reads": [
+          {
+            "kind": "teaching-resource-rag-selection",
+            "ok": true,
+            "detail": "mode=use-combination"
+          },
+          {
+            "kind": "teaching-resource-rag",
+            "ok": true,
+            "detail": "resource=act:step:3-8:step-04;availability=shadow"
+          },
+          {
+            "kind": "card",
+            "ok": true,
+            "detail": "card=ctc_modeling-2088bbde171b2e9ef66070d5"
+          },
+          {
+            "kind": "infograph",
+            "ok": true,
+            "detail": "infographCount=161"
+          },
+          {
+            "kind": "zh-cn-label",
+            "ok": true,
+            "detail": "available=6549;fallback=751;leaks=0"
+          },
+          {
+            "kind": "label-fallback",
+            "ok": true,
+            "detail": "fallback-or-unavailable=751"
+          }
+        ]
+      }
+    ],
+    "public": {
+      "labels": [
+        "根轨迹",
+        "系统建模",
+        "时域分析",
+        "稳定性分析",
+        "频域分析",
+        "经典控制设计",
+        "离散时间控制分析",
+        "状态空间控制分析与设计",
+        "非线性系统分析",
+        "李雅普诺夫稳定性",
+        "离散时间控制设计",
+        "鲁棒性与灵敏度分析",
+        "最优控制与线性二次型设计",
+        "鲁棒控制分析与设计",
+        "非线性控制设计"
+      ],
+      "domainCount": 15,
+      "memberCounts": [
+        103,
+        641,
+        572,
+        244,
+        952,
+        744,
+        619,
+        1282,
+        347,
+        141,
+        441,
+        209,
+        200,
+        702,
+        104
+      ],
+      "teachingStatus": 200,
+      "teachingObjectCount": 641,
+      "leaks": [],
+      "blockers": []
+    },
+    "postReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true,
+      "mathDocumentGradingWorker": {
+        "required": false,
+        "ready": true,
+        "configReady": true,
+        "capabilities": null,
+        "missing": []
+      },
+      "timestamp": "2026-08-20T12:51:57.772Z",
+      "version": "unknown"
+    },
+    "postPublicReadyz": {
+      "app": true,
+      "db": true,
+      "redis": true,
+      "mathDocumentGradingWorker": {
+        "required": false,
+        "ready": true,
+        "configReady": true,
+        "capabilities": null,
+        "missing": []
+      },
+      "timestamp": "2026-08-20T12:51:57.896Z",
+      "version": "unknown"
+    },
+    "activationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+    "projectionId": "proj-1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+    "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151"
+  },
+  "blockers": [],
+  "receiptDigest": "42ca4fd38347b089393e0788b1c32c676c3bb756d6a1a3be5b48f1f1ff584529"
+}

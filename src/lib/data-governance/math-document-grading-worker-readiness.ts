@@ -12,7 +12,7 @@ export const MATH_DOCUMENT_GRADING_WORKER_CAPABILITY_KEYS = [
 ] as const;
 
 const DEFAULT_AI_ENDPOINT = 'https://api.siliconflow.cn/v1';
-const DEFAULT_AI_MODEL = 'Qwen/Qwen3.6-35B-A3B';
+const DEFAULT_AI_MODEL = 'Qwen/Qwen3.5-35B-A3B';
 const DEFAULT_MATHPIX_IMAGE_ENDPOINT = 'https://api.mathpix.com/v3/text';
 const DEFAULT_MATHPIX_DOCUMENT_ENDPOINT = 'https://api.mathpix.com/v3/pdf';
 

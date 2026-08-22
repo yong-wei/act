@@ -1,0 +1,32 @@
+{
+  "subject": {
+    "issue": 1429,
+    "change_id": "issue-1429"
+  },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "origin/integration@94d585ae63a6f1839ce611c7f8a1271df945933f still derives compareWithOptionId by taking the first option whose ID differs from the clicked card, so students cannot explicitly select B-C in a three-candidate batch.",
+      "The same page renders PathDifferenceExplanationPanel inside each candidate card, confirming that the comparison remains card-local rather than batch-level.",
+      "The existing parser and server runtime already expose deterministic two-option comparison facts, so this change can extend interaction and response identity without replacing the comparison algorithm."
+    ]
+  },
+  "duplication": {
+    "existing_implementation": "partial",
+    "conflicting_specs": [],
+    "active_changes": [
+      "sync-konling-candidate-path-selection"
+    ],
+    "superseded_by": null
+  },
+  "readiness": {
+    "information": "sufficient",
+    "disposition": "executable",
+    "reason": "Issue #1429 defines one independently deliverable candidate-batch comparison capability. The two suggested stages can be implemented as task groups and semantic commits within one Buddy change and one PR; the active Konling candidate-selection change governs conversational selection and does not conflict with read-only candidate comparison."
+  },
+  "binding": {
+    "issue_updated_at": "2026-08-16T07:12:16Z",
+    "base_sha": "94d585ae63a6f1839ce611c7f8a1271df945933f",
+    "generated_at": "2026-08-16T07:12:57.559Z"
+  }
+}

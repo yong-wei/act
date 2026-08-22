@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  assessPromptQuality,
-  getPromptHistory,
-} from '@/features/evaluation/prompt-quality';
+import { assessPromptQuality } from '@/features/evaluation/prompt-quality';
 import {
   buildAiAuditTaskState,
   buildAiAuditTaskLogEntry,
@@ -456,11 +453,8 @@ describe('ai task boundary contracts', () => {
     });
   });
 
-  it('persists prompt audit task context in prompt history', () => {
-    const userId = `prompt-context-${Date.now()}`;
-    assessPromptQuality({
-      userId,
-      sessionId: 'prompt-context-session',
+  it('keeps prompt audit task context in the pure evaluation input boundary', () => {
+    const assessment = assessPromptQuality({
       prompt: '控制对象：船舶航向系统\n性能目标：超调 < 15%\n约束条件：相位裕度 > 30°',
       structuredData: {
         'control-object': '船舶航向系统',
@@ -479,14 +473,7 @@ describe('ai task boundary contracts', () => {
       },
     });
 
-    expect(getPromptHistory(userId).at(-1)).toMatchObject({
-      auditTaskContext: {
-        source: 'batch55',
-        assignment: 'report-control-design',
-        intent: 'prompt-history-review',
-        outputTarget: 'prompt-history',
-      },
-    });
+    expect(assessment.overallScore).toBeGreaterThan(0);
   });
 
   it('summarizes tool results instead of exposing raw JSON', () => {

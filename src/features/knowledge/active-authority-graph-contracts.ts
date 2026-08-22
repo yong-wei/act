@@ -128,6 +128,45 @@ export interface ActiveNodeAdjacency {
   releaseTier?: string | null;
 }
 
+export type ActiveNodeMathematics =
+  | { state: 'available'; expression: string; display: 'block' }
+  | { state: 'missing' };
+
+export const ACTIVE_RESOURCE_BINDING_ROLES = ['讲解', '练习', '评价', '引用'] as const;
+export type ActiveResourceBindingRole = (typeof ACTIVE_RESOURCE_BINDING_ROLES)[number];
+
+export interface ActiveResourceLaunchDescriptor {
+  kind: 'direct-route' | 'registry-resource' | 'unavailable';
+  href: string | null;
+}
+
+export interface ActiveResourceBinding {
+  title: string;
+  bindingRole: ActiveResourceBindingRole;
+  resourceKind: string;
+  availability: 'available' | 'unavailable';
+  launch: ActiveResourceLaunchDescriptor;
+}
+
+export type ActiveNodeResourceBindings =
+  | { state: 'available'; items: ActiveResourceBinding[] }
+  | { state: 'empty'; message: string }
+  | { state: 'unavailable'; message: string };
+
+export function projectActiveNodeMathematics(
+  teachingFields: Record<string, unknown> | null | undefined,
+): ActiveNodeMathematics {
+  const expression = teachingFields?.formula_latex;
+  if (typeof expression !== 'string' || expression.trim().length === 0) {
+    return { state: 'missing' };
+  }
+  return {
+    state: 'available',
+    expression: expression.trim(),
+    display: 'block',
+  };
+}
+
 export interface ActiveNodeDetailResponse {
   projectionVersion: 'act.node-detail.v2';
   source: ActiveAuthoritySource;
@@ -147,6 +186,8 @@ export interface ActiveNodeDetailResponse {
     releaseTier?: string;
     aliases?: string[];
     teachingFields?: Record<string, unknown>;
+    mathematics?: ActiveNodeMathematics;
+    resourceBindings?: ActiveNodeResourceBindings;
     governance?: {
       reviewStatus: string | null;
       publicationStatus: string | null;

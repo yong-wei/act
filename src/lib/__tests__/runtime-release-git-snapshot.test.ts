@@ -11,10 +11,13 @@ import { buildGitRuntimeBlobReleaseSnapshot, openGitRuntimeBlobReleaseSnapshot, 
 import { buildRuntimeBlobReleaseManifestFromFiles } from '../runtime-release';
 import {
   buildExternalInputBundle,
+  declarationInputFromBundle,
   EXTERNAL_INPUT_BUNDLE_PREFIXES,
   EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES,
   serializeExternalInputBundle,
   serializeExternalInputBundleDeclaration,
+  textbookCorpusIdentityDigest,
+  TEXTBOOK_INPUT_PROVENANCE_V2,
 } from '../runtime-external-input-bundle';
 import { stableStringify } from '../aggregate-governance/hash';
 
@@ -414,6 +417,133 @@ describe('Git-backed runtime release snapshots', () => {
     await writeFile(externalPath, 'drifted bytes\n');
     await expect(verifyGitRuntimeSnapshotFile({ snapshot, file: externalFile })).rejects.toMatchObject({ code: 'runtime-release-external-source-changed' });
     expect(serializeExternalInputBundle(bundle)).not.toContain(runtimeRoot);
+  });
+
+  it('inherits an unchanged v1 bundle across an unrelated Git runtime HEAD change', async () => {
+    const { root, sourceRevision: baseRevision } = await fixture();
+    const runtimeRoot = path.join(root, 'course-content', 'runtime');
+    const externalPath = path.join(runtimeRoot, 'knowledge', 'infographs', 'authority', 'a.svg');
+    await mkdir(path.dirname(externalPath), { recursive: true });
+    const externalBytes = Buffer.from('frozen textbooks\n');
+    await writeFile(externalPath, externalBytes);
+    const bundle = buildExternalInputBundle({
+      externalInputId: 'current-production-runtime-v1',
+      sourceRevision: baseRevision,
+      baseSourceRevision: baseRevision,
+      provenance: {
+        schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+        sourceRevision: baseRevision,
+        inputDigest: 'b'.repeat(64),
+        inputFileCount: 1,
+      },
+      generator: { id: 'test-generator', version: '1' },
+      overlay: {
+        baseSourceRevision: baseRevision,
+        baseRuntimeTreeSha256: await runtimeTreeDigest(root, baseRevision),
+        replacedPrefixes: [...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES],
+        generatedPrefixes: [...EXTERNAL_INPUT_BUNDLE_PREFIXES],
+        generatedTreeSha256: 'c'.repeat(64),
+      },
+      files: [{
+        path: 'knowledge/infographs/authority/a.svg',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+        absolutePath: externalPath,
+      }],
+      root: runtimeRoot,
+    });
+    await writeFile(
+      path.join(root, 'course-content', 'authoring', 'runtime-external-input-bundles.v1.json'),
+      serializeExternalInputBundleDeclaration({
+        schemaVersion: 'act-runtime-external-input-bundles.v1',
+        inputs: [declarationInputFromBundle(bundle)],
+      }),
+    );
+    await git(root, 'add', 'course-content/authoring/runtime-external-input-bundles.v1.json');
+    await git(root, 'commit', '-m', 'bind frozen v1 bundle');
+    await writeFile(path.join(runtimeRoot, 'lessons', 'other.json'), '{"id":"unrelated-runtime"}\n');
+    await git(root, 'add', 'course-content/runtime/lessons/other.json');
+    await git(root, 'commit', '-m', 'unrelated runtime change');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+    expect(targetRevision).not.toBe(bundle.sourceRevision);
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      externalBundle: bundle,
+    });
+    expect(snapshot.manifest.sourceRevision).toBe(targetRevision);
+    expect(snapshot.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg')?.source).toMatchObject({
+      bundleSemanticSha256: bundle.manifestSha256,
+    });
+    expect(snapshot.manifest.files.map((file) => file.path)).toEqual(expect.arrayContaining([
+      'lessons/lesson.json',
+      'lessons/other.json',
+      'knowledge/infographs/authority/a.svg',
+    ]));
+  });
+
+  it('publishes a v2 corpus whose authoring revision differs from the Release HEAD', async () => {
+    const { root, sourceRevision: captureRevision } = await fixture();
+    const runtimeRoot = path.join(root, 'course-content', 'runtime');
+    const externalPath = path.join(runtimeRoot, 'knowledge', 'infographs', 'authority', 'a.svg');
+    await mkdir(path.dirname(externalPath), { recursive: true });
+    const externalBytes = Buffer.from('v2 textbooks\n');
+    await writeFile(externalPath, externalBytes);
+    const bookIds = ['control-encyclopedia', 'hu-shousong-exercise-analysis-3rd'];
+    const resourceSetId = 'current-authoring-bundle-v1';
+    const authoringRevision = 'd'.repeat(40);
+    const bundle = buildExternalInputBundle({
+      externalInputId: 'textbook-runtime-generated-v2',
+      sourceRevision: captureRevision,
+      baseSourceRevision: captureRevision,
+      provenance: {
+        schemaVersion: TEXTBOOK_INPUT_PROVENANCE_V2,
+        authoringSourceRevision: authoringRevision,
+        resourceSetId,
+        bookIds,
+        resourceSetDigest: textbookCorpusIdentityDigest(resourceSetId, bookIds),
+        inputDigest: 'e'.repeat(64),
+        inputFileCount: 4,
+        generator: { id: 'act-textbook-runtime-v2-generator', version: 'v2' },
+      },
+      generator: { id: 'act-textbook-runtime-v2-generator', version: 'v2' },
+      overlay: {
+        baseSourceRevision: captureRevision,
+        baseRuntimeTreeSha256: await runtimeTreeDigest(root, captureRevision),
+        replacedPrefixes: [...EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES],
+        generatedPrefixes: [...EXTERNAL_INPUT_BUNDLE_PREFIXES],
+        generatedTreeSha256: 'f'.repeat(64),
+      },
+      files: [{
+        path: 'knowledge/infographs/authority/a.svg',
+        sizeBytes: externalBytes.byteLength,
+        sha256: createHash('sha256').update(externalBytes).digest('hex'),
+        absolutePath: externalPath,
+      }],
+      root: runtimeRoot,
+    });
+    expect(bundle.provenance.schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V2
+      ? bundle.provenance.authoringSourceRevision
+      : '').not.toBe(captureRevision);
+    await writeFile(
+      path.join(root, 'course-content', 'authoring', 'runtime-external-input-bundles.v1.json'),
+      serializeExternalInputBundleDeclaration({
+        schemaVersion: 'act-runtime-external-input-bundles.v1',
+        inputs: [declarationInputFromBundle(bundle)],
+      }),
+    );
+    await git(root, 'add', 'course-content/authoring/runtime-external-input-bundles.v1.json');
+    await git(root, 'commit', '-m', 'bind v2 corpus');
+    const targetRevision = await git(root, 'rev-parse', 'HEAD');
+    const snapshot = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      externalBundle: bundle,
+    });
+    expect(snapshot.manifest.sourceRevision).toBe(targetRevision);
+    expect(snapshot.externalBundle?.provenance.schemaVersion).toBe(TEXTBOOK_INPUT_PROVENANCE_V2);
   });
 
   it('rejects gitlink entries from the Git runtime tree', async () => {

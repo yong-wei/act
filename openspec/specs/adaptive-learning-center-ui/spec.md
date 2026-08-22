@@ -291,7 +291,7 @@ The adaptive learning center SHALL open path generation in a focused editable ta
 - **AND** the UI SHALL NOT require JSON, internal field names, or global chat input to modify path parameters.
 
 ### Requirement: Generated path options are selectable and comparable
-The adaptive learning center SHALL display generated path options as comparable, actionable route choices where each option is a complete decision module and not a detached action target.
+The adaptive learning center SHALL display generated path options as comparable, actionable route choices where each option is a complete decision module and not a detached action target, and SHALL synchronize a successful Konling selection from the same persisted candidate batch.
 
 #### Scenario: Options are shown after generation
 - **WHEN** generation succeeds
@@ -303,6 +303,11 @@ The adaptive learning center SHALL display generated path options as comparable,
 - **WHEN** the student selects, asks Konling to adjust, rejects, or asks why an option was recommended
 - **THEN** the action SHALL be recorded through governed path activity
 - **AND** the UI SHALL preserve other options as alternatives until a later recalculation or explicit dismissal.
+
+#### Scenario: Konling selection refreshes the path center
+- **WHEN** Konling reports a successful selection with a verified `batchId` and `candidateId`
+- **THEN** the path center SHALL reload that authorized batch and display the matching candidate as selected
+- **AND** it SHALL NOT infer the selected candidate from assistant prose or automatically start path execution.
 
 #### Scenario: Desktop comparison is rendered
 - **WHEN** the path-selection workspace renders on desktop
@@ -825,4 +830,91 @@ The adaptive learning center SHALL synchronize a successfully generated, authori
 - **WHEN** a student requests a candidate batch that is not authorized for that learner
 - **THEN** the center SHALL not display that batch or its candidates
 - **AND** it SHALL retain the governed recovery behavior.
+
+### Requirement: Candidate adjustment remains separate from path selection
+The adaptive learning center SHALL treat adjustment as a request for a derived candidate batch and SHALL preserve the current active path until the learner explicitly selects a candidate through the existing path-choice workflow.
+
+#### Scenario: Student opens adjustment for a candidate
+- **WHEN** the student activates adjustment from a persisted candidate
+- **THEN** the adjustment controls SHALL identify that candidate as the source and SHALL retain editable time, rhythm, resource, checkpoint, and supported intent parameters
+- **AND** opening or submitting adjustment SHALL NOT change the active path.
+
+#### Scenario: Adjusted candidates are returned
+- **WHEN** an authorized material adjustment succeeds
+- **THEN** the same learning-center workspace SHALL load and display the derived candidate batch for comparison
+- **AND** the current-path continuation and execution state SHALL remain available and unchanged.
+
+#### Scenario: Student selects an adjusted candidate
+- **WHEN** the student explicitly selects a candidate from the derived batch
+- **THEN** the center SHALL use the existing governed path-choice workflow before entering execution
+- **AND** adjustment success alone SHALL NOT be presented as a selected or switched path.
+
+### Requirement: Candidate adjustment states follow server truth
+The adaptive learning center SHALL bind visible adjustment results to the current source batch, source candidate, request identity, and active-progress version and SHALL render server-owned degraded outcomes without fabricating alternatives.
+
+#### Scenario: Adjustment has no material difference
+- **WHEN** the server returns `no_material_difference`
+- **THEN** the center SHALL keep the source candidates available and explain that the requested settings produced no substantive route change
+- **AND** it SHALL offer parameter editing without displaying a duplicate successful option.
+
+#### Scenario: An older adjustment completes late
+- **WHEN** a newer request, candidate source, batch, or active-progress version is current before an older response completes
+- **THEN** the center SHALL ignore the obsolete result
+- **AND** it SHALL NOT replace the current comparison or execution state.
+
+#### Scenario: Adjustment evidence is incomplete
+- **WHEN** the server cannot resolve a stable source candidate or sufficient governed facts
+- **THEN** the center SHALL show an unavailable or data-insufficient state
+- **AND** it SHALL NOT infer a source from candidate order or synthesize a comparison result.
+
+### Requirement: Adaptive path generation starts once from the primary action
+The adaptive learning center SHALL open Konling and start exactly one governed path-generation request when an eligible student activates the primary generation action.
+
+#### Scenario: Student activates generation once
+- **WHEN** an eligible student activates the primary path-generation action
+- **THEN** the page SHALL open the Konling sidebar and submit one generation request without requiring a second action
+
+#### Scenario: Student activates generation twice before rerender
+- **WHEN** two activation callbacks occur before React commits the first pending state
+- **THEN** a synchronous admission guard SHALL allow only one request to be submitted
+- **AND** both callbacks SHALL NOT create distinct request identities
+
+### Requirement: Path generation lifecycle remains visible and target-safe
+The adaptive learning center SHALL expose pending, running, succeeded, and failed generation states while preserving the selected target during active work.
+
+#### Scenario: Generation is active
+- **WHEN** a generation request is pending or running
+- **THEN** the learning target control SHALL be disabled
+- **AND** the Konling sidebar SHALL show the current request status without creating a model chat request
+
+#### Scenario: Generation succeeds
+- **WHEN** the governed generation request succeeds
+- **THEN** the page SHALL refresh the generated path in place and show succeeded status in Konling
+- **AND** it SHALL NOT immediately replace the page before the status can render
+
+#### Scenario: Definitive generation failure is retried explicitly
+- **WHEN** the server reports a definitive failed or blocked result and the student explicitly activates regeneration
+- **THEN** the page SHALL create a new generation request identity
+
+### Requirement: Path comparison reads persisted candidate batches
+The adaptive learning center SHALL render the existing comparison workspace from a persisted candidate batch and SHALL default to the learner's latest successful batch when no batch is specified.
+
+#### Scenario: Center opens latest comparison
+- **WHEN** the learner opens the path center without a batch query parameter and successful batches exist
+- **THEN** the existing comparison UI displays the newest successful batch
+
+#### Scenario: Current path remains visible
+- **WHEN** the latest candidate batch differs from the learner's selected or executing path
+- **THEN** the center preserves and displays the current-path state independently from the candidate comparison
+
+### Requirement: Candidate comparison supports stable deep links
+The adaptive learning center SHALL support a batch ID and optional candidate ID in the URL, focus a valid candidate in the existing comparison UI, and retain an action to compare every candidate in the batch.
+
+#### Scenario: Valid candidate deep link
+- **WHEN** an authorized learner opens a URL containing a valid batch and candidate ID
+- **THEN** the comparison focuses that candidate and offers an action to show the full batch
+
+#### Scenario: Invalid candidate deep link
+- **WHEN** the candidate ID does not belong to the requested batch
+- **THEN** the center fails closed and does not substitute a candidate by title or ordinal
 

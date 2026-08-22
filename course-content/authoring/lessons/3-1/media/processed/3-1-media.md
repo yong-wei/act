@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=56af43e541e0bb358ac7c356d0f976dc&v=1775486113707&puid=26652392&enc=efba5e2b90d9eda2cd8a911da9b14839&wps=aaacadb7c307844b9b5cf38f44b50109d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-1-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-1-audio.m4a
 
 - 高阶系统主导极点

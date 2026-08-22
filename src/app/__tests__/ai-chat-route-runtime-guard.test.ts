@@ -266,9 +266,10 @@ describe('AI chat route Konling runtime guard', () => {
     expect(globalAISidebarSource).toContain('const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext');
     expect(globalAISidebarSource).toContain('modeClientContextHints: effectiveServerContext');
     expect(globalAISidebarSource).toContain('resourceId: effectiveServerContext?.resourceId');
-    expect(globalAISidebarSource).toContain('teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId');
-    expect(globalAISidebarSource).toContain('modeClientContextHints: activeAssistantBinding?.modeClientContextHints');
-    expect(globalAISidebarSource).toContain('resourceId: activeAssistantBinding?.modeClientContextHints.resourceId');
+    expect(globalAISidebarSource).toContain('shouldStartTextbookCoachConversation');
+    expect(globalAISidebarSource).toContain('teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: sendAssistantBinding?.modeClientContextHints');
+    expect(globalAISidebarSource).toContain('resourceId: sendAssistantBinding?.modeClientContextHints.resourceId');
     expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");

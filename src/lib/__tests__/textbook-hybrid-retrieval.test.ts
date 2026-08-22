@@ -383,6 +383,7 @@ async function buildIndexFixture(
     formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
     status: 'complete',
     sourceRevision: 'fixture-revision',
+    resourceSetId: 'fixture-resource-set-v1',
     model: 'fixture/embedding',
     observedDimension: dimension,
     normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
@@ -407,6 +408,7 @@ async function buildIndexFixture(
     recordType: 'index-manifest',
     formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
     sourceRevision: 'fixture-revision',
+    resourceSetId: 'fixture-resource-set-v1',
     model: 'fixture/embedding',
     observedDimension: dimension,
     normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
@@ -852,6 +854,33 @@ describe('textbook hybrid retrieval runtime', () => {
     await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
     await expect(loadTextbookRetrievalIndex(dimensionRoot)).rejects.toThrow(
       /build report is inconsistent|vector file size is invalid/u,
+    );
+  });
+
+  it('fails closed when index manifest omits resourceSetId', async () => {
+    const root = await buildIndexFixture();
+    const manifestPath = path.join(root, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    delete manifest.resourceSetId;
+    await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(root)).rejects.toThrow(
+      /index manifest shape is invalid/u,
+    );
+  });
+
+  it('fails closed when build report resourceSetId diverges from manifest', async () => {
+    const root = await buildIndexFixture();
+    const reportPath = path.join(root, 'build-report.json');
+    const report = JSON.parse(await readFile(reportPath, 'utf8'));
+    report.resourceSetId = 'different-resource-set';
+    const reportBytes = Buffer.from(`${JSON.stringify(report)}\n`);
+    await writeFile(reportPath, reportBytes);
+    const manifestPath = path.join(root, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['build-report.json'] = sha256(reportBytes);
+    await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(root)).rejects.toThrow(
+      /build report is inconsistent/u,
     );
   });
 

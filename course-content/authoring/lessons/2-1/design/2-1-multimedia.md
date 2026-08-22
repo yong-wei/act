@@ -61,7 +61,7 @@ python3 course-content/authoring/lessons/2-1/media/raw/generate_media.py
 
 ## 即梦导入视频提示词
 
-本课默认保留 15 秒导入视频规划，用于课堂开场或互动课首页。当前先交中文提示词，不在本轮生成视频文件。
+本课导入视频已完成，成品为 `media/processed/2-1-intro-video.mp4`。原先 15 秒即梦提示词仍保留为原料，不再作为当前成片来源。
 
 - 文件：`media/raw/2-1-intro-video-prompt.md`
 - 目标平台：即梦
@@ -75,5 +75,5 @@ python3 course-content/authoring/lessons/2-1/media/raw/generate_media.py
 
 1. 当前导出学生版 PDF 时，直接使用 `media/processed/` 中已有静态图。
 2. 封面漫画后续若需重生成，继续覆盖 `2-1-cover-comic.png`，不改讲义引用路径。
-3. 即梦视频后续按 `2-1-intro-video-prompt.md` 生成，作为课堂开场素材接入。
+3. 课堂开场与互动课首页使用已发布的 `2-1-intro-video.mp4`。
 4. 若还要继续压缩结构图布局，只需修改 `generate_media.py` 并重新运行同一命令。

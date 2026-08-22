@@ -4,6 +4,26 @@ import { prisma } from '@/lib/prisma';
 import type { AdaptivePathCandidateBatchView } from '@/lib/adaptive-path-candidate-batches';
 import type { LearningPathRequester } from '../route-helpers';
 
+export type VersionedAdaptivePathCandidateBatch = AdaptivePathCandidateBatchView & {
+  sourcePathVersion: string;
+};
+
+export async function attachCandidateBatchSourcePathVersion(
+  batch: AdaptivePathCandidateBatchView,
+): Promise<VersionedAdaptivePathCandidateBatch | null> {
+  const sourcePath = await prisma.learningPath.findFirst({
+    where: {
+      id: batch.sourcePathId,
+      userId: batch.userId,
+      goalId: batch.goalId,
+    },
+    select: { updatedAt: true },
+  });
+  return sourcePath?.updatedAt
+    ? { ...batch, sourcePathVersion: sourcePath.updatedAt.toISOString() }
+    : null;
+}
+
 export async function assertCanReadCandidateBatch(
   requester: LearningPathRequester,
   batch: Pick<AdaptivePathCandidateBatchView, 'userId' | 'classId'>,

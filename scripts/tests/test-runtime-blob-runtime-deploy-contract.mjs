@@ -51,6 +51,10 @@ for (const invariant of [
   "src/lib/runtime-lesson-media-document.ts",
   "scripts/db/seed-all-knowledge.mjs",
   "src/lib/textbook-reader.ts",
+  "src/lib/runtime-release-textbook-candidate-smoke.ts",
+  'smokeCandidateTextbookCorpus',
+  'ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT',
+  'ACT_RUNTIME_CANDIDATE_INDEX_ROOT',
   'candidate media, knowledge, or textbook consumer smoke failed',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
@@ -66,6 +70,95 @@ assert.match(podmanDeploy, /RUNTIME_ACTIVE_RECEIPT_HOST_DIR/, 'deployment must b
 assert.ok(
   activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired lifecycle state must be staged before the legacy selector changes',
+);
+assert.ok(
+  activation.lastIndexOf('trap restore_runtime_consumers ERR') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'ERR recovery must be installed before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('restore_parent_host_overlays "$overlay_source" "$candidate_view"') <
+    activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"'),
+  'control-plane overlay restore must happen before post-overlay verification',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'post-overlay verification must happen before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_current_selected=1'),
+  'failed post-overlay verification must not mark the candidate current view selected',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_deploy_attempted=1'),
+  'failed post-overlay verification must not restart runtime consumers',
+);
+assert.match(
+  activation,
+  /restore-overlays/,
+  'overlay restore must use the host-state allowlist command',
+);
+assert.match(
+  activation,
+  /--replace-existing/,
+  'activation must be able to rematerialize an existing host view from immutable blobs',
+);
+assert.match(
+  activation,
+  /umount "\$final_view\/\.act-runtime-blobs"/,
+  'rebuild swap must unmount the live helper before replacing the active view',
+);
+assert.match(
+  activation,
+  /rebuild_backup="\$backup_view"/,
+  'same-release rebuild must keep the replaced live view as a backup',
+);
+assert.match(
+  activation,
+  /restore_rebuild_backup/,
+  'failed same-release rebuild must restore the replaced live view',
+);
+assert.match(
+  activation,
+  /rebuild_failed="\$failed_view"/,
+  'a live failed rebuild view must be retained while consumers still bind it',
+);
+assert.ok(
+  activation.lastIndexOf('restored_rebuild" == "1"') < activation.lastIndexOf('cleanup_rebuild_failed'),
+  'failed rebuild view must be deleted only after rollback consumer remount succeeds',
+);
+assert.ok(
+  activation.lastIndexOf('post_activation_media_smoke_passed=1') <
+    activation.lastIndexOf('rm -rf -- "$rebuild_backup"'),
+  'rebuild backup must be deleted only after consumer switch and media smoke succeed',
+);
+assert.match(
+  activation,
+  /prepare_result="\$\(python3 "\$MATERIALIZER" "\$\{prepare_args\[@\]\}"\)"/,
+  'activation must use the materializer viewPath, including rebuild staging views',
+);
+assert.match(
+  activation,
+  /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
+  'ERR recovery must revert current even when consumers were not switched',
+);
+assert.match(
+  activation,
+  /Same-identity host view repair must not enter begin-publish\/set-desired/,
+  'same-identity rebuild must skip lifecycle publish transitions',
+);
+assert.match(
+  activation,
+  /same-identity repair did not keep the active lifecycle identity/,
+  'same-identity rebuild must keep the existing active lifecycle identity',
+);
+assert.ok(
+  activation.lastIndexOf('if [[ "$release_id" == "$old_active" ]]; then') <
+    activation.lastIndexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
+  'same-identity repair must decide before lifecycle activate',
 );
 assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),
@@ -132,15 +225,111 @@ assert.ok(consumerModule, 'candidate consumer module must remain extractable for
 const consumerDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-candidate-smoke-'));
 const consumerPath = path.join(consumerDirectory, 'candidate-smoke.ts');
 fs.writeFileSync(consumerPath, consumerModule[1], { encoding: 'utf8', mode: 0o600 });
+const textbookFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-textbook-smoke-'));
+const textbookRoot = path.join(textbookFixture, 'textbooks-v2');
+const indexRoot = path.join(textbookFixture, 'index');
+const fixtureBooks = [
+  ['control-encyclopedia', '2015'],
+  ['hu-shousong-exercise-analysis-3rd', '第三版'],
+];
+const fixtureRevision = 'a'.repeat(40);
+fs.mkdirSync(textbookRoot, { recursive: true });
+for (const [bookId, edition] of fixtureBooks) {
+  const bookRoot = path.join(textbookRoot, bookId);
+  fs.mkdirSync(bookRoot, { recursive: true });
+  const unitId = `textbook-unit:${bookId}@edition/chapter-chapter-01`;
+  const unit = {
+    id: unitId,
+    bookId,
+    edition,
+    chapterId: 'chapter-01',
+    structuralPath: ['chapter-chapter-01'],
+    parentId: null,
+    ancestorIds: [],
+    level: 1,
+    kind: 'chapter',
+    naturalNumber: '1',
+    title: '第一章',
+    markdown: '# 第一章\n正文',
+    sourceSpan: {
+      sourcePath: `textbooks/${bookId}/chapter-01/textbook.md`,
+      startLine: 1,
+      endLine: 1,
+      startByte: 0,
+      endByte: 8,
+    },
+    fragmentAnchorIds: [],
+    recordType: 'structure-unit',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  };
+  fs.writeFileSync(path.join(bookRoot, 'manifest.json'), JSON.stringify({
+    recordType: 'export-manifest',
+    schemaVersion: 'structured-textbook-runtime.v2',
+    bookId,
+    edition,
+    sourceRevision: fixtureRevision,
+    sourceHashes: {},
+    counts: { structureUnits: 1, fragmentAnchors: 0, retrievalWindows: 1, navigationEntries: 1 },
+  }));
+  fs.writeFileSync(path.join(bookRoot, 'navigation.json'), JSON.stringify({
+    recordType: 'navigation-index',
+    schemaVersion: 'structured-textbook-runtime.v2',
+    bookId,
+    entries: [{ unitId, parentId: null, childIds: [], previousUnitId: null, nextUnitId: null }],
+  }));
+  fs.writeFileSync(path.join(bookRoot, 'units.jsonl'), `${JSON.stringify(unit)}\n`);
+  fs.writeFileSync(path.join(bookRoot, 'anchors.jsonl'), '');
+  fs.writeFileSync(path.join(bookRoot, 'windows.jsonl'), `${JSON.stringify({
+    id: unitId.replace('textbook-unit:', 'textbook-window:'),
+    primaryUnitId: unitId,
+    segments: [{ owningUnitId: unitId, markdown: unit.markdown, sourceSpan: unit.sourceSpan }],
+    citationTarget: false,
+    recordType: 'retrieval-window',
+    schemaVersion: 'structured-textbook-runtime.v2',
+  })}\n`);
+}
+fs.writeFileSync(path.join(textbookRoot, 'input-provenance.json'), JSON.stringify({
+  schemaVersion: 'act.textbook-runtime-input-provenance.v1',
+  sourceRevision: fixtureRevision,
+  inputDigest: 'b'.repeat(64),
+  inputFileCount: 2,
+}));
+fs.mkdirSync(indexRoot, { recursive: true });
+for (const fileName of [
+  'windows.jsonl', 'bodies.utf8', 'vectors.f32', 'lexical-terms.jsonl', 'lexical-postings.bin', 'build-report.json',
+]) {
+  fs.writeFileSync(path.join(indexRoot, fileName), '');
+}
+fs.writeFileSync(path.join(indexRoot, 'manifest.json'), JSON.stringify({
+  recordType: 'index-manifest',
+  formatVersion: 'textbook-hybrid-retrieval.v1',
+  sourceRevision: fixtureRevision,
+  resourceSetId: 'current-authoring-bundle-v1',
+  books: fixtureBooks.map(([bookId, edition]) => ({
+    bookId,
+    edition,
+    manifestHash: `sha256:${'0'.repeat(64)}`,
+    sourceHashes: { 'manifest.json': `sha256:${'1'.repeat(64)}` },
+  })),
+}));
 let consumerOutput;
 try {
   consumerOutput = execFileSync(
     path.join(root, 'node_modules', '.bin', 'tsx'),
     [consumerPath],
-    { cwd: root, encoding: 'utf8' },
+    {
+      cwd: root,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT: textbookRoot,
+        ACT_RUNTIME_CANDIDATE_INDEX_ROOT: indexRoot,
+      },
+    },
   ).trim();
 } finally {
   fs.rmSync(consumerDirectory, { recursive: true, force: true });
+  fs.rmSync(textbookFixture, { recursive: true, force: true });
 }
 const consumerResult = JSON.parse(consumerOutput);
 assert.match(
@@ -306,11 +495,11 @@ assert.match(deployAll, /remote-deploy\.sh" --app-only/, 'combined deployment mu
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
 assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');
-assert.match(appDeploy, /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then/, 'legacy runtime synchronization must be gated to the full deployment scope');
-assert.match(
-  appDeploy,
-  /if \[\[ "\$\{DEPLOY_SCOPE\}" == "all" && "\$\{RUNTIME_DELIVERY_MODE\}" == "legacy-rsync" \]\]; then\n(?:  #[^\n]*\n)*  guard_no_committed_production_cutover\nfi/,
-  'default blob-view deploys must not inherit the Legacy cutover marker abort',
+assert.match(appDeploy, /legacy-rsync 已退役/, 'legacy-rsync must fail closed instead of synchronizing runtime');
+assert.equal(
+  appDeploy.includes('rsync "${runtime_rsync_args[@]}"'),
+  false,
+  'application deployment must not retain a leftover runtime rsync implementation',
 );
 assert.match(appDeploy, /ossfs-blob-view：不传输 runtime 内容/, 'full application deployment must retain the existing blob view instead of rsync');
 assert.match(appDeploy, /--app-only：跳过 runtime release 验证/, 'application deployment must skip runtime release verification');

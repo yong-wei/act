@@ -83,7 +83,7 @@ rtk npm run deploy:all
 
 - `deploy:app` / `remote-deploy.sh --app-only` 只上传并装载应用镜像，绑定远端已物化的 `ossfs-blob-view`
 - `remote-deploy.sh` 默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，不会同步本地 `course-content/runtime`
-- 更新课程 runtime 只能用 `deploy:runtime`；`legacy-rsync` 仅在显式设置且不存在 OSS active receipt 时可用
+- 更新课程 runtime 只能用 `deploy:runtime`；`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
 - `4-deploy.sh` 只 bind 现有 view，不负责发布或复制 runtime
 - 若发现远端存在 `src/`、`prisma/`、`package.json` 等源码残留，先清理到最小运维壳层，再继续部署
 - 若 `deploy/podman/deploy.sh` 已使用 `--add-host` 为 `app/worker` 注入数据库与 Redis 的静态主机映射，`deploy/podman/configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only`，不要再用 `podman start` 复用旧的 `app/worker` 容器；否则数据库或 Redis 重启后 IP 改变，旧容器内静态映射会立刻失效

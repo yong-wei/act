@@ -43,9 +43,28 @@ describe('platform role navigation', () => {
       '/arena',
       '/simulations',
       '/interactive-learning/control-workbench',
+      '/evaluation/prompt-assessment',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
     expect(entries.map((entry) => entry.id)).not.toContain('student-profile');
+  });
+
+  it('keeps prompt assessment reachable and active in the student global navigation', () => {
+    expect(getStudentCoreNavigationEntries().map((entry) => entry.id)).toContain('student-prompt-assessment');
+    expect(getPlatformRouteNavigation('/evaluation/prompt-assessment', 'student')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'student-prompt-assessment',
+          href: '/evaluation/prompt-assessment',
+          group: 'student-core',
+        }),
+      ]),
+    );
+    expect(
+      getStudentLearningIntentNavigationGroups().find((group) => group.intent === 'practice')?.entries.map(
+        (entry) => entry.id,
+      ),
+    ).toContain('student-prompt-assessment');
   });
 
   it('defines student, teacher, admin, and guest navigation groups', () => {
@@ -378,6 +397,7 @@ describe('platform role navigation', () => {
       '/profile/portfolio',
       '/profile/evidence',
       '/assessment/document-feedback',
+      '/evaluation/prompt-assessment',
       '/data-center',
       '/classroom/join',
       '/classroom/student/[sessionId]',
@@ -954,6 +974,15 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       roleScope: ['student'],
       mobileNavigation: 'role-route-tabs',
+    });
+    expect(
+      PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/evaluation/prompt-assessment'),
+    ).toMatchObject({
+      frame: 'report-ledger',
+      roleScope: ['guest', 'student'],
+      authState: 'mixed',
+      desktopNavigation: 'collapsible',
+      mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
       frame: 'knowledge-data-map',

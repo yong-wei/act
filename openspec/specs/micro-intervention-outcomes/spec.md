@@ -51,3 +51,36 @@ The system SHALL derive a next-step recommendation only from the intervention's 
 #### Scenario: Fail without prerequisite nodes
 - **WHEN** a validation fails and no governed prerequisite node is available
 - **THEN** the projection recommends the controlled tutoring/manual-practice fallback without inventing a node
+
+### Requirement: 微干预记录受治理资源动作身份
+
+系统 SHALL 仅记录服务端已验证、属于干预快照的资源动作事件。事件 MUST 绑定干预实例、资源稳定身份、资源 revision/hash、动作 id/version 和事件幂等键；客户端不得替换资源或动作身份。参与事件 SHALL 与独立验证结果保持不同的 evidence kind。
+
+#### Scenario: 记录合格资源动作完成
+
+- **WHEN** 学生完成当前干预所选资源的受控动作
+- **THEN** 系统 SHALL 幂等记录服务端绑定的资源和动作身份
+- **AND** 该事件 SHALL 标记为参与上下文而非掌握证明
+
+#### Scenario: 客户端替换动作身份
+
+- **WHEN** 客户端提交的资源、动作或 revision 不属于干预快照
+- **THEN** 系统 SHALL 拒绝事件
+- **AND** 不得重写已有干预证据
+
+### Requirement: 微干预结果提供不可变学习证据投影源
+
+微干预结果 SHALL 暴露一个服务端内部、不可变且可重放的投影源，包含 outcome identity、验证题/content/version、结果、学习目标、规范节点、来源归因、干预和 capture identity。结果写入本身 MUST 继续只保存 outcome，不得同步写 mastery 或正式 path。
+
+#### Scenario: projector 读取已封存结果
+
+- **WHEN** 一个 outcome 完整且当前治理身份可核验
+- **THEN** 内部投影源 SHALL 提供生成候选学习证据所需的不可变引用
+- **AND** 学生 API SHALL 继续只返回 learner-safe 结果
+
+#### Scenario: outcome 不完整或已漂移
+
+- **WHEN** outcome 缺少验证内容身份或其治理引用无法核验
+- **THEN** 投影源 SHALL 返回 limitation
+- **AND** 不得推断或补写缺失身份
+

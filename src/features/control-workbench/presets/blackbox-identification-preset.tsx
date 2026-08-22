@@ -6,9 +6,12 @@ import { BarChart3, Database, EyeOff, Radar, Save, Send } from 'lucide-react';
 import { buildArenaLeaderboard } from '@/features/arena/leaderboards/leaderboard';
 import { ArenaPersonalFeedback } from '@/features/arena/student/arena-personal-feedback';
 import { sendArenaCoreEvent } from '@/features/arena/telemetry';
-import type { ArenaBlackBoxExperimentDataset, ArenaBlackBoxSignalType } from '@/features/arena/blackbox/experiment';
-import type { StoredArenaIdentificationModel } from '@/features/arena/blackbox/experiment-service';
-import type { ArenaVirtualSimulationPreviewRun } from '@/features/arena/blackbox/controller-preview';
+import type {
+  ArenaBlackBoxExperimentDataset,
+  ArenaBlackBoxSignalType,
+  ArenaVirtualSimulationPreviewRun,
+  StoredArenaIdentificationModel,
+} from '@/features/arena/blackbox/contracts';
 import {
   buildBlackBoxExperimentBudgetCoverageEvidence,
   buildBlackBoxNominalModelConfidenceEvidence,
@@ -17,7 +20,7 @@ import {
   type BlackBoxNominalModelConfidenceEvidence,
 } from '@/features/arena/blackbox/engineering-evidence';
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
-import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
+import type { ArenaSubmissionRecord } from '@/features/arena/submissions/types';
 import type { ChallengeTask } from '@/features/arena/types';
 import { useArenaOfficialSubmissionPathSync } from '@/features/arena/arena-official-submission-sync';
 import type {

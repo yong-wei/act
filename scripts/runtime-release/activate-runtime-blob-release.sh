@@ -26,9 +26,15 @@ manifest=""
 release_receipt=""
 verification_receipt=""
 ram_role=""
+replace_existing=0
 old_active="none"
 parent_view=""
+overlay_stash=""
+rebuild_staging=""
+rebuild_backup=""
+rebuild_failed=""
 rollback_app_image=""
+candidate_current_selected=0
 candidate_deploy_attempted=0
 lifecycle_identity=""
 lifecycle_generation=""
@@ -45,6 +51,7 @@ while [[ $# -gt 0 ]]; do
     --release-receipt) release_receipt="$2"; shift 2 ;;
     --verification-receipt) verification_receipt="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
+    --replace-existing) replace_existing=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -57,7 +64,7 @@ done
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 
-for command in flock podman python3 findmnt mount curl mktemp; do
+for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
 for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$DEPLOY_SCRIPT"; do
@@ -144,6 +151,7 @@ const importFromApp = (relativePath: string) => import(
 const { parseRuntimeLessonMediaDocument } = await importFromApp('src/lib/runtime-lesson-media-document.ts');
 const { loadTextbookCatalog, loadTextbookReaderProjection } = await importFromApp('src/lib/textbook-reader.ts');
 const { loadStructuredTextbookBook } = await importFromApp('src/lib/structured-textbook-runtime.ts');
+const { smokeCandidateTextbookCorpus } = await importFromApp('src/lib/runtime-release-textbook-candidate-smoke.ts');
 const { selectRelationsForDb, validateRuntimeNodes } = await importFromApp('scripts/db/seed-all-knowledge.mjs');
 const lessonsRoot = path.join(runtimeRoot, 'lessons');
 let mediaPath = '';
@@ -195,23 +203,11 @@ if (relationSelection.selectedRelations.size === 0) {
   throw new Error('candidate runtime has no database-ready knowledge relations');
 }
 
-const textbookRoot = path.join(runtimeRoot, 'resources', 'textbooks-v2');
-const catalog = await loadTextbookCatalog({ userId: 'candidate-runtime-smoke', runtimeRoot: textbookRoot });
-const catalogEntry = catalog[0];
-if (!catalogEntry) throw new Error('candidate runtime has no textbook catalog entry');
-const book = await loadStructuredTextbookBook(catalogEntry.bookId, textbookRoot);
-const unit = book.units.find((entry) => entry.structuralPath.length > 0);
-if (!unit) throw new Error('candidate textbook has no readable structural unit');
-const textbookProjection = await loadTextbookReaderProjection({
-  userId: 'candidate-runtime-smoke',
-  bookId: catalogEntry.bookId,
-  edition: catalogEntry.edition,
-  unitPath: unit.structuralPath,
-  runtimeRoot: textbookRoot,
+await smokeCandidateTextbookCorpus({
+  runtimeRoot,
+  textbookRoot: process.env.ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT,
+  indexRoot: process.env.ACT_RUNTIME_CANDIDATE_INDEX_ROOT,
 });
-if (!textbookProjection.unit.markdown.trim() || textbookProjection.hierarchy.length === 0) {
-  throw new Error('candidate textbook reader projection is incomplete');
-}
 
 console.log(JSON.stringify({ mediaPath }));
 }
@@ -273,6 +269,25 @@ capture_rollback_image() {
   rollback_app_image="sha256:${BASH_REMATCH[2]}"
 }
 
+# Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
+# as regular files on the active view. Rematerialize rebuilds the Git/blob
+# forest and would otherwise replace those pointers with the Git v0.9 leaves.
+# Copy the declared selector allowlist plus the sealed payload closure each
+# selector binds, never textbook retrieval caches or other runtime data, then
+# re-verify before consumers switch.
+restore_parent_host_overlays() {
+  local parent="$1"
+  local candidate="$2"
+  [[ -n "$parent" && -d "$parent" && ! -L "$parent" ]] || return 0
+  [[ -n "$candidate" && -d "$candidate" && ! -L "$candidate" ]] || {
+    echo "ERROR: candidate view is missing for overlay restore" >&2
+    return 1
+  }
+  python3 "$HOST_STATE_SCRIPT" restore-overlays \
+    --parent-runtime-root "$parent" \
+    --candidate-runtime-root "$candidate" >/dev/null
+}
+
 write_lifecycle_identity() {
   local mounted_manifest="$1"
   lifecycle_identity="$(mktemp "$STATE_DIR/.act-runtime-blob-identity.XXXXXX")"
@@ -316,6 +331,11 @@ stage_lifecycle_desired() {
     exit 1
   }
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
+  if [[ "$release_id" == "$old_active" ]]; then
+    # Same-identity host view repair must not enter begin-publish/set-desired;
+    # those transitions reject an identity that already occupies active.
+    return 0
+  fi
   desired_id="$(python3 -c 'import json,sys; print((json.load(sys.stdin)["desired"] or {}).get("releaseId", ""))' <<<"$snapshot")"
   if [[ -n "$desired_id" && "$desired_id" != "$release_id" ]]; then
     echo "ERROR: v2 lifecycle already records a different desired release" >&2
@@ -343,9 +363,59 @@ stage_lifecycle_desired() {
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
 }
 
+restore_rebuild_backup() {
+  [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]] || return 0
+  local final_view="$VIEW_ROOT/views/$release_id"
+  local failed_view="$VIEW_ROOT/views/.$release_id.failed-rebuild"
+  if findmnt -rn -M "$final_view/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$final_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+  fi
+  if [[ -e "$final_view" || -L "$final_view" ]]; then
+    if findmnt -rn -M "$failed_view/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$failed_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$failed_view"
+    mv "$final_view" "$failed_view" || true
+  fi
+  mv "$rebuild_backup" "$final_view" || true
+  rebuild_backup=""
+  if [[ -d "$final_view" ]]; then
+    ensure_helper_mount "$final_view/.act-runtime-blobs" || true
+  fi
+  if [[ "$candidate_deploy_attempted" == "1" && -d "$failed_view" ]]; then
+    rebuild_failed="$failed_view"
+  elif [[ -d "$failed_view" ]]; then
+    if findmnt -rn -M "$failed_view/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$failed_view/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$failed_view"
+  fi
+}
+
+cleanup_rebuild_failed() {
+  [[ -n "${rebuild_failed:-}" && -d "$rebuild_failed" ]] || return 0
+  if findmnt -rn -M "$rebuild_failed/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$rebuild_failed/.act-runtime-blobs" >/dev/null 2>&1 || true
+  fi
+  rm -rf -- "$rebuild_failed"
+  rebuild_failed=""
+}
+
 cleanup_lifecycle_identity() {
   if [[ -n "$lifecycle_identity" && -f "$lifecycle_identity" ]]; then
     rm -f -- "$lifecycle_identity"
+  fi
+  if [[ -n "${overlay_stash:-}" && -d "$overlay_stash" ]]; then
+    rm -rf -- "$overlay_stash"
+  fi
+  if [[ -n "${rebuild_staging:-}" && -d "$rebuild_staging" ]]; then
+    if findmnt -rn -M "$rebuild_staging/.act-runtime-blobs" >/dev/null 2>&1; then
+      umount "$rebuild_staging/.act-runtime-blobs" >/dev/null 2>&1 || true
+    fi
+    rm -rf -- "$rebuild_staging"
+  fi
+  if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" && "$post_activation_media_smoke_passed" != "1" ]]; then
+    restore_rebuild_backup
   fi
 }
 
@@ -354,6 +424,11 @@ trap cleanup_lifecycle_identity EXIT
 restore_runtime_consumers() {
   local status=$?
   set +e
+  local restored_rebuild=0
+  if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
+    restore_rebuild_backup
+    restored_rebuild=1
+  fi
   python3 "$ACTIVATION_TRANSACTION" recover \
     --state-dir "$STATE_DIR" \
     --lifecycle-script "$LIFECYCLE_SCRIPT" \
@@ -375,9 +450,12 @@ restore_runtime_consumers() {
       lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
     fi
   fi
+  if [[ "$candidate_current_selected" == "1" && "$lifecycle_active_release" != "$release_id" && -n "$parent_view" && "$old_active" != "none" ]]; then
+    python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null || \
+      echo "ERROR: candidate current view could not be restored to the previous release" >&2
+  fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
-      python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null
       RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
@@ -390,6 +468,15 @@ restore_runtime_consumers() {
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+    elif [[ "$restored_rebuild" == "1" ]]; then
+      if RUNTIME_DELIVERY_MODE=ossfs-blob-view \
+        ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
+        APP_IMAGE="$rollback_app_image" \
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-; then
+        cleanup_rebuild_failed
+      fi
     fi
   fi
   cleanup_lifecycle_identity
@@ -415,28 +502,77 @@ if [[ -z "$parent_view" && "$old_active" == "none" && ! -d "$LEGACY_RUNTIME_ROOT
 fi
 capture_rollback_image
 
+if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
+  replace_existing=1
+fi
 prepare_args=(prepare --manifest "$manifest" --receipt "$release_receipt" --blob-root "$BLOB_ROOT" --view-root "$VIEW_ROOT" --cache-textbook-retrieval)
-if [[ -n "$parent_view" ]]; then
+if [[ "$replace_existing" == "1" ]]; then
+  prepare_args+=(--replace-existing)
+fi
+overlay_source="$parent_view"
+overlay_stash=""
+if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
+  overlay_stash="$(mktemp -d "$STATE_DIR/.act-runtime-overlay-stash.XXXXXX")"
+  restore_parent_host_overlays "$parent_view" "$overlay_stash"
+  overlay_source="$overlay_stash"
+elif [[ -n "$parent_view" ]]; then
   prepare_args+=(--parent-view "$parent_view")
 fi
-python3 "$MATERIALIZER" "${prepare_args[@]}" >/dev/null
-candidate_view="$VIEW_ROOT/views/$release_id"
+prepare_result="$(python3 "$MATERIALIZER" "${prepare_args[@]}")"
+candidate_view="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["viewPath"])' <<<"$prepare_result")"
+if python3 -c 'import json,sys; raise SystemExit(0 if json.load(sys.stdin).get("rebuilt") else 1)' <<<"$prepare_result"; then
+  rebuild_staging="$candidate_view"
+fi
+[[ -n "$candidate_view" && -d "$candidate_view" && ! -L "$candidate_view" ]] || {
+  echo "ERROR: materializer did not return a candidate view" >&2
+  exit 1
+}
 ensure_helper_mount "$candidate_view/.act-runtime-blobs"
+if [[ -n "${overlay_source:-}" ]]; then
+  restore_parent_host_overlays "$overlay_source" "$candidate_view"
+fi
+if [[ -n "$overlay_stash" ]]; then
+  rm -rf -- "$overlay_stash"
+fi
 
 verify_args=(verify-mounted --format v2 --runtime-root "$candidate_view" --blob-root "$candidate_view/.act-runtime-blobs" --release-id "$release_id" --verification-receipt "$verification_receipt")
-if [[ -n "$parent_view" ]]; then
+if [[ -n "$parent_view" && "$parent_view" != "$candidate_view" ]]; then
   verify_args+=(--parent-runtime-root "$parent_view")
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
+if [[ -n "$rebuild_staging" ]]; then
+  final_view="$VIEW_ROOT/views/$release_id"
+  backup_view="$VIEW_ROOT/views/.$release_id.replaced"
+  [[ "$rebuild_staging" != "$final_view" && -d "$rebuild_staging" ]] || {
+    echo "ERROR: rebuild staging view is invalid" >&2
+    exit 1
+  }
+  if findmnt -rn -M "$final_view/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$final_view/.act-runtime-blobs" || {
+      echo "ERROR: could not unmount the live runtime helper before rebuild swap" >&2
+      exit 1
+    }
+  fi
+  [[ ! -e "$backup_view" ]] || {
+    echo "ERROR: rebuild backup view already exists" >&2
+    exit 1
+  }
+  mv "$final_view" "$backup_view"
+  rebuild_backup="$backup_view"
+  mv "$rebuild_staging" "$final_view"
+  rebuild_staging=""
+  candidate_view="$final_view"
+  ensure_helper_mount "$candidate_view/.act-runtime-blobs"
+fi
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
 stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
-python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
-
 trap restore_runtime_consumers ERR
+python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+candidate_current_selected=1
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
@@ -447,22 +583,36 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
 source "$ENV_FILE"
 wait_for_readyz
 run_candidate_consumer_smoke
-activation_attempted=1
-python3 "$ACTIVATION_TRANSACTION" activate \
-  --state-dir "$STATE_DIR" \
-  --lifecycle-script "$LIFECYCLE_SCRIPT" \
-  --host-state-script "$HOST_STATE_SCRIPT" \
-  --expected-generation "$lifecycle_generation" \
-  --identity "$lifecycle_identity" >/dev/null
-activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
-activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
-activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
-[[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
-  echo "ERROR: lifecycle activation did not commit the candidate release" >&2
-  exit 1
-}
+if [[ "$release_id" == "$old_active" ]]; then
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: same-identity repair did not keep the active lifecycle identity" >&2
+    exit 1
+  }
+else
+  activation_attempted=1
+  python3 "$ACTIVATION_TRANSACTION" activate \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" >/dev/null
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: lifecycle activation did not commit the candidate release" >&2
+    exit 1
+  }
+fi
 run_active_media_resolver_smoke
 post_activation_media_smoke_passed=1
+if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
+  rm -rf -- "$rebuild_backup"
+  rebuild_backup=""
+fi
 trap - ERR
 cleanup_lifecycle_identity
 printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$old_active"

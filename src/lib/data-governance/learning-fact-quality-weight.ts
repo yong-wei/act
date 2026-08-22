@@ -17,7 +17,10 @@ export type LearningFactProfilePolicyReason =
   | 'adaptive_assessment_evidence'
   | 'adaptive_assessment_provisional_context_only'
   | 'adaptive_assessment_missing_kaq_context_only'
-  | 'unmanaged_learning_fact_context_only';
+  | 'unmanaged_learning_fact_context_only'
+  | 'micro_intervention_context_only'
+  | 'micro_intervention_validation_bounded'
+  | 'micro_intervention_validation_shadow';
 
 export interface LearningFactEvidenceGovernance {
   evidenceQuality: SubmissionEvidenceQuality;
@@ -167,6 +170,25 @@ export function resolveLearningFactEvidenceGovernance(
       profileWeight: 1,
       skipProfileContribution: false,
       policyReason: 'adaptive_assessment_evidence',
+    });
+  }
+
+  if (actionType === 'micro_intervention_context' || actionType === 'micro_intervention_event') {
+    return toJsonObject({
+      evidenceQuality: 'missing',
+      profileWeight: 0,
+      skipProfileContribution: true,
+      policyReason: 'micro_intervention_context_only',
+    });
+  }
+
+  if (actionType === 'micro_intervention_validation') {
+    const consume = payload.consumeMicroInterventionEvidence === true;
+    return toJsonObject({
+      evidenceQuality: 'partial',
+      profileWeight: consume ? PARTIAL_EVIDENCE_PROFILE_WEIGHT : 0,
+      skipProfileContribution: !consume,
+      policyReason: consume ? 'micro_intervention_validation_bounded' : 'micro_intervention_validation_shadow',
     });
   }
 

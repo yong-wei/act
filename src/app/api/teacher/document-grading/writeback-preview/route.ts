@@ -13,7 +13,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { GradingMutationError } from '@/lib/data-governance/math-document-grading-contracts';
 import { prisma } from '@/lib/prisma';
 import {
-  buildPipelineReviewFacts,
+  buildPipelineReviewFactCandidates,
   assertPipelineReviewActor,
   isPipelineRunReviewable,
   PIPELINE_GRADING_REVIEW_INCLUDE,
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       const contractReasons = validatePipelineReviewContract(pipelineRun);
       contractReasons.push(...await validatePipelineRuntimeSource(pipelineRun, createSubmissionObjectStore()));
       if (contractReasons.length > 0) return NextResponse.json({ error: 'grading-review-contract-drift', reasons: contractReasons }, { status: 409 });
-      const facts = buildPipelineReviewFacts({ run: pipelineRun, edits: body.edits ?? [], reviewedAt: new Date() });
+      const facts = buildPipelineReviewFactCandidates({ run: pipelineRun, edits: body.edits ?? [], reviewedAt: new Date() });
       return NextResponse.json({
         status: 'preview',
         gradingRunId: pipelineRun.id,
@@ -160,6 +160,7 @@ export async function POST(request: Request) {
       rubric: parsed.rubric,
       studentId: draft.ownerUserId,
       goalContext: parsed.goalContext,
+      sourceLogId: draft.id,
     });
 
     return NextResponse.json({

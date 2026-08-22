@@ -9,8 +9,10 @@ import {
   removePathSync,
   replaceRuntimeDirectories,
 } from '../release/export-textbook-runtime-v2.mjs';
+import { loadTextbookResourceSet, textbookBookIds } from '../release/textbook-resource-set.mjs';
 
 const root = process.cwd();
+const resourceSetId = loadTextbookResourceSet().resourceSetId;
 const authoringInputRoot = path.join(root, 'course-content/authoring/resources');
 
 {
@@ -102,8 +104,12 @@ assert.throws(
       'scripts/release/export-textbook-runtime-v2.mjs',
       'scripts/release/validate-textbook-runtime-v2.mjs',
       'scripts/release/textbook-runtime-v2-provenance.mjs',
+      'scripts/release/textbook-runtime-input-provenance.mjs',
+      'scripts/release/textbook-resource-set.mjs',
       'course-content/scripts/export_structured_textbook_runtime_v2.py',
       'course-content/scripts/structured_textbook_runtime.py',
+      'course-content/scripts/textbook_resource_set.py',
+      'course-content/scripts/textbook_runtime_input_provenance.py',
       'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
       'course-content/scripts/validate_written_textbook_runtime_v2.py',
       'course-content/scripts/textbook_hybrid_retrieval.py',
@@ -112,6 +118,7 @@ assert.throws(
       'course-content/contracts/structured-textbook-runtime-v2.schema.json',
       'course-content/contracts/textbook-hybrid-retrieval-v1.schema.json',
       'course-content/config/textbook-hybrid-retrieval.json',
+      'course-content/config/textbook-resource-set.json',
     ]) {
       const filePath = path.join(repositoryRoot, relativeInput);
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -171,6 +178,12 @@ const deployScript = read('deploy/podman/deploy.sh');
 const remoteDeployScript = read('scripts/remote-deploy.sh');
 const graphCenterSources = read('src/lib/data-governance/graph-center-sources.ts');
 const learningGoalBaselineRuntime = read('src/lib/learning-goal-resource-baseline-runtime.ts');
+const microTutoringRuntimeSources = [
+  'src/features/assessment/micro-tutoring-goal-node-catalog.ts',
+  'src/features/assessment/micro-tutoring-option-attribution.ts',
+  'src/features/assessment/micro-tutoring-resource-registry.ts',
+  'src/features/assessment/micro-tutoring-validation-registry.ts',
+].map(read);
 
 assert.equal(
   dockerignore.includes('course-content/runtime'),
@@ -180,7 +193,8 @@ assert.equal(
 
 assert.equal(
   /from ['"].*resource-field-completion-summary\.json['"]/.test(graphCenterSources) ||
-    /from ['"].*learning-goal-resource-baseline-matrix\.json['"]/.test(learningGoalBaselineRuntime),
+    /from ['"].*learning-goal-resource-baseline-matrix\.json['"]/.test(learningGoalBaselineRuntime) ||
+    microTutoringRuntimeSources.some((source) => /from ['"].*micro-tutoring-.*\.json['"]/.test(source)),
   false,
   '源码不得静态 import 外置 runtime governance JSON，否则 Docker 构建上下文排除 runtime 后会失败',
 );
@@ -198,15 +212,7 @@ assert.equal(
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
 );
 
-const textbookV2BookIds = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+const textbookV2BookIds = textbookBookIds();
 const textbookV2RequiredFiles = [
   'manifest.json',
   'navigation.json',
@@ -236,6 +242,7 @@ function createIndexFixture(indexRoot, revision) {
           recordType: 'index-manifest',
           formatVersion: 'textbook-hybrid-retrieval.v1',
           sourceRevision: revision,
+          resourceSetId,
         })}\n`
         : '',
     );
@@ -320,6 +327,28 @@ for (const failAtInstall of [2, 3]) {
   }
 }
 
+if (process.platform !== 'win32') {
+  const danglingSymlinkRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'textbook-runtime-dangling-symlink-'),
+  );
+  try {
+    const siblingTarget = path.join(danglingSymlinkRoot, '00-sibling-target');
+    const danglingLink = path.join(danglingSymlinkRoot, '99-dangling-link');
+    fs.mkdirSync(siblingTarget);
+    fs.symlinkSync(siblingTarget, danglingLink, 'dir');
+
+    removePathSync(danglingSymlinkRoot);
+
+    assert.throws(
+      () => fs.lstatSync(danglingSymlinkRoot),
+      { code: 'ENOENT' },
+      '递归清理必须删除其目标已先被删除的悬空符号链接',
+    );
+  } finally {
+    removePathSync(danglingSymlinkRoot);
+  }
+}
+
 {
   const permissionRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), 'textbook-runtime-permissions-'),
@@ -355,6 +384,8 @@ for (const failAtInstall of [2, 3]) {
           assert.equal(mode & 0o055, 0o055, `${directory} 必须允许 group/other 读取和遍历`);
         }
       }
+    }
+    for (const replacement of replacements) {
       assert.equal(
         fs.readFileSync(path.join(replacement.target, 'nested', 'deeper', `${path.basename(replacement.target)}.txt`), 'utf8'),
         `content-${path.basename(replacement.target)}`,
@@ -374,7 +405,8 @@ for (const failAtInstall of [2, 3]) {
 }
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => textbookV2ProvenanceHelper.includes(`'${bookId}'`)) &&
+  textbookV2ProvenanceHelper.includes('textbookBookIds') &&
+    textbookV2ProvenanceHelper.includes('textbookBookCount') &&
     textbookV2RequiredFiles.every((fileName) => textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     textbookV2Preflight.includes('validate_structured_textbook_runtime_v2.mjs') &&
     textbookV2Preflight.includes('validate_written_textbook_runtime_v2.py') &&
@@ -424,7 +456,7 @@ try {
   assert.notEqual(
     mismatchResult.status,
     0,
-    '七书 sourceRevision 不一致时 release preflight 必须 fail closed',
+    'resourceSet sourceRevision 不一致时 release preflight 必须 fail closed',
   );
   assert.match(
     mismatchResult.stderr,
@@ -642,6 +674,74 @@ try {
   removePathSync(mediaFixtureRoot);
 }
 
+const appOnlyProvenanceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'app-only-provenance-'));
+try {
+  const imageTar = path.join(appOnlyProvenanceRoot, 'image.tar');
+  const sidecar = `${imageTar}.provenance.json`;
+  fs.writeFileSync(imageTar, 'app-only image payload');
+  const writeAppOnlyResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'write-app-only-sidecar',
+      '--image-tar',
+      imageTar,
+      '--app-revision',
+      '4'.repeat(40),
+      '--output',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(writeAppOnlyResult.status, 0, writeAppOnlyResult.stderr);
+  const appOnlySidecar = JSON.parse(fs.readFileSync(sidecar, 'utf8'));
+  assert.equal(appOnlySidecar.deploymentScope, 'app-only');
+  assert.equal('runtimeSourceRevision' in appOnlySidecar, false);
+  const verifyAppOnlyImageResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-image',
+      '--image-tar',
+      imageTar,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(verifyAppOnlyImageResult.status, 0, verifyAppOnlyImageResult.stderr);
+  assert.equal(
+    JSON.parse(verifyAppOnlyImageResult.stdout).deploymentScope,
+    'app-only',
+    'app-only sidecar 必须显式声明未绑定 runtime 的部署范围',
+  );
+  const appOnlyRuntimeVerifyResult = spawnSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
+      'verify-runtime',
+      '--runtime-root',
+      appOnlyProvenanceRoot,
+      '--index-dir',
+      appOnlyProvenanceRoot,
+      '--sidecar',
+      sidecar,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(
+    appOnlyRuntimeVerifyResult.status,
+    0,
+    'app-only sidecar 不得被误用于 runtime 完整性校验',
+  );
+  assert.match(
+    appOnlyRuntimeVerifyResult.stderr,
+    /textbook-v2-provenance-runtime-unavailable-for-app-only/u,
+  );
+} finally {
+  removePathSync(appOnlyProvenanceRoot);
+}
+
 const tarMismatchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-tar-mismatch-'));
 try {
   const imageTar = path.join(tarMismatchRoot, 'image.tar');
@@ -651,6 +751,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '1111111111111111111111111111111111111111',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '1111111111111111111111111111111111111111',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -683,6 +784,7 @@ try {
     schemaVersion: 'act.textbook-runtime-release-provenance.v2',
     appRevision: '3333333333333333333333333333333333333333',
     imageTarSha256: '0'.repeat(64),
+    resourceSetId,
     runtimeSourceRevision: '2222222222222222222222222222222222222222',
     runtimeDigest: '1'.repeat(64),
     runtimeInputDigest: '3'.repeat(64),
@@ -719,7 +821,7 @@ assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
     buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
   true,
-  'release build 必须在应用构建前执行七书教材 v2 preflight',
+  'release build 必须在应用构建前执行 resourceSet 教材 v2 preflight',
 );
 
 assert.equal(
@@ -797,53 +899,20 @@ assert.equal(
   'Podman 部署脚本应对 app/worker 创建后停留在 created/exited 的瞬时 runc 启动失败做有限重试',
 );
 
+assert.match(
+  remoteDeployScript,
+  /legacy-rsync 已退役/,
+  'legacy-rsync 必须失败关闭，不得再同步本地 course-content/runtime',
+);
 assert.equal(
-  remoteDeployScript.includes('runtime_rsync_args=(') &&
-    remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"') &&
-    remoteDeployScript.includes('REMOTE_RUNTIME_STAGING_DIR') &&
-    remoteDeployScript.includes('REMOTE_RUNTIME_SELECTION_LOCK') &&
-    remoteDeployScript.includes('podman stop -t 30') &&
-    remoteDeployScript.includes('course-content/runtime') &&
-    (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||
-      remoteDeployScript.includes('${REMOTE_RUNTIME_DIR}/')),
-  true,
-  '显式 legacy-rsync 路径应先同步并验证 staging，再持锁停消费者并替换正式目录',
+  remoteDeployScript.includes('rsync "${runtime_rsync_args[@]}"'),
+  false,
+  '远端部署不得再包含 course-content/runtime rsync',
 );
 assert.match(
   remoteDeployScript,
   /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/,
   '远端部署默认必须使用 ossfs-blob-view，不得默认 rsync runtime',
-);
-
-const remotePreflightIndex = remoteDeployScript.indexOf(
-  'scripts/release/validate-textbook-runtime-v2.mjs',
-);
-const runtimeRsyncIndex = remoteDeployScript.indexOf('rsync "${runtime_rsync_args[@]}"');
-const runtimeCutoverIndex = remoteDeployScript.indexOf(
-  'Step 0/8: 在 runtime 锁内替换 Legacy runtime',
-  runtimeRsyncIndex,
-);
-const runtimeStopIndex = remoteDeployScript.indexOf(
-  'podman stop -t 30',
-  runtimeCutoverIndex,
-);
-const remoteHostCheckIndex = remoteDeployScript.indexOf(
-  'check_remote_textbook_v2_files',
-  runtimeRsyncIndex,
-);
-const runtimeSwapIndex = remoteDeployScript.indexOf(
-  'if ! mv \\"${REMOTE_RUNTIME_STAGING_DIR}\\" \\"${REMOTE_RUNTIME_DIR}\\"',
-  runtimeStopIndex,
-);
-assert.equal(
-  remotePreflightIndex >= 0 &&
-    remotePreflightIndex < runtimeRsyncIndex &&
-    remoteHostCheckIndex > runtimeRsyncIndex &&
-    remoteHostCheckIndex < runtimeCutoverIndex &&
-    runtimeCutoverIndex < runtimeStopIndex &&
-    runtimeStopIndex < runtimeSwapIndex,
-  true,
-  '远端部署即使 skip-build 也必须先 preflight 和 staging 校验，再持锁停消费者并原子替换',
 );
 
 assert.equal(
@@ -860,14 +929,15 @@ assert.equal(
 );
 
 assert.equal(
-  textbookV2BookIds.every((bookId) => remoteDeployScript.includes(bookId)) &&
+  remoteDeployScript.includes('scripts/release/textbook-resource-set.mjs') &&
+    remoteDeployScript.includes('TEXTBOOK_V2_BOOK_COUNT') &&
     textbookV2RequiredFiles.every((fileName) => remoteDeployScript.includes(fileName)) &&
     remoteDeployScript.includes('check_container_textbook_v2_files') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbooks-v2') &&
     remoteDeployScript.includes('/app/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3') &&
-    (remoteDeployScript.match(/-eq 7/g)?.length ?? 0) >= 2,
+    (remoteDeployScript.match(/-eq \\"\$\{TEXTBOOK_V2_BOOK_COUNT\}\\"/g)?.length ?? 0) >= 2,
   true,
-  '远端宿主与已启动 app 容器必须校验七书 v2 与固定检索索引',
+  '远端宿主与已启动 app 容器必须校验 resourceSet v2 与固定检索索引',
 );
 
 assert.equal(
@@ -922,10 +992,9 @@ assert.equal(
   textbookRetrievalRequiredFiles.every((fileName) =>
     textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
-    remoteDeployScript.includes('--index-dir "${LOCAL_TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
     remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
   true,
-  'build、skip-build 与远端验证必须把固定 index 纳入同一 revision/digest 合同',
+  'build 与远端 ossfs-release 验收必须把固定 index 纳入同一 revision/digest 合同',
 );
 
 console.log('runtime externalized deploy test passed');
