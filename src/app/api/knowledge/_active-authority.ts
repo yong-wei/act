@@ -55,6 +55,11 @@ import {
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
 import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
+import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
+import {
+  activeLocaleCapability,
+  resolveActiveLocaleRequest,
+} from '@/lib/authority-locale-readiness/request';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -491,8 +496,9 @@ function shardFailureCode(error: unknown): { code: string; message: string; stat
 export function activeShardResponse<T extends AuthorityLearnerShard>(
   read: () => T,
   role?: KnowledgeRole,
+  request?: Request,
 ): NextResponse {
-  return activeShardResponseForRole(read, role);
+  return activeShardResponseForRole(read, role, request);
 }
 
 /**
@@ -503,10 +509,18 @@ export function activeShardResponse<T extends AuthorityLearnerShard>(
 export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   read: () => T,
   role: KnowledgeRole | undefined,
+  request?: Request,
 ): NextResponse {
   try {
+    const capability = request ? activeLocaleCapability() : historicalLocaleCapability();
+    if (request) {
+      const locale = resolveActiveLocaleRequest(request, capability);
+      if (!locale.ok) return locale.response;
+    }
     const raw = read();
-    const shard = projectAuthorityLearnerShard(raw);
+    const shard = projectAuthorityLearnerShard(raw, {
+      localeCapability: capability,
+    });
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);

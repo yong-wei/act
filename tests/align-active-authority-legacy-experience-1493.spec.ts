@@ -8,6 +8,7 @@ const envelope = {
   contract: 'act-authority-shard-envelope/v1',
   authorityCatalogVersion: 'acv-1493',
   teachingVersion: 'teaching-1493',
+  localeProfileVersion: 'alp-test-historical-zh-CN',
   match: { authority: true, catalog: true, teaching: true },
 };
 

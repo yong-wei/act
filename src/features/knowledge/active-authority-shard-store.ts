@@ -21,8 +21,11 @@ import type {
 import { relationCacheKey } from '@/lib/authority-domain-shards/contracts';
 import {
   publicEnvelopesShareAuthorityAndCatalog,
+  publicEnvelopesShareLocaleProfile,
   publicTeachingIdentityMatches,
 } from '@/lib/authority-domain-shards/envelope';
+import type { AdmittedLocale, PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
+import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 
 export type AuthorityShardKind =
   | 'root'
@@ -47,7 +50,10 @@ export interface AuthorityShardWorkspaceState {
   activeVisualRole: string | null;
   enabledFamilies: EngineeringRelationFamily[];
   loadedShardKeys: string[];
+  loadedDisplayKeys: string[];
   rejectedShardKeys: string[];
+  selectedLocale: AdmittedLocale;
+  localeCapability: PublicLocaleCapability;
   teachingCoverageByDomain: Record<string, PublicAuthorityDomainDefaultShard['teachingCoverage']>;
   root: PublicAuthorityRootShard['root'] | null;
   detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
@@ -76,7 +82,10 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     activeVisualRole: null,
     enabledFamilies: [],
     loadedShardKeys: [],
+    loadedDisplayKeys: [],
     rejectedShardKeys: [],
+    selectedLocale: 'zh-CN',
+    localeCapability: historicalLocaleCapability(),
     teachingCoverageByDomain: {},
     root: null,
     detailsByCanonicalId: {},
@@ -113,16 +122,23 @@ export function isTeachingBearingShard(shard: IncomingAuthorityShard): boolean {
   return true;
 }
 
+export function shardDisplayKey(shard: IncomingAuthorityShard): string {
+  return `${shard.envelope.localeProfileVersion}:${shardRequestKey(shard)}`;
+}
+
 export function shardIdentityDrift(
   current: AuthorityShardWorkspaceState,
   shard: IncomingAuthorityShard,
-): 'authority-catalog' | 'teaching' | null {
+): 'authority-catalog' | 'teaching' | 'locale' | null {
   if (!current.envelope) return null;
   if (!publicEnvelopesShareAuthorityAndCatalog(current.envelope, shard.envelope)) {
     return 'authority-catalog';
   }
   if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
     return 'teaching';
+  }
+  if (!publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope)) {
+    return 'locale';
   }
   return null;
 }
@@ -140,6 +156,7 @@ export function validateIncomingShard(
   if (isTeachingBearingShard(shard) && !publicTeachingIdentityMatches(current.envelope, shard.envelope)) {
     return 'reject';
   }
+  const localeChanged = !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope);
   const incomingObjects = shard.shardClass === 'domain-default'
     || shard.shardClass === 'relation-family'
     || shard.shardClass === 'node-neighborhood'
@@ -158,6 +175,7 @@ export function validateIncomingShard(
     const existing = current.objectsByCanonicalId[id]
       ?? current.detailsByCanonicalId[id]
       ?? current.boundaryRefsByCanonicalId[id];
+    if (localeChanged) return true;
     return !existing || (existing.label === label && sameStringArray(existing.aliases ?? [], aliases));
   };
   for (const object of incomingObjects) {
@@ -179,6 +197,7 @@ export function validateIncomingShard(
 function mergeObject(
   current: AuthorityShardObject | undefined,
   incoming: AuthorityShardObject,
+  replaceDisplay = false,
 ): AuthorityShardObject {
   if (!current) return incoming;
   const memberships = [...current.memberships];
@@ -186,6 +205,15 @@ function mergeObject(
     if (!memberships.some((item) => item.domainId === membership.domainId)) {
       memberships.push(membership);
     }
+  }
+  if (replaceDisplay) {
+    return {
+      ...current,
+      label: incoming.label,
+      aliases: incoming.aliases ?? [],
+      description: incoming.description,
+      memberships,
+    };
   }
   return {
     ...current,
@@ -212,7 +240,10 @@ export function mergeAuthorityShard(
     };
   }
 
-  const envelope = decision === 'establish' ? shard.envelope : current.envelope;
+  const localeChanged = Boolean(
+    current.envelope && !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope),
+  );
+  const envelope = decision === 'establish' || localeChanged ? shard.envelope : current.envelope;
   if (!envelope) return current;
 
   const objectsByCanonicalId = { ...current.objectsByCanonicalId };
@@ -223,19 +254,32 @@ export function mergeAuthorityShard(
   const loadedShardKeys = current.loadedShardKeys.includes(key)
     ? current.loadedShardKeys
     : [...current.loadedShardKeys, key];
+  const displayKey = shardDisplayKey(shard);
+  const loadedDisplayKeys = current.loadedDisplayKeys.includes(displayKey)
+    ? current.loadedDisplayKeys
+    : [...current.loadedDisplayKeys, displayKey];
 
   if (shard.shardClass === 'root') {
+    const capability = 'localeCapability' in shard
+      ? (shard as IncomingAuthorityShard & { localeCapability?: PublicLocaleCapability }).localeCapability
+      : current.localeCapability;
     return {
       ...current,
       envelope,
       root: shard.root,
       loadedShardKeys,
+      loadedDisplayKeys,
+      localeCapability: capability ?? current.localeCapability,
     };
   }
 
   if (shard.shardClass === 'domain-default') {
     for (const object of shard.objects) {
-      objectsByCanonicalId[object.id] = mergeObject(objectsByCanonicalId[object.id], object);
+      objectsByCanonicalId[object.id] = mergeObject(
+        objectsByCanonicalId[object.id],
+        object,
+        localeChanged,
+      );
     }
     for (const relation of shard.teachingRelations) {
       relationsByLayerKey[relationCacheKey(relation)] = relation;
@@ -250,6 +294,7 @@ export function mergeAuthorityShard(
       activeDomainId: current.activeDomainId ?? shard.domainId,
       activeVisualRole: current.activeVisualRole ?? shard.visualRole,
       loadedShardKeys,
+      loadedDisplayKeys,
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
@@ -258,7 +303,11 @@ export function mergeAuthorityShard(
 
   if (shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood') {
     for (const object of shard.objects) {
-      objectsByCanonicalId[object.id] = mergeObject(objectsByCanonicalId[object.id], object);
+      objectsByCanonicalId[object.id] = mergeObject(
+        objectsByCanonicalId[object.id],
+        object,
+        localeChanged,
+      );
     }
     for (const relation of shard.relations) {
       relationsByLayerKey[relationCacheKey(relation)] = relation;
@@ -273,6 +322,7 @@ export function mergeAuthorityShard(
       relationsByLayerKey,
       boundaryRefsByCanonicalId,
       loadedShardKeys,
+      loadedDisplayKeys,
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
@@ -285,6 +335,7 @@ export function mergeAuthorityShard(
     envelope,
     detailsByCanonicalId,
     loadedShardKeys,
+    loadedDisplayKeys,
     selectedCanonicalId: current.selectedCanonicalId,
     inspectorOpen: current.inspectorOpen,
     positionsByCanonicalId: current.positionsByCanonicalId,
@@ -357,6 +408,7 @@ export function resetAuthorityShardDomain(
     boundaryRefsByCanonicalId: {},
     teachingCoverageByDomain: {},
     loadedShardKeys: current.loadedShardKeys.filter((key) => key === 'root'),
+    loadedDisplayKeys: current.loadedDisplayKeys.filter((key) => key.endsWith(':root')),
     enabledFamilies: [],
     activeDomainId: null,
     activeVisualRole: null,
@@ -395,6 +447,9 @@ export function invalidateTeachingBearingShards(
     relationsByLayerKey,
     teachingCoverageByDomain: {},
     loadedShardKeys: current.loadedShardKeys.filter((key) => !teachingKeys.includes(key)),
+    loadedDisplayKeys: current.loadedDisplayKeys.filter((key) => (
+      !teachingKeys.some((topologyKey) => key.endsWith(`:${topologyKey}`))
+    )),
     rejectedShardKeys: [],
     detailsByCanonicalId: {},
     selectedCanonicalId: current.selectedCanonicalId,

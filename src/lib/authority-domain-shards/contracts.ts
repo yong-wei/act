@@ -12,6 +12,7 @@ import type {
   RegisteredPeerDomainId,
 } from '@/lib/authority-domain-catalog/contracts';
 import type { TeachingCoverageState } from '@/lib/teaching-projection/domain-fragments/contracts';
+import type { PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
 
 export const AUTHORITY_SHARD_ENVELOPE_CONTRACT =
   'act-authority-shard-envelope/v1' as const;
@@ -108,6 +109,7 @@ export interface AuthorityShardPublicEnvelope {
   contract: typeof AUTHORITY_SHARD_ENVELOPE_CONTRACT;
   authorityCatalogVersion: string;
   teachingVersion: string | null;
+  localeProfileVersion: string;
   match: {
     authority: true;
     catalog: true;
@@ -282,7 +284,9 @@ export type AuthorityLearnerShard =
 export type PublicAuthorityShard<T extends { envelope: AuthorityShardEnvelope }> =
   Omit<T, 'envelope'> & { envelope: AuthorityShardPublicEnvelope };
 
-export type PublicAuthorityRootShard = PublicAuthorityShard<AuthorityRootShard>;
+export type PublicAuthorityRootShard = PublicAuthorityShard<AuthorityRootShard> & {
+  localeCapability?: PublicLocaleCapability;
+};
 export type PublicAuthorityDomainDefaultShard = PublicAuthorityShard<AuthorityDomainDefaultShard>;
 export type PublicAuthorityRelationFamilyShard = PublicAuthorityShard<AuthorityRelationFamilyShard>;
 export type PublicAuthorityNodeNeighborhoodShard = PublicAuthorityShard<AuthorityNodeNeighborhoodShard>;

@@ -120,6 +120,7 @@ const shardEnvelope: AuthorityShardPublicEnvelope = {
   contract: 'act-authority-shard-envelope/v1' as const,
   authorityCatalogVersion: 'acv-test-shards',
   teachingVersion: null,
+  localeProfileVersion: 'alp-test-historical-zh-CN',
   match: { authority: true as const, catalog: true as const, teaching: null },
 };
 
