@@ -1,16 +1,68 @@
-import type {
-  KaqEvidenceWritebackProjection,
-  KaqEvidenceWritebackStatus,
-} from '@/lib/data-governance/kaq-evidence-writeback';
-
-import type { ArenaEvaluationResult } from '../evaluation/types';
-import type { ControllerArtifact } from '../types';
-
 export type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid' | 'duplicate-only';
 export type ArenaEvidenceVisibilityState = 'materialized' | 'diagnostic-only' | 'unavailable';
+export type ArenaEvidenceWritebackStatus = 'accepted' | 'degraded' | 'blocked';
+export type ArenaControllerMethod =
+  | 'serial-compensator'
+  | 'pid'
+  | 'optimized-pid'
+  | 'composite-compensation'
+  | 'mpc'
+  | 'black-box-control'
+  | 'code-controller';
+
+export interface ArenaSubmissionControllerArtifact {
+  id: string;
+  taskId: string;
+  method: ArenaControllerMethod;
+  params: Record<string, number | string | boolean>;
+  createdAt: string;
+}
+
+export interface ArenaSubmissionHardConstraintResult {
+  id: string;
+  label: string;
+  passed: boolean;
+  reason?: string;
+}
+
+export interface ArenaSubmissionEvaluationPenalty {
+  id: string;
+  label: string;
+  value: number;
+}
+
+export interface ArenaSubmissionEvaluationResult {
+  taskId: string;
+  artifact: ArenaSubmissionControllerArtifact;
+  valid: boolean;
+  score: number;
+  metrics: Record<string, number>;
+  satisfaction: Record<string, number>;
+  hardConstraintResults: ArenaSubmissionHardConstraintResult[];
+  penalties: ArenaSubmissionEvaluationPenalty[];
+  explanation: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface ArenaEvidenceWritebackProjection {
+  id: string;
+  status: ArenaEvidenceWritebackStatus;
+  overlayUpdates: Array<{
+    id: string;
+    targetRef: unknown;
+    sourceId: string | null;
+    sourceRef: unknown | null;
+    citationRefs: string[] | null;
+  }>;
+  audit: {
+    targetRefs?: unknown[];
+    versionRefs?: unknown;
+    confidence?: number | null;
+  } | null;
+}
 
 export interface ArenaSubmissionEvidenceWriteback {
-  status: KaqEvidenceWritebackStatus;
+  status: ArenaEvidenceWritebackStatus;
   sourceRef: {
     kind: 'ArenaSubmission';
     id: string;
@@ -23,7 +75,7 @@ export interface ArenaSubmissionEvidenceWriteback {
   limitationCodes: string[];
   overlayCount: number;
   terminalValidationAccepted: boolean;
-  projected?: KaqEvidenceWritebackProjection;
+  projected?: ArenaEvidenceWritebackProjection;
 }
 
 export interface ArenaSubmissionRecord {
@@ -37,8 +89,8 @@ export interface ArenaSubmissionRecord {
   studentLabel: string;
   studentNumber?: string;
   artifactHash: string;
-  artifact: ControllerArtifact;
-  evaluation: ArenaEvaluationResult;
+  artifact: ArenaSubmissionControllerArtifact;
+  evaluation: ArenaSubmissionEvaluationResult;
   evaluationProtocolVersion?: string;
   evidenceWriteback?: ArenaSubmissionEvidenceWriteback;
   submittedAt: string;
@@ -47,7 +99,7 @@ export interface ArenaSubmissionRecord {
 
 export interface CreateArenaSubmissionInput {
   taskId: string;
-  artifact: ControllerArtifact;
+  artifact: ArenaSubmissionControllerArtifact;
   studentLabel: string;
   classId?: string;
   seasonId?: string;

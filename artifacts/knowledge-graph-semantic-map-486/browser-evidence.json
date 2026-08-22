@@ -1,5 +1,10 @@
 {
-  "capturedAt": "2026-08-21T16:39:59.001Z",
+  "capturedAt": "2026-08-22T14:06:21.930Z",
+  "headCommit": "ed65a51c20dab3654f857ffe0bed51fab10fe971",
+  "captureRevision": {
+    "commitSha": "ed65a51c20dab3654f857ffe0bed51fab10fe971",
+    "treeSha": "5909b9b7568080e324fca5b2afafade403bea5e1"
+  },
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",
   "sourceEvidence": {
@@ -18,7 +23,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/01-default-semantic-map.png"
     },
@@ -30,7 +35,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/02-selected-neighborhood.png"
     },
@@ -42,7 +47,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/03-all-relation-families.png"
     },
@@ -54,7 +59,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/04-dark-theme.png"
     },
@@ -66,7 +71,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "light",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/05-light-theme.png"
     }

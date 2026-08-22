@@ -1,6 +1,6 @@
-import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
 import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog';
 import { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
+import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
 
@@ -70,7 +70,7 @@ export function isMicroTutoringOptionAttribution(
 }
 
 export function defaultMicroTutoringOptionAttributions(): unknown[] {
-  const source = record(optionAttributionSource);
+  const source = record(loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'));
   return Array.isArray(source?.entries) ? source.entries : [];
 }
 

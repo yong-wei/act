@@ -1,12 +1,14 @@
-import type { ArenaSubmissionRecord } from '../submissions/types';
-import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
-import { formatArenaMetric } from '../display-labels';
 import {
   buildMissingArenaSubmissionEvidenceWriteback,
   getArenaAttemptStatus,
-  type ArenaAttemptStatus,
-  type ArenaSubmissionEvidenceWriteback,
-} from '../evidence-writeback';
+} from '../submissions/evidence-status';
+import type {
+  ArenaAttemptStatus,
+  ArenaSubmissionEvidenceWriteback,
+  ArenaSubmissionRecord,
+} from '../submissions/types';
+import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
+import { formatArenaMetric } from '../display-labels';
 
 export type ArenaFeedbackMode = 'white-box' | 'black-box';
 export type ArenaFeedbackRankingStatus = 'ranked' | 'not_ranked';

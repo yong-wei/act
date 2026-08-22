@@ -96,29 +96,30 @@ test.afterAll(async () => {
 test('captures teacher delivery, evidence, registered action and disposition at 1440px', async ({ page }) => {
   await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 1440, height: 1050 });
-  await installFixture(page, 'teacher', 'TEACHER');
+  await installFixture(page, 'TEACHER');
   await page.goto(`/teacher/classes/${classId}/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
   await expect(page.locator('[data-diagnosis-delivery-role="teacher"]')).toBeVisible();
   await page.getByText('查看允许的证据摘要').click();
   await expect(page.getByText('知识点学习进度：1 项')).toBeVisible();
   await expect(page.getByText('完成一次针对性练习后查看新的诊断。')).toBeVisible();
+  await expect(page.getByRole('link', { name: '进入备课工作台' })).toBeVisible();
   await page.getByRole('button', { name: '待处理' }).first().click();
   await expect(page.getByText('处置状态已记录；诊断风险判断保持不变。')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await capture(page, 'teacher-delivery-1440-light.png', { width: 1440, height: 1050 }, [
-    'teacher projection visible', 'bounded evidence visible', 'registered action visible', 'suggestion visible', 'disposition recorded', 'no horizontal overflow',
+    'teacher projection visible', 'bounded evidence visible', 'report-level preparation entry visible', 'suggestion visible', 'disposition recorded', 'no horizontal overflow',
   ]);
 });
 
-test('captures an explicit PDF recovery state', async ({ page }) => {
+test('captures the teacher print-only delivery controls', async ({ page }) => {
   await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 1440, height: 900 });
-  await installFixture(page, 'pdf-failure', 'TEACHER');
+  await installFixture(page, 'TEACHER');
   await page.goto(`/teacher/classes/${classId}/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: '导出 PDF' }).click();
-  await expect(page.getByText('PDF 生成失败，请返回报告后重试。', { exact: true })).toBeVisible();
-  await capture(page, 'teacher-export-failure-1440-light.png', { width: 1440, height: 900 }, [
-    'explicit PDF failure', 'recoverable retry guidance',
+  await expect(page.getByRole('button', { name: '打印' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '导出 PDF' })).toHaveCount(0);
+  await capture(page, 'teacher-print-only-1440-light.png', { width: 1440, height: 900 }, [
+    'print control visible', 'PDF export control absent',
   ]);
 });
 
@@ -126,15 +127,17 @@ test('captures the student-safe report without teacher controls at 320px', async
   await installSession(page, 'TEACHER', 'teacher-evidence');
   await page.setViewportSize({ width: 320, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
-  await installFixture(page, 'student', 'STUDENT');
+  await installFixture(page, 'STUDENT');
   await page.goto(`/diagnosis-reports/${reportId}`, { waitUntil: 'networkidle' });
   await expect(page.locator('[data-diagnosis-delivery-role="student"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: '打印' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '导出 PDF' })).toHaveCount(0);
   await expect(page.getByText('学习建议')).toBeVisible();
   await expect(page.getByText('报告处置')).toHaveCount(0);
   await expect(page.getByText('教师强制生成')).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
   await capture(page, 'student-safe-delivery-320-dark.png', { width: 320, height: 844 }, [
-    'student-safe projection visible', 'suggestion visible', 'teacher controls absent', 'force reason absent', 'no horizontal overflow',
+    'student-safe projection visible', 'print control visible', 'PDF export control absent', 'teacher controls absent', 'force reason absent', 'no horizontal overflow',
   ]);
 });
 
@@ -143,7 +146,7 @@ async function capture(page: Page, file: string, viewport: { width: number; heig
   capturedStates.push({ file, sha256: sha256(bytes), viewport, assertions, bytes });
 }
 
-async function installFixture(page: Page, mode: 'teacher' | 'student' | 'pdf-failure', role: 'TEACHER' | 'STUDENT') {
+async function installFixture(page: Page, role: 'TEACHER' | 'STUDENT') {
   await page.route('**/api/**', async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -161,10 +164,6 @@ async function installFixture(page: Page, mode: 'teacher' | 'student' | 'pdf-fai
         id: 'event-evidence', targetKind: 'finding', targetKey: 'finding:1', action: 'pending',
         actionRef: null, result: 'recorded', createdAt: '2026-08-19T09:00:00.000Z',
       } }, 201);
-    }
-    if (pathname.endsWith('/pdf')) {
-      if (mode === 'pdf-failure') return fulfill(route, { error: 'PDF 生成失败，请返回报告后重试。' }, 503);
-      return route.fulfill({ status: 200, contentType: 'application/pdf', body: '%PDF-1.7\n' });
     }
     return route.abort('blockedbyclient');
   });
@@ -230,7 +229,7 @@ function baseProjection() {
 function teacherActions() {
   return [
     { kind: 'student', label: '查看学生详情', href: `/teacher/classes/${classId}/students/student-evidence`, targetKey: 'report' },
-    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'finding:1' },
+    { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'report' },
     { kind: 'remediation', label: '已注册补练资源：稳定裕度补练', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
   ];
 }

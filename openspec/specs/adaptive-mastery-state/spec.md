@@ -46,4 +46,3 @@ Adaptive mastery state SHALL expose traceability from knowledge nodes and capabi
 - **WHEN** 学习者只有资源动作、提示事件或一条无额外支持的通过结果
 - **THEN** mastery SHALL 保持保守置信度并标出证据限制
 - **AND** 不得声明 terminal mastery
-

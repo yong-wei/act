@@ -8,7 +8,8 @@ vi.mock('@/lib/commercial-ui-capture-revision', () => ({
   computeCaptureRevisionProof: mocks.computeCaptureRevisionProof,
 }));
 
-import { GET, resetRuntimeRevisionProofForTests } from '../../app/api/internal/local-qa/revision/route';
+import { GET } from '../../app/api/internal/local-qa/revision/route';
+import { resetRuntimeCaptureRevisionProofForTests } from '../commercial-ui-capture-revision-runtime';
 
 const proof = {
   commitSha: 'a'.repeat(40),
@@ -31,7 +32,7 @@ function restoreEnvironment() {
 describe('development-only commercial UI capture revision probe', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetRuntimeRevisionProofForTests();
+    resetRuntimeCaptureRevisionProofForTests();
     mutableEnvironment.NODE_ENV = 'development';
     delete mutableEnvironment.ACT_LOCAL_QA_BRIDGE;
     mocks.computeCaptureRevisionProof.mockReturnValue(proof);
@@ -98,5 +99,11 @@ describe('development-only commercial UI capture revision probe', () => {
     const secondResponse = await GET();
     expect(secondResponse.status).toBe(200);
     expect(await secondResponse.json()).toEqual(firstProof);
+  });
+
+  it('does not expose a test-only route export', async () => {
+    expect(await import('../../app/api/internal/local-qa/revision/route')).not.toHaveProperty(
+      'resetRuntimeCaptureRevisionProofForTests',
+    );
   });
 });

@@ -1,13 +1,12 @@
-Final verdict: PASS
+# 知识工作区产品 QA 视觉复核
 
-# 知识工作区产品 QA 独立视觉复核
+结论：PASS
 
-- 审查者：Codex；`finalResult=passed`，`blockingFindings=[]`。
-- 捕获绑定：commit `af9907bcf245b16afddbdc6dfff404b0d0affeaf`，tree `7e893ac6944de4185efc3ec4c9289d7ec7f7edeb`。
-- 截图绑定：33 组 state/screenshot 映射（`stateMatrix` 29 组 + `activeAuthorityVisualMatrix` 4 组）。截图、受管源码摘要和全量通过维度均绑定于同次 `browser-evidence.json`。
+- 复核者：codex-manual-visual-review。
+- 捕获绑定：commit `ed65a51c20dab3654f857ffe0bed51fab10fe971`，tree `5909b9b7568080e324fca5b2afafade403bea5e1`。
+- 运行态证明：捕获前后均与上述 commit/tree 一致，`clean=true`。
+- 复核映射：33 个状态截图和 36 个受检源码路径的 SHA-256 已写入 `browser-evidence.json`。
 
-复核覆盖桌面、平板、320px 移动端、亮暗主题、目录与筛选工具、选中节点检查器、Konling 展开和三角色入口。画布、局部工具、检查器与 Konling 在压力态未重叠；焦点和关闭返回行为符合捕获契约；Legacy 画布在三个角色下持续可用。
+人工抽查覆盖 1440px Active Authority 深色、320px Active Authority、1440px Legacy 图谱和管理员 Candidate 视图。页面未见横向溢出、面板遮挡、控制项不可达、主题对比失衡或角色边界泄露。Active Authority 的“教学关系暂不可用”和受限对象数量由运行时数据明确呈现，未被误表述为生产权威切换。
 
-14 项维度均为 PASS：handoffAlignment、conceptAdoptionRejection、appShellContinuity、localTools、semanticMap、inspectorHierarchy、konlingDock、interactionStability、keyboardFocus、themeParity、mobileBehavior、tabletBreakpoint、stressNonOverlap、canvasGeometry。
-
-本次复核包含根领域、领域教学投影、筛选、知识卡片/系统资源抽屉与公式显示；本地捕获不替代 Authority/Teaching 发布合同或生产激活证明。
+14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。阻断问题：无。

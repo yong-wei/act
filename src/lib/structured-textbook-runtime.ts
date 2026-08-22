@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { Dirent } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -243,12 +244,22 @@ export async function loadStructuredTextbookBook(
 export async function loadAllStructuredTextbookBooks(
   runtimeRoot = resolveStructuredTextbookRuntimeRoot(),
 ): Promise<StructuredTextbookBook[]> {
-  const entries = await fs.readdir(runtimeRoot, { withFileTypes: true });
+  let entries: Dirent<string>[];
+  try {
+    entries = await fs.readdir(runtimeRoot, { withFileTypes: true });
+  } catch (error) {
+    if (isMissingRuntimeDirectory(error)) return [];
+    throw error;
+  }
   const bookIds = entries
     .filter((entry) => entry.isDirectory() && entry.name in STRUCTURED_TEXTBOOK_TITLES)
     .map((entry) => entry.name)
     .sort();
   return Promise.all(bookIds.map((bookId) => loadStructuredTextbookBook(bookId, runtimeRoot)));
+}
+
+function isMissingRuntimeDirectory(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
 export async function loadAllTextbookStructureUnitProjections(

@@ -1,14 +1,11 @@
 import { createHash } from 'node:crypto';
 
-import catalogSource from '../../../course-content/runtime/resource-governance/micro-tutoring-goal-node-catalog.json';
-import optionAttributionSource from '../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
-import practiceBaselineSource from '../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
-
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
 } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 import { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
+import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export const MICRO_TUTORING_GOAL_NODE_CATALOG_VERSION = 'micro-tutoring-goal-node-catalog.v1';
 export const MICRO_TUTORING_GOAL_NODE_BASELINE_VERSION = 'micro-tutoring-practice-baseline.v1';
@@ -100,10 +97,10 @@ function governedSourceRefs(
 }
 
 export function loadMicroTutoringGoalNodeCatalog(
-  source: unknown = catalogSource,
+  source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-goal-node-catalog.json'),
   sourceContext: MicroTutoringGoalNodeSourceContext = {
-    practiceBaseline: practiceBaselineSource,
-    optionAttributions: optionAttributionSource,
+    practiceBaseline: loadMicroTutoringRuntimeSource('micro-tutoring-practice-baseline.json'),
+    optionAttributions: loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
   },
 ): LoadedMicroTutoringGoalNodeCatalog {
   const value = record(source);

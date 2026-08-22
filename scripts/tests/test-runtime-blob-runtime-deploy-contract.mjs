@@ -77,19 +77,88 @@ assert.ok(
   'ERR recovery must be installed before current view selection',
 );
 assert.ok(
-  activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"') <
-    activation.lastIndexOf('restore_parent_host_overlays "$parent_view" "$candidate_view"'),
-  'parent overlay restore must happen after current view selection',
+  activation.lastIndexOf('restore_parent_host_overlays "$overlay_source" "$candidate_view"') <
+    activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"'),
+  'control-plane overlay restore must happen before post-overlay verification',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'post-overlay verification must happen before current view selection',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_current_selected=1'),
+  'failed post-overlay verification must not mark the candidate current view selected',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
+    activation.lastIndexOf('candidate_deploy_attempted=1'),
+  'failed post-overlay verification must not restart runtime consumers',
 );
 assert.match(
   activation,
-  /candidate_current_selected=1[\s\S]*restore_parent_host_overlays "\$parent_view" "\$candidate_view"/,
-  'current-view selection must be durable before overlay restore can fail',
+  /restore-overlays/,
+  'overlay restore must use the host-state allowlist command',
+);
+assert.match(
+  activation,
+  /--replace-existing/,
+  'activation must be able to rematerialize an existing host view from immutable blobs',
+);
+assert.match(
+  activation,
+  /umount "\$final_view\/\.act-runtime-blobs"/,
+  'rebuild swap must unmount the live helper before replacing the active view',
+);
+assert.match(
+  activation,
+  /rebuild_backup="\$backup_view"/,
+  'same-release rebuild must keep the replaced live view as a backup',
+);
+assert.match(
+  activation,
+  /restore_rebuild_backup/,
+  'failed same-release rebuild must restore the replaced live view',
+);
+assert.match(
+  activation,
+  /rebuild_failed="\$failed_view"/,
+  'a live failed rebuild view must be retained while consumers still bind it',
+);
+assert.ok(
+  activation.lastIndexOf('restored_rebuild" == "1"') < activation.lastIndexOf('cleanup_rebuild_failed'),
+  'failed rebuild view must be deleted only after rollback consumer remount succeeds',
+);
+assert.ok(
+  activation.lastIndexOf('post_activation_media_smoke_passed=1') <
+    activation.lastIndexOf('rm -rf -- "$rebuild_backup"'),
+  'rebuild backup must be deleted only after consumer switch and media smoke succeed',
+);
+assert.match(
+  activation,
+  /prepare_result="\$\(python3 "\$MATERIALIZER" "\$\{prepare_args\[@\]\}"\)"/,
+  'activation must use the materializer viewPath, including rebuild staging views',
 );
 assert.match(
   activation,
   /candidate_current_selected" == "1"[\s\S]*MATERIALIZER" select --release-id "\$old_active"/,
   'ERR recovery must revert current even when consumers were not switched',
+);
+assert.match(
+  activation,
+  /Same-identity host view repair must not enter begin-publish\/set-desired/,
+  'same-identity rebuild must skip lifecycle publish transitions',
+);
+assert.match(
+  activation,
+  /same-identity repair did not keep the active lifecycle identity/,
+  'same-identity rebuild must keep the existing active lifecycle identity',
+);
+assert.ok(
+  activation.lastIndexOf('if [[ "$release_id" == "$old_active" ]]; then') <
+    activation.lastIndexOf('python3 "$ACTIVATION_TRANSACTION" activate'),
+  'same-identity repair must decide before lifecycle activate',
 );
 assert.ok(
   activation.indexOf('python3 "$ACTIVATION_TRANSACTION" activate') < activation.indexOf('trap - ERR'),

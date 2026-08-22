@@ -495,6 +495,7 @@ describe('authority domain shard delivery', () => {
       contract: AUTHORITY_SHARD_ENVELOPE_CONTRACT,
       authorityCatalogVersion: expect.stringMatching(/^acv-[a-f0-9]{64}$/u),
       teachingVersion: null,
+      localeProfileVersion: expect.stringMatching(/^alp-[a-f0-9]{64}$/u),
       match: { authority: true, catalog: true, teaching: null },
     });
     expect(JSON.stringify(browserRoot)).not.toContain(SNAPSHOT_ID);

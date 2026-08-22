@@ -10,6 +10,13 @@ import type {
   PublicAuthorityShard,
 } from './contracts';
 import { shardDigest } from './hash';
+import {
+  historicalZhCnLocaleBinding,
+  localeProfileVersion,
+  type LocaleProfileBinding,
+} from '@/lib/authority-locale-readiness/cache';
+import type { PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
+import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 
 export function envelopesShareAuthorityAndCatalog(
   left: AuthorityShardEnvelope,
@@ -40,27 +47,45 @@ export function teachingIdentityMatches(
 
 export function publicAuthorityShardEnvelope(
   envelope: AuthorityShardEnvelope,
+  localeBinding?: LocaleProfileBinding,
 ): AuthorityShardPublicEnvelope {
+  const authorityCatalogVersion = `acv-${shardDigest({
+    authority: envelope.authority,
+    catalog: envelope.catalog,
+  })}`;
+  const binding = localeBinding ?? historicalZhCnLocaleBinding(authorityCatalogVersion);
   return {
     contract: envelope.contract,
-    authorityCatalogVersion: `acv-${shardDigest({
-      authority: envelope.authority,
-      catalog: envelope.catalog,
-    })}`,
+    authorityCatalogVersion,
     teachingVersion: envelope.teaching.projectionId
       ? `atv-${shardDigest(envelope.teaching)}`
       : null,
+    localeProfileVersion: localeProfileVersion({
+      ...binding,
+      authorityCatalogVersion,
+    }),
     match: { ...envelope.match },
   };
 }
 
 export function projectAuthorityLearnerShard<T extends AuthorityLearnerShard>(
   shard: T,
+  options: {
+    localeBinding?: LocaleProfileBinding;
+    localeCapability?: PublicLocaleCapability;
+  } = {},
 ): PublicAuthorityShard<T> {
-  return {
+  const projected = {
     ...shard,
-    envelope: publicAuthorityShardEnvelope(shard.envelope),
+    envelope: publicAuthorityShardEnvelope(shard.envelope, options.localeBinding),
   };
+  if (shard.shardClass === 'root') {
+    return {
+      ...projected,
+      localeCapability: options.localeCapability ?? historicalLocaleCapability(),
+    } as unknown as PublicAuthorityShard<T>;
+  }
+  return projected as unknown as PublicAuthorityShard<T>;
 }
 
 export function publicEnvelopesShareAuthorityAndCatalog(
@@ -75,6 +100,13 @@ export function publicEnvelopesShareAuthorityAndCatalog(
     && right.match.authority === true
     && right.match.catalog === true
   );
+}
+
+export function publicEnvelopesShareLocaleProfile(
+  left: AuthorityShardPublicEnvelope,
+  right: AuthorityShardPublicEnvelope,
+): boolean {
+  return left.localeProfileVersion === right.localeProfileVersion;
 }
 
 export function publicTeachingIdentityMatches(
@@ -99,6 +131,8 @@ export function isPublicAuthorityLearnerShard(
     && envelope.contract === 'act-authority-shard-envelope/v1'
     && typeof envelope.authorityCatalogVersion === 'string'
     && envelope.authorityCatalogVersion.length > 0
+    && typeof envelope.localeProfileVersion === 'string'
+    && envelope.localeProfileVersion.startsWith('alp-')
     && (typeof envelope.teachingVersion === 'string' || envelope.teachingVersion === null)
     && envelope.match?.authority === true
     && envelope.match?.catalog === true

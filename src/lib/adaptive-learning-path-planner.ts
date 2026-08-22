@@ -56,6 +56,7 @@ import {
 } from './source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
 import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
+import { resolveAdaptivePathDestinationContract } from './adaptive-path-destination-contract';
 import {
   resolveItemTypeTerminalValidation,
   type ItemTypeTerminalValidationResolution,
@@ -3079,6 +3080,12 @@ function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPa
   ) {
     reasons.push('teacher-assignment-required');
   }
+  const destination = resolveAdaptivePathDestinationContract(node.type, node.launchTarget ?? node.renderTarget ?? '', {
+    nodeId: node.id,
+    sourceKind: node.sourceKind,
+    sourceRef: node.sourceRef,
+  });
+  if (destination.disposition === 'blocked') reasons.push('destination-contract-blocked');
   if ((constraints.device === 'mobile' || constraints.device === 'tablet') && node.type === 'simulation') {
     reasons.push('device-constraint-blocked');
   }
