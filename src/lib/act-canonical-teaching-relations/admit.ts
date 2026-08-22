@@ -17,6 +17,7 @@ import {
   wouldIntroduceCycle,
 } from './families';
 import { teachingEdgeId } from './hash';
+import { authorizedAutoAdmitFamilies } from './pipeline';
 import { assertQualifiedReceipt } from './qualify';
 import { assertScopeIntegrity } from './scope';
 
@@ -70,7 +71,7 @@ export function admitQualifiedCandidates(input: {
       continue;
     }
     const failures = itemAdmissionFailures({ scope: input.scope, candidate });
-    if (!input.qualification.autoAdmitFamilies.includes(candidate.family)) {
+    if (!authorizedAutoAdmitFamilies().includes(candidate.family)) {
       failures.push('family-unqualified');
     }
     const target = candidate.targetCanonicalId;

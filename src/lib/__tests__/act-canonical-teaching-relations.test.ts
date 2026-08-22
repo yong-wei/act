@@ -583,5 +583,19 @@ describe('act-canonical-teaching-relations', () => {
     });
     expect(bypass.pending.some((row) => row.exceptionReasons.includes('family-unqualified'))).toBe(true);
     expect(bypass.edges.every((edge) => edge.family !== 'prerequisite')).toBe(true);
+
+    const mutatedReceipt = {
+      ...artifacts.qualification,
+      autoAdmitFamilies: ['containment', 'prerequisite'] as const,
+    };
+    expect(() => admitQualifiedCandidates({
+      scope: artifacts.scope,
+      candidates: [forged],
+      dispositions: artifacts.dispositions,
+      edges: artifacts.edges,
+      qualification: mutatedReceipt,
+      pipelineVersion: COURSE_ROOT_PIPELINE_VERSION,
+      pipelineConfigDigest: artifacts.qualification.pipelineConfigDigest,
+    })).toThrow(/matching successful qualification receipt/);
   });
 });

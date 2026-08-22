@@ -1,6 +1,8 @@
 import {
   ACT_TEACHING_CANDIDATE_CONTRACT,
+  ACT_TEACHING_FAMILIES,
   type ActTeachingCandidate,
+  type ActTeachingFamily,
   type ActTeachingScope,
 } from './contracts';
 import { MIN_AUTO_ADMIT_CONFIDENCE } from './families';
@@ -340,6 +342,17 @@ export function measurePipelineDataset(
   return dataset.items
     .filter((item) => pipelineAdmitsItem(item, evidence))
     .map((item) => item.id);
+}
+
+export function authorizedAutoAdmitFamilies(): ActTeachingFamily[] {
+  const evidence = sealEvidence();
+  const gold = frozenQualificationGold();
+  const admitted = new Set(measurePipelineDataset(gold, evidence));
+  return ACT_TEACHING_FAMILIES.filter((family) => (
+    gold.items.some((item) => (
+      item.family === family && item.expected === 'admit' && admitted.has(item.id)
+    ))
+  ));
 }
 
 export function frozenQualificationGold(): QualificationDataset {

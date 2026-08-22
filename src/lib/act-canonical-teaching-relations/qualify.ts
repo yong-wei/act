@@ -1,5 +1,4 @@
 import {
-  ACT_TEACHING_FAMILIES,
   ACT_TEACHING_QUALIFICATION_CONTRACT,
   type ActTeachingCandidate,
   type ActTeachingFamily,
@@ -8,6 +7,7 @@ import {
   type ActTeachingRelationType,
 } from './contracts';
 import { ActTeachingRelationError, projectionDigest } from './hash';
+import { authorizedAutoAdmitFamilies } from './pipeline';
 
 export interface GoldRelationItem {
   readonly id: string;
@@ -88,7 +88,7 @@ export function qualifyPipeline(input: {
   const admittedHoldout = new Set(input.admittedHoldoutIds);
   const gold = metricsFor(input.gold.items, admittedGold);
   const holdout = metricsFor(input.holdout.items, admittedHoldout);
-  const autoAdmitFamilies = ACT_TEACHING_FAMILIES.filter((family) => (
+  const autoAdmitFamilies = authorizedAutoAdmitFamilies().filter((family) => (
     familyHasTruePositive(input.gold.items, admittedGold, family)
   ));
   const passed = gold.balancedScore >= input.threshold
@@ -96,14 +96,14 @@ export function qualifyPipeline(input: {
     && autoAdmitFamilies.length > 0;
   const goldDigest = datasetDigest(input.gold);
   const holdoutDigest = datasetDigest(input.holdout);
-  const receiptId = `qual-${projectionDigest({
+  const receiptId = qualificationReceiptId({
     pipelineVersion: input.pipelineVersion,
     pipelineConfigDigest: input.pipelineConfigDigest,
     goldDigest,
     holdoutDigest,
     threshold: input.threshold,
     autoAdmitFamilies,
-  }).slice(0, 24)}`;
+  });
   return {
     contract: ACT_TEACHING_QUALIFICATION_CONTRACT,
     receiptId,
@@ -129,15 +129,44 @@ function familyHasTruePositive(
   ));
 }
 
+export function qualificationReceiptId(input: {
+  pipelineVersion: string;
+  pipelineConfigDigest: string;
+  goldDigest: string;
+  holdoutDigest: string;
+  threshold: number;
+  autoAdmitFamilies: readonly ActTeachingFamily[];
+}): string {
+  return `qual-${projectionDigest({
+    pipelineVersion: input.pipelineVersion,
+    pipelineConfigDigest: input.pipelineConfigDigest,
+    goldDigest: input.goldDigest,
+    holdoutDigest: input.holdoutDigest,
+    threshold: input.threshold,
+    autoAdmitFamilies: [...input.autoAdmitFamilies].sort(),
+  }).slice(0, 24)}`;
+}
+
 export function assertQualifiedReceipt(
   receipt: ActTeachingQualificationReceipt,
   pipelineVersion: string,
   pipelineConfigDigest: string,
 ): void {
+  const expectedFamilies = authorizedAutoAdmitFamilies();
+  const expectedId = qualificationReceiptId({
+    pipelineVersion: receipt.pipelineVersion,
+    pipelineConfigDigest: receipt.pipelineConfigDigest,
+    goldDigest: receipt.goldDigest,
+    holdoutDigest: receipt.holdoutDigest,
+    threshold: receipt.threshold,
+    autoAdmitFamilies: expectedFamilies,
+  });
   if (
     !receipt.passed
     || receipt.pipelineVersion !== pipelineVersion
     || receipt.pipelineConfigDigest !== pipelineConfigDigest
+    || receipt.receiptId !== expectedId
+    || JSON.stringify([...receipt.autoAdmitFamilies].sort()) !== JSON.stringify([...expectedFamilies])
   ) {
     throw new ActTeachingRelationError(
       'pipeline-unqualified',
