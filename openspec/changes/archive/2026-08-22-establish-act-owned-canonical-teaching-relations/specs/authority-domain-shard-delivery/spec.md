@@ -25,7 +25,7 @@ The domain shard service SHALL return available Engineering objects and requeste
 - **THEN** the shard SHALL return only its admitted published containment, prerequisite, and association edges
 - **AND** it SHALL expose no internal partial, pending, candidate, review, confidence, or decision metadata
 
-#### Scenario: Domain has no matching published teaching relation
+#### Scenario: Domain has no published teaching relation
 - **WHEN** Authority and catalog are valid but no exact matching teaching relation projection is available
 - **THEN** primary domain objects and requested Engineering families SHALL remain available
 - **AND** the response SHALL not fabricate empty-complete coverage, substitute Engineering edges, or expose a runtime audit control

@@ -1,0 +1,38 @@
+{
+  "name": "gold",
+  "pipelineVersion": "act-course-root-containment/v1",
+  "items": [
+    {
+      "id": "gold-root-a",
+      "family": "containment",
+      "relationType": "CONTAINMENT",
+      "sourceCanonicalId": "ctc:a",
+      "targetCanonicalId": null,
+      "expected": "admit"
+    },
+    {
+      "id": "gold-root-b",
+      "family": "containment",
+      "relationType": "CONTAINMENT",
+      "sourceCanonicalId": "ctc:b",
+      "targetCanonicalId": null,
+      "expected": "admit"
+    },
+    {
+      "id": "gold-cycle",
+      "family": "prerequisite",
+      "relationType": "PREREQUISITE",
+      "sourceCanonicalId": "ctc:a",
+      "targetCanonicalId": "ctc:a",
+      "expected": "exclude"
+    },
+    {
+      "id": "gold-low-conf",
+      "family": "association",
+      "relationType": "PEDAGOGICAL_ASSOCIATION",
+      "sourceCanonicalId": "ctc:a",
+      "targetCanonicalId": "ctc:b",
+      "expected": "exclude"
+    }
+  ]
+}

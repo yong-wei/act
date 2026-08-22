@@ -156,7 +156,12 @@ export interface AuthorityShardRelation {
   };
   semanticSupport: { supported: boolean; readOnly: true };
   layer: AuthorityRelationLayer;
-  relationFamily: EngineeringRelationFamily | 'teaching-prerequisite' | null;
+  relationFamily:
+    | EngineeringRelationFamily
+    | 'teaching-prerequisite'
+    | 'teaching-containment'
+    | 'teaching-association'
+    | null;
   /** Complete-locale relation term; omitted on sealed historical shards. */
   predicateLabel?: string | null;
   /** Complete-locale direction term; omitted on sealed historical shards. */

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  buildActkgTeachingProjectionRelation,
+  buildActOwnedTeachingProjectionRelation,
   buildReviewedKaqRoleCanonicalMapping,
   digestFormalTeachingProjectionRelationSet,
   generateKaqCanonicalBindings,
@@ -134,7 +134,7 @@ function materializeRelations(
     formalProof: proof,
   });
   if (!availability.available) throw new Error('expected teaching projection');
-  const relations = specs.map((spec) => buildActkgTeachingProjectionRelation({
+  const relations = specs.map((spec) => buildActOwnedTeachingProjectionRelation({
     availability,
     pinned: context,
     id: spec.id,
@@ -1412,8 +1412,8 @@ describe('canonical learning path transition — replan', () => {
       cumulativePortrait: portraitFor('student-1'),
       teachingRelations: [{
         id: outSpec.id,
-        namespace: 'actkg-teaching-projection',
-        authority: 'ACTKG',
+        namespace: 'act-teaching-projection',
+        authority: 'ACT',
         predicate: outSpec.predicate,
         sourceCanonicalId: outSpec.sourceCanonicalId,
         targetCanonicalId: outSpec.targetCanonicalId,

@@ -1089,8 +1089,8 @@ function validateSubmittedTeachingRelationMembership(
   admitted: ReadonlySet<string>,
 ): { reason: CanonicalPathReplanPendingReason; codes: string[] } | null {
   if (
-    relation.namespace !== 'actkg-teaching-projection'
-    || relation.authority !== 'ACTKG'
+    relation.namespace !== 'act-teaching-projection'
+    || relation.authority !== 'ACT'
   ) {
     return {
       reason: 'no-supported-teaching-relations',
