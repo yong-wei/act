@@ -3,8 +3,8 @@
   "issue": 489,
   "capturedAt": "2026-08-21T16:39:58.992Z",
   "captureRevision": {
-    "commitSha": "8efc6aaf42bdbacc04b8bf20551ba3b6d2c527ac",
-    "treeSha": "dc9bcfaa3264efd87fe0e0cc8df8a8599e6adcdd"
+    "commitSha": "f51e8a6f6beb41ecfb19dc6e27055fac7428f9a8",
+    "treeSha": "4d1bf4c37f611df2c6272722ead1286360611ae8"
   },
   "baseUrl": "http://localhost:3002",
   "selectedNodeConfigured": true,
@@ -47,7 +47,7 @@
     "src/lib/authority-domain-shards/loader.ts": "8026d6850432f9fa06afddf4161406858a21e16a0707e9700f938a92c5b2faa3",
     "src/lib/authority-domain-shards/materialize.ts": "b1043809fc24d5d42ce46856681529ad0b2c6ac63e2bfe975b4b2c3597ed8d84",
     "src/lib/authority-domain-shards/labels.ts": "7f069e09434a67ac06861d14e29400009da048b6aa4b507e1addc2133c98f6d6",
-    "src/app/api/knowledge/_active-authority.ts": "0a1a4505b6010a0edc5143313206b506824eff14a24b2b5a79dfd8e40cbf441c",
+    "src/app/api/knowledge/_active-authority.ts": "a770e045e90e4a5e97b3ec2052abec208b140cad1b92553ec2a43fc786d61de9",
     "src/app/api/knowledge/shards/active/route.ts": "74990fa73d87e4c8b18882cf1a4281cb0725eddf89ee9477d7283a1b33485f01",
     "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "b7afda4a4d04370b2d61713f788209cdf4368106628e6412c12876b09bef3f0e",
     "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "8a74a249cfb3e398db79c2126495e394262ec1ace83289cab9d0fb3306e83529",
@@ -7988,7 +7988,7 @@
       "src/lib/authority-domain-shards/loader.ts": "8026d6850432f9fa06afddf4161406858a21e16a0707e9700f938a92c5b2faa3",
       "src/lib/authority-domain-shards/materialize.ts": "b1043809fc24d5d42ce46856681529ad0b2c6ac63e2bfe975b4b2c3597ed8d84",
       "src/lib/authority-domain-shards/labels.ts": "7f069e09434a67ac06861d14e29400009da048b6aa4b507e1addc2133c98f6d6",
-      "src/app/api/knowledge/_active-authority.ts": "0a1a4505b6010a0edc5143313206b506824eff14a24b2b5a79dfd8e40cbf441c",
+      "src/app/api/knowledge/_active-authority.ts": "a770e045e90e4a5e97b3ec2052abec208b140cad1b92553ec2a43fc786d61de9",
       "src/app/api/knowledge/shards/active/route.ts": "74990fa73d87e4c8b18882cf1a4281cb0725eddf89ee9477d7283a1b33485f01",
       "src/app/api/knowledge/shards/active/domains/[domain]/route.ts": "b7afda4a4d04370b2d61713f788209cdf4368106628e6412c12876b09bef3f0e",
       "src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts": "8a74a249cfb3e398db79c2126495e394262ec1ace83289cab9d0fb3306e83529",
