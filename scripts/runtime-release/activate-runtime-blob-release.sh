@@ -32,6 +32,7 @@ parent_view=""
 overlay_stash=""
 rebuild_staging=""
 rebuild_backup=""
+rebuild_failed=""
 rollback_app_image=""
 candidate_current_selected=0
 candidate_deploy_attempted=0
@@ -381,12 +382,23 @@ restore_rebuild_backup() {
   if [[ -d "$final_view" ]]; then
     ensure_helper_mount "$final_view/.act-runtime-blobs" || true
   fi
-  if [[ -d "$failed_view" ]]; then
+  if [[ "$candidate_deploy_attempted" == "1" && -d "$failed_view" ]]; then
+    rebuild_failed="$failed_view"
+  elif [[ -d "$failed_view" ]]; then
     if findmnt -rn -M "$failed_view/.act-runtime-blobs" >/dev/null 2>&1; then
       umount "$failed_view/.act-runtime-blobs" >/dev/null 2>&1 || true
     fi
     rm -rf -- "$failed_view"
   fi
+}
+
+cleanup_rebuild_failed() {
+  [[ -n "${rebuild_failed:-}" && -d "$rebuild_failed" ]] || return 0
+  if findmnt -rn -M "$rebuild_failed/.act-runtime-blobs" >/dev/null 2>&1; then
+    umount "$rebuild_failed/.act-runtime-blobs" >/dev/null 2>&1 || true
+  fi
+  rm -rf -- "$rebuild_failed"
+  rebuild_failed=""
 }
 
 cleanup_lifecycle_identity() {
@@ -457,12 +469,14 @@ restore_runtime_consumers() {
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
     elif [[ "$restored_rebuild" == "1" ]]; then
-      RUNTIME_DELIVERY_MODE=ossfs-blob-view \
+      if RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-; then
+        cleanup_rebuild_failed
+      fi
     fi
   fi
   cleanup_lifecycle_identity

@@ -121,6 +121,15 @@ assert.match(
   /restore_rebuild_backup/,
   'failed same-release rebuild must restore the replaced live view',
 );
+assert.match(
+  activation,
+  /rebuild_failed="\$failed_view"/,
+  'a live failed rebuild view must be retained while consumers still bind it',
+);
+assert.ok(
+  activation.lastIndexOf('restored_rebuild" == "1"') < activation.lastIndexOf('cleanup_rebuild_failed'),
+  'failed rebuild view must be deleted only after rollback consumer remount succeeds',
+);
 assert.ok(
   activation.lastIndexOf('post_activation_media_smoke_passed=1') <
     activation.lastIndexOf('rm -rf -- "$rebuild_backup"'),
