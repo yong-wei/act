@@ -689,6 +689,65 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(verified["releaseId"], candidate["release_id"])
 
+    def test_restore_overlays_copies_cutover_transaction_closure(self):
+        transaction_id = "v018-cutover-aaaaaaaa"
+        marker_path = "knowledge/production-cutover-transactions/current.json"
+        receipt_path = "knowledge/production-cutover-transactions/%s.json" % transaction_id
+        journal_path = "knowledge/consumer-activation/first-activation-transactions/%s.json" % transaction_id
+        marker = {
+            "contract": "act-production-cutover-marker/v1",
+            "transactionId": transaction_id,
+            "status": "COMMITTED",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            marker_file = parent["view"] / marker_path
+            marker_file.parent.mkdir(parents=True, exist_ok=True)
+            marker_file.write_text(json.dumps(marker) + "\n", encoding="utf-8")
+            (parent["view"] / receipt_path).write_text('{"transactionId":"%s","status":"COMMITTED"}\n' % transaction_id, encoding="utf-8")
+            journal = parent["view"] / journal_path
+            journal.parent.mkdir(parents=True, exist_ok=True)
+            journal.write_text('{"transactionId":"%s"}\n' % transaction_id, encoding="utf-8")
+            restored = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+            )
+            self.assertEqual(sorted(restored["copied"]), sorted([marker_path, receipt_path, journal_path]))
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_restore_overlays_rejects_cutover_marker_without_receipt(self):
+        transaction_id = "v018-cutover-aaaaaaaa"
+        marker_path = "knowledge/production-cutover-transactions/current.json"
+        marker = {
+            "contract": "act-production-cutover-marker/v1",
+            "transactionId": transaction_id,
+            "status": "COMMITTED",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            marker_file = parent["view"] / marker_path
+            marker_file.parent.mkdir(parents=True, exist_ok=True)
+            marker_file.write_text(json.dumps(marker) + "\n", encoding="utf-8")
+            rejected = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+                expect_ok=False,
+            )
+            self.assertIn("control-plane overlay payload is missing", rejected.stderr)
+
     def test_restore_overlays_rejects_selector_without_payload(self):
         projection_id = "proj-" + ("a" * 64)
         overlay_path = "knowledge/projection/current.json"

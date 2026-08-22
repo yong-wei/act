@@ -96,8 +96,13 @@ def control_plane_payload_targets(pointer_relative: str, pointer: Dict[str, Any]
             targets.append(("prefix", "knowledge/consumer-activation/releases/%s" % identity))
         if pointer.get("activationReceiptId"):
             identity = require_overlay_identity(pointer["activationReceiptId"], "activationReceiptId")
-            targets.append(("optional_file", "knowledge/consumer-activation/activations/%s.json" % identity))
-            targets.append(("optional_file", "knowledge/consumer-activation/rollbacks/%s.json" % identity))
+            targets.append(("any_file", "knowledge/consumer-activation/activations/%s.json" % identity))
+            targets.append(("any_file", "knowledge/consumer-activation/rollbacks/%s.json" % identity))
+    elif pointer_relative == "knowledge/production-cutover-transactions/current.json" and pointer.get("transactionId"):
+        identity = require_overlay_identity(pointer["transactionId"], "transactionId")
+        targets.append(("file", "knowledge/production-cutover-transactions/%s.json" % identity))
+        targets.append(("file", "knowledge/consumer-activation/first-activation-transactions/%s.json" % identity))
+        targets.append(("optional_file", "knowledge/production-cutover-transactions/%s.rollback.json" % identity))
     return targets
 
 
@@ -159,7 +164,7 @@ def discover_control_plane_overlay_regular_paths(view: Path) -> Set[str]:
         extras.add(pointer_relative)
         pointer = read_control_plane_pointer(pointer_path)
         for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
-            if kind in {"file", "optional_file"}:
+            if kind in {"file", "optional_file", "any_file"}:
                 candidate = view / relative
                 try:
                     file_details = os.lstat(candidate)
@@ -183,15 +188,17 @@ def require_control_plane_overlay_payloads(view: Path) -> None:
         if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
             continue
         pointer = read_control_plane_pointer(pointer_path)
-        optional_files = []
+        any_files = []
         for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
             if kind == "optional_file":
-                optional_files.append(relative)
+                continue
+            if kind == "any_file":
+                any_files.append(relative)
                 continue
             if not payload_present(view, kind, relative):
                 fail("control-plane overlay payload is missing: %s" % relative)
-        if optional_files and not any(payload_present(view, "file", relative) for relative in optional_files):
-            fail("control-plane overlay payload is missing: %s" % optional_files[0])
+        if any_files and not any(payload_present(view, "file", relative) for relative in any_files):
+            fail("control-plane overlay payload is missing: %s" % any_files[0])
 
 
 def canonical(value: Any) -> bytes:

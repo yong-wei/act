@@ -322,7 +322,7 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
             continue
         pointer = materializer.read_control_plane_pointer(pointer_path)
         for kind, relative in materializer.control_plane_payload_targets(pointer_relative, pointer):
-            if kind in {"file", "optional_file"}:
+            if kind in {"file", "optional_file", "any_file"}:
                 copy_regular(relative)
             else:
                 for source_relative in sorted(materializer.regular_files_under(parent, relative)):
