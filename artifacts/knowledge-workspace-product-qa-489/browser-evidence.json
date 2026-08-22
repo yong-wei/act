@@ -3,8 +3,8 @@
   "issue": 489,
   "capturedAt": "2026-08-21T16:39:58.992Z",
   "captureRevision": {
-    "commitSha": "9903a37d2a11d5a0c0967842446243e8d94692e1",
-    "treeSha": "ee24dd1ccc2003475572d0380fa55367775ccd93"
+    "commitSha": "935e6918c7ad385066cd5fdb823e36b41950a903",
+    "treeSha": "eafa3df21a71f2af4cc559b61c07de5009cacde8"
   },
   "baseUrl": "http://localhost:3002",
   "selectedNodeConfigured": true,
@@ -38,7 +38,7 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "31dbc65a7a4463d87fee43adfa18be9a7ae68d80d9ded3ca4ab64d3e615dfb33",
-    "src/features/knowledge/active-authority-graph.tsx": "dd08ad9a48aeb41105230df3a7d6db9f9b1264604ad8d152923192ac0df8521c",
+    "src/features/knowledge/active-authority-graph.tsx": "a63eda2faa613121e23d9f5ec7ee0a1b6699f45a17574bc70a3d1c7c404bb66c",
     "src/features/knowledge/active-authority-shard-store.ts": "b73b79c92a023f77ff4681d8ba3fce709a9517d08b386736c9bf83b497e56f79",
     "src/features/knowledge/active-authority-presentation.ts": "fe40525d6f04c2099d56eb5e7588b27a78a5da8dde90878a040379dbfd1d91bf",
     "src/features/knowledge/active-authority-graph-contracts.ts": "54ec5b6341a7e364fc153b8f372bbd0e581a83b48cd0b60d27e0d0d01a6cbab5",
@@ -7979,7 +7979,7 @@
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
       "src/features/knowledge/knowledge-graph-workspace.tsx": "31dbc65a7a4463d87fee43adfa18be9a7ae68d80d9ded3ca4ab64d3e615dfb33",
-      "src/features/knowledge/active-authority-graph.tsx": "dd08ad9a48aeb41105230df3a7d6db9f9b1264604ad8d152923192ac0df8521c",
+      "src/features/knowledge/active-authority-graph.tsx": "a63eda2faa613121e23d9f5ec7ee0a1b6699f45a17574bc70a3d1c7c404bb66c",
       "src/features/knowledge/active-authority-shard-store.ts": "b73b79c92a023f77ff4681d8ba3fce709a9517d08b386736c9bf83b497e56f79",
       "src/features/knowledge/active-authority-presentation.ts": "fe40525d6f04c2099d56eb5e7588b27a78a5da8dde90878a040379dbfd1d91bf",
       "src/features/knowledge/active-authority-graph-contracts.ts": "54ec5b6341a7e364fc153b8f372bbd0e581a83b48cd0b60d27e0d0d01a6cbab5",
