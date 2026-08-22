@@ -63,6 +63,23 @@ assert.match(compact(simplified.payload.result), /x\+1/);
 assertHasVerification(simplified);
 assert.ok(operations(simplified).includes('domain_restriction'));
 
+const squareRoot = run('sqrt(x)', 'simplify', 'x');
+assertSuccessful(squareRoot, 'sqrt');
+assertHasVerification(squareRoot);
+assert.match(compact(squareRoot.payload.result), /\\sqrt\{x\}/);
+
+const nestedSquareRoot = run('sqrt((x+1)^2)', 'simplify', 'x');
+assertSuccessful(nestedSquareRoot, 'nested sqrt');
+assertHasVerification(nestedSquareRoot);
+
+const factorial = run('factorial(3)', 'simplify', 'x');
+assertSuccessful(factorial, 'factorial');
+assert.match(compact(factorial.payload.result), /6/);
+
+const unknownFunction = run('foo(x)', 'simplify', 'x');
+assert.notEqual(unknownFunction.code, 0);
+assert.equal(unknownFunction.payload.status, 'error');
+
 const expanded = run('(x+1)^3', 'expand', 'x');
 assertSuccessful(expanded, 'expand');
 assertHasVerification(expanded);

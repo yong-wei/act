@@ -1,8 +1,14 @@
 # Base image
-FROM node:20-alpine AS base
-ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
-RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
+FROM node:20-bookworm-slim AS base
+ARG APT_MIRROR=
+RUN if [ -n "${APT_MIRROR}" ]; then \
+      sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g; s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+        /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list 2>/dev/null || true; \
+    fi \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates curl openssl unzip python3 python3-pip make g++ \
+  && rm -rf /var/lib/apt/lists/*
 
 # Dependencies stage
 FROM base AS deps
@@ -57,7 +63,6 @@ FROM base AS builder
 WORKDIR /app
 ARG APP_REVISION
 ARG NODE_MAX_OLD_SPACE_SIZE=12288
-RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Ensure Authority / Teaching Projection store roots exist for runner packaging

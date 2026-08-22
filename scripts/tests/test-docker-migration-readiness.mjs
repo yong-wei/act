@@ -242,6 +242,16 @@ function main() {
   );
   assert.match(
     dockerfile,
+    /FROM node:20-bookworm-slim AS base/,
+    'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /FROM node:20-alpine/,
+    'Docker 构建链不得从 Alpine 生成生产依赖或 standalone 产物',
+  );
+  assert.match(
+    dockerfile,
     /FROM wolframresearch\/wolframengine:15\.0 AS wolfram-provider[\s\S]*COPY --from=wolfram-provider \/wolfram-runtime \/usr\/local\/Wolfram/,
     'Dockerfile 必须从官方 Wolfram Engine 镜像把可执行运行时复制进生产 runner',
   );

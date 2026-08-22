@@ -3,6 +3,12 @@
 Date: 2026-08-21
 Stable HEAD for the local run: f720835c8
 
+## Remediation status (2026-08-22)
+
+- Docker cross-libc: `base`/`deps`/`prod-deps`/`builder` 已统一到 `node:20-bookworm-slim`，避免 Alpine musl 原生模块进入 glibc runner；已增加 same-distro 回归断言，真实生产镜像构建仍待 green。
+- `calc.wls`: 已恢复 `Sqrt`/`Factorial`/`Gamma` 的 plain 归一化与 held allowlist，并让未知 plain 函数调用 fail closed；已补 `sqrt`/`factorial`/unknown-function 回归用例，真实 Wolfram 运行需在已激活环境重跑。
+- 2026-08-22: `npm run typecheck` 通过；`math-calc`/`konling-math-precompute` 相关 Vitest 21 项通过；`git diff --check` 通过。
+
 ## Completed locally
 
 - `node scripts/tests/test-math-calc-wolfram.mjs` passed on the local activated WolframScript 1.14.0 / Wolfram Engine 15.0.

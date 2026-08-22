@@ -3,7 +3,7 @@
 ClearAll[
   writeResponse, fail, tex, makeStep, appendExpressionStep, appendTextStep,
   verificationLabel, appendVerificationStep, normalizePlainExpression,
-  parseExpression, pickVariable, differentiationRule,
+  hasUnknownPlainFunctionQ, parseExpression, pickVariable, differentiationRule,
   containsUnevaluatedComputationQ, partialFractionTeachingData,
   appendPartialFractionTeachingSteps, appendDifferentiationTeachingSteps,
   integrationSubstitutionData, appendIntegrationSubstitutionSteps, calculate
@@ -11,14 +11,27 @@ ClearAll[
 
 allowedHeads = {
   HoldComplete, Plus, Times, Power, Rational, Complex,
-  Sin, Cos, Tan, Exp, Log, Abs
+  Sin, Cos, Tan, Exp, Log, Abs, Sqrt, Factorial, Gamma
 };
 
 allowedSystemSymbols = {
   E, Pi, I, Infinity,
   Plus, Times, Power, Rational, Complex,
-  Sin, Cos, Tan, Exp, Log, Abs
+  Sin, Cos, Tan, Exp, Log, Abs, Sqrt, Factorial, Gamma
 };
+
+plainFunctionNames = {
+  "sin", "cos", "tan", "exp", "log", "abs", "sqrt", "factorial", "gamma"
+};
+
+hasUnknownPlainFunctionQ[expression_String] := Module[{matches, names},
+  matches = StringCases[
+    expression,
+    RegularExpression["(?i)\\b[A-Za-z][A-Za-z0-9]{0,9}\\s*\\("]
+  ];
+  names = StringReplace[matches, RegularExpression["[\\s(]+$"] -> ""];
+  !AllTrue[ToLowerCase /@ names, MemberQ[plainFunctionNames, #] &]
+];
 
 writeResponse[payload_Association] := Print[
   ExportString[payload, "RawJSON", "Compact" -> True]
@@ -92,12 +105,15 @@ appendVerificationStep[
 normalizePlainExpression[expression_String] := FixedPoint[
   StringReplace[#, {
     "**" -> "^",
-    RegularExpression["(?i)\\bsin\\(([^()]*)\\)"] -> "Sin[$1]",
-    RegularExpression["(?i)\\bcos\\(([^()]*)\\)"] -> "Cos[$1]",
-    RegularExpression["(?i)\\btan\\(([^()]*)\\)"] -> "Tan[$1]",
-    RegularExpression["(?i)\\bexp\\(([^()]*)\\)"] -> "Exp[$1]",
-    RegularExpression["(?i)\\blog\\(([^()]*)\\)"] -> "Log[$1]",
-    RegularExpression["(?i)\\babs\\(([^()]*)\\)"] -> "Abs[$1]"
+    RegularExpression["(?i)\\bsin\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Sin[$1]",
+    RegularExpression["(?i)\\bcos\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Cos[$1]",
+    RegularExpression["(?i)\\btan\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Tan[$1]",
+    RegularExpression["(?i)\\bexp\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Exp[$1]",
+    RegularExpression["(?i)\\blog\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Log[$1]",
+    RegularExpression["(?i)\\babs\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Abs[$1]",
+    RegularExpression["(?i)\\bsqrt\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Sqrt[$1]",
+    RegularExpression["(?i)\\bfactorial\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Factorial[$1]",
+    RegularExpression["(?i)\\bgamma\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)"] -> "Gamma[$1]"
   }] &,
   expression
 ];
@@ -123,6 +139,7 @@ parseExpression[expression_String] := Module[{held, plain},
   held = If[
     StringContainsQ[expression, "\\"] || StringContainsQ[expression, "{"] || StringContainsQ[expression, "}"],
     Quiet@Check[ToExpression[expression, TeXForm, HoldComplete], $Failed],
+    If[hasUnknownPlainFunctionQ[expression], fail["表达式包含不允许的数学结构"]];
     plain = normalizePlainExpression[expression];
     Quiet@Check[ToExpression[plain, InputForm, HoldComplete], $Failed]
   ];

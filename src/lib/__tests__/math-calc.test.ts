@@ -161,6 +161,10 @@ describe('math calculate executor', () => {
     expect(script).toContain('allowedHeads');
     expect(script).toContain('ReleaseHold');
     expect(script).toContain('containsUnevaluatedComputationQ');
+    expect(script).toContain('Sqrt');
+    expect(script).toContain('Factorial');
+    expect(script).toContain('Gamma');
+    expect(script).toContain('hasUnknownPlainFunctionQ');
     expect(script.indexOf('ReleaseHold')).toBeGreaterThan(script.indexOf('allowedHeads'));
   });
 });
