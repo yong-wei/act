@@ -31,9 +31,10 @@ Stable HEAD for the local run: f720835c8
 ## GitHub Actions run history
 
 - Run `32507278912` and `32507769322` both failed at `Build production image` with `no space left on device` on the default `ubuntu-latest` runner. The repository variable `WOLFRAM_VERIFY_RUNNER` is now set to `ubuntu-latest-16-cores`; the verification is being re-run on that runner.
+- Run `32563554313`（job `97008737125`）for HEAD `09e17b217` is still `queued` as of 2026-08-22; production-equivalent image and Wolfram-less negative image must both be green before this P1 can clear.
 
 ## Not completed in this local environment
 
 - Building and running the final production-equivalent container image: Docker is not available in this Windows workspace. `scripts/tests/test-docker-migration-readiness.mjs` now supports `MATH_CALC_TEST_IMAGE` and `MATH_CALC_TEST_NEGATIVE_IMAGE` for a real in-container Wolfram smoke and for asserting that a Wolfram-less image is rejected by the entrypoint; these must be executed where Docker exists.
 - Running-chat-service HTTP E2E: no PostgreSQL/model service is available locally, so `tasks.md` 3.4 remains unchecked and the PR body must not claim this acceptance as final evidence.
-- Re-running the full verification on the final test-merge revision: `origin/integration` is currently 236 commits ahead of the branch merge-base (`e4ba81298`); the commit gate suite must be re-run on the intended merge revision after rebase/merge.
+- Re-running the full verification on the final test-merge revision: `origin/integration` is currently at `b0314b1e2`; branch HEAD is `09e17b217`; merge-base is `661c09a1e`; branch is behind 26 / ahead 13. The commit gate suite must be re-run on the intended merge revision after runtime acceptance and final sync.
