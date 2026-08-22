@@ -1,11 +1,18 @@
+import { join } from 'node:path';
+
 import { NextResponse } from 'next/server';
 
 import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import { shardDigest } from '@/lib/authority-domain-shards/hash';
 import {
+  defaultShardIo,
   readCurrentShardPointer,
+  readJsonViaIo,
   resolveAuthorityDomainShardPaths,
+  shardSetDir,
 } from '@/lib/authority-domain-shards/store';
+import type { AuthorityShardSetManifest } from '@/lib/authority-domain-shards/contracts';
 
 import {
   HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
@@ -16,7 +23,7 @@ import {
   type PublicLocaleCapability,
   type ReleaseLocaleQualification,
 } from './contracts';
-import { isAdmittedLocale, qualifyReleaseLocales } from './qualify';
+import { contentDigestFor, denominatorDigestFor, isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
 import { loadActivePresentationInventory } from './active-presentation-inventory';
 import { expectedDenominatorsFromInventory } from './presentation-denominator';
@@ -59,17 +66,54 @@ function localeEvidenceFingerprint(
   releaseId: string,
   catalogHash: string,
 ): string {
-  const pointer = readCurrentShardPointer(resolveAuthorityDomainShardPaths(repoRoot));
-  const manifest = readPublishedLocaleManifest(repoRoot);
+  const paths = resolveAuthorityDomainShardPaths(repoRoot);
+  const pointer = readCurrentShardPointer(paths);
+  if (
+    pointer.snapshotHash !== snapshotHash
+    || pointer.releaseId !== releaseId
+    || pointer.catalogHash !== catalogHash
+  ) {
+    throw new Error('active shard pointer drifted from the resolved Authority identity');
+  }
+  const shardManifest = readJsonViaIo<AuthorityShardSetManifest>(
+    defaultShardIo,
+    join(shardSetDir(paths, pointer.shardSetId), 'manifest.json'),
+  );
+  const recomputedSetHash = shardDigest({
+    envelope: shardManifest.envelope,
+    files: shardManifest.files,
+  });
+  if (
+    recomputedSetHash !== pointer.shardSetHash
+    || shardManifest.shardSetHash !== pointer.shardSetHash
+    || shardManifest.shardSetId !== pointer.shardSetId
+  ) {
+    throw new Error('active shard-set seal drifted from the current pointer');
+  }
+  const localeManifest = readPublishedLocaleManifest(repoRoot);
+  let localeName = 'missing';
+  let contentDigest = 'missing';
+  let denominatorDigest = 'missing';
+  if (localeManifest) {
+    contentDigest = contentDigestFor(localeManifest.records);
+    denominatorDigest = denominatorDigestFor(localeManifest.denominators);
+    if (
+      contentDigest !== localeManifest.contentDigest
+      || denominatorDigest !== localeManifest.denominatorDigest
+    ) {
+      throw new Error('locale manifest digest drifted from the on-disk records');
+    }
+    localeName = localeManifest.identity.compositeReleaseName;
+  }
   return [
     snapshotHash,
     releaseId,
     catalogHash,
-    pointer.shardSetHash,
+    recomputedSetHash,
     pointer.shardSetId,
-    manifest?.identity.compositeReleaseName ?? 'missing',
-    manifest?.contentDigest ?? 'missing',
-    manifest?.denominatorDigest ?? 'missing',
+    localeName,
+    contentDigest,
+    denominatorDigest,
   ].join(':');
 }
 
