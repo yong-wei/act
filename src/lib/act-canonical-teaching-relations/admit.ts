@@ -16,7 +16,7 @@ import {
   replaceDisposition,
   wouldIntroduceCycle,
 } from './families';
-import { projectionDigest } from './hash';
+import { teachingEdgeId } from './hash';
 import { assertQualifiedReceipt } from './qualify';
 
 export interface AdmissionBatch {
@@ -27,12 +27,12 @@ export interface AdmissionBatch {
 }
 
 function edgeIdFor(candidate: ActTeachingCandidate): string {
-  return `edge-${projectionDigest({
+  return teachingEdgeId({
     family: candidate.family,
     sourceCanonicalId: candidate.sourceCanonicalId,
     targetCanonicalId: candidate.targetCanonicalId,
     scopeHash: candidate.scopeHash,
-  }).slice(0, 24)}`;
+  });
 }
 
 export function admitQualifiedCandidates(input: {

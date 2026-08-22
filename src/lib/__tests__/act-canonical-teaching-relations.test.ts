@@ -148,6 +148,7 @@ describe('act-canonical-teaching-relations', () => {
       pipelineConfigDigest: pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, {
         courseRoots: [],
         parents: [],
+        records: [],
       }),
       gold,
       holdout,
@@ -382,6 +383,7 @@ describe('act-canonical-teaching-relations', () => {
       evidence: {
         courseRoots: [{ canonicalId: 'ctc:a', evidenceRefs: ['evidence:handout-course-root-a'] }],
         parents: [],
+        records: FIXTURE_CONTAINMENT_EVIDENCE.records,
       },
       gold: {
         name: 'gold',
@@ -428,6 +430,20 @@ describe('act-canonical-teaching-relations', () => {
     expect(next.packHash).not.toBe(artifacts.reviewPack.packHash);
   });
 
+  it('rejects evidence refs that are not frozen source records', () => {
+    const scope = threeMemberScope();
+    expect(() => buildActTeachingProjection({
+      scope,
+      evidence: {
+        ...FIXTURE_CONTAINMENT_EVIDENCE,
+        courseRoots: [{ canonicalId: 'ctc:a', evidenceRefs: ['evidence:unrelated'] }],
+      },
+      gold: representativeGold(),
+      holdout: representativeHoldout(),
+      threshold: 0.99,
+    })).toThrow(/not bound to a frozen source digest/);
+  });
+
   it('rejects COURSE_ROOT ids that are not gold/holdout admitted items', () => {
     const scope = threeMemberScope();
     expect(() => buildActTeachingProjection({
@@ -438,6 +454,7 @@ describe('act-canonical-teaching-relations', () => {
           { canonicalId: 'real:x', evidenceRefs: ['evidence:unrelated'] },
         ],
         parents: FIXTURE_CONTAINMENT_EVIDENCE.parents,
+        records: FIXTURE_CONTAINMENT_EVIDENCE.records,
       },
       gold: representativeGold(),
       holdout: representativeHoldout(),

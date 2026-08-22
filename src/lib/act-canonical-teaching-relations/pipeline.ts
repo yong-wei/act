@@ -4,7 +4,7 @@ import {
   type ActTeachingScope,
 } from './contracts';
 import { MIN_AUTO_ADMIT_CONFIDENCE } from './families';
-import { projectionDigest } from './hash';
+import { ActTeachingRelationError, projectionDigest } from './hash';
 import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const COURSE_ROOT_PIPELINE_VERSION = 'act-explicit-containment-evidence/v1' as const;
@@ -14,6 +14,11 @@ export interface CourseRootEvidence {
   readonly evidenceRefs: readonly string[];
 }
 
+export interface FrozenEvidenceRecord {
+  readonly ref: string;
+  readonly sha256: string;
+}
+
 export interface ContainmentEvidence {
   readonly courseRoots: readonly CourseRootEvidence[];
   readonly parents: readonly {
@@ -21,14 +26,26 @@ export interface ContainmentEvidence {
     readonly parentCanonicalId: string;
     readonly evidenceRefs: readonly string[];
   }[];
+  readonly records: readonly FrozenEvidenceRecord[];
 }
 
-function assertVerifiableRefs(refs: readonly string[], label: string): void {
+function assertVerifiableRefs(
+  refs: readonly string[],
+  records: readonly FrozenEvidenceRecord[],
+  label: string,
+): void {
   if (refs.length === 0) {
-    throw new Error(`${label} requires verifiable evidence refs`);
+    throw new ActTeachingRelationError('invalid-evidence-ref', `${label} requires verifiable evidence refs`);
   }
-  if (refs.some((ref) => ref.startsWith('course-root:') || ref.startsWith('scope:'))) {
-    throw new Error(`${label} cannot self-certify identity as evidence`);
+  const byRef = new Map(records.map((row) => [row.ref, row]));
+  for (const ref of refs) {
+    const record = byRef.get(ref);
+    if (!record || !/^[a-f0-9]{64}$/u.test(record.sha256)) {
+      throw new ActTeachingRelationError(
+        'invalid-evidence-ref',
+        `${label} evidence ref is not bound to a frozen source digest: ${ref}`,
+      );
+    }
   }
 }
 
@@ -39,6 +56,10 @@ export function pipelineConfigDigest(
   return projectionDigest({
     version,
     rule: 'explicit-root-or-parent-evidence',
+    records: evidence.records.map((row) => ({
+      ref: row.ref,
+      sha256: row.sha256,
+    })).sort((a, b) => a.ref.localeCompare(b.ref)),
     courseRoots: evidence.courseRoots.map((row) => ({
       canonicalId: row.canonicalId,
       evidenceRefs: [...row.evidenceRefs].sort(),
@@ -69,7 +90,7 @@ export function generateContainmentCandidates(
   const rows: ActTeachingCandidate[] = [];
   for (const root of evidence.courseRoots) {
     if (!members.has(root.canonicalId)) continue;
-    assertVerifiableRefs(root.evidenceRefs, `COURSE_ROOT ${root.canonicalId}`);
+    assertVerifiableRefs(root.evidenceRefs, evidence.records, `COURSE_ROOT ${root.canonicalId}`);
     const evidenceRefs = [...root.evidenceRefs];
     const canonicalId = root.canonicalId;
     rows.push({
@@ -102,7 +123,7 @@ export function generateContainmentCandidates(
     if (!members.has(parent.childCanonicalId) || !members.has(parent.parentCanonicalId)) {
       continue;
     }
-    assertVerifiableRefs(parent.evidenceRefs, `parent ${parent.childCanonicalId}`);
+    assertVerifiableRefs(parent.evidenceRefs, evidence.records, `parent ${parent.childCanonicalId}`);
     rows.push({
       contract: ACT_TEACHING_CANDIDATE_CONTRACT,
       candidateId: candidateId({
@@ -145,7 +166,7 @@ export function generatePendingFamilyPlaceholders(
   scope: ActTeachingScope,
   family: 'containment' | 'prerequisite' | 'association',
 ): ActTeachingCandidate[] {
-  const evidence: ContainmentEvidence = { courseRoots: [], parents: [] };
+  const evidence: ContainmentEvidence = { courseRoots: [], parents: [], records: [] };
   const pipelineConfig = pipelineConfigDigest(COURSE_ROOT_PIPELINE_VERSION, evidence);
   return scope.memberIds.map((canonicalId) => ({
     contract: ACT_TEACHING_CANDIDATE_CONTRACT,

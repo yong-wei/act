@@ -11,7 +11,7 @@ import {
   type ActTeachingPublishedEdge,
   type ActTeachingScope,
 } from './contracts';
-import { ActTeachingRelationError } from './hash';
+import { ActTeachingRelationError, teachingEdgeId } from './hash';
 
 export const MIN_AUTO_ADMIT_CONFIDENCE = 0.85;
 
@@ -181,6 +181,27 @@ export function assertContainmentSkeleton(input: {
   const containmentEdges = edges.filter((edge) => edge.family === 'containment');
   const members = new Set(input.scope.memberIds);
   for (const edge of containmentEdges) {
+    const expectedId = teachingEdgeId({
+      family: 'containment',
+      sourceCanonicalId: edge.sourceCanonicalId,
+      targetCanonicalId: edge.targetCanonicalId,
+      scopeHash: input.scope.scopeHash,
+    });
+    if (edge.edgeId !== expectedId) {
+      throw new ActTeachingRelationError(
+        'containment-edge-mismatch',
+        `containment edge identity drifted from source/target/scope`,
+      );
+    }
+    if (edge.sourceCanonicalId === edge.targetCanonicalId) {
+      throw new ActTeachingRelationError('self-loop', `containment edge ${edge.edgeId} is a self-loop`);
+    }
+    if (wouldIntroduceCycle('containment', containmentEdges, edge.sourceCanonicalId, edge.targetCanonicalId)) {
+      throw new ActTeachingRelationError(
+        'illegal-cycle',
+        `containment edge ${edge.edgeId} introduces a cycle`,
+      );
+    }
     if (!members.has(edge.sourceCanonicalId) || !members.has(edge.targetCanonicalId)) {
       throw new ActTeachingRelationError(
         'containment-incomplete',

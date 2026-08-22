@@ -3,6 +3,7 @@ import { AUTHORITY_DOMAIN_CATALOG_RUNTIME_CONTRACT } from '@/lib/authority-domai
 import { AUTHORITY_DOMAIN_CATALOG_BUILDER_VERSION } from '@/lib/authority-domain-catalog/contracts';
 
 import type { ActTeachingAuthorityIdentity } from './contracts';
+import { freezeEvidenceRef } from './hash';
 import type { GoldRelationItem, QualificationDataset } from './qualify';
 
 export const FIXTURE_AUTHORITY: ActTeachingAuthorityIdentity = {
@@ -70,6 +71,12 @@ export function fixtureCatalog(input: {
   };
 }
 
+const FIXTURE_EVIDENCE_RECORDS = [
+  freezeEvidenceRef('evidence:handout-course-root-a', 'handout 1-1 names ctc:a as the course root'),
+  freezeEvidenceRef('evidence:handout-a-contains-b', 'handout 1-2 places ctc:b under ctc:a'),
+  freezeEvidenceRef('evidence:handout-a-contains-c', 'handout 1-3 places ctc:c under ctc:a'),
+] as const;
+
 export const FIXTURE_CONTAINMENT_EVIDENCE = {
   courseRoots: [
     {
@@ -89,6 +96,7 @@ export const FIXTURE_CONTAINMENT_EVIDENCE = {
       evidenceRefs: ['evidence:handout-a-contains-c'],
     },
   ],
+  records: FIXTURE_EVIDENCE_RECORDS,
 } as const;
 
 export function representativeGold(): QualificationDataset {
