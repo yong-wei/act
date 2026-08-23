@@ -645,8 +645,32 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
     expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
+    expect(displays[0].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays[1].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays.every((option) => !option.scenario.includes('adaptive-learner-state'))).toBe(true);
+    expect(displays.every((option) => !option.scenario.includes('LearningFact'))).toBe(true);
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('translates low-confidence path evidence into user-facing copy', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'low-confidence-route',
+      label: '基础路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: ['low-confidence-learner-state', 'adaptive-learner-state'],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    }]);
+
+    expect(display.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
+    expect(display.scenario).not.toContain('low-confidence-learner-state');
+    expect(display.scenario).not.toContain('adaptive-learner-state');
   });
 
   it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
