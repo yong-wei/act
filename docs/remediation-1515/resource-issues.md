@@ -84,3 +84,15 @@
 - **时间戳能力边界**：官方权重输出仅 key/label/text/text_tn，无 timestamp——与 MLX 侧 convert 注释互相印证（公开 checkpoint 不含时间戳头）。语义段落时间锚点需外部方案：VAD 分段（语音活动时间段）+ 转写文本与讲义段落的文本对齐推导，或另行评估含时间戳的处理器。
 
 结论：**正式 ASR 处理器选定官方 PyTorch runtime（独立 venv）**；MLX 路线保留为上游缺陷修复后的对照候选。资格链路（identity 冻结 → 校准/预注册 → holdout）按此身份执行。
+
+## R5c Fun-ASR-Nano + Qwen3-ForcedAligner 组合验证（2026-08-23，时间戳问题解决）
+
+组合管道（全部独立 venv，零项目依赖）：Fun-ASR-Nano 官方 PyTorch 转写（MPS）→ Qwen3-ForcedAligner-0.6B-hf 词级强制对齐（CPU，transformers 5.15.1 + accelerate）。
+
+同段 15 秒中文课程音频端到端实测：
+
+- 转写 2.5 s（MPS，5×实时）+ 对齐 **1.2 s**（CPU float32）= **总 3.7 s ≈ 4× 实时**。
+- 输出 **75 个字级时间戳**（中文单字粒度，首字 "装" 0.00–0.08s、次字 "这" 0.40–0.56s，边界单调合理）。
+- 运行注意：对齐器在 MPS device_map 下段错误（SIGSEGV，transformers/MPS 兼容问题）——CPU 跑即可满足吞吐；音频需 16kHz mono wav（ffmpeg 预转）或装 torchcodec。
+
+含义：语义分段的时间锚点不再需要 VAD 外推——**讲义段落 ↔ 转写文本对齐 + 字级时间戳**即可推导每个语义段的 startSeconds/endSeconds，满足任务 4.11 的确定性端点推导（段尾=下一段起 or 媒体时长）。资格链路按"Fun-ASR-Nano(转写) + Qwen3-ForcedAligner(对齐)"双处理器身份登记。
