@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -26,6 +27,116 @@ def identity(release_id, seed):
     }
 
 
+TYPESCRIPT_ARTIFACT_GENERATOR = """
+import { writeFileSync } from 'node:fs';
+import { openCutoverTransaction, applyJournaledMutation, sealCoordinatedActiveReceipt, type CutoverJournalStore, type CutoverSelectorStore } from '@/lib/latest-authority-oss-cutover/transaction';
+import { buildCoordinatedRuntimeActiveReceiptBinding } from '@/lib/latest-authority-oss-cutover/runtime-binding';
+import { sealCoordinatedCandidateReceipt, sealCoordinationAllocationRecord } from '@/lib/latest-authority-oss-cutover/envelope';
+
+const H = (c: string) => c.repeat(64);
+const allocation = sealCoordinationAllocationRecord({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  capture: {
+    captureHash: H('a'),
+    compatibility: {
+      contract: 'authority-adapter-compatibility/v1',
+      adapterContractVersion: 'existing-act-adapter',
+      classification: 'COMPATIBLE',
+      incompatibleReasons: [],
+      captured: {
+        schemaVersion: '0.3.0',
+        schemaSha256: H('a'),
+        contractVersion: 'actkg-public-bundle/2',
+        requiredMembers: ['release'],
+        profiles: ['runtime'],
+        representativeParse: 'COMPLETE',
+      },
+    },
+  },
+  scopeHash: H('b'),
+  denominatorHash: H('c'),
+  policyVersions: { continuity: 'v1' },
+  implementationIdentities: { builder: 'b1' },
+});
+const candidate = sealCoordinatedCandidateReceipt({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  allocation,
+  authorityCaptureHash: H('a'),
+  localeQualificationHash: H('d'),
+  teachingProjectionHash: H('a'),
+  teachingClosureReceiptHash: H('d'),
+  formalResourceEnvelopeHash: H('c'),
+  continuityReceiptHash: H('b'),
+  derivationReceiptHash: H('d'),
+  successorRuntimeManifestHash: H('b'),
+  successorRuntimeMaterializationHash: H('c'),
+  domainShardCatalogHash: H('a'),
+  domainShardSetHash: H('b'),
+  prerequisitePublicationHash: H('c'),
+  consumerActivationHash: H('d'),
+  predecessor: [
+    { selectorId: 'authority:current', identity: 'auth-old' },
+    { selectorId: 'runtime:desired', identity: 'runtime-old' },
+  ],
+  predecessorRuntimeLifecycleGeneration: 1,
+  successorSelectorExpectations: [
+    { selectorId: 'authority:current', expectedSuccessorIdentity: 'auth-new' },
+    { selectorId: 'runtime:desired', expectedSuccessorIdentity: 'runtime-new' },
+  ],
+  transactionImplementationIdentity: 'cutover-tx/v1',
+  rollbackPlanHash: H('a'),
+  verificationPolicyHash: H('b'),
+  innerBindings: [],
+});
+class Store implements CutoverSelectorStore {
+  identity: string;
+  constructor(readonly selectorId: string, initial: string) { this.identity = initial; }
+  async readIdentity() { return this.identity; }
+  async writeIdentity(next: string) { this.identity = next; }
+}
+const stores = [new Store('authority:current', 'auth-old'), new Store('runtime:desired', 'runtime-old')];
+const journalStore: CutoverJournalStore = { append: async () => undefined, load: async () => null };
+async function main() {
+  const opened = await openCutoverTransaction({
+    candidateReceipt: candidate,
+    stores,
+    orderedMutationPlans: [
+      { selectorId: 'authority:current', expectedPredecessorIdentity: 'auth-old', successorIdentity: 'auth-new' },
+      { selectorId: 'runtime:desired', expectedPredecessorIdentity: 'runtime-old', successorIdentity: 'runtime-new' },
+    ],
+    journalStore,
+    openedAt: '2030-01-01T00:00:01.000Z',
+  });
+  const receipts = [
+    await applyJournaledMutation(opened.journal, 0, stores[0], '2030-01-01T00:01:00.000Z'),
+    await applyJournaledMutation(opened.journal, 1, stores[1], '2030-01-01T00:01:01.000Z'),
+  ];
+  const runtimeRelease = { releaseId: 'runtime-b', manifestSha256: H('e'), treeSha256: H('f') };
+  const binding = buildCoordinatedRuntimeActiveReceiptBinding({
+    transactionId: opened.journal.transactionId,
+    candidateReceiptHash: candidate.receiptHash,
+    runtimeRelease,
+    materializationReceiptHash: H('c'),
+  });
+  const active = sealCoordinatedActiveReceipt({
+    journal: opened.journal,
+    candidateReceipt: candidate,
+    observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+    mutationReceipts: receipts,
+    runtimeActiveReceiptHash: binding.bindingHash,
+    sealedAt: '2030-01-01T00:02:00.000Z',
+  });
+  writeFileSync(process.argv[2], JSON.stringify(active));
+  writeFileSync(process.argv[3], JSON.stringify(binding));
+  writeFileSync(process.argv[4], JSON.stringify({ candidateReceiptHash: candidate.receiptHash, runtimeRelease }));
+}
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
+"""
+
+
 class RuntimeBlobLifecycleTests(unittest.TestCase):
     def call(self, *args, expect_ok=True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
@@ -39,6 +150,49 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         path = root / (release_id + ".json")
         path.write_text(json.dumps(identity(release_id, seed)), encoding="utf-8")
         return path
+
+    def coordinated_receipt_and_binding(self, root, candidate_identity, candidate_receipt_hash):
+        """Build a graph receipt and runtime binding with genuine
+        content-addressed hashes over the same canonical JSON the lifecycle
+        gate recomputes."""
+        binding = {
+            "contract": "coordinated-runtime-active-receipt-binding/v1",
+            "transactionId": "tx-1",
+            "candidateReceiptHash": candidate_receipt_hash,
+            "runtimeRelease": {
+                "releaseId": candidate_identity["releaseId"],
+                "manifestSha256": candidate_identity["manifestSha256"],
+                "treeSha256": candidate_identity["treeSha256"],
+            },
+            "materializationReceiptHash": "3" * 64,
+            "bindingHash": "",
+        }
+        binding["bindingHash"] = LIFECYCLE.canonical_digest({
+            "transactionId": binding["transactionId"],
+            "candidateReceiptHash": binding["candidateReceiptHash"],
+            "runtimeRelease": binding["runtimeRelease"],
+            "materializationReceiptHash": binding["materializationReceiptHash"],
+        })
+        receipt = {
+            "contract": "coordinated-active-receipt/v1",
+            "receiptId": "",
+            "sealedAt": "2030-01-01T00:00:00Z",
+            "transactionId": "tx-1",
+            "journalHash": "1" * 64,
+            "candidateReceiptHash": candidate_receipt_hash,
+            "committedSelectors": [{"selectorId": "authority:current", "identity": "auth-new"}],
+            "mutationReceiptHashes": ["2" * 64],
+            "runtimeActiveReceiptHash": binding["bindingHash"],
+            "receiptHash": "",
+        }
+        payload_hash = LIFECYCLE.coordinated_active_receipt_payload_hash(receipt)
+        receipt["receiptHash"] = payload_hash
+        receipt["receiptId"] = "act-" + payload_hash[:24]
+        receipt_path = root / "graph-receipt.json"
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        binding_path = root / "runtime-binding.json"
+        binding_path.write_text(json.dumps(binding), encoding="utf-8")
+        return receipt_path, binding_path
 
     def write_v1_state(self, root):
         selection = {
@@ -354,6 +508,148 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertIn("release deadline", before_deadline.stderr)
             released = self.call("release-retained", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(retained), "--now", "2030-01-01T00:06:00Z")
             self.assertEqual(released["retained"], [])
+
+    def test_python_gate_accepts_typescript_coordinated_artifacts(self):
+        """The lifecycle gate must parse the artifacts exactly as the
+        TypeScript library serializes them (contract discriminator and
+        content-addressed hashes)."""
+        if shutil.which("npx") is None:
+            self.skipTest("npx is unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ts_script = root / "generate.ts"
+            receipt_path = root / "ts-graph-receipt.json"
+            binding_path = root / "ts-runtime-binding.json"
+            summary_path = root / "ts-summary.json"
+            ts_script.write_text(TYPESCRIPT_ARTIFACT_GENERATOR, encoding="utf-8")
+            result = subprocess.run(
+                ["npx", "tsx", "--tsconfig", str(ROOT / "tsconfig.json"),
+                 str(ts_script), str(receipt_path), str(binding_path), str(summary_path)],
+                cwd=str(ROOT), text=True, capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            binding = json.loads(binding_path.read_text(encoding="utf-8"))
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            parsed_receipt = LIFECYCLE.coordinated_graph_receipt(receipt)
+            parsed_binding = LIFECYCLE.coordinated_runtime_binding(binding)
+            self.assertEqual(parsed_receipt["candidateReceiptHash"], summary["candidateReceiptHash"])
+            self.assertEqual(parsed_receipt["runtimeActiveReceiptHash"], parsed_binding["bindingHash"])
+            self.assertEqual(parsed_binding["runtimeRelease"]["releaseId"], summary["runtimeRelease"]["releaseId"])
+
+    def test_coordinated_cutover_successor_requires_matching_graph_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate_b = self.write_identity(root, "runtime-b", "b")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_b))
+            identity_b = json.loads(candidate_b.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-b",
+                "manifestSha256": identity_b["manifestSha256"],
+                "treeSha256": identity_b["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            # A declaration that does not match the desired identity is
+            # rejected before the lifecycle state changes.
+            mismatched = root / "coordinated-cutover-mismatch.json"
+            mismatched.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-c",
+                "manifestSha256": identity_b["manifestSha256"],
+                "treeSha256": identity_b["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            rejected_decl = self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(mismatched), expect_ok=False,
+            )
+            self.assertIn("must match the desired identity", rejected_decl.stderr)
+            self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(declaration),
+            )
+            # Activation of the declared coordinated successor without the
+            # committed graph receipt fails closed.
+            rejected_activate = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE), expect_ok=False,
+            )
+            self.assertIn("--coordinated-graph-receipt", rejected_activate.stderr)
+            # A graph receipt whose own content-addressed hash is forged, or
+            # that binds a different candidate, is rejected.
+            receipt, binding = self.coordinated_receipt_and_binding(root, identity_b, "e" * 64)
+            forged = json.loads(receipt.read_text(encoding="utf-8"))
+            forged["candidateReceiptHash"] = "9" * 64
+            forged_path = root / "graph-receipt-forged.json"
+            forged_path.write_text(json.dumps(forged), encoding="utf-8")
+            rejected_forged = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(forged_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
+            )
+            self.assertIn("does not match its own content-addressed hash", rejected_forged.stderr)
+            foreign = json.loads(receipt.read_text(encoding="utf-8"))
+            foreign["candidateReceiptHash"] = "9" * 64
+            foreign["receiptHash"] = LIFECYCLE.coordinated_active_receipt_payload_hash(foreign)
+            foreign["receiptId"] = "act-" + foreign["receiptHash"][:24]
+            foreign_path = root / "graph-receipt-foreign.json"
+            foreign_path.write_text(json.dumps(foreign), encoding="utf-8")
+            rejected_foreign = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(foreign_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
+            )
+            self.assertIn("different candidate", rejected_foreign.stderr)
+            # A valid receipt without the runtime binding still fails closed.
+            rejected_no_binding = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(receipt), expect_ok=False,
+            )
+            self.assertIn("--coordinated-runtime-binding", rejected_no_binding.stderr)
+            # The matching committed graph receipt and runtime binding
+            # unlock the activation.
+            activated = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(receipt),
+                "--coordinated-runtime-binding", str(binding),
+            )
+            self.assertEqual(activated["active"]["active"]["releaseId"], "runtime-b")
+            # The declaration stays as evidence and constrains only the
+            # release it names: an ordinary later candidate activates
+            # without the coordinated gate.
+            self.assertTrue((state / "coordinated-cutover.json").exists())
+            candidate_d = self.write_identity(root, "runtime-d", "d")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(candidate_d))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(candidate_d))
+            ordinary = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "6",
+                "--identity", str(candidate_d), "--host-state-script", str(HOST_STATE),
+            )
+            self.assertEqual(ordinary["active"]["active"]["releaseId"], "runtime-d")
+            # Cancelling a declared desired candidate removes the declaration.
+            candidate_e = self.write_identity(root, "runtime-e", "e")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "7", "--identity", str(candidate_e))
+            identity_e = json.loads(candidate_e.read_text(encoding="utf-8"))
+            declaration_e = root / "coordinated-cutover-e.json"
+            declaration_e.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-e",
+                "manifestSha256": identity_e["manifestSha256"],
+                "treeSha256": identity_e["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "8", "--identity", str(candidate_e), "--coordinated-cutover", str(declaration_e))
+            self.call("cancel-desired", "--state-dir", str(state), "--expected-generation", "9")
+            self.assertFalse((state / "coordinated-cutover.json").exists())
 
     def test_activate_and_retire_rollback_automatically_create_leases(self):
         with tempfile.TemporaryDirectory() as directory:
