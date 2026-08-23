@@ -1,15 +1,18 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 
-test.use({ baseURL: 'http://127.0.0.1:3101' });
+test.use({ baseURL: 'http://localhost:3101' });
 
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'mobile', width: 320, height: 900 },
 ]) {
   test(`AI Workshop renders evidence state without overflow at ${viewport.name}`, async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('act:app-shell:navigation-preference', 'collapsed');
+    });
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await establishAuthenticatedSession(page.context());
-    const response = await page.goto('/ai', { waitUntil: 'networkidle' });
+    const response = await page.goto('/ai', { waitUntil: 'domcontentloaded' });
 
     expect(response?.status()).toBe(200);
     await expect(page.locator('[data-ai-workshop-empty="tasks"]')).toBeVisible();
@@ -25,6 +28,11 @@ for (const viewport of [
     expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 
     if (viewport.name === 'desktop') {
+      const expandNavigation = page.getByRole('button', { name: '展开平台导航' });
+      await expandNavigation.focus();
+      await expect(expandNavigation).toBeFocused();
+      await expandNavigation.click();
+      await expect(page.locator('[data-app-shell-navigation-state="expanded"]')).toBeVisible();
       await page.screenshot({
         path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop.png',
         fullPage: false,
