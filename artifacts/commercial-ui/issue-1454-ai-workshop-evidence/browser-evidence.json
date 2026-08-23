@@ -5,12 +5,12 @@
   "routeFile": "src/app/ai/page.tsx",
   "routeArchetype": "knowledge-data-map",
   "dockState": "hidden",
-  "captureRevision": "760d21f1372e58e07a9a48bd48c81400bdafb116",
-  "captureTime": "2026-08-23T16:07:47.803Z",
+  "captureRevision": "570cea0a9fb792d72198aaca07e1d53529468eff",
+  "captureTime": "2026-08-23T16:16:35.153Z",
   "generator": "tests/ai-workshop-evidence-1454.spec.ts",
   "baseUrl": "http://localhost:3101",
   "runtime": {
-    "runtimeRevision": "760d21f1372e58e07a9a48bd48c81400bdafb116",
+    "runtimeRevision": "570cea0a9fb792d72198aaca07e1d53529468eff",
     "runtimeRevisionSource": "local dev server restarted from this worktree at captureRevision",
     "session": "authenticated student fixture: demo",
     "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
@@ -22,7 +22,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop.png",
-      "sha256": "c1240ad6bf14e2416d5d0889ed079eb9bd02f25305a2afd0ff2129764d9d94ea"
+      "sha256": "2c8ffc6ff8535ad494cef9ca72518de1602f440fb1f0480944902bd88b863e26"
     },
     {
       "name": "desktop-collapsed",
@@ -36,14 +36,14 @@
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile.png",
-      "sha256": "c4675c671d1f517d20c6be057c63e74e3cb55ad840b99ae01f001d44ec656bb5"
+      "sha256": "36d87800ab8e8f95ad8aaf4ec41412e62bb13caab7a07c6e60f03082f0d9c368"
     },
     {
       "name": "mobile-drawer",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile-drawer.png",
-      "sha256": "d4d0b57bb4802855605fc682b34457a5f7f6b1a7b9fd4c5dab4775f2bd9cbecb"
+      "sha256": "5c806bd1de2e56e54991dfa3ac650a1a82391e5904ccedb053272b372dc70f11"
     }
   ],
   "sourceFiles": [
