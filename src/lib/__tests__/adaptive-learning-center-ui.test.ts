@@ -645,8 +645,60 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
     expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
+    expect(displays[0].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays[1].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays.every((option) => !option.scenario.includes('adaptive-learner-state'))).toBe(true);
+    expect(displays.every((option) => !option.scenario.includes('LearningFact'))).toBe(true);
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('translates low-confidence path evidence into user-facing copy', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'low-confidence-route',
+      label: '基础路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: ['low-confidence-learner-state', 'adaptive-learner-state'],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    }]);
+
+    expect(display.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
+    expect(display.scenario).not.toContain('low-confidence-learner-state');
+    expect(display.scenario).not.toContain('adaptive-learner-state');
+  });
+
+  it('translates projected evidence labels from the adaptive center contract', () => {
+    const baseOption: AdaptivePathOptionWriteOption = {
+      optionId: 'projected-evidence-option',
+      label: '投影证据路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    };
+
+    const [sufficientDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['学习证据'],
+    }]);
+    expect(sufficientDisplay.scenario).toBe('这条路径结合你的学习记录生成。');
+
+    const [lowDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['练习记录', '证据较少'],
+    }]);
+    expect(lowDisplay.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
   });
 
   it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
@@ -912,7 +964,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
     expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
     expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replaceAll('\r\n', '\n'))
       .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
@@ -976,7 +1028,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('readAdaptivePathCandidateBatch(prisma as any, sourceBatchId)');
     expect(routeSource).toContain('sourceCandidate.fingerprint !== sourceCandidateFingerprint');
     expect(routeSource).toContain('progressVersion: path.updatedAt instanceof Date');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replace(/\r\n/g, '\n'))
       .toContain('effectiveRevisionArgs,\n                tx,');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');

@@ -959,6 +959,7 @@ const DEMO_LOW_EVIDENCE_PATH_PLAN = {
   pathOptions: [{
     optionId: 'path-option-1',
     nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    evidenceBasis: ['low-confidence-learner-state'],
     recommendationProvenance: DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE,
   }],
   confidence: {
@@ -1234,6 +1235,15 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
       <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
         <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
         <div className="mt-3 grid min-w-0 gap-3">
+          <Link
+            href={provenance.evidenceReviewHref}
+            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
+            data-learning-path-evidence-review-primary
+            aria-label="查看学习记录并复核证据"
+          >
+            &#x67e5;&#x770b;&#x5b66;&#x4e60;&#x8bb0;&#x5f55;&#x5e76;&#x590d;&#x6838;&#x8bc1;&#x636e;
+            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
           {provenance.entries.map((entry, index) => (
             <article
               key={`${option.id}:${entry.targetLabel}:${index}`}
@@ -1279,13 +1289,6 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
           {provenance.nextAction ? (
             <p className="break-words text-xs leading-5 text-foreground">下一步：{provenance.nextAction}</p>
           ) : null}
-          <Link
-            href={provenance.evidenceReviewHref}
-            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
-          >
-            查看学习记录并复核证据
-            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
-          </Link>
         </div>
       </details>
     </section>
@@ -3227,7 +3230,17 @@ export default function AdaptivePracticePage() {
     candidateBatchLoadState !== 'failed';
   const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&
     (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
-  const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready';
+  // Demo fixtures use the in-memory path plan rather than a persisted candidate batch.
+  // Keep production comparison fail-closed while allowing the evidence route to render
+  // the same recommendation disclosure without requiring an authenticated API session.
+  const canRenderCandidateComparison = (
+    shouldShowCandidateComparison && candidateBatchLoadState === 'ready'
+  ) || (
+    isDemoMode &&
+    showSelectionWorkspace &&
+    !requestedBatchId &&
+    pathOptions.length > 0
+  );
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
