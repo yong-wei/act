@@ -1,4 +1,4 @@
-import { generateText, Output, zodSchema } from 'ai';
+import { generateText, NoOutputGeneratedError, Output, zodSchema } from 'ai';
 import { z } from 'zod';
 
 import { createAIProviderFromConfig } from '../ai/provider-registry';
@@ -50,6 +50,7 @@ type RuntimeDependencies = {
   resolveConfig?: typeof resolveConfiguredAIProviderConfig;
   getSettings?: typeof getAIProviderSettings;
   generate?: (input: Record<string, unknown>) => Promise<GenerateObjectResult<unknown>>;
+  generateText?: typeof generateText;
   advisoryTimeoutMs?: number;
 };
 
@@ -99,6 +100,7 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
         idempotencyKey: string;
         maxOutputTokens?: number;
         deferValidation?: boolean;
+        fallbackToTextJson?: boolean;
         timeoutMs?: number;
       }) {
         const schemaName = input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_');
@@ -125,8 +127,10 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
                 prompt: input.prompt,
                 idempotencyKey: input.idempotencyKey,
                 maxOutputTokens: input.maxOutputTokens ?? 8_000,
+                fallbackToTextJson: input.fallbackToTextJson,
                 timeoutMs: input.timeoutMs,
                 abortSignal,
+                generateText: dependencies.generateText,
               })
         ));
         const normalized = normalizeSmartLessonProviderOutput(result.object);
@@ -168,29 +172,75 @@ async function generateUnvalidatedJson(input: {
   prompt: string;
   idempotencyKey: string;
   maxOutputTokens: number;
+  fallbackToTextJson?: boolean;
   timeoutMs?: number;
   abortSignal?: AbortSignal;
+  generateText?: typeof generateText;
 }): Promise<GenerateObjectResult<unknown>> {
-  const result = await generateText({
+  const schemaJson = JSON.stringify(zodSchema(input.schema).jsonSchema);
+  const runText = input.generateText ?? generateText;
+  try {
+    const result = await runText({
+      model: input.model,
+      output: Output.json({ name: input.schemaName }),
+      system: input.system,
+      prompt: `${input.prompt}\n必须遵循的 JSON Schema：${schemaJson}`,
+      temperature: 0.1,
+      maxRetries: 0,
+      maxOutputTokens: input.maxOutputTokens,
+      timeout: input.timeoutMs,
+      abortSignal: input.abortSignal,
+      headers: { 'Idempotency-Key': input.idempotencyKey },
+    });
+    return {
+      object: result.output,
+      usage: {
+        inputTokens: result.usage.inputTokens,
+        outputTokens: result.usage.outputTokens,
+      },
+      response: { id: result.response.id },
+    };
+  } catch (error) {
+    if (!input.fallbackToTextJson || !NoOutputGeneratedError.isInstance(error)) throw error;
+    return generateTextJsonFallback(input, schemaJson);
+  }
+}
+
+async function generateTextJsonFallback(
+  input: Parameters<typeof generateUnvalidatedJson>[0],
+  schemaJson: string,
+): Promise<GenerateObjectResult<unknown>> {
+  const result = await (input.generateText ?? generateText)({
     model: input.model,
-    output: Output.json({ name: input.schemaName }),
-    system: input.system,
-    prompt: `${input.prompt}\n必须遵循的 JSON Schema：${JSON.stringify(zodSchema(input.schema).jsonSchema)}`,
+    system: `${input.system}\n结构化响应未返回结果。现在只能输出一个原始 JSON 对象，不得使用 Markdown 或补充说明。`,
+    prompt: `${input.prompt}\n必须遵循的 JSON Schema：${schemaJson}`,
     temperature: 0.1,
     maxRetries: 0,
     maxOutputTokens: input.maxOutputTokens,
     timeout: input.timeoutMs,
     abortSignal: input.abortSignal,
-    headers: { 'Idempotency-Key': input.idempotencyKey },
+    headers: { 'Idempotency-Key': contentHash({ idempotencyKey: input.idempotencyKey, strategy: 'text-json-fallback.v1' }) },
   });
   return {
-    object: result.output,
+    object: parseTextJsonFallback(result.text),
     usage: {
       inputTokens: result.usage.inputTokens,
       outputTokens: result.usage.outputTokens,
     },
     response: { id: result.response.id },
   };
+}
+
+function parseTextJsonFallback(text: string): unknown {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/iu);
+  const candidate = fenced?.[1]?.trim() ?? trimmed;
+  if (!candidate) throw new Error('Structured provider fallback returned an empty text response.');
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    throw new Error('Structured provider fallback did not return valid JSON.');
+  }
 }
 
 async function runWithOptionalTimeout<T>(

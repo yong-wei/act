@@ -1,3 +1,4 @@
+import { NoOutputGeneratedError } from 'ai';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -160,6 +161,39 @@ describe('smart lesson structured provider runtime', () => {
     });
     expect(resolveConfig).toHaveBeenCalledTimes(1);
     expect(resolveConfig).toHaveBeenCalledWith(undefined, undefined, { jsonSchema: true });
+  });
+
+  it('retries an empty structured stream once as a text-only JSON response when requested', async () => {
+    const generateText = vi.fn()
+      .mockRejectedValueOnce(new NoOutputGeneratedError())
+      .mockResolvedValueOnce({
+        text: '```json\n{"goalCoverage":"完整","sourceConsistency":"一致","bopppsStructure":"完整","findings":[],"suggestions":[]}\n```',
+        usage: { inputTokens: 12, outputTokens: 8 },
+        response: { id: 'provider-response-fallback' },
+      });
+    const runtime = await resolveSmartLessonStructuredProvider({
+      resolveConfig: vi.fn(async () => config) as never,
+      generateText: generateText as never,
+    });
+
+    const result = await runtime.generate({
+      schema: smartLessonAdvisoryReviewSchema,
+      schemaVersion: 'review.v1',
+      promptVersion: 'prompt.v1',
+      system: 'system',
+      prompt: 'prompt',
+      idempotencyKey: 'stage-empty-output-1',
+      fallbackToTextJson: true,
+    });
+
+    expect(result.output).toMatchObject({ goalCoverage: '完整', suggestions: [] });
+    expect(result.normalizedResponseId).toBe('provider-response-fallback');
+    expect(generateText).toHaveBeenCalledTimes(2);
+    expect(generateText.mock.calls[0]?.[0]).toHaveProperty('output');
+    expect(generateText.mock.calls[1]?.[0]).not.toHaveProperty('output');
+    expect(generateText.mock.calls[1]?.[0]).toMatchObject({
+      headers: { 'Idempotency-Key': expect.not.stringContaining('stage-empty-output-1') },
+    });
   });
 
   it('keeps the complete plan while applying the advisory-only timeout and narrow response budget', async () => {

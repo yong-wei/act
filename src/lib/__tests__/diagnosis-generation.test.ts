@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { NoOutputGeneratedError } from 'ai';
 import { UnrecoverableError } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
@@ -509,6 +510,33 @@ describe('teacher diagnosis generation contracts', () => {
     }));
     expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
       data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('records an exhausted empty provider stream as retryable with a specific diagnosis code', async () => {
+    const providerError = new NoOutputGeneratedError();
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 2, opts: { attempts: 3 } } as never,
+      async () => { throw providerError; },
+    )).rejects.toBe(providerError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-provider-empty-output',
+        errorMessage: '诊断模型未返回可用的结构化结果。',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'diagnosis-provider-empty-output',
+        retryable: true,
+      }),
     }));
   });
 

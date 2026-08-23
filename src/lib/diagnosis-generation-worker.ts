@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { NoOutputGeneratedError } from 'ai';
 import { UnrecoverableError, Worker, type Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 
@@ -19,6 +20,13 @@ export const DIAGNOSIS_GENERATION_QUEUE = 'teacher-diagnosis-generation';
 let worker: Worker<{ jobId: string }> | null = null;
 
 function classifyDiagnosisGenerationFailure(error: unknown) {
+  if (NoOutputGeneratedError.isInstance(error)) {
+    return {
+      validation: false,
+      code: 'diagnosis-provider-empty-output',
+      message: '诊断模型未返回可用的结构化结果。',
+    };
+  }
   if (error instanceof DiagnosisGenerationValidationError) {
     return {
       validation: true,

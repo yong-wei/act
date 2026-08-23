@@ -246,6 +246,7 @@ export async function generateGovernedDiagnosisReport(
     idempotencyKey: input.attemptId,
     maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
     deferValidation: true,
+    fallbackToTextJson: true,
     timeoutMs: 120_000,
   });
   const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
