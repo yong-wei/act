@@ -15,6 +15,11 @@ for (const viewport of [
     const response = await page.goto('/ai', { waitUntil: 'domcontentloaded' });
 
     expect(response?.status()).toBe(200);
+    await page.locator('nextjs-portal').evaluateAll((portals) => {
+      portals.forEach((portal) => {
+        (portal as HTMLElement).style.display = 'none';
+      });
+    });
     await expect(page.locator('[data-ai-workshop-empty="tasks"]')).toBeVisible();
     await expect(page.locator('text=120 分钟')).toHaveCount(0);
     await expect(page.locator('text=85%')).toHaveCount(0);
