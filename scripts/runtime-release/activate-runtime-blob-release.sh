@@ -19,6 +19,12 @@ ENV_FILE="${ACT_RUNTIME_ENV_FILE:-/home/projects/act/data/runtime/act-obe.env}"
 LEGACY_RUNTIME_ROOT="${ACT_RUNTIME_LEGACY_ROOT:-/home/projects/act/course-content/runtime}"
 APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
 READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
+# Coordinated cutover (#1509): when set, the desired identity is declared as
+# a coordinated successor and the activation must carry the matching
+# committed coordinated graph receipt.
+COORDINATED_CUTOVER_DECLARATION="${ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION:-}"
+COORDINATED_GRAPH_RECEIPT="${ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT:-}"
+COORDINATED_RUNTIME_BINDING="${ACT_RUNTIME_COORDINATED_RUNTIME_BINDING:-}"
 
 release_id=""
 expected_active_release=""
@@ -343,11 +349,16 @@ stage_lifecycle_desired() {
   fi
   if [[ "$desired_id" != "$release_id" ]]; then
     publishing_has_candidate="$(python3 -c 'import json,sys; state=json.load(sys.stdin); print("1" if any(item["releaseId"] == sys.argv[1] for item in state["publishing"]) else "0")' "$release_id" <<<"$snapshot")"
+    coordinated_args=()
+    if [[ -n "$COORDINATED_CUTOVER_DECLARATION" ]]; then
+      coordinated_args+=(--coordinated-cutover "$COORDINATED_CUTOVER_DECLARATION")
+    fi
     if [[ "$publishing_has_candidate" == "1" ]]; then
       snapshot="$(python3 "$LIFECYCLE_SCRIPT" set-desired \
         --state-dir "$STATE_DIR" \
         --expected-generation "$lifecycle_generation" \
-        --identity "$lifecycle_identity")"
+        --identity "$lifecycle_identity" \
+        "${coordinated_args[@]}")"
     else
       snapshot="$(python3 "$LIFECYCLE_SCRIPT" begin-publish \
         --state-dir "$STATE_DIR" \
@@ -357,7 +368,8 @@ stage_lifecycle_desired() {
       snapshot="$(python3 "$LIFECYCLE_SCRIPT" set-desired \
         --state-dir "$STATE_DIR" \
         --expected-generation "$next_generation" \
-        --identity "$lifecycle_identity")"
+        --identity "$lifecycle_identity" \
+        "${coordinated_args[@]}")"
     fi
   fi
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
@@ -593,12 +605,20 @@ if [[ "$release_id" == "$old_active" ]]; then
   }
 else
   activation_attempted=1
+  coordinated_activation_args=()
+  if [[ -n "$COORDINATED_GRAPH_RECEIPT" ]]; then
+    coordinated_activation_args+=(--coordinated-graph-receipt "$COORDINATED_GRAPH_RECEIPT")
+  fi
+  if [[ -n "$COORDINATED_RUNTIME_BINDING" ]]; then
+    coordinated_activation_args+=(--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING")
+  fi
   python3 "$ACTIVATION_TRANSACTION" activate \
     --state-dir "$STATE_DIR" \
     --lifecycle-script "$LIFECYCLE_SCRIPT" \
     --host-state-script "$HOST_STATE_SCRIPT" \
     --expected-generation "$lifecycle_generation" \
-    --identity "$lifecycle_identity" >/dev/null
+    --identity "$lifecycle_identity" \
+    "${coordinated_activation_args[@]}" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
   activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
