@@ -48,7 +48,7 @@ export interface TeacherDiagnosisReportHistoryEvidenceManifest {
     failure: boolean;
     degraded: boolean;
     multipleHistorySelection: boolean;
-    serverPreparationLink: boolean;
+    findingPreparationActionOmitted: boolean;
     rawEvidenceIdentifiersHidden: boolean;
     generationQueued: boolean;
     generationCompleted: boolean;
@@ -84,7 +84,7 @@ const REQUIRED_ASSERTIONS = [
   'failure',
   'degraded',
   'multipleHistorySelection',
-  'serverPreparationLink',
+  'findingPreparationActionOmitted',
   'rawEvidenceIdentifiersHidden',
   'generationQueued',
   'generationCompleted',

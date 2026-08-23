@@ -368,6 +368,17 @@ describe('diagnosis generation preflight', () => {
         audience: { classId: 'class-1', assignmentRevisionId: 'revision-2' },
       }),
     },
+    {
+      label: 'non-positive total points',
+      row: reviewedAssignment({
+        revision: {
+          id: 'revision-1',
+          contentHash: 'assignment-content-1',
+          totalPoints: 0,
+          publishedAt: new Date('2026-08-18T02:00:00.000Z'),
+        },
+      }),
+    },
   ])('excludes reviewed assignments with $label from governed input', async ({ row }) => {
     db.assignmentSubmission.findMany.mockResolvedValue([row]);
 

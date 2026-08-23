@@ -419,19 +419,19 @@ interface StudentEvidenceFeatureCacheDelegate {
 
 export interface StudentEvidenceFeatureCacheDb {
   learningFact?: {
-    findMany: (args?: Record<string, unknown>) => Promise<Array<StudentEvidenceFeatureLearningFact | { userId: string }>>;
+    findMany: (args?: any) => Promise<Array<StudentEvidenceFeatureLearningFact | { userId: string }>>;
   };
   studentCompetencySnapshot?: {
-    findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
-    findFirst: (args?: Record<string, unknown>) => Promise<StudentCompetencySnapshotAggregate | null>;
+    findMany?: (args?: any) => Promise<Array<{ userId: string }>>;
+    findFirst: (args?: any) => Promise<StudentCompetencySnapshotAggregate | null>;
   };
   studentPortraitV2Snapshot?: {
-    findFirst?: (args?: Record<string, unknown>) => Promise<StudentPortraitV2SnapshotAggregate | null>;
-    findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
+    findFirst?: (args?: any) => Promise<StudentPortraitV2SnapshotAggregate | null>;
+    findMany?: (args?: any) => Promise<Array<{ userId: string }>>;
   };
   studentProfileSummary?: {
-    findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
-    findUnique: (args?: Record<string, unknown>) => Promise<StudentProfileSummaryAggregate | null>;
+    findMany?: (args?: any) => Promise<Array<{ userId: string }>>;
+    findUnique: (args?: any) => Promise<StudentProfileSummaryAggregate | null>;
   };
   learningPathExecution?: StudentPathEvidenceDelegate;
   learningPathDeviation?: StudentPathEvidenceDelegate;
@@ -440,7 +440,7 @@ export interface StudentEvidenceFeatureCacheDb {
 }
 
 interface StudentPathEvidenceDelegate {
-  findMany: (args?: Record<string, unknown>) => Promise<Array<Record<string, any> | { userId: string }>>;
+  findMany: (args?: any) => Promise<Array<Record<string, any> | { userId: string }>>;
 }
 
 interface StudentPathEvidenceInput {

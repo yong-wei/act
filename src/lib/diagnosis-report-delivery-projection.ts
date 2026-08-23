@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { diagnosisReportBodySchema, type DiagnosisRiskSummary } from '@/lib/diagnosis-persistence';
+import { parseStoredDiagnosisReportBody, type DiagnosisRiskSummary } from '@/lib/diagnosis-persistence';
 
 export const DIAGNOSIS_DELIVERY_PROJECTION_VERSION = 'diagnosis-delivery.v1';
 export const TEACHER_DIAGNOSIS_ROLE_VERSION = 'teacher-report.v1';
@@ -134,7 +134,7 @@ export function canonicalJson(value: unknown): string {
 }
 
 function projectBase(source: DeliverySource, roleVersion: string, audienceUserId: string | null): DiagnosisDeliveryBase {
-  const parsed = diagnosisReportBodySchema.safeParse(source.reportBody);
+  const parsed = parseStoredDiagnosisReportBody(source.reportBody);
   if (!parsed.success || !validDate(source.evidenceCutoff) || !validDate(source.generatedAt)) {
     throw new DiagnosisDeliveryProjectionError('invalid-report');
   }

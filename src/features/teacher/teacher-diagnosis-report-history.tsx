@@ -657,16 +657,6 @@ function ReportDetail({
                   {finding.confidence ? <span>· {CONFIDENCE_LABELS[finding.confidence]}</span> : null}
                   <span>· {finding.evidenceRefs.length} 条受治理证据</span>
                 </div>
-                {finding.prepLink ? (
-                  <Link
-                    href={finding.prepLink}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg border border-sky-500/25 bg-sky-500/5 px-3 py-2 text-xs font-medium text-sky-700 transition hover:bg-sky-500/10 dark:text-sky-300"
-                  >
-                    <BookOpenCheck className="h-3.5 w-3.5" />
-                    打开对应备课位置
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : null}
               </section>
             ))}
           </div>

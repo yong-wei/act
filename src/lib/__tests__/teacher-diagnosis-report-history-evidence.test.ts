@@ -53,7 +53,7 @@ function manifest(): TeacherDiagnosisReportHistoryEvidenceManifest {
       failure: true,
       degraded: true,
       multipleHistorySelection: true,
-      serverPreparationLink: true,
+      findingPreparationActionOmitted: true,
       rawEvidenceIdentifiersHidden: true,
       generationQueued: true,
       generationCompleted: true,

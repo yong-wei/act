@@ -25,6 +25,16 @@ const DIAGNOSIS_TOOLS = [
   'get_student_knowledge_progress',
 ] as const;
 
+const MAX_PROVIDER_OUTCOME_ROWS = 24;
+const MAX_PROVIDER_RISK_ROWS = 24;
+const MAX_PROVIDER_EVIDENCE_REFS = 24;
+const MAX_PROVIDER_PROGRESS_EVIDENCE_REFS = 6;
+const DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS = 2_400;
+const DIAGNOSIS_PROVIDER_MAX_SUMMARY_LENGTH = 1_000;
+const DIAGNOSIS_PROVIDER_MAX_FINDINGS = 6;
+const DIAGNOSIS_PROVIDER_MAX_FINDING_SUMMARY_LENGTH = 280;
+const DIAGNOSIS_PROVIDER_MAX_EVIDENCE_REFS = 16;
+
 const governedInputSchema = z.object({
   schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
   classId: z.string(),
@@ -35,7 +45,7 @@ const governedInputSchema = z.object({
     assignmentRevisionId: z.string(),
     contentHash: z.string(),
     score: z.number(),
-    totalPoints: z.number(),
+    totalPoints: z.number().positive(),
     reviewedAt: z.string(),
   })).optional(),
   assessmentSessions: z.array(z.object({
@@ -85,6 +95,50 @@ export class DiagnosisGenerationValidationError extends Error {
     this.name = 'DiagnosisGenerationValidationError';
   }
 }
+
+const diagnosisProviderEvidenceRefSchema = z.string()
+  .trim()
+  .min(1)
+  .max(500)
+  .regex(/^(assignment-submission|adaptive-assessment-session|student-risk-flag|student-competency-snapshot|knowledge-progress):[A-Za-z0-9._:-]+$/);
+
+const diagnosisProviderFindingSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  summary: z.string().trim().min(1).max(DIAGNOSIS_PROVIDER_MAX_FINDING_SUMMARY_LENGTH).optional(),
+  knowledgeNodeId: z.string().trim().min(1).max(200).optional(),
+  riskType: z.enum(['stagnation', 'constraint', 'cross_domain']).optional(),
+  severity: z.enum(['low', 'medium', 'high']).optional(),
+  evidenceRefs: z.array(diagnosisProviderEvidenceRefSchema).max(6).default([]),
+  confidence: z.enum(['high', 'medium', 'low', 'unavailable']).optional(),
+}).strict();
+
+const diagnosisProviderOutcomeCoverageSchema = z.object({
+  availability: z.literal('available'),
+  includedStudents: z.number().int().nonnegative(),
+  missingStudents: z.number().int().nonnegative(),
+  evidenceCount: z.number().int().nonnegative(),
+  scoredCount: z.number().int().nonnegative(),
+}).strict();
+
+const diagnosisProviderReportBodySchema = z.object({
+  summary: z.string().trim().min(1).max(DIAGNOSIS_PROVIDER_MAX_SUMMARY_LENGTH),
+  findings: z.array(diagnosisProviderFindingSchema).max(DIAGNOSIS_PROVIDER_MAX_FINDINGS).default([]),
+  evidenceRefs: z.array(diagnosisProviderEvidenceRefSchema).min(1).max(DIAGNOSIS_PROVIDER_MAX_EVIDENCE_REFS),
+  evidenceCutoff: z.string().datetime({ offset: true }),
+  sourceCoverage: z.object({
+    classMembers: z.number().int().nonnegative().optional(),
+    includedStudents: z.number().int().nonnegative().optional(),
+    progressRows: z.number().int().nonnegative().optional(),
+    coverage: z.number().min(0).max(1).optional(),
+    assignment: diagnosisProviderOutcomeCoverageSchema.optional(),
+    assessment: diagnosisProviderOutcomeCoverageSchema.optional(),
+  }).strict().refine(
+    (coverage) => Object.keys(coverage).length > 0,
+    'source coverage must contain at least one governed metric',
+  ),
+  confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
+  limitations: z.array(z.string().trim().min(1).max(240)).max(5).default([]),
+}).strict();
 
 export async function generateGovernedDiagnosisReport(
   db: PrismaClient,
@@ -160,16 +214,26 @@ export async function generateGovernedDiagnosisReport(
   if (observedRefs.size === 0) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-unavailable');
   }
+  const providerToolResults = {
+    assignments: compactAssignmentsForProvider(assignments),
+    assessments: compactAssessmentsForProvider(assessments),
+    riskFlags: compactRiskFlagsForProvider(riskFlags),
+    competency: competency ? compactCompetencyForProvider(competency) : null,
+    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress),
+  };
 
   const provider = await resolveSmartLessonStructuredProvider();
   const generated = await provider.generate({
-    schema: diagnosisReportBodySchema,
+    schema: diagnosisProviderReportBodySchema,
     schemaVersion: 'teacher-diagnosis-report-body.v1',
     promptVersion: input.generatorVersion,
     system: [
       '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
       '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
       '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
+      '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
+      '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
+      'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
       `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
     ].join('\n'),
     prompt: JSON.stringify({
@@ -177,10 +241,10 @@ export async function generateGovernedDiagnosisReport(
         ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
         : { type: 'class', classId: input.classId },
       evidenceCutoff: input.evidenceCutoff.toISOString(),
-      governedToolResults: { assignments, assessments, riskFlags, competency, knowledgeProgress },
+      governedToolResults: providerToolResults,
     }),
     idempotencyKey: input.attemptId,
-    maxOutputTokens: 8_000,
+    maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
     deferValidation: true,
     timeoutMs: 120_000,
   });
@@ -226,6 +290,7 @@ function projectFrozenAssignments(
     contentHash: row.contentHash,
     score: row.score,
     totalPoints: row.totalPoints,
+    scorePercent: normalizeAssignmentScore(row.score, row.totalPoints),
     reviewedAt: row.reviewedAt,
     evidenceRefs: [`assignment-submission:${row.id}`],
   }));
@@ -387,6 +452,185 @@ function projectFrozenKnowledgeProgress(
     limitations: progress.length > 0 ? [] : ['no-knowledge-progress-evidence'],
     privacyClass: 'teacher-scoped',
   };
+}
+
+function compactAssignmentsForProvider(projection: ReturnType<typeof projectFrozenAssignments>) {
+  const assignments = selectRepresentativeScoredRows(
+    projection.assignments,
+    MAX_PROVIDER_OUTCOME_ROWS,
+    (assignment) => assignment.scorePercent,
+  );
+  return {
+    ...projection,
+    assignments,
+    evidenceRefs: assignments.flatMap((row) => row.evidenceRefs),
+    aggregate: assignmentScoreAggregate(projection.assignments),
+    providerProjection: providerProjectionMetadata(projection.assignments.length, assignments.length),
+  };
+}
+
+function compactAssessmentsForProvider(projection: ReturnType<typeof projectFrozenAssessments>) {
+  const assessments = selectRepresentativeScoredRows(
+    projection.assessments,
+    MAX_PROVIDER_OUTCOME_ROWS,
+    (assessment) => assessment.score,
+  );
+  return {
+    ...projection,
+    assessments,
+    evidenceRefs: assessments.flatMap((row) => row.evidenceRefs),
+    aggregate: scoreAggregate(projection.assessments),
+    providerProjection: providerProjectionMetadata(projection.assessments.length, assessments.length),
+  };
+}
+
+function compactRiskFlagsForProvider(projection: ReturnType<typeof projectFrozenRiskFlags>) {
+  const ordered = [...projection.flags].sort((left, right) => (
+    `${riskSeverityRank(right.severity)}:${right.type}:${right.evidenceRefs[0]}`.localeCompare(
+      `${riskSeverityRank(left.severity)}:${left.type}:${left.evidenceRefs[0]}`,
+    )
+  ));
+  const flags = takeEvenlyDistributed(ordered, MAX_PROVIDER_RISK_ROWS);
+  return {
+    ...projection,
+    learners: [],
+    flags,
+    evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
+    aggregate: {
+      total: projection.flags.length,
+      byType: countBy(projection.flags, (flag) => flag.type),
+      bySeverity: countBy(projection.flags, (flag) => flag.severity),
+    },
+    providerProjection: providerProjectionMetadata(projection.flags.length, flags.length),
+  };
+}
+
+function compactCompetencyForProvider(projection: ReturnType<typeof projectFrozenCompetency>) {
+  const evidenceRefs = takeEvenlyDistributed(projection.evidenceRefs, MAX_PROVIDER_EVIDENCE_REFS);
+  return {
+    ...projection,
+    evidenceRefs,
+    providerProjection: providerProjectionMetadata(projection.evidenceRefs.length, evidenceRefs.length),
+  };
+}
+
+function compactKnowledgeProgressForProvider(projection: ReturnType<typeof projectFrozenKnowledgeProgress>) {
+  const grouped = new Map<string, typeof projection.progress>();
+  for (const row of projection.progress) {
+    const key = `${row.knowledgeNodeId}\u0000${row.status}`;
+    const rows = grouped.get(key) ?? [];
+    rows.push(row);
+    grouped.set(key, rows);
+  }
+  const progress = [...grouped.values()]
+    .map((rows) => {
+      const representative = takeEvenlyDistributed(
+        [...rows].sort((left, right) => (
+          left.progress - right.progress || left.evidenceRefs[0].localeCompare(right.evidenceRefs[0])
+        )),
+        MAX_PROVIDER_PROGRESS_EVIDENCE_REFS,
+      );
+      return {
+        knowledgeNodeId: rows[0].knowledgeNodeId,
+        status: rows[0].status,
+        learnerCount: rows.length,
+        meanProgress: round(rows.reduce((sum, row) => sum + row.progress, 0) / rows.length),
+        minProgress: Math.min(...rows.map((row) => row.progress)),
+        maxProgress: Math.max(...rows.map((row) => row.progress)),
+        meanTimeSpentSeconds: round(rows.reduce((sum, row) => sum + row.timeSpentSeconds, 0) / rows.length),
+        evidenceRefs: representative.flatMap((row) => row.evidenceRefs),
+      };
+    })
+    .sort((left, right) => (
+      left.knowledgeNodeId.localeCompare(right.knowledgeNodeId) || left.status.localeCompare(right.status)
+    ));
+  return {
+    classId: projection.classId,
+    progress,
+    evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
+    sourceCoverage: projection.sourceCoverage,
+    confidence: projection.confidence,
+    limitations: projection.limitations,
+    privacyClass: projection.privacyClass,
+    providerProjection: providerProjectionMetadata(projection.progress.length, progress.length),
+  };
+}
+
+function selectRepresentativeScoredRows<T extends { evidenceRefs: string[] }>(
+  rows: T[],
+  limit: number,
+  scoreFor: (row: T) => number,
+) {
+  return takeEvenlyDistributed(
+    [...rows].sort((left, right) => (
+      scoreFor(left) - scoreFor(right) || left.evidenceRefs[0].localeCompare(right.evidenceRefs[0])
+    )),
+    limit,
+  );
+}
+
+function takeEvenlyDistributed<T>(rows: T[], limit: number) {
+  if (rows.length <= limit) return rows;
+  return Array.from({ length: limit }, (_value, index) => (
+    rows[Math.round((index * (rows.length - 1)) / (limit - 1))]
+  ));
+}
+
+function scoreAggregate(rows: Array<{ score: number }>) {
+  if (rows.length === 0) return { count: 0, mean: null, min: null, max: null, below60: 0, atLeast85: 0 };
+  const scores = rows.map((row) => row.score);
+  return {
+    count: rows.length,
+    mean: round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
+    min: Math.min(...scores),
+    max: Math.max(...scores),
+    below60: scores.filter((score) => score < 60).length,
+    atLeast85: scores.filter((score) => score >= 85).length,
+  };
+}
+
+function assignmentScoreAggregate(rows: Array<{ score: number; totalPoints: number; scorePercent: number }>) {
+  if (rows.length === 0) return { count: 0, mean: null, min: null, max: null, below60: 0, atLeast85: 0 };
+  const totalPoints = rows.reduce((sum, row) => sum + row.totalPoints, 0);
+  const scores = rows.map((row) => row.scorePercent);
+  return {
+    count: rows.length,
+    mean: round((rows.reduce((sum, row) => sum + row.score, 0) / totalPoints) * 100),
+    min: Math.min(...scores),
+    max: Math.max(...scores),
+    below60: scores.filter((score) => score < 60).length,
+    atLeast85: scores.filter((score) => score >= 85).length,
+  };
+}
+
+function normalizeAssignmentScore(score: number, totalPoints: number) {
+  return round((score / totalPoints) * 100);
+}
+
+function countBy<T>(rows: T[], keyFor: (row: T) => string) {
+  return Object.fromEntries(rows.reduce((counts, row) => {
+    const key = keyFor(row);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    return counts;
+  }, new Map<string, number>()));
+}
+
+function riskSeverityRank(severity: string) {
+  if (severity === 'high') return 3;
+  if (severity === 'medium') return 2;
+  return 1;
+}
+
+function providerProjectionMetadata(totalRecords: number, includedRecords: number) {
+  return {
+    totalRecords,
+    includedRecords,
+    selection: totalRecords === includedRecords ? 'complete' : 'deterministic-representative-sample',
+  };
+}
+
+function round(value: number) {
+  return Math.round(value * 100) / 100;
 }
 
 function auditToolResult(toolName: typeof DIAGNOSIS_TOOLS[number], result: unknown) {
