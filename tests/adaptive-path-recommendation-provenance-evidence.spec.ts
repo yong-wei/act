@@ -160,6 +160,12 @@ for (const viewport of viewports) {
         }
       }
 
+      if (fixture === 'low') {
+        await expect(optionCard).toContainText('当前学习记录较少，这条路径会先从基础内容开始。');
+      } else if (fixture === 'sufficient') {
+        await expect(optionCard).toContainText('这条路径结合你的学习记录生成。');
+      }
+
       await capture(page, viewport, fixture);
       assertions.push({
         viewport: viewport.name,
