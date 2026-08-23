@@ -50,13 +50,18 @@ for (const viewport of [
       return;
     }
 
+    await page.screenshot({
+      path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile.png',
+      fullPage: false,
+    });
+
     const openNavigation = page.getByRole('button', { name: '打开平台导航' });
     await openNavigation.focus();
     await expect(openNavigation).toBeFocused();
     await openNavigation.click();
     await expect(page.locator('[data-app-shell-mobile-drawer="open"]')).toBeVisible();
     await page.screenshot({
-      path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile.png',
+      path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile-drawer.png',
       fullPage: false,
     });
   });
