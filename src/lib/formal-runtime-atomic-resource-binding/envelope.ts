@@ -3,12 +3,13 @@ import {
   FORMAL_RESOURCE_ENVELOPE_CONTRACT,
   type FormalBinding,
   type FormalQualificationReceipt,
+  type FormalReleaseEntry,
   type FormalResourceAtom,
   type FormalResourceCandidate,
   type FormalResourceEnvelope,
 } from './contracts';
 import { FormalResourceError, projectionDigest } from './hash';
-import { setHash } from './inventory';
+import { assertCandidatesMatchFrozenInventory, setHash, sourceIdentityMatches } from './inventory';
 import { assertAtomIntegrity } from './atoms';
 import { assertBindingIntegrity, assertSealedBinding } from './bind';
 import { rebuildFrozenQualificationReceipt } from './qualify';
@@ -94,7 +95,13 @@ export function assertFormalPreflight(input: {
   bindings: readonly FormalBinding[];
   qualifications: readonly FormalQualificationReceipt[];
   atoms: readonly FormalResourceAtom[];
+  entries: readonly FormalReleaseEntry[];
 }): void {
+  const frozenById = assertCandidatesMatchFrozenInventory({
+    courseScopeId: input.envelope.courseScopeId,
+    entries: input.entries,
+    candidates: input.candidates,
+  });
   const mappingReceipts = input.qualifications.filter((row) => row.pipelineKind === 'canonical-mapping');
   if (input.bindings.length > 0 && mappingReceipts.length === 0) {
     throw new FormalResourceError(
@@ -104,9 +111,19 @@ export function assertFormalPreflight(input: {
   }
   for (const atom of input.atoms) {
     assertAtomIntegrity(atom);
+    const frozen = frozenById.get(atom.resourceId);
     const candidate = input.candidates.find((row) => row.resourceId === atom.resourceId);
-    if (!candidate) {
-      throw new FormalResourceError('identity-drift', `atom ${atom.atomId} has no candidate`);
+    if (!frozen || !candidate) {
+      throw new FormalResourceError('identity-drift', `atom ${atom.atomId} has no frozen candidate`);
+    }
+    if (
+      atom.courseScopeId !== frozen.courseScopeId
+      || !sourceIdentityMatches(atom.source, frozen.source)
+    ) {
+      throw new FormalResourceError(
+        'identity-drift',
+        `atom ${atom.atomId} source drifted from frozen release inventory`,
+      );
     }
     if (atom.disposition === 'BOUND') {
       const hits = input.bindings.filter((row) => row.atomId === atom.atomId && row.resourceId === atom.resourceId);
@@ -117,14 +134,21 @@ export function assertFormalPreflight(input: {
   }
   for (const binding of input.bindings) {
     assertBindingIntegrity(binding);
+    const frozen = frozenById.get(binding.resourceId);
     const candidate = input.candidates.find((row) => row.resourceId === binding.resourceId);
     const atom = input.atoms.find((row) => (
       row.atomId === binding.atomId && row.resourceId === binding.resourceId
     ));
-    if (!candidate || !atom) {
+    if (!frozen || !candidate || !atom) {
       throw new FormalResourceError(
         'identity-drift',
-        `binding ${binding.bindingId} is missing its candidate or atom`,
+        `binding ${binding.bindingId} is missing its frozen candidate or atom`,
+      );
+    }
+    if (!sourceIdentityMatches(binding.source, frozen.source)) {
+      throw new FormalResourceError(
+        'identity-drift',
+        `binding ${binding.bindingId} source drifted from frozen release inventory`,
       );
     }
     if (binding.scopeId !== input.envelope.courseScopeId) {

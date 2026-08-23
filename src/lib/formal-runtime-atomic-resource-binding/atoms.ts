@@ -6,7 +6,25 @@ import {
   type FormalResourceCandidate,
 } from './contracts';
 import { FormalResourceError, atomId, projectionDigest } from './hash';
-import { assertParagraphsMatchFrozenAsr } from './media-pipelines';
+import { assertParagraphsMatchFrozenAsr, resolveIntroTranscript } from './media-pipelines';
+
+export type MediaTranscriptAuthority =
+  | {
+      readonly kind: 'production-script';
+      readonly scriptId: string;
+      readonly scriptHash: string;
+      readonly designSourceHash: string;
+      readonly mediaHash: string;
+      readonly verifiedMediaHash: string;
+    }
+  | {
+      readonly kind: 'asr';
+      readonly asrReceipt: FormalQualificationReceipt;
+      readonly segmentationReceipt: FormalQualificationReceipt;
+      readonly alignmentReceipt: FormalQualificationReceipt;
+      readonly versions: { asr: string; segmentation: string; alignment: string };
+      readonly configs: { asr: string; segmentation: string; alignment: string };
+    };
 
 export function deriveMediaEnds(input: {
   starts: readonly number[];
@@ -59,27 +77,41 @@ export function assertAtomIntegrity(atom: FormalResourceAtom): void {
 
 export function buildMediaAtoms(input: {
   resource: FormalResourceCandidate;
-  scriptId: string;
-  scriptHash: string;
   durationSeconds: number;
   paragraphs: readonly { paragraphId: string; body: string; startSeconds: number }[];
-  asr?: {
-    asrReceipt: FormalQualificationReceipt;
-    segmentationReceipt: FormalQualificationReceipt;
-    alignmentReceipt: FormalQualificationReceipt;
-    versions: { asr: string; segmentation: string; alignment: string };
-    configs: { asr: string; segmentation: string; alignment: string };
-  };
+  authority: MediaTranscriptAuthority;
 }): FormalResourceAtom[] {
-  if (input.asr) {
+  let evidenceRef: string;
+  let contentSeed: unknown;
+  if (input.authority.kind === 'production-script') {
+    const script = resolveIntroTranscript(input.authority);
+    if (input.authority.verifiedMediaHash !== input.resource.source.contentSha256) {
+      throw new FormalResourceError('source-drift', 'production script is not verified against the frozen media source');
+    }
+    evidenceRef = `script:${script.scriptId}`;
+    contentSeed = {
+      authority: 'production-script',
+      scriptId: script.scriptId,
+      scriptHash: script.scriptHash,
+    };
+  } else if (input.authority.kind === 'asr') {
     assertParagraphsMatchFrozenAsr({
       paragraphs: input.paragraphs,
-      asrReceipt: input.asr.asrReceipt,
-      segmentationReceipt: input.asr.segmentationReceipt,
-      alignmentReceipt: input.asr.alignmentReceipt,
-      versions: input.asr.versions,
-      configs: input.asr.configs,
+      asrReceipt: input.authority.asrReceipt,
+      segmentationReceipt: input.authority.segmentationReceipt,
+      alignmentReceipt: input.authority.alignmentReceipt,
+      versions: input.authority.versions,
+      configs: input.authority.configs,
     });
+    evidenceRef = `asr:${input.authority.asrReceipt.receiptId}`;
+    contentSeed = {
+      authority: 'asr',
+      asrOutputHash: input.authority.asrReceipt.outputHash,
+      segmentationOutputHash: input.authority.segmentationReceipt.outputHash,
+      alignmentOutputHash: input.authority.alignmentReceipt.outputHash,
+    };
+  } else {
+    throw new FormalResourceError('missing-script', 'media atoms require production-script or ASR authority');
   }
   const ends = deriveMediaEnds({
     starts: input.paragraphs.map((row) => row.startSeconds),
@@ -89,8 +121,7 @@ export function buildMediaAtoms(input: {
     const contentSha256 = projectionDigest({
       body: row.body,
       paragraphId: row.paragraphId,
-      scriptId: input.scriptId,
-      scriptHash: input.scriptHash,
+      contentSeed,
       rule: MEDIA_TIME_RULE_VERSION,
     });
     return {
@@ -114,7 +145,7 @@ export function buildMediaAtoms(input: {
         paragraphId: row.paragraphId,
       },
       disposition: 'UNRESOLVED',
-      evidenceRefs: [`script:${input.scriptId}`],
+      evidenceRefs: [evidenceRef],
     };
   });
 }

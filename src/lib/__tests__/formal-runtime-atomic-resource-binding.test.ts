@@ -40,6 +40,20 @@ function mappingReceipt() {
   return rebuildFrozenQualificationReceipt('canonical-mapping', 'map/v1', 'cfg-map');
 }
 
+function scriptAuthority(
+  resource: { source: { contentSha256: string } },
+  scriptId = 'script',
+) {
+  return {
+    kind: 'production-script' as const,
+    scriptId,
+    scriptHash: 's'.repeat(64),
+    designSourceHash: 'd'.repeat(64),
+    mediaHash: resource.source.contentSha256,
+    verifiedMediaHash: resource.source.contentSha256,
+  };
+}
+
 describe('formal-runtime-atomic-resource-binding', () => {
   it('freezes the candidate denominator and ignores working-tree extras', () => {
     const first = buildCandidateInventory({
@@ -83,13 +97,12 @@ describe('formal-runtime-atomic-resource-binding', () => {
     const video = inventory.candidates.find((row) => row.subtype === 'video')!;
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'intro-script',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 12,
       paragraphs: [
         { paragraphId: 'intro', body: 'welcome', startSeconds: 0 },
         { paragraphId: 'explain', body: 'closed loop', startSeconds: 3 },
       ],
+      authority: scriptAuthority(video, 'intro-script'),
     });
     const intro = applyAtomDisposition(atoms[0], 'NON_TEACHING', ['evidence:intro-bumper']);
     const explain = applyAtomDisposition(atoms[1], 'BOUND', ['evidence:identity-crosswalk']);
@@ -139,6 +152,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       bindings: stamped,
       qualifications: [receipt],
       atoms: [intro, explain],
+      entries: fixtureEntries(),
     });
     expect(included.disposition).toBe('INCLUDED');
     expect(stamped[0]?.envelopeHash).toBe(envelope.envelopeHash);
@@ -175,10 +189,9 @@ describe('formal-runtime-atomic-resource-binding', () => {
     const video = inventory.candidates[0];
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'script',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 8,
       paragraphs: [{ paragraphId: 'p', body: 'x', startSeconds: 0 }],
+      authority: scriptAuthority(video),
     });
     const receipt = mappingReceipt();
     expect(() => admitFormalBinding({
@@ -278,10 +291,9 @@ describe('formal-runtime-atomic-resource-binding', () => {
     const video = inventory.candidates.find((row) => row.subtype === 'video')!;
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'script',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 6,
       paragraphs: [{ paragraphId: 'p', body: 'body', startSeconds: 0 }],
+      authority: scriptAuthority(video),
     });
     const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
     const receipt = mappingReceipt();
@@ -330,6 +342,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       bindings: stamped,
       qualifications: [receipt],
       atoms: [bound],
+      entries: fixtureEntries(),
     });
     const projected = projectFormalResource({
       title: 'Intro clip',
@@ -355,10 +368,9 @@ describe('formal-runtime-atomic-resource-binding', () => {
     const video = inventory.candidates.find((row) => row.subtype === 'video')!;
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'script',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 6,
       paragraphs: [{ paragraphId: 'p', body: 'body', startSeconds: 0 }],
+      authority: scriptAuthority(video),
     });
     const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
     const receipt = mappingReceipt();
@@ -406,6 +418,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       bindings: [binding],
       qualifications: [receipt],
       atoms: [bound],
+      entries: fixtureEntries(),
     })).toThrow(/not stamped with the sealed envelope/);
     const stamped = stampBindingsWithEnvelope([binding], envelope.envelopeHash);
     expect(closeIncludedResource({
@@ -454,6 +467,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       bindings: [],
       qualifications: [swappedHash],
       atoms: [],
+      entries: fixtureEntries(),
     })).toThrow(/drifted from frozen pipeline output/);
   });
 
@@ -465,10 +479,9 @@ describe('formal-runtime-atomic-resource-binding', () => {
     const video = inventory.candidates.find((row) => row.subtype === 'video')!;
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'script',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 6,
       paragraphs: [{ paragraphId: 'p', body: 'body', startSeconds: 0 }],
+      authority: scriptAuthority(video),
     });
     const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
     const receipt = mappingReceipt();
@@ -524,6 +537,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       bindings: stamped,
       qualifications: [receipt],
       atoms: [bound],
+      entries: fixtureEntries(),
     })).toThrow(/not in the frozen mapping output/);
     expect(() => admitFormalBinding({
       candidate: {
@@ -572,24 +586,109 @@ describe('formal-runtime-atomic-resource-binding', () => {
       hasProductionScript: false,
       ...asrPipelines,
     })).toBe('asr');
+    const asrAuthority = { kind: 'asr' as const, ...asrPipelines };
     expect(() => buildMediaAtoms({
       resource: video,
-      scriptId: 'unused',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 6,
       paragraphs: [{ paragraphId: 'arbitrary', body: 'forged body', startSeconds: 1 }],
-      asr: asrPipelines,
-    })).toThrow(/frozen segmentation output/);
+      authority: asrAuthority,
+    })).toThrow(/frozen ASR paragraph tuples/);
+    expect(() => buildMediaAtoms({
+      resource: video,
+      durationSeconds: 6,
+      paragraphs: [{ paragraphId: 'p1', body: 'closed', startSeconds: 0 }],
+      authority: asrAuthority,
+    })).toThrow(/frozen ASR paragraph tuples/);
     const atoms = buildMediaAtoms({
       resource: video,
-      scriptId: 'unused',
-      scriptHash: 's'.repeat(64),
       durationSeconds: 6,
       paragraphs: [{ paragraphId: 'p1', body: 'closed loop', startSeconds: 0 }],
-      asr: asrPipelines,
+      authority: asrAuthority,
     });
     expect(atoms).toHaveLength(1);
     expect(atoms[0]?.anchor.paragraphId).toBe('p1');
+  });
+
+  it('rejects coordinated source swaps that keep old resource and binding ids', () => {
+    const entries = fixtureEntries();
+    const inventory = buildCandidateInventory({
+      courseScopeId: 'act-control-theory',
+      entries,
+    });
+    const video = inventory.candidates.find((row) => row.subtype === 'video')!;
+    const atoms = buildMediaAtoms({
+      resource: video,
+      durationSeconds: 6,
+      paragraphs: [{ paragraphId: 'p', body: 'body', startSeconds: 0 }],
+      authority: scriptAuthority(video),
+    });
+    const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
+    const receipt = mappingReceipt();
+    const binding = admitFormalBinding({
+      candidate: {
+        resourceId: video.resourceId,
+        atomId: bound.atomId,
+        canonicalId: 'ctc:a',
+        role: 'EXPLAINS',
+        scopeId: 'act-control-theory',
+        method: 'identity',
+        confidence: 0.99,
+        evidenceRefs: ['evidence:identity-crosswalk'],
+      },
+      atom: bound,
+      mappingReceipt: receipt,
+      mappingVersion: 'map/v1',
+      mappingConfig: 'cfg-map',
+    });
+    const swappedSource = {
+      ...video.source,
+      contentSha256: '1'.repeat(64),
+      gitObjectId: 'c'.repeat(40),
+    };
+    const swappedCandidate = { ...video, source: swappedSource };
+    const swappedAtom = { ...bound, source: swappedSource };
+    const swappedBinding = { ...binding, source: swappedSource };
+    const provisionallyClosed = closeIncludedResource({
+      candidate: swappedCandidate,
+      atoms: [swappedAtom],
+      bindings: [swappedBinding],
+    });
+    const others = inventory.candidates.filter((row) => row.resourceId !== video.resourceId);
+    const envelope = buildFormalResourceEnvelope({
+      releaseId: 'rel-formal-test',
+      sourceRevision: 'a'.repeat(40),
+      treeSha256: 'f'.repeat(64),
+      authority: FIXTURE_AUTHORITY,
+      courseScopeId: 'act-control-theory',
+      candidates: [provisionallyClosed, ...others],
+      bindings: [swappedBinding],
+      qualifications: [receipt],
+    });
+    const stamped = stampBindingsWithEnvelope([swappedBinding], envelope.envelopeHash);
+    expect(() => assertFormalPreflight({
+      envelope,
+      candidates: [provisionallyClosed, ...others],
+      bindings: stamped,
+      qualifications: [receipt],
+      atoms: [swappedAtom],
+      entries,
+    })).toThrow(/frozen release inventory/);
+  });
+
+  it('scores qualification from frozen predictions, not gold expected labels', () => {
+    expect(() => qualifyPipeline({
+      pipelineKind: 'canonical-mapping',
+      pipelineVersion: 'map/v1',
+      pipelineConfigDigest: 'cfg-map',
+      gold: [
+        { id: 'map-bound', expected: 'admit' },
+        { id: 'map-label', expected: 'exclude' },
+      ],
+      holdout: [{ id: 'map-holdout', expected: 'admit' }],
+      admittedGoldIds: ['map-bound', 'map-label'],
+      admittedHoldoutIds: ['map-holdout'],
+      output: { mapping: ['ctc:a'] },
+    })).toThrow(/frozen pipeline output/);
   });
 
   it('does not mutate production selectors', () => {

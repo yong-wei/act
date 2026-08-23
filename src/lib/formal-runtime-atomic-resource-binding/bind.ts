@@ -6,11 +6,10 @@ import {
   type FormalQualificationReceipt,
   type FormalResourceAtom,
   type FormalResourceCandidate,
-  type FormalSourceIdentity,
   type FormalTeachingRole,
 } from './contracts';
 import { FormalResourceError, bindingId } from './hash';
-import { closeCandidate } from './inventory';
+import { closeCandidate, sourceIdentityMatches } from './inventory';
 import { assertQualified, frozenCanonicalMappingIds } from './qualify';
 
 export interface BindingCandidate {
@@ -119,13 +118,6 @@ export function stampBindingsWithEnvelope(
     assertBindingIntegrity(row);
     return { ...row, envelopeHash };
   });
-}
-
-export function sourceIdentityMatches(left: FormalSourceIdentity, right: FormalSourceIdentity): boolean {
-  return left.kind === right.kind
-    && left.contentSha256 === right.contentSha256
-    && left.gitObjectId === right.gitObjectId
-    && left.externalInputId === right.externalInputId;
 }
 
 export function bindingMatchesAtom(

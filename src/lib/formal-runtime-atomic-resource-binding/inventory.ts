@@ -6,6 +6,7 @@ import {
   type FormalResourceCandidate,
   type FormalResourceDisposition,
   type FormalResourceSubtype,
+  type FormalSourceIdentity,
 } from './contracts';
 import { FormalResourceError, projectionDigest } from './hash';
 
@@ -62,6 +63,17 @@ export function classifyReleaseEntries(entries: readonly FormalReleaseEntry[]): 
   }
 }
 
+export function sourceIdentityMatches(left: FormalSourceIdentity, right: FormalSourceIdentity): boolean {
+  return left.kind === right.kind
+    && left.contentSha256 === right.contentSha256
+    && left.gitObjectId === right.gitObjectId
+    && left.externalInputId === right.externalInputId;
+}
+
+export function candidateResourceId(entry: Pick<FormalReleaseEntry, 'entryId' | 'source'>): string {
+  return `res-${projectionDigest({ entryId: entry.entryId, source: entry.source }).slice(0, 24)}`;
+}
+
 export function buildCandidateInventory(input: {
   courseScopeId: string;
   entries: readonly FormalReleaseEntry[];
@@ -80,7 +92,7 @@ export function buildCandidateInventory(input: {
     .filter((entry) => entry.classification === 'resource')
     .map((entry) => ({
       contract: FORMAL_RESOURCE_INVENTORY_CONTRACT,
-      resourceId: `res-${projectionDigest({ entryId: entry.entryId, source: entry.source }).slice(0, 24)}`,
+      resourceId: candidateResourceId(entry),
       subtype: entry.subtype as FormalResourceSubtype,
       courseScopeId: input.courseScopeId,
       source: entry.source,
@@ -111,4 +123,37 @@ export function closeCandidate(
     disposition,
     exclusionReasons: disposition === 'EXCLUDED' ? (reasons.length > 0 ? reasons : ['excluded']) : [],
   };
+}
+
+export function assertCandidatesMatchFrozenInventory(input: {
+  courseScopeId: string;
+  entries: readonly FormalReleaseEntry[];
+  candidates: readonly FormalResourceCandidate[];
+}): ReadonlyMap<string, FormalResourceCandidate> {
+  const frozen = buildCandidateInventory({
+    courseScopeId: input.courseScopeId,
+    entries: input.entries,
+  });
+  if (setHash(input.candidates.map((row) => row.resourceId)) !== frozen.candidateHash) {
+    throw new FormalResourceError('identity-drift', 'candidates drifted from frozen release inventory');
+  }
+  const frozenById = new Map(frozen.candidates.map((row) => [row.resourceId, row]));
+  for (const candidate of input.candidates) {
+    const expected = frozenById.get(candidate.resourceId);
+    if (!expected) {
+      throw new FormalResourceError('identity-drift', `candidate ${candidate.resourceId} is not in the frozen inventory`);
+    }
+    if (
+      candidate.contract !== expected.contract
+      || candidate.subtype !== expected.subtype
+      || candidate.courseScopeId !== expected.courseScopeId
+      || !sourceIdentityMatches(candidate.source, expected.source)
+    ) {
+      throw new FormalResourceError(
+        'identity-drift',
+        `candidate ${candidate.resourceId} source drifted from frozen release inventory`,
+      );
+    }
+  }
+  return frozenById;
 }

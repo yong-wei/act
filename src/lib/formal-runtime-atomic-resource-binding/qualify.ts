@@ -8,12 +8,20 @@ export interface PipelineGoldItem {
   readonly expected: 'admit' | 'exclude';
 }
 
+export interface FrozenAsrParagraph {
+  readonly paragraphId: string;
+  readonly body: string;
+  readonly startSeconds: number;
+}
+
 export interface FrozenPipelineSpec {
   readonly kind: FormalPipelineKind;
   readonly version: string;
   readonly config: string;
   readonly gold: readonly PipelineGoldItem[];
   readonly holdout: readonly PipelineGoldItem[];
+  readonly predictedGoldIds: readonly string[];
+  readonly predictedHoldoutIds: readonly string[];
   readonly output: unknown;
 }
 
@@ -27,6 +35,8 @@ export const FROZEN_PIPELINE_REGISTRY: readonly FrozenPipelineSpec[] = [
       { id: 'map-label', expected: 'exclude' },
     ],
     holdout: [{ id: 'map-holdout', expected: 'admit' }],
+    predictedGoldIds: ['map-bound'],
+    predictedHoldoutIds: ['map-holdout'],
     output: { mapping: ['ctc:a'] },
   },
   {
@@ -35,7 +45,12 @@ export const FROZEN_PIPELINE_REGISTRY: readonly FrozenPipelineSpec[] = [
     config: 'cfg-asr',
     gold: [{ id: 'a1', expected: 'admit' }],
     holdout: [{ id: 'h1', expected: 'admit' }],
-    output: { transcript: 'closed loop' },
+    predictedGoldIds: ['a1'],
+    predictedHoldoutIds: ['h1'],
+    output: {
+      transcript: 'closed loop',
+      paragraphs: [{ paragraphId: 'p1', body: 'closed loop', startSeconds: 0 }],
+    },
   },
   {
     kind: 'segmentation',
@@ -43,6 +58,8 @@ export const FROZEN_PIPELINE_REGISTRY: readonly FrozenPipelineSpec[] = [
     config: 'cfg-seg',
     gold: [{ id: 's1', expected: 'admit' }],
     holdout: [{ id: 'sh1', expected: 'admit' }],
+    predictedGoldIds: ['s1'],
+    predictedHoldoutIds: ['sh1'],
     output: { paragraphs: ['p1'] },
   },
   {
@@ -51,13 +68,11 @@ export const FROZEN_PIPELINE_REGISTRY: readonly FrozenPipelineSpec[] = [
     config: 'cfg-ta',
     gold: [{ id: 't1', expected: 'admit' }],
     holdout: [{ id: 'th1', expected: 'admit' }],
+    predictedGoldIds: ['t1'],
+    predictedHoldoutIds: ['th1'],
     output: { starts: [0] },
   },
 ];
-
-function derivedAdmits(items: readonly PipelineGoldItem[]): string[] {
-  return items.filter((row) => row.expected === 'admit').map((row) => row.id);
-}
 
 function lookupFrozenPipeline(
   kind: FormalPipelineKind,
@@ -92,30 +107,24 @@ export function qualifyPipeline(input: {
     input.pipelineVersion,
     input.pipelineConfigDigest,
   );
-  const admittedGoldIds = derivedAdmits(spec.gold);
-  const admittedHoldoutIds = derivedAdmits(spec.holdout);
   if (
     !sameDigest(input.gold, spec.gold)
     || !sameDigest(input.holdout, spec.holdout)
     || !sameDigest(input.output, spec.output)
-    || !sameDigest([...input.admittedGoldIds].sort(), [...admittedGoldIds].sort())
-    || !sameDigest([...input.admittedHoldoutIds].sort(), [...admittedHoldoutIds].sort())
+    || !sameDigest([...input.admittedGoldIds].sort(), [...spec.predictedGoldIds].sort())
+    || !sameDigest([...input.admittedHoldoutIds].sort(), [...spec.predictedHoldoutIds].sort())
   ) {
     throw new FormalResourceError(
       'pipeline-unqualified',
       `${input.pipelineKind} caller evaluation drifted from frozen pipeline output`,
     );
   }
-  return receiptFromFrozenSpec(spec, admittedGoldIds, admittedHoldoutIds);
+  return receiptFromFrozenSpec(spec);
 }
 
-function receiptFromFrozenSpec(
-  spec: FrozenPipelineSpec,
-  admittedGoldIds: readonly string[],
-  admittedHoldoutIds: readonly string[],
-): FormalQualificationReceipt {
-  const goldScore = balancedScore(spec.gold, new Set(admittedGoldIds));
-  const holdoutScore = balancedScore(spec.holdout, new Set(admittedHoldoutIds));
+function receiptFromFrozenSpec(spec: FrozenPipelineSpec): FormalQualificationReceipt {
+  const goldScore = balancedScore(spec.gold, new Set(spec.predictedGoldIds));
+  const holdoutScore = balancedScore(spec.holdout, new Set(spec.predictedHoldoutIds));
   const goldDigest = projectionDigest(spec.gold);
   const holdoutDigest = projectionDigest(spec.holdout);
   const outputHash = projectionDigest(spec.output);
@@ -127,8 +136,8 @@ function receiptFromFrozenSpec(
     goldDigest,
     holdoutDigest,
     threshold: FROZEN_PIPELINE_THRESHOLD,
-    admittedGoldIds: [...admittedGoldIds].sort(),
-    admittedHoldoutIds: [...admittedHoldoutIds].sort(),
+    admittedGoldIds: [...spec.predictedGoldIds].sort(),
+    admittedHoldoutIds: [...spec.predictedHoldoutIds].sort(),
     goldScore,
     holdoutScore,
     outputHash,
@@ -152,8 +161,7 @@ export function rebuildFrozenQualificationReceipt(
   version: string,
   config: string,
 ): FormalQualificationReceipt {
-  const spec = lookupFrozenPipeline(kind, version, config);
-  return receiptFromFrozenSpec(spec, derivedAdmits(spec.gold), derivedAdmits(spec.holdout));
+  return receiptFromFrozenSpec(lookupFrozenPipeline(kind, version, config));
 }
 
 export function frozenPipelineOutput(
@@ -184,6 +192,28 @@ export function frozenAsrTranscript(version: string, config: string): string {
     throw new FormalResourceError('pipeline-unqualified', 'frozen ASR output is invalid');
   }
   return transcript;
+}
+
+export function frozenAsrParagraphs(version: string, config: string): readonly FrozenAsrParagraph[] {
+  const output = frozenPipelineOutput('asr', version, config);
+  const paragraphs = output && typeof output === 'object'
+    ? (output as { paragraphs?: unknown }).paragraphs
+    : undefined;
+  if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
+    throw new FormalResourceError('pipeline-unqualified', 'frozen ASR paragraph tuples are missing');
+  }
+  return paragraphs.map((row, index) => {
+    if (!row || typeof row !== 'object') {
+      throw new FormalResourceError('pipeline-unqualified', `frozen ASR paragraph ${index} is invalid`);
+    }
+    const paragraphId = (row as { paragraphId?: unknown }).paragraphId;
+    const body = (row as { body?: unknown }).body;
+    const startSeconds = (row as { startSeconds?: unknown }).startSeconds;
+    if (typeof paragraphId !== 'string' || paragraphId.length === 0 || typeof body !== 'string' || typeof startSeconds !== 'number' || !Number.isFinite(startSeconds)) {
+      throw new FormalResourceError('pipeline-unqualified', `frozen ASR paragraph ${index} is invalid`);
+    }
+    return { paragraphId, body, startSeconds };
+  });
 }
 
 export function frozenSegmentationParagraphIds(version: string, config: string): readonly string[] {
