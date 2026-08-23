@@ -44,7 +44,7 @@ const qwenSettings = {
   ...deepSeekSettings,
   providers: [{
     ...deepSeekSettings.providers[0],
-    selectedModel: 'Qwen/Qwen3.6-35B-A3B',
+    selectedModel: 'Qwen/Qwen3.5-35B-A3B',
   }],
 };
 
@@ -77,7 +77,7 @@ describe('set-ai-provider-qwen-default sync', () => {
     const { db, upsert } = fakeDb(qwenSettings);
 
     const result = await syncSiliconFlowQwenDefault(db as never, () => undefined);
-    expect(result).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.6-35B-A3B' });
+    expect(result).toEqual({ changed: false, selectedModel: 'Qwen/Qwen3.5-35B-A3B' });
     expect(upsert).not.toHaveBeenCalled();
   });
 

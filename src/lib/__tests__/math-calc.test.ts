@@ -1,81 +1,65 @@
-import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  spawn: vi.fn(),
+  evaluateWolframLanguage: vi.fn(),
 }));
 
-vi.mock('node:child_process', () => ({
-  spawn: mocks.spawn,
-}));
+vi.mock('@/lib/wolfram-cloud-mcp', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/wolfram-cloud-mcp')>();
+  return {
+    ...original,
+    evaluateWolframLanguage: mocks.evaluateWolframLanguage,
+  };
+});
 
 import {
   MathCalculateCapacityError,
   MathCalculateUnavailableError,
   runMathCalculate,
 } from '@/lib/math-calc';
+import { WolframCloudMcpError } from '@/lib/wolfram-cloud-mcp';
 
-interface FakeChildProcess extends EventEmitter {
-  stdout: EventEmitter;
-  stderr: EventEmitter;
-  stdin: {
-    on: ReturnType<typeof vi.fn>;
-    write: ReturnType<typeof vi.fn>;
-    end: ReturnType<typeof vi.fn>;
-  };
-  kill: ReturnType<typeof vi.fn>;
-}
-
-function createFakeChildProcess(): FakeChildProcess {
-  const child = new EventEmitter() as FakeChildProcess;
-  child.stdout = new EventEmitter();
-  child.stderr = new EventEmitter();
-  child.stdin = {
-    on: vi.fn(),
-    write: vi.fn(),
-    end: vi.fn(),
-  };
-  child.kill = vi.fn();
-  return child;
-}
-
-function completeCalculation(child: FakeChildProcess) {
-  child.stdout.emit('data', Buffer.from(JSON.stringify({
+function okEvaluatorText(result = '1') {
+  const payload = JSON.stringify({
     status: 'ok',
-    result: '1',
-    steps: [],
-  })));
-  child.emit('close', 0);
+    result,
+    steps: [{
+      step: 1,
+      description: 'identify',
+      operation: 'identify',
+      input: '1',
+      output: result,
+    }],
+  });
+  return `Out[1]= ${JSON.stringify(payload)}`;
 }
 
 describe('math calculate executor', () => {
-  const children: FakeChildProcess[] = [];
+  const pendingEvaluations: Array<{
+    resolve: (value: string) => void;
+    reject: (reason: unknown) => void;
+    code: string;
+  }> = [];
 
   beforeEach(() => {
-    children.length = 0;
-    mocks.spawn.mockReset();
-    mocks.spawn.mockImplementation(() => {
-      const child = createFakeChildProcess();
-      children.push(child);
-      return child;
-    });
+    pendingEvaluations.length = 0;
+    mocks.evaluateWolframLanguage.mockReset();
+    mocks.evaluateWolframLanguage.mockImplementation((code: string) => new Promise<string>((resolve, reject) => {
+      pendingEvaluations.push({ resolve, reject, code });
+    }));
   });
 
-  it('returns a structured calculator error even when the process exits non-zero', async () => {
-    const child = createFakeChildProcess();
-    mocks.spawn.mockReturnValue(child);
-
+  it('returns a structured calculator error from Cloud MCP output', async () => {
     const pending = runMathCalculate({ expression: 'x -', operation: 'simplify' });
     await Promise.resolve();
-    child.stdout.emit('data', Buffer.from(JSON.stringify({
+    pendingEvaluations[0]?.resolve(`Out[1]= ${JSON.stringify(JSON.stringify({
       status: 'error',
       result: '',
       steps: [],
       error: 'invalid syntax',
-    })));
-    child.emit('close', 2);
+    }))}`);
 
     await expect(pending).resolves.toEqual({
       status: 'error',
@@ -85,27 +69,38 @@ describe('math calculate executor', () => {
     });
   });
 
-  it('projects a non-zero calculator exit into the stable unavailable error without stderr details', async () => {
-    const child = createFakeChildProcess();
-    mocks.spawn.mockReturnValue(child);
-
+  it('sends calc.wls to WolframLanguageEvaluator through Cloud MCP', async () => {
     const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
     await Promise.resolve();
-    child.stderr.emit('data', Buffer.from('private runtime details'));
-    child.emit('close', 2);
+
+    expect(mocks.evaluateWolframLanguage).toHaveBeenCalledTimes(1);
+    const [code, options] = mocks.evaluateWolframLanguage.mock.calls[0] as [string, { timeConstraintSeconds?: number }];
+    expect(code).toContain('rawInput = mathCalcPayload;');
+    expect(code).toContain('FromCharacterCode[');
+    expect(code).toContain('calculate[');
+    expect(code).not.toContain('Last[$ScriptCommandLine]');
+    expect(options.timeConstraintSeconds).toBe(30);
+
+    pendingEvaluations[0]?.resolve(okEvaluatorText());
+    await pending;
+  });
+
+  it('projects Cloud MCP failures into the stable unavailable error', async () => {
+    const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
+    await Promise.resolve();
+    pendingEvaluations[0]?.reject(new WolframCloudMcpError('Wolfram Cloud MCP 不可用'));
 
     const error = await pending.catch((reason: unknown) => reason);
-
     expect(error).toBeInstanceOf(MathCalculateUnavailableError);
     expect(error).toMatchObject({
       name: 'MathCalculateUnavailableError',
       message: '公式计算运行时不可用',
     });
-    expect(String(error)).not.toContain('private runtime details');
+    expect(String(error)).not.toContain('agenttools.wolfram.com');
   });
 
-  it('limits subprocess concurrency for every caller of the shared executor', async () => {
-    const calculations = Array.from({ length: 12 }, () => runMathCalculate({ expression: '1' }));
+  it('limits Cloud MCP concurrency for every caller of the shared executor', async () => {
+    const calculations = Array.from({ length: 9 }, () => runMathCalculate({ expression: '1' }));
     const saturated = expect(
       runMathCalculate({ expression: '1' })
     ).rejects.toBeInstanceOf(MathCalculateCapacityError);
@@ -113,35 +108,36 @@ describe('math calculate executor', () => {
 
     let assertionError: unknown;
     try {
-      expect(mocks.spawn).toHaveBeenCalledTimes(4);
+      expect(mocks.evaluateWolframLanguage).toHaveBeenCalledTimes(1);
     } catch (error) {
       assertionError = error;
     }
     await saturated;
 
-    for (let index = 0; index < children.length; index += 1) {
-      completeCalculation(children[index]);
-      await Promise.resolve();
+    for (let index = 0; index < calculations.length; index += 1) {
+      while (!pendingEvaluations[index]) {
+        await new Promise((resolve) => setImmediate(resolve));
+      }
+      pendingEvaluations[index].resolve(okEvaluatorText());
+      await new Promise((resolve) => setImmediate(resolve));
     }
     await Promise.allSettled(calculations);
 
     if (assertionError) throw assertionError;
-    expect(mocks.spawn).toHaveBeenCalledTimes(12);
+    expect(mocks.evaluateWolframLanguage).toHaveBeenCalledTimes(9);
   });
 
-  it('keeps the Python backend and LaTeX parser verifiable in the production image', () => {
-    const script = readFileSync(join(process.cwd(), 'scripts', 'math-calc', 'calc.py'), 'utf8');
-    const requirements = readFileSync(
-      join(process.cwd(), 'scripts', 'math-calc', 'requirements.txt'),
-      'utf8'
-    );
-    const dockerfile = readFileSync(join(process.cwd(), 'Dockerfile'), 'utf8');
-    const entrypoint = readFileSync(join(process.cwd(), 'docker-entrypoint.sh'), 'utf8');
+  it('keeps Wolfram parsing held and allowlisted before evaluation', () => {
+    const script = readFileSync(join(process.cwd(), 'scripts', 'math-calc', 'calc.wls'), 'utf8');
 
-    expect(script).toMatch(/^#!\/usr\/bin\/env python3\r?\n"""/);
-    expect(requirements).toContain('antlr4-python3-runtime==4.11.1');
-    expect(dockerfile).toContain('python3 -m py_compile scripts/math-calc/calc.py');
-    expect(dockerfile).toContain('parse_latex');
-    expect(entrypoint).toContain('parse_latex');
+    expect(script).toContain('HoldComplete');
+    expect(script).toContain('allowedHeads');
+    expect(script).toContain('ReleaseHold');
+    expect(script).toContain('containsUnevaluatedComputationQ');
+    expect(script).toContain('Sqrt');
+    expect(script).toContain('Factorial');
+    expect(script).toContain('Gamma');
+    expect(script).toContain('hasUnknownPlainFunctionQ');
+    expect(script.indexOf('ReleaseHold')).toBeGreaterThan(script.indexOf('allowedHeads'));
   });
 });

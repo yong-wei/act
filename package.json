@@ -94,6 +94,8 @@
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
     "test:math-document-grading-migration": "node ./scripts/tests/test-math-document-grading-migration.mjs && npm run test:math-document-grading-readyz",
     "test:math-document-grading-readyz": "python3 ./scripts/tests/test-readyz-json.py",
+    "test:konling-math-real-smoke": "npx --yes tsx ./scripts/tests/test-konling-math-real-smoke.ts",
+    "test:konling-http-e2e": "node ./scripts/tests/test-konling-http-e2e.mjs",
     "test:turbopack-trace-boundary": "node ./scripts/tests/test-turbopack-trace-boundary.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",

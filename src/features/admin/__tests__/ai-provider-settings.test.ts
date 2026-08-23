@@ -74,7 +74,12 @@ describe('AI provider settings', () => {
 
     expect(settings.activeProvider).toBe('custom-provider');
     expect(settings.providers).toHaveLength(2);
-    expect(settings.providers[0]?.models.map((model) => model.model)).toContain('Qwen/Qwen3.5-35B-A3B');
+    expect(settings.providers[0]?.models.map((model) => model.model)).toEqual(
+      expect.arrayContaining([
+        'Qwen/Qwen3.5-35B-A3B',
+        'Qwen/Qwen3.6-35B-A3B',
+      ])
+    );
     expect(settings.providers[1]).toMatchObject({
       providerKind: 'anthropic-compatible',
       secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
@@ -107,7 +112,7 @@ describe('AI provider settings', () => {
     });
   });
 
-  it('marks Qwen3.5 to disable thinking for normal teaching prompts', () => {
+  it('marks Qwen3.5 and Qwen3.6 to disable thinking for normal teaching prompts', () => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
