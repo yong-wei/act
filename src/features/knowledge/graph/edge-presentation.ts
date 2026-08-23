@@ -1,7 +1,7 @@
 import type { KnowledgeConceptNodeShape, KnowledgeGraphEdgeFocusState, KnowledgeGraphPresentationFamily } from './visual-config';
 import {
-  getKnowledgeGraphFamilyPresentationStyle,
   getNodeTypeConfig,
+  getRelationStyle,
 } from './visual-config';
 import {
   createKnowledgeGraphEdgePath,
@@ -271,10 +271,11 @@ export function getKnowledgeGraphNodeEmphasisOpacity(
 
 export function getKnowledgeGraphEdgePresentation(link: KnowledgeGraphPresentationLink) {
   const family = getKnowledgeGraphPresentationFamily(link);
+  const style = getRelationStyle(link.relationType ?? link.relation);
   return {
     family,
-    style: getKnowledgeGraphFamilyPresentationStyle(link.relationType ?? link.relation),
-    directed: family !== 'association',
+    style,
+    directed: style.hasArrow,
   };
 }
 
