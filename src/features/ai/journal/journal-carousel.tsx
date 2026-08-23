@@ -7,9 +7,11 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, FileText, Award, Trophy, GraduationCap } from 'lucide-react';
 import type { JournalEntryData } from '../personal-learning-center';
+import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
 interface JournalCarouselProps {
   journals: JournalEntryData[];
+  evidence: AiWorkshopEvidenceProjection;
 }
 
 const entryTypeConfig = {
@@ -19,7 +21,7 @@ const entryTypeConfig = {
   TRAINING: { icon: GraduationCap, label: '培训记录', color: 'text-blue-400', bg: 'bg-blue-500/20' },
 };
 
-export function JournalCarousel({ journals }: JournalCarouselProps) {
+export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handlePrev = () => {
@@ -30,7 +32,13 @@ export function JournalCarousel({ journals }: JournalCarouselProps) {
     setCurrentIndex((prev) => (prev < journals.length - 1 ? prev + 1 : 0));
   };
 
-  if (journals.length === 0) return null;
+  if (journals.length === 0) {
+    return (
+      <div className="border-t border-cyan-500/30 bg-[#0c3654]/50 p-4 text-sm text-slate-400" data-ai-workshop-empty="journals">
+        {evidence.status === 'unavailable' ? '学习日志暂时不可用。' : '暂无已验证的学习日志记录。'}
+      </div>
+    );
+  }
 
   return (
     <div className="border-t border-cyan-500/30 bg-[#0c3654]/50 p-4">

@@ -1,102 +1,82 @@
 'use client';
 
-/**
- * LearningDashboard - 学习仪表盘（顶部统计栏）
- */
-
-import { Clock, Beaker, Scale, Sparkles, Ship } from 'lucide-react';
-import type { LearningProfileData } from '../personal-learning-center';
+import { AlertTriangle, Database, ShieldCheck, Target } from 'lucide-react';
+import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
 interface LearningDashboardProps {
-  profile: LearningProfileData;
+  evidence: AiWorkshopEvidenceProjection;
   userName: string;
 }
 
-export function LearningDashboard({ profile, userName }: LearningDashboardProps) {
-  const learningStyleLabels: Record<LearningProfileData['learningStyle'], string> = {
-    VISUAL: '视觉型',
-    TEXTUAL: '文本型',
-    INTERACTIVE: '互动型',
-    AUDITORY: '听觉型',
-    LOGICAL: '逻辑型',
-  };
+export function LearningDashboard({ evidence, userName }: LearningDashboardProps) {
+  const statusLabel = evidence.status === 'available'
+    ? '已连接受治理学习证据'
+    : evidence.status === 'empty'
+      ? '暂无已验证学习记录'
+      : '学习证据暂不可用';
+  const statusClass = evidence.status === 'available'
+    ? 'text-emerald-300 bg-emerald-500/15'
+    : 'text-amber-300 bg-amber-500/15';
 
   return (
     <div className="border-b border-cyan-500/30 bg-[#0c3654]/80 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* 用户身份标识 */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xl font-bold">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-600 text-xl font-bold">
             {userName.charAt(0)}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-lg font-medium">{userName}</span>
-              <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs text-cyan-400">
-                {profile.fleetGroup}
-              </span>
-              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-400">
-                L{profile.cognitiveLevel}
-              </span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${statusClass}`}>{statusLabel}</span>
             </div>
-            <div className="text-sm text-slate-400">
-              学习风格：{learningStyleLabels[profile.learningStyle]}
-            </div>
+            <div className="mt-1 text-sm text-slate-400">AI 工坊只展示服务端确认的学习证据。</div>
           </div>
         </div>
 
-        {/* 统计数据 */}
-        <div className="flex items-center gap-6">
-          {/* 今日学习时长 */}
-          <div className="flex items-center gap-3 rounded-xl border border-cyan-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Clock className="h-5 w-5 text-cyan-400" />
-            <div>
-              <div className="text-xs text-slate-400">今日学习</div>
-              <div className="text-lg font-medium text-cyan-400">{profile.dailyStudyMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* 实验时长 */}
-          <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Beaker className="h-5 w-5 text-amber-400" />
-            <div>
-              <div className="text-xs text-slate-400">实验时长</div>
-              <div className="text-lg font-medium text-amber-400">{profile.experimentMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* 伦理学习 */}
-          <div className="flex items-center gap-3 rounded-xl border border-green-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Scale className="h-5 w-5 text-green-400" />
-            <div>
-              <div className="text-xs text-slate-400">伦理学习</div>
-              <div className="text-lg font-medium text-green-400">{profile.ethicsMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* AI 推荐指数 */}
-          <div className="flex items-center gap-3 rounded-xl border border-purple-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Sparkles className="h-5 w-5 text-purple-400" />
-            <div>
-              <div className="text-xs text-slate-400">AI 推荐指数</div>
-              <div className="text-lg font-medium text-purple-400">
-                {Math.round(profile.aiRecommendIndex * 100)}%
-              </div>
-            </div>
-          </div>
-
-          {/* 解锁进度 */}
-          <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Ship className="h-5 w-5 text-blue-400" />
-            <div>
-              <div className="text-xs text-slate-400">船舶解锁</div>
-              <div className="text-lg font-medium text-blue-400">
-                {profile.unlockedShips}/{profile.totalShips}
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <EvidenceMetric icon={Database} label="已验证证据" value={`${evidence.evidence.count}`} />
+          <EvidenceMetric icon={ShieldCheck} label="置信度" value={confidenceLabel(evidence.evidence.confidence.level)} />
+          <EvidenceMetric icon={Target} label="来源完整度" value={`${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`} />
+          <EvidenceMetric icon={Target} label="学习路径" value={`${evidence.path.activeCount} 条`} />
         </div>
       </div>
+
+      {evidence.limitations.length > 0 ? (
+        <div className="mt-4 flex items-start gap-2 rounded border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-100" role="status">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+          <ul className="space-y-1">
+            {evidence.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function EvidenceMetric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Database;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-[92px] rounded border border-cyan-500/20 bg-[#0a2a43]/50 px-3 py-2">
+      <div className="flex items-center gap-2 text-xs text-slate-400">
+        <Icon className="h-4 w-4 text-cyan-300" />
+        {label}
+      </div>
+      <div className="mt-1 text-base font-medium text-cyan-200">{value}</div>
+    </div>
+  );
+}
+
+function confidenceLabel(level: AiWorkshopEvidenceProjection['evidence']['confidence']['level']): string {
+  if (level === 'high') return '高';
+  if (level === 'medium') return '中';
+  if (level === 'low') return '低';
+  return '暂无';
 }

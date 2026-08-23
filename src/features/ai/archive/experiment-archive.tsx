@@ -6,9 +6,11 @@
 
 import { Archive, Beaker, Scale, AlertTriangle, Star } from 'lucide-react';
 import type { ExperimentRecord } from '../personal-learning-center';
+import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
 interface ExperimentArchiveProps {
   experiments: ExperimentRecord[];
+  evidence: AiWorkshopEvidenceProjection;
 }
 
 const typeConfig = {
@@ -17,7 +19,7 @@ const typeConfig = {
   ANOMALY_EVENT: { icon: AlertTriangle, label: '异常事件', color: 'text-red-400', bg: 'bg-red-500/20' },
 };
 
-export function ExperimentArchive({ experiments }: ExperimentArchiveProps) {
+export function ExperimentArchive({ experiments, evidence }: ExperimentArchiveProps) {
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-400';
     if (score >= 75) return 'text-amber-400';
@@ -25,7 +27,7 @@ export function ExperimentArchive({ experiments }: ExperimentArchiveProps) {
   };
 
   return (
-    <aside className="w-[20%] min-w-[240px] max-w-[300px] overflow-y-auto border-l border-cyan-500/30 bg-[#0c3654]/50 p-5">
+    <aside className="w-full max-w-none shrink-0 overflow-y-visible border-t border-cyan-500/30 bg-[#0c3654]/50 p-5 md:w-[20%] md:min-w-[240px] md:max-w-[300px] md:overflow-y-auto md:border-l md:border-t-0">
       {/* 标题 */}
       <div className="mb-6">
         <h2 className="flex items-center gap-2 text-lg font-medium text-cyan-400">
@@ -43,7 +45,9 @@ export function ExperimentArchive({ experiments }: ExperimentArchiveProps) {
         </div>
         <div className="rounded-xl border border-amber-500/20 bg-[#0a2a43]/50 p-3 text-center">
           <div className="text-2xl font-bold text-amber-400">
-            {Math.round(experiments.reduce((sum, e) => sum + e.score, 0) / experiments.length)}
+            {experiments.length > 0
+              ? Math.round(experiments.reduce((sum, e) => sum + e.score, 0) / experiments.length)
+              : '—'}
           </div>
           <div className="text-xs text-slate-400">平均分</div>
         </div>
@@ -51,6 +55,11 @@ export function ExperimentArchive({ experiments }: ExperimentArchiveProps) {
 
       {/* 实验记录列表 */}
       <div className="space-y-3">
+        {experiments.length === 0 ? (
+          <div className="rounded border border-slate-700 bg-slate-800/30 p-4 text-sm text-slate-400" data-ai-workshop-empty="experiments">
+            {evidence.status === 'unavailable' ? '仿真记录暂时不可用。' : '暂无已验证的仿真训练记录。'}
+          </div>
+        ) : null}
         {experiments.map((experiment) => {
           const config = typeConfig[experiment.type];
           const Icon = config.icon;

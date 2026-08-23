@@ -1,6 +1,15 @@
 import { AppShell } from '@/components/platform/app-shell';
 import { PersonalLearningCenter } from '@/features/ai/personal-learning-center';
+import {
+  createUnavailableAiWorkshopEvidence,
+  projectAiWorkshopEvidence,
+} from '@/features/ai/ai-workshop-evidence';
 import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import {
+  isAdaptiveLearnerStateServiceEnabled,
+  readAdaptiveLearnerState,
+} from '@/lib/data-governance/adaptive-learner-state-service';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 
@@ -19,6 +28,7 @@ export default async function AiPage({
   const params = await searchParams;
   const session = await getServerAuthSession();
   const viewerRole = resolveAiViewerRole(session?.user?.role);
+  const evidence = await readAiWorkshopEvidence(session?.user?.id, session?.user?.role);
   const hasLocalTask = Boolean(params?.task);
   return (
     <AppShell
@@ -36,6 +46,8 @@ export default async function AiPage({
         data-task-workspace-archetype={hasLocalTask ? 'ai-local-task' : undefined}
       >
         <PersonalLearningCenter
+          evidence={evidence}
+          userName={session?.user?.name ?? '学习者'}
           taskIntent={params?.task}
           taskSource={params?.source}
           taskAssignment={params?.assignment}
@@ -44,6 +56,23 @@ export default async function AiPage({
       </div>
     </AppShell>
   );
+}
+
+async function readAiWorkshopEvidence(userId?: string | null, role?: string | null) {
+  if (!userId || !isAdaptiveLearnerStateServiceEnabled()) {
+    return createUnavailableAiWorkshopEvidence();
+  }
+
+  try {
+    const learnerState = await readAdaptiveLearnerState(prisma, {
+      userId,
+      role: role === 'ADMIN' ? 'admin' : role === 'TEACHER' ? 'teacher' : 'student',
+    });
+    return projectAiWorkshopEvidence(learnerState);
+  } catch (error) {
+    console.error('[AiWorkshop] learner-state projection failed:', error);
+    return createUnavailableAiWorkshopEvidence();
+  }
 }
 
 function resolveAiViewerRole(role?: string | null): PlatformRole {
