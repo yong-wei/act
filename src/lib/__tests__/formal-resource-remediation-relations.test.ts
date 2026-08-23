@@ -177,3 +177,60 @@ describe('relation pipeline and decision applier', () => {
     })).toThrow(/does not know/);
   });
 });
+
+import { buildCrosswalk } from '@/lib/formal-resource-remediation/relations/crosswalk';
+
+describe('authority-to-course crosswalk', () => {
+  it('layers exact matches, label-only, and unlabeled members without fuzzy matches', () => {
+    const scope = reopenedScope(3);
+    const labelRows = [
+      { entityId: 'ctc:member-0', label: '根轨迹', labelType: 'canonical_preferred', language: 'zh-CN' },
+      { entityId: 'ctc:member-1', label: '渐近线', labelType: 'canonical_preferred', language: 'zh-CN' },
+      { entityId: 'ctc:member-1', label: '渐近线', labelType: 'canonical_preferred', language: 'zh-CN' },
+      { entityId: 'ctc:member-2', label: 'english only', labelType: 'canonical_preferred', language: 'en' },
+    ];
+    const courseNodes = [
+      { canonicalName: '根轨迹', canonicalNodeId: '根轨迹_5_1e07d9da', ownerLesson: '3-3' },
+    ];
+    const result = buildCrosswalk({ scope, labelSource: { kind: 'label-index', rows: labelRows }, courseNodes });
+    expect(result.tierA.length).toBe(1);
+    expect(result.tierA[0]?.courseNodeId).toBe('根轨迹_5_1e07d9da');
+    expect(result.tierA[0]?.ownerLesson).toBe('3-3');
+    expect(result.tierB.length).toBe(1);
+    expect(result.tierB[0]?.zhLabel).toBe('渐近线');
+    expect(result.tierC.length).toBe(1);
+    expect(result.crosswalkHash).toMatch(/^[a-f0-9]{64}$/);
+    const conflicting = [
+      { entityId: 'ctc:member-0', label: '根轨迹', labelType: 'canonical_preferred', language: 'zh-CN' },
+      { entityId: 'ctc:member-0', label: '别的', labelType: 'canonical_preferred', language: 'zh-CN' },
+    ];
+    expect(() => buildCrosswalk({ scope, labelSource: { kind: 'label-index', rows: conflicting }, courseNodes }))
+      .toThrow(/conflicting zh-CN preferred labels/);
+    const ambiguous = [
+      { canonicalName: '根轨迹', canonicalNodeId: 'a', ownerLesson: null },
+      { canonicalName: '根轨迹', canonicalNodeId: 'b', ownerLesson: null },
+    ];
+    expect(() => buildCrosswalk({ scope, labelSource: { kind: 'label-index', rows: labelRows }, courseNodes: ambiguous }))
+      .toThrow(/maps to two node ids/);
+  });
+});
+
+import { loadProjectionLabels } from '@/lib/formal-resource-remediation/relations/crosswalk';
+
+describe('projection label source', () => {
+  it('loads complete entity labels with description fallback and conflict detection', () => {
+    const labels = loadProjectionLabels([
+      { entityId: 'ctc:a', displayName: '根轨迹', description: 'x' },
+      { entityId: 'ctc:b', displayName: null, description: '渐近线描述' },
+      { entityId: 'ctc:c', displayName: '  ', description: '分离点描述' },
+    ]);
+    expect(labels['ctc:a']).toBe('根轨迹');
+    expect(labels['ctc:b']).toBe('渐近线描述');
+    expect(labels['ctc:c']).toBe('分离点描述');
+    expect(() => loadProjectionLabels([
+      { entityId: 'ctc:a', displayName: '根轨迹' },
+      { entityId: 'ctc:a', displayName: '另名' },
+    ])).toThrow(/conflicting projection labels/);
+    expect(() => loadProjectionLabels([{ entityId: null }])).toThrow(/no entity id/);
+  });
+});
