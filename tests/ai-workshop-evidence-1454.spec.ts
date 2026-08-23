@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type BrowserContext } from '@playwright/test';
 
 test.use({ baseURL: 'http://127.0.0.1:3101' });
 
@@ -8,6 +8,7 @@ for (const viewport of [
 ]) {
   test(`AI Workshop renders evidence state without overflow at ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await establishAuthenticatedSession(page.context());
     const response = await page.goto('/ai', { waitUntil: 'networkidle' });
 
     expect(response?.status()).toBe(200);
@@ -28,4 +29,22 @@ for (const viewport of [
       fullPage: false,
     });
   });
+}
+
+async function establishAuthenticatedSession(context: BrowserContext) {
+  const csrfResponse = await context.request.get('/api/auth/csrf');
+  const csrf = await csrfResponse.json() as { csrfToken?: string };
+  expect(csrfResponse.ok()).toBe(true);
+  expect(csrf.csrfToken).toBeTruthy();
+
+  const loginResponse = await context.request.post('/api/auth/callback/credentials?json=true', {
+    form: {
+      csrfToken: csrf.csrfToken!,
+      email: 'demo',
+      password: 'DemoStudent@Just2026!',
+      callbackUrl: '/ai',
+      json: 'true',
+    },
+  });
+  expect(loginResponse.ok(), `credentials login failed: ${loginResponse.status()}`).toBe(true);
 }
