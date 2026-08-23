@@ -390,6 +390,8 @@ def parse_receipt(path: Path, manifest: Dict[str, Any], manifest_wire: bytes) ->
     ]
     if "sourceProvenanceProofSha256" in raw:
         receipt_keys.insert(-1, "sourceProvenanceProofSha256")
+    if "formalResourceEnvelopeHash" in raw:
+        receipt_keys.insert(-1, "formalResourceEnvelopeHash")
     raw = require_exact_keys(raw, receipt_keys, "release receipt")
     release_id = manifest["releaseId"]
     if raw["schemaVersion"] != RECEIPT_SCHEMA or raw["manifestVersion"] != MANIFEST_SCHEMA:
@@ -418,6 +420,8 @@ def parse_receipt(path: Path, manifest: Dict[str, Any], manifest_wire: bytes) ->
         fail("release receipt blob set does not match manifest")
     if "sourceProvenanceProofSha256" in raw:
         require_digest(raw["sourceProvenanceProofSha256"], "release receipt.sourceProvenanceProofSha256")
+    if "formalResourceEnvelopeHash" in raw:
+        require_digest(raw["formalResourceEnvelopeHash"], "release receipt.formalResourceEnvelopeHash")
     receipt_sha = require_digest(raw["receiptSha256"], "release receipt.receiptSha256")
     without_digest = dict(raw)
     without_digest.pop("receiptSha256")

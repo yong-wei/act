@@ -3,7 +3,7 @@
 ### Requirement: Resource bindings use stable roles and identities
 Every formal resource binding MUST use a deterministic resource ID, stable atom ID, exact registered runtime subtype, Canonical ID, one of `COVERS`, `EXPLAINS`, `PRACTICES`, or `ASSESSES`, and an explicit teaching scope. Binding identity MUST be derived from `resourceId + atomId + canonicalId + role + scopeId` and MUST bind the source/content identity and formal Runtime Release envelope. Resource subtype and teaching role SHALL remain orthogonal; adding video, audio, podcast, card, textbook, handout/slides, exercise, simulation, project, or another registered runtime subtype MUST NOT add or change a teaching role. Bindings MUST NOT mutate ActKG objects or predicates.
 
-#### Scenario: Lesson step atom is projected
+#### Scenario: Lesson step is projected
 - **WHEN** a step authoring record names a stable atom, valid Canonical ID, exact subtype, and `PRACTICES`
 - **THEN** the runtime binding SHALL preserve the exact role, subtype, atom, scope, source/content identity, release envelope, and Canonical identity
 
@@ -12,7 +12,7 @@ Every formal resource binding MUST use a deterministic resource ID, stable atom 
 - **THEN** the binding SHALL use `EXPLAINS`, retain the exact media subtype and paragraph anchor, and receive deterministic atomic identity
 - **AND** it SHALL not introduce a media-action role such as `WATCHES` or `LISTENS`
 
-#### Scenario: Unsupported role or subtype is supplied
+#### Scenario: Unsupported role is supplied
 - **WHEN** authoring uses an unknown role, unregistered resource subtype, malformed resource ID, or malformed atom ID
 - **THEN** projection build SHALL fail closed without replacing the prior release
 
@@ -24,15 +24,10 @@ Every candidate resource MUST declare its course delivery mode and formal inclus
 - **THEN** that resource SHALL be excluded from the formal projection with bounded reasons
 - **AND** unrelated eligible resources MAY continue
 
-#### Scenario: Optional resource is unbound
-- **WHEN** an `OPTIONAL` teaching resource lacks atomic closure
-- **THEN** it SHALL not publish merely because delivery is optional
-- **AND** it SHALL remain in development runtime or the formal excluded ledger
-
-#### Scenario: Legacy none is migrated
-- **WHEN** a legacy `NONE` resource is considered for a new formal release
-- **THEN** every atom SHALL receive a valid binding or audited non-teaching disposition, or the resource SHALL be excluded
-- **AND** legacy `NONE` alone SHALL not satisfy the gate
+#### Scenario: Optional or none resource is unbound
+- **WHEN** an `OPTIONAL` teaching resource lacks atomic closure, or a legacy `NONE` resource is considered for a new formal release
+- **THEN** it SHALL not publish merely because delivery is optional or because legacy `NONE` is present
+- **AND** it SHALL remain in development runtime or the formal excluded ledger unless every atom receives a valid binding or audited non-teaching disposition
 
 ## ADDED Requirements
 

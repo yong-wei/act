@@ -50,6 +50,13 @@ export const TEACHING_RESOURCE_TYPES = [
   'textbook-chapter',
   'textbook-section',
   'card',
+  'video',
+  'audio',
+  'podcast',
+  'slides',
+  'exercise',
+  'simulation',
+  'project',
 ] as const;
 
 export type TeachingResourceType = (typeof TEACHING_RESOURCE_TYPES)[number];
