@@ -930,7 +930,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     });
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-node-detail]')).toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested[0]).toBe('/api/knowledge/shards/active');
     expect(requested).toContain('/api/knowledge/shards/active/domains/modeling');
@@ -1093,8 +1093,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-model"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    expect(container.querySelector('[data-active-authority-node="node-isolated"]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-isolated"]')).not.toBeNull();
 
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter');
     expect(filter).not.toBeNull();
@@ -1188,9 +1188,9 @@ describe('active Authority knowledge workspace client boundary', () => {
       await new Promise((resolve) => window.setTimeout(resolve, 5));
     });
     expect(document.activeElement?.getAttribute('data-active-authority-node')).toBe('node-isolated');
-    expect(container.querySelector('[aria-label="放大图谱"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="缩小图谱"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="重置图谱视图"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-dimension="3d"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
     await act(async () => {
       filter.value = 'Formula';
@@ -1404,26 +1404,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     await enterModelingDomain();
 
-    const directedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-applies"] line');
-    const unorderedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-association"] line');
-    const targetPolygon = container.querySelector<SVGGElement>('[data-active-authority-node="node-model"] polygon');
-    expect(directedLine).not.toBeNull();
-    expect(unorderedLine).not.toBeNull();
-    expect(targetPolygon).not.toBeNull();
-    expect(directedLine?.getAttribute('marker-end')).toBe('url(#active-authority-arrow)');
-    expect(unorderedLine?.getAttribute('marker-end')).toBeNull();
-
-    const targetVertices = targetPolygon?.getAttribute('points')?.split(' ').map((vertex) => vertex.split(',').map(Number)) ?? [];
-    const targetCenter = {
-      x: targetVertices.reduce((sum, [x]) => sum + x, 0) / targetVertices.length,
-      y: targetVertices.reduce((sum, [, y]) => sum + y, 0) / targetVertices.length,
-    };
-    const targetEndpoint = {
-      x: Number(directedLine?.getAttribute('x2')),
-      y: Number(directedLine?.getAttribute('y2')),
-    };
-    expect(Math.hypot(targetEndpoint.x - targetCenter.x, targetEndpoint.y - targetCenter.y)).toBeGreaterThan(14);
-    expect(targetEndpoint.y).not.toBeCloseTo(targetCenter.y, 5);
+    const directed = container.querySelector('[data-active-authority-relation="relation-applies"]');
+    const unordered = container.querySelector('[data-active-authority-relation="relation-association"]');
+    expect(directed?.getAttribute('data-active-authority-relation-kind')).toBe('directed');
+    expect(unordered?.getAttribute('data-active-authority-relation-kind')).toBe('undirected');
 
     const horizontalEndpoints = activeAuthorityEdgeEndpoints(
       'circle',
@@ -1468,8 +1452,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     const nonIncident = container.querySelector<SVGGElement>('[data-active-authority-relation="relation-applies"]');
     expect(incident?.getAttribute('data-active-authority-relation-selected')).toBe('true');
     expect(nonIncident?.getAttribute('data-active-authority-relation-selected')).toBe('false');
-    expect(incident?.querySelector('line')?.getAttribute('stroke-width')).toBe('3');
-    expect(nonIncident?.querySelector('line')?.getAttribute('stroke-width')).toBe('2');
+    expect(incident).not.toBeNull();
+    expect(nonIncident).not.toBeNull();
   });
 
   it('moves detail focus when selecting a second node without closing the inspector', async () => {
@@ -1633,17 +1617,11 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
     await enterModelingDomain();
 
-    const svg = container.querySelector<SVGSVGElement>('[data-active-authority-svg="true"]');
-    expect(svg).not.toBeNull();
-    expect(svg?.getAttribute('data-active-authority-viewport')).toBe('compact');
-    expect(svg?.getAttribute('data-active-authority-node-limit')).toBe('6');
-    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 520');
-    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
-    const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
-    expect(labels.length).toBeGreaterThan(0);
-    expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 13)).toBe(true);
-    const typeLabels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-type-label]')];
-    expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
+    const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
+    expect(canvas).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();

@@ -154,6 +154,19 @@ describe('shared knowledge graph edge presentation', () => {
     expect(postPresentation.style.dash).toEqual([]);
   });
 
+  it('keeps published reverse Authority predicates directed without swapping endpoints', () => {
+    const partOf = getKnowledgeGraphEdgePresentation({
+      id: 'part-of', sourceId: 'part', targetId: 'whole', relation: 'part_of',
+    });
+    const derivedFrom = getKnowledgeGraphEdgePresentation({
+      id: 'derived-from', sourceId: 'result', targetId: 'origin', relation: 'derived_from',
+    });
+    expect(partOf.directed).toBe(true);
+    expect(partOf.style.hasArrow).toBe(true);
+    expect(derivedFrom.directed).toBe(true);
+    expect(derivedFrom.style.hasArrow).toBe(true);
+  });
+
   it('keeps every final edge and legend focus state above the non-text 3:1 contrast contract', () => {
     Object.values(KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG).forEach(({ sampleStyle }) => {
       for (const focusState of ['neutral', 'active'] as const) {
