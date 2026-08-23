@@ -3,11 +3,14 @@ import {
   FORMAL_RESOURCE_ENVELOPE_CONTRACT,
   type FormalBinding,
   type FormalQualificationReceipt,
+  type FormalResourceAtom,
   type FormalResourceCandidate,
   type FormalResourceEnvelope,
 } from './contracts';
 import { FormalResourceError, projectionDigest } from './hash';
 import { setHash } from './inventory';
+import { assertAtomIntegrity } from './atoms';
+import { assertBindingIntegrity, assertSealedBinding } from './bind';
 import { rebuildFrozenQualificationReceipt } from './qualify';
 
 export function buildFormalResourceEnvelope(input: {
@@ -90,14 +93,58 @@ export function assertFormalPreflight(input: {
   candidates: readonly FormalResourceCandidate[];
   bindings: readonly FormalBinding[];
   qualifications: readonly FormalQualificationReceipt[];
+  atoms: readonly FormalResourceAtom[];
 }): void {
+  const mappingReceipts = input.qualifications.filter((row) => row.pipelineKind === 'canonical-mapping');
+  if (input.bindings.length > 0 && mappingReceipts.length === 0) {
+    throw new FormalResourceError(
+      'pipeline-unqualified',
+      'formal bindings require a frozen canonical-mapping qualification',
+    );
+  }
+  for (const atom of input.atoms) {
+    assertAtomIntegrity(atom);
+    const candidate = input.candidates.find((row) => row.resourceId === atom.resourceId);
+    if (!candidate) {
+      throw new FormalResourceError('identity-drift', `atom ${atom.atomId} has no candidate`);
+    }
+    if (atom.disposition === 'BOUND') {
+      const hits = input.bindings.filter((row) => row.atomId === atom.atomId && row.resourceId === atom.resourceId);
+      if (hits.length === 0) {
+        throw new FormalResourceError('identity-drift', `BOUND atom ${atom.atomId} has no sealed binding`);
+      }
+    }
+  }
   for (const binding of input.bindings) {
-    if (!binding.envelopeHash || binding.envelopeHash !== input.envelope.envelopeHash) {
+    assertBindingIntegrity(binding);
+    const candidate = input.candidates.find((row) => row.resourceId === binding.resourceId);
+    const atom = input.atoms.find((row) => (
+      row.atomId === binding.atomId && row.resourceId === binding.resourceId
+    ));
+    if (!candidate || !atom) {
       throw new FormalResourceError(
-        'envelope-drift',
-        `binding ${binding.bindingId} is not stamped with the sealed envelope`,
+        'identity-drift',
+        `binding ${binding.bindingId} is missing its candidate or atom`,
       );
     }
+    if (binding.scopeId !== input.envelope.courseScopeId) {
+      throw new FormalResourceError('identity-drift', `binding ${binding.bindingId} scope drifted from the envelope`);
+    }
+    const mapping = mappingReceipts[0];
+    if (!mapping) {
+      throw new FormalResourceError(
+        'pipeline-unqualified',
+        'formal bindings require a frozen canonical-mapping qualification',
+      );
+    }
+    assertSealedBinding({
+      binding,
+      candidate,
+      atom,
+      envelopeHash: input.envelope.envelopeHash,
+      mappingVersion: mapping.pipelineVersion,
+      mappingConfig: mapping.pipelineConfigDigest,
+    });
   }
   const rebuiltQualifications = input.qualifications.map((row) => (
     rebuildFrozenQualificationReceipt(row.pipelineKind, row.pipelineVersion, row.pipelineConfigDigest)

@@ -6,11 +6,12 @@ import {
   type FormalQualificationReceipt,
   type FormalResourceAtom,
   type FormalResourceCandidate,
+  type FormalSourceIdentity,
   type FormalTeachingRole,
 } from './contracts';
 import { FormalResourceError, bindingId } from './hash';
 import { closeCandidate } from './inventory';
-import { assertQualified } from './qualify';
+import { assertQualified, frozenCanonicalMappingIds } from './qualify';
 
 export interface BindingCandidate {
   readonly resourceId: string;
@@ -59,7 +60,14 @@ export function admitFormalBinding(input: {
     throw new FormalResourceError('identity-drift', 'atom identity does not match binding candidate');
   }
   const role = assertTeachingRole(input.candidate.role);
-  return {
+  const allowed = frozenCanonicalMappingIds(input.mappingVersion, input.mappingConfig);
+  if (!allowed.includes(input.candidate.canonicalId)) {
+    throw new FormalResourceError(
+      'candidate-only',
+      'canonical id is not in the frozen mapping output',
+    );
+  }
+  const row: FormalBinding = {
     contract: FORMAL_RESOURCE_BINDING_CONTRACT,
     bindingId: bindingId({
       resourceId: input.candidate.resourceId,
@@ -76,6 +84,28 @@ export function admitFormalBinding(input: {
     envelopeHash: PROVISIONAL_ENVELOPE_HASH,
     source: input.atom.source,
   };
+  assertBindingIntegrity(row);
+  return row;
+}
+
+export function assertBindingIntegrity(binding: FormalBinding): void {
+  if (binding.contract !== FORMAL_RESOURCE_BINDING_CONTRACT) {
+    throw new FormalResourceError('identity-drift', 'binding contract is not the formal atomic contract');
+  }
+  assertTeachingRole(binding.role);
+  if (!binding.resourceId || !binding.atomId || !binding.canonicalId || !binding.scopeId) {
+    throw new FormalResourceError('identity-drift', 'binding identity fields are incomplete');
+  }
+  const expectedId = bindingId({
+    resourceId: binding.resourceId,
+    atomId: binding.atomId,
+    canonicalId: binding.canonicalId,
+    role: binding.role,
+    scopeId: binding.scopeId,
+  });
+  if (binding.bindingId !== expectedId) {
+    throw new FormalResourceError('identity-drift', 'bindingId does not match resource/atom/canonical/role/scope');
+  }
 }
 
 export function stampBindingsWithEnvelope(
@@ -85,22 +115,70 @@ export function stampBindingsWithEnvelope(
   if (!envelopeHash) {
     throw new FormalResourceError('envelope-drift', 'cannot stamp bindings with an empty envelope hash');
   }
-  return bindings.map((row) => ({ ...row, envelopeHash }));
+  return bindings.map((row) => {
+    assertBindingIntegrity(row);
+    return { ...row, envelopeHash };
+  });
 }
 
-function bindingMatchesAtom(
+export function sourceIdentityMatches(left: FormalSourceIdentity, right: FormalSourceIdentity): boolean {
+  return left.kind === right.kind
+    && left.contentSha256 === right.contentSha256
+    && left.gitObjectId === right.gitObjectId
+    && left.externalInputId === right.externalInputId;
+}
+
+export function bindingMatchesAtom(
   row: FormalBinding,
   candidate: FormalResourceCandidate,
   atom: FormalResourceAtom,
   envelopeHash: string,
 ): boolean {
-  const identity = row.contract === FORMAL_RESOURCE_BINDING_CONTRACT
-    && row.resourceId === candidate.resourceId
+  try {
+    assertBindingIntegrity(row);
+  } catch {
+    return false;
+  }
+  const identity = row.resourceId === candidate.resourceId
+    && row.resourceId === atom.resourceId
     && row.atomId === atom.atomId
-    && row.source.contentSha256 === atom.source.contentSha256;
+    && row.scopeId === candidate.courseScopeId
+    && row.scopeId === atom.courseScopeId
+    && sourceIdentityMatches(row.source, atom.source)
+    && sourceIdentityMatches(row.source, candidate.source);
   if (!identity) return false;
   if (envelopeHash) return row.envelopeHash === envelopeHash;
   return true;
+}
+
+export function assertSealedBinding(input: {
+  binding: FormalBinding;
+  candidate: FormalResourceCandidate;
+  atom: FormalResourceAtom;
+  envelopeHash: string;
+  mappingVersion: string;
+  mappingConfig: string;
+}): void {
+  assertBindingIntegrity(input.binding);
+  if (!input.envelopeHash || input.binding.envelopeHash !== input.envelopeHash) {
+    throw new FormalResourceError(
+      'envelope-drift',
+      `binding ${input.binding.bindingId} is not stamped with the sealed envelope`,
+    );
+  }
+  if (!bindingMatchesAtom(input.binding, input.candidate, input.atom, input.envelopeHash)) {
+    throw new FormalResourceError(
+      'identity-drift',
+      `binding ${input.binding.bindingId} does not match its atom, candidate, source, or scope`,
+    );
+  }
+  const allowed = frozenCanonicalMappingIds(input.mappingVersion, input.mappingConfig);
+  if (!allowed.includes(input.binding.canonicalId)) {
+    throw new FormalResourceError(
+      'candidate-only',
+      `binding ${input.binding.bindingId} canonical id is not in the frozen mapping output`,
+    );
+  }
 }
 
 export function closeIncludedResource(input: {

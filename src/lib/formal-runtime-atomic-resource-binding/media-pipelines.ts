@@ -1,6 +1,11 @@
 import { FormalResourceError } from './hash';
 import type { FormalQualificationReceipt } from './contracts';
-import { assertQualified } from './qualify';
+import {
+  assertQualified,
+  frozenAlignmentStarts,
+  frozenAsrTranscript,
+  frozenSegmentationParagraphIds,
+} from './qualify';
 
 export function resolveIntroTranscript(input: {
   mediaHash: string;
@@ -37,4 +42,48 @@ export function resolveCourseMediaTranscript(input: {
   assertQualified(input.segmentationReceipt, 'segmentation', input.versions.segmentation, input.configs.segmentation);
   assertQualified(input.alignmentReceipt, 'time-alignment', input.versions.alignment, input.configs.alignment);
   return 'asr';
+}
+
+export function assertParagraphsMatchFrozenAsr(input: {
+  paragraphs: readonly { paragraphId: string; body: string; startSeconds: number }[];
+  asrReceipt: FormalQualificationReceipt;
+  segmentationReceipt: FormalQualificationReceipt;
+  alignmentReceipt: FormalQualificationReceipt;
+  versions: { asr: string; segmentation: string; alignment: string };
+  configs: { asr: string; segmentation: string; alignment: string };
+}): void {
+  resolveCourseMediaTranscript({
+    hasProductionScript: false,
+    asrReceipt: input.asrReceipt,
+    segmentationReceipt: input.segmentationReceipt,
+    alignmentReceipt: input.alignmentReceipt,
+    versions: input.versions,
+    configs: input.configs,
+  });
+  const transcript = frozenAsrTranscript(input.versions.asr, input.configs.asr);
+  const paragraphIds = frozenSegmentationParagraphIds(
+    input.versions.segmentation,
+    input.configs.segmentation,
+  );
+  const starts = frozenAlignmentStarts(input.versions.alignment, input.configs.alignment);
+  for (const row of input.paragraphs) {
+    if (!paragraphIds.includes(row.paragraphId)) {
+      throw new FormalResourceError(
+        'pipeline-unqualified',
+        `paragraph ${row.paragraphId} is not in the frozen segmentation output`,
+      );
+    }
+    if (!starts.includes(row.startSeconds)) {
+      throw new FormalResourceError(
+        'pipeline-unqualified',
+        `paragraph ${row.paragraphId} start is not in the frozen time-alignment output`,
+      );
+    }
+    if (!transcript.includes(row.body)) {
+      throw new FormalResourceError(
+        'pipeline-unqualified',
+        `paragraph ${row.paragraphId} body drifted from the frozen ASR output`,
+      );
+    }
+  }
 }

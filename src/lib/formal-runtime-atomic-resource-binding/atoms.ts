@@ -1,10 +1,12 @@
 import {
   FORMAL_RESOURCE_ATOM_CONTRACT,
   MEDIA_TIME_RULE_VERSION,
+  type FormalQualificationReceipt,
   type FormalResourceAtom,
   type FormalResourceCandidate,
 } from './contracts';
 import { FormalResourceError, atomId, projectionDigest } from './hash';
+import { assertParagraphsMatchFrozenAsr } from './media-pipelines';
 
 export function deriveMediaEnds(input: {
   starts: readonly number[];
@@ -36,13 +38,49 @@ export function deriveMediaEnds(input: {
   ));
 }
 
+export function assertAtomIntegrity(atom: FormalResourceAtom): void {
+  if (atom.contract !== FORMAL_RESOURCE_ATOM_CONTRACT) {
+    throw new FormalResourceError('identity-drift', 'atom contract is not the formal atom contract');
+  }
+  const stableKey = atom.anchor.paragraphId ?? atom.anchor.questionId;
+  if (!stableKey) {
+    throw new FormalResourceError('identity-drift', 'atom is missing a stable paragraph or question key');
+  }
+  const expected = atomId({
+    resourceId: atom.resourceId,
+    kind: atom.anchor.kind,
+    stableKey,
+    contentSha256: atom.contentSha256,
+  });
+  if (atom.atomId !== expected) {
+    throw new FormalResourceError('identity-drift', 'atomId does not match resource/kind/stable key/content');
+  }
+}
+
 export function buildMediaAtoms(input: {
   resource: FormalResourceCandidate;
   scriptId: string;
   scriptHash: string;
   durationSeconds: number;
   paragraphs: readonly { paragraphId: string; body: string; startSeconds: number }[];
+  asr?: {
+    asrReceipt: FormalQualificationReceipt;
+    segmentationReceipt: FormalQualificationReceipt;
+    alignmentReceipt: FormalQualificationReceipt;
+    versions: { asr: string; segmentation: string; alignment: string };
+    configs: { asr: string; segmentation: string; alignment: string };
+  };
 }): FormalResourceAtom[] {
+  if (input.asr) {
+    assertParagraphsMatchFrozenAsr({
+      paragraphs: input.paragraphs,
+      asrReceipt: input.asr.asrReceipt,
+      segmentationReceipt: input.asr.segmentationReceipt,
+      alignmentReceipt: input.asr.alignmentReceipt,
+      versions: input.asr.versions,
+      configs: input.asr.configs,
+    });
+  }
   const ends = deriveMediaEnds({
     starts: input.paragraphs.map((row) => row.startSeconds),
     durationSeconds: input.durationSeconds,

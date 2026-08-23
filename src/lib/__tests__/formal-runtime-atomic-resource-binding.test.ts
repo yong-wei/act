@@ -10,6 +10,7 @@ import {
   assertFormalPreflight,
   assertNotForbiddenIdentity,
   assertQualified,
+  bindingId,
   buildCandidateInventory,
   buildFormalResourceEnvelope,
   buildMediaAtoms,
@@ -137,6 +138,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidates: [included, ...others],
       bindings: stamped,
       qualifications: [receipt],
+      atoms: [intro, explain],
     });
     expect(included.disposition).toBe('INCLUDED');
     expect(stamped[0]?.envelopeHash).toBe(envelope.envelopeHash);
@@ -327,6 +329,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidates: [closed, ...others],
       bindings: stamped,
       qualifications: [receipt],
+      atoms: [bound],
     });
     const projected = projectFormalResource({
       title: 'Intro clip',
@@ -402,6 +405,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidates: [provisionallyClosed, ...others],
       bindings: [binding],
       qualifications: [receipt],
+      atoms: [bound],
     })).toThrow(/not stamped with the sealed envelope/);
     const stamped = stampBindingsWithEnvelope([binding], envelope.envelopeHash);
     expect(closeIncludedResource({
@@ -415,7 +419,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
   it('rebuilds qualification receipts from frozen outputs and rejects caller-mutated hashes', () => {
     const honest = mappingReceipt();
     assertQualified(honest, 'canonical-mapping', 'map/v1', 'cfg-map');
-    const forgedOutput = qualifyPipeline({
+    expect(() => qualifyPipeline({
       pipelineKind: 'canonical-mapping',
       pipelineVersion: 'map/v1',
       pipelineConfigDigest: 'cfg-map',
@@ -427,11 +431,8 @@ describe('formal-runtime-atomic-resource-binding', () => {
       admittedGoldIds: ['map-bound'],
       admittedHoldoutIds: ['map-holdout'],
       output: { mapping: ['forged:x'] },
-    });
-    expect(forgedOutput.receiptId).not.toBe(honest.receiptId);
-    expect(() => assertQualified(forgedOutput, 'canonical-mapping', 'map/v1', 'cfg-map'))
-      .toThrow(/not qualified/);
-    const swappedHash = { ...honest, outputHash: forgedOutput.outputHash };
+    })).toThrow(/frozen pipeline output/);
+    const swappedHash = { ...honest, outputHash: projectionDigest({ mapping: ['forged:x'] }) };
     expect(() => assertQualified(swappedHash, 'canonical-mapping', 'map/v1', 'cfg-map'))
       .toThrow(/not qualified/);
     const inventory = buildCandidateInventory({
@@ -452,7 +453,143 @@ describe('formal-runtime-atomic-resource-binding', () => {
       candidates: inventory.candidates,
       bindings: [],
       qualifications: [swappedHash],
+      atoms: [],
     })).toThrow(/drifted from frozen pipeline output/);
+  });
+
+  it('rejects stamped bindings whose identity fields no longer match bindingId or frozen mapping', () => {
+    const inventory = buildCandidateInventory({
+      courseScopeId: 'act-control-theory',
+      entries: fixtureEntries(),
+    });
+    const video = inventory.candidates.find((row) => row.subtype === 'video')!;
+    const atoms = buildMediaAtoms({
+      resource: video,
+      scriptId: 'script',
+      scriptHash: 's'.repeat(64),
+      durationSeconds: 6,
+      paragraphs: [{ paragraphId: 'p', body: 'body', startSeconds: 0 }],
+    });
+    const bound = applyAtomDisposition(atoms[0], 'BOUND', ['evidence:identity-crosswalk']);
+    const receipt = mappingReceipt();
+    const binding = admitFormalBinding({
+      candidate: {
+        resourceId: video.resourceId,
+        atomId: bound.atomId,
+        canonicalId: 'ctc:a',
+        role: 'EXPLAINS',
+        scopeId: 'act-control-theory',
+        method: 'identity',
+        confidence: 0.99,
+        evidenceRefs: ['evidence:identity-crosswalk'],
+      },
+      atom: bound,
+      mappingReceipt: receipt,
+      mappingVersion: 'map/v1',
+      mappingConfig: 'cfg-map',
+    });
+    expect(() => stampBindingsWithEnvelope([{ ...binding, canonicalId: 'ctc:evil' }], 'a'.repeat(64)))
+      .toThrow(/bindingId does not match/);
+    const relabeled = {
+      ...binding,
+      canonicalId: 'ctc:evil',
+      bindingId: bindingId({
+        resourceId: binding.resourceId,
+        atomId: binding.atomId,
+        canonicalId: 'ctc:evil',
+        role: binding.role,
+        scopeId: binding.scopeId,
+      }),
+    };
+    const provisionallyClosed = closeIncludedResource({
+      candidate: video,
+      atoms: [bound],
+      bindings: [relabeled],
+    });
+    const others = inventory.candidates.filter((row) => row.resourceId !== video.resourceId);
+    const envelope = buildFormalResourceEnvelope({
+      releaseId: 'rel-formal-test',
+      sourceRevision: 'a'.repeat(40),
+      treeSha256: 'f'.repeat(64),
+      authority: FIXTURE_AUTHORITY,
+      courseScopeId: 'act-control-theory',
+      candidates: [provisionallyClosed, ...others],
+      bindings: [relabeled],
+      qualifications: [receipt],
+    });
+    const stamped = stampBindingsWithEnvelope([relabeled], envelope.envelopeHash);
+    expect(() => assertFormalPreflight({
+      envelope,
+      candidates: [provisionallyClosed, ...others],
+      bindings: stamped,
+      qualifications: [receipt],
+      atoms: [bound],
+    })).toThrow(/not in the frozen mapping output/);
+    expect(() => admitFormalBinding({
+      candidate: {
+        resourceId: video.resourceId,
+        atomId: bound.atomId,
+        canonicalId: 'ctc:evil',
+        role: 'EXPLAINS',
+        scopeId: 'act-control-theory',
+        method: 'identity',
+        confidence: 0.99,
+        evidenceRefs: ['evidence:identity-crosswalk'],
+      },
+      atom: bound,
+      mappingReceipt: receipt,
+      mappingVersion: 'map/v1',
+      mappingConfig: 'cfg-map',
+    })).toThrow(/not in the frozen mapping output/);
+    const sourceMutated = {
+      ...binding,
+      source: { ...binding.source, gitObjectId: 'f'.repeat(40) },
+    };
+    expect(closeIncludedResource({
+      candidate: video,
+      atoms: [bound],
+      bindings: [sourceMutated],
+    }).disposition).toBe('EXCLUDED');
+  });
+
+  it('admits ASR course-media paragraphs only when they match frozen pipeline output', () => {
+    const inventory = buildCandidateInventory({
+      courseScopeId: 'act-control-theory',
+      entries: fixtureEntries(),
+    });
+    const video = inventory.candidates.find((row) => row.subtype === 'video')!;
+    const asr = rebuildFrozenQualificationReceipt('asr', 'asr/v1', 'cfg-asr');
+    const seg = rebuildFrozenQualificationReceipt('segmentation', 'seg/v1', 'cfg-seg');
+    const align = rebuildFrozenQualificationReceipt('time-alignment', 'ta/v1', 'cfg-ta');
+    const asrPipelines = {
+      asrReceipt: asr,
+      segmentationReceipt: seg,
+      alignmentReceipt: align,
+      versions: { asr: 'asr/v1', segmentation: 'seg/v1', alignment: 'ta/v1' },
+      configs: { asr: 'cfg-asr', segmentation: 'cfg-seg', alignment: 'cfg-ta' },
+    };
+    expect(resolveCourseMediaTranscript({
+      hasProductionScript: false,
+      ...asrPipelines,
+    })).toBe('asr');
+    expect(() => buildMediaAtoms({
+      resource: video,
+      scriptId: 'unused',
+      scriptHash: 's'.repeat(64),
+      durationSeconds: 6,
+      paragraphs: [{ paragraphId: 'arbitrary', body: 'forged body', startSeconds: 1 }],
+      asr: asrPipelines,
+    })).toThrow(/frozen segmentation output/);
+    const atoms = buildMediaAtoms({
+      resource: video,
+      scriptId: 'unused',
+      scriptHash: 's'.repeat(64),
+      durationSeconds: 6,
+      paragraphs: [{ paragraphId: 'p1', body: 'closed loop', startSeconds: 0 }],
+      asr: asrPipelines,
+    });
+    expect(atoms).toHaveLength(1);
+    expect(atoms[0]?.anchor.paragraphId).toBe('p1');
   });
 
   it('does not mutate production selectors', () => {
