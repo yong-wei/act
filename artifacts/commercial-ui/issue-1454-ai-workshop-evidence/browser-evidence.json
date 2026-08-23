@@ -2,16 +2,19 @@
   "schemaVersion": "commercial-ui-evidence.v1",
   "issue": 1454,
   "route": "/ai",
-  "captureRevision": "7eb2b0b94d5906101ff77b9eb46884be41300792",
-  "captureTime": "2026-08-23T14:03:16.000Z",
+  "routeFile": "src/app/ai/page.tsx",
+  "routeArchetype": "knowledge-data-map",
+  "dockState": "hidden",
+  "captureRevision": "760d21f1372e58e07a9a48bd48c81400bdafb116",
+  "captureTime": "2026-08-23T16:07:47.803Z",
   "generator": "tests/ai-workshop-evidence-1454.spec.ts",
-  "baseUrl": "http://127.0.0.1:3101",
+  "baseUrl": "http://localhost:3101",
   "runtime": {
-    "runtimeRevision": "7eb2b0b94d5906101ff77b9eb46884be41300792",
-    "runtimeRevisionSource": "local dev server restarted from this worktree after captureRevision commit",
+    "runtimeRevision": "760d21f1372e58e07a9a48bd48c81400bdafb116",
+    "runtimeRevisionSource": "local dev server restarted from this worktree at captureRevision",
     "session": "authenticated student fixture: demo",
     "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
-    "sourceWorktreeCheck": "git diff --quiet and git diff --cached --quiet at capture; only declared artifact paths were untracked"
+    "sourceWorktreeCheck": "captured runtime source files matched captureRevision; only declared evidence artifacts and an unrelated user-owned AGENTS.md change were dirty"
   },
   "viewports": [
     {
@@ -19,26 +22,40 @@
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop.png",
-      "sha256": "20dd9e300f5e60ffb048aec7e477b0e4b8a602a15c7a2372ed890a264a734843"
+      "sha256": "c1240ad6bf14e2416d5d0889ed079eb9bd02f25305a2afd0ff2129764d9d94ea"
+    },
+    {
+      "name": "desktop-collapsed",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "ai-workshop-desktop-collapsed.png",
+      "sha256": "bc8cc85371c293a020bff3f9a1cf247ef34ee18600339001cb77ec58f399c977"
     },
     {
       "name": "mobile",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile.png",
-      "sha256": "11e5866c206e2b808ea079f3c8c0f8bf60cea10ecbdc8f29444c46686b13dfc7"
+      "sha256": "c4675c671d1f517d20c6be057c63e74e3cb55ad840b99ae01f001d44ec656bb5"
+    },
+    {
+      "name": "mobile-drawer",
+      "width": 320,
+      "height": 900,
+      "screenshot": "ai-workshop-mobile-drawer.png",
+      "sha256": "d4d0b57bb4802855605fc682b34457a5f7f6b1a7b9fd4c5dab4775f2bd9cbecb"
     }
   ],
   "sourceFiles": [
     { "path": "src/app/ai/page.tsx", "sha256": "7705fe21cc763d55f07ee369e10a8895c8ea11ce150d6f9bb72b173acb0716ac" },
     { "path": "src/features/ai/ai-workshop-evidence.ts", "sha256": "4d816cefa010031e667efa357d8c71a2a0e7f55f8c26e57b27238dc486de3287" },
-    { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "74107d29cf27424fd8b865210e3ea133504558e0437ba0bf258a4bce55d6c152" },
-    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "5bae494c79d08fd93fc19b965a83976bfca842dbc50007ee083aa0aa8017ba8e" },
-    { "path": "src/features/ai/compass/learning-compass.tsx", "sha256": "fdd179a92e6d7181ed852d71b31042782f87a360e60702811140b9eb0ff69304" },
-    { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "42d3d9399d6cc7a2cb7fd2486268b186a39edda7e1cd888ca077fcdd864309c1" },
-    { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "c730d01ed27d9609d8a213f6fb52af38172b13f400d2bfa9ca46cf7d31a722e7" },
-    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "349cbfe2adf8e3c24773fe877f7783552ddf4c1fe95fd7f6dfca7f363bc9a8b0" },
-    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "abdf744e79280702070cfe2562deb02fd0fd8644ec7355c0e344bbb58582112b" }
+    { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "e6400a5dd45480cdc2cc171c8c018d51ad082153713b430cb6e1f58a48549196" },
+    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "5370942a866a2f67b48fef7b6fdccd08c50475f3da39da8ba79fe577d73ad29b" },
+    { "path": "src/features/ai/compass/learning-compass.tsx", "sha256": "ba3b66eb94a3a527272fa3034a97a295b6f2834a3760463a99ec86689216ad7f" },
+    { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "2fec01beb7879ccef0e26b5d4893001218059ac340bf360b3aa93a72f436ad12" },
+    { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "5416c01ba160070badaf75859154adc30d0f5470480ada071695a489eaf70081" },
+    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "e322ab8189593dd9448c468ade7333adbb4147a406a2919d16e23dcbe17c6900" },
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "ca4989f2be84c5917da0b952156ad8f3788b3db6967da31739072c4d4a9c783d" }
   ],
   "assertions": {
     "httpStatus": 200,
@@ -48,14 +65,83 @@
     "desktopBodyAndDocumentWidthWithinViewport": true,
     "mobileBodyAndDocumentWidthWithinViewport": true,
     "playwrightResult": "2 passed",
-    "authenticatedStudentSession": true
+    "authenticatedStudentSession": true,
+    "mobileCanvasFirstViewportTaskVisible": true,
+    "mobileDrawerNavigationReachable": true
+  },
+  "commercialRouteEvidence": {
+    "href": "/ai",
+    "viewports": [
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://localhost:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "desktop-expanded",
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop-collapsed.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://localhost:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "desktop-collapsed",
+        "horizontalOverflow": false
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://localhost:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "mobile-drawer",
+        "drawerOpen": false,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile-drawer.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://localhost:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "mobile-drawer",
+        "drawerOpen": true,
+        "horizontalOverflow": false
+      }
+    ]
   },
   "verification": {
     "commands": [
       "npx prisma generate",
       "npm run typecheck",
       "npx vitest run src/features/ai/__tests__/ai-workshop-evidence.test.ts src/lib/__tests__/adaptive-learning-center-ui.test.ts",
-      "PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 npx playwright test tests/ai-workshop-evidence-1454.spec.ts --workers=1",
+      "PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://localhost:3101 npx playwright test tests/ai-workshop-evidence-1454.spec.ts --workers=1",
       "openspec validate project-ai-workshop-evidence-backed --type change --strict",
       "openspec validate --specs --strict",
       "git diff --check"
