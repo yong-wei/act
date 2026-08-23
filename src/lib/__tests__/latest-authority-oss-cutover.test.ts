@@ -16,6 +16,7 @@ import {
 import {
   assertCaptureCompatible,
   assertCaptureStable,
+  reopenAuthorityCaptureReceipt,
   sealAuthorityCaptureReceipt,
   validateCapturedPublicContract,
   type AuthorityCaptureInput,
@@ -115,6 +116,28 @@ describe('execution-time Authority capture', () => {
     expect(() => assertCaptureCompatible(receipt)).not.toThrow();
     const observed = sealAuthorityCaptureReceipt(captureInput());
     expect(() => assertCaptureStable(receipt, observed)).not.toThrow();
+  });
+
+  it('reopens a legitimately sealed receipt by reusing its capture id', () => {
+    const receipt = sealAuthorityCaptureReceipt(captureInput());
+    expect(() => reopenAuthorityCaptureReceipt(receipt)).not.toThrow();
+    const tampered = { ...receipt, sourceCommit: 'tamperedcommit' };
+    expect(() => reopenAuthorityCaptureReceipt(tampered)).toThrow(/does not match its sealed hash/);
+    // A capture sealed ADAPTATION_REQUIRED cannot be relabeled compatible
+    // without breaking its own hash.
+    const incompatible = sealAuthorityCaptureReceipt(captureInput({
+      capturedPublicContract: { ...capturedContract(), schemaSha256: HASH_B },
+    }));
+    expect(incompatible.compatibility.classification).toBe('ADAPTATION_REQUIRED');
+    const relabeled = {
+      ...incompatible,
+      compatibility: {
+        ...incompatible.compatibility,
+        classification: 'COMPATIBLE' as const,
+        incompatibleReasons: [],
+      },
+    };
+    expect(() => reopenAuthorityCaptureReceipt(relabeled)).toThrow(/does not match its sealed hash/);
   });
 
   it('rejects a dirty worktree and an incomplete component closure', () => {

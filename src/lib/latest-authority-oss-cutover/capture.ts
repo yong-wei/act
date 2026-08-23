@@ -169,11 +169,21 @@ export function sealAuthorityCaptureReceipt(input: AuthorityCaptureInput): Autho
     input.capturedPublicContract,
     input.supportedPublicContract,
   );
-  if (compatibility.classification === 'ADAPTATION_REQUIRED') {
-    // The capture receipt is still sealed (it is the fail-closed evidence),
-    // but see assertCaptureCompatible: no candidate may be generated from it.
-  }
   const captureId = `cap-${randomUUID()}`;
+  return authorityCaptureReceiptFromInput(input, compatibility, captureId);
+}
+
+/**
+ * Deterministic capture-receipt construction over a fixed captureId and a
+ * fixed compatibility verdict. Sealing derives a fresh random id; reopening
+ * reuses the sealed id so the recomputed hash matches byte-for-byte.
+ */
+function authorityCaptureReceiptFromInput(
+  input: AuthorityCaptureInput,
+  compatibility: AuthorityCompatibility,
+  captureId: string,
+): AuthorityCaptureReceipt {
+  const sortedComponents = [...input.componentIdentities].sort((a, b) => a.kind.localeCompare(b.kind));
   const captureHash = projectionDigest({
     captureId,
     capturedAt: input.capturedAt,
@@ -190,7 +200,7 @@ export function sealAuthorityCaptureReceipt(input: AuthorityCaptureInput): Autho
     sha256sumsSha256: input.sha256sumsSha256,
     validationReportSha256: input.validationReportSha256,
     publicationState: 'PUBLISHED_COMPLETE',
-    componentIdentities: [...input.componentIdentities].sort((a, b) => a.kind.localeCompare(b.kind)),
+    componentIdentities: sortedComponents,
     predecessorBundleId: input.predecessorBundleId,
     candidateChain: [...input.candidateChain],
     compatibility: {
@@ -216,7 +226,7 @@ export function sealAuthorityCaptureReceipt(input: AuthorityCaptureInput): Autho
     sha256sumsSha256: input.sha256sumsSha256,
     validationReportSha256: input.validationReportSha256,
     publicationState: 'PUBLISHED_COMPLETE',
-    componentIdentities: [...input.componentIdentities].sort((a, b) => a.kind.localeCompare(b.kind)),
+    componentIdentities: sortedComponents,
     predecessorBundleId: input.predecessorBundleId,
     candidateChain: [...input.candidateChain],
     compatibility,
@@ -240,35 +250,49 @@ export function assertCaptureCompatible(receipt: AuthorityCaptureReceipt): void 
 
 /** Re-verify a sealed capture receipt against its own hash. */
 export function reopenAuthorityCaptureReceipt(receipt: AuthorityCaptureReceipt): AuthorityCaptureReceipt {
-  const expected = sealAuthorityCaptureReceipt({
-    capturedAt: receipt.capturedAt,
-    actkgMainCommit: receipt.actkgMainCommit,
-    sourceCommit: receipt.sourceCommit,
-    sourceTag: receipt.sourceTag,
-    packagingCommit: receipt.packagingCommit,
-    stableTag: receipt.stableTag,
-    releaseId: receipt.releaseId,
-    releaseVersion: receipt.releaseVersion,
-    bundleId: receipt.bundleId,
-    bundleDigest: receipt.bundleDigest,
-    manifestSha256: receipt.manifestSha256,
-    sha256sumsSha256: receipt.sha256sumsSha256,
-    validationReportSha256: receipt.validationReportSha256,
-    actkgWorktreeDirty: false,
-    componentIdentities: receipt.componentIdentities,
-    predecessorBundleId: receipt.predecessorBundleId,
-    candidateChain: receipt.candidateChain,
-    capturedPublicContract: receipt.compatibility.captured,
-    adapterContractVersion: receipt.compatibility.adapterContractVersion,
-    supportedPublicContract: supportedFromCaptured(receipt.compatibility.captured),
-  });
-  // sealAuthorityCaptureReceipt derives its own captureId; compare the hash
-  // over the shared body instead of the id itself.
-  const bodyHash = (value: AuthorityCaptureReceipt): string => {
-    const { captureId: _ignored, ...body } = value;
-    return projectionDigest(body);
-  };
-  if (bodyHash(receipt) !== bodyHash(expected)) {
+  if (!receipt.captureId || typeof receipt.captureId !== 'string') {
+    throw new LatestAuthorityCutoverError(
+      'capture-receipt-invalid',
+      'The capture receipt carries no capture id.',
+    );
+  }
+  if (receipt.contract !== 'authority-capture-receipt/v2') {
+    throw new LatestAuthorityCutoverError(
+      'capture-receipt-invalid',
+      'The capture receipt uses an unsupported contract.',
+    );
+  }
+  // Recompute the sealed hash over the receipt's own id and fields: any
+  // tampered field (including the compatibility verdict) diverges here.
+  const expected = authorityCaptureReceiptFromInput(
+    {
+      capturedAt: receipt.capturedAt,
+      actkgMainCommit: receipt.actkgMainCommit,
+      sourceCommit: receipt.sourceCommit,
+      sourceTag: receipt.sourceTag,
+      packagingCommit: receipt.packagingCommit,
+      stableTag: receipt.stableTag,
+      releaseId: receipt.releaseId,
+      releaseVersion: receipt.releaseVersion,
+      bundleId: receipt.bundleId,
+      bundleDigest: receipt.bundleDigest,
+      manifestSha256: receipt.manifestSha256,
+      sha256sumsSha256: receipt.sha256sumsSha256,
+      validationReportSha256: receipt.validationReportSha256,
+      actkgWorktreeDirty: false,
+      componentIdentities: receipt.componentIdentities,
+      predecessorBundleId: receipt.predecessorBundleId,
+      candidateChain: receipt.candidateChain,
+      capturedPublicContract: receipt.compatibility.captured,
+      adapterContractVersion: receipt.compatibility.adapterContractVersion,
+      supportedPublicContract: supportedFromCaptured(receipt.compatibility.captured),
+    },
+    // Preserve the sealed compatibility verdict: reopening verifies
+    // integrity, it does not reclassify adapter support.
+    receipt.compatibility,
+    receipt.captureId,
+  );
+  if (receipt.captureHash !== expected.captureHash) {
     throw new LatestAuthorityCutoverError(
       'capture-receipt-tampered',
       'The reopened capture receipt does not match its sealed hash.',

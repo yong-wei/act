@@ -355,6 +355,107 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             released = self.call("release-retained", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(retained), "--now", "2030-01-01T00:06:00Z")
             self.assertEqual(released["retained"], [])
 
+    def test_coordinated_cutover_successor_requires_matching_graph_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate_b = self.write_identity(root, "runtime-b", "b")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_b))
+            identity_b = json.loads(candidate_b.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-b",
+                "manifestSha256": identity_b["manifestSha256"],
+                "treeSha256": identity_b["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            # A declaration that does not match the desired identity is
+            # rejected before the lifecycle state changes.
+            mismatched = root / "coordinated-cutover-mismatch.json"
+            mismatched.write_text(json.dumps({
+                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-c",
+                "manifestSha256": identity_b["manifestSha256"],
+                "treeSha256": identity_b["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            rejected_decl = self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(mismatched), expect_ok=False,
+            )
+            self.assertIn("must match the desired identity", rejected_decl.stderr)
+            self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(declaration),
+            )
+            # Activation of the declared coordinated successor without the
+            # committed graph receipt fails closed.
+            rejected_activate = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE), expect_ok=False,
+            )
+            self.assertIn("--coordinated-graph-receipt", rejected_activate.stderr)
+            # A graph receipt binding a different candidate is rejected too.
+            foreign_receipt = root / "graph-receipt-foreign.json"
+            foreign_receipt.write_text(json.dumps({
+                "schemaVersion": "coordinated-active-receipt/v1",
+                "receiptHash": "f" * 64,
+                "transactionId": "tx-1",
+                "candidateReceiptHash": "9" * 64,
+                "runtimeActiveReceiptHash": "8" * 64,
+            }), encoding="utf-8")
+            rejected_foreign = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(foreign_receipt), expect_ok=False,
+            )
+            self.assertIn("different candidate", rejected_foreign.stderr)
+            # The matching committed graph receipt unlocks the activation.
+            matching_receipt = root / "graph-receipt.json"
+            matching_receipt.write_text(json.dumps({
+                "schemaVersion": "coordinated-active-receipt/v1",
+                "receiptHash": "f" * 64,
+                "transactionId": "tx-1",
+                "candidateReceiptHash": "e" * 64,
+                "runtimeActiveReceiptHash": "8" * 64,
+            }), encoding="utf-8")
+            activated = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(matching_receipt),
+            )
+            self.assertEqual(activated["active"]["active"]["releaseId"], "runtime-b")
+            # The declaration stays as evidence and constrains only the
+            # release it names: an ordinary later candidate activates
+            # without the coordinated gate.
+            self.assertTrue((state / "coordinated-cutover.json").exists())
+            candidate_d = self.write_identity(root, "runtime-d", "d")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(candidate_d))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(candidate_d))
+            ordinary = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "6",
+                "--identity", str(candidate_d), "--host-state-script", str(HOST_STATE),
+            )
+            self.assertEqual(ordinary["active"]["active"]["releaseId"], "runtime-d")
+            # Cancelling a declared desired candidate removes the declaration.
+            candidate_e = self.write_identity(root, "runtime-e", "e")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "7", "--identity", str(candidate_e))
+            identity_e = json.loads(candidate_e.read_text(encoding="utf-8"))
+            declaration_e = root / "coordinated-cutover-e.json"
+            declaration_e.write_text(json.dumps({
+                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-e",
+                "manifestSha256": identity_e["manifestSha256"],
+                "treeSha256": identity_e["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "8", "--identity", str(candidate_e), "--coordinated-cutover", str(declaration_e))
+            self.call("cancel-desired", "--state-dir", str(state), "--expected-generation", "9")
+            self.assertFalse((state / "coordinated-cutover.json").exists())
+
     def test_activate_and_retire_rollback_automatically_create_leases(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

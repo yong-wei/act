@@ -6,7 +6,9 @@ import type {
   JournaledMutationPlan,
 } from '@/lib/latest-authority-oss-cutover/contracts';
 import {
+  assertAllocationRecordSealed,
   assertCandidateNonSelectable,
+  assertCandidateReceiptSelfHash,
   assertInnerPayloadHasNoOuterReference,
   bindInnerArtifact,
   reopenAndVerifyCandidate,
@@ -114,6 +116,25 @@ function candidateInput(allocationRecord: CoordinationAllocationRecord) {
 }
 
 describe('coordinated candidate envelope', () => {
+  it('verifies its own sealed hash and rejects post-seal edits', () => {
+    const allocationRecord = allocation();
+    expect(() => assertAllocationRecordSealed(allocationRecord)).not.toThrow();
+    const tamperedAllocation = { ...allocationRecord, denominatorHash: HASH_D };
+    expect(() => assertAllocationRecordSealed(tamperedAllocation))
+      .toThrow(/does not match its own sealed hash/);
+    const receipt = sealCoordinatedCandidateReceipt(candidateInput(allocationRecord));
+    expect(() => assertCandidateReceiptSelfHash(receipt)).not.toThrow();
+    const edited = {
+      ...receipt,
+      successorSelectorExpectations: [
+        { selectorId: 'authority:current', expectedSuccessorIdentity: 'attacker-choice' },
+        ...receipt.successorSelectorExpectations.slice(1),
+      ],
+    };
+    expect(() => assertCandidateReceiptSelfHash(edited))
+      .toThrow(/does not match its own sealed hash/);
+  });
+
   it('seals one outer receipt over the exact inner hashes without rewriting inner artifacts', () => {
     const allocationRecord = allocation();
     const receipt = sealCoordinatedCandidateReceipt(candidateInput(allocationRecord));
@@ -413,6 +434,52 @@ describe('stopped-service coordinated transaction', () => {
       runtimeActiveReceiptHash: null,
       sealedAt: '2026-08-23T00:02:00.000Z',
     })).toThrow(/re-reads teach-old, expected teach-new/);
+  });
+
+  it('refuses the active receipt when mutation receipts do not cover the journal exactly', async () => {
+    const candidate = fullCandidate();
+    const stores = transactionStores();
+    const opened = await openCutoverTransaction({
+      candidateReceipt: candidate,
+      stores,
+      orderedMutationPlans: mutationPlans(),
+      journalStore: new MemoryJournalStore(),
+      openedAt: '2026-08-23T00:00:00.000Z',
+    });
+    // Apply every mutation but present only a subset of receipts.
+    const receipts = [
+      await applyJournaledMutation(opened.journal, 0, stores[0], '2026-08-23T00:01:00.000Z'),
+      await applyJournaledMutation(opened.journal, 1, stores[1], '2026-08-23T00:01:01.000Z'),
+    ];
+    const complete = [
+      ...receipts,
+      await applyJournaledMutation(opened.journal, 2, stores[2], '2026-08-23T00:01:02.000Z'),
+    ];
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: receipts,
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).toThrow(/mutation receipts for 3 journaled steps/);
+    const reordered = [complete[1], complete[0], complete[2]];
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: reordered,
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).toThrow(/covers .* instead of/);
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: complete,
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).not.toThrow();
   });
 });
 

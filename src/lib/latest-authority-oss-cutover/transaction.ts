@@ -282,7 +282,29 @@ export function sealCoordinatedActiveReceipt(
       );
     }
   }
-  for (const receipt of input.mutationReceipts) {
+  // The mutation receipts must cover the journal plan exactly: one receipt
+  // per planned step, in order, with matching selector and identities.
+  if (input.mutationReceipts.length !== input.journal.orderedMutations.length) {
+    throw new LatestAuthorityCutoverError(
+      'active-receipt-mutations-incomplete',
+      `The activation binds ${input.mutationReceipts.length} mutation receipts for ${input.journal.orderedMutations.length} journaled steps.`,
+    );
+  }
+  for (const [index, plan] of input.journal.orderedMutations.entries()) {
+    const receipt = input.mutationReceipts[index];
+    if (!receipt || receipt.selectorId !== plan.selectorId) {
+      throw new LatestAuthorityCutoverError(
+        'active-receipt-mutation-order-mismatch',
+        `Mutation receipt at step ${index} covers ${receipt?.selectorId ?? 'nothing'} instead of ${plan.selectorId}.`,
+      );
+    }
+    if (receipt.beforeIdentity !== plan.expectedPredecessorIdentity
+      || receipt.afterIdentity !== plan.successorIdentity) {
+      throw new LatestAuthorityCutoverError(
+        'active-receipt-mutation-identity-mismatch',
+        `Mutation receipt for ${plan.selectorId} does not bind the journaled before/after identities.`,
+      );
+    }
     if (receipt.transactionId !== input.journal.transactionId) {
       throw new LatestAuthorityCutoverError(
         'active-receipt-mutation-foreign-transaction',

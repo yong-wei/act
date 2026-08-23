@@ -310,8 +310,7 @@ export function sealCoordinatedCandidateReceipt(
     }
   }
   const candidateId = `cand-${randomUUID()}`;
-  const receiptHash = projectionDigest({
-    candidateId,
+  const receiptHash = coordinatedCandidateReceiptHash(candidateReceiptHashFields(candidateId, {
     sealedAt: input.sealedAt,
     allocationHash: input.allocation.allocationHash,
     authorityCaptureHash: input.authorityCaptureHash,
@@ -333,7 +332,51 @@ export function sealCoordinatedCandidateReceipt(
     transactionImplementationIdentity: input.transactionImplementationIdentity,
     rollbackPlanHash: input.rollbackPlanHash,
     verificationPolicyHash: input.verificationPolicyHash,
-  });
+  }));
+  return candidateReceiptFromInput(candidateId, input, receiptHash);
+}
+
+/** The exact hash payload of a coordinated candidate receipt over a fixed id. */
+interface CandidateReceiptHashFields {
+  readonly sealedAt: string;
+  readonly allocationHash: string;
+  readonly authorityCaptureHash: string;
+  readonly localeQualificationHash: string;
+  readonly teachingProjectionHash: string;
+  readonly teachingClosureReceiptHash: string;
+  readonly formalResourceEnvelopeHash: string;
+  readonly continuityReceiptHash: string;
+  readonly derivationReceiptHash: string;
+  readonly successorRuntimeManifestHash: string;
+  readonly successorRuntimeMaterializationHash: string;
+  readonly domainShardCatalogHash: string;
+  readonly domainShardSetHash: string;
+  readonly prerequisitePublicationHash: string;
+  readonly consumerActivationHash: string;
+  readonly predecessor: readonly { selectorId: string; identity: string }[];
+  readonly predecessorRuntimeLifecycleGeneration: number;
+  readonly successorSelectorExpectations: readonly { selectorId: string; expectedSuccessorIdentity: string }[];
+  readonly transactionImplementationIdentity: string;
+  readonly rollbackPlanHash: string;
+  readonly verificationPolicyHash: string;
+}
+
+function candidateReceiptHashFields(
+  candidateId: string,
+  fields: CandidateReceiptHashFields,
+): Record<string, unknown> {
+  return { candidateId, ...fields };
+}
+
+function coordinatedCandidateReceiptHash(body: Record<string, unknown>): string {
+  return projectionDigest(body);
+}
+
+function candidateReceiptFromInput(
+  candidateId: string,
+  input: SealCandidateReceiptInput,
+  receiptHash: string,
+): CoordinatedCandidateReceipt {
   return {
     contract: 'coordinated-candidate-receipt/v1',
     builderVersion: 'latest-authority-oss-cutover-builder/v1',
@@ -364,6 +407,52 @@ export function sealCoordinatedCandidateReceipt(
   };
 }
 
+/**
+ * Re-derive the receipt's content-addressed hash from its own fields. A
+ * receipt whose predecessor, selector expectations, transaction identity, or
+ * rollback policy was edited after sealing fails here before any referenced
+ * artifact is reopened.
+ */
+export function assertCandidateReceiptSelfHash(
+  receipt: CoordinatedCandidateReceipt,
+): void {
+  if (receipt.contract !== 'coordinated-candidate-receipt/v1') {
+    throw new LatestAuthorityCutoverError(
+      'candidate-receipt-invalid',
+      'The candidate receipt uses an unsupported contract.',
+    );
+  }
+  const expected = coordinatedCandidateReceiptHash(candidateReceiptHashFields(receipt.candidateId, {
+    sealedAt: receipt.sealedAt,
+    allocationHash: receipt.allocationHash,
+    authorityCaptureHash: receipt.authorityCaptureHash,
+    localeQualificationHash: receipt.localeQualificationHash,
+    teachingProjectionHash: receipt.teachingProjectionHash,
+    teachingClosureReceiptHash: receipt.teachingClosureReceiptHash,
+    formalResourceEnvelopeHash: receipt.formalResourceEnvelopeHash,
+    continuityReceiptHash: receipt.continuityReceiptHash,
+    derivationReceiptHash: receipt.derivationReceiptHash,
+    successorRuntimeManifestHash: receipt.successorRuntimeManifestHash,
+    successorRuntimeMaterializationHash: receipt.successorRuntimeMaterializationHash,
+    domainShardCatalogHash: receipt.domainShardCatalogHash,
+    domainShardSetHash: receipt.domainShardSetHash,
+    prerequisitePublicationHash: receipt.prerequisitePublicationHash,
+    consumerActivationHash: receipt.consumerActivationHash,
+    predecessor: receipt.predecessor,
+    predecessorRuntimeLifecycleGeneration: receipt.predecessorRuntimeLifecycleGeneration,
+    successorSelectorExpectations: receipt.successorSelectorExpectations,
+    transactionImplementationIdentity: receipt.transactionImplementationIdentity,
+    rollbackPlanHash: receipt.rollbackPlanHash,
+    verificationPolicyHash: receipt.verificationPolicyHash,
+  }));
+  if (receipt.receiptHash !== expected) {
+    throw new LatestAuthorityCutoverError(
+      'candidate-receipt-tampered',
+      'The candidate receipt does not match its own sealed hash.',
+    );
+  }
+}
+
 export interface ReopenArtifactFn {
   (artifactId: string): Promise<{ artifactHash: string; allocationHash?: string }>;
 }
@@ -377,6 +466,7 @@ export async function reopenAndVerifyCandidate(
   receipt: CoordinatedCandidateReceipt,
   reopen: ReopenArtifactFn,
 ): Promise<void> {
+  assertCandidateReceiptSelfHash(receipt);
   const references: readonly { artifactId: string; artifactHash: string }[] = [
     { artifactId: 'authority-capture', artifactHash: receipt.authorityCaptureHash },
     { artifactId: 'locale-qualification', artifactHash: receipt.localeQualificationHash },
@@ -421,6 +511,37 @@ export function assertCandidateNonSelectable(
     throw new LatestAuthorityCutoverError(
       'candidate-selectable-field-invalid',
       'A coordinated candidate must be sealed non-selectable.',
+    );
+  }
+}
+
+/**
+ * Re-derive the allocation record's sealed hash from its own fields. The
+ * coordination run id is part of the payload, so any edited field diverges.
+ */
+export function assertAllocationRecordSealed(
+  record: CoordinationAllocationRecord,
+): void {
+  if (record.contract !== 'coordination-allocation-record/v1') {
+    throw new LatestAuthorityCutoverError(
+      'allocation-record-invalid',
+      'The allocation record uses an unsupported contract.',
+    );
+  }
+  const expected = projectionDigest({
+    coordinationRunId: record.coordinationRunId,
+    sealedAt: record.sealedAt,
+    captureHash: record.captureHash,
+    compatibilityClassification: record.compatibilityClassification,
+    scopeHash: record.scopeHash,
+    denominatorHash: record.denominatorHash,
+    policyVersions: record.policyVersions,
+    implementationIdentities: record.implementationIdentities,
+  });
+  if (record.allocationHash !== expected) {
+    throw new LatestAuthorityCutoverError(
+      'allocation-record-tampered',
+      'The allocation record does not match its own sealed hash.',
     );
   }
 }

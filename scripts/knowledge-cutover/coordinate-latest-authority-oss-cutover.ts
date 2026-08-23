@@ -36,17 +36,16 @@ import {
   type ExplicitDeltaInput,
 } from '@/lib/latest-authority-oss-cutover/denominator';
 import {
-  sealCoordinationAllocationRecord,
-  sealCoordinatedCandidateReceipt,
+  assertCandidateReceiptSelfHash,
   bindInnerArtifact,
   reopenAndVerifyCandidate,
+  sealCoordinatedCandidateReceipt,
+  sealCoordinationAllocationRecord,
   type SealCandidateReceiptInput,
 } from '@/lib/latest-authority-oss-cutover/envelope';
-import { evaluateContinuityGate } from '@/lib/latest-authority-oss-cutover/continuity-gate';
-import { evaluateTeachingClosure } from '@/lib/latest-authority-oss-cutover/teaching-closure';
-import {
-  buildCoordinatedRuntimeManifestExtension,
-} from '@/lib/latest-authority-oss-cutover/runtime-binding';
+import { evaluateContinuityGate, assertContinuityQualified } from '@/lib/latest-authority-oss-cutover/continuity-gate';
+import { assertTeachingClosureComplete, evaluateTeachingClosure } from '@/lib/latest-authority-oss-cutover/teaching-closure';
+import { buildCoordinatedRuntimeManifestExtension } from '@/lib/latest-authority-oss-cutover/runtime-binding';
 import type {
   CoordinatedCandidateReceipt,
   ResourceSuccessorDisposition,
@@ -353,23 +352,26 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     verificationPolicyHash: input.verificationPolicyHash,
     innerBindings,
   };
-  const candidate = sealCoordinatedCandidateReceipt(candidateInput);
+  // Fail closed before sealing: an unresolved baseline resource or an
+  // incomplete teaching closure must never be packaged as an executable
+  // candidate. The evidence artifacts below remain on disk for diagnosis.
   await writeImmutable(path.join(outDir, 'denominator.json'), `${JSON.stringify(denominator, null, 2)}\n`);
   await writeImmutable(path.join(outDir, 'continuity-receipt.json'), `${JSON.stringify(continuity, null, 2)}\n`);
   await writeImmutable(path.join(outDir, 'teaching-closure-receipt.json'), `${JSON.stringify(closure, null, 2)}\n`);
   await writeImmutable(path.join(outDir, 'allocation.json'), `${JSON.stringify(allocation, null, 2)}\n`);
+  assertContinuityQualified(continuity);
+  assertTeachingClosureComplete(closure);
+  const candidate = sealCoordinatedCandidateReceipt(candidateInput);
   await writeImmutable(path.join(outDir, 'candidate-receipt.json'), `${JSON.stringify(candidate, null, 2)}\n`);
   process.stdout.write(
     `candidate=${candidate.candidateId}\nselectable=${candidate.selectable}\ncontinuity=${continuity.status}\nteachingClosure=${closure.status}\n`,
   );
-  if (continuity.status !== 'QUALIFIED' || closure.status !== 'COMPLETE') {
-    process.exitCode = 3;
-  }
 }
 
 async function runQualify(values: Map<string, string>): Promise<void> {
   const candidatePath = required(values, '--candidate');
   const candidate = (await readJson(candidatePath)) as CoordinatedCandidateReceipt;
+  assertCandidateReceiptSelfHash(candidate);
   const artifacts = new Map<string, { artifactHash: string; allocationHash?: string }>();
   const artifactsFile = values.get('--artifacts');
   if (artifactsFile) {
@@ -392,6 +394,7 @@ async function runActivationPlan(values: Map<string, string>): Promise<void> {
   const candidatePath = required(values, '--candidate');
   const outPath = required(values, '--out');
   const candidate = (await readJson(candidatePath)) as CoordinatedCandidateReceipt;
+  assertCandidateReceiptSelfHash(candidate);
   if (candidate.selectable !== false) fail('only non-selectable candidates can be planned for activation');
   const predecessorById = new Map(candidate.predecessor.map((state) => [state.selectorId, state.identity]));
   const orderedMutations = candidate.successorSelectorExpectations.map((expectation) => ({

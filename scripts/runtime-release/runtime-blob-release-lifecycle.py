@@ -33,6 +33,8 @@ JOURNAL_FILE = "act-runtime-blob-lifecycle.journal.json"
 LOCK_FILE = ".act-runtime-blob-lifecycle.lock"
 ACTIVATION_SCHEMA = "runtime-blob-activation-journal.v1"
 ACTIVATION_FILE = ".act-runtime-blob-activation.journal.json"
+COORDINATED_CUTOVER_FILE = "coordinated-cutover.json"
+COORDINATED_CUTOVER_SCHEMA = "runtime-blob-coordinated-cutover.v1"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 RFC3339_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -312,6 +314,68 @@ def read_identity_file(path: str) -> Dict[str, Any]:
     return read_json(Path(path), identity)
 
 
+def coordinated_cutover_declaration(value: Any, label: str = "coordinated cutover declaration") -> Dict[str, Any]:
+    value = exact(value, ["schemaVersion", "releaseId", "manifestSha256", "treeSha256", "candidateReceiptHash"], label)
+    if value["schemaVersion"] != COORDINATED_CUTOVER_SCHEMA:
+        fail("%s has an unsupported version" % label)
+    return {
+        "schemaVersion": COORDINATED_CUTOVER_SCHEMA,
+        "releaseId": release_id(value["releaseId"], label + ".releaseId"),
+        "manifestSha256": sha(value["manifestSha256"], label + ".manifestSha256"),
+        "treeSha256": sha(value["treeSha256"], label + ".treeSha256"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+    }
+
+
+def read_coordinated_cutover_declaration(state_dir: Path) -> Optional[Dict[str, Any]]:
+    path = state_dir / COORDINATED_CUTOVER_FILE
+    if not path.exists():
+        return None
+    return read_json(path, coordinated_cutover_declaration)
+
+
+def write_coordinated_cutover_declaration(state_dir: Path, declaration: Dict[str, Any]) -> None:
+    write_atomic(state_dir / COORDINATED_CUTOVER_FILE, declaration)
+
+
+def remove_coordinated_cutover_declaration(state_dir: Path) -> None:
+    path = state_dir / COORDINATED_CUTOVER_FILE
+    if path.exists():
+        path.unlink()
+
+
+def coordinated_graph_receipt(value: Any, label: str = "coordinated graph receipt") -> Dict[str, Any]:
+    value = exact(value, ["schemaVersion", "receiptHash", "transactionId", "candidateReceiptHash", "runtimeActiveReceiptHash"], label)
+    if value["schemaVersion"] != "coordinated-active-receipt/v1":
+        fail("%s has an unsupported version" % label)
+    return {
+        "schemaVersion": "coordinated-active-receipt/v1",
+        "receiptHash": sha(value["receiptHash"], label + ".receiptHash"),
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "runtimeActiveReceiptHash": sha(value["runtimeActiveReceiptHash"], label + ".runtimeActiveReceiptHash"),
+    }
+
+
+def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, Any], args: argparse.Namespace) -> None:
+    """A desired identity declared as a coordinated cutover successor may be
+    activated only with the matching committed coordinated graph receipt."""
+    declaration = read_coordinated_cutover_declaration(state_dir)
+    if declaration is None:
+        return
+    if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+        return
+    receipt_path = getattr(args, "coordinated_graph_receipt", None)
+    if not receipt_path:
+        fail("coordinated cutover successor requires --coordinated-graph-receipt")
+    try:
+        receipt = coordinated_graph_receipt(json.loads(Path(receipt_path).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated graph receipt is unreadable: %s" % error)
+    if receipt["candidateReceiptHash"] != declaration["candidateReceiptHash"]:
+        fail("coordinated graph receipt binds a different candidate than the declared cutover")
+
+
 def make_retention_lease(candidate: Dict[str, Any], now: datetime, ttl: int) -> Dict[str, Any]:
     ttl = signed_url_ttl(ttl)
     retained_at = now.replace(microsecond=0)
@@ -538,10 +602,20 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
                 fail("desired candidate must first be a verified publishing identity")
             after["desired"] = candidate
             after["publishing"] = [item for item in current["publishing"] if item["releaseId"] != candidate["releaseId"]]
+            declaration_source = getattr(args, "coordinated_cutover", None)
+            if declaration_source:
+                try:
+                    declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
+                except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                    fail("coordinated cutover declaration is unreadable: %s" % error)
+                if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+                    fail("coordinated cutover declaration must match the desired identity")
+                write_coordinated_cutover_declaration(state_dir, declaration)
         elif operation == "cancel-desired":
             if current["desired"] is None:
                 fail("there is no desired candidate to cancel")
             after["desired"] = None
+            remove_coordinated_cutover_declaration(state_dir)
         elif operation == "retire-rollback":
             if current["rollback"] is None:
                 fail("there is no verified rollback release")
@@ -707,6 +781,7 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
             fail("there is no verified rollback release")
         if operation == "activate" and current["desired"] != candidate:
             fail("only the exact desired candidate may be activated")
+        require_coordinated_activation_gate(state_dir, candidate, args)
         journal_value = {
             "schemaVersion": ACTIVATION_SCHEMA,
             "status": "prepared",
@@ -930,6 +1005,7 @@ def main() -> None:
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--identity", required=True)
+    commands.choices["set-desired"].add_argument("--coordinated-cutover")
     for name in ("retain", "release-retained"):
         commands.choices[name].add_argument("--now", help=argparse.SUPPRESS)
     activate_parser = commands.add_parser("activate")
@@ -937,6 +1013,7 @@ def main() -> None:
     activate_parser.add_argument("--expected-generation", required=True, type=int)
     activate_parser.add_argument("--identity", required=True)
     activate_parser.add_argument("--host-state-script", required=True)
+    activate_parser.add_argument("--coordinated-graph-receipt")
     activate_parser.add_argument("--now", help=argparse.SUPPRESS)
     rollback_parser = commands.add_parser("rollback")
     rollback_parser.add_argument("--state-dir", required=True)
@@ -985,6 +1062,7 @@ def main() -> None:
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
+    commands.choices["activate-and-project"].add_argument("--coordinated-graph-receipt")
     args = parser.parse_args()
     if args.command == "initialize-v2":
         result = initialize(args)
