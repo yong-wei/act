@@ -439,3 +439,30 @@ describe('exercise processor', () => {
       .toThrow(/declares no questions/);
   });
 });
+
+import { selectTerminologyHotwords } from '@/lib/formal-resource-remediation/processors/hotwords';
+
+describe('terminology hotword selection', () => {
+  it('excludes generic, short, Latin, and substring-duplicate terms', () => {
+    const manifest = extractHotwordManifest({
+      allocationHash: H('f'),
+      resourceId: 'video-2-1',
+      sourceResourceId: 'handout-2-1',
+      sourceMarkdown: '传递函数 控制器 递函数 复变量',
+      sourceContentSha256: H('1'),
+      locale: 'zh-CN',
+      terminologyRegistryId: 'terminology/v1',
+      config: {
+        ...DEFAULT_HOTWORD_CONFIG,
+        terminologyTerms: ['传递函数', '控制器', '递函数', '复变量', '控制', 'bode'],
+      },
+    });
+    const selected = selectTerminologyHotwords(manifest);
+    expect(selected).toContain('传递函数');
+    expect(selected).toContain('控制器');
+    expect(selected).not.toContain('递函数');
+    expect(selected).not.toContain('控制');
+    expect(selected).not.toContain('bode');
+    expect(selected.length).toBeLessThanOrEqual(20);
+  });
+});

@@ -238,3 +238,39 @@ function normalizeTerm(term: string): string {
     .replace(/\s+/gu, '')
     .toLowerCase();
 }
+
+/** Generic non-terminology words that harm decoding when used as hotwords. */
+const GENERIC_TERM_DENYLIST = new Set([
+  '引入', '讲义', '对象系统', '通用', '结合起来', '更重要的是',
+  '我们可以看到', '换句话说', '正式展开', '控制系统的',
+]);
+
+/**
+ * Select the terminology hotwords admitted to the ASR request (calibration
+ * finding #1515-4.7): only multi-character Chinese professional terms, at
+ * most `limit` of them, with generic words and substring-duplicates of
+ * other selected terms excluded ("递函数" ⊂ "传递函数" collapsed 2-1).
+ */
+export function selectTerminologyHotwords(
+  manifest: HotwordManifest,
+  limit = 20,
+): readonly string[] {
+  const candidates = manifest.entries
+    .map((entry) => entry.term)
+    .filter((term) => term.length >= 3
+      && !GENERIC_TERM_DENYLIST.has(term)
+      && !/[A-Za-z0-9]/u.test(term));
+  // Longest-first greedy selection: a truncated substring ("递函数" of
+  // "传递函数") can never eliminate its full term.
+  candidates.sort((a, b) => b.length - a.length || a.localeCompare(b));
+  const selected: string[] = [];
+  for (const term of candidates) {
+    // Substring dedup only removes short truncation noise ("递函数"):
+    // a 4+ character term ("传递函数") stays even when a longer selected
+    // term ("闭环传递函数") contains it — both are independent terms.
+    if (term.length < 4 && selected.some((existing) => existing.includes(term))) continue;
+    selected.push(term);
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
