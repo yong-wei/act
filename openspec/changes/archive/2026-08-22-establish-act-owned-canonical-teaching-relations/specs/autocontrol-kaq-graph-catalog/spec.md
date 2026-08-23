@@ -3,6 +3,11 @@
 ### Requirement: Teaching relation conflicts are auditable
 The catalog SHALL record one-time governed conflict decisions and retirement status when a formally admissible ACT Teaching Projection relation conflicts with an existing scoped KAQ knowledge-to-knowledge fallback. An ActKG Engineering relation SHALL NOT participate in this retirement contract and SHALL remain unchanged. A conflicting ACT candidate MUST remain excluded until the repository decision resolves the conflict.
 
+#### Scenario: ActKG relation is accepted
+- **WHEN** review accepts a released ActKG teaching relation as historical evidence
+- **THEN** that ActKG teaching relation SHALL NOT become the planning authority
+- **AND** only an admitted ACT Teaching Projection relation MAY retire the corresponding KAQ fallback
+
 #### Scenario: ACT relation is admitted after conflict resolution
 - **WHEN** the governed repository decision accepts the ACT Teaching Projection relation that conflicts with a scoped KAQ fallback
 - **THEN** the corresponding KAQ knowledge relation SHALL be retired before the ACT relation becomes active for planning
