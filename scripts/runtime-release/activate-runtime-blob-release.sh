@@ -24,6 +24,7 @@ READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 # committed coordinated graph receipt.
 COORDINATED_CUTOVER_DECLARATION="${ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION:-}"
 COORDINATED_GRAPH_RECEIPT="${ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT:-}"
+COORDINATED_RUNTIME_BINDING="${ACT_RUNTIME_COORDINATED_RUNTIME_BINDING:-}"
 
 release_id=""
 expected_active_release=""
@@ -607,6 +608,9 @@ else
   coordinated_activation_args=()
   if [[ -n "$COORDINATED_GRAPH_RECEIPT" ]]; then
     coordinated_activation_args+=(--coordinated-graph-receipt "$COORDINATED_GRAPH_RECEIPT")
+  fi
+  if [[ -n "$COORDINATED_RUNTIME_BINDING" ]]; then
+    coordinated_activation_args+=(--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING")
   fi
   python3 "$ACTIVATION_TRANSACTION" activate \
     --state-dir "$STATE_DIR" \

@@ -344,22 +344,103 @@ def remove_coordinated_cutover_declaration(state_dir: Path) -> None:
         path.unlink()
 
 
+def canonical_digest(payload: Dict[str, Any]) -> str:
+    """sha256 over canonical JSON (sorted keys, compact separators), matching
+    the TypeScript projectionDigest serialization for ASCII-safe data."""
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def coordinated_active_receipt_payload_hash(receipt: Dict[str, Any]) -> str:
+    return canonical_digest({
+        "transactionId": receipt["transactionId"],
+        "journalHash": receipt["journalHash"],
+        "candidateReceiptHash": receipt["candidateReceiptHash"],
+        "committedSelectors": receipt["committedSelectors"],
+        "mutationReceiptHashes": receipt["mutationReceiptHashes"],
+        "runtimeActiveReceiptHash": receipt["runtimeActiveReceiptHash"],
+    })
+
+
+def committed_selector_entries(value: Any, label: str) -> List[Dict[str, str]]:
+    if not isinstance(value, list) or not value:
+        fail("%s must be a non-empty array" % label)
+    entries: List[Dict[str, str]] = []
+    for index, item in enumerate(value):
+        row = exact(item, ["selectorId", "identity"], "%s[%d]" % (label, index))
+        entries.append({
+            "selectorId": string(row["selectorId"], "%s[%d].selectorId" % (label, index)),
+            "identity": string(row["identity"], "%s[%d].identity" % (label, index)),
+        })
+    return entries
+
+
 def coordinated_graph_receipt(value: Any, label: str = "coordinated graph receipt") -> Dict[str, Any]:
-    value = exact(value, ["schemaVersion", "receiptHash", "transactionId", "candidateReceiptHash", "runtimeActiveReceiptHash"], label)
+    value = exact(value, [
+        "schemaVersion", "receiptId", "sealedAt", "transactionId", "journalHash",
+        "candidateReceiptHash", "committedSelectors", "mutationReceiptHashes",
+        "runtimeActiveReceiptHash", "receiptHash",
+    ], label)
     if value["schemaVersion"] != "coordinated-active-receipt/v1":
         fail("%s has an unsupported version" % label)
-    return {
+    runtime_active = None if value["runtimeActiveReceiptHash"] is None else sha(value["runtimeActiveReceiptHash"], label + ".runtimeActiveReceiptHash")
+    hashes = value["mutationReceiptHashes"]
+    if not isinstance(hashes, list):
+        fail("%s.mutationReceiptHashes must be an array" % label)
+    receipt = {
         "schemaVersion": "coordinated-active-receipt/v1",
+        "receiptId": string(value["receiptId"], label + ".receiptId"),
+        "sealedAt": string(value["sealedAt"], label + ".sealedAt"),
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "journalHash": sha(value["journalHash"], label + ".journalHash"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "committedSelectors": committed_selector_entries(value["committedSelectors"], label + ".committedSelectors"),
+        "mutationReceiptHashes": [sha(item, "%s.mutationReceiptHashes[%d]" % (label, index)) for index, item in enumerate(hashes)],
+        "runtimeActiveReceiptHash": runtime_active,
         "receiptHash": sha(value["receiptHash"], label + ".receiptHash"),
+    }
+    expected = coordinated_active_receipt_payload_hash(receipt)
+    if receipt["receiptHash"] != expected or receipt["receiptId"] != "act-" + expected[:24]:
+        fail("%s does not match its own content-addressed hash" % label)
+    return receipt
+
+
+def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime binding") -> Dict[str, Any]:
+    value = exact(value, [
+        "schemaVersion", "transactionId", "candidateReceiptHash",
+        "runtimeRelease", "materializationReceiptHash", "bindingHash",
+    ], label)
+    if value["schemaVersion"] != "coordinated-runtime-active-receipt-binding/v1":
+        fail("%s has an unsupported version" % label)
+    release_row = exact(value["runtimeRelease"], ["releaseId", "manifestSha256", "treeSha256"], label + ".runtimeRelease")
+    runtime_release = {
+        "releaseId": release_id(release_row["releaseId"], label + ".runtimeRelease.releaseId"),
+        "manifestSha256": sha(release_row["manifestSha256"], label + ".runtimeRelease.manifestSha256"),
+        "treeSha256": sha(release_row["treeSha256"], label + ".runtimeRelease.treeSha256"),
+    }
+    binding = {
+        "schemaVersion": "coordinated-runtime-active-receipt-binding/v1",
         "transactionId": string(value["transactionId"], label + ".transactionId"),
         "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
-        "runtimeActiveReceiptHash": sha(value["runtimeActiveReceiptHash"], label + ".runtimeActiveReceiptHash"),
+        "runtimeRelease": runtime_release,
+        "materializationReceiptHash": sha(value["materializationReceiptHash"], label + ".materializationReceiptHash"),
+        "bindingHash": sha(value["bindingHash"], label + ".bindingHash"),
     }
+    expected = canonical_digest({
+        "transactionId": binding["transactionId"],
+        "candidateReceiptHash": binding["candidateReceiptHash"],
+        "runtimeRelease": binding["runtimeRelease"],
+        "materializationReceiptHash": binding["materializationReceiptHash"],
+    })
+    if binding["bindingHash"] != expected:
+        fail("%s does not match its own content-addressed hash" % label)
+    return binding
 
 
 def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, Any], args: argparse.Namespace) -> None:
     """A desired identity declared as a coordinated cutover successor may be
-    activated only with the matching committed coordinated graph receipt."""
+    activated only with the matching committed coordinated graph receipt and
+    runtime binding."""
     declaration = read_coordinated_cutover_declaration(state_dir)
     if declaration is None:
         return
@@ -374,6 +455,21 @@ def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, An
         fail("coordinated graph receipt is unreadable: %s" % error)
     if receipt["candidateReceiptHash"] != declaration["candidateReceiptHash"]:
         fail("coordinated graph receipt binds a different candidate than the declared cutover")
+    binding_path = getattr(args, "coordinated_runtime_binding", None)
+    if not binding_path:
+        fail("coordinated cutover successor requires --coordinated-runtime-binding")
+    try:
+        binding = coordinated_runtime_binding(json.loads(Path(binding_path).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated runtime binding is unreadable: %s" % error)
+    if binding["candidateReceiptHash"] != receipt["candidateReceiptHash"]:
+        fail("coordinated runtime binding binds a different candidate than the graph receipt")
+    if binding["transactionId"] != receipt["transactionId"]:
+        fail("coordinated runtime binding belongs to a different transaction than the graph receipt")
+    if receipt["runtimeActiveReceiptHash"] != binding["bindingHash"]:
+        fail("coordinated graph receipt does not close over the provided runtime active binding")
+    if binding["runtimeRelease"]["releaseId"] != candidate["releaseId"] or binding["runtimeRelease"]["manifestSha256"] != candidate["manifestSha256"] or binding["runtimeRelease"]["treeSha256"] != candidate["treeSha256"]:
+        fail("coordinated runtime binding references a different runtime release than the candidate")
 
 
 def make_retention_lease(candidate: Dict[str, Any], now: datetime, ttl: int) -> Dict[str, Any]:
@@ -1014,6 +1110,7 @@ def main() -> None:
     activate_parser.add_argument("--identity", required=True)
     activate_parser.add_argument("--host-state-script", required=True)
     activate_parser.add_argument("--coordinated-graph-receipt")
+    activate_parser.add_argument("--coordinated-runtime-binding")
     activate_parser.add_argument("--now", help=argparse.SUPPRESS)
     rollback_parser = commands.add_parser("rollback")
     rollback_parser.add_argument("--state-dir", required=True)
@@ -1063,6 +1160,7 @@ def main() -> None:
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
     commands.choices["activate-and-project"].add_argument("--coordinated-graph-receipt")
+    commands.choices["activate-and-project"].add_argument("--coordinated-runtime-binding")
     args = parser.parse_args()
     if args.command == "initialize-v2":
         result = initialize(args)

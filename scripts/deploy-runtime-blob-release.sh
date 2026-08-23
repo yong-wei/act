@@ -30,6 +30,9 @@ artifact_dir=""
 expected_active_release=""
 matching_parent_release_id=""
 ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
+coordinated_cutover_declaration=""
+coordinated_graph_receipt=""
+coordinated_runtime_binding=""
 publishing_identity_started=0
 publishing_generation=""
 
@@ -43,6 +46,9 @@ while [[ $# -gt 0 ]]; do
     --artifact-dir) artifact_dir="$2"; shift 2 ;;
     --expected-active-release) expected_active_release="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
+    --coordinated-cutover-declaration) coordinated_cutover_declaration="$2"; shift 2 ;;
+    --coordinated-graph-receipt) coordinated_graph_receipt="$2"; shift 2 ;;
+    --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -324,8 +330,33 @@ for name in manifest.json release-receipt.json source-provenance-proof.json publ
   remote "chmod 0600 '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' && mv '$REMOTE_ARTIFACT_ROOT/$release_id/$name.tmp' '$REMOTE_ARTIFACT_ROOT/$release_id/$name'"
 done
 
+# Coordinated cutover (#1509): copy the declaration, committed graph receipt,
+# and runtime binding so the remote lifecycle gate can enforce them. All
+# three must be provided together when any one is.
+coordinated_inputs_provided=0
+for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+  [[ -z "$value" ]] || coordinated_inputs_provided=$((coordinated_inputs_provided + 1))
+done
+if [[ "$coordinated_inputs_provided" -ne 0 && "$coordinated_inputs_provided" -ne 3 ]]; then
+  echo "ERROR: --coordinated-cutover-declaration, --coordinated-graph-receipt, and --coordinated-runtime-binding must be provided together" >&2
+  exit 1
+fi
+for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+  [[ -z "$value" || -f "$value" ]] || { echo "ERROR: coordinated cutover input does not exist: $value" >&2; exit 1; }
+done
+remote_coordinated_env=""
+if [[ "$coordinated_inputs_provided" -eq 3 ]]; then
+  for pair in "coordinated-cutover.json:$coordinated_cutover_declaration" "coordinated-graph-receipt.json:$coordinated_graph_receipt" "coordinated-runtime-binding.json:$coordinated_runtime_binding"; do
+    remote_name="${pair%%:*}"
+    local_path="${pair#*:}"
+    scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$local_path" "$SSH_TARGET:$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp"
+    remote "chmod 0600 '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp' && mv '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp' '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name'"
+  done
+  remote_coordinated_env="ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-cutover.json' ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-graph-receipt.json' ACT_RUNTIME_COORDINATED_RUNTIME_BINDING='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-runtime-binding.json' "
+fi
+
 activation_started_seconds=$SECONDS
-remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' '$REMOTE_ACTIVATOR' --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
+remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
 python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'
 import json

@@ -40,6 +40,49 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         path.write_text(json.dumps(identity(release_id, seed)), encoding="utf-8")
         return path
 
+    def coordinated_receipt_and_binding(self, root, candidate_identity, candidate_receipt_hash):
+        """Build a graph receipt and runtime binding with genuine
+        content-addressed hashes over the same canonical JSON the lifecycle
+        gate recomputes."""
+        binding = {
+            "schemaVersion": "coordinated-runtime-active-receipt-binding/v1",
+            "transactionId": "tx-1",
+            "candidateReceiptHash": candidate_receipt_hash,
+            "runtimeRelease": {
+                "releaseId": candidate_identity["releaseId"],
+                "manifestSha256": candidate_identity["manifestSha256"],
+                "treeSha256": candidate_identity["treeSha256"],
+            },
+            "materializationReceiptHash": "3" * 64,
+            "bindingHash": "",
+        }
+        binding["bindingHash"] = LIFECYCLE.canonical_digest({
+            "transactionId": binding["transactionId"],
+            "candidateReceiptHash": binding["candidateReceiptHash"],
+            "runtimeRelease": binding["runtimeRelease"],
+            "materializationReceiptHash": binding["materializationReceiptHash"],
+        })
+        receipt = {
+            "schemaVersion": "coordinated-active-receipt/v1",
+            "receiptId": "",
+            "sealedAt": "2030-01-01T00:00:00Z",
+            "transactionId": "tx-1",
+            "journalHash": "1" * 64,
+            "candidateReceiptHash": candidate_receipt_hash,
+            "committedSelectors": [{"selectorId": "authority:current", "identity": "auth-new"}],
+            "mutationReceiptHashes": ["2" * 64],
+            "runtimeActiveReceiptHash": binding["bindingHash"],
+            "receiptHash": "",
+        }
+        payload_hash = LIFECYCLE.coordinated_active_receipt_payload_hash(receipt)
+        receipt["receiptHash"] = payload_hash
+        receipt["receiptId"] = "act-" + payload_hash[:24]
+        receipt_path = root / "graph-receipt.json"
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        binding_path = root / "runtime-binding.json"
+        binding_path.write_text(json.dumps(binding), encoding="utf-8")
+        return receipt_path, binding_path
+
     def write_v1_state(self, root):
         selection = {
             "schemaVersion": "runtime-release-selection.v1",
@@ -398,34 +441,47 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE), expect_ok=False,
             )
             self.assertIn("--coordinated-graph-receipt", rejected_activate.stderr)
-            # A graph receipt binding a different candidate is rejected too.
-            foreign_receipt = root / "graph-receipt-foreign.json"
-            foreign_receipt.write_text(json.dumps({
-                "schemaVersion": "coordinated-active-receipt/v1",
-                "receiptHash": "f" * 64,
-                "transactionId": "tx-1",
-                "candidateReceiptHash": "9" * 64,
-                "runtimeActiveReceiptHash": "8" * 64,
-            }), encoding="utf-8")
+            # A graph receipt whose own content-addressed hash is forged, or
+            # that binds a different candidate, is rejected.
+            receipt, binding = self.coordinated_receipt_and_binding(root, identity_b, "e" * 64)
+            forged = json.loads(receipt.read_text(encoding="utf-8"))
+            forged["candidateReceiptHash"] = "9" * 64
+            forged_path = root / "graph-receipt-forged.json"
+            forged_path.write_text(json.dumps(forged), encoding="utf-8")
+            rejected_forged = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(forged_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
+            )
+            self.assertIn("does not match its own content-addressed hash", rejected_forged.stderr)
+            foreign = json.loads(receipt.read_text(encoding="utf-8"))
+            foreign["candidateReceiptHash"] = "9" * 64
+            foreign["receiptHash"] = LIFECYCLE.coordinated_active_receipt_payload_hash(foreign)
+            foreign["receiptId"] = "act-" + foreign["receiptHash"][:24]
+            foreign_path = root / "graph-receipt-foreign.json"
+            foreign_path.write_text(json.dumps(foreign), encoding="utf-8")
             rejected_foreign = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(foreign_receipt), expect_ok=False,
+                "--coordinated-graph-receipt", str(foreign_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
             )
             self.assertIn("different candidate", rejected_foreign.stderr)
-            # The matching committed graph receipt unlocks the activation.
-            matching_receipt = root / "graph-receipt.json"
-            matching_receipt.write_text(json.dumps({
-                "schemaVersion": "coordinated-active-receipt/v1",
-                "receiptHash": "f" * 64,
-                "transactionId": "tx-1",
-                "candidateReceiptHash": "e" * 64,
-                "runtimeActiveReceiptHash": "8" * 64,
-            }), encoding="utf-8")
+            # A valid receipt without the runtime binding still fails closed.
+            rejected_no_binding = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-graph-receipt", str(receipt), expect_ok=False,
+            )
+            self.assertIn("--coordinated-runtime-binding", rejected_no_binding.stderr)
+            # The matching committed graph receipt and runtime binding
+            # unlock the activation.
             activated = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(matching_receipt),
+                "--coordinated-graph-receipt", str(receipt),
+                "--coordinated-runtime-binding", str(binding),
             )
             self.assertEqual(activated["active"]["active"]["releaseId"], "runtime-b")
             # The declaration stays as evidence and constrains only the

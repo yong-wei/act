@@ -495,6 +495,30 @@ describe('stopped-service coordinated transaction', () => {
       runtimeActiveReceiptHash: null,
       sealedAt: '2026-08-23T00:02:00.000Z',
     })).toThrow(/does not match its own content-addressed hash/);
+    // Editing the discriminator or the derived id is rejected too.
+    // The cast simulates a tampered persisted JSON receipt; the type system
+    // deliberately refuses to construct this value.
+    const wrongContract = {
+      ...complete[0],
+      contract: 'forged-mutation-receipt/v9',
+    } as unknown as typeof complete[0];
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: [wrongContract, complete[1], complete[2]],
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).toThrow(/unsupported contract|does not match its own content-addressed hash/);
+    const wrongDerivedId = { ...complete[1], receiptId: 'mut-attackerchosenid0000000' };
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: [complete[0], wrongDerivedId, complete[2]],
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).toThrow(/does not match its own content-addressed hash/);
   });
 });
 

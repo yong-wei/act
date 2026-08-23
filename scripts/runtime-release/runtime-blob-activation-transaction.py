@@ -65,6 +65,7 @@ def main():
     commands.choices["activate"].add_argument("--expected-generation", required=True, type=int)
     commands.choices["activate"].add_argument("--identity", required=True)
     commands.choices["activate"].add_argument("--coordinated-graph-receipt")
+    commands.choices["activate"].add_argument("--coordinated-runtime-binding")
     commands.choices["rollback"].add_argument("--expected-generation", required=True, type=int)
     args = parser.parse_args()
     if args.command is None:
@@ -89,6 +90,8 @@ def main():
         ]
         if args.coordinated_graph_receipt:
             activate_command.extend(["--coordinated-graph-receipt", args.coordinated_graph_receipt])
+        if getattr(args, "coordinated_runtime_binding", None):
+            activate_command.extend(["--coordinated-runtime-binding", args.coordinated_runtime_binding])
         result = run(activate_command)
     else:
         result = run([

@@ -225,7 +225,10 @@ export async function applyJournaledMutation(
   };
 }
 
-/** Content-addressed hash of a mutation receipt's full payload. */
+/** Content-addressed hash of a mutation receipt's full canonical payload.
+ * The hash covers the contract discriminator and every business field; the
+ * receiptId is derived from it and never part of it (being a truncation of
+ * the hash itself). */
 export function selectorMutationReceiptHash(payload: {
   transactionId: string;
   candidateReceiptHash: string;
@@ -234,7 +237,37 @@ export function selectorMutationReceiptHash(payload: {
   beforeIdentity: string;
   afterIdentity: string;
 }): string {
-  return projectionDigest({ kind: 'cutover-selector-mutation-receipt', ...payload });
+  return projectionDigest({
+    contract: 'cutover-selector-mutation-receipt/v1',
+    ...payload,
+  });
+}
+
+/** Validate a receipt's discriminator, derived id, and full payload hash. */
+export function assertSelectorMutationReceiptWellFormed(
+  receipt: SelectorMutationReceipt,
+): void {
+  if (receipt.contract !== 'cutover-selector-mutation-receipt/v1') {
+    throw new LatestAuthorityCutoverError(
+      'mutation-receipt-contract-invalid',
+      `Mutation receipt ${receipt.receiptId} uses an unsupported contract.`,
+    );
+  }
+  const expectedHash = selectorMutationReceiptHash({
+    transactionId: receipt.transactionId,
+    candidateReceiptHash: receipt.candidateReceiptHash,
+    selectorId: receipt.selectorId,
+    appliedAt: receipt.appliedAt,
+    beforeIdentity: receipt.beforeIdentity,
+    afterIdentity: receipt.afterIdentity,
+  });
+  if (receipt.receiptHash !== expectedHash
+    || receipt.receiptId !== `mut-${expectedHash.slice(0, 24)}`) {
+    throw new LatestAuthorityCutoverError(
+      'mutation-receipt-hash-mismatch',
+      `Mutation receipt ${receipt.receiptId} does not match its own content-addressed hash.`,
+    );
+  }
 }
 
 function expectedIdentityBefore(journal: CutoverTransactionJournal, stepIndex: number): string {
@@ -331,20 +364,10 @@ export function sealCoordinatedActiveReceipt(
         `Mutation receipt ${receipt.receiptId} binds a different candidate.`,
       );
     }
-    const expectedHash = selectorMutationReceiptHash({
-      transactionId: receipt.transactionId,
-      candidateReceiptHash: receipt.candidateReceiptHash,
-      selectorId: receipt.selectorId,
-      appliedAt: receipt.appliedAt,
-      beforeIdentity: receipt.beforeIdentity,
-      afterIdentity: receipt.afterIdentity,
-    });
-    if (receipt.receiptHash !== expectedHash) {
-      throw new LatestAuthorityCutoverError(
-        'active-receipt-mutation-hash-mismatch',
-        `Mutation receipt ${receipt.receiptId} does not match its own content-addressed hash.`,
-      );
-    }
+    // Full payload verification: contract discriminator, derived id, and the
+    // content-addressed hash must all be the ones applyJournaledMutation
+    // actually produced.
+    assertSelectorMutationReceiptWellFormed(receipt);
   }
   const receiptHash = projectionDigest({
     transactionId: input.journal.transactionId,
