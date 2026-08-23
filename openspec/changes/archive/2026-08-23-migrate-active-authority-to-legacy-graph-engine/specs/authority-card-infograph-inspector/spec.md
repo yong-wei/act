@@ -8,7 +8,7 @@ Selecting a presentable Authority object SHALL open or update the established st
 - **THEN** the inspector SHALL open with sanitized semantic detail, available boundary entrances, and eligible resource summaries while the node remains selected
 - **AND** the canvas SHALL not be replaced by a card grid or embedded resource runtime
 
-#### Scenario: Inspector matches old graph interaction on active data
+#### Scenario: Inspector matches Legacy interaction on active data
 - **WHEN** a user selects successive nodes in the same domain view
 - **THEN** the inspector SHALL update in place without closing, reopening, or resetting domain, filter, viewport, force layout, or loaded-shard state
 - **AND** every displayed field SHALL resolve from the active composite release's matched ACT projections rather than from any old, inactive, candidate, or mismatched catalog

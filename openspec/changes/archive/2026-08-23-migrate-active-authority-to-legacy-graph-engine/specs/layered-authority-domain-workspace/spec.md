@@ -44,6 +44,11 @@ Every presentable, authorized, supported node type already materialized in the a
 - **THEN** the workspace SHALL hide and restore that type and its incident visible edges
 - **AND** force coordinates, viewport, relation filters, selected node, loaded shards, and inspector state SHALL remain stable
 
+#### Scenario: User searches for a formula
+- **WHEN** a presentable Formula is not in the current visible object set
+- **THEN** search, directory selection, or bounded one-hop expansion SHALL be able to materialize and select it
+- **AND** the formula identifier or raw type SHALL not be used as fallback text
+
 #### Scenario: User searches for an unmaterialized formula
 - **WHEN** search resolves a presentable Formula outside the current visible objects
 - **THEN** the workspace SHALL load its matching bounded domain context and select it when the Formula type is enabled

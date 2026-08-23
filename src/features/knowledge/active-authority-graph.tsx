@@ -8,9 +8,7 @@ import {
   CircleHelp,
   Crosshair,
   Loader2,
-  Minus,
   Network,
-  Plus,
   RotateCcw,
   Search,
   X,
@@ -43,6 +41,7 @@ import {
 } from './active-authority-presentation';
 import {
   createEmptyAuthorityShardWorkspace,
+  disableAuthorityShardFamily,
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
   mergeAuthorityShard,
@@ -53,6 +52,12 @@ import {
   type AuthorityShardWorkspaceState,
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
+import { ActiveAuthorityForceCanvas } from './active-authority-force-canvas';
+import {
+  createAuthorityGraphViewModel,
+  defaultEnabledTeachingFamilies,
+} from './authority-graph-view-model';
+import type { GraphDimension } from './graph-runtime-session';
 import type {
   AuthorityShardPublicEnvelope,
   AuthorityShardMembership,
@@ -90,6 +95,8 @@ import {
 
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
+  dimension?: GraphDimension;
+  onDimensionChange?: (dimension: GraphDimension) => void;
 }
 
 type WorkspaceLoadState =
@@ -161,6 +168,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
   workspace: AuthorityShardWorkspaceState;
   enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
+  disableFamily: (family: EngineeringRelationFamily) => void;
   familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
   neighborhoodFailures: Record<string, string>;
@@ -405,6 +413,10 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     return fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
   }
 
+  function disableFamily(family: EngineeringRelationFamily) {
+    updateWorkspace((workspace) => disableAuthorityShardFamily(workspace, family));
+  }
+
   function enableFamily(family: EngineeringRelationFamily) {
     const current = workspaceRef.current;
     const domainId = current.activeDomainId;
@@ -516,6 +528,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     workspace,
     enterDomain,
     enableFamily,
+    disableFamily,
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
@@ -1300,15 +1313,24 @@ function SearchResults({
   );
 }
 
-export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorityGraphProps) {
+export function ActiveAuthorityGraph({
+  viewerRole: _viewerRole,
+  dimension: dimensionProp,
+  onDimensionChange,
+}: ActiveAuthorityGraphProps) {
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
+  const [internalDimension, setInternalDimension] = useState<GraphDimension>('2d');
+  const dimension = dimensionProp ?? internalDimension;
+  const setDimension = onDimensionChange ?? setInternalDimension;
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
     state,
     workspace,
     enterDomain,
     enableFamily,
+    disableFamily,
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
@@ -1410,7 +1432,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       pendingCrossDomainSelectionRef.current = null;
     } else {
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(selectInitialPrimaryDomainScope(model, visibleNodeLimit));
+      setVisibleKeys(new Set(model.nodes.map((node) => node.key)));
       setSelectedNodeKey(null);
     }
     setQuery('');
@@ -1488,11 +1510,27 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     const filteredKeys = new Set(scoped.nodes.filter((node) => node.type.canonicalType === typeFilter).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
   }, [model, typeFilter, visibleKeys]);
-  const layout = useMemo(
-    () => layoutActiveAuthorityNodes(scopedGraph?.nodes ?? [], isCompactViewport),
-    [isCompactViewport, scopedGraph],
-  );
+  const authorityView = useMemo(() => {
+    if (!scopedGraph) return null;
+    const haloIds = Object.keys(workspace.boundaryRefsByCanonicalId);
+    return createAuthorityGraphViewModel({
+      nodes: scopedGraph.nodes.map((row) => row.sourceNode),
+      relations: scopedGraph.relations.map((row) => row.sourceRelation),
+      crossDomainCanonicalIds: haloIds,
+      enabledRelationFamilies: [
+        ...defaultEnabledTeachingFamilies(),
+        ...workspace.enabledFamilies,
+      ],
+    });
+  }, [scopedGraph, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
+  const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
+    ? {
+      name: model.nodeByKey.get(hoveredNodeId)!.label,
+      typeLabel: model.nodeByKey.get(hoveredNodeId)!.type.label,
+      summary: model.nodeByKey.get(hoveredNodeId)!.description ?? graphCopy(locale, 'empty.domain'),
+    }
+    : null;
 
   function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
     if (!model && !workspace.objectsByCanonicalId[key]) return;
@@ -1745,7 +1783,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                       data-authority-family-enabled={enabled ? 'true' : 'false'}
                       aria-pressed={enabled}
                       aria-label={failure ? `${familyLabel(locale, family)}${graphCopy(locale, 'filter.family.loadFailed')}` : undefined}
-                      onClick={() => enableFamily(family)}
+                      onClick={() => (enabled ? disableFamily(family) : enableFamily(family))}
                       className={`rounded-md border px-2.5 py-2 text-xs ${enabled ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
                     >
                       {familyLabel(locale, family)}
@@ -1770,7 +1808,9 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     </div>
                   );
                 })}
-                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'controls.returnDomain')}</button>
+                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0" data-active-authority-domain-return="true"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'controls.returnDomain')}</button>
+                <button type="button" aria-pressed={dimension === '2d'} data-active-authority-dimension="2d" onClick={() => setDimension('2d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '2d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>2D</button>
+                <button type="button" aria-pressed={dimension === '3d'} data-active-authority-dimension="3d" onClick={() => setDimension('3d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '3d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>3D</button>
               </div>
             </div>
 
@@ -1813,56 +1853,20 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                 >{graphCopy(locale, 'error.retryNeighborhood')}</button>
               </div>
             ) : null}
-            <div className="relative overflow-hidden rounded-xl border border-platform-border bg-[#07111f]" data-active-graph-stage="authority" tabIndex={-1}>
-              <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-platform-border bg-platform-surface/90 p-1">
-                <button type="button" aria-label={graphCopy(locale, 'controls.zoomOut')} onClick={() => setZoom((value) => Math.max(0.65, Number((value - 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>
-                <span className="min-w-10 text-center text-[10px] text-platform-fg-muted">{Math.round(zoom * 100)}%</span>
-                <button type="button" aria-label={graphCopy(locale, 'controls.zoomIn')} onClick={() => setZoom((value) => Math.min(1.75, Number((value + 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Plus className="h-3.5 w-3.5" aria-hidden="true" /></button>
-                <button type="button" aria-label={graphCopy(locale, 'controls.zoomReset')} onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /></button>
+            {authorityView ? (
+              <div className="h-[min(70vh,40rem)] min-h-[23rem]" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <ActiveAuthorityForceCanvas
+                  view={authorityView}
+                  dimension={dimension}
+                  selectedNodeId={selectedNodeKey}
+                  onSelect={(key) => resolveNodeSelection(key, 'canvas')}
+                  onHover={setHoveredNodeId}
+                  hoverPreview={hoverPreview}
+                  canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                />
               </div>
-              <svg
-                data-active-authority-svg="true"
-                data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'}
-                data-active-authority-node-limit={visibleNodeLimit}
-                viewBox={isCompactViewport ? ACTIVE_MOBILE_VIEWBOX : ACTIVE_DESKTOP_VIEWBOX}
-                className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none"
-                role="application"
-                aria-label={graphCopy(locale, 'a11y.canvas')}
-                onPointerDown={onStagePointerDown}
-                onPointerMove={onStagePointerMove}
-                onPointerUp={onStagePointerUp}
-                onPointerCancel={onStagePointerUp}
-              >
-                <defs><marker id="active-authority-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" /></marker></defs>
-                <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
-                  {scopedGraph.relations.map((relation) => {
-                    const source = layout.get(relation.sourceKey);
-                    const target = layout.get(relation.targetKey);
-                    const sourceNode = model.nodeByKey.get(relation.sourceKey);
-                    const targetNode = model.nodeByKey.get(relation.targetKey);
-                    return source && target && sourceNode && targetNode
-                      ? <GraphEdge
-                        key={relation.key}
-                        relation={relation}
-                        source={source}
-                        target={target}
-                        sourceShape={sourceNode.type.shape}
-                        targetShape={targetNode.type.shape}
-                        sourceLabel={sourceNode.label}
-                        targetLabel={targetNode.label}
-                        compact={isCompactViewport}
-                        selected={Boolean(selectedNodeKey && (selectedNodeKey === relation.sourceKey || selectedNodeKey === relation.targetKey))}
-                      />
-                      : null;
-                  })}
-                  {scopedGraph.nodes.map((node) => {
-                    const point = layout.get(node.key);
-                    return point ? <GraphNode key={node.key} node={node} point={point} selected={selectedNodeKey === node.key} onSelect={selectNode} compact={isCompactViewport} /> : null;
-                  })}
-                </g>
-              </svg>
-              {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
-            </div>
+            ) : null}
+            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
             {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
             {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'search.empty')}</p> : null}
           </main>

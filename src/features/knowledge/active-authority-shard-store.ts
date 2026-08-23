@@ -398,6 +398,17 @@ export function enableAuthorityShardFamily(
   };
 }
 
+export function disableAuthorityShardFamily(
+  current: AuthorityShardWorkspaceState,
+  family: EngineeringRelationFamily,
+): AuthorityShardWorkspaceState {
+  if (!current.enabledFamilies.includes(family)) return current;
+  return {
+    ...current,
+    enabledFamilies: current.enabledFamilies.filter((row) => row !== family),
+  };
+}
+
 export function visibleAuthorityShardRelations(
   current: AuthorityShardWorkspaceState,
 ): AuthorityShardRelation[] {
