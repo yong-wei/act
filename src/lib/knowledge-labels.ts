@@ -47,6 +47,8 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   complements: '互补说明',
   contrasts_with: '对照比较',
   derives: '推导得到',
+  derived_from: '推导自',
+  part_of: '组成部分',
   describes_migration_of: '迁移描述',
   determines: '决定因素',
   embodies: '体现为',

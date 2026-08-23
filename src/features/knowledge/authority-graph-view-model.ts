@@ -201,6 +201,8 @@ const SHARED_RUNTIME_RELATION_TYPES = new Set([
   'related',
   'applies_to',
   'derives',
+  'derived_from',
+  'part_of',
   'quantified_by',
   'visualized_by',
   'instance_of',
@@ -212,8 +214,8 @@ export function toSharedRuntimeRelationType(input: {
   predicate: string;
   relationFamily?: string | null;
 }): string {
-  // Reverse published predicates such as part_of / derived_from stay related
-  // rather than mapping onto inverted directed runtime types.
+  // Reverse published predicates keep their own shared contract instead of
+  // mapping onto inverted contains/derives types.
   const family = input.relationFamily ?? '';
   if (family in TEACHING_FAMILY_TO_RUNTIME) {
     return TEACHING_FAMILY_TO_RUNTIME[family as keyof typeof TEACHING_FAMILY_TO_RUNTIME];

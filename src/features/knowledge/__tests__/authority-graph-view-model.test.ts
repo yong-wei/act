@@ -102,11 +102,11 @@ describe('authority graph view model', () => {
     expect(toSharedRuntimeRelationType({
       predicate: 'derived_from',
       relationFamily: 'derivation-and-representation',
-    })).toBe('related');
+    })).toBe('derived_from');
     expect(toSharedRuntimeRelationType({
       predicate: 'part_of',
       relationFamily: 'structure',
-    })).toBe('related');
+    })).toBe('part_of');
     expect(toSharedRuntimeRelationType({
       predicate: 'unknown_act_predicate',
       relationFamily: 'structure',

@@ -825,6 +825,8 @@ describe('canonical association relation type', () => {
       complements: ['association', 'unordered'],
       contrasts_with: ['association', 'unordered'],
       derives: ['association', 'unordered'],
+      derived_from: ['association', 'unordered'],
+      part_of: ['association', 'unordered'],
       describes_migration_of: ['association', 'unordered'],
       determines: ['association', 'unordered'],
       embodies: ['association', 'unordered'],
@@ -845,7 +847,7 @@ describe('canonical association relation type', () => {
       refines: ['association', 'unordered'],
     } as const;
 
-    expect(Object.keys(previouslyRegistered)).toHaveLength(34);
+    expect(Object.keys(previouslyRegistered)).toHaveLength(36);
     expect(
       KNOWLEDGE_GRAPH_RELATION_CONTRACTS
         .map((contract) => contract.canonicalType)

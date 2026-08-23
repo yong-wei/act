@@ -365,6 +365,8 @@ export const RELATION_STYLES: Record<string, RelationStyle> = {
   complements: relationStyle({ color: platformToken('platform-privacy-private'), lightColor: platformToken('platform-privacy-private'), darkColor: platformToken('platform-privacy-private'), dash: [4, 3], width: 1.2, hasArrow: false, endpoint: 'diamond', curvature: 0.08, opacity: 0.62 }),
   contrasts_with: relationStyle({ color: platformToken('platform-brand-danger'), lightColor: platformToken('platform-brand-danger'), darkColor: platformToken('platform-brand-danger'), dash: [2, 3, 2, 6], width: 1.3, hasArrow: false, endpoint: 'bar', curvature: 0.12, opacity: 0.66 }),
   derives: relationStyle({ color: platformToken('platform-chart-6'), lightColor: platformToken('platform-chart-6'), darkColor: platformToken('platform-chart-6'), dash: [6, 2], width: 1.4, hasArrow: true, endpoint: 'arrow', curvature: 0.04, opacity: 0.7 }),
+  derived_from: relationStyle({ color: platformToken('platform-chart-6'), lightColor: platformToken('platform-chart-6'), darkColor: platformToken('platform-chart-6'), dash: [6, 2], width: 1.4, hasArrow: true, endpoint: 'arrow', curvature: 0.04, opacity: 0.7 }),
+  part_of: relationStyle({ color: platformToken('platform-chart-6'), lightColor: platformToken('platform-chart-6'), darkColor: platformToken('platform-chart-6'), dash: [], width: 1.6, hasArrow: true, endpoint: 'arrow', curvature: 0.02, opacity: 0.8 }),
   describes_migration_of: relationStyle({ color: platformToken('platform-evaluation-official'), lightColor: platformToken('platform-evaluation-official'), darkColor: platformToken('platform-evaluation-official'), dash: [8, 2, 2, 2], width: 1.25, hasArrow: true, endpoint: 'arrow', curvature: 0.18, opacity: 0.66 }),
   determines: relationStyle({ color: platformToken('platform-evidence-context'), lightColor: platformToken('platform-evidence-context'), darkColor: platformToken('platform-evidence-context'), dash: [1, 3], width: 1.35, hasArrow: true, endpoint: 'arrow', curvature: 0.05, opacity: 0.68 }),
   embodies: relationStyle({ color: platformToken('platform-evaluation-preview'), lightColor: platformToken('platform-evaluation-preview'), darkColor: platformToken('platform-evaluation-preview'), dash: [5, 2], width: 1.45, hasArrow: false, endpoint: 'dot', curvature: -0.02, opacity: 0.68 }),
@@ -452,6 +454,8 @@ export const RELATION_SEMANTICS: Record<string, RelationSemantic> = {
   complements: { type: 'complements', label: '互补说明', visualFamily: 'complement-diamond-dash', direction: 'bidirectional', density: 'optional', legendExplanation: '两个概念共同补全同一知识面。' },
   contrasts_with: { type: 'contrasts_with', label: '对照比较', visualFamily: 'contrast-alternating-bar', direction: 'bidirectional', density: 'optional', legendExplanation: '通过差异比较帮助辨析概念。' },
   derives: { type: 'derives', label: '推导得到', visualFamily: 'derivation-tight-dash', direction: 'directed', density: 'context', legendExplanation: '由已有模型、公式或条件推导出目标结果。' },
+  derived_from: { type: 'derived_from', label: '推导自', visualFamily: 'derivation-tight-dash', direction: 'directed', density: 'context', legendExplanation: '当前对象由目标推导或定义而来。' },
+  part_of: { type: 'part_of', label: '组成部分', visualFamily: 'structural-solid-arrow', direction: 'directed', density: 'structure', legendExplanation: '当前对象是目标系统或概念的组成部分。' },
   describes_migration_of: { type: 'describes_migration_of', label: '迁移描述', visualFamily: 'migration-broken-arc', direction: 'directed', density: 'optional', legendExplanation: '描述概念在不同表示或场景中的迁移。' },
   determines: { type: 'determines', label: '决定因素', visualFamily: 'determinant-dot-arrow', direction: 'directed', density: 'context', legendExplanation: '当前因素会决定或约束目标性质。' },
   embodies: { type: 'embodies', label: '体现为', visualFamily: 'embodiment-solid-dot', direction: 'undirected', density: 'context', legendExplanation: '抽象概念在具体对象中体现出来。' },
@@ -505,6 +509,38 @@ KNOWLEDGE_GRAPH_RELATION_CONTRACTS.forEach((contract) => {
       type: inputType,
     };
   });
+});
+
+const AUTHORITY_DIRECTED_RUNTIME_OVERRIDES = ['part_of', 'derived_from'] as const;
+AUTHORITY_DIRECTED_RUNTIME_OVERRIDES.forEach((relationType) => {
+  RELATION_STYLES[relationType] = relationType === 'part_of'
+    ? relationStyle({
+      color: platformToken('platform-chart-6'),
+      lightColor: platformToken('platform-chart-6'),
+      darkColor: platformToken('platform-chart-6'),
+      dash: [],
+      width: 1.6,
+      hasArrow: true,
+      endpoint: 'arrow',
+      curvature: 0.02,
+      opacity: 0.8,
+    })
+    : relationStyle({
+      color: platformToken('platform-chart-6'),
+      lightColor: platformToken('platform-chart-6'),
+      darkColor: platformToken('platform-chart-6'),
+      dash: [6, 2],
+      width: 1.4,
+      hasArrow: true,
+      endpoint: 'arrow',
+      curvature: 0.04,
+      opacity: 0.7,
+    });
+  RELATION_SEMANTICS[relationType] = {
+    ...RELATION_SEMANTICS[relationType],
+    direction: 'directed',
+    visualFamily: relationType === 'part_of' ? 'structural-solid-arrow' : 'derivation-tight-dash',
+  };
 });
 
 // ========== 节点类型配置 (按 nodeType) ==========

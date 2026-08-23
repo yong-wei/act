@@ -137,6 +137,19 @@ describe('knowledge graph relation visual semantics', () => {
     expect(opposite).toBe(appliesTo);
   });
 
+  it('keeps published reverse Authority predicates as directed arrows without swapping endpoints', () => {
+    expect(getRelationStyle('part_of').hasArrow).toBe(true);
+    expect(getRelationStyle('derived_from').hasArrow).toBe(true);
+    expect(getRelationSemantic('part_of')).toMatchObject({
+      label: '组成部分',
+      direction: 'directed',
+    });
+    expect(getRelationSemantic('derived_from')).toMatchObject({
+      label: '推导自',
+      direction: 'directed',
+    });
+  });
+
   it('caches platform color token lookups across alpha conversions until theme changes', () => {
     const documentElement = {
       className: 'theme-dark',
