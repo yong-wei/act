@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "issue": 1454,
+  "route": "/ai",
+  "captureRevision": "586f94540a4dae7262a5c7cd133ea2bab43ab0e5",
+  "captureTime": "2026-08-23T13:49:24.247Z",
+  "generator": "tests/ai-workshop-evidence-1454.spec.ts",
+  "baseUrl": "http://127.0.0.1:3101",
+  "runtime": {
+    "runtimeRevision": "586f94540a4dae7262a5c7cd133ea2bab43ab0e5",
+    "runtimeRevisionSource": "local dev server restarted from this worktree after captureRevision commit",
+    "session": "anonymous",
+    "expectedState": "unavailable learner-state projection; no sample learner data is rendered",
+    "sourceWorktreeCheck": "git diff --quiet and git diff --cached --quiet at capture; only declared artifact paths were untracked"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "ai-workshop-desktop.png",
+      "sha256": "c864e0a33948225af01ea9900480ff9d2ca45a624b9537b9c6b73174c41b8087"
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 900,
+      "screenshot": "ai-workshop-mobile.png",
+      "sha256": "29b3423b531f0bbadb0f8799e1af596985cba6ce43db270c90be4a842920ac5c"
+    }
+  ],
+  "sourceFiles": [
+    { "path": "src/app/ai/page.tsx", "sha256": "7705fe21cc763d55f07ee369e10a8895c8ea11ce150d6f9bb72b173acb0716ac" },
+    { "path": "src/features/ai/ai-workshop-evidence.ts", "sha256": "4d816cefa010031e667efa357d8c71a2a0e7f55f8c26e57b27238dc486de3287" },
+    { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "74107d29cf27424fd8b865210e3ea133504558e0437ba0bf258a4bce55d6c152" },
+    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "5bae494c79d08fd93fc19b965a83976bfca842dbc50007ee083aa0aa8017ba8e" },
+    { "path": "src/features/ai/compass/learning-compass.tsx", "sha256": "fdd179a92e6d7181ed852d71b31042782f87a360e60702811140b9eb0ff69304" },
+    { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "42d3d9399d6cc7a2cb7fd2486268b186a39edda7e1cd888ca077fcdd864309c1" },
+    { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "c730d01ed27d9609d8a213f6fb52af38172b13f400d2bfa9ca46cf7d31a722e7" },
+    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "349cbfe2adf8e3c24773fe877f7783552ddf4c1fe95fd7f6dfca7f363bc9a8b0" },
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "cf1e61833a688f7730a83f6b43619edfa66c771a8d427ef9d4908c8ab2dc804a" }
+  ],
+  "assertions": {
+    "httpStatus": 200,
+    "tasksEmptyStateVisible": true,
+    "sample120MinutesAbsent": true,
+    "sample85PercentAbsent": true,
+    "desktopBodyAndDocumentWidthWithinViewport": true,
+    "mobileBodyAndDocumentWidthWithinViewport": true,
+    "playwrightResult": "2 passed"
+  },
+  "verification": {
+    "commands": [
+      "npx prisma generate",
+      "npm run typecheck",
+      "npx vitest run src/features/ai/__tests__/ai-workshop-evidence.test.ts src/lib/__tests__/adaptive-learning-center-ui.test.ts",
+      "PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 npx playwright test tests/ai-workshop-evidence-1454.spec.ts --workers=1",
+      "openspec validate project-ai-workshop-evidence-backed --type change --strict",
+      "openspec validate --specs --strict",
+      "git diff --check"
+    ],
+    "result": "passed"
+  }
+}
