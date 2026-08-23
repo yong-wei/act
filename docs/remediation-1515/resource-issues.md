@@ -46,3 +46,23 @@
 - 文本处理器真实执行通过：869 资源（31 讲义 + 838 卡片）→ 11056 语义原子，处理记录与摘要已落盘（/tmp/remediation-run/text/，正式批次需转存 Git 工件目录）。
 - crosswalk-full.json（7300 成员名称）已构建；15 个域 review packs 已生成。
 - use-codex 审核证据两批（root-locus 30 裁决；lyapunov 11 accept + nonlinear 全 insufficient）。
+
+## R5a Fun-ASR-Nano 运行时调查结论（2026-08-23，负责人决策请求）
+
+模型本体已就绪：LM Studio 自定义目录 `/Users/YW/LocalLLM/lm-studio-models/mlx-community/Fun-ASR-Nano-2512-fp16`（1.9G，MLX fp16，含独立 lm_head）。已验证的运行事实：
+
+1. **LM Studio 无法加载**：CLI/GPU 加载均报 `Model type funasr not supported`（其引擎不支持 funasr 架构）——LM Studio 路线不可用。
+2. **mlx-audio 0.5.0 可加载但转写发散**（全感叹号、解码到 8192 token 上限、language 误判 en）。已定位并修复三处库缺陷后仍未收敛：
+   - config.json 的 `llm` 段从未被读取（实现只认 `text_config`）→ embed 维度 2048/1024 错配（strict 加载证实；键名归一化后形状全部匹配）；
+   - `Qwen3CausalLM.__call__` 硬编码 tied-embedding logits，而权重 tie=false 带独立 lm_head（已做运行时补丁挂载 untied head）；
+   - `encoder`/`adaptor` 段同样键名不匹配（实现期待 `audio_encoder_conf`/`audio_adaptor_conf`），归一化后嵌套字段仍被丢弃（实测 `num_encoders` 读取为 None，encoder 以默认参数构建）。
+3. **效率基线**（15 秒中文音频，MLX fp16，Apple Silicon）：处理约 8–40 秒（0.5–0.7× 实时），生成 61–200 tok/s，峰值内存 3.0 GB——速度可用但慢于实时。
+4. **能力限制**：mlx-audio convert 注释确认该公开 checkpoint **不含时间戳头**（无词级时间戳）；语义分段+时间锚点需要外部对齐方案（如讲义段落与转写文本的 forced alignment）。
+5. **正面发现**：模型提示模板**原生支持热词列表**（`热词列表：[...]`），与讲义派生 wordlist 的接线点明确。
+
+### 待负责人决策（对应 spec 4.10：不得静默替换处理器）
+
+- **选项 1：上游修复等待**。向 mlx-audio 提 issue（config 键名断层 + untied lm_head + encoder 参数丢弃三缺陷，已有本调查的完整证据），等修复后重新验证。
+- **选项 2：换用 FunASR 官方 PyTorch runtime**（`pip funasr`，官方支持该模型，含时间戳能力），代价是非 MLX 后端、需重测效率。
+- **选项 3：换用 mlx-audio 支持成熟的其他 ASR**（如 qwen3_asr——同库支持列表内，架构相近），重新走 hotword 能力验证。
+- 建议：选项 1 与 2 并行（issue 提交 + 官方 runtime 基准确认质量与时间戳，谁先达标用谁）。
