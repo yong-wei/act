@@ -66,3 +66,21 @@
 - **选项 2：换用 FunASR 官方 PyTorch runtime**（`pip funasr`，官方支持该模型，含时间戳能力），代价是非 MLX 后端、需重测效率。
 - **选项 3：换用 mlx-audio 支持成熟的其他 ASR**（如 qwen3_asr——同库支持列表内，架构相近），重新走 hotword 能力验证。
 - 建议：选项 1 与 2 并行（issue 提交 + 官方 runtime 基准确认质量与时间戳，谁先达标用谁）。
+
+## R5b 官方 PyTorch runtime 基准结论（2026-08-23，选项 2 验证完成）
+
+独立运行时形态（零项目依赖污染，负责人要求）：`/Users/YW/LocalLLM/funasr-runtime/`（venv，torch 2.13.0 + funasr 1.4.3，约 820MB）+ `/Users/YW/LocalLLM/funasr-models/Fun-ASR-Nano-2512/`（官方 model.pt 1.9GB）；multilingual.tiktoken 以软链接入包 assets。
+
+同段 15 秒中文课程音频三线对比：
+
+| 路线 | 生成耗时 | 速度 | 质量 |
+|---|---|---|---|
+| mlx-audio 0.5.0 | 40.7 s | 0.4× 实时 | 全感叹号（库缺陷，见 R5a） |
+| LM Studio | 无法加载 | — | 引擎不支持 funasr |
+| **官方 PyTorch（MPS）** | **2.7–2.9 s** | **≈5× 实时** | **完美中文文本**（含口语语气词，语义通顺） |
+
+- **Hotword 原生支持且零成本**：`hotwords="反馈,传递函数,微分方程,…"` 直接生效（2.7s 同速，质量不降）——与讲义派生 wordlist 的接线路径完全打通（模型即按"视频音频由讲义生成"的假设设计）。
+- 加载耗时 8.6 秒（进程内一次性），批量处理应长驻进程。
+- **时间戳能力边界**：官方权重输出仅 key/label/text/text_tn，无 timestamp——与 MLX 侧 convert 注释互相印证（公开 checkpoint 不含时间戳头）。语义段落时间锚点需外部方案：VAD 分段（语音活动时间段）+ 转写文本与讲义段落的文本对齐推导，或另行评估含时间戳的处理器。
+
+结论：**正式 ASR 处理器选定官方 PyTorch runtime（独立 venv）**；MLX 路线保留为上游缺陷修复后的对照候选。资格链路（identity 冻结 → 校准/预注册 → holdout）按此身份执行。
