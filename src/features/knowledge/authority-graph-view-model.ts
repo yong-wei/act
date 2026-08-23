@@ -181,16 +181,14 @@ const TEACHING_FAMILY_TO_RUNTIME = {
   'teaching-association': 'association',
 } as const;
 
-const PREDICATE_TO_RUNTIME: Record<string, string> = {
+const SAME_DIRECTION_PREDICATE_TO_RUNTIME: Record<string, string> = {
   PREREQUISITE: 'prerequisite',
   CONTAINMENT: 'contains',
   PEDAGOGICAL_ASSOCIATION: 'association',
-  derived_from: 'derives',
   has_formula: 'quantified_by',
   has_representation: 'visualized_by',
   has_component: 'contains',
   is_a: 'instance_of',
-  part_of: 'contains',
   used_to_analyze: 'applies_to',
   association: 'association',
   applies_to: 'applies_to',
@@ -214,13 +212,16 @@ export function toSharedRuntimeRelationType(input: {
   predicate: string;
   relationFamily?: string | null;
 }): string {
+  // Reverse published predicates such as part_of / derived_from stay related
+  // rather than mapping onto inverted directed runtime types.
   const family = input.relationFamily ?? '';
   if (family in TEACHING_FAMILY_TO_RUNTIME) {
     return TEACHING_FAMILY_TO_RUNTIME[family as keyof typeof TEACHING_FAMILY_TO_RUNTIME];
   }
   const predicate = input.predicate;
   if (SHARED_RUNTIME_RELATION_TYPES.has(predicate)) return predicate;
-  const mapped = PREDICATE_TO_RUNTIME[predicate] ?? PREDICATE_TO_RUNTIME[predicate.toLowerCase()];
+  const mapped = SAME_DIRECTION_PREDICATE_TO_RUNTIME[predicate]
+    ?? SAME_DIRECTION_PREDICATE_TO_RUNTIME[predicate.toLowerCase()];
   if (mapped && SHARED_RUNTIME_RELATION_TYPES.has(mapped)) return mapped;
   return 'related';
 }

@@ -55,7 +55,7 @@ function toRuntimeLinks(view: AuthorityGraphViewModel): KnowledgeLinkData[] {
       id: edge.edgeId,
       sourceId: edge.sourceId,
       targetId: edge.targetId,
-      relation: relationType,
+      relation: edge.predicate,
       relationType,
     };
   });

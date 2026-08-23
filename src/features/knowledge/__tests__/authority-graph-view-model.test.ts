@@ -96,9 +96,17 @@ describe('authority graph view model', () => {
       relationFamily: 'teaching-prerequisite',
     })).toBe('prerequisite');
     expect(toSharedRuntimeRelationType({
+      predicate: 'has_component',
+      relationFamily: 'structure',
+    })).toBe('contains');
+    expect(toSharedRuntimeRelationType({
       predicate: 'derived_from',
       relationFamily: 'derivation-and-representation',
-    })).toBe('derives');
+    })).toBe('related');
+    expect(toSharedRuntimeRelationType({
+      predicate: 'part_of',
+      relationFamily: 'structure',
+    })).toBe('related');
     expect(toSharedRuntimeRelationType({
       predicate: 'unknown_act_predicate',
       relationFamily: 'structure',
