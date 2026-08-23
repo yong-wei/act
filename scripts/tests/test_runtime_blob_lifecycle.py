@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -26,6 +27,116 @@ def identity(release_id, seed):
     }
 
 
+TYPESCRIPT_ARTIFACT_GENERATOR = """
+import { writeFileSync } from 'node:fs';
+import { openCutoverTransaction, applyJournaledMutation, sealCoordinatedActiveReceipt, type CutoverJournalStore, type CutoverSelectorStore } from '@/lib/latest-authority-oss-cutover/transaction';
+import { buildCoordinatedRuntimeActiveReceiptBinding } from '@/lib/latest-authority-oss-cutover/runtime-binding';
+import { sealCoordinatedCandidateReceipt, sealCoordinationAllocationRecord } from '@/lib/latest-authority-oss-cutover/envelope';
+
+const H = (c: string) => c.repeat(64);
+const allocation = sealCoordinationAllocationRecord({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  capture: {
+    captureHash: H('a'),
+    compatibility: {
+      contract: 'authority-adapter-compatibility/v1',
+      adapterContractVersion: 'existing-act-adapter',
+      classification: 'COMPATIBLE',
+      incompatibleReasons: [],
+      captured: {
+        schemaVersion: '0.3.0',
+        schemaSha256: H('a'),
+        contractVersion: 'actkg-public-bundle/2',
+        requiredMembers: ['release'],
+        profiles: ['runtime'],
+        representativeParse: 'COMPLETE',
+      },
+    },
+  },
+  scopeHash: H('b'),
+  denominatorHash: H('c'),
+  policyVersions: { continuity: 'v1' },
+  implementationIdentities: { builder: 'b1' },
+});
+const candidate = sealCoordinatedCandidateReceipt({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  allocation,
+  authorityCaptureHash: H('a'),
+  localeQualificationHash: H('d'),
+  teachingProjectionHash: H('a'),
+  teachingClosureReceiptHash: H('d'),
+  formalResourceEnvelopeHash: H('c'),
+  continuityReceiptHash: H('b'),
+  derivationReceiptHash: H('d'),
+  successorRuntimeManifestHash: H('b'),
+  successorRuntimeMaterializationHash: H('c'),
+  domainShardCatalogHash: H('a'),
+  domainShardSetHash: H('b'),
+  prerequisitePublicationHash: H('c'),
+  consumerActivationHash: H('d'),
+  predecessor: [
+    { selectorId: 'authority:current', identity: 'auth-old' },
+    { selectorId: 'runtime:desired', identity: 'runtime-old' },
+  ],
+  predecessorRuntimeLifecycleGeneration: 1,
+  successorSelectorExpectations: [
+    { selectorId: 'authority:current', expectedSuccessorIdentity: 'auth-new' },
+    { selectorId: 'runtime:desired', expectedSuccessorIdentity: 'runtime-new' },
+  ],
+  transactionImplementationIdentity: 'cutover-tx/v1',
+  rollbackPlanHash: H('a'),
+  verificationPolicyHash: H('b'),
+  innerBindings: [],
+});
+class Store implements CutoverSelectorStore {
+  identity: string;
+  constructor(readonly selectorId: string, initial: string) { this.identity = initial; }
+  async readIdentity() { return this.identity; }
+  async writeIdentity(next: string) { this.identity = next; }
+}
+const stores = [new Store('authority:current', 'auth-old'), new Store('runtime:desired', 'runtime-old')];
+const journalStore: CutoverJournalStore = { append: async () => undefined, load: async () => null };
+async function main() {
+  const opened = await openCutoverTransaction({
+    candidateReceipt: candidate,
+    stores,
+    orderedMutationPlans: [
+      { selectorId: 'authority:current', expectedPredecessorIdentity: 'auth-old', successorIdentity: 'auth-new' },
+      { selectorId: 'runtime:desired', expectedPredecessorIdentity: 'runtime-old', successorIdentity: 'runtime-new' },
+    ],
+    journalStore,
+    openedAt: '2030-01-01T00:00:01.000Z',
+  });
+  const receipts = [
+    await applyJournaledMutation(opened.journal, 0, stores[0], '2030-01-01T00:01:00.000Z'),
+    await applyJournaledMutation(opened.journal, 1, stores[1], '2030-01-01T00:01:01.000Z'),
+  ];
+  const runtimeRelease = { releaseId: 'runtime-b', manifestSha256: H('e'), treeSha256: H('f') };
+  const binding = buildCoordinatedRuntimeActiveReceiptBinding({
+    transactionId: opened.journal.transactionId,
+    candidateReceiptHash: candidate.receiptHash,
+    runtimeRelease,
+    materializationReceiptHash: H('c'),
+  });
+  const active = sealCoordinatedActiveReceipt({
+    journal: opened.journal,
+    candidateReceipt: candidate,
+    observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+    mutationReceipts: receipts,
+    runtimeActiveReceiptHash: binding.bindingHash,
+    sealedAt: '2030-01-01T00:02:00.000Z',
+  });
+  writeFileSync(process.argv[2], JSON.stringify(active));
+  writeFileSync(process.argv[3], JSON.stringify(binding));
+  writeFileSync(process.argv[4], JSON.stringify({ candidateReceiptHash: candidate.receiptHash, runtimeRelease }));
+}
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
+"""
+
+
 class RuntimeBlobLifecycleTests(unittest.TestCase):
     def call(self, *args, expect_ok=True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
@@ -45,7 +156,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         content-addressed hashes over the same canonical JSON the lifecycle
         gate recomputes."""
         binding = {
-            "schemaVersion": "coordinated-runtime-active-receipt-binding/v1",
+            "contract": "coordinated-runtime-active-receipt-binding/v1",
             "transactionId": "tx-1",
             "candidateReceiptHash": candidate_receipt_hash,
             "runtimeRelease": {
@@ -63,7 +174,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             "materializationReceiptHash": binding["materializationReceiptHash"],
         })
         receipt = {
-            "schemaVersion": "coordinated-active-receipt/v1",
+            "contract": "coordinated-active-receipt/v1",
             "receiptId": "",
             "sealedAt": "2030-01-01T00:00:00Z",
             "transactionId": "tx-1",
@@ -398,6 +509,34 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             released = self.call("release-retained", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(retained), "--now", "2030-01-01T00:06:00Z")
             self.assertEqual(released["retained"], [])
 
+    def test_python_gate_accepts_typescript_coordinated_artifacts(self):
+        """The lifecycle gate must parse the artifacts exactly as the
+        TypeScript library serializes them (contract discriminator and
+        content-addressed hashes)."""
+        if shutil.which("npx") is None:
+            self.skipTest("npx is unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ts_script = root / "generate.ts"
+            receipt_path = root / "ts-graph-receipt.json"
+            binding_path = root / "ts-runtime-binding.json"
+            summary_path = root / "ts-summary.json"
+            ts_script.write_text(TYPESCRIPT_ARTIFACT_GENERATOR, encoding="utf-8")
+            result = subprocess.run(
+                ["npx", "tsx", "--tsconfig", str(ROOT / "tsconfig.json"),
+                 str(ts_script), str(receipt_path), str(binding_path), str(summary_path)],
+                cwd=str(ROOT), text=True, capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            binding = json.loads(binding_path.read_text(encoding="utf-8"))
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            parsed_receipt = LIFECYCLE.coordinated_graph_receipt(receipt)
+            parsed_binding = LIFECYCLE.coordinated_runtime_binding(binding)
+            self.assertEqual(parsed_receipt["candidateReceiptHash"], summary["candidateReceiptHash"])
+            self.assertEqual(parsed_receipt["runtimeActiveReceiptHash"], parsed_binding["bindingHash"])
+            self.assertEqual(parsed_binding["runtimeRelease"]["releaseId"], summary["runtimeRelease"]["releaseId"])
+
     def test_coordinated_cutover_successor_requires_matching_graph_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -409,7 +548,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             identity_b = json.loads(candidate_b.read_text(encoding="utf-8"))
             declaration = root / "coordinated-cutover.json"
             declaration.write_text(json.dumps({
-                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "contract": "runtime-blob-coordinated-cutover.v1",
                 "releaseId": "runtime-b",
                 "manifestSha256": identity_b["manifestSha256"],
                 "treeSha256": identity_b["treeSha256"],
@@ -419,7 +558,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             # rejected before the lifecycle state changes.
             mismatched = root / "coordinated-cutover-mismatch.json"
             mismatched.write_text(json.dumps({
-                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "contract": "runtime-blob-coordinated-cutover.v1",
                 "releaseId": "runtime-c",
                 "manifestSha256": identity_b["manifestSha256"],
                 "treeSha256": identity_b["treeSha256"],
@@ -502,7 +641,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             identity_e = json.loads(candidate_e.read_text(encoding="utf-8"))
             declaration_e = root / "coordinated-cutover-e.json"
             declaration_e.write_text(json.dumps({
-                "schemaVersion": "runtime-blob-coordinated-cutover.v1",
+                "contract": "runtime-blob-coordinated-cutover.v1",
                 "releaseId": "runtime-e",
                 "manifestSha256": identity_e["manifestSha256"],
                 "treeSha256": identity_e["treeSha256"],

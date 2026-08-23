@@ -64,6 +64,19 @@ done
 if [[ -n "$external_bundle_root" || -n "$generated_resources_root" ]]; then
   [[ -n "$external_bundle" ]] || { echo "ERROR: generated/bundle roots require --external-bundle" >&2; exit 1; }
 fi
+# Coordinated cutover inputs (#1509) are validated before any publish side
+# effect: all three artifacts must be provided together and exist locally.
+coordinated_inputs_provided=0
+for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+  [[ -z "$value" ]] || coordinated_inputs_provided=$((coordinated_inputs_provided + 1))
+done
+if [[ "$coordinated_inputs_provided" -ne 0 && "$coordinated_inputs_provided" -ne 3 ]]; then
+  echo "ERROR: --coordinated-cutover-declaration, --coordinated-graph-receipt, and --coordinated-runtime-binding must be provided together" >&2
+  exit 1
+fi
+for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+  [[ -z "$value" || -f "$value" ]] || { echo "ERROR: coordinated cutover input does not exist: $value" >&2; exit 1; }
+done
 [[ -n "$KNOWN_HOSTS_FILE" && -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
 [[ "$BUCKET" =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]] || { echo "ERROR: invalid ACT_OSS_BUCKET" >&2; exit 1; }
 for remote_path in \
@@ -331,19 +344,8 @@ for name in manifest.json release-receipt.json source-provenance-proof.json publ
 done
 
 # Coordinated cutover (#1509): copy the declaration, committed graph receipt,
-# and runtime binding so the remote lifecycle gate can enforce them. All
-# three must be provided together when any one is.
-coordinated_inputs_provided=0
-for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
-  [[ -z "$value" ]] || coordinated_inputs_provided=$((coordinated_inputs_provided + 1))
-done
-if [[ "$coordinated_inputs_provided" -ne 0 && "$coordinated_inputs_provided" -ne 3 ]]; then
-  echo "ERROR: --coordinated-cutover-declaration, --coordinated-graph-receipt, and --coordinated-runtime-binding must be provided together" >&2
-  exit 1
-fi
-for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
-  [[ -z "$value" || -f "$value" ]] || { echo "ERROR: coordinated cutover input does not exist: $value" >&2; exit 1; }
-done
+# and runtime binding so the remote lifecycle gate can enforce them. The
+# argument set was validated before any publish side effect above.
 remote_coordinated_env=""
 if [[ "$coordinated_inputs_provided" -eq 3 ]]; then
   for pair in "coordinated-cutover.json:$coordinated_cutover_declaration" "coordinated-graph-receipt.json:$coordinated_graph_receipt" "coordinated-runtime-binding.json:$coordinated_runtime_binding"; do

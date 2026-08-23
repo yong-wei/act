@@ -315,11 +315,14 @@ def read_identity_file(path: str) -> Dict[str, Any]:
 
 
 def coordinated_cutover_declaration(value: Any, label: str = "coordinated cutover declaration") -> Dict[str, Any]:
-    value = exact(value, ["schemaVersion", "releaseId", "manifestSha256", "treeSha256", "candidateReceiptHash"], label)
-    if value["schemaVersion"] != COORDINATED_CUTOVER_SCHEMA:
-        fail("%s has an unsupported version" % label)
+    # Coordinated cutover artifacts are serialized by the TypeScript library
+    # and use its `contract` discriminator, unlike this script's local
+    # `schemaVersion` records.
+    value = exact(value, ["contract", "releaseId", "manifestSha256", "treeSha256", "candidateReceiptHash"], label)
+    if value["contract"] != COORDINATED_CUTOVER_SCHEMA:
+        fail("%s has an unsupported contract" % label)
     return {
-        "schemaVersion": COORDINATED_CUTOVER_SCHEMA,
+        "contract": COORDINATED_CUTOVER_SCHEMA,
         "releaseId": release_id(value["releaseId"], label + ".releaseId"),
         "manifestSha256": sha(value["manifestSha256"], label + ".manifestSha256"),
         "treeSha256": sha(value["treeSha256"], label + ".treeSha256"),
@@ -376,19 +379,21 @@ def committed_selector_entries(value: Any, label: str) -> List[Dict[str, str]]:
 
 
 def coordinated_graph_receipt(value: Any, label: str = "coordinated graph receipt") -> Dict[str, Any]:
+    # Uses the TypeScript `contract` discriminator: this artifact is produced
+    # by sealCoordinatedActiveReceipt and consumed here across languages.
     value = exact(value, [
-        "schemaVersion", "receiptId", "sealedAt", "transactionId", "journalHash",
+        "contract", "receiptId", "sealedAt", "transactionId", "journalHash",
         "candidateReceiptHash", "committedSelectors", "mutationReceiptHashes",
         "runtimeActiveReceiptHash", "receiptHash",
     ], label)
-    if value["schemaVersion"] != "coordinated-active-receipt/v1":
-        fail("%s has an unsupported version" % label)
+    if value["contract"] != "coordinated-active-receipt/v1":
+        fail("%s has an unsupported contract" % label)
     runtime_active = None if value["runtimeActiveReceiptHash"] is None else sha(value["runtimeActiveReceiptHash"], label + ".runtimeActiveReceiptHash")
     hashes = value["mutationReceiptHashes"]
     if not isinstance(hashes, list):
         fail("%s.mutationReceiptHashes must be an array" % label)
     receipt = {
-        "schemaVersion": "coordinated-active-receipt/v1",
+        "contract": "coordinated-active-receipt/v1",
         "receiptId": string(value["receiptId"], label + ".receiptId"),
         "sealedAt": string(value["sealedAt"], label + ".sealedAt"),
         "transactionId": string(value["transactionId"], label + ".transactionId"),
@@ -406,12 +411,14 @@ def coordinated_graph_receipt(value: Any, label: str = "coordinated graph receip
 
 
 def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime binding") -> Dict[str, Any]:
+    # Uses the TypeScript `contract` discriminator: this artifact is produced
+    # by buildCoordinatedRuntimeActiveReceiptBinding.
     value = exact(value, [
-        "schemaVersion", "transactionId", "candidateReceiptHash",
+        "contract", "transactionId", "candidateReceiptHash",
         "runtimeRelease", "materializationReceiptHash", "bindingHash",
     ], label)
-    if value["schemaVersion"] != "coordinated-runtime-active-receipt-binding/v1":
-        fail("%s has an unsupported version" % label)
+    if value["contract"] != "coordinated-runtime-active-receipt-binding/v1":
+        fail("%s has an unsupported contract" % label)
     release_row = exact(value["runtimeRelease"], ["releaseId", "manifestSha256", "treeSha256"], label + ".runtimeRelease")
     runtime_release = {
         "releaseId": release_id(release_row["releaseId"], label + ".runtimeRelease.releaseId"),
@@ -419,7 +426,7 @@ def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime bi
         "treeSha256": sha(release_row["treeSha256"], label + ".runtimeRelease.treeSha256"),
     }
     binding = {
-        "schemaVersion": "coordinated-runtime-active-receipt-binding/v1",
+        "contract": "coordinated-runtime-active-receipt-binding/v1",
         "transactionId": string(value["transactionId"], label + ".transactionId"),
         "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
         "runtimeRelease": runtime_release,
