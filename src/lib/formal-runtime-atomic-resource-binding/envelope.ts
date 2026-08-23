@@ -8,6 +8,7 @@ import {
 } from './contracts';
 import { FormalResourceError, projectionDigest } from './hash';
 import { setHash } from './inventory';
+import { rebuildFrozenQualificationReceipt } from './qualify';
 
 export function buildFormalResourceEnvelope(input: {
   releaseId: string;
@@ -90,6 +91,26 @@ export function assertFormalPreflight(input: {
   bindings: readonly FormalBinding[];
   qualifications: readonly FormalQualificationReceipt[];
 }): void {
+  for (const binding of input.bindings) {
+    if (!binding.envelopeHash || binding.envelopeHash !== input.envelope.envelopeHash) {
+      throw new FormalResourceError(
+        'envelope-drift',
+        `binding ${binding.bindingId} is not stamped with the sealed envelope`,
+      );
+    }
+  }
+  const rebuiltQualifications = input.qualifications.map((row) => (
+    rebuildFrozenQualificationReceipt(row.pipelineKind, row.pipelineVersion, row.pipelineConfigDigest)
+  ));
+  for (const [index, expected] of rebuiltQualifications.entries()) {
+    const actual = input.qualifications[index];
+    if (projectionDigest(actual) !== projectionDigest(expected)) {
+      throw new FormalResourceError(
+        'pipeline-unqualified',
+        `qualification receipt ${actual.receiptId} drifted from frozen pipeline output`,
+      );
+    }
+  }
   const rebuilt = buildFormalResourceEnvelope({
     releaseId: input.envelope.releaseId,
     sourceRevision: input.envelope.sourceRevision,
@@ -98,7 +119,7 @@ export function assertFormalPreflight(input: {
     courseScopeId: input.envelope.courseScopeId,
     candidates: input.candidates,
     bindings: input.bindings,
-    qualifications: input.qualifications,
+    qualifications: rebuiltQualifications,
   });
   if (rebuilt.envelopeHash !== input.envelope.envelopeHash) {
     throw new FormalResourceError('envelope-drift', 'preflight rebuilt envelope drifted');

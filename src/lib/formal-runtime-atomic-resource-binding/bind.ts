@@ -32,10 +32,11 @@ export function assertTeachingRole(role: string): FormalTeachingRole {
   return role as FormalTeachingRole;
 }
 
+export const PROVISIONAL_ENVELOPE_HASH = '' as const;
+
 export function admitFormalBinding(input: {
   candidate: BindingCandidate;
   atom: FormalResourceAtom;
-  envelopeHash: string;
   mappingReceipt: FormalQualificationReceipt;
   mappingVersion: string;
   mappingConfig: string;
@@ -72,17 +73,43 @@ export function admitFormalBinding(input: {
     canonicalId: input.candidate.canonicalId,
     role,
     scopeId: input.candidate.scopeId,
-    envelopeHash: input.envelopeHash,
+    envelopeHash: PROVISIONAL_ENVELOPE_HASH,
     source: input.atom.source,
   };
+}
+
+export function stampBindingsWithEnvelope(
+  bindings: readonly FormalBinding[],
+  envelopeHash: string,
+): FormalBinding[] {
+  if (!envelopeHash) {
+    throw new FormalResourceError('envelope-drift', 'cannot stamp bindings with an empty envelope hash');
+  }
+  return bindings.map((row) => ({ ...row, envelopeHash }));
+}
+
+function bindingMatchesAtom(
+  row: FormalBinding,
+  candidate: FormalResourceCandidate,
+  atom: FormalResourceAtom,
+  envelopeHash: string,
+): boolean {
+  const identity = row.contract === FORMAL_RESOURCE_BINDING_CONTRACT
+    && row.resourceId === candidate.resourceId
+    && row.atomId === atom.atomId
+    && row.source.contentSha256 === atom.source.contentSha256;
+  if (!identity) return false;
+  if (envelopeHash) return row.envelopeHash === envelopeHash;
+  return true;
 }
 
 export function closeIncludedResource(input: {
   candidate: FormalResourceCandidate;
   atoms: readonly FormalResourceAtom[];
   bindings: readonly FormalBinding[];
-  envelopeHash: string;
+  envelopeHash?: string;
 }): FormalResourceCandidate {
+  const envelopeHash = input.envelopeHash ?? PROVISIONAL_ENVELOPE_HASH;
   let boundCount = 0;
   for (const atom of input.atoms) {
     if (atom.disposition === 'UNRESOLVED') {
@@ -90,11 +117,7 @@ export function closeIncludedResource(input: {
     }
     if (atom.disposition === 'BOUND') {
       const matched = input.bindings.some((row) => (
-        row.contract === FORMAL_RESOURCE_BINDING_CONTRACT
-        && row.resourceId === input.candidate.resourceId
-        && row.atomId === atom.atomId
-        && row.envelopeHash === input.envelopeHash
-        && row.source.contentSha256 === atom.source.contentSha256
+        bindingMatchesAtom(row, input.candidate, atom, envelopeHash)
       ));
       if (!matched) {
         return closeCandidate(input.candidate, 'EXCLUDED', [`unbound-atom:${atom.atomId}`]);

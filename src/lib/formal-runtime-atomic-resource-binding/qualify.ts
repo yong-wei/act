@@ -8,6 +8,77 @@ export interface PipelineGoldItem {
   readonly expected: 'admit' | 'exclude';
 }
 
+export interface FrozenPipelineSpec {
+  readonly kind: FormalPipelineKind;
+  readonly version: string;
+  readonly config: string;
+  readonly gold: readonly PipelineGoldItem[];
+  readonly holdout: readonly PipelineGoldItem[];
+  readonly admittedGoldIds: readonly string[];
+  readonly admittedHoldoutIds: readonly string[];
+  readonly output: unknown;
+}
+
+export const FROZEN_PIPELINE_REGISTRY: readonly FrozenPipelineSpec[] = [
+  {
+    kind: 'canonical-mapping',
+    version: 'map/v1',
+    config: 'cfg-map',
+    gold: [
+      { id: 'map-bound', expected: 'admit' },
+      { id: 'map-label', expected: 'exclude' },
+    ],
+    holdout: [{ id: 'map-holdout', expected: 'admit' }],
+    admittedGoldIds: ['map-bound'],
+    admittedHoldoutIds: ['map-holdout'],
+    output: { mapping: ['ctc:a'] },
+  },
+  {
+    kind: 'asr',
+    version: 'asr/v1',
+    config: 'cfg-asr',
+    gold: [{ id: 'a1', expected: 'admit' }],
+    holdout: [{ id: 'h1', expected: 'admit' }],
+    admittedGoldIds: ['a1'],
+    admittedHoldoutIds: ['h1'],
+    output: { transcript: 'closed loop' },
+  },
+  {
+    kind: 'segmentation',
+    version: 'seg/v1',
+    config: 'cfg-seg',
+    gold: [{ id: 's1', expected: 'admit' }],
+    holdout: [{ id: 'sh1', expected: 'admit' }],
+    admittedGoldIds: ['s1'],
+    admittedHoldoutIds: ['sh1'],
+    output: { paragraphs: ['p1'] },
+  },
+  {
+    kind: 'time-alignment',
+    version: 'ta/v1',
+    config: 'cfg-ta',
+    gold: [{ id: 't1', expected: 'admit' }],
+    holdout: [{ id: 'th1', expected: 'admit' }],
+    admittedGoldIds: ['t1'],
+    admittedHoldoutIds: ['th1'],
+    output: { starts: [0] },
+  },
+];
+
+function lookupFrozenPipeline(
+  kind: FormalPipelineKind,
+  version: string,
+  config: string,
+): FrozenPipelineSpec {
+  const spec = FROZEN_PIPELINE_REGISTRY.find((row) => (
+    row.kind === kind && row.version === version && row.config === config
+  ));
+  if (!spec) {
+    throw new FormalResourceError('pipeline-unqualified', `${kind} pipeline is not in the frozen registry`);
+  }
+  return spec;
+}
+
 export function qualifyPipeline(input: {
   pipelineKind: FormalPipelineKind;
   pipelineVersion: string;
@@ -16,12 +87,13 @@ export function qualifyPipeline(input: {
   holdout: readonly PipelineGoldItem[];
   admittedGoldIds: readonly string[];
   admittedHoldoutIds: readonly string[];
-  outputHash: string;
+  output: unknown;
 }): FormalQualificationReceipt {
   const goldScore = balancedScore(input.gold, new Set(input.admittedGoldIds));
   const holdoutScore = balancedScore(input.holdout, new Set(input.admittedHoldoutIds));
   const goldDigest = projectionDigest(input.gold);
   const holdoutDigest = projectionDigest(input.holdout);
+  const outputHash = projectionDigest(input.output);
   const passed = goldScore >= FROZEN_PIPELINE_THRESHOLD && holdoutScore >= FROZEN_PIPELINE_THRESHOLD;
   const receiptId = `qual-${projectionDigest({
     pipelineKind: input.pipelineKind,
@@ -34,7 +106,7 @@ export function qualifyPipeline(input: {
     admittedHoldoutIds: [...input.admittedHoldoutIds].sort(),
     goldScore,
     holdoutScore,
-    outputHash: input.outputHash,
+    outputHash,
     passed,
   }).slice(0, 24)}`;
   return {
@@ -43,20 +115,39 @@ export function qualifyPipeline(input: {
     pipelineConfigDigest: input.pipelineConfigDigest,
     goldDigest,
     holdoutDigest,
-    outputHash: input.outputHash,
+    outputHash,
     threshold: FROZEN_PIPELINE_THRESHOLD,
     passed,
     receiptId,
   };
 }
 
-export function assertQualified(receipt: FormalQualificationReceipt, kind: FormalPipelineKind, version: string, config: string): void {
-  if (
-    !receipt.passed
-    || receipt.pipelineKind !== kind
-    || receipt.pipelineVersion !== version
-    || receipt.pipelineConfigDigest !== config
-  ) {
+export function rebuildFrozenQualificationReceipt(
+  kind: FormalPipelineKind,
+  version: string,
+  config: string,
+): FormalQualificationReceipt {
+  const spec = lookupFrozenPipeline(kind, version, config);
+  return qualifyPipeline({
+    pipelineKind: spec.kind,
+    pipelineVersion: spec.version,
+    pipelineConfigDigest: spec.config,
+    gold: spec.gold,
+    holdout: spec.holdout,
+    admittedGoldIds: spec.admittedGoldIds,
+    admittedHoldoutIds: spec.admittedHoldoutIds,
+    output: spec.output,
+  });
+}
+
+export function assertQualified(
+  receipt: FormalQualificationReceipt,
+  kind: FormalPipelineKind,
+  version: string,
+  config: string,
+): void {
+  const expected = rebuildFrozenQualificationReceipt(kind, version, config);
+  if (!expected.passed || projectionDigest(receipt) !== projectionDigest(expected)) {
     throw new FormalResourceError('pipeline-unqualified', `${kind} pipeline is not qualified`);
   }
 }
