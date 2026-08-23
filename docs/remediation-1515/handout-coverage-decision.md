@@ -2,13 +2,41 @@
 
 日期：2026-08-23。本文件把 G5/R6 相关的负责人决策问题成组列出，每项给出已核实数据、选项与执行影响。批注后作为 remediation 后续批次的裁决依据。
 
-## 数据基础（已核实）
+## 数据基础（已核实，2026-08-23 修正版）
 
-- Authority v0.22 active-domain scope：7300 成员，15 个域。
-- 课程学生讲义：33 单元，约 42.8 万字符。
-- 名称精确提及统计（成员 label 或 description ≥4 字符片段在讲义语料中出现）：**7300 成员仅 184（2.5%）被提及**；最高的 root-locus 域 15%，多数域 0–3%。
-- 该统计是严格下界（用词差异导致漏报）。语义级实测参照：lyapunov 域 141 成员中仅约 10 个成员能从讲义建立有证据的三族关系（约 7%）。
-- 结论：**7300 成员与 33 单元讲义是结构性规模错配**，不是局部缺口。
+初版"精确提及 2.5%"统计有方法缺陷（display_name 多为英数 slug、description 按整段精确匹配），已废弃。修正后采用两层度量：
+
+- 层1（高置信）：中文 display_name 或 zh-CN preferred 标签作为子串命中讲义。
+- 层2（中置信）：description 首子句的 ≥6 字符中文片段命中讲义。
+
+修正结果（7300 成员 / 33 单元学生讲义 42.8 万字符）：
+
+| 域 | 成员 | 层1 | 层2 | 合计% |
+|---|---|---|---|---|
+| root-locus | 103 | 21 | 7 | 27.2% |
+| time-domain-analysis | 572 | 55 | 53 | 18.9% |
+| nonlinear-system-analysis | 347 | 18 | 31 | 14.1% |
+| robustness-sensitivity-analysis | 209 | 17 | 4 | 10.0% |
+| frequency-domain-analysis | 952 | 34 | 60 | 9.9% |
+| stability-analysis | 243 | 6 | 13 | 7.8% |
+| classical-control-design | 744 | 18 | 37 | 7.4% |
+| system-modeling | 641 | 19 | 19 | 5.9% |
+| discrete-time-control-analysis | 619 | 7 | 24 | 5.0% |
+| lyapunov-stability | 141 | 7 | 0 | 5.0% |
+| state-space-control-analysis-and-design | 1282 | 8 | 38 | 3.6% |
+| discrete-time-control-design | 441 | 12 | 0 | 2.7% |
+| robust-control-analysis-and-design | 702 | 4 | 0 | 0.6% |
+| optimal-control-foundations-and-linear-quadratic-design | 200 | 0 | 0 | 0.0% |
+| nonlinear-control-design | 104 | 0 | 0 | 0.0% |
+| **合计** | **7300** | **226** | **286** | **7.0%** |
+
+残余 0%/极低域的核实解释：
+
+- **optimal-control（0%）**：讲义全语料仅 1 处泛提"最优控制"，LQR/线性二次为 0；5-x 单元主线是非线性边界/MASS/MPC/强化学习，**课程确实没有最优控制教学单元**——这是真实的课程内容边界。
+- **nonlinear-control-design（0%）**：该域 Authority 源数据本身是无语义占位（见 G1：M1S 哈希名、描述为空），统计与审核都无法进行——是数据缺口，不是讲义缺口。
+- **robust-control（0.6%）**："鲁棒"散点出现 13 次、"灵敏度"7 次，但 H∞/μ综合为 0——有概念引入、无系统讲授。
+
+结构性结论（不变）：讲义自然覆盖在 3%–27% 区间，与 7300 成员仍为量级错配；"图谱即课程"不可行，D1 边界决策仍然必要。
 
 ## D1 课程教学边界（根本决策，其余决策依赖它）
 
