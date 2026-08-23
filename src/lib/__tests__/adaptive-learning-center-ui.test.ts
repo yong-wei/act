@@ -673,6 +673,34 @@ describe('adaptive learning center UI contracts', () => {
     expect(display.scenario).not.toContain('adaptive-learner-state');
   });
 
+  it('translates projected evidence labels from the adaptive center contract', () => {
+    const baseOption: AdaptivePathOptionWriteOption = {
+      optionId: 'projected-evidence-option',
+      label: '投影证据路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    };
+
+    const [sufficientDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['学习证据'],
+    }]);
+    expect(sufficientDisplay.scenario).toBe('这条路径结合你的学习记录生成。');
+
+    const [lowDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['练习记录', '证据较少'],
+    }]);
+    expect(lowDisplay.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
+  });
+
   it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
     const options: AdaptivePathOptionWriteOption[] = [
       {

@@ -176,7 +176,7 @@ export function buildAdaptivePathOptionDisplays(
     orderedNodes: buildOrderedNodes(option, nodeOccurrences, pathOptions.length),
     checkpoints: formatCheckpoints(option),
     readiness: formatReadiness(option),
-    scenario: formatScenario(option.evidenceBasis),
+    scenario: formatScenario(option.evidenceBasis, option.recommendationProvenance?.confidence),
     reason: option.targetDeficits.length > 0
       ? `面向 ${option.targetDeficits.length} 个当前薄弱项安排资源。`
       : '按当前学习证据安排资源组合。',
@@ -191,12 +191,30 @@ export function buildAdaptivePathOptionDisplays(
   }));
 }
 
-function formatScenario(evidenceBasis: string[]): string {
-  if (evidenceBasis.includes('low-confidence-learner-state')) {
+function formatScenario(
+  evidenceBasis: string[],
+  provenanceConfidence?: AdaptiveLearningPathRecommendationProvenance['confidence'],
+): string {
+  if (provenanceConfidence === 'low') {
     return '当前学习记录较少，这条路径会先从基础内容开始。';
   }
 
-  if (evidenceBasis.some((source) => source === 'adaptive-learner-state' || source === 'LearningFact')) {
+  if (evidenceBasis.some((source) => [
+    'low-confidence-learner-state',
+    '当前证据较少，路径会从基础资源开始。',
+    '当前证据较少',
+    '证据较少',
+  ].includes(source))) {
+    return '当前学习记录较少，这条路径会先从基础内容开始。';
+  }
+
+  if (evidenceBasis.some((source) => [
+    'adaptive-learner-state',
+    'LearningFact',
+    '学习证据',
+    '练习记录',
+    '路径已结合你的近期学习证据。',
+  ].includes(source))) {
     return '这条路径结合你的学习记录生成。';
   }
 

@@ -959,6 +959,7 @@ const DEMO_LOW_EVIDENCE_PATH_PLAN = {
   pathOptions: [{
     optionId: 'path-option-1',
     nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    evidenceBasis: ['low-confidence-learner-state'],
     recommendationProvenance: DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE,
   }],
   confidence: {
