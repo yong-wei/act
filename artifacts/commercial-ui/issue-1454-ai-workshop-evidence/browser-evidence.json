@@ -2,15 +2,15 @@
   "schemaVersion": "commercial-ui-evidence.v1",
   "issue": 1454,
   "route": "/ai",
-  "captureRevision": "586f94540a4dae7262a5c7cd133ea2bab43ab0e5",
-  "captureTime": "2026-08-23T13:49:24.247Z",
+  "captureRevision": "7eb2b0b94d5906101ff77b9eb46884be41300792",
+  "captureTime": "2026-08-23T14:03:16.000Z",
   "generator": "tests/ai-workshop-evidence-1454.spec.ts",
   "baseUrl": "http://127.0.0.1:3101",
   "runtime": {
-    "runtimeRevision": "586f94540a4dae7262a5c7cd133ea2bab43ab0e5",
+    "runtimeRevision": "7eb2b0b94d5906101ff77b9eb46884be41300792",
     "runtimeRevisionSource": "local dev server restarted from this worktree after captureRevision commit",
-    "session": "anonymous",
-    "expectedState": "unavailable learner-state projection; no sample learner data is rendered",
+    "session": "authenticated student fixture: demo",
+    "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
     "sourceWorktreeCheck": "git diff --quiet and git diff --cached --quiet at capture; only declared artifact paths were untracked"
   },
   "viewports": [
@@ -19,14 +19,14 @@
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop.png",
-      "sha256": "c864e0a33948225af01ea9900480ff9d2ca45a624b9537b9c6b73174c41b8087"
+      "sha256": "20dd9e300f5e60ffb048aec7e477b0e4b8a602a15c7a2372ed890a264a734843"
     },
     {
       "name": "mobile",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile.png",
-      "sha256": "29b3423b531f0bbadb0f8799e1af596985cba6ce43db270c90be4a842920ac5c"
+      "sha256": "11e5866c206e2b808ea079f3c8c0f8bf60cea10ecbdc8f29444c46686b13dfc7"
     }
   ],
   "sourceFiles": [
@@ -38,7 +38,7 @@
     { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "42d3d9399d6cc7a2cb7fd2486268b186a39edda7e1cd888ca077fcdd864309c1" },
     { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "c730d01ed27d9609d8a213f6fb52af38172b13f400d2bfa9ca46cf7d31a722e7" },
     { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "349cbfe2adf8e3c24773fe877f7783552ddf4c1fe95fd7f6dfca7f363bc9a8b0" },
-    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "cf1e61833a688f7730a83f6b43619edfa66c771a8d427ef9d4908c8ab2dc804a" }
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "abdf744e79280702070cfe2562deb02fd0fd8644ec7355c0e344bbb58582112b" }
   ],
   "assertions": {
     "httpStatus": 200,
@@ -47,7 +47,8 @@
     "sample85PercentAbsent": true,
     "desktopBodyAndDocumentWidthWithinViewport": true,
     "mobileBodyAndDocumentWidthWithinViewport": true,
-    "playwrightResult": "2 passed"
+    "playwrightResult": "2 passed",
+    "authenticatedStudentSession": true
   },
   "verification": {
     "commands": [
