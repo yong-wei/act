@@ -779,6 +779,9 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
+log "- 校验容器内 Wolfram Cloud MCP 就绪"
+remote "podman exec '${APP_NAME_HINT}' ./scripts/math-calc/check-wolfram-ready.sh"
+
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
     log "- 校验应用容器已绑定 ossfs-blob-view"

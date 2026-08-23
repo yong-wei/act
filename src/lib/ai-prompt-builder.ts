@@ -465,6 +465,9 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - 专业问答类型: ${study.intent}`);
       lines.push(`  - 必须覆盖: ${study.requiredSections.join('、')}`);
       lines.push(`  - 表达偏好: 深度=${study.preferences.depth}，格式=${study.preferences.format}，引导=${study.preferences.hintStrength}${study.preferences.exampleContext ? `，示例=${study.preferences.exampleContext}` : ''}`);
+      if (runtime.permittedTools?.includes('calculate')) {
+        lines.push('  - 公式计算工具规则: 当本次回答调用了 calculate 工具时，默认按详细推导步骤输出，逐条展开工具返回的每一步（原始表达式、执行变换、化简结果），补充每步的数学依据与中间变形，并用 LaTeX 呈现；用户明确要求“简洁/概要”时除外。');
+      }
       lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的服务器编号 `[n]`；不得编造编号、ID、链接或脚注。');
       const studyCitationNumbers = runtime.citationContext?.contentCitations
         ?.filter((citation) => citation.verified === true && Boolean(citation.citationTargetId))

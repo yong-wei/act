@@ -1,8 +1,5 @@
-# kaq-formula-derivation Specification
+## ADDED Requirements
 
-## Purpose
-TBD - created by archiving change kaq-sympy-formula-derivation. Update Purpose after archive.
-## Requirements
 ### Requirement: Math calculation API returns Wolfram results with steps
 The system SHALL expose `POST /api/math/calculate` for authenticated users. The endpoint SHALL accept a LaTeX or governed plain expression string and return the Wolfram calculation result in LaTeX together with ordered intermediate steps. Each step SHALL contain `step`, `description`, `operation`, `input`, and `output` fields.
 
@@ -55,3 +52,20 @@ The deployed application environment SHALL reach official Wolfram Cloud MCP and 
 - **THEN** the shared executor SHALL return a stable unavailable-runtime error
 - **AND** deployment verification SHALL report the missing prerequisite before user acceptance.
 
+## REMOVED Requirements
+
+### Requirement: Math calculation API returns SymPy results with steps
+**Reason**: The calculation engine is being replaced by Wolfram Engine while preserving the API response contract.
+**Migration**: Connect to Wolfram Cloud MCP, then use the unchanged `/api/math/calculate` contract.
+
+### Requirement: Calculation execution is bounded
+**Reason**: The previous limits and CPU controls were specific to the lighter Python/SymPy process model.
+**Migration**: Use the new Wolfram execution boundary of 1 active calculation, 8 queued requests, and a 30-second timeout.
+
+### Requirement: KAQ exposes the calculate tool for formula derivation
+**Reason**: Qwen3.5 can hang on this model tool-call path; calculation now runs before model generation.
+**Migration**: Use the `konling-math-precompute` capability. The model receives trusted results but no `calculate` tool.
+
+### Requirement: Production image verifies the calculation backend
+**Reason**: The Python/SymPy image dependency and parser probes no longer describe the selected engine.
+**Migration**: Confirm outbound HTTPS to Wolfram Cloud MCP and run the Wolfram script smoke tests.

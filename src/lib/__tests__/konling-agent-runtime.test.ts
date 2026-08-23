@@ -6993,19 +6993,20 @@ describe('konling agent runtime', () => {
     expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
-  it('registers calculate in the KAQ tool registry and generic-chat mode', () => {
+  it('keeps calculate governed but does not expose it in generic-chat mode', () => {
     expect(KONLING_TOOL_REGISTRY.calculate).toMatchObject({
       permissionTier: 'analyze',
       approvalPolicy: 'none',
       idempotencyPolicy: 'none',
     });
-    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).toContain('calculate');
+    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).not.toContain('calculate');
 
     const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
     expect(tools).toHaveProperty('calculate');
+    expect(tools.calculate.description).toContain('不向聊天模型暴露');
   });
 
-  it('runs SymPy calculation through the calculate tool', async () => {
+  it('runs Wolfram calculation through the governed calculate runtime', async () => {
     mocks.runMathCalculate.mockResolvedValue({
       status: 'ok',
       result: '\\frac{1}{s}',
@@ -14922,6 +14923,63 @@ describe('konling agent runtime', () => {
         hintStrength: 'guided',
       },
     });
+  });
+
+  it('defaults to detailed derivation steps when calculate is available and keeps explicit brevity', () => {
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ permittedTools: ['calculate'] }),
+      scope: createScope(),
+      currentUserQuery: '求 x^2 的导数',
+    });
+
+    expect(contract.studyQuestion).toMatchObject({
+      preferences: {
+        depth: 'detailed',
+        format: 'steps',
+        hintStrength: 'full-answer',
+      },
+    });
+
+    const withoutTool = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+    });
+    expect(withoutTool.studyQuestion?.preferences).toMatchObject({
+      depth: 'standard',
+      format: 'default',
+    });
+
+    const concise = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ permittedTools: ['calculate'] }),
+      scope: createScope(),
+      currentUserQuery: '请简洁回答',
+    });
+    expect(concise.studyQuestion?.preferences).toMatchObject({
+      depth: 'concise',
+      format: 'steps',
+    });
+  });
+
+  it('instructs detailed derivation presentation when the calculate tool is available', () => {
+    const runtime = createRuntimeContext({ permittedTools: ['calculate'] });
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: runtime,
+      scope: createScope(),
+      currentUserQuery: '求 x^2 的导数',
+    });
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: { ...runtime, teachingAssistantMode: contract },
+    });
+
+    expect(prompt).toContain('公式计算工具规则');
+    expect(prompt).toContain('逐条展开工具返回的每一步');
   });
 
   it('requires a verified official citation before marking normative guidance as verified', () => {

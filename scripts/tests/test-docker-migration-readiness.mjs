@@ -21,10 +21,63 @@ function runNode(script, options = {}) {
   );
 }
 
+function runImageWolframSmoke() {
+  const image = process.env.MATH_CALC_TEST_IMAGE;
+  if (!image) return;
+  const passThrough = [
+    'WOLFRAM_CLOUD_MCP_URL',
+    'WOLFRAM_CLOUD_MCP_TOKEN',
+    'WOLFRAM_MCP_SERVICE_API_KEY',
+  ].filter((name) => process.env[name] !== undefined);
+  const dockerArgs = [
+    'run',
+    '--rm',
+    ...passThrough.flatMap((name) => ['-e', name]),
+    image,
+    './scripts/math-calc/check-wolfram-ready.sh',
+  ];
+  try {
+    const output = execFileSync('docker', dockerArgs, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+    assert.match(
+      output,
+      /Wolfram Cloud MCP 公式计算运行时可用/,
+      '生产等价镜像必须通过容器内真实 Wolfram Cloud MCP smoke',
+    );
+  } catch (error) {
+    throw new Error(`生产镜像 Wolfram Cloud MCP smoke 失败：${error.message}`);
+  }
+}
+
+function assertMissingWolframImageFailsClosed() {
+  const image = process.env.MATH_CALC_TEST_NEGATIVE_IMAGE;
+  if (!image) return;
+  let failedClosed = false;
+  try {
+    execFileSync(
+      'docker',
+      ['run', '--rm', image, 'node', '-e', 'process.stdout.write("unexpected-start")'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+  } catch {
+    failedClosed = true;
+  }
+  assert.ok(
+    failedClosed,
+    '无法访问 Wolfram Cloud MCP 的镜像必须被 entrypoint 拒绝启动',
+  );
+}
+
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
-  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -63,7 +116,9 @@ function main() {
       `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
     );
   }
-  const runnerStage = dockerfile.slice(dockerfile.indexOf('FROM base AS runner'));
+  const runnerStage = dockerfile.slice(
+    dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+  );
   assert.match(
     runnerStage,
     /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
@@ -183,23 +238,33 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
-    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+    /FROM node:20-bookworm-slim AS base/,
+    'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /FROM node:20-alpine/,
+    'Docker 构建链不得从 Alpine 生成生产依赖或 standalone 产物',
   );
   assert.match(
     dockerfile,
-    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
-    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
+    /ENV WOLFRAM_CLOUD_MCP_URL=https:\/\/agenttools\.wolfram\.com\/mcp/,
+    'Dockerfile runner 必须默认连接官方 Wolfram Cloud MCP',
   );
-  assert.match(
-    mathCalcRequirements,
-    /^sympy==1\.13\.3$/m,
-    'math-calc requirements 必须固定 SymPy 1.13.3',
+  assert.doesNotMatch(
+    dockerfile,
+    /wolframresearch\/wolframengine|COPY --from=wolfram-provider|\/usr\/local\/Wolfram/,
+    'Dockerfile 不得再把本地 Wolfram Engine 烤进生产 runner；公式计算走 Wolfram Cloud MCP',
   );
-  assert.match(
-    mathCalcRequirements,
-    /^antlr4-python3-runtime==4\.11\.1$/m,
-    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
+  assert.doesNotMatch(
+    dockerfile,
+    /WOLFRAM_ACTIVATION_PASSWORD|WOLFRAM_ID_PASSWORD|WOLFRAM_ACTIVATION_EMAIL|WOLFRAM_CLOUD_MCP_TOKEN/i,
+    'Dockerfile 不得嵌入 Wolfram 激活凭据或 Cloud MCP token',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /scripts\/math-calc\/calc\.py|scripts\/math-calc\/requirements\.txt|sympy|parse_latex/i,
+    'Dockerfile 不得继续声明已移除的 SymPy 公式计算后端',
   );
 
   assert.match(
@@ -361,6 +426,21 @@ function main() {
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
   assert.match(
     entrypointScript,
+    /check-wolfram-ready\.sh/,
+    'docker-entrypoint.sh 必须调用 Wolfram Cloud MCP 就绪检查',
+  );
+  assert.match(
+    entrypointScript,
+    /exit 1/,
+    'docker-entrypoint.sh 必须在 Wolfram Cloud MCP 不可达或 smoke 失败时拒绝启动',
+  );
+  assert.match(
+    remoteDeployScript,
+    /check-wolfram-ready\.sh/,
+    'remote-deploy 最终阶段必须核验容器内 Wolfram Cloud MCP 就绪',
+  );
+  assert.match(
+    entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,
     'docker-entrypoint.sh 必须通过 Prisma 7 config 执行 migrate deploy'
   );
@@ -444,6 +524,16 @@ function main() {
   const deployScript = read('deploy/podman/deploy.sh');
   const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
+  assert.match(
+    startWrapperScript,
+    /SKIP_WOLFRAM_READY_CHECK=1/,
+    '作业扫描/GC 不得在循环里重复探测 Wolfram Cloud MCP',
+  );
+  assert.match(
+    entrypointScript,
+    /SKIP_WOLFRAM_READY_CHECK/,
+    'entrypoint 必须允许跳过 Wolfram Cloud MCP 启动探测',
+  );
 
   // Caller-pinned APP_IMAGE / ACT_KNOWLEDGE_DEPLOYMENT_MODE must win over .env.server.
   {
@@ -582,6 +672,9 @@ function main() {
     'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
   );
 
+  runImageWolframSmoke();
+  assertMissingWolframImageFailsClosed();
+
   assert.match(
     deployScript,
     /\.\/node_modules\/\.bin\/tsx scripts\/workers\/scheduler\.ts/,
@@ -640,6 +733,26 @@ function main() {
     deployScript,
     /redis-server --appendonly yes/,
     'Podman 部署脚本必须启动 Redis 容器'
+  );
+  assert.doesNotMatch(
+    deployScript,
+    /WOLFRAM_LICENSE_VOLUME|act-obe-wolfram-license|WOLFRAM_ACTIVATION_EMAIL|WOLFRAMSCRIPT_ENTITLEMENTID/,
+    'deploy.sh 不得再创建或挂载本地 Wolfram Engine 许可卷',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_CLOUD_MCP_URL="\$\{WOLFRAM_CLOUD_MCP_URL:-https:\/\/agenttools\.wolfram\.com\/mcp\}"/,
+    'deploy.sh 必须默认连接官方 Wolfram Cloud MCP',
+  );
+  assert.match(
+    deployScript,
+    /check-wolfram-ready\.sh/,
+    'deploy.sh 必须用生产镜像执行真实 Wolfram Cloud MCP smoke 后再启动应用',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_CLOUD_MCP_URL="\$WOLFRAM_CLOUD_MCP_URL"/,
+    'deploy.sh 必须把 Cloud MCP URL 传入容器',
   );
 
   assert.doesNotMatch(
