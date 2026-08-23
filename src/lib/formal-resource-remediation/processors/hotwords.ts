@@ -52,6 +52,25 @@ export const DEFAULT_HOTWORD_CONFIG: HotwordExtractorConfig = {
 // Latin identifier tokens can be pattern-extracted safely; Chinese terms
 // have no tokenizer here and enter only through the governed registry.
 const LATIN_TERM_TOKEN = /[A-Za-z][A-Za-z0-9\-]{1,31}/gu;
+
+// LaTeX commands, media/format artifacts, and generic file vocabulary that
+// appear in authoring Markdown but are never spoken terminology.
+const LATEX_AND_ARTIFACT_DENYLIST = new Set([
+  'frac', 'dfrac', 'tfrac', 'cdot', 'cdots', 'ldots', 'vdots', 'ddots', 'quad',
+  'qquad', 'left', 'right', 'begin', 'end', 'array', 'matrix', 'pmatrix',
+  'bmatrix', 'cases', 'aligned', 'align', 'text', 'mathrm', 'mathbf', 'sum',
+  'int', 'oint', 'prod', 'lim', 'infty', 'partial', 'nabla', 'sqrt', 'overline',
+  'underline', 'hat', 'bar', 'vec', 'dot', 'ddot', 'times', 'div', 'pm', 'mp',
+  'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'varepsilon', 'theta', 'lambda',
+  'mu', 'rho', 'sigma', 'tau', 'phi', 'varphi', 'omega', 'Omega', 'zeta', 'eta',
+  'xi', 'pi', 'Pi', 'Sigma', 'Phi', 'Delta', 'Gamma', 'Theta', 'Lambda',
+  'png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'pdf', 'mp4', 'm4a', 'mp3',
+  'media', 'processed', 'raw', 'design', 'assets', 'images', 'img', 'http',
+  'https', 'www', 'com', 'html', 'css', 'json', 'yaml', 'md', 'tex',
+  'width', 'height', 'px', 'em', 'rem', 'src', 'alt', 'href', 'ref', 'label',
+  'eqref', 'cite', 'footnote', 'item', 'subitem', 'caption', 'figure', 'table',
+  'unit', 'lesson', 'lessons', 'authoring', 'runtime', 'course', 'content',
+]);
 const GENERIC_STOPWORDS = new Set([
   '我们', '你们', '他们', '这个', '那个', '什么', '怎样', '如何', '可以', '需要',
   '一个', '每个', '其中', '以及', '但是', '因此', '所以', '如果', '这些', '那些',
@@ -94,14 +113,22 @@ export function extractHotwordManifest(input: {
   const fullProse: string[] = [];
   for (const section of segmentation.sections) {
     for (const paragraph of section.paragraphs) {
-      // Strip Markdown emphasis and inline code so tokens reflect prose.
-      const prose = paragraph.text.replace(/[*`_#\[\]]/gu, ' ');
+      // Strip formulas, LaTeX commands, media/link paths, and emphasis so
+      // tokens reflect spoken prose only.
+      const prose = paragraph.text
+        .replace(/\$\$[^$]*\$\$|\$[^$]*\$/gu, ' ')
+        .replace(/\\\[[\s\S]*?\\\]|\\\(([\s\S]*?)\\\)/gu, ' ')
+        .replace(/\\[a-zA-Z]+/gu, ' ')
+        .replace(/\((?:\.\.?\/|\/)?[^)\s]*\)/gu, ' ')
+        .replace(/[*`_#\[\]]/gu, ' ');
       fullProse.push(prose);
       for (const match of prose.matchAll(LATIN_TERM_TOKEN)) {
         const term = normalizeTerm(match[0]);
         if (term.length < 2) continue;
         if (GENERIC_STOPWORDS.has(term.toLowerCase())) continue;
-        if (/^\d+$/u.test(term)) continue;
+        if (LATEX_AND_ARTIFACT_DENYLIST.has(term)) continue;
+        if (/^-?\d+$|^m-\d+$|^\d+x\d+$|^x\d+$|^k[0-9]*$|^s[0-9]*$|^t[0-9]*$|^j\w{0,2}$/u.test(term)) continue;
+        if (/^\d/.test(term)) continue;
         occurrences.set(term, (occurrences.get(term) ?? 0) + 1);
       }
     }

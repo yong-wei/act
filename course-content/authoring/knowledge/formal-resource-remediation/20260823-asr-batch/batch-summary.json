@@ -1,0 +1,20 @@
+{
+  "contract": "remediation-asr-batch/v1",
+  "sealedAt": "2026-08-23",
+  "allocationHash": "8d928978b2d7c6acf0646a33077c32831e291f44202ee21764eeb35106e5f112",
+  "processorRegistryHash": "61a631d0f11279df",
+  "contents": {
+    "processor-registry.json": "dual-processor frozen identity: Fun-ASR-Nano (weights sha256 55ae0d2f…, mps, funasr 1.4.3/torch 2.13.0) + Qwen3-ForcedAligner-0.6B-hf (cpu, transformers 5.15.1)",
+    "hotword-manifests.json": "28 units, 1227 entries total (avg 44/unit), extracted from exact per-unit student handouts with governed terminology terms"
+  },
+  "benchmarks": {
+    "asrOnly": "2.5-2.9s per 15s clip (5x realtime, MPS)",
+    "withAlignment": "3.7s total (4x realtime incl. word timestamps)",
+    "abSample": "unit 2-1 30s with hotwords: fluent transcript with correct terminology (信号流图/控制系统的数学模型)"
+  },
+  "pending": [
+    "4.6 manual ground-truth corpus selection + sealing (course owner)",
+    "4.7-4.9 paired calibration, pre-registration, holdout qualification",
+    "4.12 full-corpus run after qualification"
+  ]
+}
