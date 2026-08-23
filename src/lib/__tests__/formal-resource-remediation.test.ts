@@ -386,3 +386,56 @@ describe('handout-derived hotword extraction', () => {
       .toThrow(/no exact handout\/lecture source binding/);
   });
 });
+
+import { processExerciseResource, projectExerciseAtomPublic } from '@/lib/formal-resource-remediation/processors/exercise';
+
+describe('exercise processor', () => {
+  const question = (overrides: Partial<Parameters<typeof processExerciseResource>[0]['questions'][number]> = {}) => ({
+    questionId: 'q-1',
+    stem: '求单位反馈系统的稳态误差',
+    options: ['A. 0', 'B. 1/K'],
+    answer: 'B',
+    explanation: '由误差传递函数推得。',
+    originLocator: 'lesson:2-2:step-3',
+    ...overrides,
+  });
+
+  it('materializes one atom per question with answer isolation', () => {
+    const { atoms } = processExerciseResource({
+      resourceId: 'ex-2-2-set',
+      questions: [question(), question({ questionId: 'q-2', stem: '另一题', answer: 'A' })],
+    });
+    expect(atoms.length).toBe(2);
+    expect(atoms[0]?.disposition).toBe('BOUND');
+    expect(atoms[0]?.contentSha256).toMatch(/^[a-f0-9]{64}$/);
+    const publicView = JSON.stringify(projectExerciseAtomPublic(atoms[0] as ReturnType<typeof processExerciseResource>['atoms'][number]));
+    expect(publicView).not.toContain('稳态误差');
+    expect(publicView).not.toContain('"B"');
+    expect(publicView).toContain('originLocator');
+    // Content drift invalidates identity; same content reproduces it.
+    const drifted = processExerciseResource({
+      resourceId: 'ex-2-2-set',
+      questions: [question({ stem: '改过的题干' })],
+    });
+    expect(drifted.atoms[0]?.contentSha256).not.toBe(atoms[0]?.contentSha256);
+    const same = processExerciseResource({ resourceId: 'ex-2-2-set', questions: [question()] });
+    expect(same.atoms[0]?.atomId).toBe(atoms[0]?.atomId);
+  });
+
+  it('fails closed on duplicates, missing stem/answer, and missing locators', () => {
+    expect(() => processExerciseResource({
+      resourceId: 'r',
+      questions: [question(), question()],
+    })).toThrow(/appears twice/);
+    expect(() => processExerciseResource({
+      resourceId: 'r',
+      questions: [question({ stem: '  ' })],
+    })).toThrow(/cannot be sealed/);
+    expect(() => processExerciseResource({
+      resourceId: 'r',
+      questions: [question({ originLocator: '' })],
+    })).toThrow(/no origin locator/);
+    expect(() => processExerciseResource({ resourceId: 'r', questions: [] }))
+      .toThrow(/declares no questions/);
+  });
+});
