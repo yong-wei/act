@@ -12,6 +12,7 @@ import type {
   RegisteredPeerDomainId,
 } from '@/lib/authority-domain-catalog/contracts';
 import type { TeachingCoverageState } from '@/lib/teaching-projection/domain-fragments/contracts';
+import type { PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
 
 export const AUTHORITY_SHARD_ENVELOPE_CONTRACT =
   'act-authority-shard-envelope/v1' as const;
@@ -108,6 +109,7 @@ export interface AuthorityShardPublicEnvelope {
   contract: typeof AUTHORITY_SHARD_ENVELOPE_CONTRACT;
   authorityCatalogVersion: string;
   teachingVersion: string | null;
+  localeProfileVersion: string;
   match: {
     authority: true;
     catalog: true;
@@ -130,6 +132,8 @@ export interface AuthorityShardObject {
   semanticSupport: { supported: boolean; readOnly: true };
   memberships: readonly AuthorityShardMembership[];
   conceptKind?: string | null;
+  /** Complete-locale type term; omitted on sealed historical shards. */
+  typeLabel?: string | null;
 }
 
 export interface AuthorityShardMembership {
@@ -152,7 +156,16 @@ export interface AuthorityShardRelation {
   };
   semanticSupport: { supported: boolean; readOnly: true };
   layer: AuthorityRelationLayer;
-  relationFamily: EngineeringRelationFamily | 'teaching-prerequisite' | null;
+  relationFamily:
+    | EngineeringRelationFamily
+    | 'teaching-prerequisite'
+    | 'teaching-containment'
+    | 'teaching-association'
+    | null;
+  /** Complete-locale relation term; omitted on sealed historical shards. */
+  predicateLabel?: string | null;
+  /** Complete-locale direction term; omitted on sealed historical shards. */
+  directionLabel?: string | null;
 }
 
 export interface AuthorityShardBoundaryRef {
@@ -162,6 +175,7 @@ export interface AuthorityShardBoundaryRef {
   aliases?: readonly string[];
   canonicalType: string;
   adjacentDomainIds: readonly RegisteredPeerDomainId[];
+  typeLabel?: string | null;
 }
 
 export interface AuthorityShardTeachingCoverage {
@@ -230,7 +244,9 @@ export interface AuthorityNodeDetailShard {
       publicationStatus: string | null;
       lifecycleStatus: string | null;
     };
-    sources: Array<{ sourceEditionId: string; sectionId: string }>;
+    /** Complete-locale type term; omitted on sealed historical shards. */
+    typeLabel?: string | null;
+    sources: Array<{ sourceEditionId: string; sectionId: string; label?: string | null }>;
     media: {
       cardAvailable: false;
       infographAvailable: false;
@@ -282,7 +298,9 @@ export type AuthorityLearnerShard =
 export type PublicAuthorityShard<T extends { envelope: AuthorityShardEnvelope }> =
   Omit<T, 'envelope'> & { envelope: AuthorityShardPublicEnvelope };
 
-export type PublicAuthorityRootShard = PublicAuthorityShard<AuthorityRootShard>;
+export type PublicAuthorityRootShard = PublicAuthorityShard<AuthorityRootShard> & {
+  localeCapability?: PublicLocaleCapability;
+};
 export type PublicAuthorityDomainDefaultShard = PublicAuthorityShard<AuthorityDomainDefaultShard>;
 export type PublicAuthorityRelationFamilyShard = PublicAuthorityShard<AuthorityRelationFamilyShard>;
 export type PublicAuthorityNodeNeighborhoodShard = PublicAuthorityShard<AuthorityNodeNeighborhoodShard>;

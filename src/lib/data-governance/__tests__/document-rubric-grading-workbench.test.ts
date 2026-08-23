@@ -319,6 +319,7 @@ describe('document rubric grading workbench', () => {
       rubric: standardRubric,
       studentId: submission.studentId,
       goalContext,
+      sourceLogId: 'draft-v2-scoring-standard',
       now,
     })).toEqual(expect.objectContaining({
       status: 'preview',
@@ -341,6 +342,7 @@ describe('document rubric grading workbench', () => {
       rubric: standardRubric,
       studentId: submission.studentId,
       goalContext,
+      sourceLogId: 'draft-v2-scoring-standard',
       now,
     })).resolves.toEqual(expect.objectContaining({ created: 1, skipped: 0 }));
     await expect(writeApprovedGradingEvidence({
@@ -349,6 +351,7 @@ describe('document rubric grading workbench', () => {
       rubric: standardRubric,
       studentId: submission.studentId,
       goalContext,
+      sourceLogId: 'draft-v2-scoring-standard',
       now,
     })).resolves.toEqual(expect.objectContaining({ created: 0, skipped: 1 }));
   });
@@ -451,6 +454,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-fallback-evidence',
       now,
     });
     const preview = previewApprovedGradingEvidence({
@@ -463,6 +467,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-fallback-evidence',
       now,
     });
 
@@ -567,6 +572,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-teacher-edit',
       now,
     })).resolves.toEqual({
       status: 'blocked-unapproved',
@@ -585,6 +591,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-teacher-edit',
       now,
     })).toEqual(expect.objectContaining({
       status: 'blocked-unapproved',
@@ -645,6 +652,7 @@ describe('document rubric grading workbench', () => {
       run: draft,
       rubric: rubric(),
       studentId: asset().studentId,
+      sourceLogId: 'draft-blocked',
       goalContext: {
         classId: 'class-1',
         assignmentId: 'report-1',
@@ -811,6 +819,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-teacher-edit',
       now,
     });
     const preview = previewApprovedGradingEvidence({
@@ -823,6 +832,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-teacher-edit',
       now,
     });
 
@@ -840,9 +850,9 @@ describe('document rubric grading workbench', () => {
       criterionId: 'validation',
       competencyDimension: 'parameterDesign',
       contribution: 0.6,
-      sourceEventId: `${approved.id}:validation:${approved.rubricVersion}`,
+      sourceEventId: `grading:${encodeURIComponent(approved.id)}:validation:${encodeURIComponent(approved.rubricVersion)}`,
     }));
-    expect(preview.dedupeKeys).toContain(`${approved.id}:validation:${approved.rubricVersion}`);
+    expect(preview.dedupeKeys).toContain(`grading:${encodeURIComponent(approved.id)}:validation:${encodeURIComponent(approved.rubricVersion)}`);
     expect(approved.approvedGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(4);
     expect(writeback.status).toBe('written');
     expect(writeback.created).toBe(2);
@@ -851,7 +861,7 @@ describe('document rubric grading workbench', () => {
     expect(writeback.facts).toContainEqual(expect.objectContaining({
       userId: 'student-1',
       factType: 'document_rubric_grading',
-      sourceEventId: `${approved.id}:validation:${approved.rubricVersion}`,
+      sourceEventId: `grading:${encodeURIComponent(approved.id)}:validation:${encodeURIComponent(approved.rubricVersion)}`,
     }));
     expect(writeback.facts[0].contextJson.confidence).toBeLessThanOrEqual(0.92);
     expect(writeback.facts[0].contextJson).toEqual(expect.objectContaining({
@@ -947,6 +957,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-document-feedback',
       now,
     });
     const studentView = buildStudentGradingFeedbackView({
@@ -972,7 +983,6 @@ describe('document rubric grading workbench', () => {
           moduleId: null,
           sessionId: null,
           lessonId: null,
-          sourceLogId: null,
           courseId: 'automatic-control',
           createdAt: now,
           ...fact,
@@ -1084,6 +1094,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-limited-evidence',
       now,
     });
 
@@ -1130,6 +1141,7 @@ describe('document rubric grading workbench', () => {
         goalId: 'control-report',
         targetGoal: 'control-report',
       },
+      sourceLogId: 'draft-idempotent-writeback',
       now,
     });
 
@@ -1140,8 +1152,8 @@ describe('document rubric grading workbench', () => {
       blocked: 0,
     }));
     expect(writeback.facts.map((fact) => fact.sourceEventId)).toEqual(expect.arrayContaining([
-      `${approved.id}:modeling:${approved.rubricVersion}`,
-      `${approved.id}:validation:${approved.rubricVersion}`,
+      `grading:${encodeURIComponent(approved.id)}:modeling:${encodeURIComponent(rubric().version)}`,
+      `grading:${encodeURIComponent(approved.id)}:validation:${encodeURIComponent(rubric().version)}`,
     ]));
   });
 

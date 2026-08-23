@@ -54,6 +54,8 @@ async function main() {
     learningEventBatches,
     learningFacts,
     documentGradingRuns,
+    documentRubricDrafts,
+    documentGradingAudits,
     historicalSimulationLogs,
     historicalUserAnswers,
     historicalAiInterventions,
@@ -137,6 +139,14 @@ async function main() {
       where: { state: 'APPROVED' },
       select: { id: true, state: true, rubricVersion: true, assessments: { select: { criterionId: true } }, answerAttempt: { select: { answer: { select: { submission: { select: { frozenStudentId: true } } } } } } },
     }),
+    prisma.learningEvidenceDraft.findMany({
+      where: { sourceType: 'document_rubric_grading' },
+      select: { id: true, ownerUserId: true, reviewerState: true, summary: true },
+    }),
+    prisma.gradingAuditEvent.findMany({
+      where: { action: 'grading-run.teacher-reviewed', resourceType: 'GradingRun' },
+      select: { id: true, action: true, resourceType: true, resourceId: true, metadata: true },
+    }),
     prisma.simulationLog.findMany({ select: { id: true, userId: true } }),
     prisma.userAnswer.findMany({ select: { id: true, userId: true } }),
     prisma.aIIntervention.findMany({ select: { id: true, userId: true } }),
@@ -191,6 +201,12 @@ async function main() {
     learningEventBatches,
     learningFacts,
     documentGradingRuns: documentGradingRuns.map((run) => ({ id: run.id, state: run.state, rubricVersion: run.rubricVersion, studentId: run.answerAttempt.answer.submission.frozenStudentId, assessments: run.assessments })),
+    documentRubricDrafts: documentRubricDrafts
+      .map(toDocumentRubricDraftAuditInput)
+      .filter((draft): draft is NonNullable<ReturnType<typeof toDocumentRubricDraftAuditInput>> => Boolean(draft)),
+    documentGradingAudits: documentGradingAudits
+      .map(toDocumentGradingAuditInput)
+      .filter((audit): audit is NonNullable<ReturnType<typeof toDocumentGradingAuditInput>> => Boolean(audit)),
     historicalSourceLogIds: [
       ...historicalSimulationLogs,
       ...historicalUserAnswers,
@@ -353,6 +369,71 @@ function countByUser(rows: Array<{ userId: string; _count: { _all: number } }>) 
 
 function normalizeErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function toDocumentGradingAuditInput(event: {
+  id: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  metadata: unknown;
+}) {
+  const metadata = asRecord(event.metadata);
+  const rubric = asRecord(metadata?.rubric);
+  const decision = asString(metadata?.decision);
+  const rubricVersion = asString(rubric?.version);
+  const sourceEventDigests = Array.isArray(metadata?.sourceEventDigests)
+    ? metadata.sourceEventDigests.filter((value): value is string => typeof value === 'string' && Boolean(value))
+    : [];
+  const criterionDigests = Array.isArray(metadata?.gradeChanges)
+    ? metadata.gradeChanges
+      .map((change) => asString(asRecord(change)?.criterionDigest))
+      .filter((value): value is string => Boolean(value))
+    : [];
+  if (!event.id || !event.resourceId || !decision || !rubricVersion) return null;
+  return {
+    id: event.id,
+    action: event.action,
+    resourceType: event.resourceType,
+    resourceId: event.resourceId,
+    decision,
+    rubricVersion,
+    sourceEventDigests,
+    criterionDigests,
+  };
+}
+
+function toDocumentRubricDraftAuditInput(draft: { id: string; ownerUserId: string; reviewerState: string; summary: unknown }) {
+  const summary = asRecord(draft.summary);
+  const run = asRecord(summary?.run);
+  const rubric = asRecord(summary?.rubric);
+  const runId = asString(run?.id);
+  const rubricId = asString(rubric?.id);
+  const rubricVersion = asString(run?.rubricVersion) ?? asString(rubric?.version);
+  const approvedGrades = Array.isArray(run?.approvedGrades) ? run.approvedGrades : [];
+  const approvedCriterionIds = approvedGrades
+    .map((grade) => asString(asRecord(grade)?.criterionId))
+    .filter((criterionId): criterionId is string => Boolean(criterionId));
+  if (!runId || !rubricId || !rubricVersion) return null;
+  return {
+    id: draft.id,
+    ownerUserId: draft.ownerUserId,
+    reviewerState: draft.reviewerState,
+    runId,
+    rubricId,
+    rubricVersion,
+    approvedCriterionIds,
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function asString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value : null;
 }
 
 main()

@@ -11,6 +11,7 @@ const rootShard = {
     contract: 'act-authority-shard-envelope/v1',
     authorityCatalogVersion: 'acv-playwright',
     teachingVersion: null,
+    localeProfileVersion: 'alp-test-historical-zh-CN',
     match: { authority: true, catalog: true, teaching: null },
   },
   root: {

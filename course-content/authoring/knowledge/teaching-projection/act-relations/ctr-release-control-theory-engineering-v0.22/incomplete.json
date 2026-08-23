@@ -1,0 +1,21 @@
+{
+  "publicationState": "INCOMPLETE",
+  "reason": "containment-incomplete",
+  "scopeHash": "de83a516c13a46eb3fb31146247de2a886921bd7f2a82529b370d07f6d6825d1",
+  "memberCount": 7300,
+  "courseId": "act-control-theory",
+  "authority": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.22",
+    "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+    "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+    "releaseSetId": "actkg-authority-candidate-v018-98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854"
+  },
+  "catalog": {
+    "catalogId": "adc-0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+    "catalogHash": "0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+    "catalogVersion": "v0.22-candidate"
+  },
+  "pendingCount": 21900,
+  "pendingLedger": "pending.jsonl",
+  "note": "Explicit parent/root evidence is required before a PARTIAL projection may publish. Ordinary members are not auto-declared COURSE_ROOT."
+}

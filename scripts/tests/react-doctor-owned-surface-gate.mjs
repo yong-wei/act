@@ -195,7 +195,9 @@ function buildAdvisoryBaseline(diagnostics) {
 function buildCommand() {
   const args = ['--yes', `react-doctor@${REACT_DOCTOR_VERSION}`, '--no-score', '--no-telemetry', '--json', '.'];
   if (mode === 'errors') args.splice(args.length - 2, 0, '--no-warnings');
-  return { command: 'npx', args };
+  const override = process.env.REACT_DOCTOR_NPX_COMMAND;
+  if (override) return { command: process.execPath, args: [override, ...args] };
+  return { command: process.platform === 'win32' ? 'npx.cmd' : 'npx', args };
 }
 
 const { command, args } = buildCommand();

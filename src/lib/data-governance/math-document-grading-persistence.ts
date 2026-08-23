@@ -1851,12 +1851,11 @@ export async function writeGradingAudit(db: MathGradingDb, input: { actor: Pipel
     errorCode: input.metadata.errorCode ?? null,
     auditIdentity: randomUUID(),
   });
-  try {
-    await db.gradingAuditEvent.create({ data: { eventKey, actorPseudoId: pseudonymousAuditId(input.actor.id, input.purpose), actorRole: input.actor.role, action: input.action, purpose: input.purpose, resourceType: input.resourceType, resourceId, assignmentId, answerId, classId, provider: input.provider ?? null, providerRequestId, policyVersion: input.policyVersion ?? null, metadata: redactAuditMetadata(input.metadata, input.purpose) } });
-  } catch (error) {
-    if (isUniqueConstraintError(error)) return;
-    throw error;
+  const audit = await db.gradingAuditEvent.create({ data: { eventKey, actorPseudoId: pseudonymousAuditId(input.actor.id, input.purpose), actorRole: input.actor.role, action: input.action, purpose: input.purpose, resourceType: input.resourceType, resourceId, assignmentId, answerId, classId, provider: input.provider ?? null, providerRequestId, policyVersion: input.policyVersion ?? null, metadata: redactAuditMetadata(input.metadata, input.purpose) } });
+  if (!audit || typeof audit.id !== 'string' || !audit.id.trim()) {
+    throw new Error('grading-audit-id-required');
   }
+  return { id: audit.id };
 }
 
 function readSnapshotText(value: unknown, key: string): string {

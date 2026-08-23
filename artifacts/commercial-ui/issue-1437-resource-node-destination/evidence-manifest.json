@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "status": "passed",
+  "capturedAt": "2026-08-22T15:32:42.216Z",
+  "commitSha": "386b6ed14bc5263504a10b664678e3efe439b7ad",
+  "sourceSha256": {
+    "src/lib/adaptive-path-destination-contract.ts": "d81c6b6a4eccb852a527a5608d778057a9e03723bf3f962ff6c31f4840e4ae85",
+    "src/lib/resource-node-registry.ts": "6021c68ea04001afb4b716e5b53e0ad56ab06523c4fc5d6f1abea838411b25eb",
+    "src/lib/adaptive-learning-path-planner.ts": "25f8608b58f730bc34122eec6cf24d96917c76c054b266024c92310840b2483d",
+    "src/features/adaptive/adaptive-path-journey-contracts.ts": "cdd1132eb4841c660d57ce233e8b0fc3c21082819b0d8835eff2d0868746aa78",
+    "src/app/assessment/adaptive-practice/page.tsx": "8abadd17bf67f34b01c8cd23d4bf8014d66f2c909027e9374197736b0d5aba43",
+    "tests/issue-1437-resource-node-destination.spec.ts": "09b64850228d567a3635dcdff10f611632ae39da1bcb6701761931aa62690734"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1437-resource-node-destination/execution-desktop-1440.png",
+      "sha256": "48955bda81302125a708b952b97caf73114bfc8875ab1846f5364c39ec4cdc5a",
+      "width": 1440,
+      "height": 1000,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1437-resource-node-destination/resource-desktop-1440.png",
+      "sha256": "b43074e0d832d4911b3bb5d797d0f9dd8d9edfcff9acfe03f078fb97de1a87a7",
+      "width": 1440,
+      "height": 1000,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1437-resource-node-destination/execution-mobile-320.png",
+      "sha256": "ec55163f20606d8cfb1af349060ea5f80becf29670b3822e4f5f592c7f77093b",
+      "width": 320,
+      "height": 900,
+      "noHorizontalOverflow": true
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1437-resource-node-destination/resource-mobile-320.png",
+      "sha256": "58ef27b7211457317a9480521a17b6ed141019c2105d8e90881121bccd76a813",
+      "width": 320,
+      "height": 900,
+      "noHorizontalOverflow": true
+    }
+  ],
+  "route": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-issue-1437-damping",
+  "launchedResource": "/interactive-learning/resources/lesson13-physics-builder-simple",
+  "assertions": {
+    "destinationContractAllowsLaunch": true,
+    "resourceHeadingVisible": true,
+    "blockedMessageAbsent": true
+  }
+}

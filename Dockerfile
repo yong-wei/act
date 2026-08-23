@@ -1,10 +1,14 @@
 # Base image
-FROM node:20-alpine AS base
-ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
-COPY scripts/math-calc/requirements.txt /tmp/math-calc-requirements.txt
-RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip \
-  && pip install --no-cache-dir --break-system-packages -r /tmp/math-calc-requirements.txt
+FROM node:20-bookworm-slim AS base
+ARG APT_MIRROR=
+RUN if [ -n "${APT_MIRROR}" ]; then \
+      sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g; s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+        /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list 2>/dev/null || true; \
+    fi \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates curl openssl unzip python3 python3-pip make g++ \
+  && rm -rf /var/lib/apt/lists/*
 
 # Dependencies stage
 FROM base AS deps
@@ -59,7 +63,6 @@ FROM base AS builder
 WORKDIR /app
 ARG APP_REVISION
 ARG NODE_MAX_OLD_SPACE_SIZE=12288
-RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Ensure Authority / Teaching Projection store roots exist for runner packaging
@@ -99,7 +102,7 @@ RUN --mount=type=secret,id=database_url,required=false \
   && DATABASE_URL="${DATABASE_URL:-postgresql://prisma-generate:prisma-generate@localhost:5432/prisma_generate}" npm run build
 
 # Runner stage
-FROM base AS runner
+FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ARG APP_REVISION
 
@@ -108,18 +111,30 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 ENV APP_REVISION=${APP_REVISION}
+ENV HOME=/home/nextjs
+ENV WOLFRAM_CLOUD_MCP_URL=https://agenttools.wolfram.com/mcp
 
 # BuildKit otherwise installs the large browser/office runtime in parallel with
 # the memory-intensive Next.js build. This copy is an explicit stage barrier.
 COPY --from=builder /app/package.json /tmp/builder-package.json
-RUN (apk add --no-cache chromium libreoffice \
-  || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
-    && apk add --no-cache chromium libreoffice)) \
-  && rm /tmp/builder-package.json
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    curl openssl unzip ca-certificates python3 python3-pip \
+  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+  && (apt-get install -y --no-install-recommends chromium libreoffice libreoffice-writer \
+      || apt-get install -y --no-install-recommends chromium-browser libreoffice libreoffice-writer) \
+  && apt-get install -y \
+    libfontconfig1 libfreetype6 libx11-6 libxcb1 libxcb-icccm4 \
+    libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xfixes0 \
+    libxext6 libxkbcommon0 libxkbcommon-x11-0 fonts-liberation \
+  && rm /tmp/builder-package.json \
+  && rm -rf /var/lib/apt/lists/*
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN mkdir -p /home/nextjs && chown nextjs:nodejs /home/nextjs && usermod -d /home/nextjs nextjs
 
 # Copy built application
 COPY --from=builder /app/public ./public
@@ -165,16 +180,10 @@ RUN rm -f \
 COPY --from=builder /app/.app-revision ./.app-revision
 COPY --from=builder /app/.active-authority-shards-product ./.active-authority-shards-product
 
-# 验证生产镜像内的 SymPy 与 LaTeX parser 依赖，并运行真实计算烟测。
-RUN python3 -c 'import json, subprocess; result = subprocess.run(["python3", "scripts/math-calc/calc.py"], input=json.dumps({"expression": r"\frac{1}{s}", "operation": "simplify"}), text=True, capture_output=True, check=True); payload = json.loads(result.stdout); assert payload["status"] == "ok", payload; assert payload["steps"][0]["operation"] == "identify", payload'
-
-# 验证公式推导脚本与 LaTeX 解析依赖在生产镜像内可执行。
-RUN python3 -m py_compile scripts/math-calc/calc.py \
-  && python3 -c "import sympy; assert sympy.__version__ == '1.13.3', sympy.__version__; from sympy.parsing.latex import parse_latex; assert str(parse_latex(r'\\frac{1}{s}')) == '1/s'"
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+RUN chmod +x scripts/math-calc/check-wolfram-ready.sh
 
 # Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

@@ -33,8 +33,8 @@ import {
 } from '@/features/adaptive/adaptive-path-journey-control';
 import {
   resolveAdaptivePathCenterOwnedTargetHref,
-  resolveAdaptivePathJourneyTargetDisposition,
 } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
 import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
@@ -383,6 +383,8 @@ interface PathExecutionNodeView {
   nodeId: string;
   title: string;
   type: string;
+  sourceKind: string | null;
+  sourceRef: string | null;
   resourceLabel: string;
   status: 'current' | 'completed' | 'skipped' | 'blocked' | 'locked' | 'next' | 'optional';
   target: string;
@@ -2520,6 +2522,8 @@ function getPathExecutionNodes(
       nodeId,
       title: typeof node.title === 'string' ? node.title : `学习节点 ${index + 1}`,
       type,
+      sourceKind: typeof node.sourceKind === 'string' ? node.sourceKind : null,
+      sourceRef: typeof node.sourceRef === 'string' ? node.sourceRef : null,
       resourceLabel: formatResourceType(type),
       status,
       target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
@@ -3026,10 +3030,10 @@ export default function AdaptivePracticePage() {
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
   pathOptionVersionKeyRef.current = pathOptionVersionKey;
   const pathAdjustmentContextVersionKey = useMemo(() => [
-    activeGoal ?? 'no-goal',
-    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? 'no-path',
-    readPathProgressVersion(activePathRound?.updatedAt) ?? 'no-progress',
-    activeCandidateBatch?.id ?? 'no-batch',
+    activeGoal ?? '暂无目标',
+    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? '暂无学习路径',
+    readPathProgressVersion(activePathRound?.updatedAt) ?? '暂无进度',
+    activeCandidateBatch?.id ?? '暂无候选批次',
     ...candidatePathOptions.map((option) => (
       `${option.candidateId ?? 'no-candidate'}:${option.candidateFingerprint ?? 'no-fingerprint'}`
     )),
@@ -4672,11 +4676,16 @@ export default function AdaptivePracticePage() {
   }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
-    const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(node.type, node.target);
-    if (targetDisposition === 'blocked') {
+    const targetContract = resolveAdaptivePathDestinationContract(node.type, node.target, {
+      nodeId: node.nodeId,
+      sourceKind: node.sourceKind,
+      sourceRef: node.sourceRef,
+    });
+    if (targetContract.disposition === 'blocked') {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
       return;
     }
+    const targetDisposition = targetContract.disposition;
     const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
    if (requiresOwningPathCenter(node) && !ownedTarget) {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');

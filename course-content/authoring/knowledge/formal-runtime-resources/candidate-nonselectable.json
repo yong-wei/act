@@ -1,0 +1,6 @@
+{
+  "publicationState": "CANDIDATE",
+  "selectable": false,
+  "reason": "formal-resource-gate-not-activated",
+  "note": "Non-selectable formal Runtime Release v2 candidate. Production selectors remain v0.9."
+}

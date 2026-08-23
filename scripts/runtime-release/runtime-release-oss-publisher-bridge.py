@@ -937,7 +937,7 @@ def validate_blob_receipt(
     }
     if require_proof:
         required_fields.add("sourceProvenanceProofSha256")
-    allowed_fields = required_fields | {"sourceProvenanceProofSha256"}
+    allowed_fields = required_fields | {"sourceProvenanceProofSha256", "formalResourceEnvelopeHash"}
     if not isinstance(receipt, dict) or not required_fields.issubset(set(receipt)) or not set(receipt).issubset(allowed_fields):
         fail("blob receipt has unsupported or missing fields")
     proof_digest = receipt.get("sourceProvenanceProofSha256")
@@ -951,6 +951,11 @@ def validate_blob_receipt(
         or not SHA256_PATTERN.fullmatch(proof_digest)
     ):
         fail("blob receipt source-provenance proof digest is required")
+    if "formalResourceEnvelopeHash" in receipt and (
+        not isinstance(receipt.get("formalResourceEnvelopeHash"), str)
+        or not SHA256_PATTERN.fullmatch(receipt["formalResourceEnvelopeHash"])
+    ):
+        fail("blob receipt formal-resource envelope digest is invalid")
     manifest_key = f"{BLOB_RELEASE_KEY_PREFIX}{release_id}/{BLOB_MANIFEST_NAME}"
     if (
         receipt.get("schemaVersion") != BLOB_RECEIPT_SCHEMA_VERSION

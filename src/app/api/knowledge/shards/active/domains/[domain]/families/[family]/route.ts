@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   props: { params: Promise<{ domain: string; family: string }> },
 ) {
   const { domain, family } = await props.params;
@@ -26,7 +26,7 @@ export async function GET(
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;
-    return activeShardResponse(() => readActiveRelationFamilyShard(domain, family));
+    return activeShardResponse(() => readActiveRelationFamilyShard(domain, family), authorization.role, request);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Active Authority relation-family shard request failed:', error);

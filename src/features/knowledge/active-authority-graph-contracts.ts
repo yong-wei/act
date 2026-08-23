@@ -59,6 +59,7 @@ export interface ActiveCanvasNode {
   sourceCoverageCount?: number;
   conceptKind?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
+  typeLabel?: string | null;
 }
 
 export interface ActiveCanvasRelation {
@@ -78,6 +79,8 @@ export interface ActiveCanvasRelation {
   layer?: 'ENGINEERING' | 'ACT_TEACHING';
   evidenceState?: string;
   releaseTier?: string | null;
+  predicateLabel?: string | null;
+  directionLabel?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
 }
 
@@ -180,8 +183,9 @@ export interface ActiveNodeDetailResponse {
     canonicalType: string;
     label: string;
     description: string | null;
+    typeLabel?: string | null;
     adjacency: ActiveNodeAdjacency[];
-    sources: Array<{ sourceEditionId: string; sectionId: string }>;
+    sources: Array<{ sourceEditionId: string; sectionId: string; label?: string | null }>;
     semanticSupport: { supported: boolean; readOnly: true };
     releaseTier?: string;
     aliases?: string[];

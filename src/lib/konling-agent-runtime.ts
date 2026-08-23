@@ -699,7 +699,6 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'apply_controller_patch',
       'record_intervention_result',
       'analyze_attempt',
-      'calculate',
     ],
     citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
     payload: 'student-visible-summary',
@@ -893,6 +892,9 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     citationContext: input.runtimeContext.citationContext,
     preferences: input.studyAnswerPreferences,
     currentUserQuery: input.currentUserQuery,
+    mathToolAvailable: mode.id === 'generic-chat'
+      ? input.runtimeContext.permittedTools.includes('calculate')
+      : mode.permittedTools.includes('calculate'),
   });
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
@@ -1117,9 +1119,14 @@ function buildKonlingStudyQuestionContract(input: {
   citationContext: KonlingCitationContext | null | undefined;
   preferences: unknown;
   currentUserQuery?: string | null;
+  mathToolAvailable?: boolean;
 }): KonlingStudyQuestionContract | null {
   if (!isStudyQuestionIntent(input.answerIntent)) return null;
-  const preferences = normalizeKonlingStudyAnswerPreferences(input.preferences, input.currentUserQuery);
+  const preferences = normalizeKonlingStudyAnswerPreferences(
+    input.preferences,
+    input.currentUserQuery,
+    input.mathToolAvailable,
+  );
   const normativeGuidance = input.answerIntent === 'normative-content'
     ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
       ? 'verified'
@@ -1162,6 +1169,7 @@ function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['int
 function normalizeKonlingStudyAnswerPreferences(
   value: unknown,
   currentUserQuery?: string | null,
+  mathToolAvailable = false,
 ): KonlingStudyAnswerPreferences {
   const source = readRecord(value);
   const query = currentUserQuery?.trim().toLowerCase().normalize('NFKC') ?? '';
@@ -1176,7 +1184,9 @@ function normalizeKonlingStudyAnswerPreferences(
         ? 'concise'
         : includesAny(query, ['详细', '深入', '完整推导', 'detailed', 'in depth'])
           ? 'detailed'
-          : 'standard',
+          : mathToolAvailable
+            ? 'detailed'
+            : 'standard',
     format: format === 'steps' || format === 'table' || format === 'code-first'
       ? format
       : includesAny(query, ['表格', '对照表', 'table'])
@@ -1185,7 +1195,9 @@ function normalizeKonlingStudyAnswerPreferences(
           ? 'steps'
           : includesAny(query, ['先给代码', '代码优先', 'code first'])
             ? 'code-first'
-            : 'default',
+            : mathToolAvailable
+              ? 'steps'
+              : 'default',
     hintStrength: hintStrength === 'guided'
       ? 'guided'
       : includesAny(query, ['循序渐进', '逐步提示', '只给提示', '不要直接给答案', 'guided hint'])
@@ -2121,7 +2133,6 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
-  'calculate',
 ];
 
 export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
@@ -7791,7 +7802,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
     }),
     calculate: tool({
-      description: '使用 SymPy 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；支持化简、展开、因式分解、部分分式展开、求导、积分、拉普拉斯变换与逆变换。推导关键代数步骤时应调用本工具确认真实结果。',
+      description: '使用 Wolfram 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；该运行时入口仅供受治理的服务端调用，不向聊天模型暴露。',
       inputSchema: calculateToolParameters,
       execute: (args) => runtime.calculate(args),
     }),

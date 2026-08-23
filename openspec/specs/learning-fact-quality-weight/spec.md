@@ -50,4 +50,3 @@ LearningFact 质量政策 SHALL 将微干预资源打开、学习动作、提示
 - **WHEN** 合格微干预验证投影创建 LearningFact
 - **THEN** producer SHALL 持久化有界 profile weight、skip flag、policy reason 和证据算法版本
 - **AND** 单条事实不得被标记为 terminal-mastery-grade
-
