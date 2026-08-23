@@ -64,6 +64,7 @@ def main():
         command.add_argument("--host-state-script")
     commands.choices["activate"].add_argument("--expected-generation", required=True, type=int)
     commands.choices["activate"].add_argument("--identity", required=True)
+    commands.choices["activate"].add_argument("--coordinated-graph-receipt")
     commands.choices["rollback"].add_argument("--expected-generation", required=True, type=int)
     args = parser.parse_args()
     if args.command is None:
@@ -78,14 +79,17 @@ def main():
             "--host-state-script", host_script,
         ])
     elif args.command == "activate":
-        result = run([
+        activate_command = [
             lifecycle_script,
             "activate-and-project",
             "--state-dir", args.state_dir,
             "--expected-generation", args.expected_generation,
             "--identity", args.identity,
             "--host-state-script", host_script,
-        ])
+        ]
+        if args.coordinated_graph_receipt:
+            activate_command.extend(["--coordinated-graph-receipt", args.coordinated_graph_receipt])
+        result = run(activate_command)
     else:
         result = run([
             lifecycle_script,

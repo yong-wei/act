@@ -419,6 +419,8 @@ export interface CutoverTransactionJournal {
 export interface SelectorMutationReceipt {
   readonly contract: typeof CUTOVER_MUTATION_RECEIPT_CONTRACT;
   readonly receiptId: string;
+  /** Full content-addressed hash over the receipt payload; verified before the active receipt seals. */
+  readonly receiptHash: string;
   readonly transactionId: string;
   readonly candidateReceiptHash: string;
   readonly selectorId: string;

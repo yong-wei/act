@@ -204,7 +204,7 @@ export async function applyJournaledMutation(
       `Selector ${plan.selectorId} did not re-read as ${plan.successorIdentity}.`,
     );
   }
-  const receiptHash = projectionDigest({
+  const receiptHash = selectorMutationReceiptHash({
     transactionId: journal.transactionId,
     candidateReceiptHash: journal.candidateReceiptHash,
     selectorId: plan.selectorId,
@@ -215,6 +215,7 @@ export async function applyJournaledMutation(
   return {
     contract: 'cutover-selector-mutation-receipt/v1',
     receiptId: `mut-${receiptHash.slice(0, 24)}`,
+    receiptHash,
     transactionId: journal.transactionId,
     candidateReceiptHash: journal.candidateReceiptHash,
     selectorId: plan.selectorId,
@@ -222,6 +223,18 @@ export async function applyJournaledMutation(
     beforeIdentity: current,
     afterIdentity: after,
   };
+}
+
+/** Content-addressed hash of a mutation receipt's full payload. */
+export function selectorMutationReceiptHash(payload: {
+  transactionId: string;
+  candidateReceiptHash: string;
+  selectorId: string;
+  appliedAt: string;
+  beforeIdentity: string;
+  afterIdentity: string;
+}): string {
+  return projectionDigest({ kind: 'cutover-selector-mutation-receipt', ...payload });
 }
 
 function expectedIdentityBefore(journal: CutoverTransactionJournal, stepIndex: number): string {
@@ -283,7 +296,8 @@ export function sealCoordinatedActiveReceipt(
     }
   }
   // The mutation receipts must cover the journal plan exactly: one receipt
-  // per planned step, in order, with matching selector and identities.
+  // per planned step, in order, with matching selector and identities, and
+  // every receipt must verify against its own full content-addressed hash.
   if (input.mutationReceipts.length !== input.journal.orderedMutations.length) {
     throw new LatestAuthorityCutoverError(
       'active-receipt-mutations-incomplete',
@@ -317,13 +331,27 @@ export function sealCoordinatedActiveReceipt(
         `Mutation receipt ${receipt.receiptId} binds a different candidate.`,
       );
     }
+    const expectedHash = selectorMutationReceiptHash({
+      transactionId: receipt.transactionId,
+      candidateReceiptHash: receipt.candidateReceiptHash,
+      selectorId: receipt.selectorId,
+      appliedAt: receipt.appliedAt,
+      beforeIdentity: receipt.beforeIdentity,
+      afterIdentity: receipt.afterIdentity,
+    });
+    if (receipt.receiptHash !== expectedHash) {
+      throw new LatestAuthorityCutoverError(
+        'active-receipt-mutation-hash-mismatch',
+        `Mutation receipt ${receipt.receiptId} does not match its own content-addressed hash.`,
+      );
+    }
   }
   const receiptHash = projectionDigest({
     transactionId: input.journal.transactionId,
     journalHash: input.journal.journalHash,
     candidateReceiptHash: input.candidateReceipt.receiptHash,
     committedSelectors: input.observedSelectors,
-    mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptId),
+    mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptHash),
     runtimeActiveReceiptHash: input.runtimeActiveReceiptHash,
   });
   return {
@@ -334,7 +362,7 @@ export function sealCoordinatedActiveReceipt(
     journalHash: input.journal.journalHash,
     candidateReceiptHash: input.candidateReceipt.receiptHash,
     committedSelectors: [...input.observedSelectors],
-    mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptId),
+    mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptHash),
     runtimeActiveReceiptHash: input.runtimeActiveReceiptHash,
     receiptHash,
   };

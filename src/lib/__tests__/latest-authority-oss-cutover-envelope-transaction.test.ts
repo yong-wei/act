@@ -480,6 +480,21 @@ describe('stopped-service coordinated transaction', () => {
       runtimeActiveReceiptHash: null,
       sealedAt: '2026-08-23T00:02:00.000Z',
     })).not.toThrow();
+    // A forged receipt whose fields match the journal but whose
+    // content-addressed hash was not produced by applyJournaledMutation
+    // fails the full-hash verification.
+    const forged = {
+      ...complete[0],
+      appliedAt: '2026-08-23T09:09:09.000Z',
+    };
+    expect(() => sealCoordinatedActiveReceipt({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: [forged, complete[1], complete[2]],
+      runtimeActiveReceiptHash: null,
+      sealedAt: '2026-08-23T00:02:00.000Z',
+    })).toThrow(/does not match its own content-addressed hash/);
   });
 });
 
