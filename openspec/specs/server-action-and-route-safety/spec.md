@@ -2,7 +2,6 @@
 
 ## Purpose
 Define the service-side safety contract for exported Server Actions, App Router GET handlers, and server module defaults so user-scoped mutations require authentication, public reads stay intentionally narrow, GET remains side-effect free, and React Doctor service-rule regressions can be verified locally.
-
 ## Requirements
 ### Requirement: Exported Server Actions enforce authentication before side effects
 The system SHALL ensure every exported Server Action that reads or mutates user-scoped, class-scoped, score, credit, progress, AI-history, or mission state performs explicit authentication before touching that state.
@@ -51,3 +50,15 @@ The system SHALL provide a local validation path that proves the service-side Re
 #### Scenario: Developer validates server error cleanup
 - **WHEN** a developer runs the documented local React Doctor 0.5.1 error-only command
 - **THEN** the report SHALL contain no `server-auth-actions`, `nextjs-no-side-effect-in-get-handler`, or `server-no-mutable-module-state` diagnostics
+
+### Requirement: User-scoped evaluation routes authenticate before learning-data access
+The system SHALL require authenticated user identity before user-scoped prompt evaluation, consistency evaluation, or prompt-history routes evaluate, read, or persist learning data. Request-body and path user identities SHALL NOT select another user's protected scope.
+
+#### Scenario: Evaluation route receives an unauthenticated request
+- **WHEN** an unauthenticated caller invokes a prompt evaluation or consistency route
+- **THEN** the route SHALL return an authentication failure before accessing assessment data
+
+#### Scenario: History route receives a mismatched user identity
+- **WHEN** an authenticated caller requests prompt history with a path user identity different from the session identity
+- **THEN** the route SHALL reject the request before querying history
+
