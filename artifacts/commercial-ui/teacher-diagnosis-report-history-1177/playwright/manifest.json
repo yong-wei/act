@@ -1,9 +1,9 @@
 {
   "schemaVersion": "teacher-diagnosis-report-history-evidence.v1",
   "captureRevision": {
-    "commitSha": "7b9ea486f45834b37cf2135a1bb7f77602bd6aa7",
-    "treeSha": "2d6d79d1738a6d7d5f7bdcacb277e9d683d4cb03",
-    "capturedAt": "2026-08-22T14:01:20Z"
+    "commitSha": "ef9a9846eb0fb6adc8cf48c036eb6c3fe970800f",
+    "treeSha": "abf66e33cc1fbf1b186d3a6ac532b74023697075",
+    "capturedAt": "2026-08-23T02:17:02Z"
   },
   "generator": {
     "path": "tests/teacher-diagnosis-report-history-evidence.spec.ts",
@@ -65,7 +65,7 @@
         "height": 1100
       },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-history-1440-light.png",
-      "screenshotSha256": "95824ddf714f578699cede83942d6ebd5ff94193b721f7d4beed24a8003e4113",
+      "screenshotSha256": "6cf60a3d7431f4112aca21eb78841752e4772beb566b6b4cb0dacc3c6be5abb4",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -78,7 +78,7 @@
         "height": 844
       },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-history-320-dark.png",
-      "screenshotSha256": "1c8bdcdb9cfcfb429292e97e57e9cff0a3a3c0705904475b7926b914c0a01dc9",
+      "screenshotSha256": "6e57f1a75426f1456880e8e17709fe165456cea126cd392909cefdfb8820c079",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -88,7 +88,7 @@
       "routePath": "/teacher/classes/class-evidence",
       "viewport": { "width": 1440, "height": 1100 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/class-generation-queued-1440-light.png",
-      "screenshotSha256": "96d1c13ffe021323295e455bf2222de175405da78bf170119a75c20783c1c0c5",
+      "screenshotSha256": "b1b03c4e5d74772279ed91c085c45acdf50f4f1ecd67bd2e89ebadbd3b6d8c66",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
@@ -128,7 +128,7 @@
       "routePath": "/teacher/classes/class-evidence/students/student-evidence",
       "viewport": { "width": 320, "height": 844 },
       "screenshot": "artifacts/commercial-ui/teacher-diagnosis-report-history-1177/playwright/student-generation-retry-320-dark.png",
-      "screenshotSha256": "5a932b085d2c3f6ebc673deac7eee9472e07d3ee10b2d84d3936f288f7899f77",
+      "screenshotSha256": "8a583f410ae12a74639183d838b897f4963b7590f03153e56efdd42f93f2efe9",
       "consoleErrors": 0,
       "pageErrors": 0,
       "horizontalOverflow": false
