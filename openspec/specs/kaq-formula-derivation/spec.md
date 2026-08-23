@@ -3,61 +3,55 @@
 ## Purpose
 TBD - created by archiving change kaq-sympy-formula-derivation. Update Purpose after archive.
 ## Requirements
-### Requirement: Math calculation API returns SymPy results with steps
-The system SHALL expose `POST /api/math/calculate` for authenticated users. The endpoint SHALL accept a LaTeX or SymPy-style expression string and return the SymPy calculation result in LaTeX together with ordered intermediate steps. Each step SHALL contain `step`, `description`, `operation`, `input`, and `output` fields.
+### Requirement: Math calculation API returns Wolfram results with steps
+The system SHALL expose `POST /api/math/calculate` for authenticated users. The endpoint SHALL accept a LaTeX or governed plain expression string and return the Wolfram calculation result in LaTeX together with ordered intermediate steps. Each step SHALL contain `step`, `description`, `operation`, `input`, and `output` fields.
 
-#### Scenario: Student or tool requests a Laplace transform
+#### Scenario: Student or server precompute requests a Laplace transform
 - **WHEN** an authenticated caller posts `{ "expression": "1", "operation": "laplace" }`
 - **THEN** the API SHALL return `status: "ok"`, a LaTeX result, and a step sequence containing the transform definition and computed result.
 
 #### Scenario: Expression is invalid or rejected
-- **WHEN** an expression exceeds the length limit, contains disallowed characters, or cannot be parsed
+- **WHEN** an expression exceeds the length limit, contains disallowed characters, cannot be parsed, or contains a non-mathematical Wolfram expression
 - **THEN** the API SHALL reject the request with a client error
-- **AND** the SymPy subprocess SHALL NOT be invoked with unvalidated input.
+- **AND** the calculator SHALL NOT evaluate the rejected expression.
 
-#### Scenario: LaTeX and SymPy expressions use deterministic parsers
+#### Scenario: LaTeX and plain expressions use deterministic parsers
 - **WHEN** an expression contains explicit LaTeX markers such as a backslash or braces
-- **THEN** the calculator SHALL use `parse_latex(strict=True)` only and SHALL NOT fall back to SymPy parsing
+- **THEN** the calculator SHALL parse it as TeX only and SHALL NOT fall back to plain parsing
 - **WHEN** an expression has no explicit LaTeX markers
-- **THEN** the calculator SHALL use the restricted SymPy parser only and SHALL reject malformed input such as `x -`
+- **THEN** the calculator SHALL parse it as a governed plain mathematical expression and SHALL reject malformed input such as `x -`.
 
 #### Scenario: Caller is not authenticated
 - **WHEN** an unauthenticated caller posts to the endpoint
 - **THEN** the API SHALL return 401
-- **AND** no SymPy subprocess SHALL be spawned.
+- **AND** no Wolfram Cloud MCP request SHALL be sent.
 
-### Requirement: Calculation execution is bounded
-The system SHALL bound SymPy subprocess execution with a CPU time limit, a process timeout, and a shared concurrency cap used by both API and KAQ callers (4 active calculations and 8 queued calculations).
+### Requirement: Wolfram calculation execution is bounded
+The system SHALL bound Wolfram Cloud MCP evaluation with a 30-second timeout and a shared concurrency cap used by both API and server precompute callers of 1 active calculation and 8 queued calculations.
 
 #### Scenario: Concurrent load exceeds capacity
 - **WHEN** more calculation requests arrive than the configured concurrency and queue capacity allow
-- **THEN** the API SHALL return 429 without spawning additional subprocesses.
-- **AND** the KAQ tool path SHALL reject excess work through its governed tool error boundary without spawning additional subprocesses.
+- **THEN** the API SHALL return 429 without sending additional Cloud MCP requests
+- **AND** server precomputation SHALL fail safely without exposing the calculator to the language model.
 
-#### Scenario: Subprocess exceeds timeout
-- **WHEN** a SymPy calculation exceeds the configured timeout
-- **THEN** the API SHALL terminate the subprocess and return a timeout error.
+#### Scenario: Cloud MCP evaluation exceeds timeout
+- **WHEN** a Wolfram Cloud MCP calculation exceeds the configured timeout
+- **THEN** the shared executor SHALL abort the request and return a timeout error.
 
-#### Scenario: Calculator exits unexpectedly
-- **WHEN** the calculator process exits with a non-zero status without a valid structured calculator error
-- **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing stderr contents
+#### Scenario: Cloud MCP is unreachable
+- **WHEN** Wolfram Cloud MCP does not return a usable `WolframLanguageEvaluator` result
+- **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing provider details.
 
 #### Scenario: Calculator reports a structured expression error
-- **WHEN** the calculator process exits with a valid structured error for an expression or operation failure
+- **WHEN** the calculator returns a valid structured error for an expression or operation failure
 - **THEN** the shared executor SHALL preserve the calculator error so the API can return a client error
-- **AND** stderr contents SHALL NOT be exposed
+- **AND** provider payloads SHALL NOT be exposed.
 
-### Requirement: KAQ exposes the calculate tool for formula derivation
-The KAQ runtime SHALL register `calculate` in its tool registry and expose it in generic-chat mode so the LLM can call it for formula-derivation answers.
+### Requirement: Deployment verifies Wolfram Cloud MCP
+The deployed application environment SHALL reach official Wolfram Cloud MCP and execute the calculation script through `WolframLanguageEvaluator`. Operational verification SHALL fail when the endpoint is unreachable or the script cannot return structured JSON.
 
-#### Scenario: LLM verifies a derivation step
-- **WHEN** the LLM answers a formula-derivation intent and invokes the `calculate` tool with an expression
-- **THEN** the tool SHALL return the SymPy result and intermediate steps
-- **AND** the response SHALL be authorized only through the KAQ tool permission path.
+#### Scenario: Wolfram Cloud MCP is unavailable
+- **WHEN** Cloud MCP is unreachable, rejects the session, or cannot execute the calculation script
+- **THEN** the shared executor SHALL return a stable unavailable-runtime error
+- **AND** deployment verification SHALL report the missing prerequisite before user acceptance.
 
-### Requirement: Production image verifies the calculation backend
-The production image SHALL pin SymPy and its LaTeX parser runtime and SHALL fail the build when the Python script cannot compile or a representative LaTeX expression cannot be parsed.
-
-#### Scenario: Production dependency or script is invalid
-- **WHEN** the calculation script has invalid Python syntax or the LaTeX parser runtime is unavailable
-- **THEN** the production image build SHALL fail before deployment.

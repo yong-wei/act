@@ -16,17 +16,17 @@ The working tree already contains an unrelated change in `src/app/api/ai/chat/ro
 **Non-Goals:**
 
 - Do not change the chat UI or `/api/math/calculate` client contract.
-- Do not implement a resident Wolfram kernel pool or a new calculation microservice.
+- Do not implement a resident Wolfram kernel pool, bake Wolfram Engine into the app image, or expose official MCP tools directly to the chat model.
 - Do not guarantee extraction of unrestricted natural-language mathematics; unsupported phrasing falls back to ordinary chat.
 - Do not embed personal Wolfram activation credentials in the repository or container image.
 
 ## Decisions
 
-### Spawn `wolframscript -file` through the existing shared executor
+### Call Wolfram Cloud MCP `WolframLanguageEvaluator` through the existing shared executor
 
-`src/lib/math-calc.ts` remains the single execution boundary used by the API and precompute path. It spawns `wolframscript -file scripts/math-calc/calc.wls`, passes the existing JSON request envelope as a bounded command-line argument on Windows (where `-file` consumes standard input), reads the JSON response from stdout, increases the timeout to 30 seconds, and reduces active concurrency to one while retaining the eight-request queue.
+`src/lib/math-calc.ts` remains the single execution boundary used by the API and precompute path. It wraps `scripts/math-calc/calc.wls` plus the JSON request envelope into a Wolfram Language program, then calls official Wolfram Cloud MCP at `https://agenttools.wolfram.com/mcp` with Streamable HTTP `tools/call` on `WolframLanguageEvaluator`. Timeout stays 30 seconds and active concurrency stays one, with the eight-request queue retained.
 
-Keeping the shared executor avoids HTTP loopback and preserves existing route error handling. A resident kernel would reduce cold-start latency but adds lifecycle, isolation, and licensing complexity outside this change.
+This avoids baking Wolfram Engine into the production image. The teaching-grade script remains the calculation source of truth; Cloud MCP is only the remote kernel. A local Engine/Local MCP path is out of scope.
 
 ### Parse held input and validate the Wolfram expression tree before evaluation
 
@@ -46,23 +46,24 @@ The route computes from the latest effective user message after conversation/run
 
 Before `streamText`, the route creates a new tool object without `calculate` for every request. Other scoped tools remain available. Model capability requirements are recomputed from the resulting tool set so ordinary requests without remaining tools do not require provider tool support.
 
-### Treat Wolfram runtime as a provisioned image dependency with runtime-only activation secrets
+### Treat Wolfram Cloud MCP as a runtime network dependency
 
-The production runner copies the executable Wolfram Engine runtime from the official `wolframresearch/wolframengine:15.0` image. The image never embeds Wolfram ID, password, or entitlement material. Activation is provided at runtime by one of: a pre-activated `$HOME/.WolframEngine/Licensing` volume, `WOLFRAM_ACTIVATION_EMAIL`/`WOLFRAM_ACTIVATION_PASSWORD` secrets consumed by `wolframscript -activate`, or `WOLFRAMSCRIPT_ENTITLEMENTID` for on-demand licensing. `docker-entrypoint.sh` runs a real `calc.wls` smoke before migrations and exits non-zero when the command, activation, or script execution is unavailable, so deployment cannot succeed while the governed math backend is unusable.
+The production runner does not copy Wolfram Engine. It needs outbound HTTPS to `agenttools.wolfram.com` (overridable with `WOLFRAM_CLOUD_MCP_URL`). Official Cloud MCP is unauthenticated; an optional Bearer token is only for a paid MCP Service endpoint. `docker-entrypoint.sh` runs a real Cloud MCP `calc.wls` smoke before migrations and exits non-zero when the endpoint is unreachable or the script cannot return structured JSON. Scanner/GC loops set `SKIP_WOLFRAM_READY_CHECK=1` so they do not re-probe the cloud calculator every interval.
 
 ## Risks / Trade-offs
 
 - [Wolfram cold start exceeds normal chat latency] → Use a 30-second hard timeout, one active process, and precompute only detected requests.
 - [Natural-language extraction selects the wrong substring] → Keep extraction conservative; schema validation or calculator failure returns `null` and ordinary chat continues.
 - [Direct Wolfram parsing enables arbitrary evaluation] → Parse under `HoldComplete`, validate the full expression tree, and reject non-mathematical heads before release.
-- [Wolfram licensing differs across environments] → Require explicit environment provisioning and never bake personal activation credentials into source control.
+- [Wolfram Cloud MCP is unreachable] → Fail closed at deploy/startup; keep the 30-second timeout and one in-flight calculation.
+- [Official Cloud MCP is unauthenticated] → Send only the already-allowlisted `calc.wls` program; never forward raw student chat.
 - [Removing model calculation changes generic-chat tool behavior] → Preserve the direct authenticated API and inject equivalent trusted results before generation.
 - [Existing tests and deployment probes assume Python/SymPy] → Replace only math-backend-specific assertions; leave unrelated Python dependencies intact.
 
 ## Migration Plan
 
-1. Provision the runner image with the Wolfram Engine runtime and activate `wolframscript` for the application runtime account.
-2. Deploy the Wolfram script, shared executor switch, precompute helper, route integration, and fail-closed readiness check together.
+1. Point the runner at Wolfram Cloud MCP and confirm outbound HTTPS plus a real `calc.wls` smoke.
+2. Deploy the Wolfram script, Cloud MCP executor, precompute helper, route integration, and fail-closed readiness check together.
 3. Run direct simplify, partial-fraction, and inverse-Laplace smoke tests, then related unit tests and typecheck.
 4. Verify a representative控灵 inverse-Laplace question completes without a model `calculate` tool call.
-5. Roll back by reverting this change and restoring the prior SymPy runtime dependencies if Wolfram provisioning cannot be sustained.
+5. Roll back by reverting this change and restoring the prior calculator backend if Wolfram Cloud MCP cannot be sustained.

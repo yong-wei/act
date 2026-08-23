@@ -1,10 +1,12 @@
 #!/bin/sh
 set -eu
 
-echo "[entrypoint] 检查 Wolfram 公式计算运行时..."
-if ! ./scripts/math-calc/check-wolfram-ready.sh; then
-  echo "[entrypoint] Wolfram 运行时就绪检查失败，拒绝启动。" >&2
-  exit 1
+if [ "${SKIP_WOLFRAM_READY_CHECK:-0}" != "1" ]; then
+  echo "[entrypoint] 检查 Wolfram Cloud MCP 公式计算运行时..."
+  if ! ./scripts/math-calc/check-wolfram-ready.sh; then
+    echo "[entrypoint] Wolfram Cloud MCP 就绪检查失败，拒绝启动。" >&2
+    exit 1
+  fi
 fi
 
 if [ "${RUN_MIGRATIONS_ON_START:-1}" = "1" ]; then

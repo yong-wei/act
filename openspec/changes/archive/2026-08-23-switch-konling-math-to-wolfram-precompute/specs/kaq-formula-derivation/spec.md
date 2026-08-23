@@ -21,34 +21,34 @@ The system SHALL expose `POST /api/math/calculate` for authenticated users. The 
 #### Scenario: Caller is not authenticated
 - **WHEN** an unauthenticated caller posts to the endpoint
 - **THEN** the API SHALL return 401
-- **AND** no Wolfram subprocess SHALL be spawned.
+- **AND** no Wolfram Cloud MCP request SHALL be sent.
 
 ### Requirement: Wolfram calculation execution is bounded
-The system SHALL bound Wolfram subprocess execution with a 30-second process timeout and a shared concurrency cap used by both API and server precompute callers of 1 active calculation and 8 queued calculations.
+The system SHALL bound Wolfram Cloud MCP evaluation with a 30-second timeout and a shared concurrency cap used by both API and server precompute callers of 1 active calculation and 8 queued calculations.
 
 #### Scenario: Concurrent load exceeds capacity
 - **WHEN** more calculation requests arrive than the configured concurrency and queue capacity allow
-- **THEN** the API SHALL return 429 without spawning additional subprocesses
+- **THEN** the API SHALL return 429 without sending additional Cloud MCP requests
 - **AND** server precomputation SHALL fail safely without exposing the calculator to the language model.
 
-#### Scenario: Subprocess exceeds timeout
-- **WHEN** a Wolfram calculation exceeds the configured timeout
-- **THEN** the shared executor SHALL terminate the subprocess and return a timeout error.
+#### Scenario: Cloud MCP evaluation exceeds timeout
+- **WHEN** a Wolfram Cloud MCP calculation exceeds the configured timeout
+- **THEN** the shared executor SHALL abort the request and return a timeout error.
 
-#### Scenario: Calculator exits unexpectedly
-- **WHEN** the calculator process exits with a non-zero status without a valid structured calculator error
-- **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing stderr contents.
+#### Scenario: Cloud MCP is unreachable
+- **WHEN** Wolfram Cloud MCP does not return a usable `WolframLanguageEvaluator` result
+- **THEN** the shared executor SHALL return a stable unavailable-runtime error without exposing provider details.
 
 #### Scenario: Calculator reports a structured expression error
-- **WHEN** the calculator process exits with a valid structured error for an expression or operation failure
+- **WHEN** the calculator returns a valid structured error for an expression or operation failure
 - **THEN** the shared executor SHALL preserve the calculator error so the API can return a client error
-- **AND** stderr contents SHALL NOT be exposed.
+- **AND** provider payloads SHALL NOT be exposed.
 
-### Requirement: Deployment verifies the Wolfram runtime
-The deployed application environment SHALL provide an activated `wolframscript` runtime compatible with the calculation script, and operational verification SHALL fail when the command or activation is unavailable.
+### Requirement: Deployment verifies Wolfram Cloud MCP
+The deployed application environment SHALL reach official Wolfram Cloud MCP and execute the calculation script through `WolframLanguageEvaluator`. Operational verification SHALL fail when the endpoint is unreachable or the script cannot return structured JSON.
 
-#### Scenario: Wolfram runtime is unavailable
-- **WHEN** `wolframscript` is missing, unactivated, or cannot execute the calculation script
+#### Scenario: Wolfram Cloud MCP is unavailable
+- **WHEN** Cloud MCP is unreachable, rejects the session, or cannot execute the calculation script
 - **THEN** the shared executor SHALL return a stable unavailable-runtime error
 - **AND** deployment verification SHALL report the missing prerequisite before user acceptance.
 
@@ -56,7 +56,7 @@ The deployed application environment SHALL provide an activated `wolframscript` 
 
 ### Requirement: Math calculation API returns SymPy results with steps
 **Reason**: The calculation engine is being replaced by Wolfram Engine while preserving the API response contract.
-**Migration**: Install and activate Wolfram Engine or Mathematica, then use the unchanged `/api/math/calculate` contract.
+**Migration**: Connect to Wolfram Cloud MCP, then use the unchanged `/api/math/calculate` contract.
 
 ### Requirement: Calculation execution is bounded
 **Reason**: The previous limits and CPU controls were specific to the lighter Python/SymPy process model.
@@ -68,4 +68,4 @@ The deployed application environment SHALL provide an activated `wolframscript` 
 
 ### Requirement: Production image verifies the calculation backend
 **Reason**: The Python/SymPy image dependency and parser probes no longer describe the selected engine.
-**Migration**: Provision and activate Wolfram Engine in the deployment environment and run the Wolfram script smoke tests.
+**Migration**: Confirm outbound HTTPS to Wolfram Cloud MCP and run the Wolfram script smoke tests.

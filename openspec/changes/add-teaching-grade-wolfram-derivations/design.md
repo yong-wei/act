@@ -2,7 +2,7 @@
 
 The in-progress Wolfram backend already parses expressions under a held allowlist and returns ordered steps through the shared calculator contract. Most operations currently add only an identification step and a final computation step. Konling injects those steps before model generation and does not expose `calculate` to the model.
 
-The implementation must remain compatible with the existing five-field step shape and keep all symbolic work inside one `wolframscript` process per request. See `proposal.md` and `specs/teaching-grade-math-derivations/spec.md` for the user-visible contract.
+The implementation must remain compatible with the existing five-field step shape and keep all symbolic work inside one Wolfram Cloud MCP `WolframLanguageEvaluator` call per request. See `proposal.md` and `specs/teaching-grade-math-derivations/spec.md` for the user-visible contract.
 
 ## Goals / Non-Goals
 

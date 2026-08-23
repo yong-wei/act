@@ -1,49 +1,26 @@
 # Wolfram 公式计算运行时
 
-`calc.wls` 由共享执行器通过 `wolframscript -file` 调用。共享执行器保持 JSON 请求/响应契约；Windows 下将请求作为脚本命令行参数传入，避免 `wolframscript` 的 `-file` 模式吞掉标准输入。
+`calc.wls` 仍是受治理计算脚本的真源（HoldComplete 白名单、教学步骤、验算）。生产执行器不再 spawn 本机 `wolframscript`，而是通过官方 **Wolfram Cloud MCP** 调用 `WolframLanguageEvaluator`。
 
-## Windows 安装
+- 默认端点：`https://agenttools.wolfram.com/mcp`
+- 传输：Streamable HTTP
+- 工具：`WolframLanguageEvaluator`
+- 超时：30 秒；并发：1 个计算、8 个排队
 
-1. 从 [Wolfram Engine](https://www.wolfram.com/engine/) 下载并安装免费运行时；已有 Mathematica 桌面版可跳过此安装。
-2. 使用 Wolfram 账号为执行应用的 Windows 账户激活运行时。
-3. 将安装目录加入 `PATH`。常见位置为：
+官方 Cloud MCP 文档说明该服务可免费使用且不要求认证。可选环境变量：
 
-   ```text
-   C:\Program Files\Wolfram Research\Wolfram Engine\14.x\wolframscript.exe
-   ```
+- `WOLFRAM_CLOUD_MCP_URL`：覆盖默认端点
+- `WOLFRAM_CLOUD_MCP_TOKEN` 或 `WOLFRAM_MCP_SERVICE_API_KEY`：若改用需 Bearer 的 Wolfram MCP Service，则作为 `Authorization: Bearer …` 发送
 
-4. 验证命令和真实脚本：
+`docker-entrypoint.sh` 在启动迁移前调用 `scripts/math-calc/check-wolfram-ready.sh`：Cloud MCP 不可达、探测失败或无法执行 `calc.wls` smoke 时 `exit 1`。作业扫描/GC 循环设置 `SKIP_WOLFRAM_READY_CHECK=1`，避免每 15 秒冷启动一次云端求值。
 
-   ```powershell
-   wolframscript --version
-   node scripts/tests/test-math-calc-wolfram.mjs
-   ```
-
-## Linux / 容器部署
-
-生产 runner 由 `Dockerfile` 从 `wolframresearch/wolframengine:15.0` 复制 Wolfram Engine 可执行运行时，不把激活凭据写入镜像。部署环境只需在运行时提供以下任一种激活材料：
-
-- 预激活的 `Licensing` 目录，挂载到 `$HOME/.WolframEngine/Licensing`（容器内为 `/home/nextjs/.WolframEngine/Licensing`）；
-- 运行环境 secret：`WOLFRAM_ACTIVATION_EMAIL` 与 `WOLFRAM_ACTIVATION_PASSWORD`，entrypoint 首次启动时自动执行 `wolframscript -activate`；
-- on-demand entitlement：运行环境 secret `WOLFRAMSCRIPT_ENTITLEMENTID`。
-
-`docker-entrypoint.sh` 在启动迁移前调用 `scripts/math-calc/check-wolfram-ready.sh`：命令缺失、未激活或无法执行 `calc.wls` 时输出错误并 `exit 1`，容器不会进入“部署成功但计算不可用”的状态。
-
-部署验证命令：
+验证命令：
 
 ```bash
-npm run test:docker-migration-readiness
-npm run test:math-calc-wolfram
+npx tsx scripts/math-calc/check-wolfram-cloud-mcp.ts
+npx tsx scripts/tests/test-math-calc-wolfram.ts
 npm run test:konling-math-real-smoke
+npm run test:docker-migration-readiness
 ```
 
-需要真实生产等价镜像时：
-
-```bash
-MATH_CALC_TEST_IMAGE=<production-image> \
-  WOLFRAM_ACTIVATION_EMAIL=<secret> \
-  WOLFRAM_ACTIVATION_PASSWORD=<secret> \
-  npm run test:docker-migration-readiness
-```
-
-个人/教学用途可使用免费 Wolfram Engine；商用部署需要匹配的 Wolfram 授权。不得把个人激活凭据提交到仓库或写入容器镜像。
+生产镜像不再包含 Wolfram Engine，因此不需要额外 8～12 GB 磁盘或 2～4 GB 引擎内存。容器只需能出站访问 `agenttools.wolfram.com`。

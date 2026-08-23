@@ -1,5 +1,3 @@
-import { spawnSync } from 'node:child_process';
-
 import { describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
@@ -17,13 +15,9 @@ vi.mock('@/lib/nextjs-dynamic-error', () => ({
 
 import { POST } from '../route';
 
-const hasWolframScript = spawnSync('wolframscript', ['-code', '1+1'], {
-  stdio: 'ignore',
-}).status === 0;
+const describeWithCloudMcp = process.env.MATH_CALC_LIVE_MCP === '1' ? describe : describe.skip;
 
-const describeWithWolfram = hasWolframScript ? describe : describe.skip;
-
-describeWithWolfram('POST /api/math/calculate real Wolfram smoke', () => {
+describeWithCloudMcp('POST /api/math/calculate real Wolfram Cloud MCP smoke', () => {
   it('returns a real Wolfram Laplace result for an authenticated caller', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },

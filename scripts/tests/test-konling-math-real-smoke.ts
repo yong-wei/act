@@ -1,17 +1,14 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 
 import { runMathCalculate } from '../../src/lib/math-calc';
 import {
   buildMathPrecomputeContext,
   precomputeMathAnswer,
 } from '../../src/lib/konling-math-precompute';
+import { probeWolframCloudMcp } from '../../src/lib/wolfram-cloud-mcp';
 
 async function main() {
-  const wolframCheck = spawnSync('wolframscript', ['--version'], {
-    encoding: 'utf8',
-  });
-  assert.equal(wolframCheck.status, 0, 'wolframscript 必须可用');
+  await probeWolframCloudMcp();
 
   const apiPath = await runMathCalculate({
     expression: '1',

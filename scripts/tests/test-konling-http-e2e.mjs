@@ -30,6 +30,26 @@ async function collectStream(response) {
   return text;
 }
 
+function assembleAssistantText(streamText) {
+  const chunks = [];
+  for (const block of streamText.split('\n\n')) {
+    const line = block.split('\n').find((entry) => entry.startsWith('data: '));
+    if (!line) continue;
+    const raw = line.slice('data: '.length).trim();
+    if (!raw || raw === '[DONE]') continue;
+    let payload;
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+    if (payload?.type === 'text-delta' && typeof payload.delta === 'string') {
+      chunks.push(payload.delta);
+    }
+  }
+  return chunks.join('');
+}
+
 async function main() {
   const startedAt = new Date();
   const controller = new AbortController();
@@ -53,14 +73,15 @@ async function main() {
     });
     assert.equal(response.status, 200, `chat endpoint returned ${response.status}`);
     const streamText = await collectStream(response);
+    const assistantText = assembleAssistantText(streamText);
     const elapsedMs = Date.now() - startedAt.getTime();
     const assertions = {
       noCalculateToolCall: !/toolName"\s*:\s*"calculate"|"name"\s*:\s*"calculate"/.test(streamText),
-      hasWolframStatement: /结果与关键中间式已由 Wolfram Engine 计算或验证/.test(streamText),
-      hasApproachSection: streamText.includes('## 解题思路'),
-      hasDetailedSection: streamText.includes('## 详细过程'),
-      hasFinalAnswerSection: streamText.includes('## 最终答案'),
-      hasVerificationSection: streamText.includes('## 验算'),
+      hasWolframStatement: /结果与关键中间式已由 Wolfram Engine 计算或验证/.test(assistantText),
+      hasApproachSection: assistantText.includes('## 解题思路'),
+      hasDetailedSection: assistantText.includes('## 详细过程'),
+      hasFinalAnswerSection: assistantText.includes('## 最终答案'),
+      hasVerificationSection: assistantText.includes('## 验算'),
     };
 
     const evidence = {
@@ -75,7 +96,7 @@ async function main() {
         containsAuthCookie: false,
         containsUserIdentifiers: false,
       },
-      responseSnippet: streamText.slice(0, 4000),
+      responseSnippet: assistantText.slice(0, 4000),
     };
 
     try {

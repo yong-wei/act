@@ -1,8 +1,8 @@
 ## 1. Wolfram calculation backend
 
-- [x] 1.1 Add failing executor and script contract tests for `wolframscript`, 30-second timeout, one active calculation, structured errors, and held-expression validation.
+- [x] 1.1 Add failing executor and script contract tests for Wolfram Cloud MCP, 30-second timeout, one active calculation, structured errors, and held-expression validation.
 - [x] 1.2 Implement `scripts/math-calc/calc.wls` with governed parsing, eight operations, LaTeX output, ordered steps, and non-zero structured failures.
-- [x] 1.3 Switch `src/lib/math-calc.ts` from Python/SymPy to `wolframscript -file` while preserving request, response, and error contracts.
+- [x] 1.3 Switch `src/lib/math-calc.ts` from Python/SymPy to Wolfram Cloud MCP `WolframLanguageEvaluator` while preserving request, response, and error contracts.
 - [x] 1.4 Replace the real-script regression command with `scripts/tests/test-math-calc-wolfram.mjs` covering simplify, partial fractions, inverse Laplace, malformed input, and rejected non-mathematical Wolfram expressions.
 
 ## 2. Konling server-side precomputation
@@ -13,7 +13,7 @@
 
 ## 3. Runtime provisioning and verification
 
-- [x] 3.1 Install and activate Wolfram Engine or Mathematica for the local runtime account and verify `wolframscript --version`; add the production runner provisioning path from `wolframresearch/wolframengine:15.0` with activation secrets injected only from the runtime environment. Wolfram Engine 15.0 is activated for the local Windows account.
+- [x] 3.1 Point production at official Wolfram Cloud MCP (`https://agenttools.wolfram.com/mcp`), remove the baked-in Wolfram Engine image path, and fail closed when Cloud MCP is unreachable or cannot execute `calc.wls`.
 - [x] 3.2 Run the focused Vitest suites, `npm run typecheck`, and the real Wolfram script regression.
 - [x] 3.3 Validate the OpenSpec change strictly and inspect the final diff for unrelated modifications.
-- [ ] 3.4 Manually verify the representative控灵 inverse-Laplace question completes promptly without a model `calculate` tool call. Local Wolfram script, shared executor and Konling precompute real smokes are complete; the running chat service HTTP end-to-end check still requires a PostgreSQL/model service environment and must be recorded before merge.
+- [x] 3.4 Manually verify the representative控灵 inverse-Laplace question completes promptly without a model `calculate` tool call. Local HTTP E2E against `http://127.0.0.1:3001` with the demo student session passed; evidence is `artifacts/konling-math-http-e2e.json`.

@@ -318,8 +318,7 @@ START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start
 if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
   START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
 fi
-WOLFRAM_LICENSE_VOLUME="${WOLFRAM_LICENSE_VOLUME:-act-obe-wolfram-license}"
-WOLFRAM_CONTAINER_LICENSE_ROOT="${WOLFRAM_CONTAINER_LICENSE_ROOT:-/home/nextjs/.WolframEngine}"
+WOLFRAM_CLOUD_MCP_URL="${WOLFRAM_CLOUD_MCP_URL:-https://agenttools.wolfram.com/mcp}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -879,10 +878,6 @@ ensure_network_and_volume() {
     podman network create "$NETWORK_NAME" >/dev/null
   fi
 
-  if ! podman volume exists "$WOLFRAM_LICENSE_VOLUME"; then
-    echo "- 创建 Wolfram 许可卷: $WOLFRAM_LICENSE_VOLUME"
-    podman volume create "$WOLFRAM_LICENSE_VOLUME" >/dev/null
-  fi
 
   if ! podman volume exists "$DB_VOLUME"; then
     echo "- 创建数据卷: $DB_VOLUME"
@@ -1139,21 +1134,12 @@ SHARED_ENV_ARGS=(
   -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
-WOLFRAM_ENV_ARGS=()
-if [ -n "${WOLFRAM_ACTIVATION_EMAIL:-}" ]; then
-  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_ACTIVATION_EMAIL="$WOLFRAM_ACTIVATION_EMAIL")
+WOLFRAM_ENV_ARGS=(-e WOLFRAM_CLOUD_MCP_URL="$WOLFRAM_CLOUD_MCP_URL")
+if [ -n "${WOLFRAM_CLOUD_MCP_TOKEN:-}" ]; then
+  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_CLOUD_MCP_TOKEN="$WOLFRAM_CLOUD_MCP_TOKEN")
 fi
-if [ -n "${WOLFRAM_ACTIVATION_PASSWORD:-}" ]; then
-  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_ACTIVATION_PASSWORD="$WOLFRAM_ACTIVATION_PASSWORD")
-fi
-if [ -n "${WOLFRAMSCRIPT_ENTITLEMENTID:-}" ]; then
-  WOLFRAM_ENV_ARGS+=(-e WOLFRAMSCRIPT_ENTITLEMENTID="$WOLFRAMSCRIPT_ENTITLEMENTID")
-fi
-WOLFRAM_MOUNT_ARGS=(-v "${WOLFRAM_LICENSE_VOLUME}:${WOLFRAM_CONTAINER_LICENSE_ROOT}")
-if [ -n "${WOLFRAM_ACTIVATION_CREDENTIALS_FILE:-}" ] && [ -r "$WOLFRAM_ACTIVATION_CREDENTIALS_FILE" ]; then
-  WOLFRAM_CREDENTIALS_CONTAINER_FILE="${WOLFRAM_ACTIVATION_CREDENTIALS_CONTAINER_FILE:-/run/secrets/wolfram-activation}"
-  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_ACTIVATION_CREDENTIALS_FILE="$WOLFRAM_CREDENTIALS_CONTAINER_FILE")
-  WOLFRAM_MOUNT_ARGS+=(-v "${WOLFRAM_ACTIVATION_CREDENTIALS_FILE}:${WOLFRAM_CREDENTIALS_CONTAINER_FILE}:ro")
+if [ -n "${WOLFRAM_MCP_SERVICE_API_KEY:-}" ]; then
+  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_MCP_SERVICE_API_KEY="$WOLFRAM_MCP_SERVICE_API_KEY")
 fi
 GRADING_AUDIT_ENV_ARGS=()
 if [ -n "${GRADING_AUDIT_SECRET:-}" ]; then
@@ -1260,17 +1246,9 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
-echo "- 初始化 Wolfram 许可卷属主"
-podman run --rm --user root \
-  -v "${WOLFRAM_LICENSE_VOLUME}:${WOLFRAM_CONTAINER_LICENSE_ROOT}" \
-  --entrypoint sh \
-  "$APP_IMAGE" \
-  -c "mkdir -p '${WOLFRAM_CONTAINER_LICENSE_ROOT}/Licensing' && chown -R 1001:1001 '${WOLFRAM_CONTAINER_LICENSE_ROOT}'"
-
-echo "- 校验 Wolfram 运行时真实 calc.wls smoke"
+echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
 podman run --rm \
   --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
-  "${WOLFRAM_MOUNT_ARGS[@]}" \
   "${WOLFRAM_ENV_ARGS[@]}" \
   "$APP_IMAGE"
 
@@ -1283,7 +1261,6 @@ elif [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; t
     --entrypoint ./docker-entrypoint.sh \
     "${DB_HOST_ARGS[@]}" \
     "${POLICY_SEED_ENV_ARGS[@]}" \
-    "${WOLFRAM_MOUNT_ARGS[@]}" \
     "${WOLFRAM_ENV_ARGS[@]}" \
     -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
     "$APP_IMAGE" \
@@ -1295,7 +1272,6 @@ else
     --entrypoint ./docker-entrypoint.sh \
     "${DB_HOST_ARGS[@]}" \
     "${SHARED_ENV_ARGS[@]}" \
-    "${WOLFRAM_MOUNT_ARGS[@]}" \
     "${WOLFRAM_ENV_ARGS[@]}" \
     -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
     "$APP_IMAGE" \
@@ -1304,9 +1280,9 @@ fi
 
 if [ "$RUNTIME_CUTOVER_APP_ONLY" != "1" ] && [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 验证学生作业对象存储与扫描服务健康"
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" "${WOLFRAM_MOUNT_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_MOUNT_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_MOUNT_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
 fi
 
 RUNTIME_HELPER_MOUNT_ARGS=()
@@ -1329,7 +1305,6 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
-  "${WOLFRAM_MOUNT_ARGS[@]}" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${APP_ENV_ARGS[@]}" \
@@ -1359,7 +1334,6 @@ run_detached_container "$WORKER_CONTAINER" podman run -d \
   --health-timeout 5s \
   --health-retries 6 \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
-  "${WOLFRAM_MOUNT_ARGS[@]}" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${WORKER_ENV_ARGS[@]}" \
@@ -1375,10 +1349,10 @@ fi
 
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
-  podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${WOLFRAM_MOUNT_ARGS[@]}" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
+  podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
 
   echo "- 启动学生作业 GC worker 容器: $SUBMISSION_GC_CONTAINER"
-  podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${WOLFRAM_MOUNT_ARGS[@]}" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
+  podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
 fi
 
 echo "[4-deploy] 部署完成。"

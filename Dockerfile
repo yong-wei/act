@@ -101,21 +101,6 @@ RUN --mount=type=secret,id=database_url,required=false \
   DATABASE_URL="$(cat /run/secrets/database_url 2>/dev/null || true)" \
   && DATABASE_URL="${DATABASE_URL:-postgresql://prisma-generate:prisma-generate@localhost:5432/prisma_generate}" npm run build
 
-# Wolfram Engine 供给：只从官方镜像取可执行运行时，激活凭据不进入镜像。
-# 官方镜像用户不能写入 /usr/local/Wolfram；wolframscript 单独落到可写 /tmp。
-FROM wolframresearch/wolframengine:15.0 AS wolfram-provider
-USER root
-RUN set -eu; \
-  if [ -d /usr/local/Wolfram ]; then :; \
-  elif [ -d /opt/Wolfram ]; then mkdir -p /usr/local && cp -a /opt/Wolfram /usr/local/Wolfram; \
-  else echo "Wolfram Engine not found in official wolframresearch/wolframengine image" >&2; exit 1; \
-  fi; \
-  command -v wolframscript >/dev/null 2>&1; \
-  mkdir -p /tmp/wolframscript-bin; \
-  cp -L "$(command -v wolframscript)" /tmp/wolframscript-bin/wolframscript; \
-  chmod +x /tmp/wolframscript-bin/wolframscript; \
-  find /usr/local/Wolfram -type f -name wolfram | grep -q .
-
 # Runner stage
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
@@ -127,6 +112,7 @@ ENV RUN_MIGRATIONS_ON_START=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 ENV APP_REVISION=${APP_REVISION}
 ENV HOME=/home/nextjs
+ENV WOLFRAM_CLOUD_MCP_URL=https://agenttools.wolfram.com/mcp
 
 # BuildKit otherwise installs the large browser/office runtime in parallel with
 # the memory-intensive Next.js build. This copy is an explicit stage barrier.
@@ -149,14 +135,6 @@ RUN apt-get update \
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN mkdir -p /home/nextjs && chown nextjs:nodejs /home/nextjs && usermod -d /home/nextjs nextjs
-
-# Wolfram Engine 可执行运行时来自官方镜像；激活凭据只允许由运行环境 secret
-# 提供，绝不写入镜像或仓库。
-COPY --from=wolfram-provider /usr/local/Wolfram /usr/local/Wolfram
-COPY --from=wolfram-provider /tmp/wolframscript-bin/wolframscript /usr/local/bin/wolframscript
-RUN find /usr/local/Wolfram -type f -name wolfram -exec ln -sf {} /usr/local/bin/wolfram \; ; \
-  chmod +x /usr/local/bin/wolframscript; \
-  test -x /usr/local/bin/wolframscript && test -x /usr/local/bin/wolfram
 
 # Copy built application
 COPY --from=builder /app/public ./public
