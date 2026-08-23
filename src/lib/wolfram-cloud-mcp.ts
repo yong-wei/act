@@ -160,8 +160,21 @@ export async function evaluateWolframLanguage(
   options?: { timeoutMs?: number; timeConstraintSeconds?: number },
 ): Promise<string> {
   const timeoutMs = options?.timeoutMs ?? 30_000;
-  const timeConstraintSeconds = options?.timeConstraintSeconds
-    ?? Math.max(1, Math.ceil(timeoutMs / 1000));
+  const startedAt = Date.now();
+  const remainingMs = () => {
+    const leftover = timeoutMs - (Date.now() - startedAt);
+    if (leftover <= 0) {
+      throw new WolframCloudMcpError('公式计算超时');
+    }
+    return leftover;
+  };
+  const timeConstraintSeconds = Math.max(
+    1,
+    Math.min(
+      options?.timeConstraintSeconds ?? Math.ceil(timeoutMs / 1000),
+      Math.ceil(timeoutMs / 1000),
+    ),
+  );
   const url = getWolframCloudMcpUrl();
 
   const initialized = await postMcp(url, {
@@ -173,7 +186,7 @@ export async function evaluateWolframLanguage(
       capabilities: {},
       clientInfo: CLIENT_INFO,
     },
-  }, undefined, timeoutMs);
+  }, undefined, remainingMs());
   if (!initialized.sessionId) {
     throw new WolframCloudMcpError('Wolfram Cloud MCP 未返回会话');
   }
@@ -181,8 +194,9 @@ export async function evaluateWolframLanguage(
   await postMcp(url, {
     jsonrpc: '2.0',
     method: 'notifications/initialized',
-  }, initialized.sessionId, timeoutMs);
+  }, initialized.sessionId, remainingMs());
 
+  const callBudgetMs = remainingMs();
   const evaluated = await postMcp(url, {
     jsonrpc: '2.0',
     id: 2,
@@ -191,10 +205,10 @@ export async function evaluateWolframLanguage(
       name: WOLFRAM_LANGUAGE_EVALUATOR_TOOL,
       arguments: {
         code,
-        timeConstraint: timeConstraintSeconds,
+        timeConstraint: Math.max(1, Math.min(timeConstraintSeconds, Math.ceil(callBudgetMs / 1000))),
       },
     },
-  }, initialized.sessionId, timeoutMs);
+  }, initialized.sessionId, callBudgetMs);
 
   if (isJsonRpcFailure(evaluated.json)) {
     throw new WolframCloudMcpError('Wolfram Cloud MCP 不可用');
