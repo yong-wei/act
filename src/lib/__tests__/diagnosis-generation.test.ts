@@ -6,8 +6,9 @@ import { z } from 'zod';
 
 vi.mock('server-only', () => ({}));
 
-const { providerGenerate } = vi.hoisted(() => ({
+const { providerGenerate, TextJsonFallbackOutputError } = vi.hoisted(() => ({
   providerGenerate: vi.fn(),
+  TextJsonFallbackOutputError: class TextJsonFallbackOutputError extends Error {},
 }));
 
 vi.mock('@/lib/konling-agent-runtime', () => ({
@@ -17,6 +18,7 @@ vi.mock('@/lib/konling-agent-runtime', () => ({
 
 vi.mock('@/lib/smart-lesson-plan/provider-runtime', () => ({
   resolveSmartLessonStructuredProvider: vi.fn().mockResolvedValue({ generate: providerGenerate }),
+  TextJsonFallbackOutputError,
 }));
 
 import {
@@ -30,6 +32,7 @@ import {
 } from '@/lib/diagnosis-generation';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
+  DiagnosisGenerationProviderEmptyOutputError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
@@ -316,6 +319,42 @@ describe('teacher diagnosis generation contracts', () => {
     });
   });
 
+  it('maps an unusable text fallback to the retryable empty-output failure', async () => {
+    providerGenerate.mockRejectedValueOnce(new TextJsonFallbackOutputError());
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-invalid-fallback-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+  });
+
+  it('maps schema-invalid text fallback output to the retryable empty-output failure', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: { summary: '缺少报告必填字段。' },
+      normalizedResponseId: 'provider-response-schema-invalid-fallback',
+      usedTextJsonFallback: true,
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-schema-invalid-fallback-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+  });
+
   it('bounds a large class provider projection while retaining complete governed coverage', async () => {
     const studentIds = Array.from({ length: 100 }, (_value, index) => `student-${index}`);
     const providerInput = {
@@ -513,8 +552,8 @@ describe('teacher diagnosis generation contracts', () => {
     }));
   });
 
-  it('records an exhausted empty provider stream as retryable with a specific diagnosis code', async () => {
-    const providerError = new NoOutputGeneratedError();
+  it('records an unusable fallback as retryable with a specific diagnosis code', async () => {
+    const providerError = new DiagnosisGenerationProviderEmptyOutputError();
     const { db, tx } = workerDbFixture();
 
     await expect(processDiagnosisGenerationJob(

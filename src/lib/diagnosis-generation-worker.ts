@@ -11,6 +11,7 @@ import {
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
+  DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationValidationError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
@@ -20,7 +21,10 @@ export const DIAGNOSIS_GENERATION_QUEUE = 'teacher-diagnosis-generation';
 let worker: Worker<{ jobId: string }> | null = null;
 
 function classifyDiagnosisGenerationFailure(error: unknown) {
-  if (NoOutputGeneratedError.isInstance(error)) {
+  if (
+    error instanceof DiagnosisGenerationProviderEmptyOutputError
+    || NoOutputGeneratedError.isInstance(error)
+  ) {
     return {
       validation: false,
       code: 'diagnosis-provider-empty-output',

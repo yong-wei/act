@@ -44,7 +44,15 @@ type GenerateObjectResult<T> = {
   object: T;
   usage?: { inputTokens?: number; outputTokens?: number };
   response?: { id?: string };
+  usedTextJsonFallback?: boolean;
 };
+
+export class TextJsonFallbackOutputError extends Error {
+  constructor() {
+    super('Structured provider fallback did not return usable JSON.');
+    this.name = 'TextJsonFallbackOutputError';
+  }
+}
 
 type RuntimeDependencies = {
   resolveConfig?: typeof resolveConfiguredAIProviderConfig;
@@ -137,6 +145,7 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
         const output = input.deferValidation ? normalized : input.schema.parse(normalized);
         return {
           output,
+          usedTextJsonFallback: result.usedTextJsonFallback === true,
           normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(output)}`,
           inputTokens: result.usage?.inputTokens ?? null,
           outputTokens: result.usage?.outputTokens ?? null,
@@ -223,6 +232,7 @@ async function generateTextJsonFallback(
   });
   return {
     object: parseTextJsonFallback(result.text),
+    usedTextJsonFallback: true,
     usage: {
       inputTokens: result.usage.inputTokens,
       outputTokens: result.usage.outputTokens,
@@ -235,11 +245,11 @@ function parseTextJsonFallback(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/iu);
   const candidate = fenced?.[1]?.trim() ?? trimmed;
-  if (!candidate) throw new Error('Structured provider fallback returned an empty text response.');
+  if (!candidate) throw new TextJsonFallbackOutputError();
   try {
     return JSON.parse(candidate);
   } catch {
-    throw new Error('Structured provider fallback did not return valid JSON.');
+    throw new TextJsonFallbackOutputError();
   }
 }
 
@@ -354,6 +364,7 @@ function deterministicStructuredFixtureRuntime() {
       const normalizedResponseId = `fixture:${contentHash({ schemaVersion: input.schemaVersion, output: parsed })}`;
       return {
         output: parsed,
+        usedTextJsonFallback: false,
         normalizedResponseId,
         inputTokens: 0,
         outputTokens: 0,

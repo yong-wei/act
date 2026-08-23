@@ -19,7 +19,8 @@ an upstream provider does not reuse the failed structured request.
 The fallback accepts either raw JSON or a JSON code fence, then sends the
 parsed object through the existing diagnosis output schema and evidence
 provenance validation. A malformed fallback remains a provider failure; no
-partial report is written. If neither strategy yields output, the worker stores
+partial report is written. If the fallback is empty, unparsable, or invalid
+against the diagnosis schema, the worker stores
 `diagnosis-provider-empty-output` as a retryable failure.
 
 ## Boundaries
@@ -33,6 +34,7 @@ partial report is written. If neither strategy yields output, the worker stores
 
 - Mock an empty structured call followed by valid JSON text and assert fallback
   request isolation and returned response metadata.
-- Assert exhausted empty output receives the dedicated retryable error code.
+- Assert unparsable and schema-invalid fallback output receives the dedicated
+  retryable error code.
 - Run the focused diagnosis and provider-runtime tests; run typecheck when the
   local runtime has sufficient heap.
