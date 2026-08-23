@@ -63,3 +63,12 @@ The system SHALL use canonical event type resolution when classifying `Interacti
 - **WHEN** 来源事件仅表示界面浏览、打开面板、结果查看或完全相同的重放
 - **THEN** 系统将其标为不具备任务证据资格
 - **AND** 不为它创建任务级学习事实贡献
+
+### Requirement: Prompt assessment records remain context-only until separately governed
+The governed evidence source catalog SHALL classify `PromptAssessment` quality and consistency records as learner-owned learning-process context by default. The source SHALL remain traceable but SHALL NOT be profile eligible unless a later specification declares source-specific quality governance and materialization rules.
+
+#### Scenario: Prompt assessment is inspected by evidence governance
+- **WHEN** the evidence source catalog or coverage report inspects `PromptAssessment`
+- **THEN** it SHALL identify the record as student-owned prompt-evaluation process evidence
+- **AND** it SHALL report the source as not profile eligible by default
+
