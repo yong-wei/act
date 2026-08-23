@@ -936,7 +936,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
     expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
     expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replaceAll('\r\n', '\n'))
       .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
@@ -1000,7 +1000,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('readAdaptivePathCandidateBatch(prisma as any, sourceBatchId)');
     expect(routeSource).toContain('sourceCandidate.fingerprint !== sourceCandidateFingerprint');
     expect(routeSource).toContain('progressVersion: path.updatedAt instanceof Date');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replace(/\r\n/g, '\n'))
       .toContain('effectiveRevisionArgs,\n                tx,');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
