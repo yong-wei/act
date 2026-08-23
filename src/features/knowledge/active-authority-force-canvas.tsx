@@ -5,7 +5,7 @@ import { useMemo, useState, type MouseEvent } from 'react';
 
 import type { KnowledgeLinkData, KnowledgeNodeData } from './knowledge-graph-system';
 import { getEmptyKnowledgeGraphLayoutState } from './graph/layout-state';
-import type { AuthorityGraphViewModel } from './authority-graph-view-model';
+import { toSharedRuntimeRelationType, type AuthorityGraphViewModel } from './authority-graph-view-model';
 import type { GraphDimension } from './graph-runtime-session';
 
 const KnowledgeGraph2D = dynamic(
@@ -46,13 +46,19 @@ function toRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNodeData[] {
 }
 
 function toRuntimeLinks(view: AuthorityGraphViewModel): KnowledgeLinkData[] {
-  return view.edges.map((edge) => ({
-    id: edge.edgeId,
-    sourceId: edge.sourceId,
-    targetId: edge.targetId,
-    relation: edge.predicate,
-    relationType: edge.relationFamily ?? edge.predicate,
-  }));
+  return view.edges.map((edge) => {
+    const relationType = toSharedRuntimeRelationType({
+      predicate: edge.predicate,
+      relationFamily: edge.relationFamily,
+    });
+    return {
+      id: edge.edgeId,
+      sourceId: edge.sourceId,
+      targetId: edge.targetId,
+      relation: relationType,
+      relationType,
+    };
+  });
 }
 
 export function ActiveAuthorityForceCanvas({

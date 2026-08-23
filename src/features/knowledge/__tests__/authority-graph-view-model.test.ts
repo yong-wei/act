@@ -4,6 +4,7 @@ import {
   assertRejectsLegacyGraphDto,
   createAuthorityGraphViewModel,
   filterViewModelPreservingIdentities,
+  toSharedRuntimeRelationType,
 } from '../authority-graph-view-model';
 import {
   createEmptyGraphRuntimeSession,
@@ -87,6 +88,21 @@ describe('authority graph view model', () => {
     expect(filtered.nodes.map((row) => row.canonicalId)).toEqual(['ctc:a']);
     expect(filtered.edges).toHaveLength(0);
     expect(view.nodes[0]?.canonicalId).toBe('ctc:a');
+  });
+
+  it('maps Authority teaching and engineering families onto known shared runtime relation types', () => {
+    expect(toSharedRuntimeRelationType({
+      predicate: 'PREREQUISITE',
+      relationFamily: 'teaching-prerequisite',
+    })).toBe('prerequisite');
+    expect(toSharedRuntimeRelationType({
+      predicate: 'derived_from',
+      relationFamily: 'derivation-and-representation',
+    })).toBe('derives');
+    expect(toSharedRuntimeRelationType({
+      predicate: 'unknown_act_predicate',
+      relationFamily: 'structure',
+    })).toBe('related');
   });
 });
 

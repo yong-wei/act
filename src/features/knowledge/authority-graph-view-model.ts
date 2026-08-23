@@ -175,6 +175,56 @@ export function defaultEnabledTeachingFamilies(): AuthorityTeachingFamily[] {
   return [...TEACHING_FAMILIES];
 }
 
+const TEACHING_FAMILY_TO_RUNTIME = {
+  'teaching-prerequisite': 'prerequisite',
+  'teaching-containment': 'contains',
+  'teaching-association': 'association',
+} as const;
+
+const PREDICATE_TO_RUNTIME: Record<string, string> = {
+  PREREQUISITE: 'prerequisite',
+  CONTAINMENT: 'contains',
+  PEDAGOGICAL_ASSOCIATION: 'association',
+  derived_from: 'derives',
+  has_formula: 'quantified_by',
+  has_representation: 'visualized_by',
+  has_component: 'contains',
+  is_a: 'instance_of',
+  part_of: 'contains',
+  used_to_analyze: 'applies_to',
+  association: 'association',
+  applies_to: 'applies_to',
+};
+
+const SHARED_RUNTIME_RELATION_TYPES = new Set([
+  'prerequisite',
+  'contains',
+  'association',
+  'related',
+  'applies_to',
+  'derives',
+  'quantified_by',
+  'visualized_by',
+  'instance_of',
+  'follows',
+  'cross_domain',
+]);
+
+export function toSharedRuntimeRelationType(input: {
+  predicate: string;
+  relationFamily?: string | null;
+}): string {
+  const family = input.relationFamily ?? '';
+  if (family in TEACHING_FAMILY_TO_RUNTIME) {
+    return TEACHING_FAMILY_TO_RUNTIME[family as keyof typeof TEACHING_FAMILY_TO_RUNTIME];
+  }
+  const predicate = input.predicate;
+  if (SHARED_RUNTIME_RELATION_TYPES.has(predicate)) return predicate;
+  const mapped = PREDICATE_TO_RUNTIME[predicate] ?? PREDICATE_TO_RUNTIME[predicate.toLowerCase()];
+  if (mapped && SHARED_RUNTIME_RELATION_TYPES.has(mapped)) return mapped;
+  return 'related';
+}
+
 export function filterViewModelPreservingIdentities(
   model: AuthorityGraphViewModel,
   input: {
