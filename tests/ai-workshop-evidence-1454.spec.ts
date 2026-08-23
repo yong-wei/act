@@ -24,8 +24,31 @@ for (const viewport of [
     expect(dimensions.bodyWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
     expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 
+    if (viewport.name === 'desktop') {
+      await page.screenshot({
+        path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop.png',
+        fullPage: false,
+      });
+
+      const collapseNavigation = page.getByRole('button', { name: '收起平台导航' });
+      await collapseNavigation.focus();
+      await expect(collapseNavigation).toBeFocused();
+      await collapseNavigation.click();
+      await expect(page.locator('[data-app-shell-navigation-state="collapsed"]')).toBeVisible();
+      await page.screenshot({
+        path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop-collapsed.png',
+        fullPage: false,
+      });
+      return;
+    }
+
+    const openNavigation = page.getByRole('button', { name: '打开平台导航' });
+    await openNavigation.focus();
+    await expect(openNavigation).toBeFocused();
+    await openNavigation.click();
+    await expect(page.locator('[data-app-shell-mobile-drawer="open"]')).toBeVisible();
     await page.screenshot({
-      path: `artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-${viewport.name}.png`,
+      path: 'artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile.png',
       fullPage: false,
     });
   });

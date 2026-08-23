@@ -14,15 +14,13 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
     : evidence.status === 'empty'
       ? '暂无已验证学习记录'
       : '学习证据暂不可用';
-  const statusClass = evidence.status === 'available'
-    ? 'text-emerald-300 bg-emerald-500/15'
-    : 'text-amber-300 bg-amber-500/15';
+  const statusClass = 'bg-muted text-foreground';
 
   return (
-    <div className="border-b border-cyan-500/30 bg-[#0c3654]/80 px-6 py-4">
+    <div className="border-b border-border bg-card px-6 py-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-600 text-xl font-bold">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
             {userName.charAt(0)}
           </div>
           <div>
@@ -30,7 +28,7 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
               <span className="text-lg font-medium">{userName}</span>
               <span className={`rounded-full px-2 py-0.5 text-xs ${statusClass}`}>{statusLabel}</span>
             </div>
-            <div className="mt-1 text-sm text-slate-400">AI 工坊只展示服务端确认的学习证据。</div>
+            <div className="mt-1 text-sm text-muted-foreground">AI 工坊只展示服务端确认的学习证据。</div>
           </div>
         </div>
 
@@ -43,8 +41,8 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
       </div>
 
       {evidence.limitations.length > 0 ? (
-        <div className="mt-4 flex items-start gap-2 rounded border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-100" role="status">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+        <div className="mt-4 flex items-start gap-2 rounded border border-border bg-muted px-3 py-2 text-sm text-foreground" role="status">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
           <ul className="space-y-1">
             {evidence.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
           </ul>
@@ -64,12 +62,12 @@ function EvidenceMetric({
   value: string;
 }) {
   return (
-    <div className="min-w-[92px] rounded border border-cyan-500/20 bg-[#0a2a43]/50 px-3 py-2">
-      <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Icon className="h-4 w-4 text-cyan-300" />
+    <div className="min-w-[92px] rounded border border-border bg-background px-3 py-2">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className="h-4 w-4 text-muted-foreground" />
         {label}
       </div>
-      <div className="mt-1 text-base font-medium text-cyan-200">{value}</div>
+      <div className="mt-1 text-base font-medium text-foreground">{value}</div>
     </div>
   );
 }

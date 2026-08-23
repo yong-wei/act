@@ -122,7 +122,7 @@ export function PersonalLearningCenter({
   const reportTaskContract = taskIntent === 'report-feedback' ? getAiAuditTaskContract('report-feedback') : null;
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#0a2a43] text-slate-200" data-ai-task-focus-mode={taskIntent ? 'local-first' : undefined}>
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground" data-ai-task-focus-mode={taskIntent ? 'local-first' : undefined}>
       <LearningDashboard evidence={evidence} userName={userName} />
       {reportTaskState && reportTaskContract ? (
         <ReportFeedbackTaskPanel
@@ -164,26 +164,26 @@ function ReportFeedbackTaskPanel({
   onMarkPendingWriteback: (candidateId: string) => void;
 }) {
   return (
-    <section className="border-b border-cyan-400/20 bg-slate-950/70 px-5 py-4" data-ai-task-boundary="report-feedback" data-task-workspace-zone="local-primary-input">
+    <section className="border-b border-border bg-card px-5 py-4" data-ai-task-boundary="report-feedback" data-task-workspace-zone="local-primary-input">
       <div className="grid w-full gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-3">
           <ActionStatusPanel state={state} />
-          <div className="rounded border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-300">
+          <div className="rounded border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
             任务：{contract.taskType} · 输出：{contract.outputTarget} · 写回：{contract.writebackBehavior}
           </div>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {candidates.map((candidate) => (
-            <article key={candidate.id} className="rounded border border-cyan-400/30 bg-cyan-500/10 p-3 text-sm">
-              <div className="font-medium text-cyan-100">{candidate.title}</div>
-              <p className="mt-1 text-xs leading-5 text-cyan-100/75">{candidate.detail}</p>
-              <div className="mt-2 rounded border border-cyan-300/30 px-2 py-1 text-[11px] text-cyan-100/70">
+            <article key={candidate.id} className="rounded border border-border bg-background p-3 text-sm">
+              <div className="font-medium text-foreground">{candidate.title}</div>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">{candidate.detail}</p>
+              <div className="mt-2 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground">
                 来源：{candidate.source} · 任务：{candidate.assignment ?? 'report-feedback'} · 意图：{candidate.intent} · 输出：{candidate.outputTarget}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => onAdopt(candidate.id)} className="rounded bg-cyan-500 px-2 py-1 text-xs text-slate-950" data-primary-task-input="ai-workshop-report-feedback">采用</button>
-                <button type="button" onClick={() => onMarkPendingWriteback(candidate.id)} className="rounded border border-cyan-300/60 px-2 py-1 text-xs text-cyan-100">标记待写回</button>
-                <button type="button" onClick={() => onDiscard(candidate.id)} className="rounded border border-slate-500 px-2 py-1 text-xs text-slate-300">丢弃</button>
+                <button type="button" onClick={() => onAdopt(candidate.id)} className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground" data-primary-task-input="ai-workshop-report-feedback">采用</button>
+                <button type="button" onClick={() => onMarkPendingWriteback(candidate.id)} className="rounded border border-border px-2 py-1 text-xs text-foreground">标记待写回</button>
+                <button type="button" onClick={() => onDiscard(candidate.id)} className="rounded border border-border px-2 py-1 text-xs text-muted-foreground">丢弃</button>
               </div>
             </article>
           ))}

@@ -15,10 +15,10 @@ interface JournalCarouselProps {
 }
 
 const entryTypeConfig = {
-  ETHICS_DECISION: { icon: FileText, label: '伦理决策', color: 'text-green-400', bg: 'bg-green-500/20' },
-  CERTIFICATE: { icon: Award, label: '证书认证', color: 'text-amber-400', bg: 'bg-amber-500/20' },
-  COMPETITION: { icon: Trophy, label: '竞赛成绩', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-  TRAINING: { icon: GraduationCap, label: '培训记录', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+  ETHICS_DECISION: { icon: FileText, label: '伦理决策', color: 'text-foreground', bg: 'bg-muted' },
+  CERTIFICATE: { icon: Award, label: '证书认证', color: 'text-foreground', bg: 'bg-muted' },
+  COMPETITION: { icon: Trophy, label: '竞赛成绩', color: 'text-foreground', bg: 'bg-muted' },
+  TRAINING: { icon: GraduationCap, label: '培训记录', color: 'text-foreground', bg: 'bg-muted' },
 };
 
 export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
@@ -34,32 +34,32 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
 
   if (journals.length === 0) {
     return (
-      <div className="border-t border-cyan-500/30 bg-[#0c3654]/50 p-4 text-sm text-slate-400" data-ai-workshop-empty="journals">
+      <div className="border-t border-border bg-card p-4 text-sm text-muted-foreground" data-ai-workshop-empty="journals">
         {evidence.status === 'unavailable' ? '学习日志暂时不可用。' : '暂无已验证的学习日志记录。'}
       </div>
     );
   }
 
   return (
-    <div className="border-t border-cyan-500/30 bg-[#0c3654]/50 p-4">
+    <div className="border-t border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-medium text-cyan-400">
+        <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
           <FileText className="h-4 w-4" />
           思政学习日志
         </h3>
         <div className="flex items-center gap-2">
           <button type="button"
             onClick={handlePrev}
-            className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
+            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-muted-foreground">
             {currentIndex + 1} / {journals.length}
           </span>
           <button type="button"
             onClick={handleNext}
-            className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
+            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -77,7 +77,7 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
               key={journal.id}
               className={`flex-shrink-0 rounded-xl border p-4 transition-all duration-300 ${
                 isActive
-                  ? 'w-full border-cyan-500/30 bg-[#0a2a43]/80'
+                  ? 'w-full border-border bg-background'
                   : 'hidden w-0 border-transparent'
               }`}
             >
@@ -90,18 +90,18 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
                 {/* 内容 */}
                 <div className="flex-1">
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="font-medium text-slate-200">{journal.title}</span>
+                    <span className="font-medium text-foreground">{journal.title}</span>
                     <span className={`rounded-full px-2 py-0.5 text-xs ${config.bg} ${config.color}`}>
                       {config.label}
                     </span>
                     {journal.grade && (
-                      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-400">
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground">
                         评级：{journal.grade}
                       </span>
                     )}
                   </div>
-                  <p className="line-clamp-2 text-sm text-slate-400">{journal.content}</p>
-                  <div className="mt-2 text-xs text-slate-500">
+                  <p className="line-clamp-2 text-sm text-muted-foreground">{journal.content}</p>
+                  <div className="mt-2 text-xs text-muted-foreground">
                     {journal.createdAt.toLocaleDateString('zh-CN', {
                       year: 'numeric',
                       month: 'long',
@@ -111,7 +111,7 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
                 </div>
 
                 {/* 操作按钮 */}
-                <button type="button" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-400 transition-colors hover:bg-cyan-500/20">
+                <button type="button" className="rounded border border-border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-accent">
                   查看详情
                 </button>
               </div>
@@ -128,7 +128,7 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all ${
-              index === currentIndex ? 'w-6 bg-cyan-400' : 'w-1.5 bg-slate-600'
+              index === currentIndex ? 'w-6 bg-primary' : 'w-1.5 bg-muted'
             }`}
           />
         ))}
