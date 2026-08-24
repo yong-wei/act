@@ -13,6 +13,7 @@ import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
+  readPathPlannerLearnerState: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
@@ -40,6 +41,7 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   return {
     ...actual,
     readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readPathPlannerLearnerState: mocks.readPathPlannerLearnerState,
   };
 });
 
@@ -752,6 +754,14 @@ describe('konling agent runtime', () => {
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
     clearPendingChanges();
     mocks.readAdaptiveLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+      controlModeling: 88,
+      parameterDesign: 72,
+      crossDomainTransfer: 64,
+      engineeringDecision: 50,
+      inquiryReflection: 40,
+      selfDirectedLearning: 66,
+    }));
+    mocks.readPathPlannerLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
       controlModeling: 88,
       parameterDesign: 72,
       crossDomainTransfer: 64,
@@ -9380,6 +9390,15 @@ describe('konling agent runtime', () => {
       where: { id: result.pathId },
       create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
     }));
+    expect(mocks.readPathPlannerLearnerState).toHaveBeenCalledWith(
+      db,
+      'student-1',
+      expect.objectContaining({
+        goal: 'control-correction',
+        classId: 'class-1',
+        now: expect.any(Date),
+      }),
+    );
     expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ sourcePathId: result.pathId }),
     }));

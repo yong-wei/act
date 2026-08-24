@@ -31,6 +31,7 @@ import {
   CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
+  readPathPlannerLearnerState,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
@@ -4223,10 +4224,23 @@ async function buildAdaptivePathToolOutput(
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
+  const plannerLearnerState = operation === 'generated'
+    ? isAdaptiveLearnerStateServiceEnabled()
+      ? await readPathPlannerLearnerState(input.db as any, input.scope.targetUserId, {
+          goal: goalId,
+          classId: input.scope.classId,
+          now: new Date(),
+        }).catch((error) => {
+          console.error('[KonlingRuntime] Planner learner state read failed:', error);
+          return null;
+        })
+      : input.context.learnerState
+    : input.context.learnerState;
+  const learnerStateForPlanning = plannerLearnerState;
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
-    learnerState: normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any)
+    learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
       ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
     graphContext,
@@ -4277,7 +4291,7 @@ async function buildAdaptivePathToolOutput(
     requestedAt: args.requestedAt ?? null,
     candidatePoolDiagnostics,
     learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(
-      normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any),
+      normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any),
     ),
   });
   const hasPersistablePath = plan.mainPath.length > 0;
@@ -4307,7 +4321,7 @@ async function buildAdaptivePathToolOutput(
     plan: persistedPlan,
     pathStatus: 'candidate',
     classId: input.scope.classId ?? null,
-    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    learnerStateRef: learnerStateForPlanning ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
     inputSnapshot: {
       source: 'konling-tool',
       operation,
