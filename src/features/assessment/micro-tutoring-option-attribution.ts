@@ -4,10 +4,19 @@ import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source'
 
 export { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring-option-attribution-evidence';
 
+const MICRO_TUTORING_V2_ASSESSMENT_STAGES = new Set([
+  'practice',
+  'checkpoint',
+  'remediation',
+  'readiness',
+  'readiness-gate',
+]);
+
 export interface MicroTutoringOptionAttribution {
   catalogItemId: string;
   contentHash: string;
   optionKey: string;
+  assessmentStage?: string;
   learningGoalId: string;
   misconceptionTag: string;
   knowledgeNodeId: string;
@@ -49,7 +58,12 @@ export function isMicroTutoringOptionAttribution(
 ): value is MicroTutoringOptionAttribution {
   const attribution = record(value);
   if (!attribution) return false;
-  return nonEmptyString(attribution.catalogItemId) &&
+  const hasRequiredStage = attribution.version !== 'micro-tutoring-option-attribution.v3' || (
+    nonEmptyString(attribution.assessmentStage) &&
+    MICRO_TUTORING_V2_ASSESSMENT_STAGES.has(attribution.assessmentStage)
+  );
+  return hasRequiredStage &&
+    nonEmptyString(attribution.catalogItemId) &&
     nonEmptyString(attribution.contentHash) &&
     nonEmptyString(attribution.optionKey) &&
     nonEmptyString(attribution.learningGoalId) &&
@@ -70,7 +84,7 @@ export function isMicroTutoringOptionAttribution(
 }
 
 export function defaultMicroTutoringOptionAttributions(): unknown[] {
-  const source = record(loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'));
+  const source = record(loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions-v2.json'));
   return Array.isArray(source?.entries) ? source.entries : [];
 }
 
@@ -80,6 +94,7 @@ export function findMicroTutoringOptionAttribution(input: {
   contentHash: string;
   selectedOptionKey: string;
   correctOptionKey: string;
+  assessmentStage?: string;
   itemReviewSourceHash: string;
   reviewedLearningGoalIds: string[];
   reviewedKnowledgeNodeIds: string[];
@@ -126,6 +141,10 @@ export function findMicroTutoringOptionAttribution(input: {
   if (
     reusesSiblingEvidence ||
     !goalNode.ok ||
+    (
+      attribution.version === 'micro-tutoring-option-attribution.v3' &&
+      attribution.assessmentStage !== input.assessmentStage
+    ) ||
     attribution.knowledgeNodeId !== goalNode.knowledgeNodeId ||
     attribution.itemReviewSourceHash !== input.itemReviewSourceHash ||
     !input.reviewedLearningGoalIds.includes(attribution.learningGoalId) ||

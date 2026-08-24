@@ -104,6 +104,7 @@ interface GovernedEvidence {
   catalogItemId: string;
   catalogContentHash: string;
   reviewSourceHash: string;
+  assessmentStage: AdaptiveAssessmentCatalogStage;
   reviewedLearningGoalIds: string[];
   reviewedKnowledgeNodeIds: string[];
   reviewedMisconceptionTags: string[];
@@ -280,6 +281,7 @@ function parseGovernedEvidence(
     catalogItemId,
     catalogContentHash,
     reviewSourceHash,
+    assessmentStage: normalizedStage,
     reviewedLearningGoalIds: uniqueSorted(learningGoalIds),
     reviewedKnowledgeNodeIds: uniqueSorted(graphNodeIds),
     reviewedMisconceptionTags: uniqueSorted(misconceptionTags),
@@ -414,6 +416,7 @@ export async function attributeWrongAnswerEvidence(input: {
     contentHash: evidence.catalogContentHash,
     selectedOptionKey: answer.selectedOptionKey,
     correctOptionKey: answer.correctOptionKey,
+    assessmentStage: evidence.assessmentStage,
     itemReviewSourceHash: evidence.reviewSourceHash,
     reviewedLearningGoalIds: evidence.reviewedLearningGoalIds,
     reviewedKnowledgeNodeIds: evidence.reviewedKnowledgeNodeIds,

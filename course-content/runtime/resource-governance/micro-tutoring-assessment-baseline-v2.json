@@ -1,0 +1,823 @@
+{
+  "version": "micro-tutoring-assessment-baseline.v2",
+  "itemCount": 135,
+  "stageCounts": {
+    "practice": 54,
+    "checkpoint": 27,
+    "remediation": 27,
+    "readiness": 2,
+    "readiness-gate": 25
+  },
+  "entries": [
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-01",
+      "contentHash": "8bddbcd978dc1abe8860a75303f46de9097282242cf9df5e98baa162553fc0ec",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:06865a133d35a584990565df6cb138f3185c710fd079bb1a4a094bd67d498f90"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-02",
+      "contentHash": "3bf8df2ca14166e459ae294bc010257f8b5f5c11b8a10b0ca2c87a4ea90e7ea8",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:f23e17ff7621d76cea0f4e52d61265643027bca2239ebe9af8e240dfc1b7ebd3"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-03",
+      "contentHash": "1b7d1a6203f2609ea665a6f47a502a49e134de4626bb6492f8e28215288a6d9d",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:b655d93e846a907bbf223004cb17e77bed47c9ba52c23a7891a0bee1aae71a23"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+      "contentHash": "6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:f1244c7a7091145739106cda125b791e57b6f8df75643e53563a6e90e9cb6f38"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+      "contentHash": "f184c9a8250cb7cb067558c66d55e3bbba0843f93bd9f4b1c58c8b09d8edccf7",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:52033f30a698ef2bb96ac1075ffc6c7e790c9b8fe87135d3626c3c5f4c6ad255"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+      "contentHash": "ff1e0e7d00a6ac8e2f12a4cd0a114e50a79a9353673ae454d9ef799c3573926d",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:4988d2b84f8396966bdfe4744b865d0db7b03d7c14fc35a252c72af7a302d06e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+      "contentHash": "a5940e4209a361c9cee75d172bf0012d1f003a1590a6d484b941fc443a7bc6d4",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:66d20a634dbafbaf037065802680c7ca4a71808420d36360336ca2cd779ee09a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+      "contentHash": "d15ad456a3d74ae981a0cdca301036a6681e18428abed0474e2e9a2171604acd",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:930718d44680b9b2edcd96f145b33c8c45ffd1c6218d40a9cb9e825ae24cd7b2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-06",
+      "contentHash": "214264d1899dabee031c5dcbc81aab35cf74ab5ae579f44f9c8e332537200eb3",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:48e7c28b29a60b55ede919adf04e03d462c90ae50c0815d62a2f60b9258b2530"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-readiness-01",
+      "contentHash": "40067695956dfae813b1c1e8516c5c8712a13434d681d0d0dec30497f7eee92b",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:57635af3d336f5bd0366478e0da0ffc1a3080634e11d728d9091d742ebbae697"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-readiness-02",
+      "contentHash": "fbf0b747bc1373d0a3f3426da3181d98431eaea040c9441a4361ecc48b67d8b0",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:6f05c853f6d581e3d25d28b93091e0fa2943a86d8fc6d11ea39a161b440043ba"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-readiness-03",
+      "contentHash": "618baa69d6f0e72c2f364f2e45b4f5f26f9a40495d6a546c014aa9d9ca7d014c",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:ca5b73c72da3abd4981c4ada54027655faa79ea161bf7fce2440a7debea45545"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-01",
+      "contentHash": "60089ccb3059112ee1159d2c5c96c709160809360cbc9d7599c85386ba37c9d5",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:3988c775b59bc394f29fa991ad81811fe8212164ef48d62a18693f4126bfec74"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-02",
+      "contentHash": "59b5e7baf90752a799f2480298904abb8ba9485482629ff74c5dd27bda0d5eb2",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:7b85c9ac5d4596a8e5ac8d35f51a0fa80476710ca36a1faed1919d0621a72cf4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-03",
+      "contentHash": "f2224f92dd79649023cdc7ac6f59c067b1519970a6c8da822d3788ce09c800d4",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:5ca183b6571ca665acc9923eab96b39e11fed25cf8c8f7860782491eb6e80cb4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-checkpoint-01",
+      "contentHash": "bbc42b2c51a632dc6f982b28248812b07e3479abdda909b27874c4ad889a01c5",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:06f049295cdc751154a8b15c011f0ba51412177bc3ec9fc7a07daf474f115c49"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-checkpoint-02",
+      "contentHash": "ec82cab2e20bb21dd2d970e2cc3e96ad79684630e8d6bc9f4f93de9d16358811",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:d1515acfbaa3695c512480bb119b9a7c5a9207b99e7e41019374d0ad97ddb85e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-checkpoint-03",
+      "contentHash": "ad2e1d4122d187444434eb585718651c16948ffe8d3c93be54fb63118d20feaa",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:d565bcb35d69c52411bbda45f947bbf63db32d1c1dc8323d0dff70226ea419bd"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+      "contentHash": "ad5ef53747d263c0eafe23280ce93a7abbe987e861a1dbb55ee3ba1c3e2dfbe4",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:cc47afd807dbf78cefaf5d6b5c59acbcfe8c24b33da8a735281fb8bd866f1a6f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+      "contentHash": "95ffcc16bfa11b6d0dea370f318697142f4f511ac67304080fb123d7b914f21d",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:36d074aae2e88d8bbf08e5a2437d42fff2be2fd66c185b05134599d75026ce8b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+      "contentHash": "e62ccedd4c70c7edce86e15c4a6aa07f5f88a793f8193e969126166b9f423a02",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:d0f4125b503c31e457aed1a6a53affa5d0bc92090d6fb4f4a64ae66780775ffd"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+      "contentHash": "39b3ba8bf82c3ed0462b351b16e53df9f4a204d559f8581053369d7866be5570",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:01dea9455342c5c1c6c600a9f02b567f417bba5b172bbd101aad12c7ceb7173b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-05",
+      "contentHash": "ea49fe780af3eaeae10fd384d6a8589d78d271e8658f4dbcb484513a09bbfa8c",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:1ccf1f14adf0e6da37eb7233616a66396febd4dd521f93fc5d2fd5b23a24db7f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-06",
+      "contentHash": "d7e3b55c1b4956c1ae35118ebcdb9393e373d2da64a70832d094d6010a24f6c2",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:8e72bae1c590d67e83d4bfe21f14d736adc6c4cb184d554e3719c8fc75a52e9b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-readiness-01",
+      "contentHash": "7818d44adc1cc8b527532d1c6a13e3e2616509ea6b717d7744b61a01ca8ec4fb",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:bee2c0e32dcc009181c509fe2149aa18b12e266c7321f4c2f3107c5cc63c1c1d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-readiness-02",
+      "contentHash": "bc3f67b98bb2c28713ad4c3176db86852dfff7b0667b9cc370a0c816be836823",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:b6d1317f1f51505d1c022474514f4692d54d8c4f200ea6fecb4964d757061d11"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-readiness-03",
+      "contentHash": "6df77cb7ba3e5c6cc910248cb6db88b883d820e64d16b64ab9c77dd2ce53c99a",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:030ede05a22eb8045a4601b9a6550ab5a0308f25dcb8e0cf5d32eda2742d8147"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-01",
+      "contentHash": "99b153b32c938b2790ec32d34bcfc5e5f67f046b2411bbb20c791b1c194b330d",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:ff7578c3043322b399d7dd2ab57ac84d0330479f9dea0c6e9eb6b5bacaaa661f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-02",
+      "contentHash": "baf5298c7f2d46ce1967cdc2ed6564ad9e57cef6008800ba4436d1262fe45311",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:cf73c292c9680da2c33734fab324f8678da9f037154fe777434aac781b97ab0c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-03",
+      "contentHash": "51027f8053f659b2b2019a9f479382fbe449475a55c9a75f9722d86f05038dc3",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:8f09a3a658e91019e9ec541493db609dcc08004ff573c33f8945eef51afc97ff"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-checkpoint-01",
+      "contentHash": "620a47abbdbe09d0cd1bfb79ad91564731d3e69e44716585ca55e05fc81df091",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:a19d8d6b6c20996cc32dddbe66b32f8fe3c78a704502253b199ce2ca45e83fb7"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-checkpoint-02",
+      "contentHash": "930feb327947751cd3d4babfcf381120a6476cc8f7c6f7cf3ee77b5d62909a40",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:8ced7fb770d60030789495edf732f1164d4232d664b0abbeaf7bb7ccffb3abcb"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-checkpoint-03",
+      "contentHash": "294946d5df8d3eacd9bb05af2ec104ae169e54458b8550a86ba4ea070d3d62c9",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:2b6eb3fad3e230b66f10d3d7778525fd62d44ccf7abe19446a12708f9b004ac7"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+      "contentHash": "6d6124c1b3e5af0556cd6f03ebf7d06d1ce6e5c4d4bed5140e61af876e28e4fa",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:1b5985829bb3a68365892e577cd6967770b1bbd84c1a45f7bfc97046fce00553"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+      "contentHash": "f6408123a68e2eb6cc2311f35f3dcfd39fb9a70fd440960d16d878658dcb0538",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:eedece6d978e5bebe16727a4eedc35cde9c712e0463c84aff67323f24fef6979"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+      "contentHash": "f2396582aeb6d22f779434504b1d662b30a73262ba150e329bcde4ac130bb61a",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:af3332285b6f81aa4cbe1582b9cee2d93c7e32ad96493ca8eb980baa7a932283"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+      "contentHash": "a5680c870add2f3f1e7a8cde1f68ab3c52ddaefe6fb930be9cdf94b78de0c5ce",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:3ade3a75a88064ad231dd222e64d630c6a4d0014a8739dc467748cbf1359cabd"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-05",
+      "contentHash": "33a351a8a8521a23b6bca6ee294ea41bfc14bbf07a03e1f0e0c98929ce54e04d",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:caa410ad0463432bb23b1880b3fa1e89fc9db24363640621e21d1b67fd8c25ba"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-06",
+      "contentHash": "43959c364d41bcade9d3a44baf64196b912814b53cd4f5435177bd5c076f7eaa",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:b65763539793babf6de3e75882b08c55b549a01537bcd944a15bbc49a3a3fb4d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-readiness-01",
+      "contentHash": "e4eac014d87ce08d74b7b3de3918ae6a8e1e95116659400337f28ac3fdf9f3b5",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:cb0bbda81b2f8bacb3a105f8ef8f792cc44e0264b9eae289a0b71fc3d373cd51"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-readiness-02",
+      "contentHash": "6bf90269441c00720bdb75a18928180ebfc5cd447ffa923d76f270c2b0e546f1",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:fd6d19338766c03469b142d208d0d974547c8f9df1c84ff8bd43c00ed6d39db0"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-readiness-03",
+      "contentHash": "e0ec28b555df963267f726ba4b2f3eaf700e862a1a1f4260ad5f89a29071a280",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:7a80db9def0d8fb8f926c966e6920c0c050cce95fb7277709d60b99dd8dd6d4c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-01",
+      "contentHash": "d5a4d35229d6b993648a18ff7bea127a2d8a1e510aeba77119cfa5b70cbe6313",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:b11e9445f18f77b3906e36bd8d456592c5c763a8e903fcbde4c3037b2f33d92b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-02",
+      "contentHash": "d63439fbc1375a2c479936049f2e646e0b3d59ef7f9d0ca09e37aa8280920b97",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:f86b4122090de00248d43aa61b9ed27f32c86a50cea6a2ee2a0c7ad6c9507081"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-03",
+      "contentHash": "19358952cfd62358ef809969c95fc9b7e4c2e57eed7b7ce6cb5b48b1e51c7d69",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:2ae8f8cec9c34d3638f64b456a508e85f2de9f0245ea688f36b7858b28d01e55"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-checkpoint-01",
+      "contentHash": "b23f2963deac0deafdfa1769292a1508004b2deb8a1c44d1a9fcb52dc4d848d7",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:622530076771010cf880ed58a964833c5be8b921d935078f0e46b9177cc0af22"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-checkpoint-02",
+      "contentHash": "7d05f5fa61a6b5ecfb79fa920515141446f9c758a4b7e5ed1569a3c3c99f204d",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:8384863466693b18a51567103f1a5daff18e0d05e331d9dcb4b2a7ad1f9dbb26"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-checkpoint-03",
+      "contentHash": "15494e405fcef1ea60cd53a14c45082a6d2ccbd4f5c7b35303bc35a84c00ad34",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:27e3e73997f5db3ca650594b51c166f67fb6d76ef4a3e287fc3675f8433a47c9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+      "contentHash": "f67d3f1a8d8b1f32a50a218723124f947a4c4d1f692a52fb0646e6a77b324501",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:d860e53edc853a1977966fa8d3b18172fad27163f195305cd23b99c0c6ed5879"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+      "contentHash": "7c3f061525ca3284a4fc824afe850d067c850426b97de6e70deedbdc2a1e845f",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:0b88bd99bf594a9ddeba226e3323bb529848776259b4f514141cd7d4f2ae52aa"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+      "contentHash": "df236c0dfa8b9c968d644e8b064d7128cc67f2a175904a6dfaa417e49f551513",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:50d8636bdba32365e0f2e5646bd28622e08fe9946430c4f90d7534ce4962d61e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+      "contentHash": "58d18f46133e79081b8319a5f19399afa66db95ee888c6578f6d8769234dd678",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:8e55b344deab217076da9fd9557d130eb33d8a57f1a77e1f52630dbc5a6a0110"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+      "contentHash": "58b2a8842f44efb0122a6882a0c96d4ad37e0c7167d886f1dc3d258d0304a3f5",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:7ff65329e144379cd646b38844d3d68c42a6a358270433234a4b3ec89da88921"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-06",
+      "contentHash": "0cf40eb541bd106fe51b4a58f1fc6551b60fe7da9a53c0658e26f8be8a4fe9e7",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:8358185c49ff053550610fcfd14842b1d4aa9651c5fb69668be0eb367158e970"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-readiness-01",
+      "contentHash": "e9fc40376db953052869dc1bca4f0701e3642972555c81a74015ecdb0a11912d",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:2379f5cd0e0c1a48d6092e87783b8421bb51922c0eff36910f9ce4b1cf802eb5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-readiness-02",
+      "contentHash": "6efca7344c6249cc866f1044433ee8b1c5ea860dfb2a52338d533fc096236d35",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:b77fcbac78e228fa44e06cc44fa7e00f633e1a1b6997eaadc1ffddeaf511d7ea"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-readiness-03",
+      "contentHash": "5c6bf7374db0863f11952aa5dbb3f979ee19d593f8fcfb79ac7500ff17dfcac1",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:747cc9e5c09ad506106cf6db71584386d1905c4e8539402ab0866b2b55ce7422"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-01",
+      "contentHash": "397863c5c860f049cc9b2dcca8008d7d71ea61897e9215eb414d43913b067887",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:a0c1fefc452bd19cac379b01b98642730cce55aec1286eb5057c96c872bcb2ca"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-02",
+      "contentHash": "0d4880be9962766ac07e89dda8c0ec9f63fd4eba2d276815f86ebaefcfb1580d",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:01a552ee86b84f5b0025260a3a2208571938c4bc2bd34c3b8d8528509b1e001b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-03",
+      "contentHash": "6ded21bb934d2b816c4b36de5924e4f95e872cf0bf6af4ebb84445c002f3cb3d",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:2722bb690649829c98c77fe5b0b20f0d287b9159df157b241012ccaf1024a00a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-01",
+      "contentHash": "ef6f0160cba624abcad6eb01fe6869070b122ae083b804ccb07ba8cdfc999a3a",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:c1861eb3484b6914075a0db1bd95c9322557351caea8090583370b65a3c6b69f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-02",
+      "contentHash": "3522921ab39d95eac9b107f4a1cc83dd5d75e46b28fbdb88f1190137bc3c618f",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:7bbc4fdb85d44b526b94f481962b51a05aa535af5817e73eb3ca51ca80a054df"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-03",
+      "contentHash": "b692f32daf43fee4090b66f94ed9995696eb8c0a53dd4013f89c38e70c32f45d",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:5206825c535368af514b9f337f8a06cc22fcf548ea5ba7bbd079c9195234b264"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+      "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:5dede477f2f5a11c37e5fa1aaa693066118999a3a941c7290ef067ff3fdff122"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+      "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:fe75a570677d45c3a0a8006f805653bd7681df08bb961ec2ef7b22fe88402731"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+      "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:0eb405f4c41f5c5ebc8e0b0077b0972814f0706afd48f480214e17fd0a618657"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+      "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:cc7d45a6c0c9ed1bbf6bb96c9ae41e1a29f33fd3433d50cbcd1e54af57ee82a8"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+      "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:2da4c381a95b7c92ac2fc5632e3d8dca809328441ef42efa5dd0d87accffd975"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
+      "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:0ea19daa17f515d8612f95abd45443b86db2eb420aef25ffe7aaab3cd149b909"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-01",
+      "contentHash": "c70159a49a2cddc7a5d29158c05cac3c544114789edefb9ed64cbb1c69442199",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:3581d1f3f4ebe7d88e41692ef1a375d00c7c0606407f2b950d339e5a50daf2a3"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-02",
+      "contentHash": "767389db5b50731ef6b76a7371430d5be830b22cb1713298eb7fdee6355e3af9",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:4446c319993c9707e7211e5fff7f015ccff2bff63e0a9f7c9bb569c1641ffc4a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-03",
+      "contentHash": "41bc5f5b1669d517687d3990fb0cf5a232801982fccb01f8ad291ebd56646eba",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:ce964960c83ad70f445949f6d6ae80e6a1de91d806c7c6b94998473ffaaf7db7"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-01",
+      "contentHash": "6244b207fb20f585a0079beba34937f8f354d728058225ff2ee0f08e385fb4e5",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:04c4aa2581066fac52e2704da67ca5bff5ee1a71d1855f01cd118ab6900a52c9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-02",
+      "contentHash": "4b230f7cb91d7061a670baa24722cae62a69becd2101ff0fd91dad0205ac21d8",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:28a4202be1d362cb01db49161eca131918387da5a828c67618527ffaa72c23a5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-03",
+      "contentHash": "255b2c3aa4449a6ddeb8c92749ebdbe8e96697b4c2418dc449832cbffea53095",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:93756f593b47132d1ed4645667716f7fa98ad945814e10dd493adc630480e016"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-checkpoint-01",
+      "contentHash": "61dc7c7e79282258f4de9650ec2c54e21a1b326b1935ba461cf66036371434d0",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:3d24f8c1f53cbdc366f7dec19656097a0d6a95ab03c3638aec73944db516ec22"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-checkpoint-02",
+      "contentHash": "03738c5d6f33486f2097acb7606d2a790013941af7b498938dc221bf840789b7",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:7c7c8a06739dfa2a212dff49b7f980c369b90c03af954505fc6d59e40fb90421"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-checkpoint-03",
+      "contentHash": "1995abd9c3ea42cd4f83ad034c577630869cb26ab4bedc77a77aae68774c6511",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:9526c85a5b63c2954dee5976562a25df22fe43fcc2d8169b516a1639c6f04b9e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+      "contentHash": "bcd6a8d6a9872c0f92a89fd8de2c0966b04f0433c507f5c87116a7c8dd04e518",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:b7387252ae8c35ec41ae3172ebd50581659bbd38291af9058a215bc61cfc8871"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+      "contentHash": "773a4c698b92e82f5c0bc16750a0325a90d18a6b55d9c0d555ff812ffd962b6d",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:01d8abdc4e2d446b5bf6a2a535287bdc779c6ea1f75985fbb7feee205d7adada"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+      "contentHash": "3d1f511d043270d8817d6ddb5ba9d698ce4e72c58574c084af29615836c29b95",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:575fc5c054c5f668d70a302b81ddee7aa71840f8efe826b34a61b5d62a87e7c4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+      "contentHash": "d6985b55bbe0a6e7a4589eec463d608921042e85e450a21056081687e2dd4816",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:33da2b799d409ecf82fc3713636b68271d8296b59a8898496205ee540dabac66"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+      "contentHash": "121336098663dd2d8a74b6a853e257ba3f24c0f53969ac589ccd75125da0201f",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:4bcb6059ade4388380932fa40d8745c9ecf771c8dd2fc8b1854f15c424e4ec70"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-06",
+      "contentHash": "b83bc636b32789145bb56c02e1373e8d072518472684f187384e28ecc0417d1e",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:6635c29964308dfee6ce0a6d581353ccd562a92936b6933126fd383d2ee96b11"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-readiness-01",
+      "contentHash": "519550032f5c247c98855dfe4f40345e3b0bc321be088f02ba99c5f391e86173",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:34956236c30ab887204448f0d47520cc9e18c35763dedf3887f163cc7c69df1d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-readiness-02",
+      "contentHash": "1ab3b95ba65ca28041c9b9373f0e6dfccbd32b17c3c7e046d95051f3d0b95056",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:a1cae4185e010260908adb9e47efaba04d627f065e8379d1bdbe214ea8a9915b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-readiness-03",
+      "contentHash": "b2578e913b23376c863c969070f0109c631ba07cc8551d1fe6da0f99c66edbc1",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:971720ee82b7c67eeb123fcd6aa3e382cf75c6f45e85fc05912af6059e26536d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-01",
+      "contentHash": "20506fca2e6890d64368d6d3e321de46f7f71a6ca671916796afc79a408ff3ec",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:c4e85f65aa77db803199db286fd70227dc357eb43c7486af435c9497b66c00f4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-02",
+      "contentHash": "4f055c32bf413961762207f6087d16641340cb5fa3b425b97c4f6974ba6766cf",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:b768010591424d488c6f833e1d50fe4b885f9f9ea3c1b9c9408eac6759f05c6a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-03",
+      "contentHash": "cdfc206427b84e6fce9b2f29045cb87edd0fcab67377d62d66faa20010d1f4bb",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:9026b4a2cc9f844270a44a54b84a0c7ddce1ef9a589a8eff233a64bce188ea66"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-checkpoint-01",
+      "contentHash": "855e0d6aa77905316c4da6e6ff3457746c8645353a815654c45d98c1727ab4d9",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:8f8db4dc59548c8df16108d895e1a226a583996c36284f31dfd4eb6355b23023"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-checkpoint-02",
+      "contentHash": "99ade1d9793c095216fbd6ec15f126ec1633c1fddd5bb115074869a1e3057cc6",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:b3bc71e5c6b30798ebb0d34a0d79929d608bfbbc78f4190f6545900eaf02c58c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-checkpoint-03",
+      "contentHash": "bf9db8f10bb7953ec5585d68fa4152e1600b101fdcf15cae8005c3b4a2d62c3b",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:6747ad9dbed3b2b58fe663adbe7c4b52f9421184a791b77872e8db97b9a96ac0"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+      "contentHash": "9fdad2bef96da3d9a62675cf3e1a6fdce97c7a77c880aa03f17871622ae1c5a1",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:d18df9f15638de44fc5ed915a7bf2ada5f79a73f117a393d62ab0efbc35cb18c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+      "contentHash": "3d961fe8ec1ddac88a111a0f8d2fa14b834b435e3919b933433caa6af2de7c21",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:2f2b5d08fe41837289d8145abe121af7f5c773eb1a1904b2a600ba0eed973cb1"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+      "contentHash": "c235dd0a7e8a91dc39a3a357e2a44f09468f72c88667353d2e55960e59894e64",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:c90fa30afbb44afb7c88c10abeac6cc9284d2d68ac14dd2810fd28c4856f314d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+      "contentHash": "1ff97caeeb67ea6fd1d5e1a9827667172839a4acafb4996315c6ea0f53f79de3",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:599737133755742a4ad287f28161fe3de447f7e2b715c5f1ea18672f0865930a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-05",
+      "contentHash": "73ec0cd8feef5a6d51c4383129d178109b5fc239971f83957cf52030a68a4a6b",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:591067b76be7f20c72db4da49ac4854c2a0c13315c14f9ddc68bce25cecb8eb5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-06",
+      "contentHash": "bd7dce866c93f4e6cd3b162c34f5ef56aa980ef19e26e285a1f084caac28518f",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:a075dc3353113df48ed508b1cd26456d03994fc6bdad0c4718e4e6ba8b7b6730"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-readiness-01",
+      "contentHash": "e69cd8e633ff01ba6984a8025e9b9286b3a349fb3bba9a5ae1c614387da5927b",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:6c6a34d16ce4fe0d0663874c5c00bc2322ece5d30e1e956b0cab397ff1e4a204"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-readiness-02",
+      "contentHash": "8d8c63487b7ede06bd581b646e0b97a4e7b60217e06b8a8b834cf2b7d9e32ad9",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:fa22e3616d8238ced716473817de65ba307278062a76a44679cc1f08c21a500e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-01",
+      "contentHash": "c2fe27a238732aa525aeeb156ea9e253934fd036ba82f6ba66735a934533ee1a",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:2d69d5adfecec8b344a32bdcc1c3dee269bab01e56a9c920db2b2828171e36d5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-02",
+      "contentHash": "ddfff44e832b99dbc69cb4435e433c08447655bf084345a3a2f99b9262de7a38",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:da1faa8e19df009ae062f3493f9da0740732fb079ff838bf6e225d82a1bbf064"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-03",
+      "contentHash": "6f489d05832bb356c06d92a551c502e204e2421def86660314a7bb2a2412a14e",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:1a2d625fbc5aa8a5d81aa778326ea37a1bb0cb2bfe0f79b5fae0302c19ecd9aa"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-checkpoint-01",
+      "contentHash": "b43d550f142ec7f497766e6cae6691fffc2a778e34a1516c4edcdb693736a3c1",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:8380f57e475221950654b8bc3b4ee81e5bd4e0ef13bce710bbe10b77a03d4e47"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-checkpoint-02",
+      "contentHash": "a049c2d73d0f76d91f329cfdc23541822267d74d554f0d2aa700729b9ff303d6",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:bca8d7f40442e425297323392aa2729668dc50914058b5fb3748d0a3483e9685"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-checkpoint-03",
+      "contentHash": "b12a98e664a51a06bac40a70dea68bf52741954388d8207a910a40fb37ab0b20",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:fff93a5ec805337343ef6607e1eb43cacc4fb036f30029c6b75af515a67c7803"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+      "contentHash": "5d7d87b074c2427a3b8396b4bf0ff3a59ffd3046624745435eef4df4ba0fd1b3",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:95dd9bcc93593c85554105b75985ee8070ff38b6301a726a0444450f5d65351f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+      "contentHash": "276f51d4eb0008cb42458ff2d1870b266b060ce577e0c45b2e0d28c88213b138",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:dddfb91ad3dba9a6f8a70d5a4a199484d308ed285a1cd1652f1fabbbaa96fd47"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+      "contentHash": "ce38e8dbe3ccae937e198ab81c741ab32500916977c79f9780885446efef18c8",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:924786f843b338d5a80b9dae0a0cd3fba7d2e6d7c23278c530ac01c33cded568"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+      "contentHash": "86cb3f410aa04973bcd2468c8c24d888b9b366467692624e4056d34d2be79e2c",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:ed754851762d11b271842282f241fd03c7a3e9db25a1dbab1b008f7a3b9f3b42"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+      "contentHash": "514df69b0a09efb6216cc7a2f331b9fa240581a3549e938faeab1fa150e80e67",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:fc5a73e733c6977cfa983bfe33cce72c7d9cc040e62edacd008c23de6999614c"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-06",
+      "contentHash": "51248a6c7ca7c7daaaf33b5c1c0e22928663539643ff9cb86deaa3e8b84893c1",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:2c9c9cbefbe9d0daf8d91656bdf767eef935456691934cf8b6c1cacea0e6fac9"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-readiness-01",
+      "contentHash": "377ae6033950717d6bf2135265bed04782c6cab5ebfbd7e3c9de596f9f36fbc1",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:c282e1facf3cfbe174be82fa84334a64a527331f4121973b624a31b416e4f5d5"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-readiness-02",
+      "contentHash": "ccb864562292383799839cec7c7d71ad2aee0e924ab109c0b4c79031af260038",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:8d6a2f45e31a7e9c783f60a0f1b29ce1994bea4db408b3d6bdf1103ea460d6d2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-01",
+      "contentHash": "5657c29e4d2b3d587c911fa3ca37a6d866eb43f0a32aaeb319fddfc3f2eebd95",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:62e98a052df2e6578d54bce8b33a492783055f08d83ccfc035837e31415bd211"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-02",
+      "contentHash": "e1ec797590f2f80030b6e71529acb8b6919dcbd46440c30d524d04666f97a574",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:bf701864d185ebc18a4dcda5c2af1abdc501507243f988d59062c58c648f463a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-03",
+      "contentHash": "d38c8105ea43f8f030b2cd001aac5afe7491d4dea39a8d6471c338a0dc0d493b",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:8154274f81a64a036b28a8b15b1653a85b158304865bf65d9d3c84d25d6a3c8f"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-checkpoint-01",
+      "contentHash": "9c23f6324df51c7d4ee13b47dd482013b2dfc0db9fe7668ae11382ae06c38fec",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:d50b39d48999bbbe64073c2c1abbd0c9933beb0b5df841f34abfa24ed7d598c6"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-checkpoint-02",
+      "contentHash": "48b7703faf39a4be1e414b8adf29e24224c8e9893ca23f5e4110387222955865",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:e36792d6efc140585cb3d7389dded11fbe5c89dba0c46ba928298635a8a31c6b"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-checkpoint-03",
+      "contentHash": "156d90f9d739612beec107a7f0d7fc209bee1e8b0704502f76cf6cf0d18d8306",
+      "assessmentStage": "checkpoint",
+      "itemReviewSourceHash": "sha256:1bd2477d4669403f9822f47035fc7b220d418a843061888aac1649c5aac1ff4e"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+      "contentHash": "c43b5a38256bbf7ff2e6cb817c9ff21608b53e6f28eca3018f45f3ec36453168",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:2e5da06db88818489afdf03d8a6643e4f47d55c29fad2b825bd21266a949d0c0"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+      "contentHash": "d1e08f5ef65b7a282f66e89e0361c8effa8776c92d2821c6a3c7cd326d40a803",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:0991ee8d4f7f52d7b97b4aa8227e0e6bc565242d734e864e04a1803f1daf59ce"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+      "contentHash": "2f6e196bdfab3098d77c501dbad5526e76f3168d9147bc31ce046ef7fb5a2e94",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:bf77e56560ea7e2d7915e73fbfe876321d9f45ac11285778a2d116948e733ee2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+      "contentHash": "d730d33ed534102bda68f3c19c34b6d74b3dea053b6335dcca05f0210a317890",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:850a1836f48797ffc39475d8119872a03d0cf60e59f35b122d3c1239d01ec83a"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+      "contentHash": "a767cf3733c1de02f19d1121be08fe68723615cab2d00104f7b29d8e8a1e36d4",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:b50c33cf956539745ad38f6b9456e006d62160ba606dc2d3b91fd01d7c8cccb8"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-06",
+      "contentHash": "260a676a923e9db5164a714f7b1096c619c52e1e1dbfeb717dcbb11b73ed0427",
+      "assessmentStage": "practice",
+      "itemReviewSourceHash": "sha256:3824d0c1c3b0e2e69a85e399d3c7b5ad57bf1b04659d03d2bec24e95107b119d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-readiness-01",
+      "contentHash": "c8d74ccbd373359221ea8b5413503c388e1455cc86a2cf8631253e60770d3472",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:b3e991b5976fb0b64ba4aef98858a98c52bfab49a44938d633c24f9e691b8715"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-readiness-02",
+      "contentHash": "6332d99da2160479b57b6aeca5566f9012779adb91cef204ab826049a0ca31b7",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:70643768ffbf5c07b9610b417db2ac211103200275853e35d8f62a8b11ecad54"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-readiness-03",
+      "contentHash": "e404d007032e702411ebdc4f3d084aefe7a47685f0155a87e25354de84163e4b",
+      "assessmentStage": "readiness-gate",
+      "itemReviewSourceHash": "sha256:26eaaca4b176d58e92c77a2ffef0d905b4041c91b3a98943418c6015734c85c8"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-01",
+      "contentHash": "493c407bf8c54dee6ee2cf7bd220335a6a0ec8770fd806d1e8d7df00c0d86a8c",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:c3e02d81ab378565c15c6fc1935cc31cbd6f855a8983f73bdea9b74606ec80e2"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-02",
+      "contentHash": "317022ddd71b56df5d1ce162c31467e1f85da812ff2e29936f1fde86cd1863ed",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:827da15dccac999560bf6d63a952380e1ce4c9181506a4ede2dc9abe427a16c7"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-03",
+      "contentHash": "3ab00cdb69288a32aa43975c9677a76d7c3b43fe5a6205709cd1ab65a547f910",
+      "assessmentStage": "remediation",
+      "itemReviewSourceHash": "sha256:ab1e517dce45ea97b793d71447e3f1ce0145f43f1728ba0e83602fbe3f8f720d"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:preset-adaptive-question:preset-q-05",
+      "contentHash": "247b6b50e4066e4ca47eabcaf30336000b95dc0004194927aa97a5b31eb04fa4",
+      "assessmentStage": "readiness",
+      "itemReviewSourceHash": "sha256:293b4b9380f229a90f2816f9c67da36475af49523bd7d680121d3c0c849f89e4"
+    },
+    {
+      "catalogItemId": "adaptive-assessment-item:preset-adaptive-question:preset-q-34",
+      "contentHash": "6b0ee4b00844e5b91ff9c86868cf3afc82be85c21928560bf28cda1d22496bba",
+      "assessmentStage": "readiness",
+      "itemReviewSourceHash": "sha256:d727e463c34690bc6044b045d3a9112e0dc0662e631995579751cbd881c3ffda"
+    }
+  ]
+}
