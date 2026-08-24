@@ -20,6 +20,7 @@ const batchRequestSchema = z.object({
   conversionPolicyId: z.string().trim().min(1).max(160).nullable().optional(),
   conversionImagePolicyId: z.string().trim().min(1).max(160).nullable().optional(),
   conversionDocumentPolicyId: z.string().trim().min(1).max(160).nullable().optional(),
+  visualPolicyId: z.string().trim().min(1).max(160).nullable().optional(),
   maxItems: z.number().int().positive().max(200).optional(),
   idempotencyKey: z.string().trim().min(8).max(160),
   rerunReason: z.string().trim().min(8).max(500).optional(),
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
       policyId: body.policyId ?? null,
       conversionImagePolicyId: body.conversionImagePolicyId ?? (useSeededPair ? gradingMathpixPolicyId(mathpixVersion, 'image') : null),
       conversionDocumentPolicyId: body.conversionDocumentPolicyId ?? (useSeededPair ? gradingMathpixPolicyId(mathpixVersion, 'document') : null),
+      visualPolicyId: body.visualPolicyId ?? null,
       rerunReason: mutation.rerunReason,
     } });
     const queueResult = result.batch.job ? await enqueueMathDocumentGradingJob({ kind: 'batch', jobId: result.batch.job.id, batchId: result.batch.id }, prisma) : { queued: true, queueJobId: null, state: 'QUEUED' as const, retryable: false };

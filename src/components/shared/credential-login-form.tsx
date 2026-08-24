@@ -73,7 +73,12 @@ export function CredentialLoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={cn('space-y-4', className)}>
+    <form
+      action="/login"
+      method="post"
+      onSubmit={handleSubmit}
+      className={cn('space-y-4', className)}
+    >
       <Input
         type="text"
         name="account"

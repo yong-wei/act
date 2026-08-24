@@ -71,6 +71,40 @@ describe('math-document grading worker recovery dispatch', () => {
     expect(status.missing).toContain('GRADING_AUDIT_SECRET');
   });
 
+  it('allows HTTP object storage only on the local development loopback', () => {
+    const local = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'development',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://127.0.0.1:9000',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+    const remote = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'development',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://objects.example',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+    const production = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'production',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://127.0.0.1:9000',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+
+    expect(local.capabilities.objectStore).toBe(true);
+    expect(local.missing).not.toContain('SUBMISSION_S3_ENDPOINT');
+    expect(remote.capabilities.objectStore).toBe(false);
+    expect(remote.missing).toContain('SUBMISSION_S3_ENDPOINT');
+    expect(production.capabilities.objectStore).toBe(false);
+    expect(production.missing).toContain('SUBMISSION_S3_ENDPOINT');
+  });
+
   it('reports all non-secret worker capabilities when the environment contract is complete', () => {
     const status = getMathDocumentGradingWorkerCapabilityStatus({
       NODE_ENV: 'production',

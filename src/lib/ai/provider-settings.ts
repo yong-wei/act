@@ -56,6 +56,13 @@ export const AI_MODEL_TEST_PROMPT = [
 
 const BUILTIN_SILICONFLOW_MODELS: AIProviderModelSetting[] = [
   {
+    id: 'qwen-3-5-35b-a3b',
+    label: 'Qwen3.5 35B A3B',
+    model: 'Qwen/Qwen3.5-35B-A3B',
+    description: '支持图像输入的评分与视觉描述候选模型，关闭推理输出以保留可消费的结构化结果。',
+    options: { enableThinking: false },
+  },
+  {
     id: 'qwen-3-6-35b-a3b',
     label: 'Qwen3.6 35B A3B',
     model: 'Qwen/Qwen3.6-35B-A3B',

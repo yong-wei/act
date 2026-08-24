@@ -11,6 +11,7 @@ import {
   buildRerunIdentity,
   externalProcessingPolicyHash,
   gradingMathpixPolicyId,
+  normalizeDocumentEvidence,
   gradingRequestScope,
   normalizeTextAnswerEvidence,
   normalizeExternalProcessingPolicy,
@@ -26,18 +27,21 @@ import {
   convertProtectedSubmission,
   ConversionCancelledError,
   ConversionLeaseLostError,
-  toAnswerEvidence,
+  renderPdfPagesToPng,
   type LocalDocumentConverter,
   type MathpixClient,
   type ProtectedSubmissionSource,
 } from './math-document-conversion';
 import {
-  evaluateWithProvider,
+  evaluateFrozenQuestionEvidence,
+  type GradingEvidenceAttachment,
   type GradingProviderRuntime,
   type ValidatedGradingDraft,
 } from './math-document-grading-evaluator';
 import { ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION } from './assignment-attachment-understanding';
 import { freezeLifecyclePolicy, gradingTombstoneLookupKey, requireConfiguredLifecyclePolicies } from './math-document-grading-lifecycle';
+import { normalizeVisualEvidence, projectVisualEvidenceIntoDocument, type VisualEvidence, type VisualEvidenceSourceKind } from './visual-evidence-contract';
+import { describeVisualEvidence, type VisualDescriptionResult } from './visual-evidence-description';
 
 type MathGradingDb = PrismaClient | Record<string, any>;
 
@@ -81,6 +85,220 @@ export async function writeRenderedObjectToSubmissionStore(input: {
   const metadata = await input.store.head(signed.key);
   if (!metadata || metadata.ownerId !== input.ownerId || metadata.answerId !== input.answerId || metadata.sizeBytes !== input.bytes.byteLength || metadata.checksum !== input.checksum || (input.attemptId && metadata.attemptId !== input.attemptId) || (input.workerClaimToken && metadata.workerClaimFingerprint !== sha256(input.workerClaimToken))) throw new Error('rendered-object-ownership-verification-failed');
   return signed.key;
+}
+
+type PreparedVisualEvidence = VisualEvidence & {
+  bytes: Uint8Array;
+  mediaType: string;
+  descriptionAudit?: VisualDescriptionResult;
+};
+
+const MAX_VISUAL_EVIDENCE_ITEMS = 24;
+const MAX_VISUAL_EVIDENCE_BYTES = 32 * 1024 * 1024;
+
+async function prepareConversionVisualEvidence(input: {
+  conversionId: string;
+  attemptId: string;
+  questionId: string | null;
+  source: ProtectedSubmissionSource;
+  result: Awaited<ReturnType<typeof convertProtectedSubmission>>;
+  store: SubmissionObjectStore;
+  classId: string;
+  renderPdfPages?: typeof renderPdfPagesToPng;
+  now: Date;
+}): Promise<{ items: PreparedVisualEvidence[]; limitations: string[] }> {
+  const build = (entry: {
+    id: string;
+    sourceKind: VisualEvidenceSourceKind;
+    bytes: Uint8Array;
+    mediaType: string;
+    pageNumber: number | null;
+    limitations?: string[];
+    processorVersion: string;
+  }) => {
+    const visual = normalizeVisualEvidence({
+      id: entry.id,
+      sourceKind: entry.sourceKind,
+      sourceChecksum: input.source.checksum,
+      imageChecksum: sha256(entry.bytes),
+      questionId: input.questionId,
+      pageNumber: entry.pageNumber,
+      bbox: null,
+      description: null,
+      confidence: null,
+      processorVersion: entry.processorVersion,
+      limitations: [
+        ...(entry.limitations ?? []),
+        ...(/^image\/(?:png|jpeg|webp)$/u.test(entry.mediaType) ? [] : ['visual-evidence-media-type-unsupported']),
+      ],
+      createdAt: input.now.toISOString(),
+    });
+    return { ...visual, bytes: entry.bytes, mediaType: entry.mediaType };
+  };
+  const bounded = (items: PreparedVisualEvidence[]) => {
+    const totalBytes = items.reduce((sum, item) => sum + item.bytes.byteLength, 0);
+    if (items.length > MAX_VISUAL_EVIDENCE_ITEMS || totalBytes > MAX_VISUAL_EVIDENCE_BYTES) {
+      return { items: [], limitations: ['visual-evidence-limits-exceeded'] };
+    }
+    return { items, limitations: [] };
+  };
+  const word = input.result.wordRepresentation;
+  if (word?.images.length) {
+    return bounded(word.images.map((image, index) => {
+        const anchor = word.anchors.find((candidate) => candidate.paragraphId === image.paragraphId);
+        return build({
+          id: `visual:${input.conversionId}:word:${index + 1}`,
+          sourceKind: 'word-embedded-image',
+          bytes: image.bytes,
+          mediaType: image.mediaType,
+          pageNumber: anchor?.pdfPageNumber ?? null,
+          limitations: anchor?.pdfPageNumber ? [] : ['visual-evidence-page-unresolved'],
+          processorVersion: word.extractorVersion,
+        });
+      }));
+  }
+  const mimeType = input.source.mimeType.toLowerCase();
+  if (mimeType !== 'application/pdf' && !mimeType.startsWith('image/')) return { items: [], limitations: [] };
+  const bytes = await input.store.readObject(input.source.objectKey);
+  if (bytes.byteLength !== input.source.sizeBytes || sha256(bytes) !== input.source.checksum) {
+    return { items: [], limitations: ['visual-evidence-source-integrity-failed'] };
+  }
+  if (mimeType.startsWith('image/')) {
+    return bounded([build({
+        id: `visual:${input.conversionId}:attachment:1`,
+        sourceKind: 'image-attachment',
+        bytes,
+        mediaType: mimeType,
+        pageNumber: 1,
+        processorVersion: 'submission-image.v1',
+      })]);
+  }
+  try {
+    const pages = await (input.renderPdfPages ?? renderPdfPagesToPng)({ pdfBytes: bytes });
+    const boundedPages = bounded(pages.map((page) => build({
+        id: `visual:${input.conversionId}:pdf:${page.pageNumber}`,
+        sourceKind: 'pdf-page-image',
+        bytes: page.bytes,
+        mediaType: 'image/png',
+        pageNumber: page.pageNumber,
+        processorVersion: 'pdftoppm.v1',
+      })));
+    return pages.length === 0 ? { items: [], limitations: ['visual-evidence-pdf-pages-empty'] } : boundedPages;
+  } catch {
+    return { items: [], limitations: ['visual-evidence-pdf-render-failed'] };
+  }
+}
+
+function visualEvidencePersistenceData(input: {
+  conversionId: string;
+  attemptId: string;
+  visual: PreparedVisualEvidence;
+  objectKey: string;
+  mediaType: string;
+  sizeBytes: number;
+  now: Date;
+}) {
+  const descriptionAudit = input.visual.descriptionAudit;
+  return {
+    id: input.visual.id,
+    conversionId: input.conversionId,
+    attemptId: input.attemptId,
+    questionId: input.visual.questionId,
+    sourceKind: input.visual.sourceKind,
+    sourceChecksum: input.visual.sourceChecksum,
+    imageChecksum: input.visual.imageChecksum,
+    objectKey: input.objectKey,
+    mediaType: input.mediaType,
+    sizeBytes: input.sizeBytes,
+    pageNumber: input.visual.pageNumber,
+    bbox: input.visual.bbox,
+    description: input.visual.description,
+    confidence: input.visual.confidence,
+    processorVersion: input.visual.processorVersion,
+    provider: descriptionAudit?.provider ?? null,
+    model: descriptionAudit?.model ?? null,
+    policyVersion: descriptionAudit?.policyVersion ?? null,
+    providerRequestId: descriptionAudit?.providerRequestId ?? null,
+    providerDeletionHandle: descriptionAudit?.deletionHandle ?? null,
+    providerRequestedAt: descriptionAudit?.providerRequestedAt ?? null,
+    providerProcessedAt: descriptionAudit?.providerProcessedAt ?? null,
+    limitations: input.visual.limitations,
+    readiness: input.visual.readiness,
+    contentHash: input.visual.contentHash,
+    updatedAt: input.now,
+  };
+}
+
+type FrozenVisualAttachment = {
+  id: string;
+  questionId: string | null;
+  objectKey: string;
+  checksum: string;
+  mediaType: string;
+  sizeBytes: number;
+  readiness: string;
+  contentHash: string;
+};
+
+function normalizeFrozenVisualAttachmentManifest(value: unknown): FrozenVisualAttachment[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const source = entry as Record<string, unknown>;
+    const id = typeof source.id === 'string' ? source.id.trim() : '';
+    const objectKey = typeof source.objectKey === 'string' ? source.objectKey.trim() : '';
+    const checksum = typeof source.checksum === 'string' ? source.checksum.trim() : '';
+    const mediaType = typeof source.mediaType === 'string' ? source.mediaType.trim() : '';
+    const contentHash = typeof source.contentHash === 'string' ? source.contentHash.trim() : '';
+    const sizeBytes = Number(source.sizeBytes);
+    const readiness = typeof source.readiness === 'string' ? source.readiness.trim() : '';
+    const questionId = typeof source.questionId === 'string' && source.questionId.trim() ? source.questionId.trim() : null;
+    if (!id || !objectKey || !/^sha256:[a-f0-9]{64}$/u.test(checksum) || !mediaType || !contentHash || !Number.isInteger(sizeBytes) || sizeBytes < 1 || !readiness) return [];
+    return [{ id, questionId, objectKey, checksum, mediaType, sizeBytes, readiness, contentHash }];
+  });
+}
+
+async function loadFrozenVisualAttachments(input: {
+  store: SubmissionObjectStore;
+  manifest: unknown;
+  questionId: string;
+  ownerId: string;
+  answerId: string;
+  attemptId: string;
+}): Promise<{ attachments: GradingEvidenceAttachment[]; error: string | null }> {
+  const manifest = normalizeFrozenVisualAttachmentManifest(input.manifest);
+  if (Array.isArray(input.manifest) && input.manifest.length !== manifest.length) {
+    return { attachments: [], error: 'visual-evidence-manifest-invalid' };
+  }
+  if (manifest.length === 0) return { attachments: [], error: null };
+  if (manifest.some((item) => item.questionId !== input.questionId || item.readiness !== 'ready')) {
+    return { attachments: [], error: 'visual-evidence-incomplete' };
+  }
+  const attachments: GradingEvidenceAttachment[] = [];
+  for (const item of manifest) {
+    const metadata = await input.store.head(item.objectKey);
+    if (!metadata
+      || metadata.ownerId !== input.ownerId
+      || metadata.answerId !== input.answerId
+      || metadata.attemptId !== input.attemptId
+      || metadata.sizeBytes !== item.sizeBytes
+      || metadata.mimeType !== item.mediaType
+      || metadata.checksum !== item.checksum) {
+      return { attachments: [], error: 'visual-evidence-object-integrity-failed' };
+    }
+    const bytes = await input.store.readObject(item.objectKey);
+    if (bytes.byteLength !== item.sizeBytes || sha256(bytes) !== item.checksum) {
+      return { attachments: [], error: 'visual-evidence-object-integrity-failed' };
+    }
+    attachments.push({
+      kind: 'image',
+      data: bytes,
+      mediaType: item.mediaType,
+      checksum: item.checksum,
+      questionId: item.questionId,
+    });
+  }
+  return { attachments, error: null };
 }
 
 async function deleteOwnedRenderedObject(input: { store: SubmissionObjectStore; key: string; ownerId: string; answerId: string; checksum: string | null; attemptId?: string; workerClaimToken?: string }): Promise<'deleted' | 'missing'> {
@@ -658,6 +876,9 @@ export async function enqueueDocumentConversion(input: {
   policyId?: string | null;
   policySnapshot?: ExternalProcessingPolicy | null;
   policySnapshotHash?: string | null;
+  visualPolicyId?: string | null;
+  visualPolicySnapshot?: ExternalProcessingPolicy | null;
+  visualPolicySnapshotHash?: string | null;
   allowDefaultPolicyDiscovery?: boolean;
   idempotencyKey: string;
   reason?: string;
@@ -715,11 +936,21 @@ export async function enqueueDocumentConversion(input: {
   const policySnapshotHash = input.policySnapshotHash ?? externalProcessingPolicyHash(policySnapshot);
   if (resolvedPolicyId && input.policySnapshotHash && externalProcessingPolicyHash(currentPolicy) !== input.policySnapshotHash) throw new Error('provider-policy-snapshot-mismatch');
   assertAnswerConversionPolicyMatchesMime(policySnapshot, asset.mimeType);
+  const visualPolicyRow = input.visualPolicyId
+    ? await input.db.gradingProviderPolicy.findUnique({ where: { id: input.visualPolicyId }, select: GRADING_PROVIDER_POLICY_SELECT })
+    : null;
+  if (input.visualPolicyId && !visualPolicyRow) throw new Error('grading-provider-policy-not-found');
+  const currentVisualPolicy = toGradingProviderPolicySnapshot(visualPolicyRow);
+  const visualPolicySnapshot = normalizeExternalProcessingPolicy(input.visualPolicySnapshot ?? currentVisualPolicy);
+  const visualPolicySnapshotHash = input.visualPolicySnapshotHash ?? externalProcessingPolicyHash(visualPolicySnapshot);
+  if (input.visualPolicyId && input.visualPolicySnapshotHash && externalProcessingPolicyHash(currentVisualPolicy) !== input.visualPolicySnapshotHash) throw new Error('provider-policy-snapshot-mismatch');
+  if (visualPolicySnapshot && visualPolicySnapshot.purpose !== 'visual-description') throw new Error('provider-policy-purpose-mismatch');
   const requestHash = buildGradingRequestHash('document-conversion', {
     assetId: input.assetId.trim(),
     attemptId: input.attemptId.trim(),
     adapterVersion: input.adapterVersion.trim(),
     policyId: resolvedPolicyId,
+    visualPolicyId: input.visualPolicyId ?? null,
     reason: input.reason?.trim() || null,
   });
   const dedupeKey = buildPipelineDedupeKey('document-conversion', {
@@ -727,7 +958,8 @@ export async function enqueueDocumentConversion(input: {
     checksum: asset.checksum,
     adapterVersion: input.adapterVersion,
     policySnapshotHash,
-    rerunReason: input.reason?.startsWith('conversion-rerun:') ? input.reason : null,
+    visualPolicySnapshotHash,
+    rerunIdentity: input.rerunIdentity ?? null,
   });
   const requestResult = await withGradingRequestIdempotency({
     db: input.db,
@@ -758,6 +990,9 @@ export async function enqueueDocumentConversion(input: {
           policyId: resolvedPolicyId,
           policySnapshot: policySnapshot ?? null,
           policySnapshotHash,
+          visualPolicyId: input.visualPolicyId ?? null,
+          visualPolicySnapshot: visualPolicySnapshot ?? null,
+          visualPolicySnapshotHash,
           ...conversionLifecycle,
           version: (versionRow?.version ?? 0) + 1,
           dedupeKey,
@@ -938,14 +1173,16 @@ export async function processDocumentConversionJob(input: {
   store?: SubmissionObjectStore;
   mathpix?: MathpixClient;
   local?: LocalDocumentConverter;
+  visualProvider?: GradingProviderRuntime;
   persistEvidence?: boolean;
   writeRendered?: (input: { key: string; bytes: Uint8Array; mimeType: string; checksum: string; ownerId: string; answerId: string; attemptId: string; workerClaimToken: string; signal?: AbortSignal }) => Promise<string>;
+  renderPdfPages?: typeof renderPdfPagesToPng;
   signal?: AbortSignal;
   parentLeaseLost?: () => Promise<boolean> | boolean;
   now?: Date;
 }): Promise<{ conversion: any; evidence: any | null }> {
   const now = input.now ?? new Date();
-  const job = await input.db.gradingJob.findUnique({ where: { id: input.jobId }, include: { conversion: { include: { answerEvidence: { include: { blocks: true } }, asset: { include: { answer: { include: { submission: true } } } }, attempt: true, policy: true } } } });
+  const job = await input.db.gradingJob.findUnique({ where: { id: input.jobId }, include: { conversion: { include: { answerEvidence: { include: { blocks: true } }, asset: { include: { answer: { include: { submission: true } } } }, attempt: true, policy: true, visualPolicy: true } } } });
   if (!job?.conversion) throw new Error('conversion-job-not-found');
   const terminalConversion = ['SUCCEEDED', 'FALLBACK', 'BLOCKED', 'FAILED', 'CANCELLED', 'CONTENT_UNAVAILABLE', 'DELETED'].includes(job.conversion.state);
   const terminalJob = ['SUCCEEDED', 'FAILED', 'CANCELLED', 'BLOCKED', 'CONTENT_UNAVAILABLE'].includes(job.state);
@@ -967,11 +1204,15 @@ export async function processDocumentConversionJob(input: {
     return settleCancelledConversion(input.db, job, job.conversion, now);
   }
   const policy = await resolveWorkerGradingProviderPolicy({ db: input.db, policyId: job.conversion.policyId, snapshot: job.conversion.policySnapshot, snapshotHash: job.conversion.policySnapshotHash, fallbackPolicy: job.conversion.policy, expectedPurpose: 'answer-conversion' });
+  const visualPolicy = job.conversion.visualPolicyId || job.conversion.visualPolicySnapshot
+    ? await resolveWorkerGradingProviderPolicy({ db: input.db, policyId: job.conversion.visualPolicyId, snapshot: job.conversion.visualPolicySnapshot, snapshotHash: job.conversion.visualPolicySnapshotHash, fallbackPolicy: job.conversion.visualPolicy, expectedPurpose: 'visual-description' })
+    : null;
   const workerClaimToken = input.workerClaimToken ?? randomUUID();
   const store = input.store ?? createSubmissionObjectStore();
   const renderedCandidateKey = `grading-rendered/${job.conversion.id}/${job.conversion.attemptId}/${sha256(workerClaimToken).slice(0, 32)}`;
   let renderedObjectKey: string | null = null;
   let renderedChecksum: string | null = null;
+  const visualObjectKeys: Array<{ key: string; checksum: string }> = [];
   let leaseHeartbeat: ReturnType<typeof startGradingJobLeaseHeartbeat> | null = null;
   const leaseAbortController = new AbortController();
   if (input.signal?.aborted) leaseAbortController.abort();
@@ -1033,6 +1274,56 @@ export async function processDocumentConversionJob(input: {
   });
   await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, now, fencedCode: 'conversion-worker-fenced' });
   if (await isConversionCancellationRequested(input.db, job.id, job.conversion.id, job, job.conversion)) return settleCancelledConversion(input.db, job, job.conversion, now, workerClaimToken);
+  const visualPreparation = await prepareConversionVisualEvidence({
+    conversionId: job.conversion.id,
+    attemptId: source.attemptId,
+    questionId: job.conversion.asset?.answer?.assignmentQuestionId ?? null,
+    source,
+    result,
+    store,
+    classId: source.classId,
+    renderPdfPages: input.renderPdfPages,
+    now,
+  });
+  if (visualPreparation.items.length > 0 && !input.writeRendered) throw new Error('visual-evidence-object-writer-unavailable');
+  for (const [index, visual] of visualPreparation.items.entries()) {
+    await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, fencedCode: 'conversion-worker-fenced' });
+    const candidateKey = `grading-visual/${job.conversion.id}/${source.attemptId}/${sha256(`${workerClaimToken}:${index}:${visual.contentHash}`).slice(7, 39)}`;
+    const objectKey = await input.writeRendered!({
+      key: candidateKey,
+      bytes: visual.bytes,
+      mimeType: visual.mediaType,
+      checksum: visual.imageChecksum,
+      ownerId: source.ownerId,
+      answerId: source.answerId,
+      attemptId: source.attemptId,
+      workerClaimToken,
+      signal: leaseAbortController.signal,
+    });
+    visualObjectKeys.push({ key: objectKey, checksum: visual.imageChecksum });
+    if (visualPolicy) {
+      const description = await describeVisualEvidence({
+        attachment: { kind: 'image', data: visual.bytes, mediaType: visual.mediaType, checksum: visual.imageChecksum, questionId: visual.questionId },
+        questionId: visual.questionId ?? '',
+        pageNumber: visual.pageNumber,
+        classId: source.classId,
+        policy: visualPolicy,
+        provider: input.visualProvider,
+        idempotencyKey: `visual-description:${job.conversion.id}:${visual.id}`,
+        signal: leaseAbortController.signal,
+      });
+      const described = normalizeVisualEvidence({
+        ...visual,
+        description: description.description,
+        confidence: description.confidence,
+        pageNumber: description.pageNumber ?? visual.pageNumber,
+        bbox: description.bbox ?? visual.bbox,
+        limitations: description.limitations,
+        processorVersion: `${visual.processorVersion}+${description.model}`,
+      });
+      visualPreparation.items[index] = { ...described, bytes: visual.bytes, mediaType: visual.mediaType, descriptionAudit: description };
+    }
+  }
   if (result.renderedBytes) {
     if (!input.writeRendered) throw new Error('rendered-object-writer-unavailable');
     await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, fencedCode: 'conversion-worker-fenced' });
@@ -1046,7 +1337,28 @@ export async function processDocumentConversionJob(input: {
       return settleCancelledConversion(input.db, job, job.conversion, now, workerClaimToken);
     }
   }
-  const normalized = toAnswerEvidence(result);
+  const visualEvidenceIncomplete = visualPreparation.items.some((item) => item.readiness !== 'ready')
+    || visualPreparation.limitations.length > 0;
+  const visualProjection = projectVisualEvidenceIntoDocument({
+    markdown: result.markdown,
+    blocks: result.blocks,
+    visualEvidence: visualPreparation.items,
+  });
+  const normalized = visualEvidenceIncomplete
+    ? normalizeDocumentEvidence({
+        sourceHash: result.sourceChecksum,
+        markdown: visualProjection.markdown,
+        blocks: visualProjection.blocks,
+        limitations: [...result.warnings, ...result.limitations, ...visualPreparation.limitations, ...visualProjection.limitations],
+        anchorVersion: `${result.adapterVersion}:anchors`,
+      })
+    : normalizeDocumentEvidence({
+        sourceHash: result.sourceChecksum,
+        markdown: visualProjection.markdown,
+        blocks: visualProjection.blocks,
+        limitations: [...result.warnings, ...result.limitations, ...visualProjection.limitations],
+        anchorVersion: `${result.adapterVersion}:anchors`,
+      });
   await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, fencedCode: 'conversion-worker-fenced' });
   const configuredAnswerEvidenceLifecycle = freezeLifecyclePolicy((await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence'])).find((policy: any) => policy.dataClass === 'answer-evidence'), now);
   const conversion = await input.db.$transaction(async (tx: any) => {
@@ -1054,6 +1366,8 @@ export async function processDocumentConversionJob(input: {
     const warningCodes = [...new Set([
       ...result.warnings,
       ...result.limitations,
+      ...visualPreparation.limitations,
+      ...(visualEvidenceIncomplete ? ['visual-evidence-not-delivered'] : []),
     ])];
     const updated = await updateActivePersistedRecord({
       model: tx.documentConversion,
@@ -1089,6 +1403,22 @@ export async function processDocumentConversionJob(input: {
       data: warningCodes.map((code) => ({ conversionId: updated.id, code, detail: null, severity: result.state === 'blocked' ? 'blocked' : 'warning' })),
       skipDuplicates: true,
     });
+    if (tx.documentConversionVisualEvidence) {
+      await tx.documentConversionVisualEvidence.deleteMany({ where: { conversionId: updated.id } });
+      if (visualPreparation.items.length > 0) {
+        await tx.documentConversionVisualEvidence.createMany({
+          data: visualPreparation.items.map((visual, index) => visualEvidencePersistenceData({
+            conversionId: updated.id,
+            attemptId: source.attemptId,
+            visual,
+            objectKey: visualObjectKeys[index]!.key,
+            mediaType: visual.mediaType,
+            sizeBytes: visual.bytes.byteLength,
+            now,
+          })),
+        });
+      }
+    }
     const existingEvidence = input.persistEvidence === false
       ? null
       : await tx.answerEvidence.findFirst({ where: { conversionId: updated.id } });
@@ -1170,6 +1500,29 @@ export async function processDocumentConversionJob(input: {
   return { conversion: conversion.updated, evidence: conversion.evidence };
   } catch (error) {
     let orphanCleanupError: unknown = null;
+    const recordCleanupFailure = async (key: string, checksum: string | null, cleanupError: unknown) => {
+      try {
+        await recordRenderedOrphanCleanupFailure({ db: input.db, conversion: job.conversion, key, checksum, attemptId: job.conversion.attemptId ?? '', workerClaimToken, error: cleanupError, now });
+      } catch (auditError) {
+        orphanCleanupError ??= auditError;
+      }
+    };
+    for (const visual of visualObjectKeys) {
+      try {
+        await deleteOwnedRenderedObject({
+          store,
+          key: visual.key,
+          ownerId: job.conversion.asset?.answer?.submission?.frozenStudentId ?? '',
+          answerId: job.conversion.asset?.answerId ?? '',
+          checksum: visual.checksum,
+          attemptId: job.conversion.attemptId ?? '',
+          workerClaimToken,
+        });
+      } catch (cleanupError) {
+        orphanCleanupError ??= cleanupError;
+        await recordCleanupFailure(visual.key, visual.checksum, cleanupError);
+      }
+    }
     if (renderedObjectKey) {
       try {
         await deleteOwnedRenderedObject({
@@ -1182,8 +1535,8 @@ export async function processDocumentConversionJob(input: {
           workerClaimToken,
         });
       } catch (cleanupError) {
-        orphanCleanupError = cleanupError;
-        await recordRenderedOrphanCleanupFailure({ db: input.db, conversion: job.conversion, key: renderedObjectKey, checksum: renderedChecksum, attemptId: job.conversion.attemptId ?? '', workerClaimToken, error: cleanupError, now });
+        orphanCleanupError ??= cleanupError;
+        await recordCleanupFailure(renderedObjectKey, renderedChecksum, cleanupError);
       }
     }
     if (orphanCleanupError) throw new Error('rendered-orphan-cleanup-failed');
@@ -1238,11 +1591,13 @@ export async function enqueueGradingRun(input: {
   now?: Date;
 }): Promise<{ run: any; job: any; replay: boolean }> {
   const now = input.now ?? new Date();
-  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, conversion: { select: { adapter: true } }, attempt: { include: { answer: { include: { assets: { select: { id: true } }, submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
+  const row = await input.db.answerEvidence.findUnique({ where: { id: input.evidenceId }, include: { blocks: true, conversion: { select: { adapter: true, renderedObjectKey: true } }, attempt: { include: { answer: { include: { assets: { select: { id: true, mimeType: true, originalName: true } }, submission: { include: { audience: { select: { classId: true, class: { select: { teacherId: true } } } } } }, question: true } } } } } });
   if (!row || row.attemptId !== input.attemptId) throw new Error('grading-evidence-not-found');
   if (row.attemptId === null || !row.attempt?.answer || !row.attempt.answer.submission || !row.attempt.answer.question || !row.attempt.answer.submission.audience?.class || !row.attempt.answer.submission.frozenAudienceClassId || !row.attempt.answer.question.assignmentRevisionId) throw new Error('grading-content-unavailable:association-missing');
   if (row.readiness !== 'READY') throw new Error('grading-evidence-not-ready');
-  if (row.conversion && ['local-fallback', 'local-markitdown'].includes(row.conversion.adapter)) {
+  if (row.conversion
+    && ['local-fallback', 'local-markitdown'].includes(row.conversion.adapter)
+    && !isTrustedWordDualRepresentation(row)) {
     throw new Error('grading-evidence-legacy-local-binary-ineligible');
   }
   if (row.attempt.answer.assets.length > 0
@@ -1269,6 +1624,24 @@ export async function enqueueGradingRun(input: {
   const lifecyclePolicies = await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence', 'grading-run']);
   const runLifecycle = freezeLifecyclePolicy(lifecyclePolicies.find((policy: any) => policy.dataClass === 'grading-run'), now);
   const question = input.frozenQuestion ?? questionContractFromRow(row.attempt.answer.question);
+  const visualEvidenceStore = (input.db as any).documentConversionVisualEvidence;
+  const visualRows = visualEvidenceStore?.findMany
+    ? await visualEvidenceStore.findMany({
+        where: { attemptId: input.attemptId, questionId: question.questionId },
+        orderBy: [{ pageNumber: 'asc' }, { createdAt: 'asc' }],
+      })
+    : [];
+  const attachmentManifest = visualRows.map((visual: any): FrozenVisualAttachment => ({
+    id: String(visual.id),
+    questionId: typeof visual.questionId === 'string' ? visual.questionId : null,
+    objectKey: String(visual.objectKey),
+    checksum: String(visual.imageChecksum),
+    mediaType: String(visual.mediaType),
+    sizeBytes: Number(visual.sizeBytes),
+    readiness: String(visual.readiness),
+    contentHash: String(visual.contentHash),
+  }));
+  const attachmentManifestHash = sha256(stableStringify(attachmentManifest));
   const providerPolicy = input.policyId
     ? await input.db.gradingProviderPolicy.findUnique({ where: { id: input.policyId }, select: GRADING_PROVIDER_POLICY_SELECT })
     : null;
@@ -1284,6 +1657,7 @@ export async function enqueueGradingRun(input: {
   const inputHash = sha256(stableStringify({
     questionSnapshot: question,
     evidence: { id: row.id, version: row.version, sourceHash: row.sourceHash, anchorVersion: row.anchorVersion },
+    attachmentManifestHash,
     evaluator: evaluatorIdentity,
   }));
   const rerunIdentity = input.rerunReason
@@ -1298,6 +1672,7 @@ export async function enqueueGradingRun(input: {
     evaluatorId: input.evaluatorId?.trim() || null,
     evaluatorVersion: input.evaluatorVersion?.trim() || null,
     frozenQuestion: input.frozenQuestion ?? null,
+    attachmentManifestHash,
     rerunReason: input.rerunReason?.trim() || null,
   });
   const dedupeKey = buildPipelineDedupeKey('grading-run', { attemptId: input.attemptId, evidenceId: input.evidenceId, inputHash, evaluator: evaluatorIdentity, policySnapshotHash, rubricVersion: question.rubric.version, rerunIdentity });
@@ -1335,6 +1710,8 @@ export async function enqueueGradingRun(input: {
           idempotencyKey: input.idempotencyKey,
           dedupeKey,
           inputHash,
+          attachmentManifest,
+          attachmentManifestHash,
           questionSnapshotHash: question.contentHash,
           rubricId: question.rubric.id,
           rubricVersion: question.rubric.version,
@@ -1343,9 +1720,10 @@ export async function enqueueGradingRun(input: {
           questionSnapshot: question,
           rubricSnapshot: question.rubric,
           referenceAnswer: question.referenceAnswer,
-          evidenceState: row.limitationState === 'evidence-incomplete'
+          evidenceState: row.limitationState === 'evidence-incomplete' || attachmentManifest.some((item: FrozenVisualAttachment) => item.readiness !== 'ready')
             ? 'EVIDENCE_INCOMPLETE'
             : 'COMPLETE',
+          source: 'AI',
           limitations: row.limitations,
           state: 'QUEUED',
           ...runLifecycle,
@@ -1380,10 +1758,21 @@ export async function enqueueGradingRun(input: {
   return { ...requestResult.value, replay: requestResult.replay };
 }
 
+function isTrustedWordDualRepresentation(row: { sourceAssetId?: string | null; conversion?: { adapter?: string | null; renderedObjectKey?: string | null } | null; attempt?: { answer?: { assets?: Array<{ id?: string | null; mimeType?: string | null; originalName?: string | null }> | null } | null } | null }): boolean {
+  if (row.conversion?.adapter !== 'local-markitdown' || !row.conversion.renderedObjectKey || !row.sourceAssetId) return false;
+  const asset = row.attempt?.answer?.assets?.find((candidate) => candidate.id === row.sourceAssetId);
+  if (!asset) return false;
+  const mimeType = asset.mimeType?.trim().toLowerCase();
+  return mimeType === 'application/msword'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    || /\.docx?$/iu.test(asset.originalName ?? '');
+}
+
 export async function processGradingRunJob(input: {
   db: MathGradingDb;
   jobId: string;
   workerClaimToken?: string;
+  store?: SubmissionObjectStore;
   provider?: GradingProviderRuntime;
   policy?: ExternalProcessingPolicy | null;
   signal?: AbortSignal;
@@ -1442,11 +1831,30 @@ export async function processGradingRunJob(input: {
   const question = questionContractFromSnapshot(run);
   const evidence = evidenceFromRow(run.answerEvidence);
   const frozenInputError = validateFrozenRunInput(run, question, run.answerEvidence);
-  if (frozenInputError) {
-    const draft = persistenceBlockedDraft(question, evidence, [frozenInputError]);
+  let visualInputError: string | null = null;
+  let visualAttachments: GradingEvidenceAttachment[] = [];
+  if (!frozenInputError && Array.isArray(run.attachmentManifest) && run.attachmentManifest.length > 0) {
+    try {
+      const loadedVisual = await loadFrozenVisualAttachments({
+        store: input.store ?? createSubmissionObjectStore(),
+        manifest: run.attachmentManifest,
+        questionId: question.questionId,
+        ownerId: run.answerAttempt.answer.submission.frozenStudentId,
+        answerId: run.answerAttempt.answerId,
+        attemptId: run.answerAttemptId,
+      });
+      visualAttachments = loadedVisual.attachments;
+      visualInputError = loadedVisual.error;
+    } catch {
+      visualInputError = 'visual-evidence-object-read-failed';
+    }
+  }
+  const inputError = frozenInputError ?? visualInputError;
+  if (inputError) {
+    const draft = persistenceBlockedDraft(question, evidence, [inputError]);
     const updated = await input.db.$transaction(async (tx: any) => {
-      await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'BLOCKED', progress: 100, completedAt: now, lastErrorCode: frozenInputError, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
-      const blocked = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'BLOCKED', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, blockedReasons: draft.blockedReasons, limitations: draft.limitations, updatedAt: now } });
+      await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'BLOCKED', progress: 100, completedAt: now, lastErrorCode: inputError, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
+      const blocked = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'BLOCKED', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, providerInputTokens: draft.inputTokens ?? null, providerOutputTokens: draft.outputTokens ?? null, providerTelemetryComplete: draft.telemetryComplete === true, blockedReasons: draft.blockedReasons, limitations: draft.limitations, updatedAt: now } });
       await writeGradingAudit(tx, {
         actor: { id: 'grading-worker', role: 'SERVICE' },
         action: 'grading-run.blocked',
@@ -1455,7 +1863,7 @@ export async function processGradingRunJob(input: {
         resourceId: run.id,
         answerId: run.answerAttempt.answerId,
         classId: run.answerAttempt.answer.submission.frozenAudienceClassId,
-        metadata: { state: 'BLOCKED', reason: frozenInputError },
+        metadata: { state: 'BLOCKED', reason: inputError },
       });
       return blocked;
     });
@@ -1464,7 +1872,7 @@ export async function processGradingRunJob(input: {
   const providerPolicy = run.policyId
     ? await resolveWorkerGradingProviderPolicy({ db: input.db, policyId: run.policyId, snapshot: run.policySnapshot, snapshotHash: run.policySnapshotHash, fallbackPolicy: run.policy, expectedPurpose: 'rubric-grading' })
     : policy;
-  const providerDraft = await evaluateWithProvider({ question, evidence, classId: run.answerAttempt.answer.submission.frozenAudienceClassId, policy: providerPolicy, provider: input.provider, idempotencyKey: sha256(`grading:${run.id}:${run.evaluatorVersion}`), signal: leaseAbortController.signal });
+  const providerDraft = await evaluateFrozenQuestionEvidence({ question, evidence, classId: run.answerAttempt.answer.submission.frozenAudienceClassId, policy: providerPolicy, provider: input.provider, attachments: visualAttachments, idempotencyKey: buildGradingRunEvaluationIdentity(run), signal: leaseAbortController.signal });
   const draft = {
     ...providerDraft,
     limitations: [...new Set([
@@ -1485,7 +1893,7 @@ export async function processGradingRunJob(input: {
     if (draft.state === 'retryable') {
       const retryAt = new Date(now.getTime() + 5_000);
       await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'RETRYABLE', progress: 0, nextRunAt: retryAt, lastErrorCode: draft.blockedReasons[0] ?? 'provider-retryable', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
-      const retryable = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'RETRYABLE', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, limitations: draft.limitations, blockedReasons: [], updatedAt: now } });
+      const retryable = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'RETRYABLE', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, providerInputTokens: draft.inputTokens ?? null, providerOutputTokens: draft.outputTokens ?? null, providerTelemetryComplete: draft.telemetryComplete === true, limitations: draft.limitations, blockedReasons: [], updatedAt: now } });
       await writeGradingAudit(tx, {
         actor: { id: 'grading-worker', role: 'SERVICE' },
         action: 'grading-run.retryable',
@@ -1501,7 +1909,7 @@ export async function processGradingRunJob(input: {
     }
     if (draft.state === 'blocked') {
       await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'BLOCKED', progress: 100, completedAt: now, lastErrorCode: draft.blockedReasons[0] ?? 'blocked-evaluator', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
-      const blocked = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'BLOCKED', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, blockedReasons: draft.blockedReasons, limitations: draft.limitations, updatedAt: now } });
+      const blocked = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'BLOCKED', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, providerInputTokens: draft.inputTokens ?? null, providerOutputTokens: draft.outputTokens ?? null, providerTelemetryComplete: draft.telemetryComplete === true, blockedReasons: draft.blockedReasons, limitations: draft.limitations, updatedAt: now } });
       await writeGradingAudit(tx, {
         actor: { id: 'grading-worker', role: 'SERVICE' },
         action: 'grading-run.blocked',
@@ -1516,19 +1924,14 @@ export async function processGradingRunJob(input: {
       return blocked;
     }
     await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'SUCCEEDED', progress: 100, completedAt: now, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
-    const updatedRun = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'AWAITING_REVIEW', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, evaluatorId: draft.evaluatorId, evaluatorVersion: draft.evaluatorVersion, draftTotalScore: draft.assessments.reduce((sum, assessment) => sum + assessment.score, 0), overallComment: draft.overallComment, limitations: draft.limitations, blockedReasons: [], updatedAt: now } });
-    for (const assessment of draft.assessments) {
-      const persisted = await tx.gradingCriterionAssessment.create({ data: { gradingRunId: run.id, criterionId: assessment.criterionId, levelId: assessment.levelId, score: assessment.score, rationale: assessment.rationale, confidence: assessment.confidence, limitationState: assessment.limitationState, createdAt: now, updatedAt: now } });
-      const annotations = [
-        ...assessment.anchors.map((anchor) => ({ anchor, comment: 'criterion-evidence-anchor' })),
-        ...(assessment.annotations ?? []),
-      ];
-      for (const annotation of annotations) {
-        const block = resolvePersistedEvidenceBlock(run.answerEvidence.blocks, annotation.anchor.blockId);
-        if (!block) throw new Error('frozen-evidence-anchor-unresolved');
-        await tx.gradingAnnotation.create({ data: { gradingRunId: run.id, assessmentId: persisted.id, blockId: block.id, criterionId: assessment.criterionId, pageNumber: annotation.anchor.pageNumber ?? block.pageNumber ?? null, spanStart: annotation.anchor.spanStart ?? null, spanEnd: annotation.anchor.spanEnd ?? null, bbox: annotation.anchor.bbox ?? undefined, precision: annotation.anchor.precision.toUpperCase(), excerpt: annotation.anchor.excerpt, comment: annotation.comment, authorRole: 'AI_DRAFT', createdAt: now } });
-      }
-    }
+    const updatedRun = await writeValidatedGradingDraftTransaction({
+      db: tx,
+      run,
+      evidenceBlocks: run.answerEvidence.blocks,
+      draft,
+      now,
+      updateRun: (data) => updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data }),
+    });
     await writeGradingAudit(tx, {
       actor: { id: 'grading-worker', role: 'SERVICE' },
       action: 'grading-run.completed',
@@ -1548,6 +1951,146 @@ export async function processGradingRunJob(input: {
   } finally {
     leaseHeartbeat?.stop();
   }
+}
+
+export async function persistValidatedGradingDraft(input: {
+  db: MathGradingDb;
+  run: any;
+  evidenceBlocks: readonly any[];
+  draft: ValidatedGradingDraft;
+  afterPersist?: (db: MathGradingDb, run: any) => Promise<void>;
+  now?: Date;
+}): Promise<any> {
+  if (!input.db.$transaction) throw new Error('grading-transaction-repository-unavailable');
+  return input.db.$transaction(async (tx: MathGradingDb) => {
+    if (!tx.gradingRun?.findUnique || !tx.gradingRun?.updateMany) throw new Error('grading-run-fence-unavailable');
+    const current = await tx.gradingRun.findUnique({ where: { id: input.run?.id } });
+    if (!current) throw new Error('grading-run-not-found');
+    assertDraftMatchesFrozenRun(current, input.draft);
+    const persisted = await writeValidatedGradingDraftTransaction({
+      db: tx,
+      run: current,
+      evidenceBlocks: input.evidenceBlocks,
+      draft: input.draft,
+      now: input.now ?? new Date(),
+      updateRun: async (data) => {
+        const fenced = await tx.gradingRun.updateMany({
+          where: {
+            id: current.id,
+            state: 'RUNNING',
+            inputHash: current.inputHash,
+            evaluatorId: current.evaluatorId,
+            evaluatorVersion: current.evaluatorVersion,
+          },
+          data,
+        });
+        if (fenced.count !== 1) throw new Error('grading-run-fenced');
+        return tx.gradingRun.findUnique({ where: { id: current.id } });
+      },
+    });
+    await input.afterPersist?.(tx, persisted);
+    return persisted;
+  });
+}
+
+function assertDraftMatchesFrozenRun(run: any, draft: ValidatedGradingDraft): void {
+  if (run.state !== 'RUNNING') throw new Error('grading-run-not-running');
+  assertDraftIdentityMatchesFrozenRun(run, draft);
+}
+
+function assertDraftIdentityMatchesFrozenRun(run: any, draft: ValidatedGradingDraft): void {
+  if (draft.inputHash !== run.inputHash) throw new Error('grading-draft-input-hash-mismatch');
+  if (draft.evaluatorId !== run.evaluatorId) throw new Error('grading-draft-evaluator-id-mismatch');
+  if (draft.evaluatorVersion !== run.evaluatorVersion) throw new Error('grading-draft-evaluator-version-mismatch');
+  assertDraftEvaluationIdentity(run, draft);
+}
+
+function assertDraftEvaluationIdentity(run: any, draft: ValidatedGradingDraft): void {
+  if (draft.evaluationIdentity !== buildGradingRunEvaluationIdentity(run)) throw new Error('grading-draft-evaluation-identity-mismatch');
+}
+
+export function buildGradingRunEvaluationIdentity(run: { id: string; evaluatorVersion: string }): string {
+  return sha256(`grading:${run.id}:${run.evaluatorVersion}`);
+}
+
+async function writeValidatedGradingDraftTransaction(input: {
+  db: MathGradingDb;
+  run: any;
+  evidenceBlocks: readonly any[];
+  draft: ValidatedGradingDraft;
+  now: Date;
+  updateRun?: (data: Record<string, unknown>) => Promise<any>;
+}): Promise<any> {
+  if (input.draft.state !== 'awaiting-review') throw new Error('grading-draft-not-awaiting-review');
+  if (!input.run?.id) throw new Error('grading-run-id-missing');
+  assertDraftEvaluationIdentity(input.run, input.draft);
+  if (!input.db.gradingRun?.update || !input.db.gradingCriterionAssessment?.create || !input.db.gradingAnnotation?.create) {
+    throw new Error('grading-draft-persistence-unavailable');
+  }
+
+  const runData = {
+    state: 'AWAITING_REVIEW',
+    provider: input.draft.provider,
+    providerRequestId: input.draft.providerRequestId,
+    providerDeletionHandle: input.draft.deletionHandle,
+    providerRequestedAt: input.draft.providerRequestedAt,
+    providerProcessedAt: input.draft.providerProcessedAt,
+    providerInputTokens: input.draft.inputTokens ?? null,
+    providerOutputTokens: input.draft.outputTokens ?? null,
+    providerTelemetryComplete: input.draft.telemetryComplete === true,
+    evaluatorId: input.draft.evaluatorId,
+    evaluatorVersion: input.draft.evaluatorVersion,
+    draftTotalScore: input.draft.assessments.reduce((sum, assessment) => sum + assessment.score, 0),
+    overallComment: input.draft.overallComment,
+    limitations: input.draft.limitations,
+    blockedReasons: [],
+    updatedAt: input.now,
+  };
+  const updatedRun = input.updateRun
+    ? await input.updateRun(runData)
+    : await input.db.gradingRun.update({ where: { id: input.run.id }, data: runData });
+
+  for (const assessment of input.draft.assessments) {
+    const persisted = await input.db.gradingCriterionAssessment.create({
+      data: {
+        gradingRunId: input.run.id,
+        criterionId: assessment.criterionId,
+        levelId: assessment.levelId,
+        score: assessment.score,
+        rationale: assessment.rationale,
+        confidence: assessment.confidence,
+        limitationState: assessment.limitationState,
+        createdAt: input.now,
+        updatedAt: input.now,
+      },
+    });
+    const annotations = [
+      ...assessment.anchors.map((anchor) => ({ anchor, comment: 'criterion-evidence-anchor' })),
+      ...(assessment.annotations ?? []),
+    ];
+    for (const annotation of annotations) {
+      const block = resolvePersistedEvidenceBlock(input.evidenceBlocks, annotation.anchor.blockId);
+      if (!block) throw new Error('frozen-evidence-anchor-unresolved');
+      await input.db.gradingAnnotation.create({
+        data: {
+          gradingRunId: input.run.id,
+          assessmentId: persisted.id,
+          blockId: block.id,
+          criterionId: assessment.criterionId,
+          pageNumber: annotation.anchor.pageNumber ?? block.pageNumber ?? null,
+          spanStart: annotation.anchor.spanStart ?? null,
+          spanEnd: annotation.anchor.spanEnd ?? null,
+          bbox: annotation.anchor.bbox ?? undefined,
+          precision: annotation.anchor.precision.toUpperCase(),
+          excerpt: annotation.anchor.excerpt,
+          comment: annotation.comment,
+          authorRole: 'AI_DRAFT',
+          createdAt: input.now,
+        },
+      });
+    }
+  }
+  return updatedRun;
 }
 
 export function questionContractFromRow(row: any): FrozenQuestionContract {
@@ -1955,17 +2498,19 @@ export function validateFrozenRunInput(run: any, question: FrozenQuestionContrac
   if (run.rubricVersion && snapshotRubricVersion && snapshotRubricVersion !== run.rubricVersion) return 'frozen-rubric-version-mismatch';
   if (run.rubricVersion && question.rubric.version !== run.rubricVersion) return 'frozen-rubric-version-mismatch';
   if (run.inputHash && run.evaluatorVersion) {
-    const expected = sha256(stableStringify({
+    const payload = {
       questionSnapshot: question,
       evidence: { id: evidence.id, version: evidence.version, sourceHash: evidence.sourceHash, anchorVersion: evidence.anchorVersion },
       evaluator: { provider: run.evaluatorId ?? 'configured-provider', version: run.evaluatorVersion },
-    }));
+      ...(run.attachmentManifestHash ? { attachmentManifestHash: run.attachmentManifestHash } : {}),
+    };
+    const expected = sha256(stableStringify(payload));
     if (expected !== run.inputHash) return 'frozen-input-hash-mismatch';
   }
   return null;
 }
 
-function resolvePersistedEvidenceBlock(blocks: any[], anchorId: string): any | null {
+function resolvePersistedEvidenceBlock(blocks: readonly any[], anchorId: string): any | null {
   return blocks.find((candidate) => candidate.id === anchorId || candidate.id.endsWith(`:${anchorId}`)) ?? null;
 }
 
@@ -2002,6 +2547,9 @@ function persistenceBlockedDraft(question: FrozenQuestionContract, evidence: Nor
     deletionHandle: null,
     providerRequestedAt: null,
     providerProcessedAt: null,
+    inputTokens: null,
+    outputTokens: null,
+    telemetryComplete: false,
   };
 }
 
@@ -2022,6 +2570,9 @@ function terminalRunDraft(run: any): ValidatedGradingDraft {
     deletionHandle: run.providerDeletionHandle ?? null,
     providerRequestedAt: run.providerRequestedAt ?? null,
     providerProcessedAt: run.providerProcessedAt ?? null,
+    inputTokens: run.providerInputTokens ?? null,
+    outputTokens: run.providerOutputTokens ?? null,
+    telemetryComplete: run.providerTelemetryComplete === true,
   };
 }
 

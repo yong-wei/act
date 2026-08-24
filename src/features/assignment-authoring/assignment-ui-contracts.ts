@@ -50,7 +50,7 @@ export const EMPTY_ASSIGNMENT_DRAFT: AssignmentDraftInput = {
   latePolicy: { version: 1, mode: 'CLOSED' },
   responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
   resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
-  solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+  solutionReleasePolicy: { version: 1, mode: 'TEACHER_CONFIRMED_RESULT' },
 };
 
 const QUESTION_SOURCE_LABELS = {

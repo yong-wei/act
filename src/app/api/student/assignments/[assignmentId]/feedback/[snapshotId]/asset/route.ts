@@ -14,15 +14,32 @@ export async function GET(_: Request, context: { params: Promise<{ assignmentId:
     where: { id: snapshotId },
     include: {
       submission: true,
+      revision: { select: { solutionReleasePolicy: true } },
       feedbackRelease: { include: { derivative: true } },
       outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED' }, select: { id: true } },
     },
   });
   const derivative = snapshot?.feedbackRelease?.derivative;
+  const releasePolicy = snapshot?.revision?.solutionReleasePolicy as { mode?: string } | null | undefined;
+  const resultRelease = releasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT' && snapshot
+    ? await prisma.assignmentSubmissionGradeRelease.findFirst({
+      where: {
+        ownerStudentId: auth.actor.id,
+        grade: {
+          snapshot: {
+            submissionId: snapshot.submissionId,
+            items: { some: { questionId: snapshot.questionId, attemptId: snapshot.attemptId } },
+          },
+        },
+      },
+      select: { id: true },
+    })
+    : null;
   if (!snapshot
     || snapshot.assignmentId !== assignmentId
     || snapshot.submission.studentId !== auth.actor.id
     || snapshot.submission.frozenStudentId !== auth.actor.id
+    || (releasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT' && !resultRelease)
     || snapshot.feedbackRelease?.ownerStudentId !== auth.actor.id
     || snapshot.outboxCommands.length !== 1
     || derivative?.state !== 'READY'

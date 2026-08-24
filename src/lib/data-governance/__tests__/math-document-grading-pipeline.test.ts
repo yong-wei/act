@@ -1,6 +1,8 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { DOMParser } from '@xmldom/xmldom';
+import JSZip from 'jszip';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
@@ -12,6 +14,7 @@ import {
   pseudonymousAuditId,
   redactGradingLogValue,
   redactProviderError,
+  selectQuestionAnswerEvidence,
   sha256,
   validateEvidenceAnchor,
   type ExternalProcessingPolicy,
@@ -22,6 +25,7 @@ import {
   createMathpixClient,
   createLocalDocumentConverter,
   mathpixToConversionResult,
+  renderPdfPagesToPng,
   toAnswerEvidence,
 } from '../math-document-conversion';
 import {
@@ -36,6 +40,7 @@ import {
 } from '../math-document-grading-lifecycle';
 
 const now = new Date();
+const fakePdf = Buffer.from('%PDF-1.7\nsynthetic');
 
 function policy(provider: ExternalProcessingPolicy['provider'], purpose: ExternalProcessingPolicy['purpose'], overrides: Partial<ExternalProcessingPolicy> = {}): ExternalProcessingPolicy {
   return {
@@ -133,7 +138,113 @@ function source(overrides: Partial<Parameters<typeof convertProtectedSubmission>
   };
 }
 
+function createWordTestConverter(
+  pages: Array<{ pageNumber: number; text: string; imageCount: number }>,
+) {
+  const exec = vi.fn(async (_command: string, args: readonly string[]) => {
+    if (args[0] === '--version') return { stdout: 'LibreOffice 24.2.0.3', stderr: '' };
+    const outdir = args[args.indexOf('--outdir') + 1];
+    await writeFile(join(outdir, 'answer.pdf'), fakePdf);
+    return { stdout: '', stderr: '' };
+  }) as unknown as NonNullable<Parameters<typeof createLocalDocumentConverter>[0]>['exec'];
+  return createLocalDocumentConverter({
+    exec,
+    wordPdfPageExtractor: async () => pages,
+  });
+}
+
+async function buildSyntheticPdfPages(bytes: Uint8Array) {
+  const zip = await JSZip.loadAsync(bytes);
+  const documentXml = await zip.file('word/document.xml')!.async('string');
+  const document = new DOMParser().parseFromString(documentXml, 'application/xml');
+  const text = Array.from(document.getElementsByTagName('w:p'))
+    .map((paragraph) => paragraph.textContent ?? '')
+    .join(' ');
+  const imageCount = Object.entries(zip.files)
+    .filter(([path, entry]) => path.startsWith('word/media/') && !entry.dir)
+    .length;
+  return [{ pageNumber: 1, text, imageCount }];
+}
+
+async function buildDocxParagraphs(paragraphs: string[]): Promise<Buffer> {
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', [
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+    '<Default Extension="xml" ContentType="application/xml"/>',
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>',
+    '</Types>',
+  ].join(''));
+  zip.file('_rels/.rels', [
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>',
+    '</Relationships>',
+  ].join(''));
+  zip.file('word/document.xml', [
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>',
+    ...paragraphs.map((text) => `<w:p><w:r><w:t>${text}</w:t></w:r></w:p>`),
+    '</w:body></w:document>',
+  ].join(''));
+  return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
 describe('production math-document grading contracts', () => {
+  it('rejects non-PDF input before visual page rendering', async () => {
+    await expect(renderPdfPagesToPng({ pdfBytes: Buffer.from('not-a-pdf') }))
+      .rejects.toThrow('visual-evidence-pdf-invalid');
+  });
+
+  it('returns ordered page images from the controlled PDF renderer', async () => {
+    const png = Buffer.from([137, 80, 78, 71]);
+    const run = vi.fn(async (_command: string, args: readonly string[]) => {
+      const outputPrefix = args[args.length - 1]!;
+      await writeFile(`${outputPrefix}-2.png`, png);
+      await writeFile(`${outputPrefix}-1.png`, png);
+      return { stdout: '', stderr: '' };
+    });
+
+    const pages = await renderPdfPagesToPng({ pdfBytes: fakePdf, run: run as any });
+
+    expect(pages.map((page) => page.pageNumber)).toEqual([1, 2]);
+    expect(pages.every((page) => page.bytes.equals(png))).toBe(true);
+  });
+
+  it('renders only explicitly selected PDF pages', async () => {
+    const png = Buffer.from([137, 80, 78, 71]);
+    const run = vi.fn(async (_command: string, args: readonly string[]) => {
+      const outputPrefix = args[args.length - 1]!;
+      await writeFile(`${outputPrefix}.png`, png);
+    });
+
+    const pages = await renderPdfPagesToPng({ pdfBytes: fakePdf, pageNumbers: [4, 2], run: run as any });
+
+    expect(pages.map((page) => page.pageNumber)).toEqual([2, 4]);
+    expect(run.mock.calls.map(([, args]) => args)).toEqual([
+      expect.arrayContaining(['-f', '2', '-l', '2', '-singlefile']),
+      expect.arrayContaining(['-f', '4', '-l', '4', '-singlefile']),
+    ]);
+  });
+
+  it('rejects empty, duplicate, and invalid PDF page selections', async () => {
+    await expect(renderPdfPagesToPng({ pdfBytes: fakePdf, pageNumbers: [] })).rejects.toThrow('visual-evidence-pdf-page-selection-invalid');
+    await expect(renderPdfPagesToPng({ pdfBytes: fakePdf, pageNumbers: [1, 1] })).rejects.toThrow('visual-evidence-pdf-page-selection-invalid');
+    await expect(renderPdfPagesToPng({ pdfBytes: fakePdf, pageNumbers: [0] })).rejects.toThrow('visual-evidence-pdf-page-selection-invalid');
+  });
+
+  it('blocks document evidence when embedded visuals have not been delivered to the scorer', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:visual-source',
+      markdown: 'A short textual explanation.',
+      blocks: [{ id: 'visual-block-1', text: 'A short textual explanation.' }],
+      limitations: ['visual-evidence-not-delivered'],
+    });
+
+    expect(evidence).toMatchObject({
+      readiness: 'blocked',
+      limitationState: 'visual-evidence-incomplete',
+      limitations: expect.arrayContaining(['visual-evidence-not-delivered']),
+    });
+  });
   it('normalizes text-native answers with stable span anchors and no conversion', () => {
     const evidence = normalizeTextAnswerEvidence('First derivation.\n\nSecond stability margin evidence.');
     expect(evidence.sourceKind).toBe('text-native');
@@ -141,6 +252,27 @@ describe('production math-document grading contracts', () => {
     expect(evidence.readiness).toBe('ready');
     expect(evidence.blocks[1]).toEqual(expect.objectContaining({ spanStart: 19, spanEnd: 52, precision: 'span' }));
     expect(evidence.limitations).toEqual([]);
+  });
+
+  it('selects only evidence mapped to the frozen question and blocks unmapped questions', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:evaluation-document',
+      markdown: 'answer one\n\nanswer two',
+      blocks: [
+        { text: 'answer one', markdown: 'answer one', questionId: 'question-1', pageNumber: 1, precision: 'block' },
+        { text: 'answer two', markdown: 'answer two', questionId: 'question-2', pageNumber: 2, precision: 'block' },
+      ],
+    });
+
+    const selected = selectQuestionAnswerEvidence(evidence, 'question-2');
+    expect(selected.blocks).toHaveLength(1);
+    expect(selected.blocks[0]).toEqual(expect.objectContaining({ questionId: 'question-2', text: 'answer two' }));
+    expect(selected.canonicalMarkdown).toBe('answer two');
+
+    const unmapped = selectQuestionAnswerEvidence(evidence, 'question-3');
+    expect(unmapped.readiness).toBe('blocked');
+    expect(unmapped.blocks).toEqual([]);
+    expect(unmapped.limitations).toContain('question-evidence-unmapped');
   });
 
   it('records visible limitation metadata when the frozen source snapshot is truncated', () => {
@@ -399,6 +531,7 @@ describe('production math-document grading contracts', () => {
       scanState: 'CLEAN',
     });
     store.payloads.set(objectKey, bytes);
+    const pdfPages = await buildSyntheticPdfPages(bytes);
 
     const result = await convertProtectedSubmission({
       source: source({
@@ -411,25 +544,29 @@ describe('production math-document grading contracts', () => {
         checksum,
       }),
       store,
-      local: createLocalDocumentConverter(),
+      local: createWordTestConverter(pdfPages),
+      assignmentResponse: true,
     });
 
     expect(result.markdown).toContain('T1-1');
     expect(result.blocks.length).toBeGreaterThan(0);
-    expect(result.limitations).toContain('ooxml-formula-or-image-geometry-not-proven');
-    expect(result.warnings).toContain('formula-or-image-region-coordinates-unavailable');
+    expect(result.wordRepresentation).toMatchObject({
+      sourceFormat: 'docx',
+      normalizedFormat: 'docx',
+      sourceChecksum: checksum,
+      normalizedChecksum: checksum,
+      renderedPdfChecksum: sha256(fakePdf),
+      normalizerVersion: null,
+      rendererVersion: 'LibreOffice 24.2.0.3',
+      integrity: { verdict: 'scorable', issues: [] },
+    });
     expect(JSON.stringify(result)).not.toContain('student-fixture');
-    if (result.renderedBytes) {
-      expect(result.renderedMimeType).toBe('application/pdf');
-      expect(result.renderedBytes.byteLength).toBeGreaterThan(0);
-    } else {
-      expect(result.warnings).toContain('rendered-pages-unavailable');
-      expect(result.limitations).toContain('rendered-representation-not-produced');
-    }
+    expect(result.renderedMimeType).toBe('application/pdf');
+    expect(result.renderedBytes).toEqual(fakePdf);
   });
 
   it('preserves distinct spans for repeated DOCX paragraphs', async () => {
-    const bytes = new Uint8Array([1, 2, 3]);
+    const bytes = await buildDocxParagraphs(['duplicate', 'unique', 'duplicate']);
     const checksum = sha256(bytes);
     const store = new MemorySubmissionObjectStore();
     const objectKey = 'quarantine/fixture/repeated.docx';
@@ -443,12 +580,7 @@ describe('production math-document grading contracts', () => {
       scanState: 'CLEAN',
     });
     store.payloads.set(objectKey, bytes);
-    const exec = vi.fn(async (command: string) => {
-      if (command === 'unzip') {
-        return { stdout: '<w:document><w:p><w:r><w:t>duplicate</w:t></w:r></w:p><w:p><w:r><w:t>unique</w:t></w:r></w:p><w:p><w:r><w:t>duplicate</w:t></w:r></w:p></w:document>', stderr: '' };
-      }
-      throw new Error('rendering-unavailable');
-    }) as unknown as NonNullable<Parameters<typeof createLocalDocumentConverter>[0]>['exec'];
+    const pdfPages = await buildSyntheticPdfPages(bytes);
 
     const result = await convertProtectedSubmission({
       source: source({
@@ -459,7 +591,7 @@ describe('production math-document grading contracts', () => {
         checksum,
       }),
       store,
-      local: createLocalDocumentConverter({ exec }),
+      local: createWordTestConverter(pdfPages),
     });
 
     expect(result.markdown).toBe('duplicate\n\nunique\n\nduplicate');
@@ -486,6 +618,99 @@ describe('production math-document grading contracts', () => {
     } });
     expect(invalid.state).toBe('blocked');
     expect(invalid.blockedReasons).toEqual(expect.arrayContaining(['unknown-criterion', 'criterion-assessment-missing']));
+
+    const verboseLimitationState = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'provider supplied an excessively detailed limitation state '.repeat(4), annotations: [] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(verboseLimitationState.state).toBe('awaiting-review');
+    expect(verboseLimitationState.assessments[0]?.limitationState).toBe('provider-limitation-state-truncated');
+
+    const verboseLimitation = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      limitations: ['provider supplied an excessively detailed overall limitation '.repeat(5)], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(verboseLimitation.state).toBe('awaiting-review');
+    expect(verboseLimitation.limitations).toEqual(['provider-limitation-truncated']);
+
+    const nonHalf = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1', assessments: [{ criterionId: 'criterion-1', levelId: 'partial', score: 1.25, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }], limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(nonHalf.blockedReasons).toContain('score-must-use-0.5-quantum');
+
+    const overflow = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1', assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5.5, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }], limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(overflow.blockedReasons).toContain('score-overflow');
+  });
+
+  it('canonicalizes a malformed anchor only when it still names a supplied evidence block', () => {
+    const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
+    const repaired = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'block', excerpt: 'invented evidence' }], limitationState: 'none', annotations: [] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(repaired.state).toBe('awaiting-review');
+    expect(repaired.assessments[0].anchors[0]).toMatchObject({ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'The stability margin is positive.' });
+
+    const rejected = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: 'unknown-block', precision: 'span', excerpt: 'evidence', spanStart: 0, spanEnd: 8 }], limitationState: 'none', annotations: [] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(rejected.state).toBe('blocked');
+    expect(rejected.blockedReasons).toContain('unknown-anchor');
+  });
+
+  it('repairs an analytic level label only when the score belongs to one unique level', () => {
+    const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
+    const repaired = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 3, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(repaired.state).toBe('awaiting-review');
+    expect(repaired.assessments[0].levelId).toBe('partial');
+    const ambiguous = buildValidatedDraft({ question: { ...question(), rubric: { ...question().rubric, criteria: [{ ...question().rubric.criteria[0], levels: [{ id: 'a', label: 'A', minPoints: 0, maxPoints: 4, description: 'A' }, { id: 'b', label: 'B', minPoints: 3, maxPoints: 5, description: 'B' }] }] } }, evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'unknown', score: 3, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(ambiguous.state).toBe('blocked');
+    expect(ambiguous.blockedReasons).toContain('unknown-level');
+  });
+
+  it('accepts page anchors when conversion evidence only supports page precision', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:page-evidence',
+      markdown: 'The stability margin is positive.',
+      blocks: [{ id: 'page-1', text: 'The stability margin is positive.', pageNumber: 1, precision: 'page' }],
+    });
+    const draft = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'excellent',
+          score: 4,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: 'page-1', precision: 'page', excerpt: 'The stability margin is positive.', pageNumber: 1 }],
+          limitationState: 'none',
+          annotations: [],
+        }],
+        limitations: [],
+        overallComment: 'The evidence is grounded in the submitted answer.',
+      },
+    });
+    expect(draft.state).toBe('awaiting-review');
+    expect(draft.blockedReasons).toEqual([]);
   });
 
   it('uses separate v2 evaluator contracts and clamps only detailed AI suggestions', () => {
@@ -593,6 +818,14 @@ describe('production math-document grading contracts', () => {
     expect(prompt.user).toContain('limitationState');
     expect(prompt.user).toContain('annotations');
     expect(prompt.user).toContain('anchors');
+    expect(prompt.user).toContain('anchors and annotations must be JSON objects, never strings');
+    expect(prompt.user).toContain('Produce exactly one assessment for every criterionId');
+    expect(prompt.user).toContain('Every assessment must include at least one anchor');
+    expect(prompt.user).toContain('Each assessment limitationState must contain 1 to 120 characters');
+    expect(prompt.user).toContain('summarize any longer limitation before returning it');
+    expect(prompt.user).toContain('each score-level range');
+    expect(prompt.user).toContain('"blockId":"<evidence-block-id>"');
+    expect(prompt.user).toContain('<exact-precision-from-selected-evidence-block>');
   });
 
   it('keeps deterministic evaluation explicit to fixtures and redacts audit values', async () => {

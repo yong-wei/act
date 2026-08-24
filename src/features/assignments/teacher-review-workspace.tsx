@@ -1171,11 +1171,11 @@ export function CriterionAiSuggestion({
   return (
     <div
       className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400"
-      data-ai-criterion-suggestion
+      data-auto-criterion-suggestion
     >
       {criterion.aiScore !== null ? (
         <span>
-          AI 草评：{criterion.aiScore} / {criterion.maxPoints}
+          自动预评分：{criterion.aiScore} / {criterion.maxPoints}
         </span>
       ) : null}
       {criterion.aiComment ? (
@@ -1207,12 +1207,8 @@ function describeEvidenceAnchor(annotation: ReviewAnnotationValue) {
     annotation.anchor.pageNumber
       ? `第 ${annotation.anchor.pageNumber} 页`
       : null,
-    annotation.anchor.blockId
-      ? `证据块 ${annotation.anchor.blockId}`
-      : null,
-    annotation.anchor.spanStart !== undefined &&
-    annotation.anchor.spanEnd !== undefined
-      ? `字符 ${annotation.anchor.spanStart}–${annotation.anchor.spanEnd}`
+    annotation.anchor.blockId || (annotation.anchor.spanStart !== undefined && annotation.anchor.spanEnd !== undefined)
+      ? '作答片段'
       : null,
   ].filter(Boolean);
   return locations.join(" · ") || "已关联证据位置";

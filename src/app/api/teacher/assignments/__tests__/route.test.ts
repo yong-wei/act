@@ -133,6 +133,26 @@ describe('teacher assignment mutation route', () => {
     expect(createAssignmentDraft).not.toHaveBeenCalled();
   });
 
+  it('accepts a browser loopback origin when NEXTAUTH_URL does not match the local development host', async () => {
+    const previousAuthUrl = process.env.NEXTAUTH_URL;
+    process.env.NEXTAUTH_URL = 'http://localhost:3000';
+    try {
+      const response = await POST(new Request('http://localhost:3000/api/teacher/assignments', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:3002',
+          host: '127.0.0.1:3002',
+        },
+        body: JSON.stringify({ draft: draft() }),
+      })) as Response;
+      expect(response.status).toBe(201);
+    } finally {
+      if (previousAuthUrl === undefined) delete process.env.NEXTAUTH_URL;
+      else process.env.NEXTAUTH_URL = previousAuthUrl;
+    }
+  });
+
   it('rejects unknown runtime-schema fields with no partial mutation', async () => {
     const response = await POST(post({ draft: draft(), forgedRole: 'ADMIN' })) as Response;
     expect(response.status).toBe(400);

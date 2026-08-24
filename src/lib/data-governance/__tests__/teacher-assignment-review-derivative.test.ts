@@ -19,7 +19,7 @@ const snapshot = {
   annotationSnapshot: [{ id: 'annotation-1', criterionId: 'criterion-1', status: 'ACTIVE', comment: 'Check sign', anchor: { precision: 'SPAN', spanStart: 2, spanEnd: 8 } }],
   criterionSnapshot: [{ criterionId: 'criterion-1', score: 4, comment: 'Good' }],
   overallComment: 'Revise the sign.',
-  answerEvidence: { id: 'evidence-1', sourceHash: 'sha256:aaaaaaaa', anchorVersion: 'anchors-v2', precision: 'SPAN', canonicalMarkdown: 'x = -1, then verify', blocks: [], limitations: [], sourceAsset: { id: 'asset-1', objectKey: 'private/source.docx', checksum: 'sha256:aaaaaaaa', sizeBytes: 100, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } },
+  answerEvidence: { id: 'evidence-1', sourceHash: 'sha256:aaaaaaaa', anchorVersion: 'anchors-v2', precision: 'SPAN', canonicalMarkdown: 'x = -1, then verify', blocks: [], limitations: [], sourceAsset: { id: 'asset-1', objectKey: 'private/source.docx', checksum: 'sha256:aaaaaaaa', sizeBytes: 100, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }, conversion: { state: 'SUCCEEDED', renderedObjectKey: 'grading-rendered/conversion-1.pdf', renderedChecksum: 'sha256:bbbbbbbb' } },
 };
 
 it('freezes derivative source lineage without blocking honest runtime output fallback metadata', () => {
@@ -34,25 +34,51 @@ it('freezes derivative source lineage without blocking honest runtime output fal
 });
 
 describe('reviewed derivative', () => {
-  it('uses native DOCX metadata only when the anchor map is reliable', () => {
-    expect(buildReviewedDerivativePlan(snapshot, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX'] })).toMatchObject({
-      outputKind: 'REVIEWED_DOCX', nativeCapable: true, sourceChecksum: 'sha256:aaaaaaaa', anchorPrecision: 'SPAN', limitations: [],
+  it('uses the immutable canonical PDF for a Word submission', () => {
+    expect(buildReviewedDerivativePlan(snapshot, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] })).toMatchObject({
+      outputKind: 'REVIEWED_PDF', nativeCapable: false, sourceChecksum: 'sha256:bbbbbbbb', sourceObjectKey: 'grading-rendered/conversion-1.pdf', sourceRepresentation: 'CANONICAL_PDF',
     });
   });
 
-  it('downgrades unreliable DOCX mapping to honest annotated Markdown without precise anchors', () => {
-    const plan = buildReviewedDerivativePlan(snapshot, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v3', nativeFormats: ['DOCX'] });
-    expect(plan).toMatchObject({ outputKind: 'ANNOTATED_MARKDOWN', nativeCapable: false, anchorPrecision: 'GENERAL' });
+  it('keeps Word feedback in PDF form when mapping is unreliable', () => {
+    const plan = buildReviewedDerivativePlan(snapshot, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v3', nativeFormats: ['DOCX', 'PDF'] });
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'GENERAL' });
     expect(plan.limitations).toContain('anchor-capability-unregistered');
     expect(plan.annotations[0].anchor).toEqual({ precision: 'GENERAL' });
+  });
+
+  it('uses a ready canonical PDF for assignment-level Word evidence with a composite source hash', () => {
+    const aggregate: any = structuredClone(snapshot);
+    aggregate.answerEvidence.sourceAssetId = null;
+    aggregate.answerEvidence.sourceHash = 'sha256:cccccccc';
+    aggregate.answerEvidence.sourceManifest = { version: 'assignment-answer-evidence.v2' };
+    aggregate.answerEvidence.conversion.state = 'FALLBACK';
+    aggregate.answerEvidence.conversion.adapter = 'local-markitdown';
+
+    const plan = buildReviewedDerivativePlan(aggregate, {
+      generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'],
+    });
+
+    expect(plan).toMatchObject({
+      outputKind: 'REVIEWED_PDF',
+      sourceChecksum: 'sha256:bbbbbbbb',
+      sourceRepresentation: 'CANONICAL_PDF',
+      sourceSizeBytes: null,
+    });
   });
 
   it('rejects an out-of-range span even when the anchor-map version matches', () => {
     const unsafe = structuredClone(snapshot);
     unsafe.annotationSnapshot[0].anchor = { precision: 'SPAN', spanStart: 2, spanEnd: 20_000 };
-    const plan = buildReviewedDerivativePlan(unsafe, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX'] });
-    expect(plan).toMatchObject({ outputKind: 'ANNOTATED_MARKDOWN', anchorPrecision: 'GENERAL', nativeCapable: false });
+    const plan = buildReviewedDerivativePlan(unsafe, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] });
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', anchorPrecision: 'GENERAL', nativeCapable: false });
     expect(plan.annotations[0].anchor).toEqual({ precision: 'GENERAL' });
+  });
+
+  it('blocks Word feedback when its immutable canonical PDF is unavailable', () => {
+    const unconverted: any = structuredClone(snapshot);
+    delete unconverted.answerEvidence.conversion;
+    expect(() => buildReviewedDerivativePlan(unconverted, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] })).toThrow('reviewed-derivative-canonical-pdf-missing');
   });
 
   it('labels PDF span fallback as summary-only and removes the unusable precise range', () => {
@@ -77,7 +103,7 @@ describe('reviewed derivative', () => {
     const options = { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX'] as const };
     const first = await generateReviewedDerivative({ db, snapshot, renderer, options, now: new Date('2026-07-17T02:00:00Z') });
     const replay = await generateReviewedDerivative({ db, snapshot, renderer, options, now: new Date('2026-07-17T02:01:00Z') });
-    expect(first).toMatchObject({ state: 'READY', sourceChecksum: 'sha256:aaaaaaaa', outputChecksum: 'sha256:bbbbbbbb' });
+    expect(first).toMatchObject({ state: 'READY', sourceChecksum: 'sha256:bbbbbbbb', outputChecksum: 'sha256:bbbbbbbb' });
     expect(replay.idempotencyKey).toBe(first.idempotencyKey);
     expect(first.idempotencyKey).toContain('sha256:');
     expect(renderer.render).toHaveBeenCalledTimes(1);
@@ -121,7 +147,7 @@ describe('reviewed derivative', () => {
       { anchorVersion: 'markitdown.prod:anchors', nativeFormats: ['DOCX'] },
       { anchorVersion: 'mathpix.prod:anchors', nativeFormats: ['PDF'] },
     ]));
-    expect(plan).toMatchObject({ outputKind: 'REVIEWED_DOCX', nativeCapable: true, anchorMapVersion: 'markitdown.prod:anchors' });
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorMapVersion: 'markitdown.prod:anchors', sourceRepresentation: 'CANONICAL_PDF' });
   });
 
   it('builds worker readiness options for both real conversion adapter anchor versions', () => {

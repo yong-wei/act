@@ -32,7 +32,7 @@ export interface ExternalProcessingPolicy {
   version: string;
   model?: string | null;
   endpoint?: string | null;
-  purpose: 'answer-conversion' | 'rubric-grading';
+  purpose: 'answer-conversion' | 'rubric-grading' | 'visual-description';
   dataCategories: string[];
   minimizedScope: string[];
   institutionScope: string | null;
@@ -99,7 +99,10 @@ export interface FrozenRubric {
 }
 
 export interface FrozenQuestionContract {
-  assignmentRevisionId: string;
+  assignmentRevisionId: string | null;
+  origin?:
+    | { kind: 'assignment-revision'; assignmentRevisionId: string }
+    | { kind: 'evaluation-package'; datasetId: string; datasetVersion: string };
   questionId: string;
   stableQuestionId: string;
   responseType: 'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE';
@@ -121,6 +124,7 @@ export interface EvidenceBlockInput {
   coordinateProvenance?: FrozenCoordinateProvenance | null;
   precision?: EvidencePrecision;
   confidence?: number;
+  questionId?: string | null;
 }
 
 export interface NormalizedAnswerEvidence {
@@ -256,12 +260,31 @@ export function redactGradingLogValue(value: unknown): unknown {
 
 export function redactProviderError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
+  const structuredStatus = providerStatusCode(error);
+  if (typeof structuredStatus === 'number' && Number.isInteger(structuredStatus) && structuredStatus >= 100 && structuredStatus <= 599) {
+    const providerCode = providerErrorCode(error);
+    return providerCode ? `http-${structuredStatus}-${providerCode}` : `http-${structuredStatus}`;
+  }
   const sanitized = message
     .replace(/Bearer\s+\S+/gi, 'Bearer ***')
     .replace(/sk-[A-Za-z0-9_-]+/g, 'sk-***')
     .replace(/api[_-]?key[=:]\s*[^,\s]+/gi, 'api_key=***');
-  const code = sanitized.match(/provider-policy-[a-z-]+|http[-_ ]?\d{3}|timeout|rate[-_ ]?limit(?:ed)?|quota|provider[-_ ]?(?:down|error|unavailable)|network|fetch|invalid[-_ ]?(?:json|output)|policy[-_ ]?blocked/i)?.[0];
+  const code = sanitized.match(/provider-policy-[a-z-]+|visual-description-[a-z-]+|provider-output-[a-z-]+|http[-_ ]?\d{3}|timeout|rate[-_ ]?limit(?:ed)?|quota|no[-_ ]?(?:output|object)[-_ ]?generated|provider[-_ ]?(?:down|error|unavailable)|network|fetch|invalid[-_ ]?(?:json|output)|policy[-_ ]?blocked/i)?.[0];
   return code ? code.replace(/\s+/g, '-').toLowerCase().slice(0, 80) : 'provider-error';
+}
+
+function providerStatusCode(error: unknown, depth = 0): number | undefined {
+  if (!error || typeof error !== 'object' || depth > 3) return undefined;
+  const status = (error as { statusCode?: unknown; status?: unknown }).statusCode ?? (error as { status?: unknown }).status;
+  if (typeof status === 'number' && Number.isInteger(status)) return status;
+  return providerStatusCode((error as { cause?: unknown }).cause, depth + 1);
+}
+
+function providerErrorCode(error: unknown, depth = 0): string | undefined {
+  if (!error || typeof error !== 'object' || depth > 3) return undefined;
+  const candidate = (error as { code?: unknown }).code;
+  if (typeof candidate === 'string' && /^[a-z0-9][a-z0-9._-]{1,47}$/i.test(candidate)) return candidate.toLowerCase();
+  return providerErrorCode((error as { cause?: unknown }).cause, depth + 1);
 }
 
 export function evaluateExternalProcessingPolicy(input: {
@@ -295,6 +318,8 @@ export function evaluateExternalProcessingPolicy(input: {
   if (policy && !policy.dataCategories.includes('student-answer')) reasons.push('student-answer-category-missing');
   if (policy && !policy.minimizedScope.includes('selected-question')) reasons.push('selected-question-scope-missing');
   if (policy && !policy.minimizedScope.includes('answer-evidence')) reasons.push('answer-evidence-scope-missing');
+  if (policy?.purpose === 'visual-description' && !policy.dataCategories.includes('student-answer-visual')) reasons.push('visual-data-category-missing');
+  if (policy?.purpose === 'visual-description' && !policy.minimizedScope.includes('visual-evidence')) reasons.push('visual-evidence-scope-missing');
   if (policy && !policy.classScope.includes('*') && !policy.classScope.includes(input.classId)) reasons.push('class-scope-denied');
   if (policy && input.institutionId && policy.institutionScope && policy.institutionScope !== input.institutionId) reasons.push('institution-scope-denied');
   if (policy && !policy.processingRegion.trim()) reasons.push('processing-region-missing');
@@ -432,15 +457,34 @@ export function normalizeDocumentEvidence(input: {
   if (input.blocks.some((block) => block.coordinateProvenance != null && !normalizeCoordinateProvenance(block.coordinateProvenance))) limitations.add('coordinate-provenance-invalid');
   if (blocks.length === 0) limitations.add('no-converted-blocks');
   const limitationList = [...limitations];
+  const visualEvidenceIncomplete = limitations.has('visual-evidence-not-delivered');
   return {
     sourceKind: 'document',
     sourceHash: input.sourceHash,
     canonicalMarkdown: input.markdown.slice(0, MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters),
     anchorVersion: input.anchorVersion ?? 'document-anchor.v1',
     precision,
-    readiness: blocks.length > 0 ? 'ready' : 'blocked',
-    limitationState: blocks.length > 0 && limitationList.length === 0 ? 'none' : 'conversion-limited',
+    readiness: blocks.length > 0 && !visualEvidenceIncomplete ? 'ready' : 'blocked',
+    limitationState: visualEvidenceIncomplete ? 'visual-evidence-incomplete' : blocks.length > 0 && limitationList.length === 0 ? 'none' : 'conversion-limited',
     limitations: limitationList,
+    blocks,
+  };
+}
+
+export function selectQuestionAnswerEvidence(
+  evidence: NormalizedAnswerEvidence,
+  questionId: string,
+): NormalizedAnswerEvidence {
+  const blocks = evidence.blocks.filter((block) => block.questionId === questionId);
+  const limitations = blocks.length > 0
+    ? evidence.limitations
+    : [...new Set([...evidence.limitations, 'question-evidence-unmapped'])];
+  return {
+    ...evidence,
+    canonicalMarkdown: blocks.map((block) => block.markdown ?? block.text).join('\n\n'),
+    readiness: blocks.length > 0 ? evidence.readiness : 'blocked',
+    limitationState: blocks.length > 0 ? evidence.limitationState : 'question-evidence-unmapped',
+    limitations,
     blocks,
   };
 }
@@ -494,6 +538,30 @@ export function buildScopedGradingPrompt(input: {
       ? 'required'
       : 'forbidden',
   }));
+  const outputShape = {
+    evaluatorId: '<evaluator-id>',
+    evaluatorVersion: '<evaluator-version>',
+    assessments: [{
+      criterionId: '<criterion-id>',
+      levelId: '<required-level-id-or-null>',
+      score: 0,
+      rationale: '<at-least-12-characters>',
+      confidence: 0,
+      anchors: [{
+        blockId: '<evidence-block-id>',
+        precision: '<exact-precision-from-selected-evidence-block>',
+        excerpt: '<verbatim-evidence-excerpt>',
+        pageNumber: null,
+        spanStart: null,
+        spanEnd: null,
+        bbox: null,
+      }],
+      limitationState: 'none',
+      annotations: [],
+    }],
+    limitations: [],
+    overallComment: '<at-least-12-characters>',
+  };
   return {
     system: [
       'You are a rubric grading adapter. Return only the requested JSON draft.',
@@ -511,7 +579,7 @@ export function buildScopedGradingPrompt(input: {
         blocks: input.evidence.blocks,
       }), '</answer-evidence>',
       '<assessment-contracts>', JSON.stringify(assessmentContracts), '</assessment-contracts>',
-      '<output-contract>Return evaluatorId and evaluatorVersion matching evaluator-identity, plus criterion assessments with criterionId, score, rationale, confidence, anchors, annotations, limitationState, limitations, and overallComment. Include levelId only where assessment-contracts marks it required; omit it where forbidden.</output-contract>',
+      '<output-contract>Return exactly one JSON object matching this shape: ', JSON.stringify(outputShape), '. Replace every placeholder with supplied values. Produce exactly one assessment for every criterionId in assessment-contracts, and no other assessments. Every assessment must include at least one anchor; an empty anchors array is invalid, even when the answer fails the criterion: cite the most relevant real evidence block and explain the missing support in rationale/limitationState. Each assessment limitationState must contain 1 to 120 characters. Each limitations entry must contain 1 to 240 characters; summarize any longer limitation before returning it. For analytic rubrics, first select the level whose declared minPoints and maxPoints contain the score, then emit that exact levelId and a score inside its range; never mix a levelId with a score from another level. anchors and annotations must be JSON objects, never strings. For every anchor, copy blockId exactly from answer-evidence.blocks and copy excerpt as an exact contiguous substring of that selected block.text; do not invent, paraphrase, translate, or combine excerpts. Copy precision, pageNumber, spanStart, spanEnd, and bbox exactly from the same selected block, omitting unavailable optional fields. Include levelId only where assessment-contracts marks it required; omit it where forbidden. Before returning JSON, verify the assessment count, criterionId coverage, each anchors length, each assessment limitationState length, each limitations entry length, and each score-level range.</output-contract>',
     ].join('\n'),
     tools: [],
     retrieval: false,

@@ -424,14 +424,25 @@ describe('assignment authoring persistence service', () => {
     expect(created.sourceLineage).toMatchObject({ parentSourceId: 'source-1', parentSourceHash: `sha256:${'a'.repeat(64)}`, originalSourceFamily: 'checkpoint-authored-question', eligibilityState: 'path-eligible', limitations: [] });
   });
 
-  it('requires solution-release audiences to be a subset of publication audiences', async () => {
+  it('rejects a new publication that uses a historical time-based release policy', async () => {
     const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
     tx.assignmentRevision.findUnique.mockResolvedValueOnce({
       ...(await tx.assignmentRevision.findUnique()),
       solutionReleasePolicy: { version: 1, mode: 'AT_TIME', releaseAt: '2026-07-12T00:00:00Z', audienceClassIds: ['class-other'], includeReferenceAnswer: true, includeStudentVisibleGuidance: true },
     } as never);
     await expect(publishAssignmentRevision(dbWithTransaction(tx), publicationInput())).rejects.toMatchObject({
-      code: 'publication-blocked', details: expect.arrayContaining(['solution-release-audience-not-published:class-other']),
+      code: 'publication-blocked', details: ['assignment-solution-release-policy-invalid:teacher-confirmed-result-required'],
+    });
+  });
+
+  it('rejects a new publication that keeps answers private', async () => {
+    const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
+    tx.assignmentRevision.findUnique.mockResolvedValueOnce({
+      ...(await tx.assignmentRevision.findUnique()),
+      solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+    } as never);
+    await expect(publishAssignmentRevision(dbWithTransaction(tx), publicationInput())).rejects.toMatchObject({
+      code: 'publication-blocked', details: ['assignment-solution-release-policy-invalid:teacher-confirmed-result-required'],
     });
   });
 });
@@ -457,7 +468,7 @@ function publicationTx(input: { totalPoints: number; questionPoints: number; rub
       findUnique: vi.fn(async () => ({
         id: 'revision-1', assignmentId: 'assignment-1', state: 'DRAFT', frozenAt: null, version: 1,
         contentHash: publicationContentDigest(),
-        title: '作业', instructions: '', totalPoints: input.totalPoints, solutionReleasePolicy: { version: 1, mode: 'PRIVATE' }, questions: [row],
+        title: '作业', instructions: '', totalPoints: input.totalPoints, solutionReleasePolicy: { version: 1, mode: 'TEACHER_CONFIRMED_RESULT' }, questions: [row],
         latePolicy: { version: 1, mode: 'CLOSED' }, responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
         resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },
       })),
@@ -479,7 +490,7 @@ function publicationContentDigest() {
     title: '作业',
     instructions: '',
     totalPoints: 20,
-    solutionReleasePolicy: { version: 1, mode: 'PRIVATE' },
+    solutionReleasePolicy: { version: 1, mode: 'TEACHER_CONFIRMED_RESULT' },
     latePolicy: { version: 1, mode: 'CLOSED' },
     responsePolicy: { version: 1, allowedResponseTypes: ['SUBJECTIVE_TEXT'] },
     resubmissionPolicy: { version: 1, maxAttempts: 1, untilDueAt: true },

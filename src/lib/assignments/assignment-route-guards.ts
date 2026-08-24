@@ -17,10 +17,13 @@ export async function requireAssignmentActor() {
 export function requireAssignmentMutation(request: Request, actorId: string): NextResponse | null {
   try {
     const requestOrigin = new URL(request.url).origin;
-    const allowedOrigin = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).origin : requestOrigin;
+    const origin = request.headers.get('origin');
+    const allowedOrigin = isSameLoopbackOrigin(origin, request)
+      ? origin!
+      : process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).origin : requestOrigin;
     assertMutationRequest({
       method: request.method,
-      requestOrigin: request.headers.get('origin'),
+      requestOrigin: origin,
       allowedOrigin,
       contentLength: parseContentLength(request.headers.get('content-length')),
     });
@@ -74,4 +77,26 @@ function parseContentLength(value: string | null): number | null {
   if (value === null) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function isSameLoopbackOrigin(requestOrigin: string | null, request: Request): boolean {
+  if (!requestOrigin) return false;
+  try {
+    const source = new URL(requestOrigin);
+    const requestUrl = new URL(request.url);
+    const host = request.headers.get('x-forwarded-host')?.split(',')[0].trim()
+      || request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto')?.split(',')[0].trim()
+      || requestUrl.protocol.slice(0, -1);
+    const target = host ? new URL(`${protocol}://${host}`) : requestUrl;
+    return source.origin === target.origin
+      && isLoopbackHost(source.hostname)
+      && isLoopbackHost(target.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isLoopbackHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }

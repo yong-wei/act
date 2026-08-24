@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 
 import { createAIProviderFromConfig } from '@/lib/ai/provider-registry';
@@ -19,6 +19,8 @@ import {
   type FrozenQuestionContract,
   type NormalizedAnswerEvidence,
 } from './math-document-grading-contracts';
+
+const PROVIDER_REQUEST_TIMEOUT_MS = 60_000;
 
 export interface GradingAnchor {
   blockId: string;
@@ -59,10 +61,23 @@ export interface ProviderRuntimeResult {
   deletionHandle: string | null;
   providerRequestedAt: Date | null;
   providerProcessedAt: Date | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  telemetryComplete?: boolean;
+}
+
+export interface GradingEvidenceAttachment {
+  kind: 'image' | 'document';
+  mediaType: string;
+  data: Uint8Array;
+  checksum: string;
+  fileName?: string;
+  questionId?: string | null;
 }
 
 export interface ValidatedGradingDraft extends ProviderGradingOutput {
   inputHash: string;
+  evaluationIdentity?: string | null;
   dedupeKey: string;
   state: 'awaiting-review' | 'blocked' | 'retryable';
   blockedReasons: string[];
@@ -72,15 +87,20 @@ export interface ValidatedGradingDraft extends ProviderGradingOutput {
   deletionHandle: string | null;
   providerRequestedAt: Date | null;
   providerProcessedAt: Date | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  telemetryComplete?: boolean;
 }
 
 export interface GradingProviderRuntime {
   id: string;
   version: string;
   provider?: string;
+  capabilities?: { vision?: boolean };
   evaluate(input: {
     system: string;
     user: string;
+    attachments?: readonly GradingEvidenceAttachment[];
     idempotencyKey?: string;
     signal?: AbortSignal;
   }): Promise<unknown | ProviderRuntimeResult>;
@@ -126,15 +146,26 @@ export async function createProviderRuntimeGradingAdapter(input: {
   provider?: GradingProviderRuntime;
   policy: ExternalProcessingPolicy | null | undefined;
   classId: string;
+  purpose?: ExternalProcessingPolicy['purpose'];
+  requireVision?: boolean;
 }): Promise<GradingProviderRuntime> {
+  const purpose = input.purpose ?? 'rubric-grading';
   const decision = evaluateExternalProcessingPolicy({
     policy: input.policy,
     provider: input.provider ? 'ai-evaluator' : input.policy?.provider ?? 'ai-evaluator',
-    purpose: 'rubric-grading',
+    purpose,
     classId: input.classId,
   });
   if (!decision.allowed) throw new Error(`provider-policy-blocked:${decision.reasons.join(',')}`);
-  if (input.provider) return input.provider;
+  if (input.provider) {
+    if (input.requireVision) {
+      const providerIdentity = input.provider.provider ?? input.provider.id;
+      if (input.policy && providerIdentity !== input.policy.provider) throw new Error('provider-policy-provider-mismatch');
+      if (input.policy?.model && input.provider.version !== input.policy.model) throw new Error('provider-policy-model-mismatch');
+      if (input.provider.capabilities?.vision !== true) throw new Error('provider-vision-not-enabled');
+    }
+    return input.provider;
+  }
   if (!input.policy?.model || !input.policy.endpoint) throw new Error('provider-policy-identity-missing');
   const config = await resolveConfiguredAIProviderConfig(input.policy.provider, input.policy.model);
   if (!config.enabled) throw new Error('provider-disabled');
@@ -142,6 +173,7 @@ export async function createProviderRuntimeGradingAdapter(input: {
   if (config.model !== input.policy.model) throw new Error('provider-policy-model-mismatch');
   if (config.secretRef !== input.policy.credentialRef) throw new Error('provider-policy-credential-mismatch');
   if (normalizeEndpoint(config.baseURL) !== normalizeEndpoint(input.policy.endpoint)) throw new Error('provider-policy-endpoint-mismatch');
+  if (input.requireVision && config.capabilities?.vision !== true) throw new Error('provider-vision-not-enabled');
   const provider = createAIProviderFromConfig(config);
   return {
     id: config.provider,
@@ -149,29 +181,76 @@ export async function createProviderRuntimeGradingAdapter(input: {
     provider: config.provider,
     async evaluate(prompt) {
       const providerRequestedAt = new Date();
-      const result = await generateText({
-        model: provider.getModel(),
-        system: prompt.system,
-        prompt: prompt.user,
-        temperature: 0,
-        maxOutputTokens: 4_000,
-        abortSignal: prompt.signal,
-      });
+      const attachments = normalizeGradingAttachments(prompt.attachments)
+        .filter((attachment) => attachment.kind === 'image');
+      const requestTimeout = createProviderRequestTimeout(prompt.signal);
+      let result: Awaited<ReturnType<typeof generateText>>;
+      try {
+        result = await generateText({
+          model: provider.getModel(),
+          ...(input.purpose === 'visual-description' ? {} : { output: Output.json({ name: 'teacher_ai_grading_draft' }) }),
+          system: prompt.system,
+          ...(attachments.length === 0
+            ? { prompt: prompt.user }
+            : {
+                messages: [{
+                  role: 'user' as const,
+                  content: [
+                    { type: 'text' as const, text: prompt.user },
+                    ...attachments.map((attachment) => attachment.kind === 'image'
+                      ? { type: 'image' as const, image: attachment.data, mediaType: attachment.mediaType }
+                      : { type: 'file' as const, data: attachment.data, mediaType: attachment.mediaType, filename: attachment.fileName }),
+                  ],
+                }],
+              }),
+          temperature: 0,
+          maxOutputTokens: 4_000,
+          abortSignal: requestTimeout.signal,
+        });
+      } catch (error) {
+        if (requestTimeout.timedOut()) {
+          throw Object.assign(new Error('provider-timeout'), { cause: error, retryable: true });
+        }
+        throw error;
+      } finally {
+        requestTimeout.dispose();
+      }
       const response = result.response as { id?: unknown; headers?: Headers | Record<string, string> } | undefined;
       const providerRequestId = typeof response?.id === 'string' && response.id.trim() ? response.id.trim() : null;
       const deletionHandle = readProviderDeletionHandle(response?.headers);
-      return { output: parseJsonResponse(result.text), provider: config.provider, providerRequestId, deletionHandle, providerRequestedAt, providerProcessedAt: new Date() } satisfies ProviderRuntimeResult;
+      const inputTokens = normalizeTokenCount(result.usage?.inputTokens);
+      const outputTokens = normalizeTokenCount(result.usage?.outputTokens);
+      return {
+        output: typeof result.output === 'string'
+          ? parseJsonResponse(result.output)
+          : result.output ?? parseJsonResponse(result.text),
+        provider: config.provider,
+        providerRequestId,
+        deletionHandle,
+        providerRequestedAt,
+        providerProcessedAt: new Date(),
+        inputTokens,
+        outputTokens,
+        telemetryComplete: inputTokens !== null && outputTokens !== null,
+      } satisfies ProviderRuntimeResult;
     },
   };
 }
 
-export async function evaluateWithProvider(input: {
+export async function evaluateFrozenQuestionEvidence(input: {
   question: FrozenQuestionContract;
   evidence: NormalizedAnswerEvidence;
   classId: string;
   policy: ExternalProcessingPolicy | null | undefined;
   provider?: GradingProviderRuntime;
+  attachments?: readonly GradingEvidenceAttachment[];
   idempotencyKey?: string;
+  onProviderResult?: (result: ProviderRuntimeResult) => void | Promise<void>;
+  onProviderAttempt?: (attempt: {
+    status: 'succeeded' | 'failed';
+    result?: ProviderRuntimeResult;
+    error?: unknown;
+  }) => void | Promise<void>;
   signal?: AbortSignal;
 }): Promise<ValidatedGradingDraft> {
   const decision = evaluateExternalProcessingPolicy({
@@ -184,10 +263,21 @@ export async function evaluateWithProvider(input: {
     return blockedDraft(input, decision.reasons, null);
   }
   try {
+    const attachments = normalizeGradingAttachments(
+      selectGradingAttachmentsForQuestion(input.attachments, input.question.questionId),
+    );
     const provider = await createProviderRuntimeGradingAdapter(input);
     const prompt = buildScopedGradingPrompt({ question: input.question, evidence: input.evidence, evaluator: { id: provider.id, version: provider.version } });
-    const raw = await provider.evaluate({ system: prompt.system, user: prompt.user, idempotencyKey: input.idempotencyKey, signal: input.signal });
+    let raw: unknown;
+    try {
+      raw = await provider.evaluate({ system: prompt.system, user: prompt.user, attachments, idempotencyKey: input.idempotencyKey, signal: input.signal });
+    } catch (error) {
+      await input.onProviderAttempt?.({ status: 'failed', error });
+      throw error;
+    }
     const runtimeResult = normalizeProviderRuntimeResult(raw, provider);
+    await input.onProviderAttempt?.({ status: 'succeeded', result: runtimeResult });
+    await input.onProviderResult?.(runtimeResult);
     const draft = buildValidatedDraft({
       question: input.question,
       evidence: input.evidence,
@@ -199,17 +289,38 @@ export async function evaluateWithProvider(input: {
       deletionHandle: runtimeResult.deletionHandle,
       providerRequestedAt: runtimeResult.providerRequestedAt,
       providerProcessedAt: runtimeResult.providerProcessedAt,
+      inputTokens: runtimeResult.inputTokens,
+      outputTokens: runtimeResult.outputTokens,
+      telemetryComplete: runtimeResult.telemetryComplete,
+      attachmentHashes: attachments.map((attachment) => attachment.checksum),
+      evaluationIdentity: input.idempotencyKey ?? null,
     });
+    if (draft.state === 'blocked' && isRetryableProviderOutputError(draft.blockedReasons)) {
+      return retryableDraft(input, draft.blockedReasons);
+    }
     if (input.policy && input.policy.providerRetentionSeconds > 0 && !runtimeResult.providerRequestId && !runtimeResult.deletionHandle) {
       return { ...draft, state: 'blocked', blockedReasons: [...new Set([...draft.blockedReasons, 'provider-deletion-locator-missing'])] };
     }
     return draft;
   } catch (error) {
+    const attachmentError = error instanceof Error && /^grading-attachments?-/u.test(error.message)
+      ? error.message
+      : null;
+    if (attachmentError) return blockedDraft(input, [attachmentError], null);
     const reason = `provider-${redactProviderError(error)}`;
     return isRetryableProviderError(error)
       ? retryableDraft(input, [reason])
       : blockedDraft(input, [reason], null);
   }
+}
+
+export const evaluateWithProvider = evaluateFrozenQuestionEvidence;
+
+export function selectGradingAttachmentsForQuestion(
+  attachments: readonly GradingEvidenceAttachment[] | undefined,
+  questionId: string,
+): GradingEvidenceAttachment[] {
+  return (attachments ?? []).filter((attachment) => attachment.questionId == null || attachment.questionId === questionId);
 }
 
 export function buildValidatedDraft(input: {
@@ -223,22 +334,23 @@ export function buildValidatedDraft(input: {
   deletionHandle?: string | null;
   providerRequestedAt?: Date | null;
   providerProcessedAt?: Date | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  telemetryComplete?: boolean;
+  attachmentHashes?: readonly string[];
+  evaluationIdentity?: string | null;
 }): ValidatedGradingDraft {
-  const parsed = providerOutputSchema.safeParse(input.output);
-  const inputHash = sha256(JSON.stringify({
-    question: input.question.contentHash,
-    answer: input.evidence.sourceHash,
-    evidence: input.evidence.anchorVersion,
-    evaluator: [input.evaluatorId, input.evaluatorVersion],
-  }));
+  const parsed = providerOutputSchema.safeParse(normalizeProviderOutputForSchema(input.output));
+  const inputHash = buildGradingInputHash(input);
   const dedupeKey = buildPipelineDedupeKey('grading-run', {
     question: input.question.questionId,
     answer: input.evidence.sourceHash,
     rubric: input.question.rubric.version,
     evaluator: input.evaluatorVersion ?? parsed.data?.evaluatorVersion ?? 'unknown',
+    attachments: [...(input.attachmentHashes ?? [])].sort(),
   });
   const normalizedOutput = parsed.success
-    ? normalizeProviderScores(parsed.data, input.question)
+    ? normalizeProviderScores(repairProviderOutputAnchors(parsed.data, input.evidence), input.question)
     : null;
   const reasons = parsed.success
     ? validateGradingOutput(normalizedOutput!, input.question, input.evidence)
@@ -253,6 +365,7 @@ export function buildValidatedDraft(input: {
       limitations: parsed.data?.limitations ?? [],
       overallComment: parsed.data?.overallComment ?? '',
       inputHash,
+      evaluationIdentity: input.evaluationIdentity ?? null,
       dedupeKey,
       state: 'blocked',
       blockedReasons: [...new Set(reasons)],
@@ -262,11 +375,15 @@ export function buildValidatedDraft(input: {
       deletionHandle: input.deletionHandle ?? null,
       providerRequestedAt: input.providerRequestedAt ?? null,
       providerProcessedAt: input.providerProcessedAt ?? null,
+      inputTokens: input.inputTokens ?? null,
+      outputTokens: input.outputTokens ?? null,
+      telemetryComplete: input.telemetryComplete === true,
     };
   }
   return {
     ...normalizedOutput!,
     inputHash,
+    evaluationIdentity: input.evaluationIdentity ?? null,
     dedupeKey,
     state: 'awaiting-review',
     blockedReasons: [],
@@ -276,7 +393,46 @@ export function buildValidatedDraft(input: {
     deletionHandle: input.deletionHandle ?? null,
     providerRequestedAt: input.providerRequestedAt ?? null,
     providerProcessedAt: input.providerProcessedAt ?? null,
+    inputTokens: input.inputTokens ?? null,
+    outputTokens: input.outputTokens ?? null,
+    telemetryComplete: input.telemetryComplete === true,
   };
+}
+
+export function buildGradingInputHash(input: {
+  question: FrozenQuestionContract;
+  evidence: NormalizedAnswerEvidence;
+  evaluatorId?: string;
+  evaluatorVersion?: string;
+  attachmentHashes?: readonly string[];
+}): string {
+  return sha256(JSON.stringify({
+    question: input.question.contentHash,
+    answer: input.evidence.sourceHash,
+    evidence: input.evidence.anchorVersion,
+    evaluator: [input.evaluatorId, input.evaluatorVersion],
+    attachments: [...(input.attachmentHashes ?? [])].sort(),
+  }));
+}
+
+function normalizeGradingAttachments(
+  attachments: readonly GradingEvidenceAttachment[] | undefined,
+): GradingEvidenceAttachment[] {
+  const normalized = [...(attachments ?? [])];
+  if (normalized.length > 24) throw new Error('grading-attachments-count-exceeded');
+  let totalBytes = 0;
+  for (const attachment of normalized) {
+    if (attachment.kind === 'image' && !/^image\/(?:png|jpeg|webp)$/u.test(attachment.mediaType)) {
+      throw new Error('grading-attachment-media-type-unsupported');
+    }
+    if (attachment.kind === 'document' && attachment.mediaType !== 'application/pdf') {
+      throw new Error('grading-attachment-media-type-unsupported');
+    }
+    if (sha256(attachment.data) !== attachment.checksum) throw new Error('grading-attachment-checksum-mismatch');
+    totalBytes += attachment.data.byteLength;
+  }
+  if (totalBytes > 32 * 1024 * 1024) throw new Error('grading-attachments-size-exceeded');
+  return normalized;
 }
 
 export function validateGradingOutput(
@@ -306,9 +462,12 @@ export function validateGradingOutput(
     if (detailedRubricEnabled && !level) reasons.push('unknown-level');
     if (!detailedRubricEnabled && assessment.levelId !== null) reasons.push('standard-only-level-not-allowed');
     if (assessment.score < 0 || assessment.score > criterion.maxPoints || assessment.score > question.rubric.maxScore) reasons.push('score-overflow');
+    if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && !usesHalfPointQuantum(assessment.score)) reasons.push('score-must-use-0.5-quantum');
     if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2' && !hasAtMostOneDecimal(assessment.score)) reasons.push('score-must-use-0.1-quantum');
-    if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && level
-      && (assessment.score < level.minPoints || assessment.score > level.maxPoints)) reasons.push('score-level-range-mismatch');
+    if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && level) {
+      const scoreLevelTolerance = 1e-9;
+      if (assessment.score < level.minPoints - scoreLevelTolerance || assessment.score > level.maxPoints + scoreLevelTolerance) reasons.push('score-level-range-mismatch');
+    }
     if (assessment.rationale.length < 12) reasons.push('rationale-missing');
     if (!Number.isFinite(assessment.confidence) || assessment.confidence < 0 || assessment.confidence > 1) reasons.push('confidence-out-of-range');
     if (assessment.anchors.length === 0) reasons.push('evidence-anchor-missing');
@@ -365,17 +524,71 @@ export function createDeterministicFixtureEvaluator(input: {
   };
 }
 
+function createProviderRequestTimeout(upstream: AbortSignal | undefined): {
+  signal: AbortSignal;
+  timedOut: () => boolean;
+  dispose: () => void;
+} {
+  const controller = new AbortController();
+  let timeoutTriggered = false;
+  const forwardUpstreamAbort = () => controller.abort(upstream?.reason);
+  if (upstream?.aborted) forwardUpstreamAbort();
+  else upstream?.addEventListener('abort', forwardUpstreamAbort, { once: true });
+  const timer = setTimeout(() => {
+    timeoutTriggered = true;
+    controller.abort(new Error('provider-timeout'));
+  }, PROVIDER_REQUEST_TIMEOUT_MS);
+  return {
+    signal: controller.signal,
+    timedOut: () => timeoutTriggered,
+    dispose: () => {
+      clearTimeout(timer);
+      upstream?.removeEventListener('abort', forwardUpstreamAbort);
+    },
+  };
+}
+
+function normalizeProviderOutputForSchema(output: unknown): unknown {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return output;
+  const source = output as Record<string, unknown>;
+  if (!Array.isArray(source.assessments)) return output;
+  return {
+    ...source,
+    limitations: Array.isArray(source.limitations)
+      ? source.limitations.map((limitation) => (
+        typeof limitation === 'string' && limitation.trim().length > 240
+          ? 'provider-limitation-truncated'
+          : limitation
+      ))
+      : source.limitations,
+    assessments: source.assessments.map((assessment) => {
+      if (!assessment || typeof assessment !== 'object' || Array.isArray(assessment)) return assessment;
+      const candidate = assessment as Record<string, unknown>;
+      const limitationState = candidate.limitationState;
+      if (typeof limitationState !== 'string' || limitationState.trim().length <= 120) return assessment;
+      return { ...candidate, limitationState: 'provider-limitation-state-truncated' };
+    }),
+  };
+}
+
 function normalizeProviderScores(
   output: ProviderGradingOutput,
   question: FrozenQuestionContract,
 ): ProviderGradingOutput {
-  if (question.rubric.schemaVersion !== 'assignment-scoring-rubric.v2') return output;
   const criteria = new Map(question.rubric.criteria.map((criterion) => [criterion.id, criterion]));
   return {
     ...output,
     assessments: output.assessments.map((assessment) => {
       const criterion = criteria.get(assessment.criterionId);
       if (!criterion) return assessment;
+      if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1') {
+        const scoreLevelTolerance = 1e-9;
+        const matchingLevels = criterion.levels.filter((level) => assessment.score >= level.minPoints - scoreLevelTolerance && assessment.score <= level.maxPoints + scoreLevelTolerance);
+        if (matchingLevels.length === 1 && !matchingLevels.some((level) => level.id === assessment.levelId)) {
+          return { ...assessment, levelId: matchingLevels[0].id };
+        }
+        return assessment;
+      }
       if (!criterion.detailedRubricEnabled) return assessment;
       const rounded = roundUpToOneDecimal(assessment.score);
       if (!assessment.levelId) return { ...assessment, score: rounded };
@@ -389,7 +602,7 @@ function normalizeProviderScores(
   };
 }
 
-function normalizeProviderRuntimeResult(raw: unknown, provider: GradingProviderRuntime): ProviderRuntimeResult {
+export function normalizeProviderRuntimeResult(raw: unknown, provider: GradingProviderRuntime): ProviderRuntimeResult {
   if (raw && typeof raw === 'object' && 'output' in raw && ('provider' in raw || 'providerRequestId' in raw || 'deletionHandle' in raw)) {
     const result = raw as Partial<ProviderRuntimeResult>;
     return {
@@ -399,9 +612,26 @@ function normalizeProviderRuntimeResult(raw: unknown, provider: GradingProviderR
       deletionHandle: typeof result.deletionHandle === 'string' && result.deletionHandle.trim() ? result.deletionHandle.trim() : null,
       providerRequestedAt: normalizeProviderTimestamp(result.providerRequestedAt),
       providerProcessedAt: normalizeProviderTimestamp(result.providerProcessedAt),
+      inputTokens: normalizeTokenCount(result.inputTokens),
+      outputTokens: normalizeTokenCount(result.outputTokens),
+      telemetryComplete: result.telemetryComplete === true,
     };
   }
-  return { output: raw, provider: provider.provider ?? provider.id, providerRequestId: null, deletionHandle: null, providerRequestedAt: null, providerProcessedAt: null };
+  return {
+    output: raw,
+    provider: provider.provider ?? provider.id,
+    providerRequestId: null,
+    deletionHandle: null,
+    providerRequestedAt: null,
+    providerProcessedAt: null,
+    inputTokens: null,
+    outputTokens: null,
+    telemetryComplete: false,
+  };
+}
+
+function normalizeTokenCount(value: unknown): number | null {
+  return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
 }
 
 function normalizeProviderTimestamp(value: unknown): Date | null {
@@ -422,6 +652,7 @@ function readProviderDeletionHandle(headers: Headers | Record<string, string> | 
 function blockedDraft(input: {
   question: FrozenQuestionContract;
   evidence: NormalizedAnswerEvidence;
+  idempotencyKey?: string;
 }, reasons: string[], provider: GradingProviderRuntime | null): ValidatedGradingDraft {
   const inputHash = sha256(`${input.question.contentHash}:${input.evidence.sourceHash}`);
   return {
@@ -431,6 +662,7 @@ function blockedDraft(input: {
     limitations: input.evidence.limitations,
     overallComment: '',
     inputHash,
+    evaluationIdentity: input.idempotencyKey ?? null,
     dedupeKey: buildPipelineDedupeKey('grading-run', { question: input.question.questionId, answer: input.evidence.sourceHash, rubric: input.question.rubric.version, evaluator: provider?.version ?? 'blocked' }),
     state: 'blocked',
     blockedReasons: [...new Set(reasons)],
@@ -440,12 +672,16 @@ function blockedDraft(input: {
     deletionHandle: null,
     providerRequestedAt: null,
     providerProcessedAt: null,
+    inputTokens: null,
+    outputTokens: null,
+    telemetryComplete: false,
   };
 }
 
 function retryableDraft(input: {
   question: FrozenQuestionContract;
   evidence: NormalizedAnswerEvidence;
+  idempotencyKey?: string;
 }, reasons: string[]): ValidatedGradingDraft {
   const inputHash = sha256(`${input.question.contentHash}:${input.evidence.sourceHash}`);
   return {
@@ -455,6 +691,7 @@ function retryableDraft(input: {
     limitations: input.evidence.limitations,
     overallComment: '',
     inputHash,
+    evaluationIdentity: input.idempotencyKey ?? null,
     dedupeKey: buildPipelineDedupeKey('grading-run', { question: input.question.questionId, answer: input.evidence.sourceHash, rubric: input.question.rubric.version, evaluator: 'retryable' }),
     state: 'retryable',
     blockedReasons: [...new Set(reasons)],
@@ -464,12 +701,69 @@ function retryableDraft(input: {
     deletionHandle: null,
     providerRequestedAt: null,
     providerProcessedAt: null,
+    inputTokens: null,
+    outputTokens: null,
+    telemetryComplete: false,
   };
 }
 
 function isRetryableProviderError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'retryable' in error && (error as { retryable?: unknown }).retryable === true) return true;
+  if (error && typeof error === 'object' && 'cause' in error && isRetryableProviderError((error as { cause?: unknown }).cause)) return true;
+  const status = error && typeof error === 'object'
+    ? (error as { statusCode?: unknown; status?: unknown }).statusCode ?? (error as { status?: unknown }).status
+    : undefined;
+  if (typeof status === 'number') return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
   const message = error instanceof Error ? error.message : String(error);
-  return /timeout|network|fetch|unavailable|provider[-_ ]?(?:down|error)|rate[-_ ]?limit|quota|429|5\d\d|ECONN|ETIMEDOUT|EAI_AGAIN/i.test(message);
+  return /timeout|network|fetch|unavailable|no[-_ ]?(?:output|object)[-_ ]?generated|provider[-_ ]?(?:down|error)|rate[-_ ]?limit|quota|429|5\d\d|ECONN|ETIMEDOUT|EAI_AGAIN|siliconflow.*failed after retries/i.test(message);
+}
+
+function usesHalfPointQuantum(value: number): boolean {
+  return Number.isFinite(value) && Math.abs(value * 2 - Math.round(value * 2)) <= 1e-9;
+}
+
+function repairProviderOutputAnchors(
+  output: ProviderGradingOutput,
+  evidence: NormalizedAnswerEvidence,
+): ProviderGradingOutput {
+  const blocks = new Map(evidence.blocks.map((block) => [block.id, block]));
+  const canonicalize = (anchor: GradingAnchor): GradingAnchor => {
+    const block = blocks.get(anchor.blockId);
+    const reasons = validateOutputAnchor(anchor, blocks);
+    if (!block || reasons.length === 0 || !reasons.every((reason) => [
+      'anchor-precision-unsupported',
+      'anchor-excerpt-mismatch',
+      'page-anchor-mismatch',
+      'span-coordinates-missing',
+      'unsupported-span-anchor',
+    ].includes(reason))) return anchor;
+    const excerpt = block.text.trim().slice(0, 600);
+    if (!excerpt) return anchor;
+    return {
+      blockId: block.id,
+      precision: block.precision ?? 'block',
+      excerpt,
+      ...(block.pageNumber == null ? {} : { pageNumber: block.pageNumber }),
+      ...(block.precision === 'span' && block.spanStart != null && block.spanEnd != null
+        ? { spanStart: block.spanStart, spanEnd: block.spanEnd }
+        : {}),
+      ...(block.bbox == null ? {} : { bbox: block.bbox }),
+    };
+  };
+  return {
+    ...output,
+    assessments: output.assessments.map((assessment) => ({
+      ...assessment,
+      anchors: assessment.anchors.map(canonicalize),
+      ...(assessment.annotations
+        ? { annotations: assessment.annotations.map((annotation) => ({ ...annotation, anchor: canonicalize(annotation.anchor) })) }
+        : {}),
+    })),
+  };
+}
+
+function isRetryableProviderOutputError(reasons: readonly string[]): boolean {
+  return reasons.length > 0;
 }
 
 function normalizeEndpoint(value: string): string {

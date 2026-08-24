@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { GetObjectTaggingCommand, HeadObjectCommand, type S3Client } from '@aws-sdk/client-s3';
+import { describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import {
   assertDeliveryWindow,
@@ -163,7 +164,26 @@ describe('private object store contract', () => {
     const url = new URL(signed.url);
     expect(url.searchParams.get('X-Amz-Algorithm')).toBe('AWS4-HMAC-SHA256');
     expect(url.searchParams.get('X-Amz-Signature')).toMatch(/^[a-f0-9]{64}$/);
+    expect(url.searchParams.get('x-amz-meta-checksum')).toBe(`sha256:${'a'.repeat(64)}`);
     expect(signed.requiredHeaders['x-amz-checksum-sha256']).toBe(Buffer.from('a'.repeat(64), 'hex').toString('base64'));
+  });
+  it('uses the signed checksum metadata when an S3-compatible head response omits its checksum field', async () => {
+    const checksum = `sha256:${'a'.repeat(64)}`;
+    const client = {
+      send: vi.fn((command: unknown) => {
+        if (command instanceof HeadObjectCommand) return Promise.resolve({ Metadata: { owner: 'student', answer: 'answer', checksum }, ContentLength: 12, ContentType: 'application/pdf' });
+        if (command instanceof GetObjectTaggingCommand) return Promise.resolve({ TagSet: [{ Key: 'scan-state', Value: 'CLEAN' }] });
+        throw new Error('unexpected-object-store-command');
+      }),
+    } as unknown as S3Client;
+    const store = new S3CompatibleSubmissionObjectStore({ endpoint: 'https://minio.invalid', bucket: 'private-submissions', accessKey: 'scanner-separated-app-key', secretKey: 'test-secret' }, client);
+
+    await expect(store.head(`quarantine/aa/${'b'.repeat(48)}`)).resolves.toMatchObject({ checksum, scanState: 'CLEAN' });
+  });
+
+  it('allows plain HTTP submission storage only on the local test loopback', () => {
+    expect(() => new S3CompatibleSubmissionObjectStore({ endpoint: 'http://127.0.0.1:9000', bucket: 'private-submissions', accessKey: 'scanner-separated-app-key', secretKey: 'test-secret', region: 'us-east-1' })).not.toThrow();
+    expect(() => new S3CompatibleSubmissionObjectStore({ endpoint: 'http://objects.example', bucket: 'private-submissions', accessKey: 'scanner-separated-app-key', secretKey: 'test-secret', region: 'us-east-1' })).toThrow('private-object-store-not-configured');
   });
   it('executes the local signed upload route contract without a reusable app credential', async () => {
     const bytes = new TextEncoder().encode('question-file');

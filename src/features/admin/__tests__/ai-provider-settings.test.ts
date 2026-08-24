@@ -36,6 +36,7 @@ describe('AI provider settings', () => {
     });
     expect(siliconflow?.models.map((model) => model.model)).toEqual(
       expect.arrayContaining([
+        'Qwen/Qwen3.5-35B-A3B',
         'Qwen/Qwen3.6-35B-A3B',
         'deepseek-ai/DeepSeek-V4-Flash',
         'MiniMaxAI/MiniMax-M2.5',
@@ -104,14 +105,14 @@ describe('AI provider settings', () => {
     });
   });
 
-  it('marks Qwen3.6 to disable thinking for normal teaching prompts', () => {
+  it.each(['Qwen/Qwen3.5-35B-A3B', 'Qwen/Qwen3.6-35B-A3B'])('marks %s to disable thinking for normal teaching prompts', (model) => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
       AI_API_KEY: 'sk-test',
     } as unknown as NodeJS.ProcessEnv);
 
-    expect(getModelRuntimeOptions(settings, 'siliconflow', 'Qwen/Qwen3.6-35B-A3B')).toEqual({
+    expect(getModelRuntimeOptions(settings, 'siliconflow', model)).toEqual({
       enableThinking: false,
     });
   });

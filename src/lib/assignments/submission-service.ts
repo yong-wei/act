@@ -25,6 +25,7 @@ import {
   resolveGradingLineage,
   writeLifecycleAudit,
 } from '@/lib/data-governance/math-document-grading-lifecycle';
+import { materializeTextAnswerEvidence } from '@/lib/data-governance/math-document-grading-persistence';
 
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
@@ -81,13 +82,13 @@ export async function listStudentAssignments(prisma: PrismaClient, studentId: st
   const currentClassId = profile?.classId ?? null;
   const publishedRevisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
-    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
+    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
     orderBy: [{ publishedAt: 'desc' }, { revisionNumber: 'desc' }, { id: 'desc' }],
   }) : [];
   const revisions = selectCurrentPublishedRevisions(publishedRevisions);
   const historical = await prisma.assignmentSubmission.findMany({
     where: { studentId, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
-    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: true },
+    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } } },
   });
   return [...revisions.map((revision) => presentRevision(revision, revision.audiences[0], revision.submissions[0], true, now)), ...historical.map((item) => presentRevision(item.revision, item.audience, item, false, now))];
 }
@@ -104,7 +105,7 @@ export function selectCurrentPublishedRevisions<T extends { assignmentId: string
 
 export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date(), revisionId?: string) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
-  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
+  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
   if (!revision) {
     const historical = await prisma.assignmentSubmission.findFirst({
       where: {
@@ -140,6 +141,7 @@ export async function getStudentAssignment(prisma: PrismaClient, studentId: stri
           },
           orderBy: { approvedAt: 'asc' },
         },
+        gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } },
         resubmissionGrants: { orderBy: { grantedAt: 'desc' } },
       },
     });
@@ -1111,7 +1113,7 @@ export async function consumeSubmissionAssetRead(prisma: PrismaClient, input: { 
 }
 
 export async function submitQuestionAnswer(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; answerVersion: number; idempotencyKey: string; now?: Date }) {
-  return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+  const result = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
     const now = input.now ?? new Date();
     const requestHash = submissionHash({ answerVersion: input.answerVersion });
     const replayCandidates = await tx.submissionIdempotency.findMany({
@@ -1213,6 +1215,17 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     await tx.submissionIdempotency.create({ data: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey, requestHash, attemptId: attempt.id } });
     return { attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) };
   }, { isolationLevel: 'Serializable' }));
+  if (result.attempt.textSnapshot?.trim()) {
+    await materializeTextAnswerEvidence({
+      db: prisma,
+      attemptId: result.attempt.id,
+      actor: { id: input.studentId, role: 'STUDENT' },
+      operation: 'assignment-submit',
+      idempotencyKey: input.idempotencyKey,
+      now: input.now,
+    });
+  }
+  return result;
 }
 
 async function requireMutableQuestion(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string }, now: Date) {
@@ -1228,7 +1241,7 @@ async function requireMutableQuestion(prisma: PrismaClient, input: { studentId: 
     orderBy: { grantedAt: 'desc' },
   }) : null;
   if (!resubmissionGrant) assertDeliveryWindow({ now, availableAt: audience.availableAt, dueAt: audience.dueAt, latePolicy: revision.latePolicy as never });
-  const submission = await prisma.assignmentSubmission.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, audienceId: audience.id, studentId: input.studentId, frozenStudentId: input.studentId, frozenAudienceClassId: audience.classId, requiredQuestionCount: await prisma.assignmentQuestion.count({ where: { assignmentRevisionId: revision.id } }) }, update: {} });
+  const submission = await prisma.assignmentSubmission.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, audienceId: audience.id, studentId: input.studentId, frozenStudentId: input.studentId, frozenAudienceClassId: audience.classId, frozenAudienceDueAt: audience.dueAt, requiredQuestionCount: await prisma.assignmentQuestion.count({ where: { assignmentRevisionId: revision.id } }) }, update: {} });
   await prisma.assignmentHistoricalOwnership.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, studentId: input.studentId, audienceClassId: audience.classId, assignedAt: now }, update: {} });
   const answer = await prisma.submissionAnswer.findUnique({ where: { submissionId_assignmentQuestionId: { submissionId: submission.id, assignmentQuestionId: input.questionId } } });
   return { revision, audience, submission, question: revision.questions[0], answer, resubmissionGrant };
@@ -1246,14 +1259,21 @@ export function presentRevision(revision: any, audience: any, submission: any, c
   const answers = new Map((submission?.answers ?? []).map((answer: any) => [answer.assignmentQuestionId, answer]));
   const historicalOnly = !currentContext;
   const persistedState = submission?.state ?? 'NOT_STARTED';
-  const feedback = presentStudentAssignmentFeedback(submission, revision.questions, now);
+  const resultReleasePolicy = revision.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
+  const resultPackage = resultReleasePolicy ? presentStudentAssignmentResult(submission) : null;
+  const feedback = resultReleasePolicy && !resultPackage
+    ? []
+    : presentStudentAssignmentFeedback(submission, revision.questions, now);
   const activeGrants = (submission?.resubmissionGrants ?? []).filter((row: any) => row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
   const activeResubmission = activeGrants.length > 0;
-  const downstreamState = submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
+  const gradingState = presentStudentAssignmentGradingState(submission);
+  const downstreamState = resultPackage ? 'REVIEWED'
+    : submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
     : activeResubmission ? 'RESUBMISSION_REQUIRED'
-      : ['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
-      : submission?.reviewState === 'REVIEWING' ? 'IN_REVIEW'
-        : null;
+      : gradingState
+        ?? (['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
+          : submission?.reviewState === 'REVIEWING' ? 'IN_REVIEW'
+            : null);
   const presentation = deriveStudentAssignmentPresentation({ persistedState, dueAt: audience.dueAt, now, lateClosed: (revision.latePolicy as { mode?: string })?.mode === 'CLOSED', downstreamState });
   return {
     id: revision.assignmentId,
@@ -1268,14 +1288,16 @@ export function presentRevision(revision: any, audience: any, submission: any, c
     canMutate: !historicalOnly && (persistedState !== 'SUBMITTED' || activeResubmission) && presentation.state !== 'OVERDUE',
     submittedRequiredCount: submission?.submittedRequiredCount ?? 0,
     requiredQuestionCount: revision.questions.length,
-    approvedTotal: submission?.reviewState === 'REVIEWED' && submission.approvedTotal != null ? Number(submission.approvedTotal) : null,
-    feedbackStatus: submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? 'PUBLISHING'
+    approvedTotal: resultReleasePolicy ? resultPackage?.totalScore ?? null : submission?.reviewState === 'REVIEWED' && submission.approvedTotal != null ? Number(submission.approvedTotal) : null,
+    feedbackStatus: resultReleasePolicy ? resultPackage ? 'PUBLISHED' : 'HIDDEN' : submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? 'PUBLISHING'
       : submission?.reviewState === 'RELEASE_BLOCKED' ? 'BLOCKED'
         : submission?.reviewState === 'REVIEWED' ? 'PUBLISHED' : 'HIDDEN',
-    policyReason: submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? '评分已批准，批阅文档与反馈正在安全发布。'
+    policyReason: resultReleasePolicy && !resultPackage ? '成绩、批注、参考答案和评分标准将在教师确认并发布后显示。'
+      : submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? '评分已批准，批阅文档与反馈正在安全发布。'
       : submission?.reviewState === 'RELEASE_BLOCKED' ? '反馈发布暂时受阻，教师可重试派生文件或选择带限制的结构化反馈。'
         : undefined,
     feedback,
+    resultPackage,
     questions: revision.questions.map((question: any) => {
       const answer: any = answers.get(question.id);
       const grant = activeGrants.find((row: any) => row.questionId === question.id);
@@ -1381,6 +1403,36 @@ export function presentStudentAssignmentFeedback(submission: any, questions: any
       resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
     };
   });
+}
+
+function presentStudentAssignmentGradingState(submission: any): 'AWAITING_REVIEW' | 'IN_REVIEW' | 'PARTIAL_GRADING_FAILURE' | 'AWAITING_TEACHER_CONFIRMATION' | null {
+  const currentAttemptByQuestion = new Map((submission?.answers ?? []).map((answer: any) => [
+    answer.assignmentQuestionId,
+    answer.attempts?.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber)?.id ?? null,
+  ]));
+  const snapshot = [...(submission?.gradingSnapshots ?? [])]
+    .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
+  if (!snapshot?.grade) return null;
+  if (snapshot.grade.state === 'PARTIAL_FAILURE') return 'PARTIAL_GRADING_FAILURE';
+  if (snapshot.grade.state === 'AWAITING_CONFIRMATION' || snapshot.grade.state === 'CONFIRMED') return 'AWAITING_TEACHER_CONFIRMATION';
+  return snapshot.operation?.state === 'RUNNING' ? 'IN_REVIEW' : 'AWAITING_REVIEW';
+}
+
+export function presentStudentAssignmentResult(submission: any) {
+  if (!submission || submission.studentId !== submission.frozenStudentId) return null;
+  const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
+    const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
+    return [[answer.assignmentQuestionId, attempt?.id ?? null] as const];
+  }));
+  const releases = (submission.gradingSnapshots ?? [])
+    .filter((snapshot: any) => (snapshot.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .map((snapshot: any) => snapshot.grade?.release)
+    .filter((release: any) => release?.ownerStudentId === submission.frozenStudentId)
+    .sort((left: any, right: any) => new Date(right.releasedAt).getTime() - new Date(left.releasedAt).getTime());
+  const release = releases[0];
+  if (!release || !release.packageSnapshot || typeof release.packageSnapshot !== 'object') return null;
+  return release.packageSnapshot;
 }
 
 async function withSerializableRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {

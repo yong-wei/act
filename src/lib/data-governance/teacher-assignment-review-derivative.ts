@@ -21,6 +21,7 @@ export type ReviewedDerivativePlan = {
   sourceObjectKey: string | null;
   sourceSizeBytes: number | null;
   sourceChecksum: string;
+  sourceRepresentation: 'ORIGINAL_ASSET' | 'CANONICAL_PDF';
   reviewSnapshotChecksum: string;
   generatorId: string;
   generatorVersion: string;
@@ -71,13 +72,27 @@ export class ReviewedDerivativeError extends Error {
 export function buildReviewedDerivativePlan(snapshot: any, options: ReviewedDerivativeOptions): ReviewedDerivativePlan {
   const evidence = snapshot?.answerEvidence;
   const asset = evidence?.sourceAsset ?? null;
-  const sourceChecksum = requiredChecksum(evidence?.sourceHash, 'reviewed-derivative-source-checksum-missing');
-  if (asset?.checksum != null) {
+  const originalSourceChecksum = requiredChecksum(evidence?.sourceHash, 'reviewed-derivative-source-checksum-missing');
+  const aggregateAttachmentEvidence = evidence?.sourceAssetId == null
+    && evidence?.sourceManifest?.version === 'assignment-answer-evidence.v2';
+  if (asset?.checksum != null && !aggregateAttachmentEvidence) {
     const assetChecksum = requiredChecksum(asset.checksum, 'reviewed-derivative-source-asset-checksum-invalid');
-    if (assetChecksum !== sourceChecksum) throw new ReviewedDerivativeError('reviewed-derivative-source-checksum-mismatch', { blocked: true });
+    if (assetChecksum !== originalSourceChecksum) throw new ReviewedDerivativeError('reviewed-derivative-source-checksum-mismatch', { blocked: true });
   }
-  const sourceFormat = mimeFormat(asset?.mimeType);
-  const frozenSourceSize = Number.isInteger(asset?.sizeBytes) && asset.sizeBytes >= 0 ? asset.sizeBytes : null;
+  const originalFormat = mimeFormat(asset?.mimeType);
+  const canonicalPdf = originalFormat === 'DOCX' ? resolveCanonicalPdf(evidence, asset) : null;
+  if (originalFormat === 'DOCX' && !canonicalPdf) {
+    throw new ReviewedDerivativeError('reviewed-derivative-canonical-pdf-missing', { blocked: true });
+  }
+  const sourceFormat: NativeFormat | null = canonicalPdf ? 'PDF' : originalFormat;
+  const sourceChecksum = canonicalPdf?.checksum ?? originalSourceChecksum;
+  const sourceObjectKey = canonicalPdf?.objectKey ?? asset?.objectKey ?? null;
+  // A canonical PDF is a distinct object from the submitted Word file.  If its
+  // byte size was not persisted, leave it unfrozen rather than applying the
+  // Word size and rejecting the otherwise checksum-verified PDF at read time.
+  const frozenSourceSize = canonicalPdf
+    ? canonicalPdf.sizeBytes
+    : (Number.isInteger(asset?.sizeBytes) && asset.sizeBytes >= 0 ? asset.sizeBytes : null);
   const annotations = Array.isArray(snapshot?.annotationSnapshot) ? snapshot.annotationSnapshot.filter((row: any) => row?.status !== 'SUPPRESSED') : [];
   const capabilities = options.anchorCapabilities ?? (options.anchorMapVersion
     ? [{ anchorVersion: options.anchorMapVersion, nativeFormats: options.nativeFormats }]
@@ -85,25 +100,21 @@ export function buildReviewedDerivativePlan(snapshot: any, options: ReviewedDeri
   const capability = capabilities.find((entry) => entry.anchorVersion === evidence?.anchorVersion);
   const anchorMapReliable = Boolean(capability)
     && annotations.every((row: any) => isReliableAnchor(row?.anchor, evidence));
-  const nativeCapable = Boolean(sourceFormat && frozenSourceSize != null && options.nativeFormats.includes(sourceFormat) && capability?.nativeFormats.includes(sourceFormat) && anchorMapReliable
+  const nativeCapable = Boolean(originalFormat === 'PDF' && sourceFormat && frozenSourceSize != null && options.nativeFormats.includes(sourceFormat) && capability?.nativeFormats.includes(sourceFormat) && anchorMapReliable
     && annotations.every((row: any) => supportsNativeAnchor(sourceFormat, row?.anchor, evidence)));
   const limitations: string[] = [];
   if (!capability) limitations.push('anchor-capability-unregistered');
-  if (sourceFormat && frozenSourceSize == null) limitations.push('source-size-not-frozen');
+  if (sourceFormat && frozenSourceSize == null && !canonicalPdf) limitations.push('source-size-not-frozen');
   if (sourceFormat === 'PDF' && capability?.nativeFormats.includes('PDF') && !annotations.every((row: any) => hasFrozenPdfCoordinateProvenance(row?.anchor, evidence))) limitations.push('pdf-coordinate-provenance-missing');
   if (!anchorMapReliable && !limitations.includes('anchor-map-version-mismatch')) limitations.push('anchor-mapping-unreliable');
+  if (canonicalPdf) limitations.push('word-review-uses-canonical-pdf');
 
   let outputKind: ReviewedDerivativePlan['outputKind'] = 'ANNOTATED_MARKDOWN';
   let outputMimeType = 'text/markdown';
-  if (nativeCapable && sourceFormat === 'DOCX') {
-    outputKind = 'REVIEWED_DOCX';
-    outputMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-  } else if (sourceFormat === 'PDF' && options.nativeFormats.includes('PDF')) {
+  if (sourceFormat === 'PDF' && options.nativeFormats.includes('PDF')) {
     outputKind = 'REVIEWED_PDF';
     outputMimeType = 'application/pdf';
     if (!nativeCapable) limitations.push('reviewed-pdf-summary-only-no-precise-overlay');
-  } else if (sourceFormat === 'DOCX' && !nativeCapable) {
-    limitations.push('native-docx-annotation-unavailable');
   }
 
   const preserveMappedAnchors = anchorMapReliable && !(outputKind === 'REVIEWED_PDF' && !nativeCapable);
@@ -126,9 +137,10 @@ export function buildReviewedDerivativePlan(snapshot: any, options: ReviewedDeri
   return {
     snapshotId: snapshot.id,
     sourceAssetId: asset?.id ?? null,
-    sourceObjectKey: asset?.objectKey ?? null,
+    sourceObjectKey,
     sourceSizeBytes: frozenSourceSize,
     sourceChecksum,
+    sourceRepresentation: canonicalPdf ? 'CANONICAL_PDF' : 'ORIGINAL_ASSET',
     reviewSnapshotChecksum,
     generatorId: options.generatorId,
     generatorVersion: options.generatorVersion,
@@ -294,6 +306,20 @@ function mimeFormat(mimeType: unknown): NativeFormat | null {
   if (mimeType === 'application/pdf') return 'PDF';
   if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'DOCX';
   return null;
+}
+
+function resolveCanonicalPdf(evidence: any, sourceAsset: any): { objectKey: string; checksum: string; sizeBytes: number | null } | null {
+  const conversion = evidence?.conversion;
+  const fallbackWordConversion = conversion?.state === 'FALLBACK'
+    && conversion.adapter === 'local-markitdown'
+    && mimeFormat(sourceAsset?.mimeType) === 'DOCX';
+  if ((conversion?.state !== 'SUCCEEDED' && !fallbackWordConversion) || typeof conversion.renderedObjectKey !== 'string' || conversion.renderedObjectKey.length === 0) return null;
+  const checksum = requiredChecksum(conversion.renderedChecksum, 'reviewed-derivative-canonical-pdf-checksum-missing');
+  return {
+    objectKey: conversion.renderedObjectKey,
+    checksum,
+    sizeBytes: Number.isInteger(conversion.renderedSizeBytes) && conversion.renderedSizeBytes >= 0 ? conversion.renderedSizeBytes : null,
+  };
 }
 
 function isReliableAnchor(anchor: any, evidence: any): boolean {

@@ -10,6 +10,7 @@ import {
   deriveTeacherReviewQueueStatus,
   evaluateAssignmentReviewCompleteness,
   getTeacherAssignmentReview,
+  listTeacherAssignmentSubmissions,
   resolveTeacherAssignmentReviewAuthorization,
   requestTeacherAssignmentFeedbackRelease,
   returnTeacherAssignmentReview,
@@ -46,6 +47,7 @@ function reviewFixture() {
     studentId: 'student-1',
     frozenStudentId: 'student-1',
     frozenAudienceClassId: 'class-1',
+    frozenAudienceDueAt: new Date('2026-07-16T23:00:00.000Z'),
     audience: { id: 'audience-1', classId: 'class-1', archivedAt: null, class: { id: 'class-1', teacherId: 'teacher-1', isActive: true } },
     student: { profile: { classId: 'class-1' } },
   };
@@ -401,6 +403,30 @@ describe('teacher assignment review persistence', () => {
     },
   );
 
+  it('marks a submitted attempt as ready before a grading run exists', () => {
+    expect(deriveTeacherReviewQueueStatus(undefined, true)).toBe('READY');
+    expect(deriveTeacherReviewQueueStatus(undefined, false)).toBe('NOT_SUBMITTED');
+  });
+
+  it('exposes a blocked conversion batch for retry before a grading run exists', async () => {
+    const now = new Date('2026-08-22T10:00:00.000Z');
+    const db = {
+      assignment: { findUnique: vi.fn().mockResolvedValue({ id: 'assignment-1', authorId: 'teacher-1', reviewGrants: [] }) },
+      assignmentSubmission: { findMany: vi.fn().mockResolvedValue([{
+        id: 'submission-1', assignmentRevisionId: 'revision-1', studentId: 'student-1', frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1', state: 'SUBMITTED', submittedRequiredCount: 1, requiredQuestionCount: 1, reviewState: 'PENDING', updatedAt: now,
+        revision: { assignment: { id: 'assignment-1', authorId: 'teacher-1', reviewGrants: [] }, questions: [{ id: 'question-1', stableQuestionId: 'q1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', promptSnapshot: '请提交 Word 作业。' }] },
+        audience: { classId: 'class-1', dueAt: new Date('2026-08-22T09:00:00.000Z'), class: { teacherId: 'teacher-1', isActive: true } },
+        student: { name: '学生', profile: { studentNumber: 'student-1' } },
+        answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ attemptNumber: 1, gradingRuns: [], gradingBatchItems: [{ id: 'item-1', batchId: 'batch-1', state: 'BLOCKED', failureCode: 'word-processor-version-unavailable', updatedAt: now, batch: { questionId: 'question-1' } }] }] }],
+        gradingSnapshots: [],
+      }]) },
+    };
+
+    const [submission] = await listTeacherAssignmentSubmissions(db, { actor: { id: 'admin-1', role: 'ADMIN' }, assignmentId: 'assignment-1', now });
+
+    expect(submission.questions[0]).toMatchObject({ status: 'BLOCKED', batchId: 'batch-1', batchItemId: 'item-1' });
+  });
+
   it('rejects detail lookup without an exact review locator', async () => {
     const findUnique = vi.fn();
     await expect(getTeacherAssignmentReview(
@@ -705,6 +731,68 @@ describe('teacher assignment review persistence', () => {
       reviewId: review.id, expectedVersion: 2, idempotencyKey: 'return-review-1', reason: 'Different request content',
       allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-20T00:00:00.000Z'), now,
     })).rejects.toMatchObject({ code: 'teacher-review-idempotency-conflict', status: 409 });
+  });
+
+  it('rejects resubmission authorization before the frozen assignment deadline', async () => {
+    const review = reviewFixture();
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentResubmissionGrant: { findUnique: vi.fn().mockResolvedValue(null) },
+    };
+
+    await expect(returnTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'return-before-deadline', reason: 'Please correct the sign error',
+      allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-19T00:00:00.000Z'),
+      now: new Date('2026-07-16T22:59:59.999Z'),
+    })).rejects.toMatchObject({ code: 'teacher-review-resubmission-before-deadline', status: 422 });
+  });
+
+  it('rejects resubmission authorization exactly at the frozen assignment deadline', async () => {
+    const review = reviewFixture();
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentResubmissionGrant: { findUnique: vi.fn().mockResolvedValue(null) },
+    };
+
+    await expect(returnTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'return-at-deadline', reason: 'Please correct the sign error',
+      allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-19T00:00:00.000Z'),
+      now: review.submission.frozenAudienceDueAt,
+    })).rejects.toMatchObject({ code: 'teacher-review-resubmission-before-deadline', status: 422 });
+  });
+
+  it('rejects a resubmission deadline that does not extend the frozen deadline', async () => {
+    const review = reviewFixture();
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentResubmissionGrant: { findUnique: vi.fn().mockResolvedValue(null) },
+    };
+
+    await expect(returnTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'return-invalid-deadline', reason: 'Please correct the sign error',
+      allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-16T23:00:00.000Z'), now,
+    })).rejects.toMatchObject({ code: 'teacher-review-resubmission-deadline-invalid', status: 422 });
+  });
+
+  it('rejects a resubmission deadline that is after the original deadline but not after now', async () => {
+    const review = reviewFixture();
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentResubmissionGrant: { findUnique: vi.fn().mockResolvedValue(null) },
+    };
+
+    await expect(returnTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'return-past-new-deadline', reason: 'Please correct the sign error',
+      allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-17T00:00:00.000Z'), now,
+    })).rejects.toMatchObject({ code: 'teacher-review-resubmission-deadline-invalid', status: 422 });
   });
 
   it('exposes structured review errors for API conflict mapping', () => {

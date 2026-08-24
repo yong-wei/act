@@ -16,17 +16,27 @@ export interface SubmissionObjectScanner { healthCheck(): Promise<void>; readFor
 function boundedTtl(ttl = 600) { if (!Number.isInteger(ttl) || ttl < 1 || ttl > 600) throw new SubmissionError('invalid-signed-url-ttl'); return ttl; }
 function checksumBase64(checksum: string) { return Buffer.from(checksum.slice(7), 'hex').toString('base64'); }
 function checksumHex(checksum: string | undefined) { return checksum ? `sha256:${Buffer.from(checksum, 'base64').toString('hex')}` : ''; }
+function isTrustedSubmissionEndpoint(endpoint: string) {
+  if (endpoint.startsWith('https://')) return true;
+  if (process.env.NODE_ENV === 'production') return false;
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === 'http:' && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
 
 export class S3CompatibleSubmissionObjectStore implements SubmissionObjectStore {
   private readonly client: S3Client;
-  constructor(private readonly config: { endpoint: string; bucket: string; accessKey: string; secretKey: string; region?: string; forcePathStyle?: boolean }) {
-    if (!config.endpoint.startsWith('https://') || !config.bucket || !config.accessKey || !config.secretKey) throw new SubmissionError('private-object-store-not-configured', 503);
-    this.client = new S3Client({ endpoint: config.endpoint, region: config.region ?? 'us-east-1', forcePathStyle: config.forcePathStyle ?? true, credentials: { accessKeyId: config.accessKey, secretAccessKey: config.secretKey } });
+  constructor(private readonly config: { endpoint: string; bucket: string; accessKey: string; secretKey: string; region?: string; forcePathStyle?: boolean }, client?: S3Client) {
+    if (!isTrustedSubmissionEndpoint(config.endpoint) || !config.bucket || !config.accessKey || !config.secretKey) throw new SubmissionError('private-object-store-not-configured', 503);
+    this.client = client ?? new S3Client({ endpoint: config.endpoint, region: config.region ?? 'us-east-1', forcePathStyle: config.forcePathStyle ?? true, credentials: { accessKeyId: config.accessKey, secretAccessKey: config.secretKey } });
   }
   async healthCheck() { try { await this.client.send(new HeadBucketCommand({ Bucket: this.config.bucket })); } catch { throw new SubmissionError('object-store-unhealthy', 503); } }
   async signUpload(intent: Omit<StoredObjectMetadata, 'key' | 'scanState'>, ttlSeconds = 600, objectKey?: string) {
     const ttl = boundedTtl(ttlSeconds); const key = objectKey ?? opaqueObjectKey();
-    const command = new PutObjectCommand({ Bucket: this.config.bucket, Key: key, ContentType: intent.mimeType, ContentLength: intent.sizeBytes, ChecksumSHA256: checksumBase64(intent.checksum), Metadata: { owner: intent.ownerId, answer: intent.answerId, ...(intent.attemptId ? { 'attempt-id': intent.attemptId } : {}), ...(intent.workerClaimFingerprint ? { 'worker-claim-fingerprint': intent.workerClaimFingerprint } : {}) }, Tagging: 'scan-state=PENDING' });
+    const command = new PutObjectCommand({ Bucket: this.config.bucket, Key: key, ContentType: intent.mimeType, ContentLength: intent.sizeBytes, ChecksumSHA256: checksumBase64(intent.checksum), Metadata: { owner: intent.ownerId, answer: intent.answerId, checksum: intent.checksum, ...(intent.attemptId ? { 'attempt-id': intent.attemptId } : {}), ...(intent.workerClaimFingerprint ? { 'worker-claim-fingerprint': intent.workerClaimFingerprint } : {}) }, Tagging: 'scan-state=PENDING' });
     const url = await getSignedUrl(this.client, command, { expiresIn: ttl });
     return { key, url, expiresAt: new Date(Date.now() + ttl * 1000).toISOString(), requiredHeaders: { 'content-type': intent.mimeType, 'content-length': String(intent.sizeBytes), 'x-amz-checksum-sha256': checksumBase64(intent.checksum), 'x-amz-tagging': 'scan-state=PENDING' } };
   }
@@ -35,7 +45,7 @@ export class S3CompatibleSubmissionObjectStore implements SubmissionObjectStore 
       const [head, tags] = await Promise.all([this.client.send(new HeadObjectCommand({ Bucket: this.config.bucket, Key: key })), this.client.send(new GetObjectTaggingCommand({ Bucket: this.config.bucket, Key: key }))]);
       // The scanner owns object-tag mutation through a separate IAM identity; client metadata is never trusted as a scan verdict.
       const scanTag = tags.TagSet?.find((tag) => tag.Key === 'scan-state')?.Value;
-      return { key, ownerId: head.Metadata?.owner ?? '', answerId: head.Metadata?.answer ?? '', sizeBytes: head.ContentLength ?? -1, mimeType: head.ContentType ?? '', checksum: checksumHex(head.ChecksumSHA256), scanState: scanTag === 'CLEAN' ? 'CLEAN' : scanTag === 'UNSAFE' ? 'UNSAFE' : 'PENDING', attemptId: head.Metadata?.['attempt-id'], workerClaimFingerprint: head.Metadata?.['worker-claim-fingerprint'] };
+      return { key, ownerId: head.Metadata?.owner ?? '', answerId: head.Metadata?.answer ?? '', sizeBytes: head.ContentLength ?? -1, mimeType: head.ContentType ?? '', checksum: head.Metadata?.checksum ?? checksumHex(head.ChecksumSHA256), scanState: scanTag === 'CLEAN' ? 'CLEAN' : scanTag === 'UNSAFE' ? 'UNSAFE' : 'PENDING', attemptId: head.Metadata?.['attempt-id'], workerClaimFingerprint: head.Metadata?.['worker-claim-fingerprint'] };
     } catch (error) { if (isExplicitMissingObjectError(error)) return null; throw new SubmissionError('object-store-head-failed', 502); }
   }
   async readObject(key: string) { const response = await this.client.send(new GetObjectCommand({ Bucket: this.config.bucket, Key: key })); if (!response.Body) throw new SubmissionError('object-store-read-empty', 502); return response.Body.transformToByteArray(); }
@@ -68,7 +78,7 @@ export class MemorySubmissionObjectStore implements SubmissionObjectStore {
 }
 export class S3ObjectTagSubmissionScanner implements SubmissionObjectScanner {
   private readonly client: S3Client;
-  constructor(private readonly config: { endpoint: string; bucket: string; accessKey: string; secretKey: string; region?: string; probeKey?: string }, client?: S3Client) { if (!config.endpoint.startsWith('https://') || !config.bucket || !config.accessKey || !config.secretKey) throw new SubmissionError('trusted-scanner-not-configured', 503); this.client = client ?? new S3Client({ endpoint: config.endpoint, region: config.region ?? 'us-east-1', forcePathStyle: true, credentials: { accessKeyId: config.accessKey, secretAccessKey: config.secretKey } }); }
+  constructor(private readonly config: { endpoint: string; bucket: string; accessKey: string; secretKey: string; region?: string; probeKey?: string }, client?: S3Client) { if (!isTrustedSubmissionEndpoint(config.endpoint) || !config.bucket || !config.accessKey || !config.secretKey) throw new SubmissionError('trusted-scanner-not-configured', 503); this.client = client ?? new S3Client({ endpoint: config.endpoint, region: config.region ?? 'us-east-1', forcePathStyle: true, credentials: { accessKeyId: config.accessKey, secretAccessKey: config.secretKey } }); }
   async healthCheck() { try { await this.client.send(new HeadBucketCommand({ Bucket: this.config.bucket })); if (this.config.probeKey) { const current = await this.client.send(new GetObjectTaggingCommand({ Bucket: this.config.bucket, Key: this.config.probeKey })); await this.client.send(new PutObjectTaggingCommand({ Bucket: this.config.bucket, Key: this.config.probeKey, Tagging: { TagSet: current.TagSet ?? [] } })); } } catch (error) { if (this.config.probeKey) throw normalizeScannerS3Error(error); throw new SubmissionError('trusted-scanner-unhealthy', 503); } }
   async readForScan(key: string) { try { const response = await this.client.send(new GetObjectCommand({ Bucket: this.config.bucket, Key: key })); if (!response.Body) throw new SubmissionError('scanner-object-empty', 502); return response.Body.transformToByteArray(); } catch (error) { const normalized = normalizeScannerS3Error(error); if (normalized.code === 'scanner-object-disappeared') throw new SubmissionError('object-store-read-missing', 404); throw normalized; } }
   async recordTrustedResult(key: string, state: 'CLEAN' | 'UNSAFE') { try { await this.client.send(new PutObjectTaggingCommand({ Bucket: this.config.bucket, Key: key, Tagging: { TagSet: [{ Key: 'scan-state', Value: state }] } })); } catch (error) { throw normalizeScannerS3Error(error); } }

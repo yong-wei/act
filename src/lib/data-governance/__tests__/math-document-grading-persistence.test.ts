@@ -19,6 +19,7 @@ import {
   enqueueGradingRun,
   materializeAssignmentAnswerEvidence,
   materializeTextAnswerEvidence,
+  persistValidatedGradingDraft,
   processDocumentConversionJob,
   processGradingRunJob,
   retryDocumentConversion,
@@ -1124,6 +1125,11 @@ describe('production math-document grading persistence contracts', () => {
   it('persists a valid provider result as an awaiting-review draft without approval or writeback', async () => {
     const updates: any[] = [];
     const annotations: any[] = [];
+    const visualBytes = new Uint8Array([137, 80, 78, 71]);
+    const visualChecksum = sha256(visualBytes);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'grading-visual/run-1/1', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: visualBytes.byteLength, mimeType: 'image/png', checksum: visualChecksum, scanState: 'PENDING' });
+    store.payloads.set('grading-visual/run-1/1', visualBytes);
     const question = submittedAttempt().answer.question;
     (question.rubricSnapshot.criteria[0].levels as any) = [{ id: 'excellent', label: 'Excellent', minPoints: 4, maxPoints: 5, description: 'Complete evidence.' }];
     const job = {
@@ -1159,9 +1165,10 @@ describe('production math-document grading persistence contracts', () => {
           contentHash: 'sha256:question',
         },
         questionSnapshotHash: 'sha256:question',
+        attachmentManifest: [{ id: 'visual-1', questionId: question.id, objectKey: 'grading-visual/run-1/1', checksum: visualChecksum, mediaType: 'image/png', sizeBytes: visualBytes.byteLength, readiness: 'ready', contentHash: sha256('visual-1') }],
         referenceAnswer: 'Cite the margin.',
         policy: null,
-        answerAttempt: { id: 'attempt-1', answerId: 'answer-1', answer: { submission: { frozenAudienceClassId: 'class-1' } } },
+        answerAttempt: { id: 'attempt-1', answerId: 'answer-1', answer: { submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
       },
     };
     const db: any = {
@@ -1190,21 +1197,23 @@ describe('production math-document grading persistence contracts', () => {
       disabledAt: null,
       credentialRef: 'env:AI_PROVIDER_KEY',
     };
+    const provider = {
+      id: 'provider-1',
+      version: 'model.v1',
+      evaluate: vi.fn(async () => ({
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The submitted evidence states the stability result.', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
+        limitations: [],
+        overallComment: 'The draft is grounded in the submitted evidence.',
+      })),
+    };
     const result = await processGradingRunJob({
       db,
       jobId: 'job-1',
+      store,
       policy,
-      provider: {
-        id: 'provider-1',
-        version: 'model.v1',
-        evaluate: async () => ({
-          evaluatorId: 'provider-1',
-          evaluatorVersion: 'model.v1',
-          assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The submitted evidence states the stability result.', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
-          limitations: [],
-          overallComment: 'The draft is grounded in the submitted evidence.',
-        }),
-      },
+      provider,
       now,
     });
     expect(result.draft.state).toBe('awaiting-review');
@@ -1213,6 +1222,237 @@ describe('production math-document grading persistence contracts', () => {
     ]));
     expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ state: 'AWAITING_REVIEW' }), expect.objectContaining({ state: 'SUCCEEDED' })]));
     expect(updates.some((update) => update.state === 'APPROVED' || 'teacherReviewedAt' in update)).toBe(false);
+    expect(provider.evaluate).toHaveBeenCalledWith(expect.objectContaining({
+      attachments: [expect.objectContaining({ kind: 'image', questionId: question.id, checksum: visualChecksum, data: visualBytes })],
+    }));
+
+    job.gradingRun.attachmentManifest[0].questionId = 'question-2';
+    const crossQuestionProvider = { id: 'provider-1', version: 'model.v1', evaluate: vi.fn() };
+    const crossQuestion = await processGradingRunJob({
+      db,
+      jobId: 'job-1',
+      store,
+      policy,
+      provider: crossQuestionProvider,
+      now,
+    });
+    expect(crossQuestion.run).toEqual(expect.objectContaining({ state: 'BLOCKED', blockedReasons: ['visual-evidence-incomplete'] }));
+    expect(crossQuestionProvider.evaluate).not.toHaveBeenCalled();
+
+    job.gradingRun.attachmentManifest[0].questionId = question.id;
+    const tamperedChecksum = sha256('tampered-visual-object');
+    job.gradingRun.attachmentManifest[0].checksum = tamperedChecksum;
+    const blockedProvider = { id: 'provider-1', version: 'model.v1', evaluate: vi.fn() };
+    const blocked = await processGradingRunJob({
+      db,
+      jobId: 'job-1',
+      store,
+      policy,
+      provider: blockedProvider,
+      now,
+    });
+    expect(blocked.run).toEqual(expect.objectContaining({ state: 'BLOCKED', blockedReasons: ['visual-evidence-object-integrity-failed'] }));
+    expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ state: 'BLOCKED', lastErrorCode: 'visual-evidence-object-integrity-failed' })]));
+    expect(blockedProvider.evaluate).not.toHaveBeenCalled();
+  });
+
+  it('persists an evaluation draft on an existing run without production submission lineage', async () => {
+    const run = {
+      id: 'evaluation-run-1',
+      answerAttemptId: null,
+      state: 'RUNNING',
+      inputHash: 'sha256:evaluation-input',
+      evaluatorId: 'configured-openai',
+      evaluatorVersion: 'model.v1',
+    };
+    const runUpdates: any[] = [];
+    const afterPersistStates: string[] = [];
+    const assessments: any[] = [];
+    const annotations: any[] = [];
+    const db: any = {
+      gradingRun: {
+        findUnique: async () => run,
+        update: async ({ data }: any) => {
+          runUpdates.push(data);
+          return { ...run, ...data };
+        },
+        updateMany: async ({ where, data }: any) => {
+          if (where.id !== run.id || where.state !== run.state || where.inputHash !== run.inputHash
+            || where.evaluatorId !== run.evaluatorId || where.evaluatorVersion !== run.evaluatorVersion) return { count: 0 };
+          runUpdates.push(data);
+          Object.assign(run, data);
+          return { count: 1 };
+        },
+      },
+      gradingCriterionAssessment: {
+        create: async ({ data }: any) => {
+          assessments.push(data);
+          return { id: 'evaluation-assessment-1', ...data };
+        },
+      },
+      gradingAnnotation: {
+        create: async ({ data }: any) => {
+          annotations.push(data);
+          return data;
+        },
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await persistValidatedGradingDraft({
+      db,
+      run,
+      evidenceBlocks: [{ id: 'conversion-1:block-1', pageNumber: 2 }],
+      draft: {
+        evaluatorId: 'configured-openai',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'full',
+          score: 2,
+          rationale: 'The evidence supports the selected criterion.',
+          confidence: 0.9,
+          anchors: [{ blockId: 'block-1', precision: 'block', excerpt: 'evidence', pageNumber: 2 }],
+          limitationState: 'none',
+          annotations: [{ comment: 'Check this step.', anchor: { blockId: 'block-1', precision: 'block', excerpt: 'evidence', pageNumber: 2 } }],
+        }],
+        limitations: ['evaluation-package-source'],
+        overallComment: 'The draft remains subject to teacher review.',
+        inputHash: 'sha256:evaluation-input',
+        evaluationIdentity: sha256(`grading:${run.id}:${run.evaluatorVersion}`),
+        dedupeKey: 'grading-run:evaluation-draft',
+        state: 'awaiting-review',
+        blockedReasons: [],
+        promptInjectionDetected: false,
+        provider: 'configured-openai',
+        providerRequestId: 'provider-request-1',
+        deletionHandle: null,
+        providerRequestedAt: now,
+        providerProcessedAt: now,
+        inputTokens: 321,
+        outputTokens: 123,
+        telemetryComplete: true,
+      },
+      afterPersist: async (_transaction, persistedRun) => {
+        afterPersistStates.push(persistedRun.state);
+      },
+      now,
+    });
+
+    expect(result).toEqual(expect.objectContaining({ id: run.id, answerAttemptId: null, state: 'AWAITING_REVIEW' }));
+    expect(assessments).toEqual([expect.objectContaining({ gradingRunId: run.id, criterionId: 'criterion-1', score: 2 })]);
+    expect(annotations).toHaveLength(2);
+    expect(annotations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ blockId: 'conversion-1:block-1', authorRole: 'AI_DRAFT' }),
+    ]));
+    expect(runUpdates).toEqual([expect.objectContaining({
+      state: 'AWAITING_REVIEW',
+      provider: 'configured-openai',
+      draftTotalScore: 2,
+      limitations: ['evaluation-package-source'],
+      providerInputTokens: 321,
+      providerOutputTokens: 123,
+      providerTelemetryComplete: true,
+    })]);
+    expect(afterPersistStates).toEqual(['AWAITING_REVIEW']);
+    expect(runUpdates.some((update) => update.state === 'APPROVED' || 'teacherReviewedAt' in update)).toBe(false);
+  });
+
+  it('rejects a draft whose input or evaluator identity does not match the frozen run', async () => {
+    const run = {
+      id: 'evaluation-run-identity',
+      state: 'RUNNING',
+      inputHash: 'sha256:frozen-input',
+      evaluatorId: 'configured-openai',
+      evaluatorVersion: 'model.v1',
+    };
+    const db: any = {
+      gradingRun: {
+        findUnique: async () => run,
+        updateMany: async () => ({ count: 1 }),
+        update: async () => run,
+      },
+      gradingCriterionAssessment: { create: async () => ({ id: 'assessment' }) },
+      gradingAnnotation: { create: async () => ({}) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const draft = {
+      evaluatorId: run.evaluatorId,
+      evaluatorVersion: run.evaluatorVersion,
+      assessments: [],
+      limitations: [],
+      overallComment: 'The draft remains subject to teacher review.',
+      inputHash: run.inputHash,
+      evaluationIdentity: sha256(`grading:${run.id}:${run.evaluatorVersion}`),
+      dedupeKey: 'grading-run:evaluation-identity',
+      state: 'awaiting-review' as const,
+      blockedReasons: [],
+      promptInjectionDetected: false,
+      provider: run.evaluatorId,
+      providerRequestId: null,
+      deletionHandle: null,
+      providerRequestedAt: null,
+      providerProcessedAt: null,
+    };
+
+    await expect(persistValidatedGradingDraft({ db, run, evidenceBlocks: [], draft: { ...draft, inputHash: 'sha256:wrong' } }))
+      .rejects.toThrow('grading-draft-input-hash-mismatch');
+    await expect(persistValidatedGradingDraft({ db, run, evidenceBlocks: [], draft: { ...draft, evaluatorVersion: 'model.v2' } }))
+      .rejects.toThrow('grading-draft-evaluator-version-mismatch');
+    run.state = 'AWAITING_REVIEW';
+    await expect(persistValidatedGradingDraft({ db, run, evidenceBlocks: [], draft }))
+      .rejects.toThrow('grading-run-not-running');
+  });
+
+  it('rejects a draft produced for a different repetition run with identical frozen inputs', async () => {
+    const firstRun = {
+      id: 'evaluation-run-ordinal-1',
+      state: 'RUNNING',
+      inputHash: 'sha256:shared-input',
+      evaluatorId: 'configured-openai',
+      evaluatorVersion: 'model.v1',
+    };
+    const secondRun = { ...firstRun, id: 'evaluation-run-ordinal-2' };
+    const runs = new Map([[firstRun.id, firstRun], [secondRun.id, secondRun]]);
+    const db: any = {
+      gradingRun: {
+        findUnique: async ({ where }: any) => runs.get(where.id) ?? null,
+        updateMany: async ({ where, data }: any) => {
+          const run = runs.get(where.id);
+          if (!run || run.state !== where.state || run.inputHash !== where.inputHash
+            || run.evaluatorId !== where.evaluatorId || run.evaluatorVersion !== where.evaluatorVersion) return { count: 0 };
+          Object.assign(run, data);
+          return { count: 1 };
+        },
+        update: async ({ where, data }: any) => Object.assign(runs.get(where.id)!, data),
+      },
+      gradingCriterionAssessment: { create: async () => ({ id: 'assessment' }) },
+      gradingAnnotation: { create: async () => ({}) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const draft = {
+      evaluatorId: firstRun.evaluatorId,
+      evaluatorVersion: firstRun.evaluatorVersion,
+      assessments: [],
+      limitations: [],
+      overallComment: 'The draft remains subject to teacher review.',
+      inputHash: firstRun.inputHash,
+      evaluationIdentity: sha256(`grading:${firstRun.id}:${firstRun.evaluatorVersion}`),
+      dedupeKey: 'grading-run:evaluation-repetition-identity',
+      state: 'awaiting-review' as const,
+      blockedReasons: [],
+      promptInjectionDetected: false,
+      provider: firstRun.evaluatorId,
+      providerRequestId: null,
+      deletionHandle: null,
+      providerRequestedAt: null,
+      providerProcessedAt: null,
+    };
+
+    await expect(persistValidatedGradingDraft({ db, run: secondRun, evidenceBlocks: [], draft }))
+      .rejects.toThrow('grading-draft-evaluation-identity-mismatch');
+    await expect(persistValidatedGradingDraft({ db, run: firstRun, evidenceBlocks: [], draft }))
+      .resolves.toEqual(expect.objectContaining({ id: firstRun.id, state: 'AWAITING_REVIEW' }));
   });
 
   it('converges a run and job to CANCELLED when the provider is paused and cancellation wins before draft persistence', async () => {
@@ -1811,13 +2051,14 @@ describe('production math-document grading persistence contracts', () => {
     };
     const conversion = { id: 'conversion-1', assetId: 'asset-1', attemptId: 'attempt-1', adapterVersion: 'assignment-understanding.v1', policyId: null, policySnapshot: null, policySnapshotHash: null, version: 1, state: 'FAILED', asset };
     const updates: any[] = [];
+    const createdConversions: any[] = [];
     const db: any = {
       ...lifecyclePolicyRepository(),
       documentConversion: {
         findUnique: async ({ where }: any) => where.id === 'conversion-1' ? conversion : null,
         findFirst: async () => ({ version: 1 }),
         update: async ({ data }: any) => { updates.push(data); return { ...conversion, ...data }; },
-        create: async ({ data }: any) => ({ ...data, jobs: [] }),
+        create: async ({ data }: any) => { createdConversions.push(data); return { ...data, jobs: [] }; },
       },
       submissionAsset: { findUnique: async () => asset },
       gradingJob: {
@@ -1838,6 +2079,9 @@ describe('production math-document grading persistence contracts', () => {
     expect(retried.conversion.policySnapshot).toBeNull();
     expect(retried.job.reason).toBe('conversion-rerun:provider timeout');
     expect(retried.job.rerunIdentity).toContain('rerun:conversion:');
+    await retryDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'conversion-retry-002', reason: 'provider timeout', now });
+    expect(createdConversions).toHaveLength(2);
+    expect(createdConversions[1].dedupeKey).not.toBe(createdConversions[0].dedupeKey);
   });
 
   it('makes conversion cancellation actor-scoped and idempotent, including request conflicts', async () => {
@@ -1882,5 +2126,311 @@ describe('production math-document grading persistence contracts', () => {
     raceDb.$transaction = async (callback: (tx: any) => Promise<unknown>) => callback(raceDb);
     const race = await cancelDocumentConversion({ db: raceDb, conversionId: conversion.id, actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'cancel-conversion-race', requestHash, now });
     expect(race.replay).toBe(true);
+  });
+
+  it('persists Word image evidence with opaque storage and blocks scoring without a visual description', async () => {
+    const bytes = new TextEncoder().encode('word source');
+    const checksum = sha256(bytes);
+    const image = new Uint8Array([137, 80, 78, 71]);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/word-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: bytes.byteLength, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/word-source', bytes);
+    const visualRows: any[] = [];
+    const conversion: any = {
+      id: 'conversion-visual-1', assetId: 'asset-1', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: {
+        id: 'asset-1', answerId: 'answer-1', objectKey: 'quarantine/word-source', originalName: 'answer.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', sizeBytes: bytes.byteLength, checksum,
+        answer: { assignmentQuestionId: 'question-1', submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } },
+      },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: {
+        findUnique: async () => ({ id: 'job-visual-1', state: 'QUEUED', cancelRequestedAt: null, conversion }),
+        updateMany: async () => ({ count: 1 }),
+      },
+      documentConversion: { update: async ({ data }: any) => ({ ...conversion, ...data }) },
+      documentConversionVisualEvidence: {
+        deleteMany: async () => undefined,
+        createMany: async ({ data }: any) => { visualRows.push(...data); },
+      },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => ({ ...data, blocks: data.blocks.create }),
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await processDocumentConversionJob({
+      db,
+      jobId: 'job-visual-1',
+      store,
+      writeRendered: async ({ key, bytes: rendered, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: rendered.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
+        store.payloads.set(key, rendered);
+        return key;
+      },
+      local: {
+        convert: async () => ({
+          markdown: '作答文本',
+          blocks: [{ id: 'block-1', blockIndex: 0, text: '作答文本', markdown: '作答文本', precision: 'block' as const, confidence: 0.9 }],
+          wordRepresentation: {
+            schemaVersion: 'math-document-word-representation.v1',
+            anchorVersion: 'math-document-word-anchor.v1',
+            sourceFormat: 'docx',
+            normalizedFormat: 'docx',
+            extractorVersion: 'word-representation.v1',
+            sourceChecksum: checksum,
+            normalizedChecksum: checksum,
+            renderedPdfChecksum: checksum,
+            normalizerVersion: null,
+            rendererVersion: 'test-renderer.v1',
+            normalizedDocxBytes: Buffer.from(image),
+            renderedPdfBytes: Buffer.from(image),
+            markdown: '作答文本',
+            blocks: [],
+            paragraphs: [],
+            formulas: [],
+            images: [{ id: 'image-1', paragraphId: 'paragraph-1', questionId: null, relationshipId: 'rId1', path: 'word/media/image1.png', mediaType: 'image/png', checksum: sha256(image), bytes: Buffer.from(image) }],
+            anchors: [{ blockId: 'block-1', paragraphId: 'paragraph-1', questionId: null, sourcePart: 'word/document.xml', pdfPageNumber: 1, precision: 'page', verified: true }],
+            questionStates: [],
+            integrity: { verdict: 'scorable', issues: [] },
+          },
+        }),
+      },
+      now,
+    });
+
+    expect(visualRows).toEqual([expect.objectContaining({
+      questionId: 'question-1', sourceKind: 'word-embedded-image', mediaType: 'image/png', pageNumber: 1, readiness: 'review-required', sizeBytes: image.byteLength,
+    })]);
+    expect(visualRows[0].objectKey).not.toContain('student-1');
+    expect(result.evidence).toEqual(expect.objectContaining({ readiness: 'BLOCKED', limitationState: 'visual-evidence-incomplete' }));
+  });
+
+  it('projects a policy-approved visual description into ready evidence with provider audit fields', async () => {
+    const image = new Uint8Array([137, 80, 78, 71]);
+    const checksum = sha256(image);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/visual-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: image.byteLength, mimeType: 'image/png', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/visual-source', image);
+    const visualPolicy = gradingPolicy({
+      id: 'policy-visual',
+      version: 'visual.v1',
+      model: 'vision-model.v1',
+      purpose: 'visual-description',
+      dataCategories: ['student-answer', 'student-answer-visual'],
+      minimizedScope: ['selected-question', 'answer-evidence', 'visual-evidence'],
+      providerRetentionSeconds: 60,
+    });
+    const visualRows: any[] = [];
+    const conversion: any = {
+      id: 'conversion-described-image', assetId: 'asset-described-image', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      visualPolicyId: visualPolicy.id, visualPolicySnapshot: visualPolicy, visualPolicySnapshotHash: externalProcessingPolicyHash(visualPolicy), visualPolicy,
+      asset: { id: 'asset-described-image', answerId: 'answer-1', objectKey: 'quarantine/visual-source', originalName: 'answer.png', mimeType: 'image/png', sizeBytes: image.byteLength, checksum, answer: { assignmentQuestionId: 'question-1', submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === visualPolicy.id ? visualPolicy : null },
+      gradingJob: { findUnique: async () => ({ id: 'job-described-image', state: 'QUEUED', cancelRequestedAt: null, conversion }), updateMany: async () => ({ count: 1 }) },
+      documentConversion: { update: async ({ data }: any) => ({ ...conversion, ...data }) },
+      documentConversionVisualEvidence: { deleteMany: async () => undefined, createMany: async ({ data }: any) => { visualRows.push(...data); } },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: { findFirst: async () => null, create: async ({ data }: any) => ({ ...data, blocks: data.blocks.create }) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await processDocumentConversionJob({
+      db,
+      jobId: 'job-described-image',
+      store,
+      writeRendered: async ({ key, bytes, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: bytes.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
+        store.payloads.set(key, bytes);
+        return key;
+      },
+      visualProvider: { id: 'vision-provider', provider: 'ai-evaluator', version: 'vision-model.v1', capabilities: { vision: true }, evaluate: async () => ({ output: { description: 'The hand-drawn response curve rises smoothly and settles near a bounded value.', confidence: 0.91, pageNumber: 1, bbox: [0, 0, 100, 80], limitations: [] }, provider: 'vision-provider', providerRequestId: 'vision-request-1', deletionHandle: 'vision-delete-1' }) },
+      local: { convert: async () => ({ markdown: '图片作答', blocks: [{ id: 'block-1', blockIndex: 0, text: '图片作答', markdown: '图片作答', precision: 'block' as const, confidence: 0.9 }] }) },
+      now,
+    });
+
+    expect(visualRows).toEqual([expect.objectContaining({ description: expect.stringContaining('hand-drawn response curve'), confidence: 0.91, readiness: 'ready', provider: 'vision-provider', model: 'vision-model.v1', policyVersion: 'visual.v1', providerRequestId: 'vision-request-1', providerDeletionHandle: 'vision-delete-1' })]);
+    expect(result.evidence).toEqual(expect.objectContaining({ readiness: 'READY', limitationState: 'none', canonicalMarkdown: expect.stringContaining('视觉证据') }));
+  });
+
+  it('removes uploaded visual projections when the visual provider fails', async () => {
+    const image = new Uint8Array([137, 80, 78, 71]);
+    const checksum = sha256(image);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/failed-visual-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: image.byteLength, mimeType: 'image/png', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/failed-visual-source', image);
+    const visualPolicy = gradingPolicy({ id: 'policy-visual-failure', purpose: 'visual-description', dataCategories: ['student-answer', 'student-answer-visual'], minimizedScope: ['selected-question', 'answer-evidence', 'visual-evidence'] });
+    const conversion: any = {
+      id: 'conversion-failed-visual', assetId: 'asset-failed-visual', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      visualPolicyId: visualPolicy.id, visualPolicySnapshot: visualPolicy, visualPolicySnapshotHash: externalProcessingPolicyHash(visualPolicy), visualPolicy,
+      asset: { id: 'asset-failed-visual', answerId: 'answer-1', objectKey: 'quarantine/failed-visual-source', originalName: 'answer.png', mimeType: 'image/png', sizeBytes: image.byteLength, checksum, answer: { assignmentQuestionId: 'question-1', submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const updates: any[] = [];
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingProviderPolicy: { findUnique: async () => visualPolicy },
+      gradingJob: { findUnique: async () => ({ id: 'job-failed-visual', state: 'QUEUED', cancelRequestedAt: null, conversion }), updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; } },
+      documentConversion: { updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; } },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    await expect(processDocumentConversionJob({
+      db,
+      jobId: 'job-failed-visual',
+      store,
+      writeRendered: async ({ key, bytes, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: bytes.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
+        store.payloads.set(key, bytes);
+        return key;
+      },
+      visualProvider: { id: 'vision-provider', provider: 'ai-evaluator', version: 'model.v1', capabilities: { vision: true }, evaluate: async () => { throw new Error('provider timeout'); } },
+      local: { convert: async () => ({ markdown: '图片作答', blocks: [{ id: 'block-1', blockIndex: 0, text: '图片作答', markdown: '图片作答', precision: 'block' as const, confidence: 0.9 }] }) },
+      now,
+    })).rejects.toThrow('provider timeout');
+
+    expect([...store.objects.keys()].filter((key) => key.startsWith('grading-visual/'))).toEqual([]);
+    expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ state: 'RETRYABLE' })]));
+  });
+
+  it('continues cleaning later visual objects when orphan audit persistence fails', async () => {
+    const source = Buffer.from('%PDF-1.7\ncleanup fixture');
+    const sourceChecksum = sha256(source);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/multi-visual-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: source.byteLength, mimeType: 'application/pdf', checksum: sourceChecksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/multi-visual-source', source);
+    const conversion: any = {
+      id: 'conversion-multi-visual-cleanup', assetId: 'asset-multi-visual-cleanup', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: { id: 'asset-multi-visual-cleanup', answerId: 'answer-1', objectKey: 'quarantine/multi-visual-source', originalName: 'answer.pdf', mimeType: 'application/pdf', sizeBytes: source.byteLength, checksum: sourceChecksum, answer: { assignmentQuestionId: 'question-1', submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const job: any = { id: 'job-multi-visual-cleanup', state: 'QUEUED', cancelRequestedAt: null, conversion };
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: { findUnique: async () => job, updateMany: async ({ data }: any) => { Object.assign(job, data); return { count: 1 }; }, update: async ({ data }: any) => { Object.assign(job, data); return job; } },
+      documentConversion: { updateMany: async ({ data }: any) => { Object.assign(conversion, data); return { count: 1 }; }, update: async ({ data }: any) => { Object.assign(conversion, data); return conversion; } },
+      gradingConversionWarning: { createMany: async () => undefined },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const originalDelete = store.delete.bind(store);
+    let failFirstDelete = true;
+    store.delete = async (key: string, signal?: AbortSignal) => {
+      if (failFirstDelete && key.startsWith('grading-visual/')) {
+        failFirstDelete = false;
+        throw new Error('first-visual-delete-failed');
+      }
+      return originalDelete(key, signal);
+    };
+
+    await expect(processDocumentConversionJob({
+      db,
+      jobId: job.id,
+      store,
+      renderPdfPages: async () => [{ pageNumber: 1, bytes: Buffer.from([1, 2, 3]) }, { pageNumber: 2, bytes: Buffer.from([4, 5, 6]) }],
+      local: { convert: async () => ({ markdown: 'PDF 作答', blocks: [{ text: 'PDF 作答', precision: 'block' as const }], renderedBytes: Buffer.from([7, 8, 9]), renderedMimeType: 'application/pdf' }) },
+      writeRendered: async ({ key, bytes, mimeType, checksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        if (mimeType === 'application/pdf') throw new Error('rendered-write-failed');
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: bytes.byteLength, mimeType, checksum, scanState: 'PENDING' });
+        store.payloads.set(key, bytes);
+        return key;
+      },
+      now,
+    })).rejects.toThrow('rendered-orphan-cleanup-failed');
+
+    expect([...store.objects.keys()].filter((key) => key.startsWith('grading-visual/'))).toHaveLength(1);
+  });
+
+  it('renders each PDF page into question-bound visual evidence before scoring', async () => {
+    const source = Buffer.from('%PDF-1.7\ncontrolled fixture');
+    const checksum = sha256(source);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/pdf-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: source.byteLength, mimeType: 'application/pdf', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/pdf-source', source);
+    const visualRows: any[] = [];
+    const conversion: any = {
+      id: 'conversion-pdf-1', assetId: 'asset-pdf-1', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: { id: 'asset-pdf-1', answerId: 'answer-1', objectKey: 'quarantine/pdf-source', originalName: 'answer.pdf', mimeType: 'application/pdf', sizeBytes: source.byteLength, checksum, answer: { assignmentQuestionId: 'question-1', question: { assignmentRevisionId: 'revision-1' }, submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1', audience: { classId: 'class-1', class: { teacherId: 'teacher-1' } } } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const job: any = { id: 'job-pdf-1', state: 'QUEUED', cancelRequestedAt: null, conversion };
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: { findUnique: async () => job, updateMany: async () => ({ count: 1 }) },
+      documentConversion: { update: async ({ data }: any) => ({ ...conversion, ...data }) },
+      documentConversionVisualEvidence: { deleteMany: async () => undefined, createMany: async ({ data }: any) => { visualRows.push(...data); } },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: { findFirst: async () => null, create: async ({ data }: any) => ({ ...data, blocks: data.blocks.create }) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await processDocumentConversionJob({
+      db,
+      jobId: job.id,
+      store,
+      local: { convert: async () => ({ markdown: 'PDF 作答', blocks: [{ id: 'block-1', blockIndex: 0, text: 'PDF 作答', markdown: 'PDF 作答', precision: 'block' as const, confidence: 0.9 }] }) },
+      renderPdfPages: async () => [
+        { pageNumber: 1, bytes: Buffer.from([1, 2, 3]) },
+        { pageNumber: 2, bytes: Buffer.from([4, 5, 6]) },
+      ],
+      writeRendered: async ({ key, bytes, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: bytes.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
+        store.payloads.set(key, bytes);
+        return key;
+      },
+      now,
+    });
+
+    expect(visualRows).toEqual([
+      expect.objectContaining({ sourceKind: 'pdf-page-image', questionId: 'question-1', pageNumber: 1, mediaType: 'image/png', readiness: 'review-required' }),
+      expect.objectContaining({ sourceKind: 'pdf-page-image', questionId: 'question-1', pageNumber: 2, mediaType: 'image/png', readiness: 'review-required' }),
+    ]);
+    expect(result.evidence).toEqual(expect.objectContaining({ readiness: 'BLOCKED', limitationState: 'visual-evidence-incomplete' }));
+  });
+
+  it('persists an independently submitted image with the answer-bound question identity', async () => {
+    const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9G7ewAAAAASUVORK5CYII=', 'base64');
+    const checksum = sha256(image);
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'quarantine/image-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: image.byteLength, mimeType: 'image/png', checksum, scanState: 'CLEAN' });
+    store.payloads.set('quarantine/image-source', image);
+    const visualRows: any[] = [];
+    const conversion: any = {
+      id: 'conversion-image-1', assetId: 'asset-1', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
+      asset: { id: 'asset-1', answerId: 'answer-1', objectKey: 'quarantine/image-source', originalName: 'answer.png', mimeType: 'image/png', sizeBytes: image.byteLength, checksum, answer: { assignmentQuestionId: 'question-1', submission: { frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1' } } },
+      attempt: { id: 'attempt-1' }, policy: null, answerEvidence: null,
+    };
+    const db: any = {
+      ...lifecyclePolicyRepository(),
+      gradingJob: { findUnique: async () => ({ id: 'job-image-1', state: 'QUEUED', cancelRequestedAt: null, conversion }), updateMany: async () => ({ count: 1 }) },
+      documentConversion: { update: async ({ data }: any) => ({ ...conversion, ...data }) },
+      documentConversionVisualEvidence: { deleteMany: async () => undefined, createMany: async ({ data }: any) => { visualRows.push(...data); } },
+      gradingConversionWarning: { createMany: async () => undefined },
+      answerEvidence: { findFirst: async () => null, create: async ({ data }: any) => ({ ...data, blocks: data.blocks.create }) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+
+    const result = await processDocumentConversionJob({
+      db,
+      jobId: 'job-image-1',
+      store,
+      writeRendered: async ({ key, bytes: rendered, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: rendered.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
+        store.payloads.set(key, rendered);
+        return key;
+      },
+      local: { convert: async () => ({ markdown: '图片作答', blocks: [{ id: 'block-1', blockIndex: 0, text: '图片作答', markdown: '图片作答', precision: 'block' as const, confidence: 0.9 }] }) },
+      now,
+    });
+
+    expect(visualRows).toEqual([expect.objectContaining({ sourceKind: 'image-attachment', questionId: 'question-1', imageChecksum: checksum, readiness: 'review-required' })]);
+    expect(result.evidence).toEqual(expect.objectContaining({ readiness: 'BLOCKED', limitationState: 'visual-evidence-incomplete' }));
   });
 });

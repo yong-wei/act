@@ -9,6 +9,63 @@ import { ReviewedDerivativeError, type ReviewedDerivativePlan, type ReviewedDeri
 type PutClient = Pick<S3Client, 'send'>;
 type StorageLimits = { maxSourceBytes: number; maxZipEntries: number; maxZipEntryBytes: number; maxZipExpandedBytes: number; maxXmlBytes: number; maxXmlNodes: number; maxXmlDepth: number; maxPdfPages: number; maxPdfObjects: number; pdfTimeoutMs: number; pdfMaxOldGenerationMb: number; pdfMaxYoungGenerationMb: number; pdfStackMb: number };
 
+export type FrozenPdfCoordinateProvenance = {
+  origin: 'TOP_LEFT' | 'BOTTOM_LEFT';
+  unit: 'PDF_POINT' | 'NORMALIZED' | 'PIXEL';
+  pageWidth: number;
+  pageHeight: number;
+  rotation: 0 | 90 | 180 | 270;
+};
+
+export type FrozenPdfAnnotationInput = {
+  id: string;
+  pageNumber: number | null;
+  bbox?: [number, number, number, number] | null;
+  coordinateProvenance?: FrozenPdfCoordinateProvenance | null;
+  marker: string;
+  contents: string;
+  fallbackPrecision?: 'PAGE' | 'QUESTION' | 'REGION' | 'BLOCK';
+  questionId?: string | null;
+  blockId?: string | null;
+  allowPageFallback: boolean;
+};
+
+export type FrozenPdfPlacement = {
+  id: string;
+  pageNumber: number;
+  rect: [number, number, number, number];
+  precision: 'EXACT' | 'PAGE' | 'QUESTION' | 'REGION' | 'BLOCK';
+  degradationReason: string | null;
+};
+
+export type FrozenPdfRenderResult = {
+  bytes: Uint8Array;
+  sourcePageCount: number;
+  summaryPageNumber: number | null;
+  placements: FrozenPdfPlacement[];
+};
+
+export async function renderFrozenPdfDerivative(input: {
+  source: Uint8Array;
+  annotations: FrozenPdfAnnotationInput[];
+  summaryLines?: string[];
+  identity: string;
+  limits?: Partial<Pick<StorageLimits, 'maxPdfPages' | 'maxPdfObjects' | 'pdfTimeoutMs' | 'pdfMaxOldGenerationMb' | 'pdfMaxYoungGenerationMb' | 'pdfStackMb'>>;
+}): Promise<FrozenPdfRenderResult> {
+  const limits = { ...DEFAULT_LIMITS, ...input.limits };
+  const header = new TextDecoder('latin1').decode(input.source.subarray(0, Math.min(input.source.byteLength, 1024)));
+  if (!header.includes('%PDF-')) throw new ReviewedDerivativeError('reviewed-derivative-pdf-invalid', { blocked: true });
+  const objectCount = (new TextDecoder('latin1').decode(input.source).match(/\b\d+\s+\d+\s+obj\b/g) ?? []).length;
+  if (objectCount > limits.maxPdfObjects) throw new ReviewedDerivativeError('reviewed-derivative-pdf-object-limit', { blocked: true });
+  try {
+    return await runPdfWorker({ source: input.source, annotations: input.annotations, summaryLines: input.summaryLines ?? [], identity: input.identity, limits });
+  } catch (error) {
+    const code = error instanceof Error ? error.message : String(error);
+    if (code.startsWith('fallback:')) throw new NativeFallbackError(code.slice('fallback:'.length));
+    throw new ReviewedDerivativeError(code.startsWith('blocked:') ? code.slice('blocked:'.length) : 'reviewed-derivative-pdf-worker-failed', { blocked: true });
+  }
+}
+
 export class S3AnnotatedMarkdownDerivativeRenderer implements ReviewedDerivativeRenderer {
   private readonly client: PutClient;
 
@@ -37,7 +94,17 @@ export class S3AnnotatedMarkdownDerivativeRenderer implements ReviewedDerivative
     } else {
       const source = await this.readVerifiedSource(plan);
       try {
-        body = plan.outputKind === 'REVIEWED_DOCX' ? await renderDocx(plan, source, this.limits()) : await renderPdf(plan, source, this.limits());
+        if (plan.outputKind === 'REVIEWED_DOCX') {
+          body = await renderDocx(plan, source, this.limits());
+        } else {
+          const renderedPdf = await renderPdf(plan, source, this.limits());
+          body = renderedPdf.bytes;
+          if (renderedPdf.placements.some((placement) => placement.precision !== 'EXACT')) {
+            actualNative = false;
+            actualPrecision = 'PAGE';
+            limitations = [...new Set([...limitations, 'reviewed-pdf-position-degraded'])];
+          }
+        }
       } catch (error) {
         if (!(error instanceof NativeFallbackError)) throw error;
         actualKind = 'ANNOTATED_MARKDOWN'; actualMimeType = 'text/markdown'; actualNative = false; actualPrecision = 'GENERAL';
@@ -193,17 +260,41 @@ async function renderDocx(plan: ReviewedDerivativePlan, source: Uint8Array, limi
 }
 
 async function renderPdf(plan: ReviewedDerivativePlan, source: Uint8Array, limits: StorageLimits) {
-  const header = new TextDecoder('latin1').decode(source.subarray(0, Math.min(source.byteLength, 1024)));
-  if (!header.includes('%PDF-')) throw new ReviewedDerivativeError('reviewed-derivative-pdf-invalid', { blocked: true });
-  const objectCount = (new TextDecoder('latin1').decode(source).match(/\b\d+\s+\d+\s+obj\b/g) ?? []).length;
-  if (objectCount > limits.maxPdfObjects) throw new ReviewedDerivativeError('reviewed-derivative-pdf-object-limit', { blocked: true });
-  try {
-    return await runPdfWorker({ source, plan, limits });
-  } catch (error) {
-    const code = error instanceof Error ? error.message : String(error);
-    if (code.startsWith('fallback:')) throw new NativeFallbackError(code.slice('fallback:'.length));
-    throw new ReviewedDerivativeError(code.startsWith('blocked:') ? code.slice('blocked:'.length) : 'reviewed-derivative-pdf-worker-failed', { blocked: true });
+  const inlineAnnotations = plan.annotations.flatMap((annotation, index) => {
+    if (!Number.isInteger(annotation.anchor?.pageNumber)) return [];
+    return [{
+      id: String(annotation.id ?? `${plan.snapshotId}:${index}`),
+      pageNumber: Number(annotation.anchor.pageNumber),
+      bbox: Array.isArray(annotation.anchor?.bbox) ? annotation.anchor.bbox as [number, number, number, number] : null,
+      coordinateProvenance: annotation.anchor?.coordinateProvenance as FrozenPdfCoordinateProvenance | undefined,
+      marker: '',
+      contents: String(annotation.comment ?? ''),
+      allowPageFallback: true,
+      fallbackPrecision: String(annotation.anchor?.precision ?? '').toUpperCase() === 'BLOCK' ? 'BLOCK' as const : 'PAGE' as const,
+      blockId: typeof annotation.anchor?.blockId === 'string' ? annotation.anchor.blockId : null,
+    }];
+  });
+  const rendered = await renderFrozenPdfDerivative({
+    source,
+    identity: plan.idempotencyKey,
+    limits,
+    annotations: inlineAnnotations,
+    summaryLines: pdfSummaryLines(plan),
+  });
+  return rendered;
+}
+
+function pdfSummaryLines(plan: ReviewedDerivativePlan) {
+  const lines = [
+    `Review checksum: ${plan.reviewSnapshotChecksum}`,
+    `Overall comment: ${plan.overallComment ?? ''}`,
+  ];
+  for (const [index, annotation] of plan.annotations.entries()) {
+    const anchor = annotation.anchor ?? {};
+    const location = Number.isInteger(anchor.pageNumber) ? `Page ${anchor.pageNumber}` : 'Document summary';
+    lines.push(`${index + 1}. ${location}: ${String(annotation.comment ?? '')}`);
   }
+  return lines;
 }
 
 function insertWordCommentRange(document: XmlDocument, start: number, end: number, id: number) {
@@ -372,10 +463,22 @@ function uniqueRelationshipId(document: XmlDocument) {
   return `rId${index}`;
 }
 
-async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativePlan; limits: StorageLimits }): Promise<Uint8Array> {
+async function runPdfWorker(input: {
+  source: Uint8Array;
+  annotations: FrozenPdfAnnotationInput[];
+  summaryLines: string[];
+  identity: string;
+  limits: StorageLimits;
+}): Promise<FrozenPdfRenderResult> {
   const worker = new Worker(PDF_WORKER_SOURCE, {
     eval: true,
-    workerData: { source: input.source, plan: { snapshotId: input.plan.snapshotId, nativeCapable: input.plan.nativeCapable, annotations: input.plan.annotations }, maxPdfPages: input.limits.maxPdfPages },
+    workerData: {
+      source: input.source,
+      annotations: input.annotations,
+      summaryLines: input.summaryLines,
+      identity: input.identity,
+      maxPdfPages: input.limits.maxPdfPages,
+    },
     resourceLimits: { maxOldGenerationSizeMb: input.limits.pdfMaxOldGenerationMb, maxYoungGenerationSizeMb: input.limits.pdfMaxYoungGenerationMb, stackSizeMb: input.limits.pdfStackMb },
   });
   return new Promise((resolve, reject) => {
@@ -383,7 +486,12 @@ async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativ
     worker.once('message', (message: any) => {
       clearTimeout(timer); void worker.terminate();
       if (message?.error) reject(new Error(message.error));
-      else resolve(new Uint8Array(message.bytes));
+      else resolve({
+        bytes: new Uint8Array(message.bytes),
+        sourcePageCount: message.sourcePageCount,
+        summaryPageNumber: message.summaryPageNumber,
+        placements: message.placements,
+      });
     });
     worker.once('error', () => { clearTimeout(timer); reject(new Error('blocked:reviewed-derivative-pdf-worker-failed')); });
     worker.once('exit', (code) => { if (code !== 0) { clearTimeout(timer); reject(new Error('blocked:reviewed-derivative-pdf-worker-resource-limit')); } });
@@ -392,7 +500,7 @@ async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativ
 
 const PDF_WORKER_SOURCE = String.raw`
 const { parentPort, workerData } = require('node:worker_threads');
-const { PDFArray, PDFDocument, PDFName } = require('pdf-lib');
+const { PDFArray, PDFDocument, PDFHexString, PDFName, StandardFonts, rgb } = require('pdf-lib');
 function fallback(code) { throw new Error('fallback:' + code); }
 function rect(bbox, p, width, height, rotation) {
   if (!p || p.rotation !== rotation || ![0,90,180,270].includes(rotation)) fallback('pdf-coordinate-provenance-mismatch');
@@ -409,17 +517,70 @@ function rect(bbox, p, width, height, rotation) {
   return [x1,y1,x2,y2];
 }
 function valid(r,w,h) { return Array.isArray(r)&&r.length===4&&r.every(Number.isFinite)&&r[0]>=0&&r[1]>=0&&r[0]<r[2]&&r[1]<r[3]&&r[2]<=w&&r[3]<=h; }
+function safeMarker(value) { return String(value||'').replace(/[^\x20-\x7E]/g,'?').slice(0,48); }
+function marginRect(page,index) {
+  const width=page.getWidth(); const height=page.getHeight(); const markerWidth=Math.min(96,Math.max(36,width*0.18));
+  const top=height-18-(index%30)*18; const y1=Math.max(4,top-14); return [Math.max(4,width-markerWidth-4),y1,width-4,y1+14];
+}
+function markerRect(anchorRect,page) {
+  const pageWidth=page.getWidth(); const pageHeight=page.getHeight();
+  const width=Math.min(96,Math.max(36,anchorRect[2]-anchorRect[0])); const height=14; const gap=4;
+  const y=Math.min(pageHeight-height,Math.max(0,anchorRect[3]-height));
+  if(anchorRect[2]+gap+width<=pageWidth) return [anchorRect[2]+gap,y,anchorRect[2]+gap+width,y+height];
+  if(anchorRect[0]-gap-width>=0) return [anchorRect[0]-gap-width,y,anchorRect[0]-gap,y+height];
+  const x=Math.min(pageWidth-width,Math.max(0,anchorRect[0]));
+  if(anchorRect[3]+gap+height<=pageHeight) return [x,anchorRect[3]+gap,x+width,anchorRect[3]+gap+height];
+  if(anchorRect[1]-gap-height>=0) return [x,anchorRect[1]-gap-height,x+width,anchorRect[1]-gap];
+  return [Math.max(0,pageWidth-width),Math.max(0,pageHeight-height),pageWidth,pageHeight];
+}
+function detailRect(marker,page) {
+  const size=12; const gap=4; const pageHeight=page.getHeight();
+  if(marker[3]+gap+size<=pageHeight) return [marker[0],marker[3]+gap,marker[0]+size,marker[3]+gap+size];
+  return [marker[0],Math.max(0,marker[1]-gap-size),marker[0]+size,Math.max(size,marker[1]-gap)];
+}
+function appendAnnotation(pdf,page,ref) {
+  let annots=page.node.lookupMaybe(PDFName.of('Annots'),PDFArray);
+  if(!annots){annots=pdf.context.obj([]);page.node.set(PDFName.of('Annots'),annots);} annots.push(ref);
+}
+function appearance(pdf,font,marker,width,height) {
+  const escaped=marker.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+  const stream=pdf.context.flateStream('q 1 0.96 0.72 rg 0 0 '+width+' '+height+' re f 0.35 0.16 0 rg BT /F1 8 Tf 3 '+Math.max(2,height-10)+' Td ('+escaped+') Tj ET Q',{
+    Type:'XObject',Subtype:'Form',BBox:[0,0,width,height],Resources:{Font:{F1:font.ref}},
+  });
+  return pdf.context.register(stream);
+}
 (async()=>{try{
   const pdf=await PDFDocument.load(workerData.source,{updateMetadata:false});
-  if(pdf.getPageCount()>workerData.maxPdfPages) throw new Error('blocked:reviewed-derivative-pdf-page-limit');
-  for(const [i,a] of workerData.plan.annotations.entries()){
-    const anchor=a.anchor||{}; const n=workerData.plan.nativeCapable?Number(anchor.pageNumber):1; const page=pdf.getPages()[n-1]; if(!page) fallback('reviewed-derivative-pdf-page-invalid');
-    const r=workerData.plan.nativeCapable?rect(anchor.bbox,anchor.coordinateProvenance,page.getWidth(),page.getHeight(),page.getRotation().angle):[12,Math.max(12,page.getHeight()-32),32,Math.max(32,page.getHeight()-12)];
-    if(!valid(r,page.getWidth(),page.getHeight())) fallback('reviewed-derivative-pdf-geometry-mismatch');
-    const d=pdf.context.obj({Type:'Annot',Subtype:'Text',Rect:r,Contents:String(a.comment||''),T:'Teacher review',NM:workerData.plan.snapshotId+':'+i,F:4}); const ref=pdf.context.register(d);
-    let annots=page.node.lookupMaybe(PDFName.of('Annots'),PDFArray); if(!annots){annots=pdf.context.obj([]);page.node.set(PDFName.of('Annots'),annots);} annots.push(ref);
+  const sourcePageCount=pdf.getPageCount();
+  if(sourcePageCount>workerData.maxPdfPages) throw new Error('blocked:reviewed-derivative-pdf-page-limit');
+  const font=await pdf.embedFont(StandardFonts.Helvetica); const placements=[];
+  for(const [i,a] of workerData.annotations.entries()){
+    const n=Number(a.pageNumber); const page=Number.isInteger(n)&&n>0?pdf.getPages()[n-1]:null;
+    if(!page) fallback('reviewed-derivative-pdf-page-invalid');
+    let r=null; let precision='EXACT'; let degradationReason=null;
+    if(Array.isArray(a.bbox)&&a.coordinateProvenance){
+      try { const candidate=rect(a.bbox,a.coordinateProvenance,page.getWidth(),page.getHeight(),page.getRotation().angle); if(!valid(candidate,page.getWidth(),page.getHeight())) throw new Error('geometry'); r=candidate; }
+      catch { if(!a.allowPageFallback) fallback('reviewed-derivative-pdf-geometry-mismatch'); degradationReason='bbox-or-coordinate-provenance-invalid'; }
+    } else { degradationReason='frozen-bbox-or-coordinate-provenance-missing'; }
+    if(!r){ if(!a.allowPageFallback) fallback('reviewed-derivative-pdf-coordinate-provenance-missing'); r=marginRect(page,i); precision=['PAGE','QUESTION','REGION','BLOCK'].includes(a.fallbackPrecision)?a.fallbackPrecision:'PAGE'; }
+    const marker=safeMarker(a.marker);
+    const markerLocation=marker&&precision==='EXACT'?markerRect(r,page):r; const detailLocation=marker?detailRect(markerLocation,page):r;
+    const detailDict=pdf.context.obj({Type:'Annot',Subtype:'Text',Rect:detailLocation,Contents:PDFHexString.fromText(String(a.contents||'')),T:PDFHexString.fromText('Teacher review'),NM:PDFHexString.fromText(a.id+':detail'),F:4,Open:false,ACTIdentity:PDFHexString.fromText(workerData.identity),ACTPrecision:PDFName.of(precision),ACTAnchorRect:r,ACTQuestion:PDFHexString.fromText(String(a.questionId||'')),ACTBlock:PDFHexString.fromText(String(a.blockId||''))});
+    appendAnnotation(pdf,page,pdf.context.register(detailDict));
+    if(marker){
+      const mr=markerLocation; const ap=appearance(pdf,font,marker,mr[2]-mr[0],mr[3]-mr[1]);
+      const markerDict=pdf.context.obj({Type:'Annot',Subtype:'FreeText',Rect:mr,Contents:PDFHexString.fromText(marker),NM:PDFHexString.fromText(a.id+':marker'),F:4,DA:PDFHexString.fromText('/Helvetica 8 Tf 0 g'),AP:{N:ap},ACTIdentity:PDFHexString.fromText(workerData.identity),ACTPrecision:PDFName.of(precision),ACTAnchorRect:r});
+      appendAnnotation(pdf,page,pdf.context.register(markerDict));
+    }
+    placements.push({id:a.id,pageNumber:n,rect:r,precision,degradationReason});
   }
-  const bytes=await pdf.save(); parentPort.postMessage({bytes},[bytes.buffer]);
+  let summaryPageNumber=null;
+  if(workerData.summaryLines.length){
+    const page=pdf.addPage([612,792]); summaryPageNumber=sourcePageCount+1; let y=756;
+    page.drawText('GRADING SUMMARY',{x:48,y,size:18,font,color:rgb(0.12,0.12,0.12)}); y-=32;
+    for(const line of workerData.summaryLines){page.drawText(safeMarker(line).slice(0,96),{x:48,y,size:11,font,color:rgb(0.12,0.12,0.12)});y-=18;if(y<42)break;}
+  }
+  const bytes=await pdf.save(); parentPort.postMessage({bytes,sourcePageCount,summaryPageNumber,placements},[bytes.buffer]);
 }catch(e){const m=String(e&&e.message||e);parentPort.postMessage({error:m.startsWith('fallback:')||m.startsWith('blocked:')?m:'blocked:reviewed-derivative-pdf-invalid'});}})();`;
 
 async function boundedZipText(file: JSZip.JSZipObject, limits: StorageLimits) {

@@ -199,6 +199,23 @@ describe('student unified response editor', () => {
     expect(markup).toContain('aria-live="polite"');
   });
 
+  it('makes quarantined attachments visibly removable', () => {
+    const markup = renderQuestion({
+      question: question({
+        assets: [{
+          id: 'quarantined-asset',
+          displayName: '待扫描.pdf',
+          role: 'ATTACHMENT',
+          state: 'QUARANTINED',
+          orderIndex: 0,
+        }],
+      }),
+    });
+    expect(markup).toContain('等待安全扫描');
+    expect(markup).toContain('aria-label="移除附件 1"');
+    expect(markup).toContain('>移除</span>');
+  });
+
   it('keeps mobile controls reachable without fixed horizontal layout', () => {
     const markup = renderQuestion();
     expect(markup).toContain('min-w-0');

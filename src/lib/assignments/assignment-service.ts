@@ -232,10 +232,10 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
         await assertAssignmentOwner(tx, input.assignmentId, input.actor);
         const existingDraft = await tx.assignmentRevision.findFirst({ where: { assignmentId: input.assignmentId, state: 'DRAFT' }, include: { questions: { orderBy: { orderIndex: 'asc' } } } });
         if (existingDraft) {
+          if (!existingDraft.questions.length) return existingDraft;
           const hasLegacyRubric = existingDraft.questions.some((question) =>
             (question.rubricSnapshot as { schemaVersion?: unknown } | null)?.schemaVersion === 'assignment-analytic-rubric.v1'
           );
-          if (!hasLegacyRubric) return existingDraft;
           const legacyDraft = assignmentDraftSchema.parse({
             title: existingDraft.title,
             instructions: existingDraft.instructions,
@@ -246,7 +246,14 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
             resubmissionPolicy: existingDraft.resubmissionPolicy,
             solutionReleasePolicy: existingDraft.solutionReleasePolicy,
           });
-          const migratedDraft = requireMigratedDraft(legacyDraft);
+          if (
+            !hasLegacyRubric
+            && (!existingDraft.solutionReleasePolicy
+              || (existingDraft.solutionReleasePolicy as { mode?: string }).mode === 'TEACHER_CONFIRMED_RESULT')
+          ) {
+            return existingDraft;
+          }
+          const migratedDraft = requireNewAssignmentReleasePolicy(requireMigratedDraft(legacyDraft));
           const migratedSnapshots = migratedQuestionSnapshots(migratedDraft);
           const updated = await tx.assignmentRevision.updateMany({
             where: {
@@ -295,7 +302,7 @@ export async function createNextDraftRevision(db: AssignmentDb, input: {
           resubmissionPolicy: latest.resubmissionPolicy,
           solutionReleasePolicy: latest.solutionReleasePolicy,
         });
-        const nextDraft = requireMigratedDraft(legacyDraft);
+        const nextDraft = requireNewAssignmentReleasePolicy(requireMigratedDraft(legacyDraft));
         const nextSnapshots = migratedQuestionSnapshots(nextDraft);
         const created = await tx.assignmentRevision.create({
       data: {
@@ -343,6 +350,13 @@ function requireMigratedDraft(legacyDraft: AssignmentDraftInput): AssignmentDraf
     );
   }
   return result.data;
+}
+
+function requireNewAssignmentReleasePolicy(draft: AssignmentDraftInput): AssignmentDraftInput {
+  return {
+    ...draft,
+    solutionReleasePolicy: { version: 1, mode: 'TEACHER_CONFIRMED_RESULT' },
+  };
 }
 
 function migratedQuestionSnapshots(draft: AssignmentDraftInput): AssignmentQuestionSnapshot[] {
@@ -451,11 +465,8 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
             }
           }
         }
-        if (draft.solutionReleasePolicy.mode === 'AT_TIME') {
-          const publicationAudienceIds = new Set(input.audiences.map((audience) => audience.classId));
-          for (const classId of draft.solutionReleasePolicy.audienceClassIds) {
-            if (!publicationAudienceIds.has(classId)) issues.push(`solution-release-audience-not-published:${classId}`);
-          }
+        if (draft.solutionReleasePolicy.mode !== 'TEACHER_CONFIRMED_RESULT') {
+          issues.push('assignment-solution-release-policy-invalid:teacher-confirmed-result-required');
         }
         if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
         const managedClasses = await tx.class.findMany({
