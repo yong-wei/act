@@ -1,0 +1,21 @@
+{
+ "contract": "remediation-domain-closure-receipt/v1",
+ "sealedAt": "2026-08-24",
+ "domain": "nonlinear-system-analysis",
+ "packId": "rp-14fa759a6f876f9b1526d3f1",
+ "packRows": 1041,
+ "totalDecisions": 0,
+ "unresolvedAfter": 1041,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 0,
+  "NO_RELATION": 0,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "memberClasses": {},
+ "droppedInvalidIds": 0,
+ "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+ "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles + confirmed codex suggestions)",
+ "closureComplete": false,
+ "outcomes": []
+}
