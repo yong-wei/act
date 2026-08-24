@@ -4,6 +4,8 @@ import path from 'node:path';
 const FILE_NAMES = new Set([
   'micro-tutoring-goal-node-catalog.json',
   'micro-tutoring-option-attributions.json',
+  'micro-tutoring-option-attributions-v2.json',
+  'micro-tutoring-assessment-baseline-v2.json',
   'micro-tutoring-practice-baseline.json',
   'micro-tutoring-resource-projection.json',
   'micro-tutoring-validation-registry.json',

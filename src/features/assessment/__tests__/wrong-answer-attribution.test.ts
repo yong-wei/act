@@ -170,6 +170,18 @@ function optionAttributionsFor(row: ReturnType<typeof answer>, overrides: Record
   }];
 }
 
+function setAssessmentStage(row: ReturnType<typeof answer>, input: {
+  reviewStage: 'practice' | 'readiness-gate';
+  allowedStage: 'low-stakes-practice' | 'readiness';
+}) {
+  const item = (row.questionRef.metadata as any).adaptiveAssessmentItemRef;
+  item.reviewDecision.selectedStagePurpose = input.reviewStage;
+  item.allowedStages = [input.allowedStage];
+  item.semanticRefs.assessmentStage = input.allowedStage;
+  rehashReviewDecision(item);
+  rehashItemContent(row);
+}
+
 function reverseObjectKeyOrder(value: any): any {
   if (Array.isArray(value)) return value.map(reverseObjectKeyOrder);
   if (value === null || typeof value !== 'object') return value;
@@ -396,6 +408,32 @@ describe('attributeWrongAnswerEvidence', () => {
     expect(serializedWriteAndResult).not.toContain(RAW_SELECTED_ANSWER);
     expect(serializedWriteAndResult).not.toContain(RAW_CORRECT_ANSWER);
     expect(serializedWriteAndResult).not.toContain('raw explanation');
+  });
+
+  it.each([
+    ['practice', 'low-stakes-practice'],
+    ['readiness-gate', 'readiness'],
+  ] as const)('normalizes the %s review stage through the real attribution path', async (
+    reviewStage,
+    allowedStage,
+  ) => {
+    const row = answer();
+    setAssessmentStage(row, { reviewStage, allowedStage });
+    const db = dbFor(row);
+    const optionAttributions = optionAttributionsFor(row, {
+      version: 'micro-tutoring-option-attribution.v3',
+      assessmentStage: reviewStage,
+    });
+
+    await expect(attributeWrongAnswerEvidence({
+      db,
+      authenticatedUserId: 'student-1',
+      answerId: row.id,
+      optionAttributions,
+    })).resolves.toMatchObject({ state: 'ATTRIBUTED' });
+    expect(db.wrongAnswerAttribution.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({ state: 'ATTRIBUTED' }),
+    }));
   });
 
   it('returns an existing v1 attribution without writing a v2 record', async () => {
