@@ -4,7 +4,7 @@
  "sealedAt": "2026-08-24T19:30:00.000Z",
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
- "envelopeHash": "a2ad9513b129571433ec26d21705b919be6d7670627bdabd5679cfaae9a63ed1",
+ "envelopeHash": "edf48bb65becffaab9d068a8c19826fc77e8d91fd4c06187333ec8ce855fa307",
  "totalClosureReceiptSha256": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258",
  "totalConservationCheckSha256": "7e66801dc553119a455d9168fde3ef070a01c87c3f6bb0bdd88035d3f8f78295",
  "membership": {
@@ -99,24 +99,27 @@
   }
  },
  "bindings": {
-  "bindingCount": 1175,
+  "bindingCount": 1585,
   "byModality": {
    "card": 434,
-   "audio": 741
+   "audio": 586,
+   "intro-video": 539,
+   "exercise": 26
   },
   "bindingCoverageNote": "modality-independent direct bindings; unresolved modal atoms stay unbound rather than inherit another modality's mapping"
  },
  "zeroResourceNodes": {
-  "count": 5132
+  "count": 5039
  },
  "limitations": [
-  "exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)",
-  "simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)",
+  "exercise mapping review (gpt-5.6-sol, conservative): 33 of 455 mapped, 26 kept (covered-domain targets), 7 filtered (D1-excluded targets), 422 null (open/operational cards without a single concept core)",
+  "simulation/interactive launcher atoms (85 DB launchers) bind registry identity and config digest; task/scene semantics and Canonical mapping are pending semantic review",
+  "exercise semantic Canonical mapping review is in flight (455 cards); exercise atoms currently carry no canonical bindings",
   "intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
   "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
-  "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)",
+  "audio/video/exercise bindings are filtered to covered-domain targets in the projection binding layer (audio 586/741 rows kept, intro-video 539/727 kept, exercise 26/33 kept); D1-excluded targets stay bound in the resource-layer binding files as modal facts but do not join the teaching projection",
   "2221 members across six domains are excluded by course-owner D1 ruling and carry NO_RELATION dispositions only"
  ],
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71"
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad"
 }

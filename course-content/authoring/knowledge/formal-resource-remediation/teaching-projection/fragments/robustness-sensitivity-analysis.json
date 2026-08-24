@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "robustness-sensitivity-analysis",
  "memberCount": 259,
  "edgeCount": 41,
- "bindingCount": 16,
- "fragmentHash": "65d96c70135e955b75892ac78fc294bb554ab320a7b91bf2eb7fbed24be00770",
+ "bindingCount": 25,
+ "fragmentHash": "8d007a06b38941a03e011946ef956849b85a225ec4ffe305af3b7546898d27ca",
  "members": [
   {
    "canonicalId": "ctkg:domainconcept:02015f2f2580a38840cfec63",
@@ -47,7 +47,7 @@
    "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
    "excluded": false,
    "label": "测量组件（传感器）",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
@@ -77,7 +77,7 @@
    "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
    "excluded": false,
    "label": "复合控制",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
@@ -1373,7 +1373,7 @@
    "canonicalId": "ctkg:m3-v2k:source-object:cec75b55995b84a000aec445",
    "excluded": false,
    "label": "M(jω)的幅值",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2k:source-object:d6e50367ffbed99bf79fb6c5",
@@ -2004,6 +2004,69 @@
    "anchorId": "5-6-seg-32",
    "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-700426025fd1f856cb308d43",
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-9485e21e15da141fd8dee7a2",
+   "canonicalId": "ctkg:m3-v2k:source-object:cec75b55995b84a000aec445",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-9fa8a4bf973630eed013ee39",
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-6",
+   "anchorId": "atom-b00a6b8d6f1df4e101c9a550",
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-4-2",
+   "anchorId": "4-2/step-03/pre-q3",
+   "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-4-3",
+   "anchorId": "4-3/step-04/gap-select",
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-4-3",
+   "anchorId": "4-3/step-09/validation-evidence",
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-3",
+   "anchorId": "5-3/step-06/noise-diagnosis",
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-4",
+   "anchorId": "5-4/step-03/first-order-parameter",
+   "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+   "evidence": "codex-semantic-mapping:conservative"
   }
  ]
 }

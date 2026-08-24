@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "nonlinear-system-analysis",
  "memberCount": 349,
  "edgeCount": 0,
- "bindingCount": 76,
- "fragmentHash": "f8d76f25c917a3be2958983bf5fd22aec7a3fd53d06b5dcbca1d2516c904f875",
+ "bindingCount": 97,
+ "fragmentHash": "fbd04b6c7ce50d8ae9fb3bc4a9d81349dd57ee828f4d51b588840312194c1420",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2p:canonical-object:64f6e66a201f62a98db0ee79",
@@ -431,7 +431,7 @@
    "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
    "excluded": false,
    "label": "具有饱和非线性特性的控制系统（k=2, a=1），线性部分G（s）=K/[s（0.1s+1）（0.2s+1）]，K=15。分析结果：Γ_G曲线和-1/N（A）曲线存在交点（-1, j0），且在该交点处-1/N（A）沿A增大方向由不稳定区域进入稳定区域，系统存在稳定的周期运动，振荡频率ω=7.07，振幅A=2.5。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-3c900c3488120fca6e4abb06",
@@ -647,7 +647,7 @@
    "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
    "excluded": false,
    "label": "描述函数法",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-540b9f572ebc6d146ff4eb90",
@@ -1193,7 +1193,7 @@
    "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
    "excluded": false,
    "label": "相平面",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-9581ae46c5b411c0d37c0d18",
@@ -2635,6 +2635,153 @@
    "anchorId": "5-6-seg-34",
    "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-8a0ff6e97598737de6dcad48",
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-4d9795e7e0faae73b6cdc28a",
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-1ed6fdc8d14113db753bd3c2",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-1ed6fdc8d14113db753bd3c2",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-1",
+   "anchorId": "atom-a17cb00960fa346e343d5509",
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-9485e21e15da141fd8dee7a2",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-9485e21e15da141fd8dee7a2",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-3b8fa1766d42b29a293521c7",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-6bedec6478d9eef19b49e7c8",
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-4d03463b7be81053415a2629",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-92d9dda279197b71be9ae7ba",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-92d9dda279197b71be9ae7ba",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-2db918e7931bc0058620a3aa",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-2db918e7931bc0058620a3aa",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-175407073b3c800d6fb053c4",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-175407073b3c800d6fb053c4",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-07/lowpass-why",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-17/df-condition",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-17/intersection-check",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "codex-semantic-mapping:conservative"
   }
  ]
 }

@@ -1,7 +1,7 @@
 {
  "contract": "remediation-teaching-projection-validation-report/v1",
  "sealedAt": "2026-08-24T19:30:00.000Z",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "derivedState": "COMPLETE",
  "completenessChecks": [
   {
@@ -12,7 +12,7 @@
   {
    "name": "envelope-reopened",
    "passed": true,
-   "detail": "envelope a2ad9513 reopens SEALED"
+   "detail": "envelope edf48bb6 reopens SEALED"
   },
   {
    "name": "allocation-identity",
@@ -48,10 +48,10 @@
   "excluded": 2221,
   "edges": 418,
   "courseRoots": 2,
-  "bindings": 1175,
+  "bindings": 1585,
   "cardBindings": 434,
-  "audioBindings": 741,
-  "zeroResourceNodes": 5132
+  "audioBindings": 586,
+  "zeroResourceNodes": 5039
  },
  "artifactStates": {
   "envelopeState": "created",

@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "robust-control-analysis-and-design",
  "memberCount": 707,
  "edgeCount": 0,
  "bindingCount": 0,
- "fragmentHash": "622b1332d0c423bf9d70178e1f49daa63b06dcfbc6b2d5206086b78478161a78",
+ "fragmentHash": "2c7aaca359d2da488f1ac40199eda84985c64cd75898c971b294bbb5c100cf0f",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2j:source-object:1595539e1ec89f14892903c7",

@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "stability-analysis",
  "memberCount": 263,
  "edgeCount": 0,
- "bindingCount": 14,
- "fragmentHash": "fbfa8603f31895b587679154df419e8af9dfd8fcb432a3fdb44e75a48a30b169",
+ "bindingCount": 43,
+ "fragmentHash": "b134956f94c00a8ada14a4d55da33cc60d39db210965d9369d74ca3999db9288",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
@@ -323,7 +323,7 @@
    "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
    "excluded": false,
    "label": "The Routh-Hurwitz criterion states that the number of roots of q(s) with positive real parts is equal to the number of changes in sign of the first column of the Routh array.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
@@ -419,7 +419,7 @@
    "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
    "excluded": false,
    "label": "线性系统稳定的充分必要条件是：闭环系统特征方程的所有根均具有负实部；或者说，闭环传递函数的极点均位于 s 左半平面。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
@@ -677,7 +677,7 @@
    "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
    "excluded": false,
    "label": "劳斯稳定判据为表格形式，见表 3－4 劳斯表。劳斯表的前两行由系统特征方程（3－68）的系数直接构成。劳斯表中的第一行，由特征方程的第一，三，五，⋯项系数组成；第二行，由第二，四，六，⋯项系数组成。劳斯表中以后各行的数值，需按表3－4所示逐行计算，凡在运算过程中出现的空位，均置以零，这种过程一直进行到第 n 行为止，第 n+1 行仅第一列有值，且正好等于特征方程最后一项系数 an。表中系数排列呈上三角形。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
@@ -1553,7 +1553,7 @@
    "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
    "excluded": false,
    "label": "例3-11劳斯表",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
@@ -1685,6 +1685,209 @@
    "anchorId": "5-5-seg-40",
    "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-1130aa03214c5725f19e384a",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-4aa97d43a74d59e23bbaf797",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-ab148b86b89daf01e08cdc22",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-55d4c86493f48d31e395c42b",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-cebac95761efe8e7c3b759d0",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-8968bb44e0e79ccd5c24fcac",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-95812f63fea769f03e37d865",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-d9f858de38750c35d450a56f",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-9e0e84ccc593294920a5b4b7",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-9e0e84ccc593294920a5b4b7",
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-8bfa16c5fa19a3f73ae18420",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-d6d673e0d88bb2cd2384e878",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-c34dc335555b83c89eb18d4e",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-c34dc335555b83c89eb18d4e",
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-adc11dabbcc3f625f3f76bdf",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-adc11dabbcc3f625f3f76bdf",
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-514e267f9b32a468a02268b7",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-a7dce728ce95272c816821f1",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-a7dce728ce95272c816821f1",
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-831e726adb7ab1863be28406",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-45db26c1b3b9cd7fa9cf09a3",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-d95e898a814f5cc45e621109",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-d95e898a814f5cc45e621109",
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-c2f8ce0a6a1bccb50499b72b",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-af71022992585df09d11c2dc",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-1",
+   "anchorId": "atom-895d16fdd710cfef223d757c",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-6",
+   "anchorId": "atom-4ea6744080cbb7d2fe7e8cc9",
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-5",
+   "anchorId": "atom-dbfcd69655adca7c10d40185",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-5",
+   "anchorId": "1-5/step-12/zero-added-routh",
+   "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+   "evidence": "codex-semantic-mapping:conservative"
   }
  ]
 }

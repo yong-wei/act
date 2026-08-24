@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "time-domain-analysis",
  "memberCount": 584,
  "edgeCount": 165,
- "bindingCount": 362,
- "fragmentHash": "d9c069441c459452c30b15a04a281f818ea4dc2673734cd0a2a415e92f61438d",
+ "bindingCount": 492,
+ "fragmentHash": "c4e7a89bb0319ee9a135c1fa6a2aa26ef0294107e0f55b2f1d0faba9aaad6f5f",
  "members": [
   {
    "canonicalId": "ctkg:m3-v1j:canonical-object:03e84e6868be470e89d7b189",
@@ -185,7 +185,7 @@
    "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
    "excluded": false,
    "label": "时间常数τ1",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v1j:source-object:ddd90ea688722524a9e0657b",
@@ -257,7 +257,7 @@
    "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
    "excluded": false,
    "label": "三阶无差拍系统2%调节时间",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2w:source-object:360e9849be9b86611adca108",
@@ -413,7 +413,7 @@
    "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
    "excluded": false,
    "label": "属性断言：一阶系统的动态性能指标为：上升时间 t_r=2.20T，调节时间 t_s=3T(Δ=5%) 或 t_s=4T(Δ=2%)，峰值时间和超调量都不存在。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-0a39d839518b55dc77e9d083",
@@ -587,7 +587,7 @@
    "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
    "excluded": false,
    "label": "自然响应",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-174e8ff54f1360e103c09703",
@@ -1121,7 +1121,7 @@
    "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
    "excluded": false,
    "label": "阻尼比ζ",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-40d893d71d5bdc9aa38ebe8b",
@@ -1295,7 +1295,7 @@
    "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
    "excluded": false,
    "label": "左半平面 （LHP）",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-4e39da89d558d12349faa62b",
@@ -1355,7 +1355,7 @@
    "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
    "excluded": false,
    "label": "伯德图",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-505c5038c265fbb6a85a1b74",
@@ -1427,7 +1427,7 @@
    "canonicalId": "ctkg:v3e-canonical-565dee73753cb538ec4f93a7",
    "excluded": false,
    "label": "属性断言：For k=1, M=1/√(ω²+1) and φ=-tan⁻¹(ω).",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-565e6a59c8ed9f122937df4d",
@@ -1469,7 +1469,7 @@
    "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
    "excluded": false,
    "label": "相位（频率响应）",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-59cb69ef6f980b44f23e11e2",
@@ -1661,7 +1661,7 @@
    "canonicalId": "ctkg:v3e-canonical-6937fab45e8397ec30a8a06d",
    "excluded": false,
    "label": "知识命题：1. 将副回路视为等效环节G'_2(s)；2. 写出副回路对二次扰动的闭环传递函数G_n2(s)；3. 比较G'_2(s)与G_n2(s)得到关系式；4. 写出主回路对输入信号和二次扰动的闭环传递函数；5. 计算C1(s)/R1(s)与C1(s)/N2(s)的比值。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-69502652432189e5919fcad9",
@@ -2057,7 +2057,7 @@
    "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
    "excluded": false,
    "label": "右半平面（RHP）",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
@@ -2225,7 +2225,7 @@
    "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
    "excluded": false,
    "label": "固有频率 ω_n",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
@@ -2363,7 +2363,7 @@
    "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
    "excluded": false,
    "label": "上升时间",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-aa1dece70208ff2fe929e715",
@@ -2399,13 +2399,13 @@
    "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
    "excluded": false,
    "label": "部分分式展开",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
    "excluded": false,
    "label": "上升时间",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
@@ -2465,7 +2465,7 @@
    "canonicalId": "ctkg:v3e-canonical-b28f590a204998012fde4be8",
    "excluded": false,
    "label": "属性断言：To continue with the system in Example 3.6, determine the response to an input that begins at t=0 as u(t)=sin(10 t)1(t). The output using partial fraction expansion is given by Y(s)=1/(s+1) * 10/(s^2+100) = α1/(s+1) + α0/(s+j10) + α0*/(s-j10). The inverse Laplace transform of the output is y(t)=10/101 e^{-t} + 1/√101 sin(10 t+φ) where φ=tan^{-1}(-10)=-84.2°.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-b2d0351204a462c1de01cc9a",
@@ -3053,7 +3053,7 @@
    "canonicalId": "ctkg:v3e-canonical-dd92d8b99ee1c4ad00191d47",
    "excluded": false,
    "label": "属性断言：对于0型系统，阶跃输入稳态误差为常数 R/(1+K)；对于 v≥1 的系统，阶跃输入稳态误差为 0。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-de2d118612aaa2d2d0061b93",
@@ -3449,7 +3449,7 @@
    "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
    "excluded": false,
    "label": "动态过程",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-f9895704fdb1b85f5e7acbbf",
@@ -3509,7 +3509,7 @@
    "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
    "excluded": false,
    "label": "闭环零点",
-   "zeroResource": true
+   "zeroResource": false
   }
  ],
  "edges": [
@@ -7368,6 +7368,916 @@
    "anchorId": "5-6-seg-17",
    "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-1130aa03214c5725f19e384a",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-3c86c63685dba733788377a4",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-4aa97d43a74d59e23bbaf797",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-a3b8a843ff5980e9c2e80865",
+   "canonicalId": "ctkg:v3e-canonical-6937fab45e8397ec30a8a06d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-417df0cb3ed4b797affd10df",
+   "canonicalId": "ctkg:v3e-canonical-6937fab45e8397ec30a8a06d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-ab148b86b89daf01e08cdc22",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-ab148b86b89daf01e08cdc22",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-55d4c86493f48d31e395c42b",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-a2cd2e0eb0b7cf6414975f9d",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-4d290a4d2af41568ee4615a4",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-4a884fbbb814d76223212e47",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-a1e70dc9c9c2d1b5a776375f",
+   "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-a1e70dc9c9c2d1b5a776375f",
+   "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-7bb972a83002bb8ca48c4bb5",
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-d0ca231fc2c7e5213deab934",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-38d0144074653e3ecc0593f9",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-cebac95761efe8e7c3b759d0",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-69c5f7e0df0af8c478c0df9e",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-3b313fe6f7281626cd973391",
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-3b313fe6f7281626cd973391",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-3b313fe6f7281626cd973391",
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-1bb77c79e5102ff631a5abc1",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-a37a4d404585a893e354954c",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-49745fb260407d8ef82f5113",
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-49745fb260407d8ef82f5113",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-49745fb260407d8ef82f5113",
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-e7c481c0265100633c85e557",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-9038280021ba6ba06035a2b7",
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-87729d314b54bffb0ceac9a5",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-3d7f94fadfb39af0b0a33ebb",
+   "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-439ceb30a8bc781f9e1c4037",
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-439ceb30a8bc781f9e1c4037",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-439ceb30a8bc781f9e1c4037",
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-5ca551e1ceea57262c953ae4",
+   "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-43c0045c0ad83a77d1bb76be",
+   "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-14c6284c175f7d8a7aa5ffb1",
+   "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-cdd09bebdd3f24a7c3850a66",
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-cdd09bebdd3f24a7c3850a66",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-cdd09bebdd3f24a7c3850a66",
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-7b5c4e7c55c2709cd9ca4d9f",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-7b5c4e7c55c2709cd9ca4d9f",
+   "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-15796f4be27841712d67b612",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-40c8935813438aebf61b613c",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-007ecd4607c52c029042fab5",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-08030634e72f7029889c8593",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-08030634e72f7029889c8593",
+   "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-df4e845d81ba12a0eb82548c",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-74762e41578c997e7e9502b3",
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-f1b7b66fae0d095f0624f4e0",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-0f41563a59b21fed0a28cf37",
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-7503b35aff2322d64d65049e",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-89a8641da99d1c628e8408b5",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-a4756eda892fbe9ae5e3d845",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-8968bb44e0e79ccd5c24fcac",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-5a7f3d2acab274737bc03ff3",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-5113eeeef2a563ea6ee6b12c",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-6bf6790aa186795043582f12",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-9d9ac02088b18c47f4ad783d",
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-9d9ac02088b18c47f4ad783d",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-9d9ac02088b18c47f4ad783d",
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-95812f63fea769f03e37d865",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-dcb9150b5e7a112102416dfd",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-e105968da4536c90ed9266cc",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-420282b961339b70fd1e8b47",
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-420282b961339b70fd1e8b47",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-420282b961339b70fd1e8b47",
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-4d745be3de13727e7e3d9189",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-d9f858de38750c35d450a56f",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-740f44911fbdeda1b60d74d9",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-8351abd1371bdc6215d3e42d",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-d6d673e0d88bb2cd2384e878",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-0f21460fba6ab251fa650131",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-bd223ccd783050f56d156841",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-9ed89066ac04ff2dfcb96028",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-ea3e6fa4e895a1000cb6298d",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-cda79eefffcc1676a1c2f547",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-831e726adb7ab1863be28406",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-1cb16cb04406e076f35fd3ce",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-45db26c1b3b9cd7fa9cf09a3",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-41d634ea04c3a90506653488",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-f147478a39b05f081b6df93d",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-73874acd2375d4887767a996",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-39b152119fc4521266617819",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-a87444552fc1e1d53d5a612f",
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-40f57369422105478c93348c",
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-43228622403d80515e08b0bc",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-c2f8ce0a6a1bccb50499b72b",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-d7da655b745429436fa39a79",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-38b19ac86865c71cb06a39a1",
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-af71022992585df09d11c2dc",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-429e58cb23c4a85814cf0865",
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-f67fc53076ef6a7d781f8989",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-d506dc52a18faee296abfd41",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-1319005654e928363c1d7528",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-353a4496dc9d002a8b1e8d32",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-514aca0503c02927f6d5fffb",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-dfaeebd8d768db836e44d5a0",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-dfaeebd8d768db836e44d5a0",
+   "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-38f9811eab6dde9f01bd9eba",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-38f9811eab6dde9f01bd9eba",
+   "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-63a6d82bd57dc5fa2f8ae2f3",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-7",
+   "anchorId": "atom-4a2809fa5c32d09ff3848fa1",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-8",
+   "anchorId": "atom-6b91c32ba58234a1de039f01",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-8",
+   "anchorId": "atom-6b91c32ba58234a1de039f01",
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-8",
+   "anchorId": "atom-8afa613e797d613a0ca42440",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-9",
+   "anchorId": "atom-6ba88a269cd1be45de9887cc",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-1",
+   "anchorId": "atom-e197cf099f5757807b8a1395",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-1",
+   "anchorId": "atom-895d16fdd710cfef223d757c",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-1",
+   "anchorId": "atom-c62b6788040252ffdc738b26",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-b97d115b6b9387c5dee46d53",
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-b97d115b6b9387c5dee46d53",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-b97d115b6b9387c5dee46d53",
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-3",
+   "anchorId": "atom-63fa11ed60e1b3acd39519cf",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-9420b6a165fb229bc2c5da6b",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-43820cda7162732886e65a7c",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-697dad33b00a3500f33a2cb2",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-1a59cbedb84cf956e1ae2495",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-4dcf6483137f43630885b267",
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-842d37707c2d5db3c343f159",
+   "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-ebf8deb97553a6bc631afeae",
+   "canonicalId": "ctkg:v3e-canonical-565dee73753cb538ec4f93a7",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-ebf8deb97553a6bc631afeae",
+   "canonicalId": "ctkg:v3e-canonical-b28f590a204998012fde4be8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-8939a39fb3ddaf74139118f5",
+   "canonicalId": "ctkg:v3e-canonical-dd92d8b99ee1c4ad00191d47",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-a49623a6ddae2801ae650cd8",
+   "canonicalId": "ctkg:v3e-canonical-dd92d8b99ee1c4ad00191d47",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-5",
+   "anchorId": "atom-dbfcd69655adca7c10d40185",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-2",
+   "anchorId": "1-2/step-03/pre-2",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-03/pre-pole",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-10/post-stage",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-4",
+   "anchorId": "1-4/step-03/pole-trend",
+   "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-5",
+   "anchorId": "1-5/step-03/pole-natural-response",
+   "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-4",
+   "anchorId": "5-4/step-04/model-evidence",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "codex-semantic-mapping:conservative"
   }
  ]
 }

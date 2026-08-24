@@ -61,6 +61,12 @@ async function loadCaptions(unit: string): Promise<GeneratedCaptionsModule | nul
   return loaded;
 }
 
+async function loadWiring(unit: string): Promise<{ INTRO_FRAMES?: number; OUTRO_FRAMES?: number; FPS?: number }> {
+  const wiringPath = path.join(VIDEOS_PROJECT, 'src', 'projects', `lesson-${unit}`, 'captions.ts');
+  if (!existsSync(wiringPath)) return {};
+  return await import(wiringPath) as { INTRO_FRAMES?: number; OUTRO_FRAMES?: number; FPS?: number };
+}
+
 async function main(): Promise<void> {
   const allocation = JSON.parse(readFileSync(absolute(ALLOCATION_PATH), 'utf8')) as { allocationHash: string };
   const units = readdirSync(absolute(MEDIA_ROOT)).filter((name) => existsSync(absolute(`${MEDIA_ROOT}/${name}/media`))).sort();
@@ -75,7 +81,16 @@ async function main(): Promise<void> {
       : null;
     if (video) inventory.push(video);
     const captions = await loadCaptions(unit);
-    const result = processIntroVideoResource({ unit, video, captions });
+    const wiring = await loadWiring(unit);
+    const fps = wiring.FPS ?? 30;
+    const introOffsetSeconds = (wiring.INTRO_FRAMES ?? 0) / fps;
+    let durationClosureDeltaSeconds: number | null = null;
+    if (video && captions?.captions?.length) {
+      const narration = captions.narrationDurationSeconds ?? captions.captions[captions.captions.length - 1].end;
+      const outro = (wiring.OUTRO_FRAMES ?? 0) / fps;
+      durationClosureDeltaSeconds = Math.abs(video.durationSeconds - (narration + introOffsetSeconds + outro));
+    }
+    const result = processIntroVideoResource({ unit, video, captions, introOffsetSeconds, durationClosureDeltaSeconds });
     for (const atom of result.atoms) atoms.push(atom);
     if (result.excludedReason) exclusions.push({ unit, reason: result.excludedReason });
     records.push({

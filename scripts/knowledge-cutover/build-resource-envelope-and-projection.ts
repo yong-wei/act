@@ -64,12 +64,13 @@ const COVERED_DOMAINS = [
 const ALL_DOMAINS: readonly string[] = [...COVERED_DOMAINS, ...EXCLUDED_DOMAINS];
 const SEALED_AT = '2026-08-24T19:30:00.000Z';
 const ENVELOPE_LIMITATIONS = [
-  'exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)',
-  'simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)',
+  'exercise mapping review (gpt-5.6-sol, conservative): 33 of 455 mapped, 26 kept (covered-domain targets), 7 filtered (D1-excluded targets), 422 null (open/operational cards without a single concept core)',
+  'simulation/interactive launcher atoms (85 DB launchers) bind registry identity and config digest; task/scene semantics and Canonical mapping are pending semantic review',
+  'exercise semantic Canonical mapping review is in flight (455 cards); exercise atoms currently carry no canonical bindings',
   'intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)',
   'handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass',
   'course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound',
-  'audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)',
+  'audio/video/exercise bindings are filtered to covered-domain targets in the projection binding layer (audio 586/741 rows kept, intro-video 539/727 kept, exercise 26/33 kept); D1-excluded targets stay bound in the resource-layer binding files as modal facts but do not join the teaching projection',
 ];
 
 function absolute(relativePath: string): string {
@@ -193,10 +194,23 @@ function main(): void {
   if (introVideoRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
     throw new Error('intro-video records are not bound to the current allocation; run process-intro-videos first');
   }
-  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords, ...introVideoRecords];
+  const simulationDir = `${REMEDIATION_ROOT}/resource-layer/simulations`;
+  const simulationRecords = readJson<ResourceProcessingRecord[]>(`${simulationDir}/simulation-processing-records.json`);
+  const simulationAtomsCount = readJson<{ readonly atomCount: number }>(`${simulationDir}/simulation-run-summary.json`).atomCount;
+  if (simulationRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
+    throw new Error('simulation records are not bound to the current allocation; run process-simulations first');
+  }
+  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords, ...introVideoRecords, ...simulationRecords];
 
   // Build the modality-independent binding rows.
   const authorityMap = readJson<Record<string, string>>(`${ASR_BATCH}/course-to-authority-map.json`);
+  const coveredMemberIds = new Set(
+    scope.members
+      .filter((member) => !(EXCLUDED_DOMAINS as readonly string[]).includes(member.preferredDomainId))
+      .map((member) => member.canonicalId),
+  );
+  const filterToCovered = (rows: readonly ProjectionBindingRow[]): readonly ProjectionBindingRow[] => rows.filter((row) => coveredMemberIds.has(row.canonicalId));
+
   const cardBindings: ProjectionBindingRow[] = [];
   for (const atom of textAtoms) {
     if (!atom.canonicalKey) continue;
@@ -231,7 +245,23 @@ function main(): void {
       }
     });
   }
-  const bindings = [...cardBindings, ...audioBindings];
+  const introVideoBindingFile = readJson<{ readonly rows: readonly { readonly atomId: string; readonly resourceId: string; readonly canonicalId: string }[] }>(`${introVideoDir}/intro-video-node-bindings.json`);
+  const introVideoBindings: ProjectionBindingRow[] = introVideoBindingFile.rows.map((row) => ({
+    modality: 'intro-video',
+    resourceId: row.resourceId,
+    anchorId: row.atomId,
+    canonicalId: row.canonicalId,
+    evidence: 'term-overlap-binding-model:modality-independent',
+  }));
+  const exerciseBindingFile = readJson<{ readonly rows: readonly { readonly questionId: string; readonly canonicalId: string }[] }>(`${exerciseDir}/exercise-node-bindings.json`);
+  const exerciseBindings: ProjectionBindingRow[] = exerciseBindingFile.rows.map((row) => ({
+    modality: 'exercise',
+    resourceId: `exercises-${row.questionId.split('/')[0]}`,
+    anchorId: row.questionId,
+    canonicalId: row.canonicalId,
+    evidence: 'codex-semantic-mapping:conservative',
+  }));
+  const bindings = filterToCovered([...cardBindings, ...audioBindings, ...introVideoBindings, ...exerciseBindings]);
 
   // Seal the formal resource envelope over the refreshed resource layer.
   const artifactRoles: readonly { readonly role: string; readonly path: string }[] = [
@@ -255,13 +285,18 @@ function main(): void {
     { role: 'intro-video-processing-records', path: `${introVideoDir}/intro-video-processing-records.json` },
     { role: 'intro-video-atoms', path: `${introVideoDir}/intro-video-atoms.json` },
     { role: 'intro-video-run-summary', path: `${introVideoDir}/intro-video-run-summary.json` },
+    { role: 'intro-video-node-bindings', path: `${introVideoDir}/intro-video-node-bindings.json` },
+    { role: 'exercise-node-bindings', path: `${exerciseDir}/exercise-node-bindings.json` },
+    { role: 'simulation-processing-records', path: `${simulationDir}/simulation-processing-records.json` },
+    { role: 'simulation-atoms', path: `${simulationDir}/simulation-atoms.json` },
+    { role: 'simulation-run-summary', path: `${simulationDir}/simulation-run-summary.json` },
   ];
   const envelope = sealResourceEnvelope({
     sealedAt: SEALED_AT,
     allocationHash: allocation.allocationHash,
     scopeHash: scope.scopeHash,
     processingRecords,
-    atomCount: textAtoms.length + exerciseAtomsCount + introVideoAtomsCount,
+    atomCount: textAtoms.length + exerciseAtomsCount + introVideoAtomsCount + simulationAtomsCount,
     bindingCount: bindings.length,
     artifacts: artifactRoles.map((artifact) => ({ ...artifact, sha256: sha256File(artifact.path) })),
     limitations: ENVELOPE_LIMITATIONS,
@@ -392,7 +427,7 @@ function main(): void {
       courseRoots: projection.relations.courseRootCount,
       bindings: bindings.length,
       cardBindings: cardBindings.length,
-      audioBindings: audioBindings.length,
+      audioBindings: bindings.filter((binding) => binding.modality === 'audio').length,
       zeroResourceNodes: projection.zeroResourceNodes.count,
     },
     artifactStates: { envelopeState, projectionState, graphViewState, prerequisiteState, fragments: fragmentStates },

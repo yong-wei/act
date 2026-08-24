@@ -40,9 +40,12 @@ export interface IntroVideoAtom {
   readonly resourceId: string;
   readonly cueIndex: number;
   readonly text: string;
+  /** Anchor on the rendered mp4 timeline (narration cue + intro-frame offset). */
   readonly startSeconds: number;
   readonly endSeconds: number;
-  readonly timeline: 'narration';
+  readonly timeline: 'mp4';
+  /** Intro-frame offset applied to map the narration cue onto the mp4 timeline. */
+  readonly introOffsetSeconds: number;
   readonly disposition: 'BOUND';
 }
 
@@ -63,6 +66,10 @@ export function processIntroVideoResource(input: {
   readonly unit: string;
   readonly video: IntroVideoInventoryEntry | null;
   readonly captions: GeneratedCaptionsModule | null;
+  /** Verified intro-frame offset (INTRO_FRAMES / fps) from the lesson wiring. */
+  readonly introOffsetSeconds: number;
+  /** Rendered-duration closure evidence: |mp4 - (narration + (intro+outro)/fps)|. */
+  readonly durationClosureDeltaSeconds: number | null;
 }): IntroVideoProcessingResult {
   const resourceId = `intro-video-${input.unit}`;
   const limitations: string[] = [];
@@ -109,18 +116,26 @@ export function processIntroVideoResource(input: {
       text: cue.text,
       start: cue.start,
       end: cue.end,
+      introOffsetSeconds: input.introOffsetSeconds,
     }).slice(0, 24)}`,
     resourceId,
     cueIndex: index,
     text: cue.text,
-    startSeconds: cue.start,
-    endSeconds: cue.end,
-    timeline: 'narration',
+    startSeconds: cue.start + input.introOffsetSeconds,
+    endSeconds: cue.end + input.introOffsetSeconds,
+    timeline: 'mp4',
+    introOffsetSeconds: input.introOffsetSeconds,
     disposition: 'BOUND',
   }));
   const narrationDuration = input.captions.narrationDurationSeconds ?? cues[cues.length - 1].end;
+  if (input.durationClosureDeltaSeconds !== null && input.durationClosureDeltaSeconds > 1) {
+    throw new FormalResourceRemediationError(
+      'hash-drift',
+      `Intro video ${input.unit} duration closure failed: |mp4 - (narration + intro/outro)| = ${input.durationClosureDeltaSeconds.toFixed(2)}s > 1s.`,
+    );
+  }
   limitations.push(
-    `cue anchors are on the narration timeline; rendered mp4 duration ${input.video.durationSeconds.toFixed(2)}s vs narration ${narrationDuration.toFixed(2)}s — the per-unit intro/outro frame offset stays pending wiring verification`,
+    `mp4-timeline anchors verified: intro offset ${input.introOffsetSeconds.toFixed(2)}s applied; duration closure delta ${input.durationClosureDeltaSeconds?.toFixed(2) ?? 'n/a'}s`,
   );
   return {
     resourceId,

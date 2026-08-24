@@ -114,6 +114,7 @@ function main(): void {
     `${REMEDIATION_ROOT}/20260823-asr-batch/asr-processing-records.json`,
     `${REMEDIATION_ROOT}/resource-layer/exercises/exercise-processing-records.json`,
     `${REMEDIATION_ROOT}/resource-layer/intro-videos/intro-video-processing-records.json`,
+    `${REMEDIATION_ROOT}/resource-layer/simulations/simulation-processing-records.json`,
   ];
   const processingRecords = recordPaths.flatMap((recordPath) => readJson<ResourceProcessingRecord[]>(recordPath));
   const envelopeReopen = reopenResourceEnvelope({
@@ -181,6 +182,7 @@ function main(): void {
   const domainByMember = new Map(members.map((member) => [member.canonicalId, member.domain]));
   const edges: ProjectionEdgeRow[] = [];
   const bindings: ProjectionBindingRow[] = [];
+  const coveredMemberIds = new Set(members.filter((member) => !member.excluded).map((member) => member.canonicalId));
   for (const [domain, rows] of ledgerByDomain) {
     for (const row of rows) {
       if (row.disposition === 'NO_RELATION') continue;
@@ -206,7 +208,7 @@ function main(): void {
   for (const atom of readJson<{ readonly atomId: string; readonly resourceId: string; readonly canonicalKey: string | null }[]>(`${REMEDIATION_ROOT}/resource-layer/text/text-atoms.json`)) {
     if (!atom.canonicalKey) continue;
     const canonicalId = authorityMap[cardKeyConceptName(atom.canonicalKey) ?? ''] ;
-    if (canonicalId) {
+    if (canonicalId && coveredMemberIds.has(canonicalId)) {
       bindings.push({ modality: 'card', resourceId: atom.resourceId, anchorId: atom.atomId, canonicalId, evidence: 'course-to-authority-map:exact-name' });
     }
   }
@@ -216,9 +218,20 @@ function main(): void {
     const file = readJson<{ readonly segments: readonly { readonly nodeBindings: readonly { readonly canonicalId: string }[] }[] }>(`${segmentDir}/${unitName}`);
     file.segments.forEach((segment, index) => {
       for (const binding of segment.nodeBindings) {
+        if (!coveredMemberIds.has(binding.canonicalId)) continue;
         bindings.push({ modality: 'audio', resourceId: `audio-${unit}`, anchorId: `${unit}-seg-${index + 1}`, canonicalId: binding.canonicalId, evidence: 'term-overlap-binding-model:modality-independent' });
       }
     });
+  }
+  const introVideoBindingsFile = readJson<{ readonly rows: readonly { readonly atomId: string; readonly resourceId: string; readonly canonicalId: string }[] }>(`${REMEDIATION_ROOT}/resource-layer/intro-videos/intro-video-node-bindings.json`);
+  for (const row of introVideoBindingsFile.rows) {
+    if (!coveredMemberIds.has(row.canonicalId)) continue;
+    bindings.push({ modality: 'intro-video', resourceId: row.resourceId, anchorId: row.atomId, canonicalId: row.canonicalId, evidence: 'term-overlap-binding-model:modality-independent' });
+  }
+  const exerciseBindingsFile = readJson<{ readonly rows: readonly { readonly questionId: string; readonly canonicalId: string }[] }>(`${REMEDIATION_ROOT}/resource-layer/exercises/exercise-node-bindings.json`);
+  for (const row of exerciseBindingsFile.rows) {
+    if (!coveredMemberIds.has(row.canonicalId)) continue;
+    bindings.push({ modality: 'exercise', resourceId: `exercises-${row.questionId.split('/')[0]}`, anchorId: row.questionId, canonicalId: row.canonicalId, evidence: 'codex-semantic-mapping:conservative' });
   }
   const projectionValid = validateRemediationTeachingProjection({
     projection: projection as never,

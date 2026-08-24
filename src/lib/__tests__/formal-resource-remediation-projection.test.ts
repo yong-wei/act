@@ -188,7 +188,7 @@ describe('remediation teaching projection', () => {
     const projection = projectionFixture();
     expect(projection.membership).toMatchObject({ memberCount: 3, coveredMemberCount: 2, excludedMemberCount: 1 });
     expect(projection.relations.edgeCount).toBe(1);
-    expect(projection.bindings.byModality).toEqual({ card: 1, audio: 0 });
+    expect(projection.bindings.byModality).toEqual({ card: 1, audio: 0, 'intro-video': 0, exercise: 0 });
     expect(projection.zeroResourceNodes.count).toBe(1);
   });
 

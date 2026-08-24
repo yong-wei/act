@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "lyapunov-stability",
  "memberCount": 141,
  "edgeCount": 0,
- "bindingCount": 12,
- "fragmentHash": "1d8ef37db7adc9933431d37d91e16ca27598cece2993f0ccff963ea15514079a",
+ "bindingCount": 0,
+ "fragmentHash": "9818a9666cca7853895ac23f0eafb0e91468a3e00843b1ae4bfd518ee19914d9",
  "members": [
   {
    "canonicalId": "ctkg:condition:0413d990ad64216cb81b6c81",
@@ -197,7 +197,7 @@
    "canonicalId": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
    "excluded": true,
    "label": "平衡状态",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:domainconcept:3f2b9364d6712170bfd6fb24",
@@ -269,7 +269,7 @@
    "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
    "excluded": true,
    "label": "特征方程",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
@@ -395,7 +395,7 @@
    "canonicalId": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
    "excluded": true,
    "label": "临界稳定",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd",
@@ -407,7 +407,7 @@
    "canonicalId": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
    "excluded": true,
    "label": "平衡状态",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:domainconcept:f2d758b656ba6d55337462e6",
@@ -855,90 +855,5 @@
   }
  ],
  "edges": [],
- "bindings": [
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-45",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-1",
-   "anchorId": "3-1-seg-5",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-2",
-   "anchorId": "3-2-seg-9",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-2",
-   "anchorId": "3-2-seg-12",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-2",
-   "anchorId": "3-2-seg-20",
-   "canonicalId": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-2",
-   "anchorId": "3-2-seg-31",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-3",
-   "anchorId": "3-3-seg-28",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-4",
-   "anchorId": "3-4-seg-10",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-6",
-   "anchorId": "3-6-seg-20",
-   "canonicalId": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-6",
-   "anchorId": "3-6-seg-20",
-   "canonicalId": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-3-6",
-   "anchorId": "3-6-seg-33",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-5-2",
-   "anchorId": "5-2-seg-34",
-   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  }
- ]
+ "bindings": []
 }

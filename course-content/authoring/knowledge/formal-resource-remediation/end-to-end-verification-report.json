@@ -12,7 +12,7 @@
   {
    "name": "envelope-reopen",
    "passed": true,
-   "detail": "envelope a2ad9513 reopens over 960 records and 20 artifacts"
+   "detail": "envelope edf48bb6 reopens over 1045 records and 25 artifacts"
   },
   {
    "name": "closure-reopen",
@@ -22,7 +22,7 @@
   {
    "name": "projection-validate",
    "passed": true,
-   "detail": "materialized projection passes validation with zero findings (420 edges, 1175 bindings reopened)"
+   "detail": "materialized projection passes validation with zero findings (420 edges, 1585 bindings reopened)"
   },
   {
    "name": "projection-complete",
@@ -32,7 +32,7 @@
   {
    "name": "fragments-identity",
    "passed": true,
-   "detail": "15 fragments all bind projection 215a5107"
+   "detail": "15 fragments all bind projection 8c8f32fb"
   },
   {
    "name": "consumers-identity",
@@ -50,8 +50,8 @@
   "members": 7476,
   "closureRows": 22428,
   "publishedEdges": 420,
-  "resources": 960,
-  "atoms": 13391,
+  "resources": 1045,
+  "atoms": 13476,
   "fragments": 15
  },
  "productionPointers": [
@@ -99,8 +99,8 @@
   }
  ],
  "handoff": {
-  "handoffId": "handoff-e15984ff71633e9f79e0a8b8",
-  "handoffHash": "e15984ff71633e9f79e0a8b8177f980058aa2afea118752540114bf7520778b7",
+  "handoffId": "handoff-38df963b885191157c628dc1",
+  "handoffHash": "38df963b885191157c628dc122640cc3dd0225abd17f506e9cae8a9caa62cc91",
   "selectable": false,
   "state": "created"
  }

@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "discrete-time-control-analysis",
  "memberCount": 619,
  "edgeCount": 0,
- "bindingCount": 15,
- "fragmentHash": "d39b5bc5d351479a74c7a5992d9f65a1416b0730ffe38dcb4921176cb83f5337",
+ "bindingCount": 0,
+ "fragmentHash": "9fdc0d948a3720752ff74f40e8135b2352eca6c1a915ffa72016ac638c21bc48",
  "members": [
   {
    "canonicalId": "ctkg:v3e-object-01178a3425287ed79a6d9fcc",
@@ -2231,7 +2231,7 @@
    "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
    "excluded": true,
    "label": "拉普拉斯变换",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:v3e-object-8d3fcc35e299608c3b0253fc",
@@ -2351,7 +2351,7 @@
    "canonicalId": "ctkg:v3e-object-9615125c7f9a504980e7ca04",
    "excluded": true,
    "label": "前馈信号",
-   "zeroResource": false
+   "zeroResource": true
   },
   {
    "canonicalId": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
@@ -3723,111 +3723,5 @@
   }
  ],
  "edges": [],
- "bindings": [
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-25",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-26",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-27",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-30",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-1-2",
-   "anchorId": "1-2-seg-34",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-2-1",
-   "anchorId": "2-1-seg-7",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-2-1",
-   "anchorId": "2-1-seg-32",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-2-1",
-   "anchorId": "2-1-seg-36",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-4-2",
-   "anchorId": "4-2-seg-2",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-4-2",
-   "anchorId": "4-2-seg-41",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-4-2",
-   "anchorId": "4-2-seg-42",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-4-6",
-   "anchorId": "4-6-seg-50",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-5-1",
-   "anchorId": "5-1-seg-23",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-5-6",
-   "anchorId": "5-6-seg-24",
-   "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  },
-  {
-   "modality": "audio",
-   "resourceId": "audio-5-6",
-   "anchorId": "5-6-seg-32",
-   "canonicalId": "ctkg:v3e-object-9615125c7f9a504980e7ca04",
-   "evidence": "term-overlap-binding-model:modality-independent"
-  }
- ]
+ "bindings": []
 }

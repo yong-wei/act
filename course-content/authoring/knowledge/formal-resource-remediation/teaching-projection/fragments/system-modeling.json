@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
  "domain": "system-modeling",
  "memberCount": 666,
  "edgeCount": 57,
- "bindingCount": 173,
- "fragmentHash": "9eb9641d08f96000a590a8bc07c0d27f453770402fd003651080c255a461fd66",
+ "bindingCount": 221,
+ "fragmentHash": "042121e5f64094efb02416d4d222ce5ec6889267c7fb624db2b00f455fa23398",
  "members": [
   {
    "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -17,7 +17,7 @@
    "canonicalId": "ctc:909e732d40f972bf760fa8ff",
    "excluded": false,
    "label": "In spacecraft attitude control, disturbances are torques that are ignored in the dynamic model and treated as disturbance signals affecting the system, such as aerodynamic torque and torques from other planetary bodies, magnetic fields, etc. The controller aims to minimize their effects.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:90af7a0497e616bbe6249c30",
@@ -113,7 +113,7 @@
    "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
    "excluded": false,
    "label": "Define convenient coordinates for position, velocity, and acceleration; determine forces using a free-body diagram; write equations of motion from F = m a.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-14dc921a2171d3adbe16bbf1",
@@ -209,7 +209,7 @@
    "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
    "excluded": false,
    "label": "框图化简",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-20f3dc8367288f2a5908a82b",
@@ -299,7 +299,7 @@
    "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
    "excluded": false,
    "label": "Various levels of simulation fidelity (accuracy) are available to the control engineer: low-fidelity simulations in early design stages using interactive design software with good graphics, where computer speed is less important; and high-fidelity simulations as the design matures, where processing speed becomes more important, typically programmed in FORTRAN, C, C++, MATLAB, LabVIEW or similar languages.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-31d6c35bb311ba59057d5952",
@@ -347,7 +347,7 @@
    "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
    "excluded": false,
    "label": "When the sensor and actuator are rigidly attached to one another, the situation is referred to as the collocated case.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-35ceac27e10f3aedb135cbab",
@@ -629,7 +629,7 @@
    "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
    "excluded": false,
    "label": "脉冲响应",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
@@ -743,7 +743,7 @@
    "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
    "excluded": false,
    "label": "输出方程中D≡0的系统。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-736212ccb3694d44a24fa358",
@@ -2495,7 +2495,7 @@
    "canonicalId": "ctf:bf39612a5f5fa263a2f8b68e",
    "excluded": false,
    "label": "\\varphi = -\\tan^{-1}\\left(\\frac{\\omega}{k}\\right)",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctf:c2527f7cc8ef612a6c7f9d8a",
@@ -2951,7 +2951,7 @@
    "canonicalId": "ctk:1922f1c3c82ad4fae7d6b778",
    "excluded": false,
    "label": "属性断言：For systems with more than one mass, draw the free-body diagram of each mass showing applied external forces and equal and opposite internal forces.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctk:1b2cb31d95e7bd6db4ae967c",
@@ -3929,7 +3929,7 @@
    "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
    "excluded": false,
    "label": "二阶系统",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2k:source-object:65e23ca727760cb695ff26ef",
@@ -3983,7 +3983,7 @@
    "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
    "excluded": false,
    "label": "用于拉普拉斯逆变换的 Heaviside 部分分式展开",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2w:source-object:a794163da23e6c34ba9e7439",
@@ -5673,6 +5673,342 @@
    "anchorId": "5-6-seg-35",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-73e152d3d8bc26ccf60b296e",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-7e9edc768d951b71f13d4cb0",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-cf73f05ba09b98ae1bb6f7bb",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-a3b8a843ff5980e9c2e80865",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-ee53105d0645663031eaa3e0",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-488f16c5bf40808887c0d0c8",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-fe06dda9c41597dc01e62b99",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-4146e37baf69b9eaeca2cb3c",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-99007d38a0320d8340a11414",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-2d113bbb635bbd78439562fd",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-219fecf681466bda0b26e83d",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-a7029bb045719955166fefe6",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-85591271dbce4e5239d85d18",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-07f4a5812c54059311f89f1b",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-41975096c93f25ad496b602d",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-d155a422d3ab12d21bf10c9a",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-e9ffa749977361948c32ac15",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-0c52f1bce20de13db9944859",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-3da22212284409fcbe69d42f",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-526bb33abb9f17bd9cfecd56",
+   "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-87c5c20680bd3f855155806f",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-35bd176fe8ac99a58c10613f",
+   "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-f5b62abed59087e6ed67a1b7",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-f6a1301944e534a14de6dabe",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-43c0045c0ad83a77d1bb76be",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-a54d4294b979ec31856a6929",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-466b96bfbc6a91c29a0f9409",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-e105968da4536c90ed9266cc",
+   "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-8cc1e9c7fc551d130efa3779",
+   "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-ea8ecea29a9a6fb8ca788756",
+   "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-f0fa41a6feef10a25ceecf5b",
+   "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-f0fa41a6feef10a25ceecf5b",
+   "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-4",
+   "anchorId": "atom-f0fa41a6feef10a25ceecf5b",
+   "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-9ab28a5795e440563197ceef",
+   "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-9ab28a5795e440563197ceef",
+   "canonicalId": "ctk:1922f1c3c82ad4fae7d6b778",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-8167ca17246e708b6cdf6ed5",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-4d72cc939c1b42ce6e77d47e",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-842d37707c2d5db3c343f159",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-58b9937bf3db4b77681b0cfb",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-ebf8deb97553a6bc631afeae",
+   "canonicalId": "ctf:bf39612a5f5fa263a2f8b68e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-26d96fb32f73630d6a4ef94c",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-3cadeafa9b727e2732e7db3e",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-175407073b3c800d6fb053c4",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-c841ac2aa7492a9753b8150b",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-8939a39fb3ddaf74139118f5",
+   "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-3",
+   "anchorId": "atom-a49623a6ddae2801ae650cd8",
+   "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-2",
+   "anchorId": "1-2/step-08/sfg-quiz-1",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "codex-semantic-mapping:conservative"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-17/tool-choice",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "evidence": "codex-semantic-mapping:conservative"
   }
  ]
 }

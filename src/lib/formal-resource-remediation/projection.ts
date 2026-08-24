@@ -41,7 +41,7 @@ export interface ProjectionEdgeRow {
 }
 
 export interface ProjectionBindingRow {
-  readonly modality: 'card' | 'audio';
+  readonly modality: 'card' | 'audio' | 'intro-video' | 'exercise';
   readonly resourceId: string;
   readonly anchorId: string;
   readonly canonicalId: string;
@@ -158,7 +158,7 @@ export function buildRemediationTeachingProjection(input: BuildProjectionInput):
       throw new FormalResourceRemediationError('projection-edge-endpoint-unknown', `Edge ${edge.source}→${String(edge.target)} has an endpoint outside the reopened membership.`);
     }
   }
-  const byModality: Record<ProjectionBindingRow['modality'], number> = { card: 0, audio: 0 };
+  const byModality: Record<ProjectionBindingRow['modality'], number> = { card: 0, audio: 0, 'intro-video': 0, exercise: 0 };
   for (const binding of input.bindings) {
     if (!memberIds.has(binding.canonicalId)) {
       throw new FormalResourceRemediationError('projection-binding-target-unknown', `Binding ${binding.anchorId} targets ${binding.canonicalId} outside the reopened membership.`);
