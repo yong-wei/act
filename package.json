@@ -29,6 +29,7 @@
     "verify:new-resource-semantics": "tsx ./scripts/data-governance/check-new-resource-semantic-completeness.ts",
     "verify:portrait-v2-primary": "tsx ./scripts/data-governance/check-portrait-v2-primary-usage.ts",
     "generate:micro-tutoring-option-attributions": "tsx ./scripts/data-governance/generate-micro-tutoring-option-attributions.ts",
+    "generate:micro-tutoring-v2-option-attributions": "tsx ./scripts/data-governance/generate-micro-tutoring-v2-option-attributions.ts",
     "generate:micro-tutoring-resource-projection": "tsx ./scripts/data-governance/generate-micro-tutoring-resource-projection.ts",
     "generate:micro-tutoring-validation-registry": "tsx ./scripts/data-governance/generate-micro-tutoring-validation-registry.ts",
     "verify:micro-tutoring-coverage": "tsx ./scripts/data-governance/check-micro-tutoring-coverage.ts",
