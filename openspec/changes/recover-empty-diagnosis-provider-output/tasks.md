@@ -10,5 +10,6 @@
 
 - [x] 2.1 Cover empty structured output followed by valid JSON fallback.
 - [x] 2.2 Cover malformed and schema-invalid fallback classification through
-  the provider adapter and durable job/attempt records.
+  the provider adapter and durable job/attempt records, including output that
+  only violates the bounded provider schema.
 - [x] 2.3 Run focused test suites and workspace diff validation.

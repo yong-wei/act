@@ -267,6 +267,12 @@ export async function generateGovernedDiagnosisReport(
     }
     throw error;
   }
+  if (generated.usedTextJsonFallback) {
+    const parsedFallback = diagnosisProviderReportBodySchema.safeParse(generated.output);
+    if (!parsedFallback.success) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
+  }
   const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
   if (!parsedReportBody.success) {
     if (generated.usedTextJsonFallback) {

@@ -335,9 +335,22 @@ describe('teacher diagnosis generation contracts', () => {
     })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
   });
 
-  it('maps schema-invalid text fallback output to the retryable empty-output failure', async () => {
+  it('maps provider-schema-invalid text fallback output to the retryable empty-output failure', async () => {
+    const output = {
+      summary: '持久化报告模式可接受该结果。',
+      findings: Array.from({ length: 7 }, () => ({
+        title: '超出提供方诊断模式上限的发现项。',
+        evidenceRefs: [],
+      })),
+      evidenceRefs: ['knowledge-progress:progress-1'],
+      evidenceCutoff: now.toISOString(),
+      sourceCoverage: { progressRows: 1 },
+      confidence: 'medium' as const,
+      limitations: [],
+    };
+    expect(diagnosisReportBodySchema.safeParse(output).success).toBe(true);
     providerGenerate.mockResolvedValueOnce({
-      output: { summary: '缺少报告必填字段。' },
+      output,
       normalizedResponseId: 'provider-response-schema-invalid-fallback',
       usedTextJsonFallback: true,
     });
@@ -552,16 +565,30 @@ describe('teacher diagnosis generation contracts', () => {
     }));
   });
 
-  it('records an unusable fallback as retryable with a specific diagnosis code', async () => {
-    const providerError = new DiagnosisGenerationProviderEmptyOutputError();
+  it('records a provider-schema-invalid fallback as retryable with a specific diagnosis code', async () => {
     const { db, tx } = workerDbFixture();
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '持久化报告模式可接受该结果。',
+        findings: Array.from({ length: 7 }, () => ({
+          title: '超出提供方诊断模式上限的发现项。',
+          evidenceRefs: [],
+        })),
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { progressRows: 1 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-schema-invalid-fallback',
+      usedTextJsonFallback: true,
+    });
 
     await expect(processDiagnosisGenerationJob(
       db as never,
       'job-1',
       { attemptsMade: 2, opts: { attempts: 3 } } as never,
-      async () => { throw providerError; },
-    )).rejects.toBe(providerError);
+    )).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
 
     expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
       data: expect.objectContaining({
