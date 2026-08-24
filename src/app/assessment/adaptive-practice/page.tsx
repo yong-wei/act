@@ -5729,7 +5729,7 @@ export default function AdaptivePracticePage() {
               summary={hasGeneratedPathOptions
                 ? '不同路径按同一组字段比较，便于直接判断取舍。'
                 : '生成正式学习路径后，系统会展示具体资源、顺序和方案差异。'}
-              className="order-40"
+              className="order-[15]"
               trailing={(
                 <div className="flex items-center gap-2">
                   {focusedCandidateId && activeCandidateBatch ? (
@@ -5756,6 +5756,7 @@ export default function AdaptivePracticePage() {
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
               data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}
               data-learning-path-options-layout="route-modules"
+              data-adaptive-path-module-order="candidate-comparison-before-active-route"
             >
             {pathConfigurationFulfillment.length > 0 || pathBudgetLimitation.insufficient || Boolean(pathOptionFallback) ? (
               <section
@@ -6167,7 +6168,7 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
-            <section className="order-20 grid min-w-0 w-full gap-4">
+            <section className="order-20 grid min-w-0 w-full gap-4" data-adaptive-path-module-order="active-route-after-candidate-comparison">
               {showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <PathWorkspaceModule
                 moduleId="current-path"
