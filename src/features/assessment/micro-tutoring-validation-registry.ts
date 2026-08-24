@@ -10,7 +10,7 @@ import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source'
 
 export const MICRO_TUTORING_VALIDATION_REGISTRY_VERSION = 'micro-tutoring-validation-registry.v1';
 export const MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE =
-  'micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2';
+  'micro-tutoring-assessment-baseline.v2+micro-tutoring-option-attributions.v3';
 export const MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES = 2;
 export const MICRO_TUTORING_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
@@ -280,8 +280,8 @@ function parseStudentQuestionRef(
 
 export function loadMicroTutoringValidationRegistry(
   source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-validation-registry.json'),
-  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
-  practiceBaseline: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-practice-baseline.json'),
+  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions-v2.json'),
+  practiceBaseline: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-assessment-baseline-v2.json'),
 ): LoadedMicroTutoringValidationRegistry {
   const value = record(source);
   const issues: MicroTutoringValidationRegistryIssue[] = [];

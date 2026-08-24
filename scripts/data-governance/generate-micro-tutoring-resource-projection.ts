@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import optionAttributionSource from '../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import optionAttributionSource from '../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
 import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { MICRO_TUTORING_LEARNING_ACTION_VERSION } from '@/features/assessment/micro-tutoring-learning-actions';
 import {

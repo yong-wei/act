@@ -4,8 +4,8 @@ import path from 'node:path';
 
 import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
-import optionAttributionSource from '../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
-import practiceBaselineSource from '../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
+import optionAttributionSource from '../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
+import practiceBaselineSource from '../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import { resolveMicroTutoringGoalNode } from '@/features/assessment/micro-tutoring-goal-node-catalog';
 import {
   MICRO_TUTORING_VALIDATION_ACTION_PATH,
@@ -25,8 +25,8 @@ const GIT_REVISION = /^[a-f0-9]{40}$/u;
 const SOURCE_PATHS = [
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/adaptive-assessment-item-catalog-items.jsonl`,
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/assessment-item-semantic-review-snapshots.jsonl`,
-  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-practice-baseline.json`,
-  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-option-attributions.json`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-assessment-baseline-v2.json`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-option-attributions-v2.json`,
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-goal-node-catalog.json`,
 ] as const;
 const REVIEWED_AT = '2026-08-21T00:00:00.000Z';
@@ -101,7 +101,8 @@ async function main() {
     tagsByNode.set(attribution.knowledgeNodeId, current);
   }
 
-  const entries = practiceBaselineSource.entries.map((baseline) => {
+  const nextCandidateByGoal = new Map<string, number>();
+  const entries = practiceBaselineSource.entries.map((baseline, baselineIndex) => {
     const item = catalogById.get(baseline.catalogItemId);
     const review = reviewById.get(baseline.catalogItemId);
     if (!item || !review) {
@@ -110,8 +111,8 @@ async function main() {
     if (item.contentHash !== baseline.contentHash || review.sourceContentHash !== baseline.contentHash) {
       throw new Error(`Content hash drift for ${baseline.catalogItemId}`);
     }
-    if (review.outcome !== 'approved' || review.selectedStagePurpose !== 'practice') {
-      throw new Error(`${baseline.catalogItemId} is not an approved practice item`);
+    if (review.outcome !== 'approved') {
+      throw new Error(`${baseline.catalogItemId} is not approved`);
     }
     const learningGoalId = review.selectedLearningGoalIds[0];
     const goalNode = resolveMicroTutoringGoalNode(learningGoalId);
@@ -122,39 +123,52 @@ async function main() {
     if (!nodeTags || nodeTags.length === 0) {
       throw new Error(`No option attributions for ${goalNode.knowledgeNodeId}`);
     }
+    const candidates = practiceBaselineSource.entries
+      .map((candidate) => catalogById.get(candidate.catalogItemId))
+      .filter((candidate): candidate is AdaptiveAssessmentCatalogItem => Boolean(candidate))
+      .filter((candidate) => candidate.catalogItemId !== item.catalogItemId)
+      .filter((candidate) => reviewById.get(candidate.catalogItemId)?.selectedLearningGoalIds.includes(learningGoalId));
+    const candidateIndex = nextCandidateByGoal.get(learningGoalId) ?? 0;
+    nextCandidateByGoal.set(learningGoalId, candidateIndex + 1);
+    const validationBaseline = candidates[candidateIndex % Math.max(candidates.length, 1)];
+    if (!validationBaseline) {
+      throw new Error(`No independent validation candidate for ${baseline.catalogItemId} (index ${baselineIndex})`);
+    }
+    const validationReview = reviewById.get(validationBaseline.catalogItemId);
+    if (!validationReview?.reviewSourceHash || validationReview.outcome !== 'approved') {
+      throw new Error(`Invalid independent validation candidate for ${baseline.catalogItemId}`);
+    }
     const relations: MicroTutoringValidationRelation[] = [...nodeTags]
       .sort((left, right) => left.misconceptionTag.localeCompare(right.misconceptionTag))
       .map((tag) => ({
         misconceptionTag: tag.misconceptionTag,
-        rationale: `复用已审核练习变式 ${item.sourceId} 作为独立验证，覆盖选项审核确认的错因：${tag.evidenceSummary}`,
+        rationale: `使用独立已审核题 ${validationBaseline.sourceId} 作为验证，覆盖选项审核确认的错因：${tag.evidenceSummary}`,
       }));
     const purpose = purposeDecision(goalNode.knowledgeNodeId);
-    const snapshotVersion = item.versionRefs.adaptiveAssessmentSnapshotVersion;
+    const snapshotVersion = validationBaseline.versionRefs.adaptiveAssessmentSnapshotVersion;
     if (!snapshotVersion) {
       throw new Error(`Missing snapshot version for ${baseline.catalogItemId}`);
     }
-    const difficulty = typeof review.difficulty === 'number' ? review.difficulty : item.semanticRefs.difficulty;
+    const difficulty = typeof validationReview.difficulty === 'number' ? validationReview.difficulty : validationBaseline.semanticRefs.difficulty;
     if (typeof difficulty !== 'number') {
       throw new Error(`Missing difficulty for ${baseline.catalogItemId}`);
     }
-    if (!review.reviewSourceHash) {
-      throw new Error(`Missing review source hash for ${baseline.catalogItemId}`);
-    }
+    
     return {
-      id: `micro-tutoring-validation:${item.sourceId}`,
-      catalogItemId: item.catalogItemId,
-      sourceId: item.sourceId,
-      contentHash: item.contentHash,
+      id: `micro-tutoring-validation:${validationBaseline.sourceId}`,
+      catalogItemId: validationBaseline.catalogItemId,
+      sourceId: validationBaseline.sourceId,
+      contentHash: validationBaseline.contentHash,
       itemRevision: microTutoringValidationItemRevision({
-        catalogItemId: item.catalogItemId,
-        sourceId: item.sourceId,
-        contentHash: item.contentHash,
+        catalogItemId: validationBaseline.catalogItemId,
+        sourceId: validationBaseline.sourceId,
+        contentHash: validationBaseline.contentHash,
         learningGoalId,
         knowledgeNodeId: goalNode.knowledgeNodeId,
         difficulty,
         estimatedMinutes: MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES,
         snapshotVersion,
-        itemReviewSourceHash: review.reviewSourceHash,
+        itemReviewSourceHash: validationReview.reviewSourceHash,
         purposeDecision: purpose,
         relations,
       }),
@@ -166,12 +180,12 @@ async function main() {
       privacyLevel: 'student-visible' as const,
       enabled: true,
       snapshotVersion,
-      itemReviewSourceHash: review.reviewSourceHash,
+      itemReviewSourceHash: validationReview.reviewSourceHash,
       purposeDecision: purpose,
       studentQuestionRef: {
-        catalogItemId: item.catalogItemId,
-        sourceId: item.sourceId,
-        contentHash: item.contentHash,
+        catalogItemId: validationBaseline.catalogItemId,
+        sourceId: validationBaseline.sourceId,
+        contentHash: validationBaseline.contentHash,
         snapshotVersion,
       },
       relations,

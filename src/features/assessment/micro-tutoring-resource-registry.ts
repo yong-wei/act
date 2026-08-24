@@ -10,7 +10,7 @@ import {
 import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export const MICRO_TUTORING_RESOURCE_PROJECTION_VERSION = 'micro-tutoring-resource-projection.v1';
-export const MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE = 'micro-tutoring-option-attributions.v2';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE = 'micro-tutoring-option-attributions.v3';
 
 export type MicroTutoringResourceProjectionIssueCode =
   | 'PROJECTION_MALFORMED'
@@ -200,7 +200,7 @@ function parseRelations(value: unknown, ref: string): {
 
 export function loadMicroTutoringResourceProjection(
   source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-resource-projection.json'),
-  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
+  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions-v2.json'),
 ): LoadedMicroTutoringResourceProjection {
   const value = record(source);
   const issues: MicroTutoringResourceProjectionIssue[] = [];
