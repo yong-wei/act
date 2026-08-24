@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: 合格 v2 错误选项具有唯一且当前的归因
 
@@ -14,4 +14,3 @@
 - **WHEN** 当前错误选项没有唯一有效记录，或内容及审核来源发生漂移
 - **THEN** 系统返回受控 `UNCERTAIN`
 - **AND** 不得使用 v1 邻近记录、题目级语义、关键词或默认节点补全
-
