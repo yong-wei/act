@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import optionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import optionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
 import projectionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection.json';
 import { parseMicroTutoringLearningAction } from '../micro-tutoring-learning-actions';
 import {
