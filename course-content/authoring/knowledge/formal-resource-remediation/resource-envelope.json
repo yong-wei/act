@@ -4,8 +4,8 @@
  "sealedAt": "2026-08-24T19:30:00.000Z",
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
- "resourceCount": 929,
- "atomCount": 11511,
+ "resourceCount": 960,
+ "atomCount": 13391,
  "bindingCount": 1175,
  "subtypes": [
   {
@@ -27,6 +27,11 @@
    "subtype": "handout",
    "resources": 31,
    "atoms": 5394
+  },
+  {
+   "subtype": "intro-video",
+   "resources": 31,
+   "atoms": 1880
   }
  ],
  "artifacts": [
@@ -86,6 +91,26 @@
    "sha256": "a7b31ae3e828f2938b978e8985979c509cb904060de72defb42b865cca30f106"
   },
   {
+   "role": "intro-video-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-atoms.json",
+   "sha256": "68b4ed7ae60feb766aba85057186349a6952c48c255640c7f37083c04d8df519"
+  },
+  {
+   "role": "intro-video-inventory",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-inventory.json",
+   "sha256": "6031e06fabff48c484de5dd54a3e613ccac04c6b3e66b759197edf7dc772c290"
+  },
+  {
+   "role": "intro-video-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-processing-records.json",
+   "sha256": "585107bcefd5789ecfb8fff0133a52951ed5e40e64ae72aabae33e893ed38695"
+  },
+  {
+   "role": "intro-video-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-run-summary.json",
+   "sha256": "97959ad4f8608fb7edb148e7428688562072f20564de89ffbea25b66c9029d82"
+  },
+  {
    "role": "processor-registry",
    "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/processor-registry.json",
    "sha256": "6bc85ba5a0999cc31f2fa7a1f9cf667645c3cda49a0dbf857830b58c9c39c6ea"
@@ -114,10 +139,10 @@
  "limitations": [
   "exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)",
   "simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)",
-  "intro-video production-source import is not yet processed (task family 3 pending)",
+  "intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
   "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
   "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)"
  ],
- "envelopeHash": "f5f7af696a76f5310a4f33047cf3302391078bb705931f931d489e231fa5df0d"
+ "envelopeHash": "a2ad9513b129571433ec26d21705b919be6d7670627bdabd5679cfaae9a63ed1"
 }

@@ -113,6 +113,7 @@ function main(): void {
     `${REMEDIATION_ROOT}/resource-layer/text/text-processing-records.json`,
     `${REMEDIATION_ROOT}/20260823-asr-batch/asr-processing-records.json`,
     `${REMEDIATION_ROOT}/resource-layer/exercises/exercise-processing-records.json`,
+    `${REMEDIATION_ROOT}/resource-layer/intro-videos/intro-video-processing-records.json`,
   ];
   const processingRecords = recordPaths.flatMap((recordPath) => readJson<ResourceProcessingRecord[]>(recordPath));
   const envelopeReopen = reopenResourceEnvelope({

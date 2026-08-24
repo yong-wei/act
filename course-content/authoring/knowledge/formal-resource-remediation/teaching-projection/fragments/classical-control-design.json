@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
+ "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
  "domain": "classical-control-design",
  "memberCount": 776,
  "edgeCount": 0,
  "bindingCount": 36,
- "fragmentHash": "9a5c327a4d6415d568af1b025a1f31aa48458dc6e6e035c56b5a523a5e0a1c21",
+ "fragmentHash": "719edd120dd17790f0eb201fe87cd7e4be84439d2247966b2a861e458b0282ad",
  "members": [
   {
    "canonicalId": "ctkg:m1t-v2c:01c79541df32c50b537caddf",

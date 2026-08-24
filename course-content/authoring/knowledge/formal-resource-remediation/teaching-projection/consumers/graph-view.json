@@ -1,7 +1,7 @@
 {
  "contract": "remediation-teaching-projection-consumer/v1",
  "consumer": "graph",
- "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
+ "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
  "nodes": [
   {
    "id": "ctc:0f418dc24d2aacaaafdcdcc0",

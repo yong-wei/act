@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
+ "projectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
  "domain": "state-space-control-analysis-and-design",
  "memberCount": 1300,
  "edgeCount": 19,
  "bindingCount": 10,
- "fragmentHash": "454e1c1f98bf1bb84fd36edb8c52c430837f31f8e90a2d7dff687449e143d8aa",
+ "fragmentHash": "43db23d1ad9f594c746e6883f22c6d01ea568b90a84e2bd44b1e7635485b28a1",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",

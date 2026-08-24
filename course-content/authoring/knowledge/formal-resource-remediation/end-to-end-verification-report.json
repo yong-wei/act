@@ -12,7 +12,7 @@
   {
    "name": "envelope-reopen",
    "passed": true,
-   "detail": "envelope f5f7af69 reopens over 929 records and 16 artifacts"
+   "detail": "envelope a2ad9513 reopens over 960 records and 20 artifacts"
   },
   {
    "name": "closure-reopen",
@@ -32,7 +32,7 @@
   {
    "name": "fragments-identity",
    "passed": true,
-   "detail": "15 fragments all bind projection 6cc9b31c"
+   "detail": "15 fragments all bind projection 215a5107"
   },
   {
    "name": "consumers-identity",
@@ -50,8 +50,8 @@
   "members": 7476,
   "closureRows": 22428,
   "publishedEdges": 420,
-  "resources": 929,
-  "atoms": 11511,
+  "resources": 960,
+  "atoms": 13391,
   "fragments": 15
  },
  "productionPointers": [
@@ -99,8 +99,8 @@
   }
  ],
  "handoff": {
-  "handoffId": "handoff-c82a6d91a11b0612545be999",
-  "handoffHash": "c82a6d91a11b0612545be9995e3ec7db44e9f8fa2ec6c56e4195dce95547449c",
+  "handoffId": "handoff-e15984ff71633e9f79e0a8b8",
+  "handoffHash": "e15984ff71633e9f79e0a8b8177f980058aa2afea118752540114bf7520778b7",
   "selectable": false,
   "state": "created"
  }

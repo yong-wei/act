@@ -66,7 +66,7 @@ const SEALED_AT = '2026-08-24T19:30:00.000Z';
 const ENVELOPE_LIMITATIONS = [
   'exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)',
   'simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)',
-  'intro-video production-source import is not yet processed (task family 3 pending)',
+  'intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)',
   'handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass',
   'course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound',
   'audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)',
@@ -187,7 +187,13 @@ function main(): void {
   if (exerciseRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
     throw new Error('exercise records are not bound to the current allocation; run process-exercises first');
   }
-  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords];
+  const introVideoDir = `${REMEDIATION_ROOT}/resource-layer/intro-videos`;
+  const introVideoRecords = readJson<ResourceProcessingRecord[]>(`${introVideoDir}/intro-video-processing-records.json`);
+  const introVideoAtomsCount = readJson<{ readonly atomCount: number }>(`${introVideoDir}/intro-video-run-summary.json`).atomCount;
+  if (introVideoRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
+    throw new Error('intro-video records are not bound to the current allocation; run process-intro-videos first');
+  }
+  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords, ...introVideoRecords];
 
   // Build the modality-independent binding rows.
   const authorityMap = readJson<Record<string, string>>(`${ASR_BATCH}/course-to-authority-map.json`);
@@ -245,13 +251,17 @@ function main(): void {
     { role: 'exercise-answer-digests', path: `${exerciseDir}/exercise-answer-digests.json` },
     { role: 'exercise-exclusions', path: `${exerciseDir}/exercise-exclusions.json` },
     { role: 'exercise-run-summary', path: `${exerciseDir}/exercise-run-summary.json` },
+    { role: 'intro-video-inventory', path: `${introVideoDir}/intro-video-inventory.json` },
+    { role: 'intro-video-processing-records', path: `${introVideoDir}/intro-video-processing-records.json` },
+    { role: 'intro-video-atoms', path: `${introVideoDir}/intro-video-atoms.json` },
+    { role: 'intro-video-run-summary', path: `${introVideoDir}/intro-video-run-summary.json` },
   ];
   const envelope = sealResourceEnvelope({
     sealedAt: SEALED_AT,
     allocationHash: allocation.allocationHash,
     scopeHash: scope.scopeHash,
     processingRecords,
-    atomCount: textAtoms.length + exerciseAtomsCount,
+    atomCount: textAtoms.length + exerciseAtomsCount + introVideoAtomsCount,
     bindingCount: bindings.length,
     artifacts: artifactRoles.map((artifact) => ({ ...artifact, sha256: sha256File(artifact.path) })),
     limitations: ENVELOPE_LIMITATIONS,

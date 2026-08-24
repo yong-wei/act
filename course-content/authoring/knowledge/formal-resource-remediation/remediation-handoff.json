@@ -1,24 +1,24 @@
 {
  "contract": "remediation-handoff-manifest/v1",
  "builderVersion": "formal-resource-remediation-builder/v1",
- "handoffId": "handoff-c82a6d91a11b0612545be999",
+ "handoffId": "handoff-e15984ff71633e9f79e0a8b8",
  "sealedAt": "2026-08-24T20:30:00.000Z",
  "selectable": false,
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "authorityCaptureHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
- "denominatorHash": "2ec0014591e61f29ee03885db86720214cb3debb158888bd67bf7ccc99cf7394",
- "resourceEnvelopeHash": "f5f7af696a76f5310a4f33047cf3302391078bb705931f931d489e231fa5df0d",
+ "denominatorHash": "bce4ec889744276f5bc56b0d84bcd5c6cacd2ba4ecdeed4d11be9fc8b56b54a4",
+ "resourceEnvelopeHash": "a2ad9513b129571433ec26d21705b919be6d7670627bdabd5679cfaae9a63ed1",
  "closureReceiptHash": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258",
- "teachingProjectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
- "prerequisitePublicationHash": "45fd85dc160bb60cf56099f61ea52fe460e49990d5a2d033ea29a066b30d5017",
- "domainFragmentsHash": "8e7c47e2fbbe7516dcdd2c886b978b6ec69bd49ffdd4f2f85d2e020af4e3c354",
- "domainShardsHash": "8e7c47e2fbbe7516dcdd2c886b978b6ec69bd49ffdd4f2f85d2e020af4e3c354",
- "consumerProjectionsHash": "7f64751f7a597b811d06707500361339e4e6d3a3a5617b5761223685773b5cbf",
+ "teachingProjectionHash": "215a5107e0bab81b97c5027b7e8172cf33d053387d79248fcc2781cb51f21d71",
+ "prerequisitePublicationHash": "cd319f83579afa6de6092adb93ada629ec390c3952040439e3d238a16460ef36",
+ "domainFragmentsHash": "f1f34c4b60df627c18d460fb795bbf2e68879980bf5fcc9ef7a6e7fd99b3d4d3",
+ "domainShardsHash": "f1f34c4b60df627c18d460fb795bbf2e68879980bf5fcc9ef7a6e7fd99b3d4d3",
+ "consumerProjectionsHash": "1cbf76937c91585ab4a92ace490c6ab35495c223b8beb553c2c2b56329e8ff67",
  "processorRegistryHash": "6bc85ba5a0999cc31f2fa7a1f9cf667645c3cda49a0dbf857830b58c9c39c6ea",
- "reportsHash": "24e78779359dcfcd1e41e2387eee386c96b6a5078a8c52b12b8e8e52a36a24d4",
+ "reportsHash": "f5bc2968cff24f61d8bebc28488fecde04f9d5e4ca7d4f32ac9f74a905a65ad4",
  "notes": [
   "domain fragments currently also serve the shard/overlay role: excluded members carry in-fragment excluded flags and zero-resource markers",
   "exercise and intro-video subtypes remain explicitly limited in the envelope; see resource-envelope.json limitations"
  ],
- "handoffHash": "c82a6d91a11b0612545be9995e3ec7db44e9f8fa2ec6c56e4195dce95547449c"
+ "handoffHash": "e15984ff71633e9f79e0a8b8177f980058aa2afea118752540114bf7520778b7"
 }

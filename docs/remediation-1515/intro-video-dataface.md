@@ -1,38 +1,21 @@
-# Intro-video 数据面探查报告（任务族 3 前置，2026-08-24）
+# Intro-video 数据面与处理记录（任务族 3，2026-08-24）
 
-## 结论
+## 负责人裁决（2026-08-24 晚）
 
-任务族 3（intro-video 生产源 importer）的数据源已定位并核验可及，但 **Videos 项目侧的配音与最终渲染状态未收口**，完整 importer 依赖视频侧先完成以下收口。ACT 侧不阻塞：资源信封已将 intro-video 列为显式 limitation，投影 COMPLETE 不依赖该子类型。
+视频项目视频已作为发布版导出到 ACT 项目并进入 OSS，**以当前状态为准**。后期更新时视频 hash 变化即产生新身份，需要重新增量绑定。
 
-## 数据面事实
+## 执行结果（依裁决完成）
 
-- **Videos 项目**：`/Users/YW/Documents/Project/Videos`（Remotion，独立运行时，不入 ACT 依赖）。
-- **课程组合**：`src/projects/lesson-<unit>/` 共 32 个单元项目，每个含 `Composition.tsx`、`captions.ts`（分段时间轴+段标题）、`timeline.ts`、`VIDEO-DESIGN.md`、`assets/audio/captions.generated.ts`（生成字幕真源）。
-- **ACT 目标身份**：`runtime-media:<unit>:<unit>-intro-video`（如 `runtime-media:4-3:4-3-intro-video`），与 lesson-<unit> 一一对应（3.1 的映射基础成立）。
-- **渲染产物**：`out/*.mp4` 共 99 个，命名含阶段后缀（framework/findings/final/leftover + 时间戳），**每单元"最终版"的判定规则需要在 Videos 侧确认**（3.3 的 final-render-hash 验证前提）。
+- **发布版真源**：`course-content/runtime/lessons/<unit>/media/<unit>-intro-video.mp4`（31 个单元，Git 内，media.md 为 OSS 发布清单）。
+- **生产字幕真源**：Videos 项目（`/Users/YW/Documents/Project/Videos`，独立运行时）`src/projects/lesson-<unit>/assets/audio/captions.generated.ts`——纯数据模块（cues: start/end/text），31 单元全部可用。
+- **处理器**：`src/lib/formal-resource-remediation/processors/intro-video.ts` + `scripts/knowledge-cutover/process-intro-videos.ts`——mp4 sha256 + ffprobe 时长入 inventory，每条 cue 一个原子（31/31 INCLUDED、1880 原子、零排除），mp4 哈希为资源身份（增量重绑依据裁决）。
+- **时间轴限制（v1）**：cue 锚点在 narration 轴；渲染 mp4 时长与 narration 时长的差为每单元片头/片尾帧（如 1-1：205.93s vs 185.74s，差 20.2s），逐单元 wiring 偏移核验后精化——已记入处理记录 limitations。
+- **信封/投影/交接重封**：信封 960 资源 / 13391 原子（handout/card/audio/exercise/intro-video 五子类型），投影 COMPLETE 零 findings，交接 manifest `handoff-e15984ff`。
 
-## 配音状态分布（captions.generated.ts 的 narrationReady 真值）
+## 历史探查结论（已被裁决取代的部分）
 
-| 状态 | 单元数 | 说明 |
-|---|---|---|
-| `narrationReady = true` | 16 | 配音字幕已生成 |
-| 有文件、无 narrationReady 标志 | 15 | 早期单元，语义需逐个判定（无配音设计 vs 旧格式） |
-| 无生成文件 | 1 | 待补 |
+Videos 项目侧的配音状态分布（16 true / 15 无 flag / 1 缺文件）与 99 个阶段渲染 mp4 的最终版判定问题**不再阻塞**——ACT 内已导出的发布版为权威，Videos 侧状态仅影响后续更新的语义来源。
 
-另有 10 个单元的 `captions.ts` 头注释标注 `narrationReady=false`（与部分生成文件的 true 矛盾——头注释可能滞后于生成文件）。
+## 后续增量路径
 
-## 阻断点（需要 Videos 侧收口，非 ACT 侧裁决）
-
-1. 15 个无标志单元的配音语义判定（Videos 侧确认）。
-2. 每单元最终渲染版的判定规则与稳定命名（99 个阶段 mp4 → 32 个最终版）。
-3. 4-x 系列 captions.ts 标注 draft/preview 状态与生成文件的最终收口。
-
-## 后续 importer 工作包入口（任务族 3.1–3.7 完整实现）
-
-1. 3.1 inventory：枚举 32 个 lesson 项目 → composition identity（Root.tsx 注册的 durationInFrames/fps/width/height）。
-2. 3.2 提取：timeline.ts（段落帧区间）+ captions.generated.ts（cue 真源）+ VIDEO-DESIGN.md（设计意图）。
-3. 3.3 验证：最终 mp4 的 sha256/duration ↔ ACT runtime-media 目标哈希（依赖上述阻断点 2）。
-4. 3.5 语义段落：timeline 分段 + cue 时间锚 → 视频模态语义原子（模态独立直绑，与音频同模式）。
-5. 3.6/3.7 负面测试与全量运行。
-
-相关：`docs/remediation-1515/handout-coverage-decision.md`（裁决三：模态独立绑定）。
+视频更新时：新 mp4 → 新 sha256 → 新 sourceIdentity → 增量重跑 `process-intro-videos.ts`（内容寻址原子 ID 变化仅限受影响单元）→ 信封/投影/交接重封。cue 与 mp4 时间轴偏移核验完成前，时间锚保持 narration 轴标注。
