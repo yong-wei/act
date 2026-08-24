@@ -2496,6 +2496,7 @@ model AssignmentSubmissionSnapshot {
   originalDueAt         DateTime
   submissionState       String
   attemptVectorHash     String
+  source                String   @default("AI")
   createdAt             DateTime @default(now())
 
   operation  AssignmentGradingOperation @relation(fields: [operationId], references: [id], onDelete: Restrict)
@@ -2505,7 +2506,7 @@ model AssignmentSubmissionSnapshot {
   grade      AssignmentSubmissionGrade?
 
   @@unique([operationId, submissionId])
-  @@unique([submissionId, attemptVectorHash])
+  @@index([submissionId, attemptVectorHash, source])
   @@index([submissionId, createdAt])
   @@index([assignmentRevisionId, frozenAudienceClassId, originalDueAt])
 }

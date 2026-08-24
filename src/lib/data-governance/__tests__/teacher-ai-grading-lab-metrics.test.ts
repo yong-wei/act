@@ -206,7 +206,7 @@ describe('teacher AI grading annotation metrics', () => {
     expect(result.location.rate).toBe(0.95);
     expect(result.reason.rate).toBe(0.9);
     expect(result.suggestion.rate).toBe(0.85);
-    expect(result.coverage.rate).toBe(1);
+    expect(result.coverage?.rate).toBe(1);
     expect(result.status).toBe('pass');
   });
 

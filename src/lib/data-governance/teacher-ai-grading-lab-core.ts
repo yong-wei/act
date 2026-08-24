@@ -1576,7 +1576,7 @@ export async function prepareLabExperimentEvidence(input: {
   if (allImages.some((image) => image.questionId !== input.request.submission.questionId)) {
     throw new Error('teacher-ai-grading-controlled-visual-question-mapping-invalid');
   }
-  const pageCount = input.result.wordRepresentation?.renderedPdfPageCount;
+  const pageCount = input.result.wordRepresentation?.renderedPdfPageCount ?? 0;
   if (!Number.isInteger(pageCount) || pageCount < 1) {
     throw new Error('teacher-ai-grading-controlled-visual-pdf-page-count-invalid');
   }

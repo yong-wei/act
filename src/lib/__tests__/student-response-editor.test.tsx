@@ -53,6 +53,7 @@ function renderQuestion(input?: {
       onUploadFiles={vi.fn()}
       onRetryUpload={vi.fn()}
       onDiscardUpload={vi.fn()}
+      onConfirmQuarantinedAsset={vi.fn()}
       onRemove={vi.fn()}
       onReorder={vi.fn()}
       onSubmit={vi.fn()}

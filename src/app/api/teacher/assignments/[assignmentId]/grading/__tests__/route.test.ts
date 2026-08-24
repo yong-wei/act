@@ -89,7 +89,7 @@ describe('teacher assignment grading routes', () => {
       evaluatorVersion: 'phase7',
     }), gradingContext);
 
-    expect(result.status).toBe(202);
+    expect(result!.status).toBe(202);
     expect(mocks.createAssignmentAiGradingBatches).toHaveBeenCalledWith(expect.objectContaining({
       assignmentId: 'assignment-1',
       revisionId: 'revision-1',
@@ -106,8 +106,8 @@ describe('teacher assignment grading routes', () => {
 
     const result = await startGrading(request({ idempotencyKey: 'grading-key-1' }), gradingContext);
 
-    expect(result.status).toBe(409);
-    await expect(result.json()).resolves.toEqual({ error: 'assignment-grading-before-deadline' });
+    expect(result!.status).toBe(409);
+    await expect(result!.json()).resolves.toEqual({ error: 'assignment-grading-before-deadline' });
   });
 
   it('creates a durable MANUAL question result without a Provider route', async () => {
@@ -123,14 +123,14 @@ describe('teacher assignment grading routes', () => {
       idempotencyKey: 'manual-key-1',
     }), gradingContext);
 
-    expect(result.status).toBe(201);
+    expect(result!.status).toBe(201);
     expect(mocks.createManualQuestionGradingReview).toHaveBeenCalledWith(expect.objectContaining({
       assignmentId: 'assignment-1',
       submissionId: 'submission-1',
       questionId: 'question-1',
       actor,
     }));
-    await expect(result.json()).resolves.toEqual({
+    await expect(result!.json()).resolves.toEqual({
       run: { id: 'run-1', source: 'MANUAL', state: 'AWAITING_REVIEW' },
       review: { id: 'review-1' },
       replay: false,
@@ -145,7 +145,7 @@ describe('teacher assignment grading routes', () => {
       reason: '教师显式重试失败题目',
     }), retryContext);
 
-    expect(result.status).toBe(404);
+    expect(result!.status).toBe(404);
     expect(mocks.retryQuestionGradingBatchItem).not.toHaveBeenCalled();
   });
 
@@ -158,14 +158,14 @@ describe('teacher assignment grading routes', () => {
       reason: '教师显式重试失败题目',
     }), retryContext);
 
-    expect(result.status).toBe(200);
+    expect(result!.status).toBe(200);
     expect(mocks.retryQuestionGradingBatchItem).toHaveBeenCalledWith(expect.objectContaining({
       batchId: 'batch-1',
       itemId: 'item-1',
       actor,
       idempotencyKey: 'retry-key-1',
     }));
-    await expect(result.json()).resolves.toEqual({ job: { id: 'job-1' }, replay: true });
+    await expect(result!.json()).resolves.toEqual({ job: { id: 'job-1' }, replay: true });
   });
 
   it('retries a blocked document conversion before retrying its dependent grading item', async () => {
@@ -181,10 +181,10 @@ describe('teacher assignment grading routes', () => {
       reason: '教师显式重试失败题目',
     }), retryContext);
 
-    expect(result.status).toBe(202);
+    expect(result!.status).toBe(202);
     expect(mocks.retryDocumentConversion).toHaveBeenCalledWith(expect.objectContaining({ conversionId: 'conversion-1', actor }));
     expect(mocks.enqueueMathDocumentGradingJob).toHaveBeenCalledWith({ kind: 'conversion', jobId: 'conversion-job-1', conversionId: 'conversion-1' }, expect.anything());
     expect(mocks.retryQuestionGradingBatchItem).not.toHaveBeenCalled();
-    await expect(result.json()).resolves.toEqual({ job: { id: 'conversion-job-1' }, replay: false, stage: 'conversion' });
+    await expect(result!.json()).resolves.toEqual({ job: { id: 'conversion-job-1' }, replay: false, stage: 'conversion' });
   });
 });

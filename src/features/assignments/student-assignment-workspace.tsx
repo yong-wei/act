@@ -423,7 +423,6 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       if (job.status === 'FAILED' && uploaded && job.intentId && job.idempotencyKey) {
         return await confirmUploadedAsset(question, {
           ...job,
-          uploaded: true,
           intentId: job.intentId,
           idempotencyKey: job.idempotencyKey,
         });
@@ -768,7 +767,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       await confirmUploadedAsset(question, {
         clientId: `confirm-${asset.id}`,
         fileName: asset.displayName,
-        role: asset.role,
+        role: asset.role === 'EMBEDDED_IMAGE' ? 'EMBEDDED_IMAGE' : 'ATTACHMENT',
         intentId: asset.id,
         idempotencyKey: crypto.randomUUID(),
       });

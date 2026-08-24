@@ -1214,10 +1214,11 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     await tx.submissionIdempotency.create({ data: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey, requestHash, attemptId: attempt.id } });
     return { attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) };
   }, { isolationLevel: 'Serializable' }));
-  if (result.attempt.textSnapshot?.trim()) {
+  const attempt = result.attempt;
+  if (attempt?.textSnapshot?.trim()) {
     await materializeTextAnswerEvidence({
       db: prisma,
-      attemptId: result.attempt.id,
+      attemptId: attempt.id,
       actor: { id: input.studentId, role: 'STUDENT' },
       operation: 'assignment-submit',
       idempotencyKey: input.idempotencyKey,

@@ -70,6 +70,22 @@ describe('assignment grading orchestration', () => {
     expect(submissionRequiresIncrementalGrading(submission, questions)).toBe(false);
   });
 
+  it('keeps a manually graded vector eligible for a later AI operation', () => {
+    const questions = revisionFixture().questions;
+    const submission = {
+      answers: [
+        { assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] },
+        { assignmentQuestionId: 'question-2', currentAttemptNumber: 1, attempts: [{ id: 'attempt-2', attemptNumber: 1 }] },
+      ],
+      gradingSnapshots: [{
+        source: 'MANUAL',
+        items: [{ questionId: 'question-1', attemptId: 'attempt-1' }, { questionId: 'question-2', attemptId: 'attempt-2' }],
+      }],
+    };
+
+    expect(submissionRequiresIncrementalGrading(submission, questions)).toBe(true);
+  });
+
   it('freezes selected ended submissions and only batches their captured attempts', async () => {
     const revision = revisionFixture();
     createQuestionScopedGradingBatch.mockResolvedValue({ batch: { id: 'batch-1' }, items: [], replay: false });
@@ -113,7 +129,7 @@ describe('assignment grading orchestration', () => {
     expect(createQuestionScopedGradingBatch).toHaveBeenCalledWith(expect.objectContaining({
       request: expect.objectContaining({ classId: 'class-1', studentIds: ['student-1'], attemptIds: ['attempt-1'] }),
     }));
-    expect(operations[0].snapshots[0]).toMatchObject({ frozenAudienceId: 'audience-1', originalDueAt: revision.audiences[0].dueAt });
+    expect(operations[0].snapshots[0]).toMatchObject({ frozenAudienceId: 'audience-1', originalDueAt: revision.audiences[0].dueAt, source: 'AI' });
     expect(operations[0].snapshots[0].items).toEqual(expect.arrayContaining([
       expect.objectContaining({ questionId: 'question-1', attemptId: 'attempt-1', attemptNumber: 2 }),
       expect.objectContaining({ questionId: 'question-2', attemptId: null }),
@@ -321,6 +337,24 @@ describe('assignment grading orchestration', () => {
       where: { id: 'operation-1', state: { in: ['QUEUED', 'RUNNING'] } },
       data: expect.objectContaining({ state: 'PARTIAL', completedAt: now }),
     })]);
+  });
+
+  it.each([
+    [[{ state: 'FAILED' }], 'FAILED'],
+    [[{ state: 'BLOCKED' }], 'BLOCKED'],
+  ])('preserves terminal operation state %s', async (batches, state) => {
+    const updates: any[] = [];
+    const db: any = {
+      gradingBatch: {
+        findUnique: vi.fn().mockResolvedValue({ assignmentGradingOperationId: 'operation-1' }),
+        findMany: vi.fn().mockResolvedValue(batches),
+      },
+      assignmentGradingOperation: { updateMany: vi.fn(async (input: any) => { updates.push(input); return { count: 1 }; }) },
+    };
+
+    await refreshAssignmentAiGradingOperation({ db, batchId: 'batch-1', now });
+
+    expect(updates[0].data.state).toBe(state);
   });
 
   it('allows manual grading for a submitted question in an incomplete assignment', async () => {

@@ -94,19 +94,19 @@ export async function createAssignmentAiGradingBatches(input: {
     },
   });
   const scopedSubmissions = submissions.filter((submission: any) => !authorizedClassIds || authorizedClassIds.includes(submission.frozenAudienceClassId));
-  const frozenSelection = scopedSubmissions
+  const frozenSelection: Array<{ submissionId: string; frozenAudienceClassId: string; attemptVectorHash: string }> = scopedSubmissions
     .filter((submission: any) => !excludedStudentIds.has(submission.studentId)
       && now > new Date(submission.frozenAudienceDueAt)
       && submissionHasCurrentAttempt(submission, revision.questions))
     .map((submission: any) => {
-      const snapshot = assignmentSubmissionSnapshotData({ operationId: 'assignment-grading-request', submission, questions: revision.questions, now });
+      const snapshot = assignmentSubmissionSnapshotData({ operationId: 'assignment-grading-request', source: 'AI', submission, questions: revision.questions, now });
       return {
         submissionId: submission.id,
         frozenAudienceClassId: submission.frozenAudienceClassId,
         attemptVectorHash: snapshot.attemptVectorHash,
       };
     })
-    .sort((left, right) => left.submissionId.localeCompare(right.submissionId));
+    .sort((left: { submissionId: string }, right: { submissionId: string }) => left.submissionId.localeCompare(right.submissionId));
   const eligibleSubmissions = scopedSubmissions.filter((submission: any) => !excludedStudentIds.has(submission.studentId)
     && now > new Date(submission.frozenAudienceDueAt)
     && submissionRequiresIncrementalGrading(submission, revision.questions));
@@ -199,6 +199,7 @@ async function createOrReplayAssignmentGradingOperation(input: {
   if (input.submissions.length === 0) throw new Error('assignment-grading-before-deadline');
   const snapshotRows = input.submissions.map((submission: any) => assignmentSubmissionSnapshotData({
     operationId: `assignment-grading-operation:${sha256(dedupeKey).slice(-32)}`,
+    source: 'AI',
     submission,
     questions: input.revision.questions,
     now: input.now,
@@ -233,7 +234,7 @@ async function createOrReplayAssignmentGradingOperation(input: {
   }
 }
 
-function assignmentSubmissionSnapshotData(input: { operationId: string; submission: any; questions: any[]; now: Date }) {
+function assignmentSubmissionSnapshotData(input: { operationId: string; source: 'AI' | 'MANUAL'; submission: any; questions: any[]; now: Date }) {
   const items = [...input.questions].sort((left: any, right: any) => left.orderIndex - right.orderIndex || left.id.localeCompare(right.id)).map((question) => {
     const answer = input.submission.answers.find((row: any) => row.assignmentQuestionId === question.id);
     const attempt = answer?.attempts.find((row: any) => row.attemptNumber === answer.currentAttemptNumber) ?? null;
@@ -264,6 +265,7 @@ function assignmentSubmissionSnapshotData(input: { operationId: string; submissi
       answerVersion: item.answerVersion,
       questionSnapshotHash: item.questionSnapshotHash,
     })))),
+    source: input.source,
     createdAt: input.now,
     items: { create: items },
   };
@@ -276,6 +278,7 @@ export function submissionRequiresIncrementalGrading(submission: any, questions:
   });
   if (!currentAttemptIds.some(Boolean)) return false;
   return !(submission.gradingSnapshots ?? []).some((snapshot: any) => {
+    if (snapshot.source === 'MANUAL') return false;
     const snapshotAttemptIds = questions.map((question: any) => snapshot.items?.find((item: any) => item.questionId === question.id)?.attemptId ?? null);
     return snapshotAttemptIds.every((attemptId: string | null, index: number) => attemptId === currentAttemptIds[index]);
   });
@@ -327,10 +330,13 @@ export async function executeAssignmentAiGradingBatches(input: {
     }));
   }
   if (operationIds.length && input.db.assignmentGradingOperation?.updateMany) {
-    const failed = results.some((result: any) => result.itemResults.some((item: any) => ['FAILED', 'BLOCKED', 'RETRYABLE'].includes(item.state)));
+    const itemStates = results.flatMap((result: any) => result.itemResults.map((item: any) => item.state));
+    const state = itemStates.length > 0 && itemStates.every((item: string) => item === 'BLOCKED') ? 'BLOCKED'
+      : itemStates.length > 0 && itemStates.every((item: string) => item === 'FAILED') ? 'FAILED'
+        : itemStates.some((item: string) => ['FAILED', 'BLOCKED', 'RETRYABLE'].includes(item)) ? 'PARTIAL' : 'SUCCEEDED';
     await input.db.assignmentGradingOperation.updateMany({
       where: { id: { in: operationIds }, state: 'RUNNING' },
-      data: { state: failed ? 'PARTIAL' : 'SUCCEEDED', completedAt: now, updatedAt: now },
+      data: { state, completedAt: now, updatedAt: now },
     });
   }
   return results;
@@ -352,7 +358,11 @@ export async function refreshAssignmentAiGradingOperation(input: { db: GradingDb
   if (batches.length === 0) return;
   const terminalStates = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'BLOCKED', 'CANCELLED', 'CONTENT_UNAVAILABLE']);
   const terminal = batches.every((entry: any) => terminalStates.has(entry.state));
-  const state = terminal && batches.every((entry: any) => entry.state === 'SUCCEEDED') ? 'SUCCEEDED' : terminal ? 'PARTIAL' : 'RUNNING';
+  const state = !terminal ? 'RUNNING'
+    : batches.every((entry: any) => entry.state === 'SUCCEEDED') ? 'SUCCEEDED'
+      : batches.every((entry: any) => ['BLOCKED', 'CONTENT_UNAVAILABLE'].includes(entry.state)) ? 'BLOCKED'
+        : batches.every((entry: any) => ['FAILED', 'CANCELLED'].includes(entry.state)) ? 'FAILED'
+          : 'PARTIAL';
   if (state === 'RUNNING') {
     await input.db.assignmentGradingOperation.updateMany({
       where: { id: operationId, state: 'QUEUED' },
@@ -475,11 +485,11 @@ async function ensureManualAssignmentGradingSnapshot(input: {
   questions: any[];
   now: Date;
 }) {
-  const provisionalSnapshot = assignmentSubmissionSnapshotData({ operationId: 'manual-assignment-grading-operation', submission: input.submission, questions: input.questions, now: input.now });
+  const provisionalSnapshot = assignmentSubmissionSnapshotData({ operationId: 'manual-assignment-grading-operation', source: 'MANUAL', submission: input.submission, questions: input.questions, now: input.now });
   const operationId = `manual-assignment-grading-operation:${sha256(`${input.actor.id}:${input.submission.id}:${provisionalSnapshot.attemptVectorHash}`).slice(-32)}`;
-  const snapshot = assignmentSubmissionSnapshotData({ operationId, submission: input.submission, questions: input.questions, now: input.now });
+  const snapshot = assignmentSubmissionSnapshotData({ operationId, source: 'MANUAL', submission: input.submission, questions: input.questions, now: input.now });
   const existing = await input.db.assignmentSubmissionSnapshot?.findUnique?.({
-    where: { submissionId_attemptVectorHash: { submissionId: input.submission.id, attemptVectorHash: snapshot.attemptVectorHash } },
+    where: { id: snapshot.id },
   });
   if (existing) return existing;
   const idempotencyKey = `manual-vector:${input.submission.id}:${snapshot.attemptVectorHash}`;
@@ -507,7 +517,7 @@ async function ensureManualAssignmentGradingSnapshot(input: {
   } catch (error) {
     if (!isUniqueConstraintError(error)) throw error;
     const concurrent = await input.db.assignmentSubmissionSnapshot?.findUnique?.({
-      where: { submissionId_attemptVectorHash: { submissionId: input.submission.id, attemptVectorHash: snapshot.attemptVectorHash } },
+      where: { id: snapshot.id },
     });
     if (concurrent) return concurrent;
     throw new Error('assignment-grading-operation-conflict');
