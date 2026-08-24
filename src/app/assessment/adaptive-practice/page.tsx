@@ -266,6 +266,7 @@ interface AdaptivePathCandidateBatchView {
   goalId: string;
   sourcePathId: string;
   sourcePathVersion: string;
+  metadata?: Record<string, unknown>;
   candidates: Array<{
     id: string;
     fingerprint: string;
@@ -273,6 +274,98 @@ interface AdaptivePathCandidateBatchView {
     label: string;
     snapshot: Record<string, unknown>;
   }>;
+}
+
+interface PathAdjustmentSummary {
+  sourceCandidateId: string;
+  requestedTimeBudgetMinutes: number | null;
+  effectiveTimeBudgetMinutes: number | null;
+  difficultyRhythm: string | null;
+  resourcePreference: string[];
+  checkpointPreference: string | null;
+  allowExternalResources: boolean | null;
+  candidates: Array<{ label: string; changedFields: string[] }>;
+}
+
+function readPathAdjustmentSummary(
+  batch: AdaptivePathCandidateBatchView | null,
+): PathAdjustmentSummary | null {
+  const derivation = getRecord(batch?.metadata).derivation;
+  const derivationRecord = getRecord(derivation);
+  if (derivationRecord.kind !== 'adjustment') return null;
+  const request = getRecord(derivationRecord.requestSnapshot);
+  const difference = getRecord(derivationRecord.differenceSummary);
+  const candidates = Array.isArray(difference.candidates)
+    ? difference.candidates.map((item) => {
+        const candidate = getRecord(item);
+        return {
+          label: typeof candidate.styleId === 'string' ? candidate.styleId : '候选路径',
+          changedFields: Array.isArray(candidate.changedFields)
+            ? candidate.changedFields.filter((field): field is string => typeof field === 'string')
+            : [],
+        };
+      })
+    : [];
+  if (!candidates.length) return null;
+  return {
+    sourceCandidateId: typeof derivationRecord.sourceCandidateId === 'string'
+      ? derivationRecord.sourceCandidateId
+      : '当前候选路径',
+    requestedTimeBudgetMinutes: typeof request.requestedTimeBudgetMinutes === 'number'
+      ? request.requestedTimeBudgetMinutes
+      : null,
+    effectiveTimeBudgetMinutes: typeof request.effectiveTimeBudgetMinutes === 'number'
+      ? request.effectiveTimeBudgetMinutes
+      : null,
+    difficultyRhythm: typeof request.difficultyRhythm === 'string' ? request.difficultyRhythm : null,
+    resourcePreference: Array.isArray(request.resourcePreference)
+      ? request.resourcePreference.filter((item): item is string => typeof item === 'string')
+      : [],
+    checkpointPreference: typeof request.checkpointPreference === 'string'
+      ? request.checkpointPreference
+      : null,
+    allowExternalResources: typeof request.allowExternalResources === 'boolean'
+      ? request.allowExternalResources
+      : null,
+    candidates,
+  };
+}
+
+function formatPathAdjustmentField(field: string): string {
+  switch (field) {
+    case 'nodeIds': return '学习步骤';
+    case 'estimatedMinutes': return '预计用时';
+    case 'resourceMix': return '资源组合';
+    case 'readiness':
+    case 'readinessSummary': return '开始条件';
+    case 'checkpointNodeIds': return '检查点';
+    case 'lockedNodeIds': return '解锁条件';
+    case 'terminalValidationNodeIds': return '终点验证';
+    default: return field;
+  }
+}
+
+function formatAdjustmentRhythm(value: string | null): string {
+  if (value === 'gentle') return '先稳固基础';
+  if (value === 'challenge') return '提高挑战密度';
+  return value ? '稳步推进' : '未提供';
+}
+
+function formatAdjustmentResources(values: string[]): string {
+  const labels: Record<string, string> = {
+    knowledge_card: '知识卡',
+    adaptive_quiz: '练习',
+    simulation: '仿真',
+    arena: 'Arena',
+    external: '站外资源',
+  };
+  return values.length ? values.map((value) => labels[value] ?? value).join('、') : '未指定';
+}
+
+function formatAdjustmentCheckpoint(value: string | null): string {
+  if (value === 'light') return '减少检查点';
+  if (value === 'dense') return '增加检查点';
+  return value ? '标准检查点' : '未提供';
 }
 
 type CandidateBatchLoadResult =
@@ -2965,6 +3058,7 @@ export default function AdaptivePracticePage() {
   });
   const [selectedComparisonPair, setSelectedComparisonPair] = useState<AdaptivePathComparisonPair | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
+  const [adjustmentSourceOption, setAdjustmentSourceOption] = useState<PathOptionView | null>(null);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
   const pathGenerationRequestLifecycleRef = useRef(INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE);
@@ -3094,6 +3188,21 @@ export default function AdaptivePracticePage() {
       : displays;
   }, [focusedCandidateId, pathComparisonDiversityLimited, pathOptions]);
   const hasGeneratedPathOptions = pathOptions.length > 0;
+  const pathAdjustmentSummary = useMemo(
+    () => readPathAdjustmentSummary(activeCandidateBatch),
+    [activeCandidateBatch],
+  );
+
+  const openPathAdjustment = useCallback((option: PathOptionView) => {
+    setAdjustmentSourceOption(option);
+    setPathChoiceMessage(`已选择“${option.label}”作为调整对象。请修改下方参数后，再生成调整后的候选路径。`);
+    window.setTimeout(() => {
+      document.querySelector('[data-adaptive-path-generation-panel="editable"]')?.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
+    }, 0);
+  }, []);
 
   useEffect(() => {
     activeComparisonRequestKeyRef.current = null;
@@ -4218,6 +4327,9 @@ export default function AdaptivePracticePage() {
             };
             setActiveCandidateBatch(loadedBatch.batch);
             setCandidateBatchLoadState('ready');
+            if (operation === 'revise') {
+              setAdjustmentSourceOption(null);
+            }
             const nextUrl = new URL(window.location.href);
             nextUrl.searchParams.set('batch', generatedBatchId);
             nextUrl.searchParams.delete('candidate');
@@ -5319,6 +5431,41 @@ export default function AdaptivePracticePage() {
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
+              {adjustmentSourceOption ? (
+                <div
+                  className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-3"
+                  data-adaptive-path-adjustment-source="selected"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    正在调整：{adjustmentSourceOption.label}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-subtle">
+                    下面的时间、节奏、资源和检查点参数会作为本次调整条件；原路径不会被覆盖。
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void submitPathGeneration('revise', adjustmentSourceOption)}
+                      disabled={pathGenerationPending !== null || !canSubmitPathGeneration}
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      data-adaptive-path-adjustment-action="submit"
+                    >
+                      <RefreshCw className="size-3.5" aria-hidden="true" />
+                      {pathGenerationPending === 'revise' ? '正在生成调整方案' : '生成调整后的候选路径'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdjustmentSourceOption(null)}
+                      disabled={pathGenerationPending !== null}
+                      className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                    >
+                      取消调整
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {pathGenerationDisplayReadiness.status !== 'ready' ? (
                 <div
                   className="mt-4 rounded-lg border border-border bg-muted/45 p-3"
@@ -5794,6 +5941,46 @@ export default function AdaptivePracticePage() {
                 当前可用资源有限，推荐方案差异较小。
               </p>
             ) : null}
+            {pathAdjustmentSummary ? (
+              <section
+                className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3"
+                data-adaptive-path-adjustment-summary="visible"
+              >
+                <p className="font-medium text-foreground">本次调整说明</p>
+                <p className="mt-1 text-sm leading-6 text-subtle">
+                  这是基于你刚才选择的候选路径生成的替代方案。系统只改变候选，不会覆盖原路径。
+                </p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p className="rounded-lg border border-border bg-background/55 p-3">
+                    <span className="block text-xs text-subtle">调整条件</span>
+                    <span className="mt-1 block text-foreground">
+                      {pathAdjustmentSummary.requestedTimeBudgetMinutes ?? pathAdjustmentSummary.effectiveTimeBudgetMinutes ?? '未提供'} 分钟，
+                      {formatAdjustmentRhythm(pathAdjustmentSummary.difficultyRhythm)}，
+                      {formatAdjustmentCheckpoint(pathAdjustmentSummary.checkpointPreference)}
+                    </span>
+                  </p>
+                  <p className="rounded-lg border border-border bg-background/55 p-3">
+                    <span className="block text-xs text-subtle">资源条件</span>
+                    <span className="mt-1 block text-foreground">
+                      {formatAdjustmentResources(pathAdjustmentSummary.resourcePreference)}
+                      {pathAdjustmentSummary.allowExternalResources === true ? '，允许站外资源' : '，不使用站外资源'}
+                    </span>
+                  </p>
+                </div>
+                <div className="mt-3 grid gap-2 text-sm">
+                  {pathAdjustmentSummary.candidates.map((candidate) => (
+                    <p key={`${candidate.label}:${candidate.changedFields.join(',')}`} className="rounded-lg border border-border bg-background/55 p-3">
+                      <span className="font-medium text-foreground">候选 {candidate.label}</span>
+                      <span className="mt-1 block text-subtle">
+                        {candidate.changedFields.length
+                          ? `变化：${candidate.changedFields.map(formatPathAdjustmentField).join('、')}`
+                          : '与原候选在当前维度没有变化'}
+                      </span>
+                    </p>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             {activeCandidateBatch ? (
               <CandidateBatchComparisonWorkspace
                 options={pathOptions}
@@ -5883,7 +6070,7 @@ export default function AdaptivePracticePage() {
                         onClick={() => {
                           const optionForWrite = option.writeOption;
                           if (isPersistedCandidatePathOption(optionForWrite)) {
-                            submitPathGeneration('revise', optionForWrite);
+                            openPathAdjustment(optionForWrite);
                             return;
                           }
                           setPathChoiceUnavailable();
@@ -6050,7 +6237,7 @@ export default function AdaptivePracticePage() {
                         onClick={() => {
                           const optionForWrite = option.writeOption;
                           if (isPersistedCandidatePathOption(optionForWrite)) {
-                            submitPathGeneration('revise', optionForWrite);
+                            openPathAdjustment(optionForWrite);
                             return;
                           }
                           setPathChoiceUnavailable();
