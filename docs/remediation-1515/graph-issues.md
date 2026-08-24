@@ -62,6 +62,7 @@ s平面到z平面的映射、z变换、保持器、加权序列、单位斜坡�
 ### 已核实事实（避免重复排查）
 
 - crosswalk-v037.json 的 176 个 v0.37 新成员 domain 字段停留在 `unassigned-pending-domain-review`（归属结果只更新了 scope 与 assignments.jsonl）。域真源以 scope.json preferredDomainId 为准；crosswalk 旧密封件不改，各绑定/索引构建一律用 scope 域。
+- 图谱已切换到 presentation 层 `v0.37-r3`（2026-08-25，见 `formal-resource-remediation/v037r3-switch-summary.json`）：canonical 图字节与 v0.37 完全一致（releaseHash `cc73fa15…`、sourceDatasetHash `2f7f8245…`、schema sha 均不变），7476 成员零增删，冻结链（allocation/scope/crosswalk/闭合/投影/信封/交接）零重封。r3 交付为 presentation 侧：公式渲染索引 +607 条、双语内容 +1275 条与 905 条 statement 修订、5 个新增富文本/公式 sidecar。**G8/G9 基于成员集判定，在 r3 下维持原结论不变。**
 
 ### 修复跟踪
 
@@ -69,4 +70,5 @@ s平面到z平面的映射、z变换、保持器、加权序列、单位斜坡�
 |---|---|---|---|
 | 2026-08-25 | 卡片映射构建缺陷 | 原映射表仅 31 概念（51 键/434 原子）；查证发现 crosswalk 精确匹配可命中 205 键——属映射构建不足而非概念缺失。生成 `resource-layer/text/card-name-index.json`（涵盖域优先，域真源取 scope）替换旧 map，卡片原子级绑定 434→1383 | **已修复** |
 | 2026-08-25 | 习题"闭环特征方程"类误过滤 | 7 条映射指向排除域同名节点；state-space 域存在精确同名节点，改指涵盖域节点（决策 4-A） | **修复中** |
-| — | G9 同义异名 595 键 | 待后续语义批次建同义词表 | 开放 |
+| 2026-08-25 | 图谱 presentation 层切换 v0.37 → v0.37-r3 | 检出 r3 bundle（source-r4 @ 3e98864）至 `releases/control-theory-engineering-v0.37-r3/`；canonical 字节逐 sha 核验不变，冻结链零重封；公式 sidecar +607 条、双语 +1275 条/905 条修订落位 | **已修复** |
+| — | G9 同义异名 595 键 | 待后续语义批次建同义词表（r3 canonical 不变，缺口维持） | 开放 |
