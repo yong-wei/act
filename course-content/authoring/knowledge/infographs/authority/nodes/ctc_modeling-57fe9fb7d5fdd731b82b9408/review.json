@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T07:55:05+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+  "safe_id": "ctc_modeling-57fe9fb7d5fdd731b82b9408",
+  "node_name": "对于具有连续变化的非线性特性函数",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "W1 final accept"
+}

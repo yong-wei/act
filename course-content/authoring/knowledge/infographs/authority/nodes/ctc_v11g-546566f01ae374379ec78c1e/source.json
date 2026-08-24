@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-546566f01ae374379ec78c1e",
+  "safe_id": "ctc_v11g-546566f01ae374379ec78c1e",
+  "node": {
+    "name": "two step parameter design method",
+    "name_en": "two_step_parameter_design_method",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "two step parameter design method：A method to determine the effect of two parameters by repeating the root locus approach twice: first for one parameter,…",
+  "intuition": null,
+  "explanation": "A method to determine the effect of two parameters by repeating the root locus approach twice: first for one parameter, then for the other.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "two step pa…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-546566f01ae374379ec78c1e.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,29 @@
+{
+  "contract": "act-authority-learning-content-manifest/v1",
+  "nodes": [
+    {
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "safeId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "card": {
+        "state": "available",
+        "sha256": "f3d33a3bc11ee015969dd0001ed245796a8c8248de0ec86aa17c48b7e0feb510"
+      },
+      "infograph": {
+        "state": "available",
+        "sha256": "585c98ce051caa4d21a1dd53f20140a29319d4a1a53e4a397970e422bc37b14e"
+      }
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "safeId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "card": {
+        "state": "blocked",
+        "sha256": null
+      },
+      "infograph": {
+        "state": "available",
+        "sha256": "397b63c24d0211a4a09fb872d8d3099c8dad1fc9ed46bd2f4f93540b5562d4dd"
+      }
+    }
+  ]
+}

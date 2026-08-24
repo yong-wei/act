@@ -44,6 +44,9 @@ export interface PortraitLearningFactDelta {
   competencyContribution: unknown;
   contextJson: unknown;
   createdAt: Date;
+  sourceEventId?: string | null;
+  sourceLogId?: string | null;
+  knowledgeRevisionRef?: string | null;
 }
 
 export function isPortraitV2ProfileEvidence(evidence: PortraitV2IncrementalEvidence): boolean {

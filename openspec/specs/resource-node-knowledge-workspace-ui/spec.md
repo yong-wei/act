@@ -749,3 +749,97 @@ The knowledge workspace SHALL let every currently authorized graph user switch b
 - **WHEN** the user selects the other graph version
 - **THEN** the workspace SHALL replace the graph and detail state from the selected independent API without merging nodes
 
+### Requirement: Authority shard merge preserves workspace state
+The knowledge workspace SHALL merge version-valid Authority shards by canonical object identity and layer-aware relation identity. Shard arrival SHALL NOT duplicate multi-domain objects, remount existing nodes, reset the inspector, discard user positions or mix optional teaching data from another projection version.
+
+#### Scenario: Secondary-domain membership arrives
+- **WHEN** a later shard references an already loaded object through another reviewed domain membership
+- **THEN** the workspace SHALL reuse the existing object and add only the membership context
+- **AND** the object's selection, position and open detail state SHALL remain stable
+
+#### Scenario: Version-mismatched shard arrives
+- **WHEN** a shard does not match the established Authority, catalog or applicable teaching identity
+- **THEN** the workspace SHALL reject it before state merge
+- **AND** it SHALL request the matching shard or show a controlled unavailable state
+
+### Requirement: Authority relation controls use five human semantic groups
+The knowledge workspace SHALL present teaching order as the default group and SHALL offer structure, derivation-and-representation, application-and-analysis, and association as independently selectable groups. The controls SHALL preserve active domain, selection, cached shards, layout and inspector state.
+
+#### Scenario: User changes relation groups
+- **WHEN** one or more relation groups are enabled or disabled
+- **THEN** only eligible published edges in the active domain SHALL change visibility
+- **AND** the workspace SHALL not request the global graph, reset positions or replace exact predicates in the inspector
+
+### Requirement: Layered workspace remains usable with incomplete teaching projection
+The workspace SHALL keep domain objects, engineering filters, search, directory and node inspection available when teaching coverage is partial, empty or unavailable.
+
+#### Scenario: Teaching layer becomes unavailable after domain entry
+- **WHEN** the optional teaching shard fails while Authority and catalog shards remain valid
+- **THEN** the workspace SHALL remove or mark only the teaching layer
+- **AND** current engineering objects, selection and loaded engineering relations SHALL remain usable
+
+### Requirement: Authority inspector resolves card and infograph resources through source-owned contracts
+The knowledge workspace SHALL resolve Knowledge Card and infograph availability through their governed export and authorized media contracts. The graph client SHALL NOT construct repository paths, bypass card review status or treat an infograph as proof of an unpublished graph relation.
+
+#### Scenario: Inspector requests learning resources
+- **WHEN** a selected Authority object advertises card or infograph availability through a matching composite shard envelope
+- **THEN** the workspace SHALL use the source-owned detail and media routes
+- **AND** stale selection responses SHALL be discarded before presentation
+
+#### Scenario: Selected node has no bound Teaching content
+- **WHEN** the current composite shard envelope does not report an available, passed Teaching binding
+- **THEN** the workspace SHALL not read an independently current card or projection index
+- **AND** it SHALL keep the semantic inspector available without rendering optional media placeholders
+
+#### Scenario: Node selection changes during media load
+- **WHEN** the user selects another node before the prior card or image request completes
+- **THEN** the inspector SHALL show only the current node's detail
+- **AND** the stale response SHALL not replace content or focus state
+
+### Requirement: Active Authority uses the stable overlay inspector
+Selecting a node in the new graph SHALL open or update the established stable knowledge inspector as a desktop overlay or mobile focus-contained drawer. Inspector lifecycle MUST NOT resize the graph layout column, recompute established coordinates, reset pan or zoom, clear relation filters, or remount unrelated graph state.
+
+#### Scenario: Desktop user selects a node
+- **WHEN** a desktop user activates an active Authority node
+- **THEN** a floating inspector SHALL appear over the workspace using predictable insets without reducing the graph's layout width
+- **AND** the selected node, visible relations, coordinates, pan, and zoom SHALL remain stable
+
+#### Scenario: Mobile user closes node detail
+- **WHEN** a mobile user closes the selected-node drawer with its control or Escape
+- **THEN** focus SHALL return to the invoking node or graph canvas
+- **AND** the active domain, filters, cached shards, and viewport state SHALL remain available
+
+### Requirement: Active inspector presents registered resources through existing launchers
+The active Authority inspector SHALL present authorized registered resources after semantic identity and governed knowledge content, grouped by their typed teaching role. Each actionable item SHALL use the server-projected source-owned launch descriptor and MUST NOT embed an arbitrary resource runtime inside the inspector.
+
+#### Scenario: Node has several resource roles
+- **WHEN** a selected node has role-authorized bindings classified as `讲解`, `练习`, `评价`, or `引用`
+- **THEN** the inspector SHALL group and label those resources by role and expose their existing platform launch actions
+- **AND** resource order or launchability SHALL not alter Authority relations or teaching projection
+
+#### Scenario: Node has no launchable resource
+- **WHEN** the selected node has no authorized launch descriptor
+- **THEN** semantic detail, Knowledge Card content, and published relations SHALL remain usable
+- **AND** the inspector SHALL show an honest scoped empty state instead of inventing a resource route
+
+### Requirement: Active inspector relation neighbors support continued exploration
+Every presented one-hop teaching or engineering relation summary SHALL preserve its exact layer, meaning, direction, and neighboring semantic identity. Activating an eligible neighbor SHALL use the existing bounded neighborhood or cross-domain navigation path and SHALL not close the inspector merely to indicate loading.
+
+#### Scenario: User activates an in-domain relation neighbor
+- **WHEN** the user selects a neighbor listed in the inspector
+- **THEN** the graph SHALL materialize and select that real node through the active shard contract
+- **AND** the inspector SHALL update without resetting the domain canvas
+
+#### Scenario: User activates a cross-domain relation neighbor
+- **WHEN** the relation endpoint belongs to another reviewed domain
+- **THEN** the workspace SHALL enter the owning domain before selecting the endpoint
+- **AND** it SHALL retain the exact published relation meaning during navigation
+
+### Requirement: Inspector knowledge content renders governed LaTeX
+Formula expressions and declared Knowledge Card mathematical nodes in the active inspector SHALL use the existing LaTeX/KaTeX renderer. A content block that cannot be rendered safely SHALL fail closed at that block while leaving semantic detail, relations, and resource actions available.
+
+#### Scenario: Knowledge Card contains inline and block math
+- **WHEN** an eligible Knowledge Card contains governed mathematical nodes
+- **THEN** inline and block expressions SHALL render with the platform mathematics components
+- **AND** raw TeX commands SHALL not be the primary learner-visible representation
+

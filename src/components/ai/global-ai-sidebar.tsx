@@ -41,11 +41,15 @@ import {
   visibleKonlingMessages,
 } from '@/hooks/useKonlingConversationLibrary';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
+import { shouldStartTextbookCoachConversation } from '@/lib/textbook-resource-coach/session-switch';
 import { platformLayerStyle } from '@/components/platform/platform-layers';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
+import { KonlingContinuityCard } from './konling-continuity-card';
+import type { KonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const MOBILE_HISTORY_QUERY = '(max-width: 767px)';
+const presentedContinuitySnapshotIds = new Set<string>();
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
@@ -95,6 +99,7 @@ export function GlobalAISidebar() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [continuitySnapshot, setContinuitySnapshot] = useState<KonlingContinuitySnapshot | null>(null);
   const floatingControls = useOptionalPageFloatingControls();
   const isNarrowViewport = useMediaQuery(MOBILE_HISTORY_QUERY);
   const isMobileHistoryDrawerOpen = isMaximized && isNarrowViewport && libraryOpen;
@@ -165,6 +170,24 @@ export function GlobalAISidebar() {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
     return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
   }, [assistantEntryPoint?.mode, effectiveServerContext?.smartTaskId]);
+
+  const textbookCoachSwitchKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!requestedAssistantBinding) return;
+    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+    const switchKey = [
+      activeConversationId ?? 'none',
+      requestedAssistantBinding.modeClientContextHints.unitId,
+      requestedAssistantBinding.modeClientContextHints.sourceRevision,
+      requestedAssistantBinding.modeClientContextHints.contentHash,
+      requestedAssistantBinding.modeClientContextHints.anchorId ?? '',
+    ].join('\u001f');
+    if (textbookCoachSwitchKeyRef.current === switchKey) return;
+    textbookCoachSwitchKeyRef.current = switchKey;
+    void createConversation(requestedAssistantBinding).catch(() => {
+      textbookCoachSwitchKeyRef.current = null;
+    });
+  }, [activeAssistantBinding, activeConversationId, assistantEntryPoint, createConversation, requestedAssistantBinding]);
 
   useEffect(() => {
     setSmartPrepContext(null);
@@ -264,21 +287,24 @@ export function GlobalAISidebar() {
     return { state: conflict ? 'conflict' : 'failed', message };
   }
 
+  const sendAssistantBinding = requestedAssistantBinding?.modeClientContextHints?.resourceKind === 'structured-textbook-unit'
+    ? requestedAssistantBinding
+    : activeAssistantBinding;
   const chatBody = useMemo(() => ({
     pageContext,
     userProfile,
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: conversationPageId,
-    resourceId: activeAssistantBinding?.modeClientContextHints.resourceId,
-    pathNodeId: activeAssistantBinding?.modeClientContextHints.pathNodeId,
+    resourceId: sendAssistantBinding?.modeClientContextHints.resourceId,
+    pathNodeId: sendAssistantBinding?.modeClientContextHints.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
     systemPromptExtension,
-    teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId,
+    teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId,
     agentSessionId: agentSessionId ?? undefined,
-    modeClientContextHints: activeAssistantBinding?.modeClientContextHints,
-    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? activeAssistantBinding?.modeClientContextHints,
-  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, activeAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
+    modeClientContextHints: sendAssistantBinding?.modeClientContextHints,
+    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints,
+  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,
@@ -611,6 +637,45 @@ export function GlobalAISidebar() {
     },
     [append, chatBody, clearUnread, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
   );
+
+  useEffect(() => {
+    if (!isOpen) {
+      setContinuitySnapshot(null);
+      return;
+    }
+    const controller = new AbortController();
+    void fetch('/api/ai/konling-continuity', { signal: controller.signal, cache: 'no-store' })
+      .then(async (response) => response.ok ? response.json() as Promise<KonlingContinuitySnapshot> : null)
+      .then((snapshot) => {
+        if (!snapshot || presentedContinuitySnapshotIds.has(snapshot.snapshotId)) return;
+        presentedContinuitySnapshotIds.add(snapshot.snapshotId);
+        setContinuitySnapshot(snapshot);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [isOpen]);
+
+  async function reExplainContinuity(snapshot: KonlingContinuitySnapshot) {
+    const response = await fetch('/api/ai/konling-continuity', { cache: 'no-store' });
+    if (!response.ok) {
+      setActionStatus('当前学习状态无法重新确认。');
+      setContinuitySnapshot(null);
+      return;
+    }
+    const current = await response.json() as KonlingContinuitySnapshot;
+    if (current.snapshotId !== snapshot.snapshotId || current.state !== snapshot.state) {
+      setActionStatus('学习状态已更新，请重新打开控灵查看最新建议。');
+      setContinuitySnapshot(null);
+      return;
+    }
+    const prompt = current.state === 'unfinished_task' && current.unfinishedTask
+      ? `请重新讲解任务：${current.unfinishedTask.title}`
+      : current.state === 'recent_mistake' && current.recentMistake
+        ? `请讲解知识点：${current.recentMistake.knowledgeLabel}`
+        : null;
+    setContinuitySnapshot(null);
+    if (prompt) void handleQuickQuestion(prompt);
+  }
 
   const handleConversationSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1013,6 +1078,14 @@ export function GlobalAISidebar() {
             >
               {actionStatus}
             </div>
+          )}
+          {continuitySnapshot && (
+            <KonlingContinuityCard
+              snapshot={continuitySnapshot}
+              onDismiss={() => setContinuitySnapshot(null)}
+              onReExplain={() => void reExplainContinuity(continuitySnapshot)}
+              onGoalEntry={() => document.querySelector<HTMLInputElement>('input[name="global-ai-sidebar-input"]')?.focus()}
+            />
           )}
           {messages.length === 0 ? (
             <div className="space-y-6">

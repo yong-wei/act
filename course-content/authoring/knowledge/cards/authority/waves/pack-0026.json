@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0026",
+  "offset": 130,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-ba2eb78058c4284d923a28eb",
+      "batch": "B",
+      "name": "Ackermann's formula for observer gain",
+      "definition": "Ackermann's formula for observer gain：A formula to compute the observer gain matrix L given a desired characteristic polynomial p(lambda).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Ackermann's…",
+        "用于分析·Full…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Ackermann's formula for observer gain\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Ackermann's formula for observer gain：A formula to compute the observer gain matrix L given a desired characteristic polynomial p(lambda).\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Ackermann'」、「用于分析·Full…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bb3ac0bfaa166046c6c19f8f",
+      "batch": "B",
+      "name": "Regulator problem",
+      "definition": "Regulator problem：A control design problem where the reference input is zero and the goal is to drive all initial conditions to zero in a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Regulator p…",
+        "Regulator pr"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Regulator problem\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Regulator problem：A control design problem where the reference input is zero and the goal is to drive all initial conditions to zero in a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Regulator 」、「Regulator 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e70e153907f2fa8a69ad2c62",
+      "batch": "B",
+      "name": "Observer poles location",
+      "definition": "Observer poles location：Observer poles are located furthest to the left for faster convergence, approximately at (-16, 21) and (-16, -22).",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Observer po…",
+        "Observer pol",
+        "有表示·Obser…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Observer poles location\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Observer poles location：Observer poles are located furthest to the left for faster convergence, approximately at (-16, 21) and (-16, -22).\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Observer p」、「Observer p」、「有表示·Obser…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-745a1d21b416613f01958a3e",
+      "batch": "B",
+      "name": "The ratio of the",
+      "definition": "The ratio of the：The ratio of the steady-state output of a system to a constant input, computed as the limit of the transfer function as…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "The ratio o…",
+        "派生自·传递函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: The ratio of the\nSOURCE DEFINITION (fail-closed, do not invent beyond this): The ratio of the：The ratio of the steady-state output of a system to a constant input, computed as the limit of the transfer function as…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「The ratio 」、「派生自·传递函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-060bc33f21e93205ee271eda",
+      "batch": "B",
+      "name": "Cover-up method ",
+      "definition": "Cover-up method ：This process is called the cover-up method because, in the factored form of F(s), we can cover up the individual denomi…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "Cover-up me…",
+        "一种·Cover-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Cover-up method \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Cover-up method ：This process is called the cover-up method because, in the factored form of F(s), we can cover up the individual denomi…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Cover-up m」、「一种·Cover-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

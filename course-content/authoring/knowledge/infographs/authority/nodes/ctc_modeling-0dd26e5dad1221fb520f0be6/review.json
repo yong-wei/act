@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:51:33+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-0dd26e5dad1221fb520f0be6",
+  "safe_id": "ctc_modeling-0dd26e5dad1221fb520f0be6",
+  "node_name": "偏差向量至反馈向量之间的传递矩…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch5 A accept"
+}

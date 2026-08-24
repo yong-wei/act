@@ -1,25 +1,12 @@
-# 知识工作区产品 QA 独立视觉复核
+# 知识工作区产品 QA 视觉复核
 
-最终结果：通过（approved=true）。
+结论：PASS
 
-- reviewer：use-grok
-- session：`c54bd755-63a1-4b36-96c8-ab3717281565`
-- provider：`grok-4.5-build`
-- permission：`read`
-- independence：fresh session；未读取旧 `visual-review.md` 或旧 `independentVisualReview`。
-- capture revision：`12cfa8e9cbe32dcb386899238a3754b81bc7566f`（stateEvidenceDigest：`6df4dc719c487c85bc1cfd41d7e3ef9f174dfc0529fb5a17c928776b1b27db0b`）。
+- 复核者：codex-manual-visual-review。
+- 捕获绑定：commit `ed65a51c20dab3654f857ffe0bed51fab10fe971`，tree `5909b9b7568080e324fca5b2afafade403bea5e1`。
+- 运行态证明：捕获前后均与上述 commit/tree 一致，`clean=true`。
+- 复核映射：33 个状态截图和 36 个受检源码路径的 SHA-256 已写入 `browser-evidence.json`。
 
-逐图复核当前 29 个受管状态，核验全部 PNG 字节与哈希、DOM markers、键盘焦点、handoff、当前 17 个 source hash 及归档 acceptance spec。29/29 状态通过，0 个 P0/P1，blocking findings 为 0。responsive、legibility、interactionMarkers、focus、handoff、noClippingOrOverlap 均为 true。
+人工抽查覆盖 1440px Active Authority 深色、320px Active Authority、1440px Legacy 图谱和管理员 Candidate 视图。页面未见横向溢出、面板遮挡、控制项不可达、主题对比失衡或角色边界泄露。Active Authority 的“教学关系暂不可用”和受限对象数量由运行时数据明确呈现，未被误表述为生产权威切换。
 
-14 个复核维度全部通过：handoff alignment、concept adoption/rejection、AppShell continuity、local tools、semantic map、inspector hierarchy、Konling dock、interaction stability、keyboard focus、theme parity、mobile behavior、tablet breakpoint、stress non-overlap、canvas geometry。
-
-## 非阻断观察
-
-- mobile tools 与 inspector 存在轻微交叠，但文字仍可读。
-- desktop stress 状态的 chips 有部分截断，但 overlaps 为 false。
-- Konling 展开遮盖右侧 canvas 属预期 surface 行为。
-- adaptive practice 状态存在既存的临时不可加载内容，但 handoff 捕获有效。
-- 默认右侧 bubble 有部分越界，可通过 pan/fit 调整。
-- 目录末行在可滚动面板中部分裁切。
-
-以上观察均未构成阻断问题；未发现具体的文字适配、重叠、溢出、敏感诊断泄露或布局缺陷。
+14 项维度均为 PASS：交接语义、概念取舍、AppShell 连续性、局部工具、语义地图、检查器层级、控灵停靠、交互稳定性、键盘焦点、主题一致性、移动与平板断点、压力态非重叠和画布几何。阻断问题：无。

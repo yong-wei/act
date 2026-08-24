@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0144",
+  "offset": 720,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-64e8b62fbd0bb7ae801304db",
+      "batch": "B",
+      "name": "特征方程",
+      "definition": "特征方程：Characteristic equation。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "特征方程",
+        "Characterist",
+        "用于分析·Rout…",
+        "关联·Eigenv…",
+        "关联·Routh-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 特征方程\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 特征方程：Characteristic equation。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「特征方程」、「Characteri」、「用于分析·Rout…」、「关联·Eigenv…」、「关联·Routh-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7669cc1cb18986463cbcfdf6",
+      "batch": "B",
+      "name": "可观测性规范分解",
+      "definition": "将系统按可观测性分解为可观测子系统和不可观测子系统的过程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可观测性规范分解",
+        "一种·可观测性规范…",
+        "应用于·可观测性规…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 可观测性规范分解\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 将系统按可观测性分解为可观测子系统和不可观测子系统的过程。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「可观测性规范分解」、「一种·可观测性规范…」、「应用于·可观测性规…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a20d4b8eab718e1261ba5442",
+      "batch": "B",
+      "name": "奇线",
+      "definition": "特殊的相轨迹，它将相平面划分为具有不同运动特点的各个区域。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "奇线",
+        "是一种·极限环",
+        "是一种·相轨迹",
+        "属于·相平面"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 奇线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 特殊的相轨迹，它将相平面划分为具有不同运动特点的各个区域。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「奇线」、「是一种·极限环」、「是一种·相轨迹」、「属于·相平面」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b542152b1fb2cbb25d81dbb2",
+      "batch": "B",
+      "name": "最小相位系统",
+      "definition": "开环传递函数全部由最小相位环节构成的系统称为最小相位系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "最小相位系统"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最小相位系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环传递函数全部由最小相位环节构成的系统称为最小相位系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最小相位系统」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b667b9f8df2202d92a43a966",
+      "batch": "B",
+      "name": "可观测性阵 (observab…",
+      "definition": "可观测性阵 (observability matrix)。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可观测性阵 (obse…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 可观测性阵 (observab…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 可观测性阵 (observability matrix)。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「可观测性阵 (obs」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

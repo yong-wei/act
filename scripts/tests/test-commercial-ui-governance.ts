@@ -36,6 +36,9 @@ import {
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
 import {
+  commercialRuntimeRevisionProofObjectProblems,
+} from '../../src/lib/commercial-ui-governance';
+import {
   assertRuntimeRelationStyleCoverage,
   getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
@@ -51,6 +54,19 @@ import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/
 
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
+const gitRefCache = new Map<string, boolean>();
+const diffNameStatusCache = new Map<string, string[]>();
+const untrackedPathCache = new Set<string>(lines(git(['ls-files', '--others', '--exclude-standard'])));
+const workingTreeChangedFiles = new Set<string>([
+  ...diffNameStatus([]),
+  ...diffNameStatus(['--cached']),
+  ...untrackedPathCache,
+]);
+const blobSha256Cache = new Map<string, string | undefined>();
+const diffForFileCache = new Map<string, string>();
+const diffForFileWithContextCache = new Map<string, string>();
+let changedFilesCache: string[] | undefined;
+const binaryEvidencePathPattern = /\.(?:png|jpe?g|webp|gif|pdf|ico|avif|zip)$/i;
 const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout', 'visual']);
 const COMPACT_SPACING_INVENTORY_PATH = 'artifacts/commercial-ui/compact-spacing-685/inventory.json';
 const COMPACT_SPACING_EVIDENCE_PATH = 'artifacts/commercial-ui/compact-spacing-685/evidence.json';
@@ -82,7 +98,11 @@ function gitRequired(args: string[], message: string) {
 }
 
 function hasGitRef(ref: string) {
-  return git(['rev-parse', '--verify', ref]).trim().length > 0;
+  const cached = gitRefCache.get(ref);
+  if (cached !== undefined) return cached;
+  const result = git(['rev-parse', '--verify', ref]).trim().length > 0;
+  gitRefCache.set(ref, result);
+  return result;
 }
 
 function isAncestorCommit(ancestor: string, descendant: string) {
@@ -110,6 +130,8 @@ function isAncestorCommitAtRepository(repositoryRoot: string, ancestor: string, 
 }
 
 function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file: string) {
+  const cacheKey = `${repositoryRoot}\0${revision}\0${file}`;
+  if (blobSha256Cache.has(cacheKey)) return blobSha256Cache.get(cacheKey);
   try {
     const entry = execFileSync('git', ['ls-tree', '-z', revision, '--', file], {
       cwd: repositoryRoot,
@@ -130,10 +152,28 @@ function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file:
       encoding: null,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    return createHash('sha256').update(blob).digest('hex');
+    const result = createHash('sha256').update(blob).digest('hex');
+    blobSha256Cache.set(cacheKey, result);
+    return result;
   } catch {
+    blobSha256Cache.set(cacheKey, undefined);
     return undefined;
   }
+}
+
+export function knowledgeWorkspaceProductQaSourceHashProblems({
+  repositoryRoot,
+  revision,
+  currentSourceSha256,
+}: {
+  repositoryRoot: string;
+  revision: string;
+  currentSourceSha256: Record<string, string>;
+}) {
+  return Object.entries(currentSourceSha256).flatMap(([sourcePath, recordedSha256]) => {
+    const committedSha256 = gitBlobSha256AtRevision(repositoryRoot, revision, sourcePath);
+    return committedSha256 === recordedSha256 ? [] : [`${sourcePath}:sha-mismatch`];
+  });
 }
 
 export function knowledgeWorkspaceProductQaCaptureRevisionProblems({
@@ -263,9 +303,13 @@ function latestCommitForPath(file: string) {
 }
 
 function hasUncommittedPathChange(file: string) {
-  return diffNameStatus(['--', file]).includes(file)
-    || diffNameStatus(['--cached', '--', file]).includes(file)
-    || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
+  return workingTreeChangedFiles.has(file);
+}
+
+function currentCommittedOrWorkingSha256(relativePath: string) {
+  if (!existsSync(path.join(repoRoot, relativePath))) return undefined;
+  if (hasUncommittedPathChange(relativePath)) return fileSha256(relativePath);
+  return gitBlobSha256AtRevision(repoRoot, 'HEAD', relativePath) ?? fileSha256(relativePath);
 }
 
 function lines(output: string) {
@@ -273,12 +317,17 @@ function lines(output: string) {
 }
 
 function diffNameStatus(args: string[]) {
-  return lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
+  const key = args.join('\0');
+  const cached = diffNameStatusCache.get(key);
+  if (cached) return cached;
+  const result = lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
     const parts = line.split('\t').filter(Boolean);
     const status = parts[0] ?? '';
     if (/^[RC]\d+/.test(status)) return parts.slice(1, 3);
     return parts[1] ? [parts[1]] : [];
   });
+  diffNameStatusCache.set(key, result);
+  return result;
 }
 
 function diffNameStatusRequired(args: string[], message: string) {
@@ -291,6 +340,7 @@ function diffNameStatusRequired(args: string[], message: string) {
 }
 
 function changedFiles() {
+  if (changedFilesCache) return changedFilesCache;
   const candidates = new Set<string>();
   for (const file of diffNameStatus([])) candidates.add(file);
   for (const file of diffNameStatus(['--cached'])) candidates.add(file);
@@ -315,10 +365,15 @@ function changedFiles() {
     candidates.add('src/features/data-center/presentation-data-center.tsx');
     candidates.add('src/lib/platform-role-navigation.ts');
   }
-  return [...candidates];
+  changedFilesCache = [...candidates];
+  return changedFilesCache;
 }
 
 function sourceFilesForTokenGate(files: string[]) {
+  const knowledgeAuthoritySemanticPaletteSources = new Set([
+    'src/features/knowledge/active-authority-graph.tsx',
+    'src/features/knowledge/active-authority-presentation.ts',
+  ]);
   return files.filter((file) => (
     /^(src\/app|src\/components|src\/features)\//.test(file)
     && /\.(css|tsx?)$/.test(file)
@@ -326,6 +381,9 @@ function sourceFilesForTokenGate(files: string[]) {
     && !/(__tests__|\.test\.|\.spec\.|src\/app\/globals\.css)/.test(file)
     && file !== 'src/app/textbook-citations/[...targetPath]/page.tsx'
     && file !== 'src/components/shared/runtime-markdown.tsx'
+    // Authority object-type and state colors are a bounded semantic palette,
+    // covered by the active graph visual evidence rather than page-local chrome.
+    && !knowledgeAuthoritySemanticPaletteSources.has(file)
   ));
 }
 
@@ -347,16 +405,25 @@ function simulationResourceFilesForTokenGate(files: string[]) {
 }
 
 function diffForFile(file: string) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cached = diffForFileCache.get(file);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', '--unified=0', '--', file]),
     git(['diff', '--cached', '--unified=0', '--', file]),
     hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
     !hasGitRef('origin/integration') && hasGitRef('HEAD^') ? git(['diff', '--unified=0', 'HEAD^', 'HEAD', '--', file]) : '',
   ].join('\n');
+  diffForFileCache.set(file, result);
+  return result;
 }
 
 function diffForFileWithContext(file: string, context: number) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cacheKey = `${context}\0${file}`;
+  const cached = diffForFileWithContextCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', `--unified=${context}`, '--', file]),
     git(['diff', '--cached', `--unified=${context}`, '--', file]),
     hasGitRef('origin/integration') ? git(['diff', `--unified=${context}`, 'origin/integration...HEAD', '--', file]) : '',
@@ -364,6 +431,8 @@ function diffForFileWithContext(file: string, context: number) {
       ? git(['diff', `--unified=${context}`, 'HEAD^', 'HEAD', '--', file])
       : '',
   ].join('\n');
+  diffForFileWithContextCache.set(cacheKey, result);
+  return result;
 }
 
 function diffAddedLines(file: string) {
@@ -739,6 +808,14 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'lesson handout print is an export view launched from registered interactive learning routes',
   ],
   [
+    'src/app/diagnosis-reports/[reportId]/page.tsx',
+    'student-safe diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
+  ],
+  [
+    'src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx',
+    'teacher diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
+  ],
+  [
     'src/app/textbook-citations/[...targetPath]/page.tsx',
     'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
@@ -1104,6 +1181,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -1112,7 +1190,7 @@ function commandDeckGeometryCurrentSourceSha256(routeFile: string) {
   return Object.fromEntries(
     commandDeckGeometrySourcePaths(routeFile)
       .filter((sourcePath) => sourcePath.length > 0 && existsSync(path.join(repoRoot, sourcePath)))
-      .map((sourcePath) => [sourcePath, fileSha256(sourcePath)]),
+      .map((sourcePath) => [sourcePath, gitBlobSha256AtRevision(repoRoot, 'HEAD', sourcePath) ?? fileSha256(sourcePath)]),
   );
 }
 
@@ -1182,11 +1260,11 @@ export function hydrateInteractiveLearningProductQaEvidence(
     change: evidence.change ?? 'govern-interactive-learning-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
@@ -1197,7 +1275,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       return {
         ...report,
         currentReportSha256: typeof report.report === 'string'
-          ? simulationViewportArtifact(report.report)?.sha256
+          ? currentCommittedOrWorkingSha256(report.report)
           : undefined,
         reportFinalResult: typeof report.report === 'string'
           ? parseInteractiveLearningDesignQaResult(report.report)
@@ -1208,7 +1286,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
@@ -1409,20 +1487,20 @@ export function hydrateAdaptivePathProductQaEvidence(
     change: evidence.change ?? 'govern-adaptive-path-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     captureManifest: evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    currentCaptureManifestSha256: simulationViewportArtifact(
+    currentCaptureManifestSha256: currentCommittedOrWorkingSha256(
       evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    )?.sha256,
+    ),
     visualSignals: evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    currentVisualSignalsSha256: simulationViewportArtifact(
+    currentVisualSignalsSha256: currentCommittedOrWorkingSha256(
       evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    )?.sha256,
+    ),
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
     childChangeValidations,
@@ -1440,7 +1518,7 @@ export function hydrateAdaptivePathProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
@@ -1631,6 +1709,144 @@ function objectRecord(value: unknown): JsonRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {};
 }
 
+type SafeApiEndpointClass = 'active-canvas' | 'active-node' | 'legacy' | 'candidate';
+type SafeApiEvidenceV1 = {
+  schemaVersion: 'safe-api-evidence/v1';
+  roleClass: 'student' | 'teacher' | 'admin';
+  sequence: Array<{
+    endpointClass: SafeApiEndpointClass;
+    status: number;
+    requestCount: number;
+  }>;
+  checks: {
+    activeNodeRequestObserved: boolean;
+    activeCanvasIdentityVerified: boolean;
+    activeNodeIdentityVerified: boolean;
+    provenanceIdentityVerified: boolean;
+    roleRequestIsolationVerified: boolean;
+    forbiddenDataAbsent: boolean;
+  };
+};
+
+function exactKeys(record: JsonRecord, expected: readonly string[]) {
+  const actual = Object.keys(record).sort();
+  const wanted = [...expected].sort();
+  return actual.length === wanted.length && actual.every((key, index) => key === wanted[index]);
+}
+
+export function parseSafeApiEvidenceV1(value: unknown): SafeApiEvidenceV1 | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as JsonRecord;
+  if (!exactKeys(record, ['schemaVersion', 'roleClass', 'sequence', 'checks'])) return undefined;
+  if (record.schemaVersion !== 'safe-api-evidence/v1') return undefined;
+  if (record.roleClass !== 'student' && record.roleClass !== 'teacher' && record.roleClass !== 'admin') return undefined;
+  if (!Array.isArray(record.sequence) || !record.sequence.every((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return false;
+    const sequenceEntry = entry as JsonRecord;
+    return exactKeys(sequenceEntry, ['endpointClass', 'status', 'requestCount'])
+      && typeof sequenceEntry.endpointClass === 'string'
+      && ['active-canvas', 'active-node', 'legacy', 'candidate'].includes(sequenceEntry.endpointClass)
+      && typeof sequenceEntry.status === 'number'
+      && Number.isInteger(sequenceEntry.status)
+      && sequenceEntry.status >= 100
+      && sequenceEntry.status <= 599
+      && typeof sequenceEntry.requestCount === 'number'
+      && Number.isInteger(sequenceEntry.requestCount)
+      && sequenceEntry.requestCount > 0;
+  })) return undefined;
+  const sequence = record.sequence.map((entry) => entry as JsonRecord);
+  if (new Set(sequence.map((entry) => entry.endpointClass)).size !== sequence.length) return undefined;
+  if (!sequence.every((entry) => typeof entry.endpointClass === 'string')) return undefined;
+  if (!record.checks || typeof record.checks !== 'object' || Array.isArray(record.checks)) return undefined;
+  const checks = record.checks as JsonRecord;
+  if (!exactKeys(checks, [
+    'activeNodeRequestObserved',
+    'activeCanvasIdentityVerified',
+    'activeNodeIdentityVerified',
+    'provenanceIdentityVerified',
+    'roleRequestIsolationVerified',
+    'forbiddenDataAbsent',
+  ])) return undefined;
+  if (!Object.values(checks).every((entry) => typeof entry === 'boolean')) return undefined;
+  if (checks.activeNodeRequestObserved === false && checks.activeNodeIdentityVerified === true) return undefined;
+  const activeNodeSequenceObserved = sequence.some((entry) => entry.endpointClass === 'active-node');
+  if (checks.activeNodeRequestObserved !== activeNodeSequenceObserved) return undefined;
+  return {
+    schemaVersion: 'safe-api-evidence/v1',
+    roleClass: record.roleClass,
+    sequence: sequence.map((entry) => ({
+      endpointClass: entry.endpointClass as SafeApiEndpointClass,
+      status: entry.status as number,
+      requestCount: entry.requestCount as number,
+    })),
+    checks: {
+      activeNodeRequestObserved: checks.activeNodeRequestObserved as boolean,
+      activeCanvasIdentityVerified: checks.activeCanvasIdentityVerified as boolean,
+      activeNodeIdentityVerified: checks.activeNodeIdentityVerified as boolean,
+      provenanceIdentityVerified: checks.provenanceIdentityVerified as boolean,
+      roleRequestIsolationVerified: checks.roleRequestIsolationVerified as boolean,
+      forbiddenDataAbsent: checks.forbiddenDataAbsent as boolean,
+    },
+  };
+}
+
+function safeApiSequenceEntry(
+  evidence: SafeApiEvidenceV1 | undefined,
+  endpointClass: SafeApiEndpointClass,
+) {
+  return evidence?.sequence.find((entry) => entry.endpointClass === endpointClass);
+}
+
+function safeApiHasHealthyActiveIsolation(
+  evidence: SafeApiEvidenceV1 | undefined,
+  requireActiveNode: boolean,
+) {
+  const activeCanvas = safeApiSequenceEntry(evidence, 'active-canvas');
+  const activeNode = safeApiSequenceEntry(evidence, 'active-node');
+  const activeNodeObserved = evidence?.checks.activeNodeRequestObserved === true;
+  const activeNodeIdentityVerified = evidence?.checks.activeNodeIdentityVerified === true;
+  const activeNodeCheckSatisfied = requireActiveNode
+    ? activeNodeObserved && activeNodeIdentityVerified
+    : (!activeNodeObserved && !activeNodeIdentityVerified) || (activeNodeObserved && activeNodeIdentityVerified);
+  return Boolean(
+    evidence
+      && activeCanvas
+      && activeCanvas.status === 200
+      && activeCanvas.requestCount > 0
+      && activeNodeCheckSatisfied
+      && (requireActiveNode
+        ? activeNode?.status === 200 && activeNode.requestCount > 0
+        : !activeNodeObserved || (activeNode?.status === 200 && activeNode.requestCount > 0))
+      && evidence.checks.activeCanvasIdentityVerified
+      && evidence.checks.provenanceIdentityVerified
+      && evidence.checks.roleRequestIsolationVerified
+      && evidence.checks.forbiddenDataAbsent,
+  );
+}
+
+export function safeApiHasResponsiveNoActiveNode(evidence: SafeApiEvidenceV1 | undefined) {
+  return Boolean(
+    evidence
+      && evidence.checks.activeNodeRequestObserved === false
+      && evidence.checks.activeNodeIdentityVerified === false
+      && !safeApiSequenceEntry(evidence, 'active-node'),
+  );
+}
+
+function safeActiveSurfaceScanPassed(value: unknown) {
+  const scan = objectRecord(value);
+  const zeroCountFields = [
+    'forbiddenTokenCount',
+    'forbiddenEnumCount',
+    'forbiddenLocatorCount',
+    'internalIdentityLeakCount',
+    'copyEntryCount',
+  ];
+  return scan.passed === true
+    && scan.copyEntryPresent === false
+    && zeroCountFields.every((field) => numberFromEvidence(scan[field]) === 0);
+}
+
 function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
 }
@@ -1647,6 +1863,32 @@ function stringRecordsEqual(left: Record<string, string>, right: Record<string, 
   const rightKeys = Object.keys(right).sort();
   return leftKeys.length === rightKeys.length
     && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+export function knowledgeWorkspaceProductQaVisualReviewHashProblems({
+  visualReview: rawVisualReview,
+  stateScreenshotSha256,
+  currentSourceSha256,
+}: {
+  visualReview: unknown;
+  stateScreenshotSha256: Record<string, string>;
+  currentSourceSha256: Record<string, string>;
+}) {
+  const visualReview = objectRecord(rawVisualReview);
+  const reviewedStateSha256 = stringRecord(visualReview.reviewedStateSha256);
+  const reviewedSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
+  return [
+    reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
+      ? (stringRecordsEqual(reviewedStateSha256, stateScreenshotSha256)
+        ? null
+        : 'visual-review:stale-screenshot-review')
+      : 'visual-review:missing-screenshot-review',
+    reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
+      ? (stringRecordsEqual(reviewedSourceSha256, currentSourceSha256)
+        ? null
+        : 'visual-review:stale-source-review')
+      : 'visual-review:missing-source-review',
+  ].filter((entry): entry is string => Boolean(entry));
 }
 
 function stringRecordsEqualForPaths(
@@ -2171,10 +2413,26 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
+  const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
+  const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
+  const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
+  const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
+  const authorityShardContractsSourcePath = 'src/lib/authority-domain-shards/contracts.ts';
+  const authorityShardEnvelopeSourcePath = 'src/lib/authority-domain-shards/envelope.ts';
+  const authorityShardLoaderSourcePath = 'src/lib/authority-domain-shards/loader.ts';
+  const authorityShardMaterializeSourcePath = 'src/lib/authority-domain-shards/materialize.ts';
+  const activeAuthorityApiSourcePath = 'src/app/api/knowledge/_active-authority.ts';
+  const authorityShardRootRouteSourcePath = 'src/app/api/knowledge/shards/active/route.ts';
+  const authorityShardDomainRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/route.ts';
+  const authorityShardFamilyRouteSourcePath = 'src/app/api/knowledge/shards/active/domains/[domain]/families/[family]/route.ts';
+  const authorityShardNeighborhoodRouteSourcePath = 'src/app/api/knowledge/shards/active/neighborhoods/[id]/route.ts';
+  const authorityShardNodeRouteSourcePath = 'src/app/api/knowledge/shards/active/nodes/[id]/route.ts';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
   const graph3dSourcePath = 'src/features/knowledge/graph/knowledge-graph-canvas.tsx';
+  const relationFamilyControlSourcePath = 'src/features/knowledge/graph/relation-family-control.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
   const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
@@ -2188,10 +2446,26 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
+    knowledgeWorkspaceSourcePath,
+    activeAuthorityGraphSourcePath,
+    activeAuthorityShardStoreSourcePath,
+    activeAuthorityPresentationSourcePath,
+    activeAuthorityGraphContractsSourcePath,
+    authorityShardContractsSourcePath,
+    authorityShardEnvelopeSourcePath,
+    authorityShardLoaderSourcePath,
+    authorityShardMaterializeSourcePath,
+    activeAuthorityApiSourcePath,
+    authorityShardRootRouteSourcePath,
+    authorityShardDomainRouteSourcePath,
+    authorityShardFamilyRouteSourcePath,
+    authorityShardNeighborhoodRouteSourcePath,
+    authorityShardNodeRouteSourcePath,
     knowledgePageSourcePath,
     adaptivePracticePageSourcePath,
     graph2dSourcePath,
     graph3dSourcePath,
+    relationFamilyControlSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
     globalAiButtonSourcePath,
@@ -2206,6 +2480,18 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
+    : '';
+  const knowledgeWorkspaceSource = existsSync(path.join(repoRoot, knowledgeWorkspaceSourcePath))
+    ? readFileSync(path.join(repoRoot, knowledgeWorkspaceSourcePath), 'utf8')
+    : '';
+  const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
+    : '';
+  const activeAuthorityGraphContractsSource = existsSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityGraphContractsSourcePath), 'utf8')
     : '';
   const resourcePanelSource = existsSync(path.join(repoRoot, resourcePanelSourcePath))
     ? readFileSync(path.join(repoRoot, resourcePanelSourcePath), 'utf8')
@@ -2254,6 +2540,226 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? [[state.name, state.screenshotSha256]]
       : []
   )));
+  const activeAuthorityVisualMatrix = Array.isArray(evidence.activeAuthorityVisualMatrix)
+    ? evidence.activeAuthorityVisualMatrix.map((entry) => objectRecord(entry))
+    : [];
+  for (const activeState of activeAuthorityVisualMatrix) {
+    if (typeof activeState.name === 'string' && typeof activeState.screenshotSha256 === 'string') {
+      stateScreenshotSha256[activeState.name] = activeState.screenshotSha256;
+    }
+  }
+  const activeVisualStateByName = new Map(
+    activeAuthorityVisualMatrix
+      .map((entry) => [typeof entry.name === 'string' ? entry.name : '', entry] as const)
+      .filter(([name]) => name.length > 0),
+  );
+  const requiredActiveVisualStates = [
+    ['active-desktop-dark', 'dark', 1440],
+    ['active-desktop-light', 'light', 1440],
+    ['active-tablet', 'dark', 1024],
+    ['active-mobile', 'dark', 320],
+  ] as const;
+  const activeVisualProblems = requiredActiveVisualStates.flatMap(([name, theme, width]) => {
+    const state = activeVisualStateByName.get(name);
+    const viewport = objectRecord(state?.viewport);
+    const markers = objectRecord(state?.markers);
+    const activeMarkers = objectRecord(markers.activeAuthority);
+    const api = parseSafeApiEvidenceV1(state?.api);
+    const apiSequence = api?.sequence ?? [];
+    const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
+    const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+    const interactionEvidence = objectRecord(state?.interactionEvidence);
+    const forbiddenAutomaticRequests = apiSequence.some((entry) => (
+      entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
+    ));
+    return [
+      state ? null : `${name}:missing-state`,
+      state?.result === 'passed' ? null : `${name}:result`,
+      state?.knowledgeMode === 'active' && markers.knowledgeGraphMode === 'active'
+        ? null
+        : `${name}:not-active-mode`,
+      state?.theme === theme ? null : `${name}:theme`,
+      numberFromEvidence(viewport.width) === width ? null : `${name}:viewport-width`,
+      artifact ? null : `${name}:missing-screenshot`,
+      artifact?.sha256 === state?.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
+      api ? null : `${name}:safe-api-schema`,
+      api?.roleClass === 'student' ? null : `${name}:safe-api-role-class`,
+      safeApiSequenceEntry(api, 'active-canvas')?.status === 200
+        ? null
+        : `${name}:active-api-status`,
+      safeApiSequenceEntry(api, 'active-canvas')?.requestCount! > 0
+        ? null
+        : `${name}:active-api-request-count`,
+      safeApiHasHealthyActiveIsolation(api, name === 'active-desktop-dark') ? null : `${name}:safe-api-checks`,
+      name === 'active-desktop-dark' || safeApiHasResponsiveNoActiveNode(api)
+        ? null
+        : `${name}:responsive-active-node-must-be-unobserved`,
+      forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
+      numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
+      teachingRelationsUnavailable
+        ? (numberFromEvidence(activeMarkers.relationCount) === 0 ? null : `${name}:unavailable-teaching-must-not-draw-edges`)
+        : (numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`),
+      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
+        ? null
+        : `${name}:dom-edge-endpoint-mismatch`,
+      numberFromEvidence(activeMarkers.visibleSvgGeometryCount) === numberFromEvidence(activeMarkers.relationCount)
+        ? null
+        : `${name}:dom-edge-geometry-missing`,
+      activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
+      safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
+      name === 'active-desktop-dark'
+        ? (interactionEvidence.semanticNodeFocusedBeforeClick === true
+          && interactionEvidence.detailPanelFocusedAfterOpen === true
+          && interactionEvidence.semanticDetailVisible === true
+          && (teachingRelationsUnavailable
+            ? interactionEvidence.adjacencyInteraction === false && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
+            : interactionEvidence.adjacencyInteraction === true)
+          && (interactionEvidence.focusReturnedToOriginNode === true
+            || interactionEvidence.focusReturnedToSemanticCanvas === true)
+          && safeActiveSurfaceScanPassed(interactionEvidence.detailSurfaceScan)
+          && safeActiveSurfaceScanPassed(interactionEvidence.overviewSurfaceScan)
+            ? null
+            : `${name}:detail-focus-adjacency-evidence-missing`)
+        : null,
+    ].filter((entry): entry is string => Boolean(entry));
+  });
+  const authenticatedRoleEvidence = Array.isArray(evidence.authenticatedRoleEvidence)
+    ? evidence.authenticatedRoleEvidence.map((entry) => objectRecord(entry))
+    : [];
+  const roleEvidenceByName = new Map(
+    authenticatedRoleEvidence
+      .map((entry) => [typeof entry.role === 'string' ? entry.role : '', entry] as const)
+      .filter(([role]) => role.length > 0),
+  );
+  const authenticatedRoleProblems = (['student', 'teacher', 'admin'] as const).flatMap((role) => {
+    const evidenceForRole = roleEvidenceByName.get(role);
+    const defaultEvidence = objectRecord(evidenceForRole?.default);
+    const defaultApi = parseSafeApiEvidenceV1(defaultEvidence.api);
+    const defaultInteraction = objectRecord(defaultEvidence.activeInteractionEvidence);
+    const teachingRelationsUnavailable = defaultInteraction.teachingRelationsUnavailable === true;
+    const mobileEvidence = objectRecord(evidenceForRole?.mobile);
+    const mobileApi = parseSafeApiEvidenceV1(mobileEvidence.api);
+    const legacyEvidence = objectRecord(evidenceForRole?.legacy);
+    const legacyApi = parseSafeApiEvidenceV1(legacyEvidence.api);
+    const candidateEvidence = evidenceForRole?.candidate === null
+      ? null
+      : objectRecord(evidenceForRole?.candidate);
+    const candidateApi = parseSafeApiEvidenceV1(candidateEvidence?.api);
+    const defaultSequence = defaultApi?.sequence ?? [];
+    const finalApi = candidateApi ?? legacyApi;
+    const finalSequence = finalApi?.sequence ?? [];
+    const problems = [
+      evidenceForRole ? null : `${role}:missing-role-evidence`,
+      defaultEvidence.mode === 'active' ? null : `${role}:default-not-active`,
+      defaultApi ? null : `${role}:default-safe-api-schema`,
+      defaultApi?.roleClass === role ? null : `${role}:default-role-class`,
+      safeApiSequenceEntry(defaultApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:default-api-status`,
+      safeApiSequenceEntry(defaultApi, 'active-canvas')?.requestCount! > 0
+        ? null
+        : `${role}:default-api-request-count`,
+      safeApiHasHealthyActiveIsolation(defaultApi, true) ? null : `${role}:default-safe-api-checks`,
+      safeActiveSurfaceScanPassed(defaultEvidence.activeSurfaceScan) ? null : `${role}:active-surface-scan-failed`,
+      mobileEvidence.mode === 'active' ? null : `${role}:mobile-not-active`,
+      numberFromEvidence(objectRecord(mobileEvidence.viewport).width) === 320 ? null : `${role}:mobile-viewport-width`,
+      numberFromEvidence(objectRecord(mobileEvidence.viewport).height) === 800 ? null : `${role}:mobile-viewport-height`,
+      mobileApi ? null : `${role}:mobile-safe-api-schema`,
+      mobileApi?.roleClass === role ? null : `${role}:mobile-role-class`,
+      safeApiSequenceEntry(mobileApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:mobile-api-status`,
+      safeApiHasHealthyActiveIsolation(mobileApi, false) ? null : `${role}:mobile-safe-api-checks`,
+      safeActiveSurfaceScanPassed(mobileEvidence.activeSurfaceScan) ? null : `${role}:mobile-surface-scan-failed`,
+      mobileEvidence.graphVisible === true && mobileEvidence.nonEmptyCanvas === true
+        ? null
+        : `${role}:mobile-active-canvas-empty`,
+      simulationViewportArtifact(artifactPathFromEvidence(mobileEvidence.screenshotPath))?.sha256 === mobileEvidence.screenshotSha256
+        ? null
+        : `${role}:mobile-screenshot-sha-mismatch`,
+      defaultInteraction.semanticNodeFocusedBeforeClick === true
+        ? null
+        : `${role}:active-node-focus-missing`,
+      defaultInteraction.detailPanelFocusedAfterOpen === true
+        ? null
+        : `${role}:active-detail-focus-missing`,
+      defaultInteraction.semanticDetailVisible === true
+        ? null
+        : `${role}:active-detail-evidence-missing`,
+      (teachingRelationsUnavailable
+        ? defaultInteraction.adjacencyInteraction === false && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
+        : defaultInteraction.adjacencyInteraction === true)
+        ? null
+        : `${role}:active-adjacency-evidence-missing`,
+      safeActiveSurfaceScanPassed(defaultInteraction.detailSurfaceScan)
+        ? null
+        : `${role}:active-detail-surface-scan-failed`,
+      safeActiveSurfaceScanPassed(defaultInteraction.overviewSurfaceScan)
+        ? null
+        : `${role}:active-overview-surface-scan-failed`,
+      (defaultInteraction.focusReturnedToOriginNode === true
+        || defaultInteraction.focusReturnedToSemanticCanvas === true)
+        ? null
+        : `${role}:active-focus-return-missing`,
+      defaultEvidence.legacyApiRequestedBeforeExplicitSwitch === false
+        ? null
+        : `${role}:legacy-request-before-explicit-switch`,
+      defaultSequence.some((entry) => entry.endpointClass === 'candidate')
+        ? `${role}:candidate-request-before-explicit-switch`
+        : null,
+      legacyEvidence.explicitSwitch === true ? null : `${role}:legacy-not-explicit`,
+      legacyApi ? null : `${role}:legacy-safe-api-schema`,
+      legacyApi?.roleClass === role ? null : `${role}:legacy-role-class`,
+      safeApiSequenceEntry(legacyApi, 'legacy')?.status === 200
+        ? null
+        : `${role}:legacy-api-status`,
+      safeApiSequenceEntry(legacyApi, 'legacy')?.requestCount! > 0
+        ? null
+        : `${role}:legacy-api-request-count`,
+      numberFromEvidence(legacyEvidence.visibleNodeCount)! > 0 ? null : `${role}:legacy-api-empty`,
+      finalApi ? null : `${role}:final-safe-api-schema`,
+      safeApiHasHealthyActiveIsolation(finalApi, false) ? null : `${role}:final-safe-api-checks`,
+      safeApiSequenceEntry(finalApi, 'active-canvas')?.status === 200
+        ? null
+        : `${role}:final-active-api-status`,
+      finalSequence.some((entry) => entry.endpointClass === 'active-canvas' && entry.status !== 200)
+        ? `${role}:active-api-failure-in-sequence`
+        : null,
+    ];
+    if (role === 'admin') {
+      problems.push(
+        defaultEvidence.candidateButtonVisible === true ? null : `${role}:candidate-button-missing`,
+        candidateEvidence ? null : `${role}:candidate-evidence-missing`,
+        candidateEvidence?.controlledEntry === true ? null : `${role}:candidate-not-controlled-entry`,
+        candidateEvidence?.controlledVerification === true ? null : `${role}:candidate-controlled-marker-missing`,
+        candidateEvidence?.currentAuthority === false ? null : `${role}:candidate-mislabelled-current-authority`,
+        candidateEvidence?.explicitSwitch === true ? null : `${role}:candidate-not-explicit-switch`,
+        candidateEvidence?.candidateApiRequestedBeforeExplicitSwitch === false
+          ? null
+          : `${role}:candidate-request-before-explicit-switch`,
+        candidateApi ? null : `${role}:candidate-safe-api-schema`,
+        candidateApi?.roleClass === role ? null : `${role}:candidate-role-class`,
+        safeApiSequenceEntry(candidateApi, 'candidate')?.status === 200
+          ? null
+          : `${role}:candidate-api-status`,
+        safeApiSequenceEntry(candidateApi, 'candidate')?.requestCount! > 0
+          ? null
+          : `${role}:candidate-api-request-count`,
+        candidateApi?.checks.roleRequestIsolationVerified === true
+          ? null
+          : `${role}:candidate-request-isolation-invalid`,
+      );
+    } else {
+      problems.push(
+        defaultEvidence.candidateButtonVisible === false ? null : `${role}:candidate-button-visible`,
+        candidateEvidence === null ? null : `${role}:candidate-evidence-present`,
+        finalSequence.some((entry) => entry.endpointClass === 'candidate')
+          ? `${role}:candidate-api-requested`
+          : null,
+      );
+    }
+    return problems.filter((entry): entry is string => Boolean(entry));
+  });
   const requiredStates = [
     ['desktop-default-collapsed-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
@@ -2283,6 +2789,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
+  const verticalPageScrollExemptions = new Set([
+    'desktop-selected-page-tools-menu-dark',
+  ]);
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
     if (name.startsWith('tablet-')) return 'tablet-1100-default-dark';
     if (name.startsWith('desktop-wide')) return 'desktop-wide-default-dark';
@@ -2309,8 +2818,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewportWidth = numberFromEvidence(viewport.width);
     const isMobileViewport = viewportWidth === 320;
     const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
-    const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
-    const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
+      const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
+      const isVerticalPageScrollExempt = verticalPageScrollExemptions.has(name);
+      const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
+      const isKnowledgeState = expectedRoute === '/knowledge';
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     const scrollWidth = numberFromEvidence(documentScroll.scrollWidth);
@@ -2331,6 +2842,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       typeof state.localToolState === 'string' ? null : `${name}:local-tool-state`,
       typeof state.interactionState === 'string' ? null : `${name}:interaction-state`,
       state.result === 'passed' ? null : `${name}:result`,
+      isKnowledgeState && state.knowledgeMode === 'legacy' && markers.knowledgeGraphMode === 'legacy'
+        ? null
+        : (isKnowledgeState ? `${name}:not-explicit-legacy-mode` : null),
       artifact ? null : `${name}:missing-screenshot`,
       artifact?.sha256 === state.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
       artifact?.imageFormat === 'png' || artifact?.imageFormat === 'jpeg' ? null : `${name}:invalid-image-format`,
@@ -2355,7 +2869,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:page-horizontal-scroll`,
       typeof scrollHeight === 'number'
         && typeof viewportScrollHeight === 'number'
-        && scrollHeight <= viewportScrollHeight
+        && (isVerticalPageScrollExempt || scrollHeight <= viewportScrollHeight)
         ? null
         : `${name}:page-vertical-scroll`,
       name.startsWith('desktop') && dockState === 'collapsed' && markers.dockInspectorAvoidance !== 'active'
@@ -2552,15 +3066,29 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     currentSourceSha256,
     productQaSourcePaths,
   });
+  const runtimeRevisionProofProblems = commercialRuntimeRevisionProofObjectProblems(
+    evidence.runtimeRevisionProof,
+    repoRoot,
+    'runtimeRevisionProof',
+  );
+  const runtimeRevisionProofExpected = objectRecord(objectRecord(evidence.runtimeRevisionProof).expected);
+  const runtimeRevisionConsistencyProblems = [
+    captureCommitSha && runtimeRevisionProofExpected.commitSha !== captureCommitSha
+      ? 'runtimeRevisionProof.expected.commitSha=captureRevision.commitSha'
+      : '',
+    captureTreeSha && runtimeRevisionProofExpected.treeSha !== captureTreeSha
+      ? 'runtimeRevisionProof.expected.treeSha=captureRevision.treeSha'
+      : '',
+  ].filter(Boolean);
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
     )),
-    ...Object.entries(sourceHashes).map(([sourcePath, recordedSha256]) => (
-      existsSync(path.join(repoRoot, sourcePath)) && recordedSha256 === fileSha256(sourcePath)
-        ? null
-        : `${sourcePath}:sha-mismatch`
-    )),
+    ...knowledgeWorkspaceProductQaSourceHashProblems({
+      repositoryRoot: repoRoot,
+      revision: captureCommitSha,
+      currentSourceSha256,
+    }),
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
     sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',
@@ -2586,6 +3114,27 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSource.includes('data-knowledge-workspace="canvas-first"')
       ? null
       : 'graph-source:canvas-first-missing',
+    knowledgeWorkspaceSource.includes('data-knowledge-graph-mode={mode}')
+      ? null
+      : 'active-workspace:mode-marker-missing',
+    knowledgeWorkspaceSource.includes('data-knowledge-mode="active"')
+      && knowledgeWorkspaceSource.includes('data-knowledge-mode="legacy"')
+      && knowledgeWorkspaceSource.includes('data-knowledge-mode="candidate"')
+      ? null
+      : 'active-workspace:mode-controls-missing',
+    activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
+      && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
+      ? null
+      : 'active-graph:stable-dom-contract-missing',
+    activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')
+      && activeAuthorityPresentationSource.includes('materializeActiveNodeScope')
+      && activeAuthorityPresentationSource.includes('expandActiveAuthorityOneHop')
+      ? null
+      : 'active-presentation:adapter-contract-missing',
+    activeAuthorityGraphContractsSource.includes('projectionHash')
+      && activeAuthorityGraphContractsSource.includes('provenance')
+      ? null
+      : 'active-graph:identity-contract-missing',
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'graph-source:compact-command-system-missing',
@@ -2673,8 +3222,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const visualReview = objectRecord(evidence.independentVisualReview);
   const visualReviewDimensions = objectRecord(visualReview.dimensions);
-  const visualReviewStateSha256 = stringRecord(visualReview.reviewedStateSha256);
-  const visualReviewSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
   const visualReviewPath = artifactPathFromEvidence(visualReview.path);
   const visualReviewProblems = [
     visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
@@ -2684,12 +3231,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
       ? null
       : 'visual-review:blocking-findings',
-    stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
-      ? null
-      : 'visual-review:stale-screenshot-review',
-    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
-      ? null
-      : 'visual-review:stale-source-review',
+    ...knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview,
+      stateScreenshotSha256,
+      currentSourceSha256,
+    }),
     ...[
       'handoffAlignment',
       'conceptAdoptionRejection',
@@ -2715,7 +3261,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   if (
     designProblems.length > 0
     || stateProblems.length > 0
+    || activeVisualProblems.length > 0
+    || authenticatedRoleProblems.length > 0
     || captureRevisionProblems.length > 0
+    || runtimeRevisionProofProblems.length > 0
+    || runtimeRevisionConsistencyProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
     || handoffProblems.length > 0
@@ -2725,7 +3275,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence is incomplete.', [
       `design=${designProblems.join(',') || 'none'}`,
       `states=${stateProblems.join(',') || 'none'}`,
+      `activeVisual=${activeVisualProblems.join(',') || 'none'}`,
+      `authenticatedRoles=${authenticatedRoleProblems.join(',') || 'none'}`,
       `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
+      `runtimeRevisionProof=${[
+        ...runtimeRevisionProofProblems,
+        ...runtimeRevisionConsistencyProblems,
+      ].join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
       `handoff=${handoffProblems.join(',') || 'none'}`,
@@ -3071,6 +3627,129 @@ const INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS = [
   /^src\/resources\/control-system\/analysis\//,
 ] as const;
 
+const PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS: Readonly<Record<string, readonly string[]>> = {
+  'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx': [
+    '-layeredGraphPayload?: LayeredGraphPayload | null;',
+    '+layeredGraphPayload: LayeredGraphPayload;',
+  ],
+  'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx': [
+    '-layeredGraphPayload?: LayeredGraphPayload | null;',
+    '+layeredGraphPayload: LayeredGraphPayload;',
+  ],
+};
+
+function normalizeBoundaryDiffLine(line: string) {
+  return `${line[0] ?? ''}${line.slice(1).trim()}`;
+}
+
+function matchesPureClientBoundaryRefactorDiff(file: string, changedLines: readonly string[]) {
+  const expected = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[file];
+  if (!expected) return false;
+  const actual = changedLines
+    .filter((line) => /^[+-]/.test(line) && !line.startsWith('+++') && !line.startsWith('---'))
+    .map(normalizeBoundaryDiffLine)
+    .sort();
+  return actual.length === expected.length
+    && actual.every((line, index) => line === [...expected].sort()[index]);
+}
+
+function isPureClientBoundaryRefactorFile(file: string, files: readonly string[]) {
+  if (!Object.hasOwn(PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS, file) || !files.includes(file)) return false;
+  return matchesPureClientBoundaryRefactorDiff(file, diffForFile(file).split('\n'));
+}
+
+function shouldRefreshInteractiveLearningProductQaSource(files: readonly string[]) {
+  return files.some((file) => (
+    INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+    && !isPureClientBoundaryRefactorFile(file, files)
+  ));
+}
+
+function assertPureClientBoundaryRefactorGuard(files?: readonly string[]) {
+  const studentFile = 'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx';
+  const teacherFile = 'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx';
+  const allowedStudentDiff = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[studentFile];
+  const allowedTeacherDiff = PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS[teacherFile];
+  for (const [file, allowedDiff] of [
+    [studentFile, allowedStudentDiff],
+    [teacherFile, allowedTeacherDiff],
+  ] as const) {
+    assert.equal(
+      matchesPureClientBoundaryRefactorDiff(file, allowedDiff ?? []),
+      true,
+      `${file} pure client-boundary regression fixture must remain recognized`,
+    );
+  }
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff(studentFile, [...(allowedStudentDiff ?? []), '+return <div />;']),
+    false,
+    'client-boundary exemption must reject JSX/rendering changes',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff(studentFile, [
+      ...(allowedStudentDiff ?? []),
+      '+const changed = resolveCoursePageLayeredDrawerEntries();',
+    ]),
+    false,
+    'client-boundary exemption must reject logic changes',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff('src/features/interactive/shared/step-knowledge-drawer.tsx', allowedStudentDiff ?? []),
+    false,
+    'deleted client boundary module must not remain an exemption fixture',
+  );
+  assert.equal(
+    matchesPureClientBoundaryRefactorDiff('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx', allowedStudentDiff ?? []),
+    false,
+    'payload-shape exemption must remain scoped to the student and teacher entry pages',
+  );
+  assert.equal(
+    shouldRefreshInteractiveLearningProductQaSource(['src/features/interactive/shared/step-knowledge-drawer.tsx']),
+    true,
+    'other interactive files must continue to refresh Product QA source evidence',
+  );
+  assert.equal(
+    shouldRequireInteractiveLearningProductQa(['scripts/tests/test-commercial-ui-governance.ts']),
+    true,
+    'changing the governance script must continue to require existing Product QA evidence',
+  );
+  if (files) {
+    const currentBoundaryFiles = Object.keys(PURE_CLIENT_BOUNDARY_REFACTOR_DIFFS)
+      .filter((file) => files.includes(file));
+    if (currentBoundaryFiles.length > 0) {
+      assert.equal(
+        currentBoundaryFiles.every((file) => isPureClientBoundaryRefactorFile(file, files)),
+        true,
+        'current client-boundary files must match the exact exemption diff',
+      );
+      assert.equal(
+        shouldRequireInteractiveVisualComponentArtifacts(currentBoundaryFiles),
+        false,
+        'pure client-boundary files must not require visual component artifacts',
+      );
+      assert.equal(
+        shouldRefreshInteractiveLearningProductQaSource(currentBoundaryFiles),
+        false,
+        'pure client-boundary files must not refresh Product QA source evidence',
+      );
+      const mixedFiles = [
+        ...currentBoundaryFiles,
+        'src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx',
+      ];
+      assert.equal(
+        shouldRefreshInteractiveLearningProductQaSource(mixedFiles),
+        true,
+        'adding another interactive source file must restore Product QA source refresh',
+      );
+      assert.equal(
+        shouldRequireInteractiveVisualComponentArtifacts(mixedFiles),
+        true,
+        'adding another interactive source file must restore visual artifact requirements',
+      );
+    }
+  }
+}
+
 const CLASSROOM_LIFECYCLE_ONLY_TEACHER_PAGE_PATTERN =
   /^src\/features\/interactive\/unit-[^/]+\/teacher-page\.tsx$/;
 
@@ -3097,6 +3776,7 @@ function shouldRequireInteractiveVisualComponentArtifacts(files: readonly string
   return files.some((file) => (
     INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS.some((pattern) => pattern.test(file))
     && !isClassroomLifecycleOnlyTeacherPageDiff(file)
+    && !isPureClientBoundaryRefactorFile(file, files)
   ));
 }
 
@@ -3210,6 +3890,7 @@ function readInteractiveVisualComponentAcceptanceArtifacts(
 
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
+  assertPureClientBoundaryRefactorGuard(files);
   const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
@@ -3334,12 +4015,12 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     || simulationSharedDetailRouteAffected(route.href, files)
   ));
 const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningProductQa(files);
-const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
-  INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
-));
+const interactiveLearningProductQaSourceRefreshRequired = shouldRefreshInteractiveLearningProductQaSource(files);
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
-const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
+ const adaptivePathProductQaSourceRefreshRequired = files.some((file) => (
+   adaptivePathSourceFileChanged(file) && file !== 'scripts/tests/test-commercial-ui-governance.ts'
+ ));
 const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
 const compactSpacingRequired = shouldRequireCompactSpacingEvidence(files);
 const result = evaluateCommercialUiGovernance({

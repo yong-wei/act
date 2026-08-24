@@ -6,9 +6,7 @@ import { extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
-import {
-  assertSubmissionObjectIntegrity,
-} from '@/lib/assignments/submission-domain';
+import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
 import type { StoredObjectMetadata, SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
   assignmentAttachmentRoute,

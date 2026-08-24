@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-b95f9fc61d2a3ef440ed8fff",
+  "safe_id": "ctkg_v3e-object-b95f9fc61d2a3ef440ed8fff",
+  "node": {
+    "name": "Truncating numer",
+    "name_en": "Truncating numerator polynomial to remove extraneous roots",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Truncating numer：Truncating numerator polynomial to remove extraneous roots",
+  "intuition": null,
+  "explanation": "Truncating numerator polynomial to remove extraneous roots",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Truncating …"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-b95f9fc61d2a3ef440ed8fff.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -66,54 +66,69 @@ Every runtime coverage projection MUST identify its authoring revision, import v
 - **THEN** the response or diagnostic SHALL expose the corresponding Overlay, ReleaseSet and Delta identities for audit
 
 ### Requirement: Coverage baseline is exhaustive
-The system MUST NOT require every member of an ActKG Release to receive an ACT course role or exclusion. The denominator SHALL be the current ACT resource/core-node scope selected for Teaching Projection, and each in-scope resource SHALL have `BOUND`, `EXPLICIT_NONE`, or `REVIEW_REQUIRED` status with a deterministic reason. Exhaustive Release-member coverage is no longer an Engineering Authority gate.
+The system MUST NOT require every member of an ActKG Release to receive an ACT course role or exclusion. For object-to-object teaching-relation governance, the denominator SHALL be every real Canonical Object in the target course's exact sealed active-domain selection, independent of resource bindings; each member SHALL have containment, prerequisite, and pedagogical-association dispositions. Root domain navigation projections and ActKG objects outside that course selection SHALL remain outside the denominator. Resource-binding completeness SHALL remain a separate capability and MUST NOT determine relation-scope membership.
 
 #### Scenario: Candidate has no governed coverage baseline
-- **WHEN** the selected ActKG Release has no ACT teaching baseline
+- **WHEN** the selected ActKG Release and course active-domain selection have no ACT teaching baseline
 - **THEN** Engineering Authority MAY still activate after integrity validation
-- **AND** the ACT Teaching Projection SHALL report `NOT_PROJECTED` rather than treating missing exhaustive coverage as an Authority block
+- **AND** the ACT relation projection SHALL report `NOT_PROJECTED` rather than treating missing governance as complete or as an Engineering block
 
 #### Scenario: Baseline has an unaccounted object
-- **WHEN** an in-scope ACT resource/core node selected for Teaching Projection has neither a valid binding nor an evidenced exclusion/`EXPLICIT_NONE`
-- **THEN** Teaching Projection publication for that scope SHALL fail closed
-- **AND** unprojected upstream engineering objects outside the ACT scope SHALL not create the failure
+- **WHEN** a Canonical Object in the sealed active-domain selection lacks any of its three family dispositions
+- **THEN** the relation governance receipt SHALL remain incomplete and containment gaps SHALL block a new formal relation projection
+- **AND** unrelated upstream Engineering objects outside the course scope SHALL not create the failure
 
 #### Scenario: Unprojected upstream object exists
-- **WHEN** a valid ActKG Release contains an object not used by any ACT course or resource
-- **THEN** the object SHALL remain `NOT_PROJECTED`
-- **AND** it SHALL not enter an ACT coverage review denominator or Authority gate
+- **WHEN** a valid ActKG Release contains an object not selected by the target course active-domain scope
+- **THEN** the object SHALL remain outside that course's teaching-relation denominator
+- **AND** it SHALL not enter an ACT relation review denominator or teaching activation gate
 
 #### Scenario: Required ACT resource has no binding
 - **WHEN** an in-scope resource is marked `REQUIRED` but has no valid Canonical binding
-- **THEN** the affected Teaching Projection SHALL fail closed
-- **AND** the ActKG Authority SHALL remain independently activatable
+- **THEN** the affected resource-binding Teaching Projection SHALL fail closed
+- **AND** the ActKG Authority and object-to-object relation governance SHALL remain independently evaluable
+
+#### Scenario: Active-domain member has no resource
+- **WHEN** an in-scope Canonical Object has no learning resource
+- **THEN** it SHALL still receive containment, prerequisite, and association dispositions
+- **AND** resource absence SHALL not be interpreted as an upstream object exclusion or a no-relation decision
+
+#### Scenario: Root domain navigation is present
+- **WHEN** a domain catalog emits a circular root entry for presentation navigation
+- **THEN** that entry SHALL not count as a Canonical Object or require a family disposition
+- **AND** its child membership SHALL not be invented as a relation edge
 
 ### Requirement: Coverage updates follow ReleaseSet Delta
-After Authority changes, ACT SHALL compute impact only for changed Canonical identities and their existing local bindings. Unaffected teaching records may be carried forward deterministically; new unbound engineering objects do not create review work.
+After Authority changes, ACT SHALL recompute impact against the exact target course active-domain member set and current relation decisions. Unaffected members and decisions MAY be carried forward deterministically only when their Canonical semantic identity, scope membership, evidence, and governing inputs remain compatible. A new object SHALL create three-family governance work only when it enters the target active-domain scope; unrelated new Engineering objects SHALL not create course work.
 
 #### Scenario: Compatible Release adds objects
-- **WHEN** an accepted Delta adds Canonical Objects with no ACT binding
-- **THEN** ACT SHALL emit zero teaching-review items for those unbound objects
-- **AND** only objects that already participate in ACT teaching scope or bindings SHALL require impact review
+- **WHEN** an accepted Delta adds a Canonical Object to the target course active-domain member set
+- **THEN** ACT SHALL create containment, prerequisite, and association dispositions for that object
+- **AND** the new relation projection SHALL fail if its containment disposition is not closed
 
 #### Scenario: Object is removed
-- **WHEN** an accepted Delta removes a covered object that had an ACT teaching binding
-- **THEN** its teaching binding and dependent shadow eligibility SHALL become stale without deleting the historical decision
+- **WHEN** an accepted Delta removes a covered object from the target active-domain scope
+- **THEN** its relation decisions and dependent projection eligibility SHALL become stale without deleting historical records
 - **AND** Engineering Authority validation SHALL depend only on integrity of the remaining Release
 
 #### Scenario: Bundle packaging alone changes
-- **WHEN** the Delta is a semantic-empty packaging revision
-- **THEN** the system SHALL record that no coverage recomputation was required
+- **WHEN** the Delta is a semantic-empty packaging revision and scope/evidence identities remain compatible
+- **THEN** the system SHALL record deterministic no-op revalidation without regenerating relation semantics
 
 #### Scenario: Delta adds unrelated engineering objects
-- **WHEN** a ReleaseSet Delta adds objects with no ACT binding
-- **THEN** ACT SHALL emit zero teaching-review items for those objects
-- **AND** the engineering Release may activate after integrity validation
+- **WHEN** a ReleaseSet Delta adds objects that remain outside the target course active-domain selection
+- **THEN** ACT SHALL emit zero teaching-relation disposition or review items for those objects
+- **AND** the Engineering Release MAY activate after integrity validation
 
 ### Requirement: Coverage does not create teaching relations
-Course roles and exclusions MUST NOT create prerequisite, containment, sequence, association, or other Teaching Projection relations.
+Course roles, active-domain membership, and exclusions MUST NOT create containment, prerequisite, sequence, association, or any other Teaching Projection relation. They establish governed course scope only; every published teaching relation still requires the ACT relation qualification and item admission contract.
 
 #### Scenario: Object is a necessary prerequisite
 - **WHEN** an object receives the course role `necessary_prerequisite`
-- **THEN** that role SHALL permit course consumption but SHALL NOT create a graph prerequisite edge
+- **THEN** that role SHALL permit course consumption and membership processing but SHALL NOT create a graph prerequisite edge
+
+#### Scenario: Object enters active-domain scope
+- **WHEN** a Canonical Object is selected into the target active-domain member set
+- **THEN** the system SHALL create three family-disposition work items without inventing any edge
+- **AND** only admitted ACT relation results SHALL become published topology
 

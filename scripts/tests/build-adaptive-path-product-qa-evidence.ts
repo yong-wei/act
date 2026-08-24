@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -57,7 +58,18 @@ function sha256(relativePath: string) {
   if (!existsSync(absolutePath)) {
     throw new Error(`Missing evidence artifact: ${relativePath}`);
   }
-  return createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
+  const hasWorkingTreeChange = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--', relativePath],
+    { cwd: repoRoot, encoding: 'utf8' },
+  ).trim().length > 0;
+  const content = hasWorkingTreeChange
+    ? readFileSync(absolutePath)
+    : execFileSync('git', ['show', `HEAD:${relativePath}`], {
+        cwd: repoRoot,
+        maxBuffer: 32 * 1024 * 1024,
+      });
+  return createHash('sha256').update(content).digest('hex');
 }
 
 function sourceCommit() {

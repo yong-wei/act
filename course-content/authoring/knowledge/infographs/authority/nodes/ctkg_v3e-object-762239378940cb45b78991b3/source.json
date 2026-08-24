@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-762239378940cb45b78991b3",
+  "safe_id": "ctkg_v3e-object-762239378940cb45b78991b3",
+  "node": {
+    "name": "采样器",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "在连续信号和脉冲序列之间要用采样器，实现信号的转换。",
+  "intuition": "实现采样的装置称为采样器，或称采样开关。",
+  "explanation": "在连续信号和脉冲序列之间要用采样器，实现信号的转换。实现采样的装置称为采样器，或称采样开关。",
+  "relation_head": "前置 → 理想采样器、采样控制系统、采样过程",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "理想采样器",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "采样控制系统",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "前置",
+      "peer": "采样过程",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "采样器",
+    "是一种·理想采样器",
+    "包含组件·采样控制…",
+    "关联·采样过程"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-762239378940cb45b78991b3.md",
+  "provider_policy": "grok-image_gen"
+}

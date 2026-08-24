@@ -57,6 +57,8 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
+- 班级与学生学情页提供持久化诊断报告历史；正式生成前以当前生成器可读取的风险、能力快照和知识进度执行确定性预检。普通生成在输入与版本均未变化时被阻止，教师强制生成必须填写理由，并将前序报告、证据截止点、输入摘要和规则版本写入审计链。
+- 固定诊断版本可形成教师交付版和学生安全版；服务端按报告、投影版本、角色版本和学生受众建立稳定 PDF 制品身份，并为每次成功导出保留操作人和时间。学生安全版只接受学生范围报告，排除同伴数据、教师内部说明和原始证据标识。教师可以进入既有学生、备课和已注册资源页面，并以追加式事件记录查看、待处理、已安排干预和已完成处置；这些状态不修改诊断风险、成绩、画像或趋势。
 - `/teacher/assignments`：作业列表、单页编辑工作台、受治理题库选题、评分项编排、保存状态与发布校验入口。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
@@ -143,6 +145,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 新增或改造仿真应遵守 `docs/Simulation_Guidelines.md`：固定步长时钟、线性模型 Tustin 离散化、非线性模型走内置积分器接口，避免在页面内直接手写漂移的数值步进。参与 SSR 的页面不能静态导入会触发 React/R3F 浏览器运行时依赖的 3D 预览组件。
 
+Cruise 课程转向场景（`sim/cruise` / `cruise-comfort-course-turn` / `fleet-cruise-adora`）在完成态增加只读“控制效果复盘”：事实层只陈述当前运行已计算指标，任务层仅在显式 `courseMode=cruise-boppps` 绑定注册课程任务并给出权威阈值时逐项判断满足或未满足。独立 `/simulations/cruise` 探索页只陈述事实，不注入课程阈值。复盘不重算物理量、不把结束时刻舵角或功率当作峰值或能量、也不改 Arena 评分、官方评价、榜单或学习证据。其他船型保持原完成态。
+
 ## Arena 控制竞技场
 
 Arena 是统一评测与排行榜层，不是单一控制方法工作台。基本单元是：
@@ -169,7 +173,7 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 ## 数据治理、学习路径与智能助教
 
-数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。
+数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。自适应题库生命周期覆盖 v2 按九个学习目标和 readiness / practice / checkpoint / remediation / terminal-validation 分别报告登记、允许、审核、资格、运行时注册与可选择数量；`practice-v1` 的 54 题分母保持不变。题目型终结验证是独立 scope，可与仿真或 Arena 终验并存，不得静默替代。
 
 主要数据表与链路：
 
@@ -208,19 +212,21 @@ AI 能力嵌入多个教学场景：
 - `src/features/ai/companion`：仿真与学习过程中的伴学和干预。
 - 管理员 `/admin/config`：AI 供应商、模型、启用状态与响应测试。
 
+统一教材阅读器的 `resource-coach` 入口只绑定 runtime v2 结构单元及其已登记公式/图/表锚点。可信上下文由服务端按 `resourceId + bookId + edition + sourceRevision + unitId + contentHash`（可选 `anchorId`）重读并原子固定；客户端 URL、选区和正文不得扩大权限或引用。回答引用只能使用服务端版本绑定导航句柄，活动新版 reader URL 不能冒充旧会话。普通 TeachingResource、KnowledgeCard、`/knowledge`、PDF、视频时间轴和外部网页仍不提供该入口。
+
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
 ## 权威知识候选与 ActKG 协议变基
 
 当前候选权威知识底座锁定为 ActKG CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`：841 个 release entries、744 个投影节点、97 条投影关系和 1302 条唯一上游 RAG crosswalk，谓词词表共九种。两个组件发布只用于校验聚合包声明的血缘与哈希，不作为并列导入项。
 
-公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入；Legacy 图谱仍是生产权威，本变更不切换生产 selector。
+公共 bundle 按原始字节完整导入，可逐字节重构并校验 SHA-256；ActKG 私有 CTKGDataset 明确不可用，平台不导入、不推断、不重建其内容。CTKG 0.1 仅保留为历史精确适配器，用于审计与回归，不再参与当前候选准入。2026-08-11，生产事务 `production-v040-58f70df-20260811T083732Z` 已将四类 selector 切换到冻结 `v0.4.0` 包中的 Authority Snapshot、Teaching Projection、prerequisite publication 与 consumer activation；六个 versioned graph consumers 以该组合运行。Legacy reader、crosswalk 与历史审计证据仍保留，但不再是这六类消费者的生产 authority。
 
 候选 Repository、三项投影（`act.canvas.v2`、`act.node-detail.v2`、`act.migration-review.v1`）、候选图谱与候选态控灵绑定同一聚合 ReleaseSet、`projectionDigest` 与 `sourceDatasetHash`，不混入旧 root-locus 行；方向或谓词与固定合同冲突时在导入或投影契约处失败关闭，不再运行时改写。旧发布身份下的 inventory、crosswalk、candidate、decision 与 binding 输出只保留为 historical/stale 审计记录，不充当当前 readiness。
 
 标准 public Bundle 可经兼容校验后作为显式非生产候选导入（#1131）；导入完成后 ACT 从已往返验证的数据库快照复算 `ReleaseSetDeltaReceipt`（#1132）。当前环境首个标准候选以已接受的 #1125 v0.2 为冻结 base；仅当安装内完全没有已接受 ReleaseSet 时才标记 `BASELINE`。上游 `release-diff` 只作交叉验证，分歧时不落 accepted 信号；纯包装修订只记录 Bundle 身份、不产生语义 signals。通用失效/增量信号只描述对象/关系/Crosswalk/组件/Projection/词表身份与原因，不决定课程角色、资源角色、教学关系，也不移动 candidate/active/Legacy selector。
 
-下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径、学习事实和最终生产权威切换仍受后续依赖门禁约束，不在 Delta 计算边界内接线。
+下游 CourseCoverage 与 ACT structural-unit crosswalk、资源教学角色、RAG/KAQ/SAR、学习路径和学习事实仍分别受各自依赖门禁约束，不在 Delta 计算边界内接线。此次生产切换不提升数据库 candidate、Canonical resource-binding shadow 或 KAQ selector；它只激活已经 READY 的 versioned graph consumer 组合。
 
 ## OpenSpec 与工作树协作
 
@@ -252,10 +258,16 @@ rtk npm run test:data-governance
 
 ```bash
 rtk bash scripts/build.sh
-rtk bash scripts/remote-deploy.sh
+rtk npm run deploy:app -- --skip-build
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。运行时课程资源通常以 `course-content/runtime/` 只读挂载方式供容器读取。
+课程 runtime 走独立 OSS 发布，不要用应用部署脚本同步本地 tree：
+
+```bash
+rtk npm run deploy:runtime
+```
+
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。`--app-only` 构建会生成明确未绑定 runtime 的 provenance，只能用于保持远端 runtime 不变的应用更新；包含 runtime 选择的部署仍要求完整 runtime-bound provenance。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime` 只读挂载该 active Release，密钥走仓库外凭据文件，不复用 Publisher。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md) 与 [开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)。
 
 ## 维护入口
 

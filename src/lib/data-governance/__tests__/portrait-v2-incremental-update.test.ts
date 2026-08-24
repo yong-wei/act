@@ -8,6 +8,7 @@ import {
   updatePortraitV2Incrementally,
 } from '../portrait-v2-incremental-update';
 import { materializeIncrementalPortraitV2 } from '../portrait-v2-materialization';
+import { TRUSTED_LEARNING_FACT_POLICY_VERSION } from '../trusted-learning-fact-filter';
 import { buildGovernedTaskEvidence } from '../simulation-task-evidence';
 import {
   buildSimulationTaskInputIdentity,
@@ -94,7 +95,7 @@ describe('portrait v2 incremental updates', () => {
     expect(result.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(100);
   });
   it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN])('reports governed mapping issues for invalid fact rubricWeight %s', (rubricWeight) => {
-    const mapped = mapLearningFactsToPortraitEvidence([{ id: 'invalid-weight', startedAt: new Date(baselineAt), createdAt: new Date(baselineAt), outcome: 'success', score: 1, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight } }]);
+    const mapped = mapLearningFactsToPortraitEvidence([{ id: 'invalid-weight', startedAt: new Date(baselineAt), createdAt: new Date(baselineAt), outcome: 'success', score: 1, competencyContribution: { controlModeling: 1 }, contextJson: governedContext({ rubricWeight }) }]);
     expect(mapped.mappingIssues).toContain('invalid-rubric-weight:invalid-weight');
     expect(mapped.evidence[0].rubricWeight).toBe(1);
   });
@@ -281,6 +282,43 @@ describe('portrait v2 incremental updates', () => {
     expect(mapped.evidence.find((item) => item.id === 'path-only')?.outcome).toBe('context-only');
     expect(mapped.evidence.find((item) => item.id === 'known')?.contributions.controllerDesignSynthesis).toBe(0.8);
     expect(mapped.mappingIssues).toEqual(['unknown-portrait-dimension:futureDimension']);
+  });
+
+  it('does not produce profile evidence or change scores for a materialized client fact without a contribution', () => {
+    const previous = baseline();
+    const mapped = mapLearningFactsToPortraitEvidence([
+      fact('forged-client-contribution', {}, {
+        interactiveQuiz: { score: 100, cards: [{ cardId: 'q1', answered: true, isCorrect: true }] },
+      }),
+    ]);
+    const result = updatePortraitV2Incrementally({
+      userId: previous.userId,
+      previous,
+      evidence: mapped.evidence,
+      generatedAt: '2026-05-02T00:00:00.000Z',
+    });
+
+    expect(mapped.evidence).toHaveLength(1);
+    expect(mapped.evidence[0]?.contributions).toEqual({});
+    expect(mapped.evidence.filter(isPortraitV2ProfileEvidence)).toEqual([]);
+    expect(result.affectedDimensions).toEqual([]);
+    expect(result.payload.dimensions.map((item) => item.score)).toEqual(
+      previous.dimensions.map((item) => item.score),
+    );
+  });
+
+  it('maps a LearningFact without evidence governance as context-only', () => {
+    const mapped = mapLearningFactsToPortraitEvidence([{
+      id: 'unmanaged',
+      startedAt: new Date('2026-05-02T00:00:00.000Z'),
+      createdAt: new Date('2026-05-02T00:00:01.000Z'),
+      outcome: 'success',
+      score: 1,
+      competencyContribution: { controlModeling: 1 },
+      contextJson: {},
+    }]);
+
+    expect(mapped.evidence).toMatchObject([{ id: 'unmanaged', outcome: 'context-only' }]);
   });
 
   it('keeps a Yang Fan-style rich baseline intact when a sparse path-selection fact is context-only', () => {
@@ -755,6 +793,48 @@ describe('portrait v2 incremental updates', () => {
     ]);
   });
 
+  it('materializes anchored workbench and native grading facts into a portrait snapshot', async () => {
+    const previous = baseline();
+    const workbenchFact = {
+      ...fact('fact-workbench-grading', { controlModeling: 1 }, {}),
+      sourceEventId: 'grading:run-workbench-1:criterion-modeling:rubric-v1',
+      sourceLogId: 'draft-approved-1',
+    };
+    const nativeFact = {
+      ...fact('fact-native-grading', { engineeringDecision: 1 }, {}),
+      sourceEventId: 'adaptive-assessment:document-rubric-grading:run-native-1:criterion-decision:rubric-v1',
+      sourceLogId: 'audit-1',
+    };
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
+      previous,
+      [workbenchFact, nativeFact],
+      0,
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(result).toMatchObject({
+      written: true,
+      stateKind: 'SNAPSHOT',
+      evidenceCount: 2,
+    });
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        stateKind: 'SNAPSHOT',
+        trustedFactIds: expect.arrayContaining([workbenchFact.id, nativeFact.id]),
+      }),
+    }));
+    const payload = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    expect(payload.dimensions.find((dimension) =>
+      dimension.id === 'controlModelingRepresentation')?.score).toBeGreaterThan(
+      previous.dimensions.find((dimension) => dimension.id === 'controlModelingRepresentation')!.score,
+    );
+    expect(payload.dimensions.find((dimension) =>
+      dimension.id === 'engineeringConstraintSafety')?.evidenceSummary.totalCount).toBeGreaterThan(0);
+  });
+
   it('projects governed task evidence into only the seventh dimension in the fenced learner lane', async () => {
     const previous = baseline();
     const existing = {
@@ -915,6 +995,35 @@ describe('portrait v2 incremental updates', () => {
     expect(result.rebuildRequired).toBe(true);
   });
 
+  it('requires a full rebuild when only the trusted fact policy version changes', async () => {
+    const previous = baseline();
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
+      previous,
+      [existing],
+      1,
+      BigInt(7),
+      'trusted-learning-fact-policy.v0',
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-01T00:00:01.000Z'),
+    });
+
+    expect(result.rebuildRequired).toBe(true);
+    expect(snapshotCreate).toHaveBeenCalled();
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        snapshotId: 'portrait-incremental',
+        trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
+        trustedFactIds: [existing.id],
+      }),
+    }));
+  });
+
   it('folds an ordinary multi-fact materialization like consecutive single-fact updates', async () => {
     const previous = baseline();
     const existing = {
@@ -1047,14 +1156,34 @@ describe('portrait v2 incremental updates', () => {
   });
 });
 
-function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {
+function governedContext(context: Record<string, unknown> = {}) {
+  const declaredGovernance = context.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...context,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
+function fact(id: string, contribution: Record<string, number>, contextJson: Record<string, unknown>) {
   return {
     id,
+    sourceEventId: `adaptive-assessment:${id}`,
+    sourceLogId: `governed-log:${id}`,
+    knowledgeRevisionRef: null,
     startedAt: new Date('2026-05-02T00:00:00.000Z'),
     outcome: 'success',
     score: 1,
     competencyContribution: contribution,
-    contextJson,
+    contextJson: governedContext(contextJson),
     createdAt: new Date('2026-05-02T00:00:01.000Z'),
   };
 }
@@ -1064,6 +1193,7 @@ function cumulativeMaterializationDb(
   facts: ReturnType<typeof fact>[],
   processedFactCount = 1,
   currentGeneration = BigInt(7),
+  trustedFactPolicyVersion: string = TRUSTED_LEARNING_FACT_POLICY_VERSION,
 ) {
   const journal = facts.slice(0, processedFactCount).map((item, index) => ({
     id: `transition-${item.id}`,
@@ -1098,6 +1228,7 @@ function cumulativeMaterializationDb(
       lastTrend: 'stable',
       lastRisk: null,
       stateKind: 'SNAPSHOT',
+      trustedFactPolicyVersion,
       snapshot: { id: 'portrait-existing', payload: structuredClone(previous) },
     },
   };

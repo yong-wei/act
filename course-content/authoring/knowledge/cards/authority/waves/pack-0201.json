@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0201",
+  "offset": 1005,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-a0440022b39b4796d91d4e3d",
+      "batch": "C",
+      "name": "绝对式轴角编码",
+      "definition": "绝对式轴角编码。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "绝对式轴角编码",
+        "包含组件·多极双通…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 绝对式轴角编码\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 绝对式轴角编码。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「绝对式轴角编码」、「包含组件·多极双通…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bc0986d0d67b0409733e3b95",
+      "batch": "C",
+      "name": "信号复现滤波器",
+      "definition": "信号复现滤波器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "信号复现滤波器",
+        "是一种·保持器",
+        "包含组件·信号复现…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 信号复现滤波器\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 信号复现滤波器。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「信号复现滤波器」、「是一种·保持器」、「包含组件·信号复现…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "batch": "C",
+      "name": "单位阶跃响应",
+      "definition": "单位阶跃响应。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃响应",
+        "派生自·单位阶跃函数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位阶跃响应\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位阶跃响应。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位阶跃响应」、「派生自·单位阶跃函数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
+      "batch": "C",
+      "name": "单位阶跃函数",
+      "definition": "单位阶跃函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位阶跃函数",
+        "包含组件·典型输入…",
+        "派生自·单位阶跃响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位阶跃函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位阶跃函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位阶跃函数」、「包含组件·典型输入…」、「派生自·单位阶跃响应」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
+      "batch": "C",
+      "name": "单位斜坡函数",
+      "definition": "单位斜坡函数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "单位斜坡函数",
+        "包含组件·典型输入…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 单位斜坡函数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 单位斜坡函数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「单位斜坡函数」、「包含组件·典型输入…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

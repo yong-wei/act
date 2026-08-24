@@ -23,6 +23,7 @@ const V9 = 'course-content/authoring/knowledge/releases/control-theory-engineeri
 const V10 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.10';
 const V11 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.11';
 const V12 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.12';
+const V13 = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.13';
 
 // Verified from vendored control-theory-engineering-v0.10 projections under
 // m1m-v2n-release-tier-preserving public profile reconstruction.
@@ -46,6 +47,14 @@ const V12_PROJECTION_DIGESTS = {
   runtime: '2c72cb134126796ba0f4b6929a49babb6d14827b47949e232d26b5670960349a',
   domain: '99ec9a24467213e32eedfc28d4b7a31f63fd0d2d0b72d00d5bb550d5ab24d02e',
   review: '07f1aced746d2985e1369888db808f5b2bbfd882cbe45706b6462b67ae2e6c4b',
+} as const;
+
+// Verified from vendored control-theory-engineering-v0.13 projections under
+// m1p-v7r-terminal-relation-preserving public profile reconstruction.
+const V13_PROJECTION_DIGESTS = {
+  runtime: '931baa4e3647847914a4ef42eefdfdfbd7cd31914552badac48d76bdd6aaf7d8',
+  domain: '88265d56582c07e689af649540d9c4cfa5dfbb41a4892e950e350f413eb67b8e',
+  review: 'defb7e59471e263ef97e2dbde83a9b546f5b81e033edb6b34199c23d483cae39',
 } as const;
 
 describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
@@ -317,6 +326,54 @@ describe('ActKG canonical digests (validation.py / public_bundle.py)', () => {
           null,
           entry.profile,
           'm1n-v1l-release-tier-preserving',
+        ),
+      ).not.toBe(entry.expectedDigest);
+    }
+  });
+
+  it('recomputes vendored v0.13 projection digests with the M1P V7R policy and rejects the prior policy', async () => {
+    const aggregationPolicy = 'm1p-v7r-terminal-relation-preserving';
+    expect(PROJECTION_AGGREGATION_POLICIES).toContain(aggregationPolicy);
+    const cases: Array<{
+      file: string;
+      profile: 'runtime' | 'domain' | 'review';
+      expectedDigest: string;
+    }> = [
+      {
+        file: 'act-projection.json',
+        profile: 'runtime',
+        expectedDigest: V13_PROJECTION_DIGESTS.runtime,
+      },
+      {
+        file: 'domain-projection.json',
+        profile: 'domain',
+        expectedDigest: V13_PROJECTION_DIGESTS.domain,
+      },
+      {
+        file: 'review-projection.json',
+        profile: 'review',
+        expectedDigest: V13_PROJECTION_DIGESTS.review,
+      },
+    ];
+    for (const entry of cases) {
+      const projection = JSON.parse(
+        await readFile(path.join(root, V13, entry.file), 'utf8'),
+      ) as JsonObject;
+      expect(String(projection.version_digest)).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          aggregationPolicy,
+        ),
+      ).toBe(entry.expectedDigest);
+      expect(
+        computeProjectionVersionDigest(
+          projection,
+          null,
+          entry.profile,
+          'm1o-v1d-release-tier-preserving',
         ),
       ).not.toBe(entry.expectedDigest);
     }

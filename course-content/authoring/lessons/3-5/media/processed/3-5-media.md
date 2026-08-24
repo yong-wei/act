@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=83bbc25e250c95cc05d9016a894c0cda&v=1775535631403&puid=26652392&enc=f1b6b392277fecefc1ac1c16efb25eb7&wps=0d1890266e94c7ffe70b3fba9977f998d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-5-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-5-audio.m4a
 
 - 零点对控制系统的物理重构

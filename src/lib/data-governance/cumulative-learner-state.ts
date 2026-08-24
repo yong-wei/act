@@ -51,6 +51,9 @@ interface SerializedFact {
   competencyContribution: unknown;
   contextJson: unknown;
   createdAt: string;
+  sourceEventId: string | null;
+  sourceLogId: string | null;
+  knowledgeRevisionRef: string | null;
 }
 
 export function buildLearnerFactTransitionDraft(input: {
@@ -163,10 +166,18 @@ export function requiresFullLearnerRebuild(input: {
   currentWatermark: bigint;
   currentCalculationVersion: string | null;
   targetCalculationVersion: string;
+  currentTrustedFactPolicyVersion?: string | null;
+  targetTrustedFactPolicyVersion?: string;
   currentLatestOccurredAt?: Date | null;
   currentLatestFactId?: string | null;
 }): boolean {
   if (input.currentCalculationVersion !== input.targetCalculationVersion) return true;
+  if (
+    input.targetTrustedFactPolicyVersion !== undefined &&
+    input.currentTrustedFactPolicyVersion !== input.targetTrustedFactPolicyVersion
+  ) {
+    return true;
+  }
   const appended = orderTransitions(input.transitions)
     .filter((transition) => transition.sequence > input.currentWatermark);
   if (appended.some((transition) =>
@@ -233,6 +244,9 @@ function correctedFact(source: PortraitLearningFactDelta, payload: unknown): Por
     competencyContribution: structuredClone(fact.competencyContribution),
     contextJson: structuredClone(fact.contextJson),
     createdAt,
+    sourceEventId: readNullableString(fact.sourceEventId),
+    sourceLogId: readNullableString(fact.sourceLogId),
+    knowledgeRevisionRef: readNullableString(fact.knowledgeRevisionRef),
   };
 }
 
@@ -244,6 +258,9 @@ function serializeFact(fact: PortraitLearningFactDelta): SerializedFact {
     competencyContribution: structuredClone(fact.competencyContribution),
     contextJson: structuredClone(fact.contextJson),
     createdAt: fact.createdAt.toISOString(),
+    sourceEventId: fact.sourceEventId ?? null,
+    sourceLogId: fact.sourceLogId ?? null,
+    knowledgeRevisionRef: fact.knowledgeRevisionRef ?? null,
   };
 }
 
@@ -254,7 +271,14 @@ function cloneFact(fact: PortraitLearningFactDelta): PortraitLearningFactDelta {
     createdAt: new Date(fact.createdAt),
     competencyContribution: structuredClone(fact.competencyContribution),
     contextJson: structuredClone(fact.contextJson),
+    sourceEventId: fact.sourceEventId ?? null,
+    sourceLogId: fact.sourceLogId ?? null,
+    knowledgeRevisionRef: fact.knowledgeRevisionRef ?? null,
   };
+}
+
+function readNullableString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

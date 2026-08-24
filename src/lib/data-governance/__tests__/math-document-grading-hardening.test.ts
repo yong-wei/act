@@ -90,7 +90,7 @@ describe('issue #916 phase-one governance hardening', () => {
         findFirst: async () => null,
         create: async ({ data }: any) => { created.push(data); return { ...data, blocks: data.blocks.create }; },
       },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-materialize-1' }) },
     };
 
     await materializeTextAnswerEvidence({
@@ -148,7 +148,7 @@ describe('issue #916 phase-one governance hardening', () => {
         update: async ({ where, data }: any) => { const row = tombstones.find((candidate) => candidate.resourceKey === where.resourceKey); Object.assign(row, data); return row; },
       },
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-retry-1' }) },
     };
     const store = new MemorySubmissionObjectStore();
 
@@ -186,9 +186,13 @@ describe('issue #916 phase-one governance hardening', () => {
       classId: 'class-hardening-1',
       metadata: { questionId: 'question-hardening-1', text: 'do not persist this' },
     };
-    const db: any = { gradingAuditEvent: { create: async ({ data }: any) => { events.push(data); return data; } } };
+    const db: any = { gradingAuditEvent: { create: async ({ data }: any) => {
+      events.push(data);
+      return { id: `audit-${events.length}`, ...data };
+    } } };
 
-    await writeGradingAudit(db, { ...input, metadata: { ...input.metadata, attempt: 1, errorCode: 'provider-timeout' } });
+    await expect(writeGradingAudit(db, { ...input, metadata: { ...input.metadata, attempt: 1, errorCode: 'provider-timeout' } }))
+      .resolves.toEqual({ id: 'audit-1' });
     await writeGradingAudit(db, { ...input, metadata: { ...input.metadata, attempt: 2, errorCode: 'provider-timeout' } });
     await writeGradingAudit(db, { ...input, metadata: { ...input.metadata, attempt: 2, error: 'object-store-delete-failed' } });
 
@@ -493,7 +497,7 @@ describe('issue #916 phase-one governance hardening', () => {
         findUnique: async () => item,
         update: async ({ data }: any) => { Object.assign(item, data); return item; },
       },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-retry-item-1' }) },
     };
     await expect(retryQuestionGradingBatchItem({ db, batchId: batch.id, itemId: item.id, actor: { id: 'teacher-hardening-1', role: 'TEACHER' }, idempotencyKey: 'retry-hardening-001', reason: 'retry provider failure', now })).rejects.toThrow('batch-item-not-retryable');
 

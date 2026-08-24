@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-69488c745082536d87afd1a7",
+  "safe_id": "ctkg_v3e-object-69488c745082536d87afd1a7",
+  "node": {
+    "name": "Closed-loop bandwidth",
+    "name_en": "Closed-loop bandwidth",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Closed-loop bandwidth：The closed-loop bandwidth is defined in Section 6.1 and Fig. 6.5. For a second-order system, the natural frequency is a…",
+  "intuition": null,
+  "explanation": "The closed-loop bandwidth is defined in Section 6.1 and Fig. 6.5. For a second-order system, the natural frequency is always within a factor of two of the bandwidth.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Closed-loop…",
+    "Closed-loop "
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-69488c745082536d87afd1a7.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,68 @@
+{
+  "pack_id": "P0141",
+  "offset": 705,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "batch": "B",
+      "name": "自然频率",
+      "definition": "ω_n = √(K/T_m) 为自然频率（或无阻尼振荡频率）。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自然频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 自然频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): ω_n = √(K/T_m) 为自然频率（或无阻尼振荡频率）。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「自然频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2b6644abd74af728f92d1b25",
+      "batch": "B",
+      "name": "等倾线",
+      "definition": "当相轨迹经过该等倾线上任一点时，其切线的斜率都相等，均为 α。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "等倾线",
+        "属于·等倾线法",
+        "属于·相平面",
+        "包含组件·等倾线法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 等倾线\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当相轨迹经过该等倾线上任一点时，其切线的斜率都相等，均为 α。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「等倾线」、「属于·等倾线法」、「属于·相平面」、「包含组件·等倾线法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3e6161451d16517ada4cd5e8",
+      "batch": "B",
+      "name": "中频区宽度",
+      "definition": "已校正系统中频区（-20dB/dec斜率）占据的频率范围宽度。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "中频区宽度"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 中频区宽度\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 已校正系统中频区（-20dB/dec斜率）占据的频率范围宽度。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「中频区宽度」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3f8e288fedb8ba46bfd02185",
+      "batch": "B",
+      "name": "频率响应法校正设计",
+      "definition": "在线性控制系统中，常用的校正装置设计方法有分析法和综合法两种。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "频率响应法校正设计",
+        "属于·串联超前校正",
+        "包含组件·综合法（…",
+        "包含组件·分析法（…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 频率响应法校正设计\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在线性控制系统中，常用的校正装置设计方法有分析法和综合法两种。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「频率响应法校正设计」、「属于·串联超前校正」、「包含组件·综合法（…」、「包含组件·分析法（…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ade57f97833b42fe6394301d",
+      "batch": "B",
+      "name": "否成立",
+      "definition": "对矩阵A的所有特征值检验rank[λI-A B]=n是否成立。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "否成立",
+        "是一种·PBH秩判据"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 否成立\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 对矩阵A的所有特征值检验rank[λI-A B]=n是否成立。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「否成立」、「是一种·PBH秩判据」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "created_at": "2026-08-05T07:38:03+00:00",
+  "pending_A": 37,
+  "pending_B": 829,
+  "pending_C": 284,
+  "pending_total": 1150,
+  "waves": [
+    {
+      "wave_id": "W0",
+      "batch": "A",
+      "count": 37,
+      "file": "wave-W0-A-rest.json"
+    },
+    {
+      "wave_id": "W1",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W1-B-000.json"
+    },
+    {
+      "wave_id": "W2",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W2-B-050.json"
+    },
+    {
+      "wave_id": "W3",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W3-B-100.json"
+    },
+    {
+      "wave_id": "W4",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W4-B-150.json"
+    },
+    {
+      "wave_id": "W5",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W5-B-200.json"
+    },
+    {
+      "wave_id": "W6",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W6-B-250.json"
+    },
+    {
+      "wave_id": "W7",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W7-B-300.json"
+    },
+    {
+      "wave_id": "W8",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W8-B-350.json"
+    },
+    {
+      "wave_id": "W9",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W9-B-400.json"
+    },
+    {
+      "wave_id": "W10",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W10-B-450.json"
+    },
+    {
+      "wave_id": "W11",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W11-B-500.json"
+    },
+    {
+      "wave_id": "W12",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W12-B-550.json"
+    },
+    {
+      "wave_id": "W13",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W13-B-600.json"
+    },
+    {
+      "wave_id": "W14",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W14-B-650.json"
+    },
+    {
+      "wave_id": "W15",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W15-B-700.json"
+    },
+    {
+      "wave_id": "W16",
+      "batch": "B",
+      "count": 50,
+      "file": "wave-W16-B-750.json"
+    },
+    {
+      "wave_id": "W17",
+      "batch": "B",
+      "count": 29,
+      "file": "wave-W17-B-800.json"
+    },
+    {
+      "wave_id": "W18",
+      "batch": "C",
+      "count": 50,
+      "file": "wave-W18-C-000.json"
+    },
+    {
+      "wave_id": "W19",
+      "batch": "C",
+      "count": 50,
+      "file": "wave-W19-C-050.json"
+    },
+    {
+      "wave_id": "W20",
+      "batch": "C",
+      "count": 50,
+      "file": "wave-W20-C-100.json"
+    },
+    {
+      "wave_id": "W21",
+      "batch": "C",
+      "count": 50,
+      "file": "wave-W21-C-150.json"
+    },
+    {
+      "wave_id": "W22",
+      "batch": "C",
+      "count": 50,
+      "file": "wave-W22-C-200.json"
+    },
+    {
+      "wave_id": "W23",
+      "batch": "C",
+      "count": 34,
+      "file": "wave-W23-C-250.json"
+    }
+  ],
+  "parallelism": {
+    "image_gen_per_round": 5,
+    "note": "Main agent only can call image_gen; subagents handle queue/register/export/review assist"
+  }
+}

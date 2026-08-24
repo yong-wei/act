@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T14:49:24+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-aecaf4cad61113646c40ec0c",
+  "safe_id": "ctkg_v3e-object-aecaf4cad61113646c40ec0c",
+  "node_name": "Log-magnitude-phase diagram",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack0009"
+}

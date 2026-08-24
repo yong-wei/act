@@ -20,7 +20,28 @@ import {
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
 } from '../student-evidence-feature-cache';
 
+function governedContext(context: unknown) {
+  const base = context && typeof context === 'object' && !Array.isArray(context)
+    ? context as Record<string, unknown>
+    : {};
+  const declaredGovernance = base.evidenceGovernance;
+  const evidenceGovernance = declaredGovernance && typeof declaredGovernance === 'object' && !Array.isArray(declaredGovernance)
+    ? declaredGovernance
+    : {};
+  return {
+    ...base,
+    evidenceGovernance: {
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'rich_objective_evidence',
+      ...evidenceGovernance,
+    },
+  };
+}
+
 function fact(overrides: Partial<LearningFact> = {}): LearningFact {
+  const { contextJson, ...rest } = overrides;
   return {
     id: 'fact-1',
     userId: 'student-1',
@@ -37,7 +58,7 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     sourceLogId: 'log-1',
     courseId: 'course-1',
     lessonId: 'lesson-1',
-    contextJson: {},
+    contextJson: governedContext(contextJson),
     knowledgeIdentityNamespace: null,
     canonicalObjectId: null,
     aggregateReleaseSetId: null,
@@ -45,7 +66,7 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     knowledgeProjectionId: null,
     knowledgeRevisionRef: null,
     createdAt: new Date('2026-05-01T10:05:00.000Z'),
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -77,6 +98,48 @@ function clientArenaEvaluationEvent(overrides: Partial<LearningEvent> = {}): Lea
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('excludes ungoverned facts from source activity and competency features', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      facts: [{ ...fact(), contextJson: {} }],
+      now: new Date('2026-05-21T00:00:00.000Z'),
+    });
+
+    expect(payload.sourceCounts.LearningFact).toBe(0);
+    expect(payload.features.competencyContributions.controlModeling.evidenceCount).toBe(0);
+  });
+
+  it('excludes context-only facts from feature activity and evidence windows', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      facts: [
+        fact({
+          id: 'zero-weight',
+          contextJson: governedContext({
+            evidenceGovernance: { profileWeight: 0 },
+          }),
+        }),
+        fact({
+          id: 'skipped',
+          factType: 'media',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          contextJson: governedContext({
+            evidenceGovernance: { skipProfileContribution: true },
+          }),
+        }),
+      ],
+      now: new Date('2026-05-21T00:00:00.000Z'),
+    });
+
+    expect(payload.sourceCounts.LearningFact).toBe(0);
+    expect(payload.evidenceWindow).toEqual({
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    });
+    expect(payload.features.activity.totalFacts).toBe(0);
+  });
+
   it('reports multi-era knowledge identity coverage without reinterpreting historical scores', () => {
     const now = new Date('2026-07-30T00:00:00.000Z');
     const mixedFacts = [
@@ -927,13 +990,15 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
-  it('does not count client-materialized Arena evaluation events as official writeback evidence', () => {
+  it('excludes client-materialized Arena evaluation events from personalized evidence', () => {
     const materialized = eventToLearningFactInput(clientArenaEvaluationEvent());
 
     expect(materialized).toMatchObject({
       sourceEventId: 'client-event:arena_evaluation_complete:fake',
       contextJson: {
         evidenceGovernance: {
+          profileWeight: 0,
+          skipProfileContribution: true,
           policyReason: 'arena_client_evaluation_context_only',
         },
       },
@@ -946,8 +1011,8 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
 
     expect((payload.features as any).simulationArena.recent30d).toMatchObject({
-      evidenceCount: 1,
-      completedCount: 1,
+      evidenceCount: 0,
+      completedCount: 0,
       officialCount: 0,
     });
   });
@@ -1402,6 +1467,40 @@ describe('student evidence feature cache service', () => {
     );
   });
 
+  it('persists eligible fact counts and timestamps instead of raw audit rows', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'context-only-audit-row',
+            startedAt: new Date('2026-05-19T10:00:00.000Z'),
+            contextJson: {
+              evidenceGovernance: {
+                evidenceQuality: 'context-only',
+                profileWeight: 0,
+                skipProfileContribution: true,
+                policyReason: 'audit-only-source',
+              },
+            },
+          }),
+        ]),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-1', {
+      now: new Date('2026-05-20T00:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      sourceCounts: { LearningFact: 0 },
+      sourceFactCount: 0,
+      lastSourceFactAt: null,
+    });
+  });
+
   it('keeps path-only evidence fresh after rebuild', async () => {
     const db = {
       learningFact: {
@@ -1811,9 +1910,7 @@ describe('student evidence feature cache service', () => {
       })
     ).resolves.toMatchObject({
       state: 'stale',
-      cache: {
-        userId: 'student-1',
-      },
+      cache: null,
     });
   });
 
@@ -1852,12 +1949,12 @@ describe('student evidence feature cache service', () => {
     });
   });
 
-  it('marks old payload versions without adaptive learner-state features as stale', async () => {
+  it('marks pre-governance v5 payloads as stale even when they are recent', async () => {
     const db = {
       studentEvidenceFeatureCache: {
         findUnique: vi.fn().mockResolvedValue({
           userId: 'student-1',
-          payloadVersion: 'student-evidence-features.v1',
+          payloadVersion: 'student-evidence-features.v5',
           refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
           statusMarkers: [],
           features: {
@@ -1873,10 +1970,7 @@ describe('student evidence feature cache service', () => {
       })
     ).resolves.toMatchObject({
       state: 'stale',
-      cache: {
-        userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v1',
-      },
+      cache: null,
     });
   });
 

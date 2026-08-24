@@ -1,0 +1,34 @@
+{
+  "description": "Bounded v2 semantic seed used by adapter tests. Identities are fixture-local.",
+  "knowledge_nodes": [
+    {
+      "entity_id": "ctc:mini-gain",
+      "display_name": "增益",
+      "entity_type": "DomainConcept",
+      "release_tier": "gold"
+    },
+    {
+      "entity_id": "ctc:mini-state-variable",
+      "display_name": "状态变量",
+      "entity_type": "DomainConcept",
+      "release_tier": "gold"
+    }
+  ],
+  "relations": [
+    {
+      "relation_id": "ctkg:mini-relation-associates",
+      "source_id": "ctc:mini-gain",
+      "target_id": "ctc:mini-state-variable",
+      "relation_type": "association"
+    }
+  ],
+  "zh_cn_labels": [
+    {
+      "entity_id": "ctc:mini-gain",
+      "language": "zh-CN",
+      "label": "增益",
+      "label_type": "canonical_preferred",
+      "terminology_assertion_id": "ctt:mini-assertion-gain"
+    }
+  ]
+}

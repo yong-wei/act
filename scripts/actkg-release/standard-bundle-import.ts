@@ -535,7 +535,12 @@ async function assertIdempotentBundleMatches(
   linkMetadataRows: number,
 ): Promise<StandardBundleImportCounts> {
   const existing = await tx.actkgBundleReceipt.findUnique({
-    where: { bundleDigest: validated.bundleIdentity.bundleDigest },
+    where: {
+      bundleContractVersion_bundleDigest: {
+        bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+        bundleDigest: validated.bundleIdentity.bundleDigest,
+      },
+    },
   });
   if (!existing) fail('idempotent lookup missed an existing Bundle receipt');
   if (existing.candidateState !== ACCEPTED_CANDIDATE_STATE) {
@@ -1284,7 +1289,12 @@ async function importOnce(
     await acquireImportLocks(tx, validated);
 
     const existingDigest = await tx.actkgBundleReceipt.findUnique({
-      where: { bundleDigest: validated.bundleIdentity.bundleDigest },
+      where: {
+        bundleContractVersion_bundleDigest: {
+          bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+          bundleDigest: validated.bundleIdentity.bundleDigest,
+        },
+      },
     });
     if (existingDigest) {
       if (existingDigest.candidateState === ACCEPTED_CANDIDATE_STATE) {
@@ -1394,7 +1404,12 @@ export async function importValidatedActKGBundle(
     try {
       // Fast path: accepted digest already present outside a write transaction.
       const accepted = await db.actkgBundleReceipt.findUnique({
-        where: { bundleDigest: validated.bundleIdentity.bundleDigest },
+        where: {
+          bundleContractVersion_bundleDigest: {
+            bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+            bundleDigest: validated.bundleIdentity.bundleDigest,
+          },
+        },
       });
       if (accepted?.candidateState === ACCEPTED_CANDIDATE_STATE) {
         return db.$transaction(async (tx) => (
@@ -1416,7 +1431,12 @@ export async function importValidatedActKGBundle(
       }
       // After a conflict, prefer reading an accepted winner before retrying write.
       const accepted = await db.actkgBundleReceipt.findUnique({
-        where: { bundleDigest: validated.bundleIdentity.bundleDigest },
+        where: {
+          bundleContractVersion_bundleDigest: {
+            bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+            bundleDigest: validated.bundleIdentity.bundleDigest,
+          },
+        },
       });
       if (accepted?.candidateState === ACCEPTED_CANDIDATE_STATE) {
         return db.$transaction(async (tx) => (

@@ -21,10 +21,63 @@ function runNode(script, options = {}) {
   );
 }
 
+function runImageWolframSmoke() {
+  const image = process.env.MATH_CALC_TEST_IMAGE;
+  if (!image) return;
+  const passThrough = [
+    'WOLFRAM_CLOUD_MCP_URL',
+    'WOLFRAM_CLOUD_MCP_TOKEN',
+    'WOLFRAM_MCP_SERVICE_API_KEY',
+  ].filter((name) => process.env[name] !== undefined);
+  const dockerArgs = [
+    'run',
+    '--rm',
+    ...passThrough.flatMap((name) => ['-e', name]),
+    image,
+    './scripts/math-calc/check-wolfram-ready.sh',
+  ];
+  try {
+    const output = execFileSync('docker', dockerArgs, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+    assert.match(
+      output,
+      /Wolfram Cloud MCP 公式计算运行时可用/,
+      '生产等价镜像必须通过容器内真实 Wolfram Cloud MCP smoke',
+    );
+  } catch (error) {
+    throw new Error(`生产镜像 Wolfram Cloud MCP smoke 失败：${error.message}`);
+  }
+}
+
+function assertMissingWolframImageFailsClosed() {
+  const image = process.env.MATH_CALC_TEST_NEGATIVE_IMAGE;
+  if (!image) return;
+  let failedClosed = false;
+  try {
+    execFileSync(
+      'docker',
+      ['run', '--rm', image, 'node', '-e', 'process.stdout.write("unexpected-start")'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+  } catch {
+    failedClosed = true;
+  }
+  assert.ok(
+    failedClosed,
+    '无法访问 Wolfram Cloud MCP 的镜像必须被 entrypoint 拒绝启动',
+  );
+}
+
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
-  const mathCalcRequirements = read('scripts/math-calc/requirements.txt');
   const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const appPrismaClientFactory = read('src/lib/prisma-client.ts');
   const scriptPrismaClientFactory = read('scripts/lib/prisma-client.mjs');
@@ -63,6 +116,62 @@ function main() {
       `Docker runner 必须包含权威知识部署输入: ${requiredCopy}`,
     );
   }
+  const runnerStage = dockerfile.slice(
+    dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+  );
+  assert.match(
+    runnerStage,
+    /COPY --from=builder \/app\/course-content\/authoring\/knowledge\/authority[\s\S]*RUN rm -f[\s\S]*course-content\/authoring\/knowledge\/authority\/current\.json[\s\S]*course-content\/runtime\/knowledge\/projection\/current\.json/,
+    'Docker runner 必须在复制候选 authority/projection 工件后删除 production current pointer',
+  );
+  assert.ok(
+    dockerignore.includes('!course-content/runtime/knowledge/authority-domain-shards/**'),
+    'Docker ignore 必须放行 immutable Authority domain shard set',
+  );
+  for (const allowedRuntimeAsset of [
+    '!course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '!course-content/runtime/knowledge/cards/authority/**',
+    '!course-content/runtime/knowledge/infographs/authority/**',
+  ]) {
+    assert.ok(
+      dockerignore.includes(allowedRuntimeAsset),
+      `Docker ignore 必须放行 Authority 学习内容: ${allowedRuntimeAsset}`,
+    );
+  }
+  assert.match(
+    dockerfile,
+    /course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*COPY --from=builder \/app\/course-content\/runtime\/knowledge\/authority-domain-shards \.\/course-content\/runtime\/knowledge\/authority-domain-shards[\s\S]*course-content\/runtime\/knowledge\/authority-domain-shards\/current\.json/,
+    'Docker builder/runner 必须覆盖 Authority domain shard set，并删除 runtime current pointer',
+  );
+  assert.ok(
+    runnerStage.indexOf('course-content/authoring/knowledge/releases') >= 0,
+    'Docker runner 必须保留 authority candidate release assets',
+  );
+  assert.ok(
+    runnerStage.indexOf('RUN rm -f') >
+      runnerStage.indexOf('COPY --from=builder /app/course-content/runtime/knowledge/projection'),
+    'Docker runner 的 current pointer 删除必须发生在 projection COPY 之后',
+  );
+  for (const requiredLearningCopy of [
+    '/app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json',
+    '/app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority',
+    '/app/course-content/runtime/knowledge/infographs/authority ./course-content/runtime/knowledge/infographs/authority',
+  ]) {
+    assert.ok(
+      runnerStage.includes(requiredLearningCopy),
+      `Docker runner 必须包含 Authority 学习内容: ${requiredLearningCopy}`,
+    );
+  }
+  assert.match(
+    remoteDeployScript,
+    /REMOTE_AUTHORITY_CURRENT_POINTER="\$\{REMOTE_AUTHORITY_CURRENT_POINTER:-\$\{REMOTE_PROJECT_DIR\}\/course-content\/authoring\/knowledge\/authority\/current\.json\}"/,
+    'remote deploy 必须固定检查远端 host authoring Authority current pointer',
+  );
+  assert.match(
+    remoteDeployScript,
+    /legacy-rsync 已退役/,
+    'legacy-rsync 已退役后不得再作为可执行 runtime 同步路径',
+  );
   assert.match(
     dockerfile,
     /ARG APP_REVISION[\s\S]*printf '%s\\n' "\$\{APP_REVISION\}" > \/app\/\.app-revision/,
@@ -129,23 +238,33 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /RUN python3 -c '[\s\S]*scripts\/math-calc\/calc\.py[\s\S]*payload\["status"\] == "ok"[\s\S]*payload\["steps"\]\[0\]\["operation"\] == "identify"[\s\S]*'/,
-    'Dockerfile 必须在 runner 阶段执行 calc.py 的真实 SymPy/LaTeX 烟测',
+    /FROM node:20-bookworm-slim AS base/,
+    'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /FROM node:20-alpine/,
+    'Docker 构建链不得从 Alpine 生成生产依赖或 standalone 产物',
   );
   assert.match(
     dockerfile,
-    /COPY scripts\/math-calc\/requirements\.txt \/tmp\/math-calc-requirements\.txt[\s\S]*pip install[\s\S]*-r \/tmp\/math-calc-requirements\.txt/,
-    'Dockerfile 必须从 math-calc requirements 安装固定依赖',
+    /ENV WOLFRAM_CLOUD_MCP_URL=https:\/\/agenttools\.wolfram\.com\/mcp/,
+    'Dockerfile runner 必须默认连接官方 Wolfram Cloud MCP',
   );
-  assert.match(
-    mathCalcRequirements,
-    /^sympy==1\.13\.3$/m,
-    'math-calc requirements 必须固定 SymPy 1.13.3',
+  assert.doesNotMatch(
+    dockerfile,
+    /wolframresearch\/wolframengine|COPY --from=wolfram-provider|\/usr\/local\/Wolfram/,
+    'Dockerfile 不得再把本地 Wolfram Engine 烤进生产 runner；公式计算走 Wolfram Cloud MCP',
   );
-  assert.match(
-    mathCalcRequirements,
-    /^antlr4-python3-runtime==4\.11\.1$/m,
-    'math-calc requirements 必须固定 antlr4-python3-runtime 4.11.1',
+  assert.doesNotMatch(
+    dockerfile,
+    /WOLFRAM_ACTIVATION_PASSWORD|WOLFRAM_ID_PASSWORD|WOLFRAM_ACTIVATION_EMAIL|WOLFRAM_CLOUD_MCP_TOKEN/i,
+    'Dockerfile 不得嵌入 Wolfram 激活凭据或 Cloud MCP token',
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /scripts\/math-calc\/calc\.py|scripts\/math-calc\/requirements\.txt|sympy|parse_latex/i,
+    'Dockerfile 不得继续声明已移除的 SymPy 公式计算后端',
   );
 
   assert.match(
@@ -307,6 +426,21 @@ function main() {
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
   assert.match(
     entrypointScript,
+    /check-wolfram-ready\.sh/,
+    'docker-entrypoint.sh 必须调用 Wolfram Cloud MCP 就绪检查',
+  );
+  assert.match(
+    entrypointScript,
+    /exit 1/,
+    'docker-entrypoint.sh 必须在 Wolfram Cloud MCP 不可达或 smoke 失败时拒绝启动',
+  );
+  assert.match(
+    remoteDeployScript,
+    /check-wolfram-ready\.sh/,
+    'remote-deploy 最终阶段必须核验容器内 Wolfram Cloud MCP 就绪',
+  );
+  assert.match(
+    entrypointScript,
     /migrate deploy --config \.\/prisma\.config\.ts/,
     'docker-entrypoint.sh 必须通过 Prisma 7 config 执行 migrate deploy'
   );
@@ -391,6 +525,130 @@ function main() {
   const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
+    startWrapperScript,
+    /SKIP_WOLFRAM_READY_CHECK=1/,
+    '作业扫描/GC 不得在循环里重复探测 Wolfram Cloud MCP',
+  );
+  assert.match(
+    entrypointScript,
+    /SKIP_WOLFRAM_READY_CHECK/,
+    'entrypoint 必须允许跳过 Wolfram Cloud MCP 启动探测',
+  );
+
+  // Caller-pinned APP_IMAGE / ACT_KNOWLEDGE_DEPLOYMENT_MODE must win over .env.server.
+  {
+    const operatorCaptureIdx = deployScript.indexOf('operator_app_image_was_set=0');
+    const envFileLoopIdx = deployScript.indexOf(
+      'for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server"',
+    );
+    const modeCaptureIdx = deployScript.indexOf('operator_knowledge_mode_was_set=0');
+    assert.ok(operatorCaptureIdx >= 0, 'deploy.sh 必须捕获调用方 APP_IMAGE');
+    assert.ok(modeCaptureIdx >= 0, 'deploy.sh 必须捕获调用方 ACT_KNOWLEDGE_DEPLOYMENT_MODE');
+    assert.ok(
+      envFileLoopIdx > operatorCaptureIdx && envFileLoopIdx > modeCaptureIdx,
+      '调用方 APP_IMAGE/MODE 捕获必须发生在 source .env.server 之前',
+    );
+    assert.match(
+      deployScript,
+      /if \[ "\$operator_app_image_was_set" = "1" \]; then\s*\n\s*APP_IMAGE="\$operator_app_image"/,
+      'deploy.sh 必须在全部 env source 后恢复调用方 APP_IMAGE',
+    );
+    assert.match(
+      deployScript,
+      /if \[ "\$operator_knowledge_mode_was_set" = "1" \]; then\s*\n\s*ACT_KNOWLEDGE_DEPLOYMENT_MODE="\$operator_knowledge_mode"/,
+      'deploy.sh 必须在全部 env source 后恢复调用方 ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+    );
+    assert.match(
+      deployScript,
+      /-e ACT_KNOWLEDGE_DEPLOYMENT_MODE="\$ACT_KNOWLEDGE_DEPLOYMENT_MODE"/,
+      'app/worker 共享环境必须传递同一 ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+    );
+    const appImageUses = deployScript.match(/"\$APP_IMAGE"/g) ?? [];
+    assert.ok(
+      appImageUses.length >= 2,
+      'app 与 worker 必须使用同一 \$APP_IMAGE 变量启动',
+    );
+
+    const fixtureRoot = fs.mkdtempSync(path.join(root, '.tmp-deploy-env-priority-'));
+    try {
+      const deployDir = path.join(fixtureRoot, 'deploy', 'podman');
+      fs.mkdirSync(deployDir, { recursive: true });
+      fs.mkdirSync(path.join(fixtureRoot, 'data', 'runtime'), { recursive: true });
+      fs.writeFileSync(
+        path.join(fixtureRoot, '.env.server'),
+        [
+          'APP_IMAGE=from-env-server',
+          'ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy',
+          'SECRET_SHOULD_NOT_LEAK=super-secret-value',
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(fixtureRoot, 'data', 'runtime', 'act-obe.env'),
+        [
+          'APP_IMAGE=from-runtime-env',
+          'ACT_KNOWLEDGE_DEPLOYMENT_MODE=legacy',
+          '',
+        ].join('\n'),
+      );
+      const marker = 'ACT_KNOWLEDGE_DEPLOYMENT_MODE="${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}"';
+      assert.ok(deployScript.includes(marker), 'deploy.sh 必须保留 MODE 默认赋值点');
+      const instrumented = deployScript.replace(
+        marker,
+        `${marker}\nprintf 'RESOLVED_APP_IMAGE=%s\\nRESOLVED_MODE=%s\\n' "$APP_IMAGE" "$ACT_KNOWLEDGE_DEPLOYMENT_MODE"\nexit 0`,
+      );
+      const instrumentedPath = path.join(deployDir, 'deploy.sh');
+      fs.writeFileSync(instrumentedPath, instrumented);
+      fs.chmodSync(instrumentedPath, 0o700);
+
+      const callerPinned = execFileSync(
+        'bash',
+        [instrumentedPath, '--app-only'],
+        {
+          cwd: fixtureRoot,
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            APP_IMAGE: 'caller-fixed-image',
+            ACT_KNOWLEDGE_DEPLOYMENT_MODE: 'cutover',
+          },
+        },
+      );
+      assert.match(callerPinned, /RESOLVED_APP_IMAGE=caller-fixed-image/, '调用方 APP_IMAGE 必须覆盖 .env.server');
+      assert.match(callerPinned, /RESOLVED_MODE=cutover/, '调用方 MODE 必须覆盖 .env.server');
+      assert.doesNotMatch(
+        callerPinned,
+        /super-secret-value/,
+        'deploy env 解析输出不得泄露 .env.server 中的 secret',
+      );
+
+      const fileDefault = execFileSync(
+        'bash',
+        [instrumentedPath, '--app-only'],
+        {
+          cwd: fixtureRoot,
+          encoding: 'utf8',
+          env: Object.fromEntries(
+            Object.entries(process.env).filter(
+              ([key]) => key !== 'APP_IMAGE' && key !== 'ACT_KNOWLEDGE_DEPLOYMENT_MODE',
+            ),
+          ),
+        },
+      );
+      assert.match(fileDefault, /RESOLVED_APP_IMAGE=from-env-server/, '未指定调用方时必须保留 .env.server APP_IMAGE');
+      assert.match(fileDefault, /RESOLVED_MODE=legacy/, '未指定调用方时必须保留 .env.server MODE');
+      assert.doesNotMatch(fileDefault, /super-secret-value/, '默认路径也不得打印 secret');
+      assert.doesNotMatch(
+        fileDefault,
+        /RESOLVED_APP_IMAGE=from-runtime-env/,
+        'runtime env 不得覆盖 .env.server 中的 APP_IMAGE',
+      );
+    } finally {
+      fs.rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  }
+
+  assert.match(
     deployScript,
     /RUN_MIGRATIONS_ON_START="1"/,
     'Podman 部署脚本应显式开启启动迁移开关'
@@ -413,6 +671,9 @@ function main() {
     /\.\/node_modules\/\.bin\/tsx scripts\/workers\/data-governance-worker\.ts/,
     'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
   );
+
+  runImageWolframSmoke();
+  assertMissingWolframImageFailsClosed();
 
   assert.match(
     deployScript,
@@ -473,6 +734,26 @@ function main() {
     /redis-server --appendonly yes/,
     'Podman 部署脚本必须启动 Redis 容器'
   );
+  assert.doesNotMatch(
+    deployScript,
+    /WOLFRAM_LICENSE_VOLUME|act-obe-wolfram-license|WOLFRAM_ACTIVATION_EMAIL|WOLFRAMSCRIPT_ENTITLEMENTID/,
+    'deploy.sh 不得再创建或挂载本地 Wolfram Engine 许可卷',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_CLOUD_MCP_URL="\$\{WOLFRAM_CLOUD_MCP_URL:-https:\/\/agenttools\.wolfram\.com\/mcp\}"/,
+    'deploy.sh 必须默认连接官方 Wolfram Cloud MCP',
+  );
+  assert.match(
+    deployScript,
+    /check-wolfram-ready\.sh/,
+    'deploy.sh 必须用生产镜像执行真实 Wolfram Cloud MCP smoke 后再启动应用',
+  );
+  assert.match(
+    deployScript,
+    /WOLFRAM_CLOUD_MCP_URL="\$WOLFRAM_CLOUD_MCP_URL"/,
+    'deploy.sh 必须把 Cloud MCP URL 传入容器',
+  );
 
   assert.doesNotMatch(
     localImageBuildScript,
@@ -489,6 +770,23 @@ function main() {
     localImageBuildScript,
     /import-course-coverage-overlay\.ts --validate-only/,
     'release build 必须在干净 Git HEAD 上预校验 CourseCoverage Overlay',
+  );
+  assert.match(
+    localImageBuildScript,
+    /SKIP_WASM_BUILD=1 npm run build/,
+    'release build 宿主 Next 校验必须复用已提交的控制分析 Wasm 包，不得重写 tracked Wasm 输出',
+  );
+  const localNpmBuildIndex = localImageBuildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n');
+  const postLocalNpmBuildCleanCheckIndex = localImageBuildScript.indexOf(
+    'assert_clean_release_worktree',
+    localNpmBuildIndex,
+  );
+  const dockerBuildIndex = localImageBuildScript.indexOf('docker buildx build');
+  assert.ok(
+    localNpmBuildIndex >= 0
+      && postLocalNpmBuildCleanCheckIndex > localNpmBuildIndex
+      && dockerBuildIndex > postLocalNpmBuildCleanCheckIndex,
+    'release build 必须在宿主 npm build 后再次 fail-closed 检查可见工作树',
   );
   assert.match(
     localImageBuildScript,
@@ -537,7 +835,8 @@ function main() {
   );
   assert.ok(
     dockerMemoryCheckIndex >= 0
-      && dockerMemoryCheckIndex < localImageBuildScript.indexOf('\nnpm run build\n')
+      && localNpmBuildIndex >= 0
+      && dockerMemoryCheckIndex < localNpmBuildIndex
       && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
     'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
   );

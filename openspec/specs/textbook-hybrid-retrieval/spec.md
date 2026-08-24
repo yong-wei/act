@@ -35,7 +35,7 @@ The runtime SHALL expose a read-only lexical index, contiguous Float32 vector ma
 #### Scenario: Application process loads the index
 - **WHEN** the shared textbook retrieval module initializes
 - **THEN** one read-only index instance SHALL be shared within the application process
-- **AND** its resident index budget SHALL not exceed 150 MiB for the six textbooks and one reference collection.
+- **AND** its resident index budget SHALL not exceed 150 MiB for the current declared resource set.
 
 #### Scenario: Candidate body is needed
 - **WHEN** a retrieval window reaches the bounded candidate set
@@ -80,3 +80,85 @@ External embedding and reranking requests SHALL contain only the minimum normali
 - **WHEN** a caller also has learner state, path history, raw answers, private memory, or user identifiers
 - **THEN** those values SHALL NOT be sent to the textbook embedding or reranking service
 - **AND** authorized personalization SHALL remain in the local answer-generation context.
+
+### Requirement: Runtime index path is contractually fixed
+The system SHALL use `course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3` as the default runtime path for the BGE-M3 hybrid retrieval index. Index root resolution SHALL use explicit `indexRoot`, then `ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT`, then the default path.
+
+#### Scenario: No explicit path or environment variable
+- **WHEN** the textbook Source Pack adapter is called without `indexRoot` and `ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT` is unset
+- **THEN** the adapter SHALL resolve the index root to `course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3`
+
+#### Scenario: Environment variable overrides default
+- **WHEN** `ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT` is set and no explicit `indexRoot` is provided
+- **THEN** the adapter SHALL use the environment variable value
+
+#### Scenario: Explicit indexRoot overrides environment
+- **WHEN** a caller provides `indexRoot` and `ACT_TEXTBOOK_RETRIEVAL_INDEX_ROOT` is also set
+- **THEN** the explicit `indexRoot` SHALL win
+
+### Requirement: Runtime index windows are complete and verifiable
+The runtime hybrid retrieval index SHALL include `segments` for every index window, and every window SHALL resolve against the current structured `textbooks-v2` runtime.
+
+#### Scenario: Index verification against structured runtime
+- **WHEN** `textbook_hybrid_retrieval.py verify-index` runs against `textbooks-v2` and the canonical index directory
+- **THEN** every source window SHALL exist in the structured runtime
+- **AND** every owning unit SHALL resolve
+- **AND** window segments SHALL close over the body
+- **AND** the index manifest SHALL match the runtime source revision
+
+### Requirement: Build and deployment scripts use the canonical index path
+Build, release, and remote deployment scripts SHALL reference `resources/textbook-hybrid-retrieval/bge-m3` as the runtime retrieval index path. The raw course-runtime asset route SHALL NOT expose hybrid retrieval index files.
+
+#### Scenario: Release preflight validates canonical path
+- **WHEN** `build.sh` or `remote-deploy.sh` verifies the textbook runtime
+- **THEN** it SHALL point `index_root` to the canonical path
+- **AND** it SHALL fail closed when the index manifest is missing
+
+#### Scenario: Raw runtime route blocks index files
+- **WHEN** a request targets `resources/textbook-hybrid-retrieval/bge-m3/*` through the course-runtime route
+- **THEN** the route SHALL return 404
+
+### Requirement: Hybrid retrieval index generation and verification use the resource set
+The hybrid retrieval index builder and verifier SHALL derive the expected textbook set and expected book count from `course-content/config/textbook-resource-set.json`.
+
+#### Scenario: Index is built
+- **WHEN** the hybrid retrieval index builder runs
+- **THEN** it SHALL build windows and segments for every declared book
+- **AND** the index metadata SHALL record the resourceSetId and sourceRevision used by the build
+
+#### Scenario: Index is verified
+- **WHEN** the index verifier runs
+- **THEN** it SHALL compare the generated index against the declared resource set
+- **AND** it SHALL fail when windows, segments, manifestHash, sourceRevision, or resourceSetId are inconsistent
+
+#### Scenario: Explicit expected count conflicts with resource set
+- **WHEN** a caller passes an explicit expected book count that differs from the resource set
+- **THEN** verification SHALL fail closed
+- **AND** the caller SHALL NOT bypass resource set consistency through a stale count
+
+#### Scenario: Runtime book set diverges
+- **WHEN** the runtime contains the same number of books as the resource set but its book ids differ
+- **THEN** the builder and verifier SHALL fail closed
+- **AND** the generated or accepted index SHALL NOT be considered consistent based on book count alone
+
+#### Scenario: Resource set is invalid
+- **WHEN** the resource set has no books or contains invalid book ids
+- **THEN** the builder and verifier SHALL fail before producing or accepting an index
+
+### Requirement: Hybrid retrieval closes over the admitted textbook corpus
+The hybrid retrieval manifest SHALL bind the same resourceSetId, normalized book IDs and authoring source revision as the textbook corpus admission provenance. Its manifest identity and every per-book runtime manifest identity SHALL be verified before the external bundle is accepted. Equal book counts, shared Blob objects or a historical index SHALL NOT establish corpus consistency.
+
+#### Scenario: Runtime and index describe the same corpus
+- **WHEN** external bundle preflight validates a resource-set-complete textbook corpus
+- **THEN** the hybrid index book IDs SHALL equal the provenance book IDs exactly
+- **AND** its resourceSetId and authoring source revision SHALL equal the provenance and every runtime book manifest
+
+#### Scenario: Same-count index drift occurs
+- **WHEN** the hybrid index contains the same number of books but at least one book ID differs from provenance
+- **THEN** bundle preparation, publication and candidate activation SHALL fail closed
+
+#### Scenario: Historical index is present in OSS
+- **WHEN** a retained or rollback Release contains a valid historical index for a different book set
+- **THEN** that index SHALL remain attributable only to its immutable Release
+- **AND** its OSS reachability SHALL NOT qualify it as the active corpus index
+

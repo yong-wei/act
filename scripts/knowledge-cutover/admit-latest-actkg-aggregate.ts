@@ -13,6 +13,7 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
 } from '../../src/lib/authoritative-knowledge/contracts';
 import {
   assertFormalLearningFactSelectorUnchanged,
@@ -788,7 +789,12 @@ export async function admitLatestActkgAggregate(options: AdmissionOptions): Prom
     }
     await importBundle(options.db, validated);
     const candidateReceipt = await options.db.actkgBundleReceipt.findUnique({
-      where: { bundleDigest: hop.candidate.bundleDigest },
+      where: {
+        bundleContractVersion_bundleDigest: {
+          bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+          bundleDigest: hop.candidate.bundleDigest,
+        },
+      },
     });
     if (!candidateReceipt || candidateReceipt.candidateState !== ACCEPTED_CANDIDATE_STATE) {
       fail(`candidate Bundle receipt is not ACCEPTED_CANDIDATE at order ${hop.order}`);
@@ -902,36 +908,60 @@ export interface IsolatedAdmissionDatabase {
   name: string;
 }
 
+export interface IsolatedAdmissionDatabaseOptions {
+  /**
+   * Use a disposable schema in the configured database and never attempt
+   * CREATE DATABASE. This is required by cutover preparation runs that must
+   * not create or mutate another database on the local PostgreSQL service.
+   */
+  schemaOnly?: boolean;
+  /** Test seams; production callers leave these unset. */
+  adminClientFactory?: (connectionString: string) => Client;
+  migrationRunner?: typeof spawnSync;
+  prismaClientFactory?: typeof createPrismaClient;
+}
+
 /**
- * Provision an isolated PostgreSQL database (or schema when CREATE DATABASE is
- * unavailable) and run the checked-in Prisma migrations against it.
+ * Provision an isolated PostgreSQL database (or an explicitly requested
+ * schema) and run the checked-in Prisma migrations against it.
  */
-export async function createIsolatedAdmissionDatabase(repoRoot: string): Promise<IsolatedAdmissionDatabase> {
+export async function createIsolatedAdmissionDatabase(
+  repoRoot: string,
+  options: IsolatedAdmissionDatabaseOptions = {},
+): Promise<IsolatedAdmissionDatabase> {
   const baseUrl = process.env.DATABASE_URL;
   if (!baseUrl) throw new AdmissionDatabaseDeferred('DATABASE_URL is not configured');
   const name = `actkg_admission_${process.pid}_${Date.now()}`.replace(/[^a-zA-Z0-9_]/gu, '_').toLowerCase();
-  const admin = new Client({ connectionString: baseUrl });
+  const admin = (options.adminClientFactory ?? ((connectionString: string) => new Client({ connectionString })))(baseUrl);
+  const migrationRunner = options.migrationRunner ?? spawnSync;
+  const prismaClientFactory = options.prismaClientFactory ?? createPrismaClient;
   await admin.connect();
-  let mode: 'database' | 'schema' = 'database';
+  let mode: 'database' | 'schema' = options.schemaOnly ? 'schema' : 'database';
   let isolatedUrl = baseUrl;
   let created = false;
   try {
-    try {
-      await admin.query(`CREATE DATABASE "${name}"`);
-      const databaseUrl = new URL(baseUrl);
-      databaseUrl.pathname = `/${name}`;
-      databaseUrl.searchParams.delete('schema');
-      databaseUrl.searchParams.delete('options');
-      isolatedUrl = databaseUrl.toString();
-      created = true;
-    } catch (error) {
-      if ((error as { code?: string }).code !== '42501') throw error;
-      mode = 'schema';
+    if (options.schemaOnly) {
       await admin.query(`CREATE SCHEMA "${name}"`);
       isolatedUrl = schemaUrl(baseUrl, name);
       created = true;
+    } else {
+      try {
+        await admin.query(`CREATE DATABASE "${name}"`);
+        const databaseUrl = new URL(baseUrl);
+        databaseUrl.pathname = `/${name}`;
+        databaseUrl.searchParams.delete('schema');
+        databaseUrl.searchParams.delete('options');
+        isolatedUrl = databaseUrl.toString();
+        created = true;
+      } catch (error) {
+        if ((error as { code?: string }).code !== '42501') throw error;
+        mode = 'schema';
+        await admin.query(`CREATE SCHEMA "${name}"`);
+        isolatedUrl = schemaUrl(baseUrl, name);
+        created = true;
+      }
     }
-    const migration = spawnSync(process.execPath, ['node_modules/prisma/build/index.js', 'migrate', 'deploy'], {
+    const migration = migrationRunner(process.execPath, ['node_modules/prisma/build/index.js', 'migrate', 'deploy'], {
       cwd: repoRoot,
       encoding: 'utf8',
       env: { ...process.env, DATABASE_URL: isolatedUrl },
@@ -940,7 +970,7 @@ export async function createIsolatedAdmissionDatabase(repoRoot: string): Promise
     if (migration.status !== 0) fail(`isolated Prisma migration failed: ${migration.stderr || migration.stdout}`);
     const previous = process.env.DATABASE_URL;
     process.env.DATABASE_URL = isolatedUrl;
-    const db = createPrismaClient();
+    const db = prismaClientFactory();
     if (previous === undefined) delete process.env.DATABASE_URL;
     else process.env.DATABASE_URL = previous;
     return {

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+  "safe_id": "ctkg_v3e-object-f20650600a6b6301d29c6025",
+  "node": {
+    "name": "最大超前角",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "超前网络在最大超前角频率处达到的最大相角，φm=arcsin((a-1)/(a+1))。",
+  "intuition": null,
+  "explanation": "超前网络在最大超前角频率处达到的最大相角，φm=arcsin((a-1)/(a+1))。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "最大超前角"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f20650600a6b6301d29c6025.md",
+  "provider_policy": "grok-image_gen"
+}

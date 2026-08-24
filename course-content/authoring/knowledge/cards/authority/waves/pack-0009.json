@@ -1,0 +1,62 @@
+{
+  "pack_id": "P0009",
+  "offset": 45,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-87e2a628713912440978a4ac",
+      "batch": "B",
+      "name": "system without component in",
+      "definition": "system without component in：A system without a component in the feedback path, obtained by converting a general system through block-diagram algebr…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "system with…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: system without component in\nSOURCE DEFINITION (fail-closed, do not invent beyond this): system without component in：A system without a component in the feedback path, obtained by converting a general system through block-diagram algebr…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「system wit」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-785280d429b7e1a5f2f5db53",
+      "batch": "B",
+      "name": "Nyquist stability criterion",
+      "definition": "Nyquist stability criterion：The Nyquist stability criterion relates the open-loop frequency response to the number of closed-loop poles of the syst…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist sta…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nyquist stability criterion\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nyquist stability criterion：The Nyquist stability criterion relates the open-loop frequency response to the number of closed-loop poles of the syst…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nyquist st」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a9170d459013db92d3250926",
+      "batch": "B",
+      "name": "Nichols chart for compensated system",
+      "definition": "Nichols chart for compensated system：The Nichols chart is used to check the closed-loop bandwidth and the reshaping of the frequency response locus.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nichols cha…",
+        "用于分析·Comp…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nichols chart for compensated system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nichols chart for compensated system：The Nichols chart is used to check the closed-loop bandwidth and the reshaping of the frequency response locus.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nichols ch」、「用于分析·Comp…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-adb78e525721874d42e70f67",
+      "batch": "B",
+      "name": "SRL estimator design method",
+      "definition": "SRL estimator design method：A method using the symmetric root locus equation 1 + q G_e(-s) G_e(s) = 0 to select optimal estimator poles based on th…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "SRL estimat…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: SRL estimator design method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): SRL estimator design method：A method using the symmetric root locus equation 1 + q G_e(-s) G_e(s) = 0 to select optimal estimator poles based on th…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「SRL estima」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-aecaf4cad61113646c40ec0c",
+      "batch": "B",
+      "name": "Log-magnitude-phase diagram",
+      "definition": "Log-magnitude-phase diagram：A graphical presentation of frequency response plotting logarithmic magnitude in dB versus phase angle for a range of f…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Log-magnitu…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Log-magnitude-phase diagram\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Log-magnitude-phase diagram：A graphical presentation of frequency response plotting logarithmic magnitude in dB versus phase angle for a range of f…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Log-magnit」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -60,6 +60,7 @@ export interface TextbookIndexManifest {
   recordType: 'index-manifest';
   formatVersion: string;
   sourceRevision: string;
+  resourceSetId: string;
   model: string;
   observedDimension: number;
   normalizationVersion: string;

@@ -4,14 +4,24 @@ import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   orchestrateRemediation,
+  REMEDIATION_MANUAL_PRACTICE_PATH,
+  refreshRemediationOrchestration,
   readRemediationOrchestration,
   type RemediationOrchestrationDb,
 } from '@/features/assessment/remediation-orchestration';
+import {
+  attributeWrongAnswerEvidence,
+  type WrongAnswerAttributionDb,
+} from '@/features/assessment/wrong-answer-attribution';
 
 export const dynamic = 'force-dynamic';
 
 function orchestrationDb(): RemediationOrchestrationDb {
   return prisma as unknown as RemediationOrchestrationDb;
+}
+
+function attributionDb(): WrongAnswerAttributionDb {
+  return prisma as unknown as WrongAnswerAttributionDb;
 }
 
 function identifier(value: unknown): string | null {
@@ -33,18 +43,44 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
-    const attributionId = identifier(body && typeof body === 'object'
-      ? (body as Record<string, unknown>).attributionId
-      : null);
-    if (!attributionId) {
-      return NextResponse.json({ error: 'ATTRIBUTION_ID_REQUIRED' }, { status: 400 });
+    const record = body && typeof body === 'object' ? body as Record<string, unknown> : null;
+    const answerId = identifier(record?.answerId);
+    const attributionId = identifier(record?.attributionId);
+    const refreshKey = identifier(record?.refreshKey);
+    if (!answerId && !attributionId) {
+      return NextResponse.json({ error: 'ANSWER_OR_ATTRIBUTION_ID_REQUIRED' }, { status: 400 });
     }
 
-    const result = await orchestrateRemediation({
-      db: orchestrationDb(),
-      authenticatedUserId: learner.userId,
-      attributionId,
-    });
+    const attribution = answerId
+      ? await attributeWrongAnswerEvidence({
+          db: attributionDb(),
+          authenticatedUserId: learner.userId,
+          answerId,
+        })
+      : null;
+    if (answerId && !attribution) {
+      return NextResponse.json({
+        status: 'UNAVAILABLE',
+        unavailableReason: 'ATTRIBUTION_UNAVAILABLE',
+        manualPracticePath: REMEDIATION_MANUAL_PRACTICE_PATH,
+      }, { status: 409 });
+    }
+
+    if (refreshKey && !answerId) {
+      return NextResponse.json({ error: 'ANSWER_ID_REQUIRED_FOR_REFRESH' }, { status: 400 });
+    }
+    const result = refreshKey
+      ? await refreshRemediationOrchestration({
+          db: orchestrationDb(),
+          authenticatedUserId: learner.userId,
+          attributionId: attribution!.id,
+          refreshKey,
+        })
+      : await orchestrateRemediation({
+          db: orchestrationDb(),
+          authenticatedUserId: learner.userId,
+          attributionId: attribution?.id ?? attributionId!,
+        });
     if (!result) {
       return NextResponse.json({ error: 'ATTRIBUTION_NOT_FOUND' }, { status: 404 });
     }

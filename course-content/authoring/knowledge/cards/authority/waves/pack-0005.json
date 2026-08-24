@@ -1,0 +1,65 @@
+{
+  "pack_id": "P0005",
+  "offset": 25,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-a98f424dd074fcab4c1d1f23",
+      "batch": "B",
+      "name": "Symmetric Root Locus (SRL) Method",
+      "definition": "Symmetric Root Locus (SRL) Method：A technique for linear control systems design based on the optimal linear quadratic regulator (LQR) problem. The optima…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Symmetric R…",
+        "应用于·Linea…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Symmetric Root Locus (SRL) Method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Symmetric Root Locus (SRL) Method：A technique for linear control systems design based on the optimal linear quadratic regulator (LQR) problem. The optima…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Symmetric 」、「应用于·Linea…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v11g-546566f01ae374379ec78c1e",
+      "batch": "B",
+      "name": "two step parameter design method",
+      "definition": "two step parameter design method：A method to determine the effect of two parameters by repeating the root locus approach twice: first for one parameter,…",
+      "visual_archetype": "流程板",
+      "labels": [
+        "two step pa…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: two step parameter design method\nSOURCE DEFINITION (fail-closed, do not invent beyond this): two step parameter design method：A method to determine the effect of two parameters by repeating the root locus approach twice: first for one parameter,…\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「two step p」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-074ba027193fc06624e26f0a",
+      "batch": "B",
+      "name": "Nyquist-Shannon sampling theorem",
+      "definition": "Nyquist-Shannon sampling theorem：A theorem stating that for a signal to be accurately reconstructed from samples, it must have no frequency component gr…",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "Nyquist-Sha…",
+        "包含组件·Nyqu…",
+        "应用于·alias…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Nyquist-Shannon sampling theorem\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Nyquist-Shannon sampling theorem：A theorem stating that for a signal to be accurately reconstructed from samples, it must have no frequency component gr…\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Nyquist-Sh」、「包含组件·Nyqu…」、「应用于·alias…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-09160b112423a1c2afe77578",
+      "batch": "B",
+      "name": "Maximum phase lead frequency ω m",
+      "definition": "Maximum phase lead frequency ω m：The frequency at which maximum additional phase lead is obtained, located at ω_m = √(z p), halfway between the pole and…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Maximum pha…",
+        "应用于·Phase…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Maximum phase lead frequency ω m\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Maximum phase lead frequency ω m：The frequency at which maximum additional phase lead is obtained, located at ω_m = √(z p), halfway between the pole and…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Maximum ph」、「应用于·Phase…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-36d86885777b10cabbae029e",
+      "batch": "B",
+      "name": "Sampled-data second-order system",
+      "definition": "Sampled-data second-order system：A second-order continuous process with a zero-order hold and sampler, analyzed in the discrete-time domain using the z-…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Sampled-dat…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Sampled-data second-order system\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Sampled-data second-order system：A second-order continuous process with a zero-order hold and sampler, analyzed in the discrete-time domain using the z-…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Sampled-da」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

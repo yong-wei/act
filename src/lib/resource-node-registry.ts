@@ -1931,7 +1931,7 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
     const type = arenaTarget
       ? 'arena_task'
       : resource.type === 'SIMULATION_APP'
-        ? inferRegisteredNodeType(resource.id)
+        ? 'simulation'
         : resource.type === 'ADAPTIVE_QUIZ'
           ? 'adaptive_quiz'
           : inferRegisteredNodeType(resource.id);
@@ -2825,9 +2825,6 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
     return 'quiz';
   }
   if (lower.includes('workbench') || lower.includes('control-lab')) return 'control_workbench';
-  if (lower.includes('simulation') || lower.includes('sim')) {
-    return 'simulation';
-  }
   if (lower.includes('reflection')) {
     return 'reflection';
   }

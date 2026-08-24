@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0156",
+  "offset": 780,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_e981b0bcba817f0997c460e8",
+      "batch": "C",
+      "name": "digital implementation of PID controller",
+      "definition": "digital implementation of PID controller是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "digital imp…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: digital implementation of PID controller\nSOURCE DEFINITION (fail-closed, do not invent beyond this): digital implementation of PID controller是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「digital im」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_79bb55c4c06d07fd357ec824",
+      "batch": "C",
+      "name": "Continuous State-Space Design Methods",
+      "definition": "Continuous State-Space Design Methods是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Continuous …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Continuous State-Space Design Methods\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Continuous State-Space Design Methods是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Continuous」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_da1326600f3311fd52008dd3",
+      "batch": "C",
+      "name": "Breakaway point in z-plane root locus",
+      "definition": "Breakaway point in z-plane root locus是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Breakaway p…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Breakaway point in z-plane root locus\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Breakaway point in z-plane root locus是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Breakaway 」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_59abd9632700f1634517f74c",
+      "batch": "C",
+      "name": "Discrete State-Space Design Methods",
+      "definition": "Discrete State-Space Design Methods是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete St…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Discrete State-Space Design Methods\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Discrete State-Space Design Methods是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Discrete S」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b4252232f738d2575767fd6b",
+      "batch": "C",
+      "name": "Entry point in z-plane root locus",
+      "definition": "Entry point in z-plane root locus是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Entry point…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Entry point in z-plane root locus\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Entry point in z-plane root locus是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Entry poin」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -5,6 +5,8 @@
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=e0be2bc0fad2ef9992f7eb8aa7fa95b2&v=1775530904746&puid=26652392&enc=6a9b9465c1d20729b39c8f5fe942f991&wps=e7b2385e92a5d717ca181af1d1764766d70d687fb84ea7b5
 
+本地成品已发布：`media/processed/3-4-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 3-4-audio.m4a
 
 - 巨轮航向控制的根轨迹抉择

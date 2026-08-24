@@ -1,0 +1,337 @@
+{
+  "change": "persist-governed-prompt-assessment-history",
+  "capturedAt": "2026-08-20T16:50:30.846Z",
+  "captureRevision": "20aedce7d5fc304bb81ef3c9424b98546026f669",
+  "remoteCapture": {
+    "branch": "codex/prompt-history-integrity-merge-capture",
+    "ref": "refs/heads/codex/prompt-history-integrity-merge-capture",
+    "revision": "20aedce7d5fc304bb81ef3c9424b98546026f669"
+  },
+  "generator": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs",
+  "sourceHashes": {
+    "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs": "a796739c0ac44cec968bcd33737e1eaeed60aa3752e2ae035103f2879b8160f5",
+    "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-source-hashes.mjs": "8ae7b5152002573b7be4d58663ae300937e7f03ab3f5d17fe382be280781ab10",
+    "playwright.config.ts": "659f960aeb4b1baf8b6d365dd7a8a57fd447bd8366fe153a22f835e0d090cf1a",
+    "tests/prompt-assessment-history-1422.spec.ts": "c3c8a06e36906eee7dfff7f1331ab50002ecb6694f6c48d56533ddb70ac92d37",
+    "src/app/evaluation/prompt-assessment/page.tsx": "5a12ca6c67f460d3cca8cfaae4d69c403206061eb75bed2f9b9d845c235683c2",
+    "src/app/api/evaluation/assess-prompt/route.ts": "37fcec994b334d72d24891573ac485fb60ace7e173709ef61381097c5ff9e955",
+    "src/app/api/evaluation/track-consistency/route.ts": "760072bc26197e4f9ca74fe0a74a41ad9bb45d062581b9a4fe976b8ed1fd518d",
+    "src/app/api/evaluation/prompt-history/[userId]/route.ts": "7c6a80e24fe25e294599ef343512f7ac4a27e0146ac2a355bf9db8e702eebb59",
+    "src/features/evaluation/prompt-assessment-history.ts": "28f87d6df7e8b4c9bbaaa8bc23ddf560da47703d4a7c1550988c54a820518535",
+    "src/features/evaluation/prompt-quality.ts": "ad955b6549e2539af9d2e16e7e160e368623acdc9854ae5c2698f94240bcc36d",
+    "prisma/schema.prisma": "79190abd6b4186961a659c984268ee9db8a513ced21af484774362dcc77a5fb2",
+    "prisma/migrations/20260819124500_add_prompt_assessment_result_snapshot/migration.sql": "869d8d3d21c87881d587abf51f50cdbeeb477901a829cf129574289dbad578c2",
+    "src/components/platform/app-shell.tsx": "50ab2beb30e925b3586ed1b8c3a652c8b1306a6cebf08c5712625353cb40ac9a",
+    "src/lib/platform-role-navigation.ts": "a89f941628f5d68c40010dd861e4396b429b609173ff9e12fde3c4ef685ef1e8"
+  },
+  "route": "/evaluation/prompt-assessment",
+  "fixtures": "Authenticated NextAuth student session with browser-local evaluation API fixtures; database persistence is verified separately by scripts/tests/test-prompt-assessment-history-postgres.ts.",
+  "screenshots": [
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "94f8935fd74fad619dfe6fe449b9a5ede992a1110f623c5667359c650b002795",
+      "dimensions": {
+        "width": 1440,
+        "height": 1423
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-light-expanded-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "29a6bef66508ff192b58b312bf82e6ea8ede48df82f6d259d439ab40c0864099",
+      "dimensions": {
+        "width": 1440,
+        "height": 1423
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "sha256": "6bc8b09986b52cffc8daf55b6fb97ecdaa89d8716026ca2f5ea7b50ba741a3ef",
+      "dimensions": {
+        "width": 320,
+        "height": 2842
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-320.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "sha256": "9463b534f7b9f795a3a0fef36b4c870c522033763a3e7356e5bae39b09f1fd5f",
+      "dimensions": {
+        "width": 320,
+        "height": 2842
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-expanded-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "3fb548f6159cae308378203f7d03e85fcfeb08cf6ff47e446b87c460988ea207",
+      "dimensions": {
+        "width": 1440,
+        "height": 1287
+      }
+    },
+    {
+      "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-collapsed-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "591dd9dd3a141a94df9b945b1901a31269df064d1b2edec0f9bfd2818b64f438",
+      "dimensions": {
+        "width": 1440,
+        "height": 1287
+      }
+    }
+  ],
+  "assertions": [
+    "authenticated student evaluates a prompt and sees V1 history",
+    "consistency result attaches to the displayed persisted version",
+    "light and dark desktop-expanded, desktop-collapsed, and 320px drawer states assert keyboard focus and no horizontal overflow",
+    "client evaluation requests omit userId so server session identity remains authoritative"
+  ],
+  "commercialRouteEvidence": {
+    "href": "/evaluation/prompt-assessment",
+    "viewports": [
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "light",
+        "navigationState": "desktop-collapsed",
+        "horizontalOverflow": false,
+        "gridTemplateColumns": "72px 1368px",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "提示词复盘",
+        "activeLinkTitle": "提示词复盘",
+        "activeLinkText": ""
+      },
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-light-expanded-1440.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "light",
+        "navigationState": "desktop-expanded",
+        "horizontalOverflow": false,
+        "gridTemplateColumns": "248px 1192px",
+        "sidebarWidth": 248,
+        "contentWidth": 1192
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "light",
+        "navigationState": "mobile-drawer",
+        "horizontalOverflow": false,
+        "mobileCanvasFirst": true,
+        "noPersistentMobileSidebar": true,
+        "noPersistentMobileFilter": true,
+        "noPersistentWorkbenchPanels": true,
+        "noPersistentKnowledgeGraphDrawer": true
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-320.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "dark",
+        "navigationState": "mobile-drawer",
+        "horizontalOverflow": false,
+        "mobileCanvasFirst": true,
+        "noPersistentMobileSidebar": true,
+        "noPersistentMobileFilter": true,
+        "noPersistentWorkbenchPanels": true,
+        "noPersistentKnowledgeGraphDrawer": true
+      },
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-expanded-1440.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "dark",
+        "navigationState": "desktop-expanded",
+        "horizontalOverflow": false,
+        "gridTemplateColumns": "248px 1192px",
+        "sidebarWidth": 248,
+        "contentWidth": 1192
+      },
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-collapsed-1440.png",
+        "artifact": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+        "firstViewportUseful": true,
+        "firstViewportTaskVisible": true,
+        "navigationReachable": true,
+        "noTextOverlap": true,
+        "stablePanelGeometry": true,
+        "coherentBrandApplication": true,
+        "taskControlsVisible": true,
+        "contrastChecked": true,
+        "visibleFocus": true,
+        "keyboardReachable": true,
+        "reducedMotionChecked": true,
+        "buttonTextFits": true,
+        "noMobileTextOverlap": true,
+        "routeFile": "src/app/evaluation/prompt-assessment/page.tsx",
+        "routeArchetype": "report-ledger",
+        "dockState": "enabled",
+        "result": "passed",
+        "requestedRoute": "/evaluation/prompt-assessment",
+        "finalUrl": "http://127.0.0.1:3200/evaluation/prompt-assessment",
+        "role": "student",
+        "authState": "authenticated",
+        "appShellNavigationContract": "collapsed-icon-rail",
+        "theme": "dark",
+        "navigationState": "desktop-collapsed",
+        "horizontalOverflow": false,
+        "gridTemplateColumns": "72px 1368px",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "提示词复盘",
+        "activeLinkTitle": "提示词复盘",
+        "activeLinkText": ""
+      }
+    ]
+  },
+  "drift": {
+    "cleanCaptureStart": true,
+    "headUnchanged": true,
+    "boundSourcesUnchanged": true,
+    "allowedOutputPaths": [
+      "artifacts/commercial-ui/evidence.json",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/browser-evidence.json",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-1440.png",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-320.png",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-320.png",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-collapsed-1440.png",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-dark-expanded-1440.png",
+      "artifacts/commercial-ui/issue-1422-prompt-assessment-history/prompt-assessment-history-light-expanded-1440.png"
+    ]
+  }
+}

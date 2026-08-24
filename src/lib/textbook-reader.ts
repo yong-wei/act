@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -10,8 +11,25 @@ import {
   type StructuredTextbookNavigation,
   type StructuredTextbookUnit,
 } from '@/lib/structured-textbook-runtime';
+import {
+  TEXTBOOK_COURSE_ID,
+  type TextbookCatalogEntry,
+  type TextbookCitationUnit,
+  type TextbookFragment,
+  type TextbookNavigationNode,
+  type TextbookReaderLocation,
+  type TextbookReaderProjection,
+} from './textbook-reader-contracts';
 
-export const TEXTBOOK_COURSE_ID = 'automatic-control';
+export { TEXTBOOK_COURSE_ID } from './textbook-reader-contracts';
+export type {
+  TextbookCatalogEntry,
+  TextbookCitationUnit,
+  TextbookFragment,
+  TextbookNavigationNode,
+  TextbookReaderLocation,
+  TextbookReaderProjection,
+} from './textbook-reader-contracts';
 
 export const TEXTBOOK_TITLES = STRUCTURED_TEXTBOOK_TITLES;
 
@@ -43,68 +61,6 @@ interface BookIndex {
   unitIdByStructuralPath: Map<string, string>;
   anchorsByUnitId: Map<string, StructuredTextbookFragment[]>;
   unitsById: Map<string, StructuredTextbookUnit>;
-}
-
-export interface TextbookCatalogEntry {
-  bookId: string;
-  edition: string;
-  title: string;
-  structureUnitCount: number;
-  fragmentAnchorCount: number;
-}
-
-export interface TextbookNavigationNode {
-  id: string;
-  title: string;
-  kind: string;
-  naturalNumber: string | null;
-  structuralPath: string[];
-  href: string;
-  children: TextbookNavigationNode[];
-}
-
-export interface TextbookReaderLocation {
-  id: string;
-  title: string;
-  href: string;
-}
-
-export interface TextbookFragment {
-  id: string;
-  kind: StructuredTextbookFragment['kind'];
-  naturalNumber: string | null;
-  ordinal: number;
-}
-
-export interface TextbookCitationUnit {
-  id: string;
-  bookId: string;
-  edition: string;
-  sourceRevision: string;
-  title: string;
-  kind: string;
-  naturalNumber: string | null;
-  structuralPath: string[];
-  markdown: string;
-  fragments: TextbookFragment[];
-}
-
-export interface TextbookReaderProjection {
-  book: TextbookCatalogEntry;
-  unit: {
-    id: string;
-    chapterId: string;
-    title: string;
-    kind: string;
-    naturalNumber: string | null;
-    structuralPath: string[];
-    markdown: string;
-  };
-  hierarchy: TextbookNavigationNode[];
-  breadcrumbs: TextbookReaderLocation[];
-  previous: TextbookReaderLocation | null;
-  next: TextbookReaderLocation | null;
-  fragments: TextbookFragment[];
 }
 
 export class TextbookReaderError extends Error {
@@ -231,6 +187,7 @@ function catalogEntry(manifest: StructuredTextbookManifest): TextbookCatalogEntr
     bookId: manifest.bookId,
     edition: manifest.edition,
     title: TEXTBOOK_TITLES[manifest.bookId] ?? manifest.bookId,
+    sourceRevision: manifest.sourceRevision,
     structureUnitCount: manifest.counts.structureUnits,
     fragmentAnchorCount: manifest.counts.fragmentAnchors,
   };
@@ -529,6 +486,7 @@ export async function loadTextbookReaderProjection(input: {
       naturalNumber: unit.naturalNumber,
       structuralPath: unit.structuralPath,
       markdown: insertTextbookFragmentMarkers(unit.markdown, unit.sourceSpan.startLine, runtimeAnchors),
+      contentHash: `sha256:${createHash('sha256').update(unit.markdown, 'utf8').digest('hex')}`,
     },
     hierarchy: buildHierarchy(index, route.bookId, route.edition),
     breadcrumbs,

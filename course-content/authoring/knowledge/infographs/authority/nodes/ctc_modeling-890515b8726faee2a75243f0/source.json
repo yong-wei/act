@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-890515b8726faee2a75243f0",
+  "safe_id": "ctc_modeling-890515b8726faee2a75243f0",
+  "node": {
+    "name": "general element with an",
+    "name_en": "modeling_890515b8726faee2a75243f0",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "general element with an：A general element with an excitation (through-) variable x(t) and a response (across-) variable y(t), where the relatio…",
+  "intuition": null,
+  "explanation": "A general element with an excitation (through-) variable x(t) and a response (across-) variable y(t), where the relationship is written as y(t)=g(x(t)).",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "general ele…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-890515b8726faee2a75243f0.md",
+  "provider_policy": "grok-image_gen"
+}

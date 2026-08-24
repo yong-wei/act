@@ -176,7 +176,7 @@ export function buildPipelineGradingWorkbenchView(run: any): TeacherGradingWorkb
   };
 }
 
-export function buildPipelineReviewFacts(input: { run: any; edits: any[]; reviewedAt: Date }) {
+export function buildPipelineReviewFactCandidates(input: { run: any; edits: any[]; reviewedAt: Date }) {
   const scope = pipelineReviewScope(input.run);
   const rubric = input.run.questionSnapshot.rubric;
   const edits = new Map(input.edits.map((edit) => [edit.criterionId, edit]));
@@ -220,6 +220,7 @@ export function buildPipelineReviewFacts(input: { run: any; edits: any[]; review
         normalizedScore,
         evidenceGovernance: {
           evidenceQuality: 'rich',
+          profileWeight: 1,
           skipProfileContribution: false,
           policyReason: 'adaptive_assessment_evidence',
         },
@@ -234,6 +235,17 @@ export function buildPipelineReviewFacts(input: { run: any; edits: any[]; review
       },
     };
   });
+}
+
+export function buildPipelineReviewFacts(input: { run: any; edits: any[]; reviewedAt: Date; sourceLogId: string }) {
+  const sourceLogId = input.sourceLogId.trim();
+  if (!sourceLogId) {
+    throw new Error('pipeline-review-source-log-required');
+  }
+  return buildPipelineReviewFactCandidates(input).map((fact: { sourceEventId: string }) => ({
+    ...fact,
+    sourceLogId,
+  }));
 }
 
 export function validatePipelineReviewContract(run: any, reviewedAt = new Date()): string[] {

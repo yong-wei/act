@@ -142,6 +142,12 @@ function buildLearningFact(input: {
     courseId: 'control-correction',
     lessonId: input.submission.taskId,
     contextJson: {
+      evidenceGovernance: {
+        evidenceQuality: 'rich',
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'official_arena_evaluation',
+      },
       arena: {
         official: true,
         evaluationMode: 'official',

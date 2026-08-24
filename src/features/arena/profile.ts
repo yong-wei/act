@@ -310,19 +310,20 @@ export function projectArenaPortfolioRecentTrainingRun(
 function buildTrainingSummary(
   trainingRuns: readonly ArenaVirtualTrainingRunRecord[],
   userId: string,
-  persistedTrainingCount = trainingRuns.filter((run) => run.userId === userId).length,
+  persistedTrainingCount?: number,
 ): ArenaPortfolioTrainingSummary {
-  const recentRuns = trainingRuns
+  const eligibleRuns = trainingRuns
     .filter((run) => run.userId === userId)
     .map(projectArenaPortfolioRecentTrainingRun)
     .filter((run): run is ArenaPortfolioRecentTrainingRun => Boolean(run))
     .sort((left, right) => Date.parse(right.trainedAt) - Date.parse(left.trainedAt));
+  const total = persistedTrainingCount ?? eligibleRuns.length;
   return {
-    total: persistedTrainingCount,
-    previewCount: persistedTrainingCount,
+    total,
+    previewCount: total,
     evidenceConfidence: 'low',
-    latestTrainedAt: recentRuns[0]?.trainedAt,
-    recentRuns: recentRuns.slice(0, ARENA_PORTFOLIO_RECENT_LIMIT),
+    latestTrainedAt: eligibleRuns[0]?.trainedAt,
+    recentRuns: eligibleRuns.slice(0, ARENA_PORTFOLIO_RECENT_LIMIT),
   };
 }
 

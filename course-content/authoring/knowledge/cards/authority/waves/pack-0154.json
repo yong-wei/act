@@ -1,0 +1,70 @@
+{
+  "pack_id": "P0154",
+  "offset": 770,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-ac9111bcfe5798a35bf92638",
+      "batch": "B",
+      "name": "机电时间常数",
+      "definition": "T_m = J / F，称为机电时间常数。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "机电时间常数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 机电时间常数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): T_m = J / F，称为机电时间常数。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「机电时间常数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+      "batch": "B",
+      "name": "谐振峰值",
+      "definition": "闭环幅频特性的极大值，记为M_r(dB)。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "谐振峰值",
+        "用于分析·得到闭环…",
+        "关联·得到闭环对数…",
+        "关联·谐振频率",
+        "关联·带宽频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 谐振峰值\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 闭环幅频特性的极大值，记为M_r(dB)。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「谐振峰值」、「用于分析·得到闭环…」、「关联·得到闭环对数…」、「关联·谐振频率」、「关联·带宽频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-3eecf8e1bd7a80cd6b11646d",
+      "batch": "B",
+      "name": "阻尼自然频率",
+      "definition": "系统阶跃动态响应中的振荡频率，记为ω_d。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼自然频率",
+        "关联·穿越频率",
+        "关联·截止频率"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 阻尼自然频率\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 系统阶跃动态响应中的振荡频率，记为ω_d。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「阻尼自然频率」、「关联·穿越频率」、「关联·截止频率」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-551346c07dd0adc110d95089",
+      "batch": "B",
+      "name": "不稳定节点",
+      "definition": "当特征根为两个正实根时，奇点为不稳定节点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "不稳定节点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 不稳定节点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当特征根为两个正实根时，奇点为不稳定节点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「不稳定节点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cd4048f0bc048834a85d7816",
+      "batch": "B",
+      "name": "采样持续时间",
+      "definition": "每次接触时间为 τ，τ 称为采样持续时间。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样持续时间",
+        "包含组件·采样控制…",
+        "关联·采样周期"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 采样持续时间\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 每次接触时间为 τ，τ 称为采样持续时间。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「采样持续时间」、「包含组件·采样控制…」、「关联·采样周期」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

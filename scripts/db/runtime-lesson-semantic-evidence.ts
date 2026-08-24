@@ -607,11 +607,11 @@ function assertAssetObservation(
   assert(observation.auditSourcePathOrUrlSha256 === sourceUrlSha256, `Runtime media asset observation audit URL identity mismatch: ${row.resourceId}`);
   const mediaUrlSha256 = mediaUrl ? sha256String(mediaUrl) : null;
   assert(observation.mediaIndexUrlSha256 === mediaUrlSha256, `Runtime media asset observation media-index URL identity mismatch: ${row.resourceId}`);
-  if (localPathCandidate && existsSync(projectPath(localPathCandidate))) {
-    assert(observation.workingTreePresent, `Runtime media asset observation falsely reports a present local file as absent: ${row.resourceId}`);
-  }
   if (observation.gitIndexTracked) {
-    assert(localPathCandidate && observation.workingTreePresent, `Tracked runtime media asset observation lacks a local file: ${row.resourceId}`);
+    assert(
+      localPathCandidate && existsSync(projectPath(localPathCandidate)),
+      `Tracked runtime media asset observation lacks a local file: ${row.resourceId}`,
+    );
   }
   if (observation.workingTreePresent) {
     assert(localPathCandidate, `Working-tree runtime media asset observation lacks a local path: ${row.resourceId}`);

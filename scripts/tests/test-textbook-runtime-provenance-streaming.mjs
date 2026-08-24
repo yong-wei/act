@@ -4,25 +4,21 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
+import { loadTextbookResourceSet, textbookBookIds } from '../release/textbook-resource-set.mjs';
+
 const root = process.cwd();
+const resourceSetId = loadTextbookResourceSet().resourceSetId;
 const helperPath = path.join(root, 'scripts/release/textbook-runtime-v2-provenance.mjs');
 const helperSource = fs.readFileSync(helperPath, 'utf8');
 const revision = 'a'.repeat(40);
+const appRevision = 'b'.repeat(40);
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'textbook-v2-streaming-'));
 const runtimeRoot = path.join(fixtureRoot, 'runtime');
 const indexRoot = path.join(fixtureRoot, 'index');
 const imageTar = path.join(fixtureRoot, 'image.tar');
 const sidecar = `${imageTar}.provenance.json`;
 
-const runtimeBooks = [
-  'control-encyclopedia',
-  'dorf-modern-control-systems',
-  'feedback-control-of-dynamic-systems',
-  'hu-shousong-auto-control-7th',
-  'hu-shousong-auto-control-8th',
-  'hu-shousong-exercise-analysis-3rd',
-  'liu-sheng-auto-control-2015',
-];
+const runtimeBooks = textbookBookIds();
 const runtimeFiles = [
   'manifest.json',
   'navigation.json',
@@ -102,6 +98,7 @@ try {
           recordType: 'index-manifest',
           formatVersion: 'textbook-hybrid-retrieval.v1',
           sourceRevision: revision,
+          resourceSetId,
         })}\n`
         : '',
     );
@@ -113,11 +110,15 @@ try {
     '--runtime-root', runtimeRoot,
     '--index-dir', indexRoot,
     '--image-tar', imageTar,
-    '--app-revision', revision,
+    '--app-revision', appRevision,
     '--output', sidecar,
   ]);
   assert.equal(writeSidecarResult.status, 0, writeSidecarResult.stderr);
   const sidecarPayload = JSON.parse(fs.readFileSync(sidecar, 'utf8'));
+  assert.equal(sidecarPayload.appRevision, appRevision);
+  assert.equal(sidecarPayload.runtimeSourceRevision, revision);
+  assert.equal(sidecarPayload.indexSourceRevision, revision);
+  assert.notEqual(sidecarPayload.appRevision, sidecarPayload.runtimeSourceRevision);
   assert.match(sidecarPayload.imageTarSha256, /^[0-9a-f]{64}$/u);
 
   const verifyImageResult = run('verify-image', [
@@ -125,6 +126,41 @@ try {
     '--sidecar', sidecar,
   ]);
   assert.equal(verifyImageResult.status, 0, verifyImageResult.stderr);
+
+  const remoteProjectRoot = path.join(fixtureRoot, 'remote-project');
+  const remoteReleaseDir = path.join(remoteProjectRoot, 'scripts');
+  const remoteConfigDir = path.join(remoteProjectRoot, 'course-content', 'config');
+  const remoteHelperPath = path.join(remoteReleaseDir, 'textbook-runtime-v2-provenance.mjs');
+  fs.mkdirSync(remoteReleaseDir, { recursive: true });
+  fs.mkdirSync(remoteConfigDir, { recursive: true });
+  fs.copyFileSync(helperPath, remoteHelperPath);
+  fs.copyFileSync(
+    path.join(root, 'scripts', 'release', 'textbook-resource-set.mjs'),
+    path.join(remoteReleaseDir, 'textbook-resource-set.mjs'),
+  );
+  fs.copyFileSync(
+    path.join(root, 'scripts', 'release', 'textbook-runtime-input-provenance.mjs'),
+    path.join(remoteReleaseDir, 'textbook-runtime-input-provenance.mjs'),
+  );
+  fs.copyFileSync(
+    path.join(root, 'course-content', 'config', 'textbook-resource-set.json'),
+    path.join(remoteConfigDir, 'textbook-resource-set.json'),
+  );
+  const remoteVerifyRuntimeResult = spawnSync(process.execPath, [
+    remoteHelperPath,
+    'verify-runtime',
+    '--runtime-root', runtimeRoot,
+    '--index-dir', indexRoot,
+    '--sidecar', sidecar,
+  ], {
+    cwd: remoteProjectRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(
+    remoteVerifyRuntimeResult.status,
+    0,
+    remoteVerifyRuntimeResult.stderr,
+  );
 } finally {
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }

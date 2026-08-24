@@ -10,13 +10,12 @@ import {
   canStudentReadCurrentDelivery,
   canStudentReadHistory,
   canTeacherReadHistory,
-  createQuestionSnapshot,
   projectRevisionForStudent,
-  stableHash,
   validatePublicationSchedule,
   validatePublicationScores,
   type AssignmentRevisionRecord,
 } from '../assignments/assignment-domain';
+import { createQuestionSnapshot, stableHash } from '../assignments/assignment-integrity';
 
 describe('assignment authoring domain', () => {
   it('builds a rubric-backed fixture without identifiable student content', () => {

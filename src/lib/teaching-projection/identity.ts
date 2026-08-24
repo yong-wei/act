@@ -30,6 +30,13 @@ const RESOURCE_ID_PATTERNS: Record<TeachingResourceType, RegExp> = {
   'textbook-chapter': /^act:textbook-chapter:[^:\s]+:[^:\s]+$/u,
   'textbook-section': /^act:textbook-section:[^:\s]+$/u,
   card: /^act:card:[^:\s]+$/u,
+  video: /^act:video:[^:\s]+$/u,
+  audio: /^act:audio:[^:\s]+$/u,
+  podcast: /^act:podcast:[^:\s]+$/u,
+  slides: /^act:slides:[^:\s]+$/u,
+  exercise: /^act:exercise:[^:\s]+$/u,
+  simulation: /^act:simulation:[^:\s]+$/u,
+  project: /^act:project:[^:\s]+$/u,
 };
 
 export function isTeachingProjectionRole(value: unknown): value is TeachingProjectionRole {

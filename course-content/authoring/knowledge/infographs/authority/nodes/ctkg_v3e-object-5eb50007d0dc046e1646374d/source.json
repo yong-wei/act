@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-5eb50007d0dc046e1646374d",
+  "safe_id": "ctkg_v3e-object-5eb50007d0dc046e1646374d",
+  "node": {
+    "name": "D/A converter",
+    "name_en": "D/A converter",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "D/A converter：A device to convert the digital word from the computer to an analog voltage.",
+  "intuition": "在图谱邻接中可把握：前置 → sample and hold device · 后续 → A/D converter、sample and hold device。",
+  "explanation": "A device to convert the digital word from the computer to an analog voltage.",
+  "relation_head": "前置 → sample and hold device · 后续 → A/D converter、sample and hold device",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "sample and hold device",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "A/D converter",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "sample and hold device",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "D/A convert…",
+    "D/A converte",
+    "一种·sample",
+    "关联·A/D co…",
+    "有表示·sampl…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-5eb50007d0dc046e1646374d.md",
+  "provider_policy": "grok-image_gen"
+}

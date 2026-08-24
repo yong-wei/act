@@ -233,12 +233,14 @@ The adaptive path planner SHALL generate learning paths for registered LearningG
 - **AND** it SHALL return executable path options with current node, alternatives, estimated time, evidence limits, graph/resource limitations, and student-facing rationale.
 
 ### Requirement: Cold-start learners receive executable starter paths
-The planner SHALL treat cold start as a supported generation state, not as a no-path failure.
+The planner SHALL treat cold start and trusted `NO_EVIDENCE` as supported
+generation states, not as no-path failures.
 
 #### Scenario: Cold-start learner requests a graph-driven path
-- **WHEN** a learner with no usable evidence requests a graph-driven LearningGoal path
+- **WHEN** a learner with no usable trusted evidence or a current `NO_EVIDENCE` portrait requests a graph-driven LearningGoal path
 - **THEN** the planner SHALL use the LearningGoal policy, resource coverage, ResourceNode readiness, and graph prerequisites to return executable starter options where resources are available
-- **AND** low evidence SHALL be exposed as a limitation rather than clearing the path.
+- **AND** low evidence SHALL be exposed as a limitation rather than clearing the path
+- **AND** the planner SHALL NOT construct personalization claims from legacy portrait data.
 
 ### Requirement: Generic path rounds are persisted
 The system SHALL persist learning path rounds across registered goals.
@@ -660,18 +662,30 @@ Governed `interactive_lesson`, `knowledge_card`, `textbook_section`, `slides`, `
 - **AND** it SHALL NOT require the student to restart the same node to reach the next action.
 
 ### Requirement: Path personalization uses portrait v2
-Adaptive path planning SHALL use portrait v2 dimensions for learner-state
-personalization, weak-dimension targeting, and path rationale.
+Adaptive path planning SHALL use trusted portrait v2 dimensions for
+learner-state personalization, weak-dimension targeting, and path rationale.
+When learner-state reports `NO_EVIDENCE` or no trusted current portrait, the
+planner SHALL fail closed and SHALL NOT read legacy snapshot, feature cache,
+old `StudentCompetencySnapshot`, or old competency vector values for
+personalization. The planner MAY return a default or non-personalized starter
+path.
 
 #### Scenario: Planner ranks resources by learner needs
-- **WHEN** the planner personalizes resources for a learner
-- **THEN** weak-dimension signals SHALL be read from portrait v2
+- **WHEN** the planner personalizes resources for a learner with a current trusted portrait
+- **THEN** weak-dimension signals SHALL be read from trusted portrait v2
 - **AND** selected-resource rationales SHALL reference portrait v2 dimensions rather than legacy six-dimensional ids.
 
 #### Scenario: Only legacy portrait data exists
-- **WHEN** planner input contains only migrated compatibility data
-- **THEN** the planner SHALL include limitation metadata in diagnostics
+- **WHEN** planner input contains only migrated compatibility data and no trusted current portrait
+- **THEN** the planner SHALL NOT use that data for personalized scoring or rationale
+- **AND** it MAY return a default or starter path with limitation metadata
 - **AND** it SHALL NOT silently present compatibility-derived values as native portrait v2 evidence.
+
+#### Scenario: NO_EVIDENCE blocks legacy fallback
+- **WHEN** learner-state is `NO_EVIDENCE` or lacks a trusted current portrait
+- **THEN** the planner SHALL NOT use legacy snapshot, feature cache, `StudentCompetencySnapshot`, or competency vector for personalization
+- **AND** it SHALL return a default or starter path when resources permit
+- **AND** personalized claims SHALL NOT be generated from non-trusted data.
 
 ### Requirement: All path-ready LearningGoals prove governed resource coverage
 Adaptive path diagnostics SHALL prove that each path-ready LearningGoal can generate meaningful governed paths after resource semantic completion.
@@ -701,15 +715,21 @@ The system SHALL preserve the declared learning goal or user intent of a stopped
 - **THEN** that goal SHALL remain available as input to later replanning while the Legacy steps remain historical
 
 ### Requirement: Canonical paths are independently regenerated
-When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, version-matched CourseCoverage, reviewed KAQ bindings, and supported Canonical teaching relations. An engineering-only ReleaseSet without formal Teaching Projection MUST NOT satisfy this gate.
+When a formal ACT Teaching Projection matching the current Authority, course active-domain scope, CourseCoverage, reviewed KAQ bindings, and resource readiness is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, and its supported Canonical teaching relations. An Engineering-only ActKG ReleaseSet, an ActKG Engineering relation set, an unresolved KAQ fallback conflict, or an unmatched Teaching Projection MUST NOT satisfy this gate.
 
 #### Scenario: Teaching semantics are ready
-- **WHEN** all required Canonical planning inputs pass validation
+- **WHEN** the matching ACT Teaching Projection and all other required Canonical planning inputs pass validation
 - **THEN** the planner SHALL create a new path with Canonical IDs and versions and no inherited Legacy progress
+- **AND** it SHALL consume only admitted ACT teaching relations from the selected projection
 
 #### Scenario: Teaching semantics are unavailable
-- **WHEN** the released graph lacks a formal Teaching Projection or required teaching relations
-- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from engineering relations or Legacy fallback
+- **WHEN** the released graph lacks a matching formal ACT Teaching Projection or required teaching relations, or an applicable KAQ fallback conflict exists without a resolved matching retirement record
+- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from ActKG Engineering relations, an unmatched projection, or a Legacy fallback
+
+#### Scenario: No KAQ fallback conflict exists
+- **WHEN** the matching formal ACT Teaching Projection and all other Canonical planning inputs pass while no applicable KAQ fallback conflict exists
+- **THEN** the absence of a conflict decision or retirement record SHALL NOT block independent path regeneration
+- **AND** the planner SHALL consume only admitted ACT teaching relations from the selected projection
 
 ### Requirement: Planner honors explicit personalized path configuration
 The adaptive learning path planner SHALL treat request-level resource preferences, difficulty rhythm, checkpoint preference, and external-resource permission as planning inputs that affect candidate selection or path assembly. Goal boundaries, prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints SHALL remain higher-priority constraints.
@@ -768,6 +788,22 @@ The planner SHALL preserve the student's requested time budget as the request co
 - **THEN** the planner SHALL not generate a path that represents the higher duration as requested
 - **AND** it SHALL return the requested duration, the minimum executable duration, and a student-safe corrective action.
 
+### Requirement: Candidate paths preserve aggregate recommendation basis
+The adaptive learning path planner SHALL persist a student-safe aggregate recommendation basis snapshot for each formally generated candidate path without changing candidate selection, ranking, or scoring.
+#### Scenario: Evidence supports a candidate path recommendation
+- **WHEN** a candidate path is generated from learner-state deficits and governed resource nodes
+- **THEN** the candidate path SHALL preserve one or more entries that connect an aggregate state summary to a capability or knowledge judgment and the path resources affected by that judgment
+- **AND** each entry SHALL use generation-time facts so restoring the saved path does not reinterpret the original recommendation from newer learner state.
+- **AND** the snapshot SHALL NOT represent aggregate counts or confidence as event-level evidence provenance.
+#### Scenario: Evidence is insufficient for reliable personalization
+- **WHEN** the candidate path or a target deficit has insufficient effective evidence
+- **THEN** the provenance snapshot SHALL mark the explanation as low confidence and identify course structure, prerequisite policy, and available resources as the fallback basis
+- **AND** it SHALL provide a student-safe evidence-gathering action rather than presenting missing evidence as a confirmed weakness.
+#### Scenario: Student-safe provenance is produced
+- **WHEN** aggregate recommendation basis is serialized for a student-facing candidate path
+- **THEN** it SHALL contain only governed display labels, bounded evidence summaries, confidence, affected resource titles or identities, limitations, and a governed evidence-review target
+- **AND** it SHALL NOT expose raw answers, private conversations, database identifiers, internal reason codes, raw evidence payloads, or hidden prompt content.
+
 ### Requirement: Confirmed correction candidates update only eligible future path nodes
 The system SHALL apply a confirmed correction candidate by preserving completed nodes and the current node once execution has entered it, excluding unfinished historical nodes that a governed skip, replacement, or abandonment deviation explicitly marks as no longer applicable, and replacing only eligible adjustable unfinished future nodes. It SHALL preserve existing execution and deviation records and terminal evidence unless the confirmed candidate itself contains a governed future terminal node.
 
@@ -816,3 +852,98 @@ The system SHALL show a candidate correction proposal with its trigger, node add
 - **WHEN** a derived candidate has the same unfinished node identities and order as the persisted path
 - **THEN** the system SHALL treat the candidate as unavailable
 - **AND** it SHALL NOT present it as a correction.
+
+### Requirement: Recommendation provenance preserves student-safe event references
+The planner SHALL attach event references only when a governed event can be proven to support the target judgment used by the candidate path. Each reference MUST contain a stable event type, occurrence time, student-readable summary, and student-safe navigation action, and MUST exclude internal identifiers and raw evidence payloads.
+
+#### Scenario: Governed events support a candidate path judgment
+- **WHEN** target-scoped learning events contribute to a deficit or capability judgment used by a candidate path
+- **THEN** the persisted recommendation provenance includes at most three most-recent student-safe event references for that target
+- **AND** each reference identifies the affected judgment and the path nodes or resources selected from it
+
+#### Scenario: Recent event did not participate in planning
+- **WHEN** a recent learning event is not part of the target-scoped evidence used by the planner
+- **THEN** the event is not included in recommendation provenance
+
+#### Scenario: Only aggregate or restricted evidence is available
+- **WHEN** a target judgment is backed only by aggregate snapshots, feature caches, restricted AI evidence, or unresolvable source references
+- **THEN** recommendation provenance contains no fabricated event reference
+- **AND** records an explicit limitation that event-level evidence cannot be verified
+
+#### Scenario: Student-safe provenance is serialized
+- **WHEN** candidate path provenance is persisted or returned to a student consumer
+- **THEN** it does not expose database IDs, LearningFact IDs, source log IDs, source event IDs, raw answers, private conversations, reason codes, fingerprints, raw evidence JSON, or model prompts
+
+### Requirement: Adopted node selection basis preserves event references
+When a candidate path is adopted, the system SHALL project the candidate's student-safe event references onto each affected node's historical selection basis and SHALL retain them as execution state changes.
+
+#### Scenario: Candidate with event references is adopted
+- **WHEN** a student selects a candidate path whose recommendation provenance links events to specific nodes
+- **THEN** each affected selected node stores those references in its historical selection basis
+
+#### Scenario: Selected node later completes or becomes locked
+- **WHEN** execution state changes after the path was adopted
+- **THEN** the node retains the event references that explained its original selection
+
+#### Scenario: Legacy path has no event references
+- **WHEN** an adopted path predates event-reference support
+- **THEN** the node explanation remains available through its existing aggregate or legacy fallback contract
+- **AND** no event reference is inferred from the current learner portrait
+
+### Requirement: Candidate adjustment is grounded in one persisted source candidate
+The adaptive learning path planner SHALL derive an adjustment from one authorized persisted source candidate plus normalized request parameters and current governed learner facts, and SHALL NOT infer the source from display order, title, or generated conversation text.
+
+#### Scenario: Source candidate and request are valid
+- **WHEN** an adjustment request identifies an authorized persisted source candidate and provides supported structured or mapped intent parameters
+- **THEN** the planner SHALL preserve mandatory prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints
+- **AND** it SHALL generate adjusted alternatives relative to that source candidate.
+
+#### Scenario: Source facts are unavailable
+- **WHEN** the source candidate cannot be resolved or its required governed facts are incomplete
+- **THEN** the planner SHALL return an unavailable result
+- **AND** it SHALL NOT reconstruct the source from client ordering or assistant prose.
+
+### Requirement: Candidate adjustment requires a material path difference
+The adaptive learning path planner SHALL distinguish adjusted candidates using governed node identities and ordering or supported path metrics, and SHALL NOT treat explanation text, display labels, or score-only changes as a new route.
+
+#### Scenario: Adjustment changes governed path facts
+- **WHEN** a feasible adjusted candidate changes a non-mandatory node, node order, resource composition, checkpoint structure, or supported path constraint relative to the source
+- **THEN** the planner SHALL expose the changed facts for server-side difference validation.
+
+#### Scenario: Constraints permit no material alternative
+- **WHEN** higher-priority constraints and governed resources cannot produce a materially different executable candidate
+- **THEN** the planner SHALL return a structured no-material-difference limitation
+- **AND** it SHALL NOT fabricate a cosmetic alternative.
+
+### Requirement: 路径规划支持受治理的题目型 terminal validation
+
+路径规划 SHALL 将题目型 `terminal-validation` 作为独立评估 scope，并仅选择当前 lifecycle baseline 中人工批准、path-eligible、运行时已注册且与目标和路径 identity 一致的题目。题目型验证 MAY 与仿真或 Arena 终结验证组合，但不得替代策略要求的其他终结证据。
+
+#### Scenario: 路径请求题目型终结验证
+
+- **WHEN** 当前路径策略要求题目型 terminal validation 且存在合格候选
+- **THEN** 规划器 SHALL 返回受版本约束的评估节点和解释
+- **AND** 选择后 SHALL 使用不可变评估题目快照
+
+#### Scenario: 只有 provisional 或其他阶段题目
+
+- **WHEN** 目标没有合格 terminal-validation 候选，但存在 generated-provisional、practice 或 checkpoint 题目
+- **THEN** 规划器 SHALL 返回缺失终结验证的低置信度或受控 fallback
+- **AND** 不得把其他阶段题目静默替代为 terminal validation
+
+### Requirement: 路径规划只消费治理后的微干预证据摘要
+
+路径规划 SHALL 仅消费微干预 evidence projector 生成的 confidence、freshness、quality、identity 和 limitation 摘要，不得读取原始答案或由参与事件直接改变路径。低置信度、冲突或 stale 微干预证据 MAY 触发补救或再验证，但 MUST NOT 绕过 readiness、checkpoint 或 terminal-validation 门禁。
+
+#### Scenario: 当前验证证据支持路径调整
+
+- **WHEN** 受治理摘要显示当前节点存在有界、足够新鲜的微干预验证证据
+- **THEN** 规划器 MAY 将其作为解释性输入调整后续练习或补救优先级
+- **AND** 决策 SHALL 记录所用 evidence summary 和算法版本
+
+#### Scenario: 证据低置信度或冲突
+
+- **WHEN** 摘要标记重复、过期、冲突或身份漂移
+- **THEN** 规划器 SHALL 保留/增加评估门禁或请求再验证
+- **AND** 不得将路径节点直接标为已掌握
+

@@ -49,7 +49,8 @@
 ### 3.1 已有导入视频提示词
 
 - **文件**：`media/raw/3-8-intro-video-prompts.md`
-- **用途**：用于生成“频域翻译器型”导入短视频
+- **成品**：`media/processed/3-8-intro-video.mp4`（已完成）
+- **用途**：提示词仍保留；当前成片为闲聊自控 Remotion 导入片
 - **画面主轴**：同一控制对象的结构变化，在 `Bode` 曲线、`Nyquist` 轨迹、三频段分工和闭环后果上留下不同痕迹
 
 ### 3.2 已有封面提示词
@@ -85,6 +86,6 @@
 
 ## 5. 后续执行建议
 
-1. 先用 `media/raw/3-8-intro-video-prompts.md` 生成 15 秒导入视频，优先验证“`Nyquist` 临界点 + 三频段 + 双案例切换”三处画面是否稳定。
+1. 导入视频已发布为 `media/processed/3-8-intro-video.mp4`；提示词仅作历史原料，不再作为当前交付阻塞项。
 2. 若即梦对公式或坐标渲染不稳定，优先改成“无字曲线 + 色带 + 仪表灯”表达，不要强行堆砌可读文字。
 3. 教师版讲义导出后，媒体包应以 `gain / zero / pole / rhp-zero / Nyquist / Bode / three-band / heading / platform / info` 这组正式文件名作为审查口径，不再沿用旧的 `double-ship-frequency-compare` 表述。

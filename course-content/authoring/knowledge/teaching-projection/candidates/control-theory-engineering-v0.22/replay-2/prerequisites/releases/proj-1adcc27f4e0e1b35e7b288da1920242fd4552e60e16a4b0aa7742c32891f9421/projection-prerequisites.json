@@ -1,0 +1,38 @@
+[
+  {
+    "prerequisiteId": "prereq-3380bdb550cb94c17945c2b63eff84d8",
+    "sourceCanonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "targetCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/1-2/design/1-2-boppps.md",
+    "rationale": "当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。",
+    "scopeId": "act-control-theory-core"
+  },
+  {
+    "prerequisiteId": "prereq-6ad7522812e08e1a5168715660fdece0",
+    "sourceCanonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "targetCanonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/2-1/design/2-1-boppps.md",
+    "rationale": "方框图化简使学生能够建立并分析反馈连接。",
+    "scopeId": "act-control-theory-core"
+  },
+  {
+    "prerequisiteId": "prereq-b815936c8131472c4105531e55ab2e47",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/lessons/3-1/design/3-1-boppps.md",
+    "rationale": "稳定性分析以传递函数和极点语言为先行理解基础。",
+    "scopeId": "act-control-theory-core"
+  },
+  {
+    "prerequisiteId": "prereq-f5628f0fc2e69016954d4d4a3c58e899",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/2-1/design/2-1-boppps.md",
+    "rationale": "当前互动课程以传递函数之间的方框图化简推进闭环分析。",
+    "scopeId": "act-control-theory-core"
+  }
+]

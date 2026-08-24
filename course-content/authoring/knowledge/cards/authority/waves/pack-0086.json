@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0086",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-1405f7f72c012a10e7cf60bc",
+      "name": "Nonminimum-Phase Compensator",
+      "definition": "Nonminimum-Phase Compensator：Nonminimum-Phase Compensator"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1423d2e4d994f098d268dc5e",
+      "name": "校正问题",
+      "definition": "当调整放大器增益后仍不能满足性能指标时，在系统中增加参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求的设计问题。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-1724fe5a62311ceb13ab05bd",
+      "name": "格拉姆矩阵判据",
+      "definition": "线性定常连续系统完全可控的充分必要条件是，存在时刻 t1>0，使格拉姆矩阵 W(0, t1) 为非奇异。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2025acc5e7afefa0ece210e2",
+      "name": "Estimator Error",
+      "definition": "Estimator Error：The difference between the true state and the estimated state, defined as x̃ ≜ x - x̂."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-23a1c9229387ded552fbdbb3",
+      "name": "PBH秩判据",
+      "definition": "由波波夫、贝尔维奇和豪塔斯提出的可控性和可观测性判据，基于对矩阵A的特征值检验矩阵的秩。"
+    }
+  ],
+  "created_at": "2026-08-05T16:25:49.651484+00:00"
+}

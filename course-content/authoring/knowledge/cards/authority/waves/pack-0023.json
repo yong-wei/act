@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0023",
+  "offset": 115,
+  "items": [
+    {
+      "safe_id": "ctc_v11g-e63bdb130c5a92d4eb8d936d",
+      "batch": "B",
+      "name": "filter compensator",
+      "definition": "filter compensator：A filter with transfer function (αs+1)/(βs+1) used in a feedback control system, often called a compensator, with desig…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "filter comp…",
+        "filter compe"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: filter compensator\nSOURCE DEFINITION (fail-closed, do not invent beyond this): filter compensator：A filter with transfer function (αs+1)/(βs+1) used in a feedback control system, often called a compensator, with desig…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「filter com」、「filter com」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-40d0c236680874a1246a0536",
+      "batch": "B",
+      "name": "Damping ratio zeta",
+      "definition": "Damping ratio zeta：The damping ratio reflects the level of damping as a fraction of the critical damping value where the poles become real.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Damping rat…",
+        "Damping rati"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Damping ratio zeta\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Damping ratio zeta：The damping ratio reflects the level of damping as a fraction of the critical damping value where the poles become real.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Damping ra」、「Damping ra」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-7e46e083227dc119d597d82b",
+      "batch": "B",
+      "name": "Frequency response",
+      "definition": "Frequency response：A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinuso…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Frequency r…",
+        "Frequency re",
+        "有表示·polar…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Frequency response\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Frequency response：A very common way to use the exponential response of LTIs is in finding the frequency response, or response to a sinuso…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Frequency 」、「Frequency 」、「有表示·polar…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-8d347fba98e0aff074800c8e",
+      "batch": "B",
+      "name": "Insignificant pole",
+      "definition": "Insignificant pole：A pole with a negative real part that is much more negative than the other poles, expected to affect the transient resp…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Insignifica…",
+        "Insignifican"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Insignificant pole\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Insignificant pole：A pole with a negative real part that is much more negative than the other poles, expected to affect the transient resp…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Insignific」、「Insignific」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-01d6ba4cfbef38693c611d4a",
+      "batch": "B",
+      "name": "argument principle",
+      "definition": "argument principle：A contour map of a complex function will encircle the origin Z-P times, where Z is the number of zeros and P is the num…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "argument pr…",
+        "argument pri"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: argument principle\nSOURCE DEFINITION (fail-closed, do not invent beyond this): argument principle：A contour map of a complex function will encircle the origin Z-P times, where Z is the number of zeros and P is the num…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「argument p」、「argument p」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

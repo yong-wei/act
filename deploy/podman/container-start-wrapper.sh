@@ -39,9 +39,9 @@ if [ "$ROLE" = "worker" ]; then
 fi
 
 if [ "$ROLE" = "submission-scanner" ]; then
-  SUBMISSION_HEALTH_ROLE=scanner ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/check-submission-object-health.ts
+  SKIP_WOLFRAM_READY_CHECK=1 SUBMISSION_HEALTH_ROLE=scanner ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/check-submission-object-health.ts
   while :; do
-    if ! ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/scan-submission-objects.ts; then
+    if ! SKIP_WOLFRAM_READY_CHECK=1 ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/scan-submission-objects.ts; then
       echo "[container-start-wrapper] 学生作业扫描批次失败，将在间隔后重试。" >&2
     fi
     sleep "${SUBMISSION_SCAN_INTERVAL_SECONDS:-15}"
@@ -49,9 +49,9 @@ if [ "$ROLE" = "submission-scanner" ]; then
 fi
 
 if [ "$ROLE" = "submission-gc" ]; then
-  SUBMISSION_HEALTH_ROLE=gc ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/check-submission-object-health.ts
+  SKIP_WOLFRAM_READY_CHECK=1 SUBMISSION_HEALTH_ROLE=gc ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/check-submission-object-health.ts
   while :; do
-    ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/gc-submission-objects.ts
+    SKIP_WOLFRAM_READY_CHECK=1 ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/gc-submission-objects.ts
     sleep "${SUBMISSION_GC_INTERVAL_SECONDS:-3600}"
   done
 fi

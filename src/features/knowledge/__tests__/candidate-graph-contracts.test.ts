@@ -356,15 +356,15 @@ describe('candidate graph activation policy', () => {
     })).toBe(true);
   });
 
-  it('allows only ADMIN controlled verification while closed and all known roles after activation', () => {
+  it('keeps the fixed candidate diagnostic administrator-only after activation', () => {
     expect(resolveCandidateGraphAccess('STUDENT', false).allowed).toBe(false);
     expect(resolveCandidateGraphAccess('TEACHER', false).allowed).toBe(false);
     expect(resolveCandidateGraphAccess('ADMIN', false)).toMatchObject({
       allowed: true,
       controlledVerification: true,
     });
-    expect(resolveCandidateGraphAccess('STUDENT', true).allowed).toBe(true);
-    expect(resolveCandidateGraphAccess('TEACHER', true).allowed).toBe(true);
+    expect(resolveCandidateGraphAccess('STUDENT', true).allowed).toBe(false);
+    expect(resolveCandidateGraphAccess('TEACHER', true).allowed).toBe(false);
     expect(resolveCandidateGraphAccess('ADMIN', true).allowed).toBe(true);
     expect(resolveCandidateGraphAccess('UNKNOWN', true)).toEqual({
       allowed: false,

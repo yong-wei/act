@@ -12,6 +12,7 @@ import {
   checkpointAuthoredQuestionRuntimeId,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
 } from '../learning-goal-checkpoint-question-sets';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '../learning-goal-terminal-validation-question-sets';
 
 function readReviewedItem(questionId: string) {
   return readFileSync('course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl', 'utf8')
@@ -228,8 +229,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
     );
     expect(itemRefUpdate).toEqual({});
 
-    const factPayload = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.kaqQuizEvidence;
-    const adaptiveAssessmentRef = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.adaptiveAssessmentRef;
+    const learningFact = db.learningFact.createMany.mock.calls[0][0].data[0];
+    const factPayload = learningFact.contextJson.adaptiveAssessment.kaqQuizEvidence;
+    const adaptiveAssessmentRef = learningFact.contextJson.adaptiveAssessment.adaptiveAssessmentRef;
+    expect(learningFact.competencyContribution).toEqual({
+      controlModeling: 0.8,
+      crossDomainTransfer: 0.5,
+    });
     expect(adaptiveAssessmentRef).toMatchObject({
       kind: 'AdaptiveAssessmentAnswer',
       provenance: 'official',
@@ -357,6 +363,46 @@ describe('K/A/Q adaptive assessment persistence', () => {
       kind: 'AdaptiveAssessmentAnswer',
       reviewState: 'reviewed',
       catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${authoredCheckpoint!.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: true,
+      evidenceAuthority: 'path-assessment',
+    });
+    expect(db.adaptiveMasteryUpdate.createMany).toHaveBeenCalled();
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+  });
+
+  it('treats catalog-backed terminal-validation answers as path-completion eligible without replacing typed evidence', async () => {
+    const db = createMockDb();
+    const authoredTerminal = REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((candidate) =>
+      candidate.learningGoalId === 'frequency-response-foundations'
+    );
+    expect(authoredTerminal).toBeTruthy();
+    const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredTerminal!.id);
+    const question = getAdaptiveQuestionById(runtimeQuestionId);
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: runtimeQuestionId,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: `item-type-terminal-validation:adaptive-assessment-item:checkpoint-authored-question:${authoredTerminal!.id}`,
+        goalId: 'frequency-response-foundations',
+        routeIntent: 'path-execution',
+        questionScope: 'terminal-validation',
+      },
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${authoredTerminal!.id}`,
       readinessGateEligible: false,
       terminalValidationEligible: false,
       pathCompletionEligible: true,

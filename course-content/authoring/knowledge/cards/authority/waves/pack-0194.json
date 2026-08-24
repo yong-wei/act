@@ -1,0 +1,61 @@
+{
+  "pack_id": "P0194",
+  "offset": 970,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_f1074549d93c62bc34bd9b3a",
+      "batch": "C",
+      "name": "平衡状态",
+      "definition": "平衡状态是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "平衡状态"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 平衡状态\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 平衡状态是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「平衡状态」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_b59579e9d355b2e2d44352b0",
+      "batch": "C",
+      "name": "根轨迹",
+      "definition": "根轨迹是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 根轨迹\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 根轨迹是自动控制原理权威图谱中的领域概念。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「根轨迹」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_c7cc2f616bfb2c6cdd6333bc",
+      "batch": "C",
+      "name": "阻尼比",
+      "definition": "阻尼比是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "阻尼比"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 阻尼比\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 阻尼比是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「阻尼比」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_d0ce721957a07ee537d1a149",
+      "batch": "C",
+      "name": "超调量",
+      "definition": "超调量是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "超调量"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 超调量\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 超调量是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「超调量」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c4f81d9a0c83195cd1cebfe6",
+      "batch": "C",
+      "name": "Hold delay",
+      "definition": "Hold delay：Hold delay",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Hold delay"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Hold delay\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Hold delay：Hold delay\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Hold delay」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

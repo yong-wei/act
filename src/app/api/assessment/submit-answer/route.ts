@@ -4,6 +4,8 @@ import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adapt
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import { verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';
+import type { CompanionPracticeSubmissionDb } from '@/lib/konling-continuity-assessment';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,7 @@ interface SubmitAnswerRequest {
   routeIntent?: string | null;
   pathId?: string | null;
   nodeId?: string | null;
+  continuity?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -33,6 +36,18 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
+    const continuity = await verifyCompanionPracticeSubmissionMetadata(prisma as unknown as CompanionPracticeSubmissionDb, {
+      userId,
+      sessionId,
+      questionId: body.questionId,
+      continuity: body.continuity,
+    });
+    if (sessionId.startsWith('konling-continuity:') && !continuity) {
+      throw new Error('Companion-practice metadata is required for the reserved session.');
+    }
+    if (continuity && sessionId !== `konling-continuity:${continuity.snapshotId}`) {
+      throw new Error('Companion-practice session does not match the continuity snapshot.');
+    }
 
     const result = await submitAnswerWithPersistenceFallback({
       userId,
@@ -40,6 +55,7 @@ export async function POST(request: Request) {
       questionId: body.questionId,
       selectedOption: body.selectedOption,
       timeSpent: body.timeSpent,
+      continuity,
       pathContext: await readVerifiedPathContext(body, userId, sessionId),
     });
 
@@ -126,10 +142,17 @@ function inferPathAssessmentScope(
   return pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness';
 }
 
-function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation'> | null {
+function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation'> | null {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
+  if (
+    normalized.includes('terminal-validation') ||
+    normalized.includes('终结验证') ||
+    normalized.includes('题目型终结')
+  ) {
+    return 'terminal-validation';
+  }
   if (
     normalized.includes('remediation') ||
     normalized.includes('remedial') ||

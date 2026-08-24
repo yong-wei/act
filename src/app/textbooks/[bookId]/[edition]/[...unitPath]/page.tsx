@@ -4,8 +4,10 @@ export const dynamic = 'force-dynamic';
 
 export default function TextbookStandalonePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ bookId: string; edition: string; unitPath: string[] }>;
+  searchParams: Promise<{ vbh?: string | string[] }>;
 }) {
-  return <TextbookReaderRoute params={params} presentation="standalone" />;
+  return <TextbookReaderRoute params={params} searchParams={searchParams} presentation="standalone" />;
 }

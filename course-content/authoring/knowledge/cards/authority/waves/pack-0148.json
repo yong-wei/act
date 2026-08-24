@@ -1,0 +1,67 @@
+{
+  "pack_id": "P0148",
+  "offset": 740,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "batch": "B",
+      "name": "一阶系统",
+      "definition": "凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "一阶系统",
+        "派生自·一阶系统的…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 一阶系统\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 凡以一阶微分方程作为运动方程的控制系统，称为一阶系统。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「一阶系统」、「派生自·一阶系统的…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-015051ab889bc2e6b3fd1b54",
+      "batch": "B",
+      "name": "稳定焦点",
+      "definition": "当特征根为一对具有负实部的共轭复根时，奇点为稳定焦点。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "稳定焦点",
+        "是一种·奇点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳定焦点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当特征根为一对具有负实部的共轭复根时，奇点为稳定焦点。\nvisual_archetype: s 平面机理板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳定焦点」、「是一种·奇点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-14c49cc217ebff19a8763b5b",
+      "batch": "B",
+      "name": "z变换算子",
+      "definition": "z是在复数平面上定义的一个复变量，通常称为z变换算子。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换算子",
+        "是一种·z变换",
+        "关联·z变换"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: z变换算子\nSOURCE DEFINITION (fail-closed, do not invent beyond this): z是在复数平面上定义的一个复变量，通常称为z变换算子。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「z变换算子」、「是一种·z变换」、「关联·z变换」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-21637e32df41e433f01db54b",
+      "batch": "B",
+      "name": "等倾线法",
+      "definition": "等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "等倾线法",
+        "属于·等倾线",
+        "包含组件·等倾线"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 等倾线法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「等倾线法」、「属于·等倾线」、「包含组件·等倾线」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-6f4cdd499aa7be5c5b2ffa0f",
+      "batch": "B",
+      "name": "常用的确定一阶系统时间常数的方…",
+      "definition": "初始斜率特性是常用的确定一阶系统时间常数的方法之一。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "常用的确定一阶系统时间…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 常用的确定一阶系统时间常数的方…\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 初始斜率特性是常用的确定一阶系统时间常数的方法之一。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「常用的确定一阶系统时」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

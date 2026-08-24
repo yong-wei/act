@@ -24,22 +24,34 @@ import {
   emptyTeachingSelectorFingerprint,
   loadStagedAuthoritySnapshot,
   materializeAuthoritySnapshot,
+  verifyMaterializedSnapshot,
   proveEmptyTeachingProjectionActivation,
   readCurrentAuthorityPointer,
   resolveActiveAuthoritySnapshot,
   resolveAuthorityStorePaths,
   resolveEngineeringGraphAuthority,
+  resolveActiveEngineeringGraphAuthority,
   resolveEngineeringRagAuthority,
   rollbackAuthorityPointer,
   authorityStoreFs,
+  DEFAULT_AUTHORITY_ROOT_RELATIVE,
   shouldStageAuthorityAfterDelta,
   stageAuthorityAfterValidatedBundleImport,
   stageAuthoritySnapshot,
+  stageAuthoritySnapshotArtifacts,
   stagedSnapshotNormalizedBytes,
   type AuthoritativeKnowledgeSnapshot,
+  type AuthoritativeV2Evidence,
   type AuthorityStorePaths,
+  type StagedAuthoritySnapshotFiles,
   type TeachingSelectorFingerprint,
 } from '../authoritative-knowledge';
+import { DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE } from '../versioned-knowledge-activation';
+import type {
+  ConsumerProductionSelection,
+  ConsumerVersionCombination,
+  ResolvedConsumerActivation,
+} from '../versioned-knowledge-activation';
 
 const hash = 'a'.repeat(64);
 const commit = 'b'.repeat(40);
@@ -235,6 +247,58 @@ function baseSnapshot(overrides: Partial<AuthoritativeKnowledgeSnapshot> = {}): 
   };
 }
 
+function v2Evidence(): AuthoritativeV2Evidence {
+  const releaseId = 'ctr:release:control-theory-engineering-v0.18';
+  const profiles = [
+    ['runtime', 'runtime-profile', 'runtime'],
+    ['domain', 'domain-profile', 'domain'],
+    ['review', 'review-profile', 'review'],
+  ].map(([profileKey, profileId, projectionKind]) => ({
+    releaseId,
+    profileKey,
+    manifestProfile: profileKey,
+    profileId,
+    profileSha256: hash,
+    projectionKind,
+    profileVersion: 'v1',
+    mappingContractVersion: 'actkg-map/v2',
+    aggregationPolicy: 'preserve-all',
+    payload: { profileKey },
+  }));
+  const multilingualLabels = Array.from({ length: 1909 }, (_, ordinal) => ({
+    releaseId,
+    ordinal,
+    entityId: `node-${ordinal}`,
+    language: 'zh-CN',
+    label: `标签-${ordinal}`,
+    labelType: 'preferred',
+    terminologyAssertionId: `term-${ordinal}`,
+    payload: { ordinal, source: 'v2-fixture' },
+  }));
+  const bindingPayload = {
+    provenance: 'registry',
+    verificationScope: 'admission-time',
+    verifiedDuringLoad: false,
+    registryIdentity: { registryId: 'registry-v2', entry: 'control-theory-engineering-v0.18' },
+    upstreamRepository: { owner: 'yong-wei', name: 'ActKG' },
+    publicationRevision: { tag: 'control-theory-engineering-v0.18', commit },
+    sourceRevision: { tag: 'control-theory-engineering-v0.18-source-r1', commit },
+    bundleIdentity: { bundleId: 'bundle-v018', bundleRevision: 1, bundleDigest: hash },
+  };
+  return {
+    protocol: 'actkg-public-bundle/2',
+    profiles,
+    multilingualLabels,
+    admissionBinding: {
+      releaseId,
+      bundleReceiptId: 'bundle-receipt:v2:fixture',
+      protocol: 'actkg-public-bundle/2',
+      ...bindingPayload,
+      bindingDigest: authorityDigest(bindingPayload),
+    },
+  };
+}
+
 describe('Authority Snapshot materialization (#1266)', () => {
   it('materializes deterministic snapshotHash and identical bytes for identical input', () => {
     const first = materializeAuthoritySnapshot({
@@ -300,6 +364,53 @@ describe('Authority Snapshot materialization (#1266)', () => {
     })).toThrow(AuthoritySnapshotError);
   });
 
+  it('retains all V2 typed evidence and rejects count or digest drift', () => {
+    const evidence = v2Evidence();
+    const snapshot = baseSnapshot({
+      release: {
+        ...baseSnapshot().release,
+        id: 'ctr:release:control-theory-engineering-v0.18',
+        releaseVersion: 'v0.18',
+        protocol: 'actkg-public-bundle/2',
+      },
+      v2Evidence: evidence,
+    });
+    const materialized = materializeAuthoritySnapshot({ snapshot });
+    expect(materialized.engineering.v2Evidence?.profiles).toHaveLength(3);
+    expect(materialized.engineering.v2Evidence?.multilingualLabels).toHaveLength(1909);
+    expect(materialized.manifest.provenance.v2ProfileCount).toBe(3);
+    expect(materialized.manifest.provenance.v2MultilingualLabelCount).toBe(1909);
+    expect(materialized.manifest.provenance.v2AdmissionBindingDigest).toBe(
+      evidence.admissionBinding.bindingDigest,
+    );
+    expect(authorityDigest(materialized.engineering.v2Evidence?.multilingualLabels)).toBe(
+      authorityDigest(evidence.multilingualLabels),
+    );
+
+    const tamperedEngineering = {
+      ...materialized.engineering,
+      v2Evidence: {
+        ...materialized.engineering.v2Evidence!,
+        multilingualLabels: materialized.engineering.v2Evidence!.multilingualLabels.map((row, index) => (
+          index === 1908 ? { ...row, label: '篡改标签' } : row
+        )),
+      },
+    };
+    expect(() => verifyMaterializedSnapshot({
+      manifest: materialized.manifest,
+      engineering: tamperedEngineering,
+    })).toThrow(AuthoritySnapshotError);
+    expect(() => materializeAuthoritySnapshot({
+      snapshot: {
+        ...snapshot,
+        v2Evidence: {
+          ...evidence,
+          multilingualLabels: evidence.multilingualLabels.slice(0, -1),
+        },
+      },
+    })).toThrow(/profiles=3 and multilingualLabels=1909/);
+  });
+
   it('stages candidate-only without moving current pointer', () => {
     const paths = tempAuthorityRoot();
     const staged = stageAuthoritySnapshot(paths, {
@@ -337,6 +448,25 @@ describe('Authority Snapshot materialization (#1266)', () => {
     expect(a.manifest.deltaReceiptIds).toEqual(['delta-receipt:x']);
     // No teaching review item created — only stage receipt.
     expect(a.stageReceipt.teachingSelectorsAdvanced).toBe(false);
+  });
+
+  it('stages a separately validated materialization without reconstructing its source snapshot', () => {
+    const sourcePaths = tempAuthorityRoot();
+    const materialized = stageAuthoritySnapshot(sourcePaths, {
+      snapshot: baseSnapshot(),
+      deltaReceiptIds: ['delta-receipt:artifact-stage'],
+    });
+    const targetPaths = tempAuthorityRoot();
+
+    const staged = stageAuthoritySnapshotArtifacts(targetPaths, {
+      manifest: materialized.manifest,
+      engineering: materialized.engineering,
+    });
+
+    expect(staged.snapshotId).toBe(materialized.snapshotId);
+    expect(staged.snapshotHash).toBe(materialized.snapshotHash);
+    expect(staged.stageReceipt.reasons).toContain('staged-from-validated-artifacts');
+    expect(readCurrentAuthorityPointer(targetPaths)).toBeNull();
   });
 });
 
@@ -562,8 +692,41 @@ describe('Engineering consumers and Repository active resolution (#1266)', () =>
     expect(activation.receipt.teachingSelectorsAdvanced).toBe(false);
     expect(activation.receipt.teachingSelectorFingerprintAfter).toEqual(teaching);
 
-    expect(resolveEngineeringGraphAuthority(paths).status).toBe('ready');
-    expect(resolveEngineeringRagAuthority(paths).status).toBe('ready');
+    expect(resolveEngineeringGraphAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+    expect(resolveEngineeringRagAuthority(paths)).toMatchObject({
+      status: 'ready',
+      activationMode: 'absent',
+    });
+  });
+
+  it('default Authority root uses the active consumer pointer', () => {
+    const previousAuthorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT;
+    const previousConsumerRoot = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    const authorityRoot = path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE);
+    const consumerRoot = path.resolve(
+      process.cwd(),
+      DEFAULT_CONSUMER_ACTIVATION_ROOT_RELATIVE,
+    );
+    process.env.ACT_AUTHORITY_STORE_ROOT = authorityRoot;
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = consumerRoot;
+    try {
+      expect(resolveEngineeringGraphAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+      expect(resolveEngineeringRagAuthority(resolveAuthorityStorePaths(authorityRoot))).toMatchObject({
+        status: 'ready',
+        activationMode: 'use-combination',
+      });
+    } finally {
+      if (previousAuthorityRoot === undefined) delete process.env.ACT_AUTHORITY_STORE_ROOT;
+      else process.env.ACT_AUTHORITY_STORE_ROOT = previousAuthorityRoot;
+      if (previousConsumerRoot === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = previousConsumerRoot;
+    }
   });
 
   it('capture-drift and schema drift fail closed before activation', () => {
@@ -1015,5 +1178,124 @@ describe('Codex review remediation (#1279)', () => {
     }
     expect(readCurrentAuthorityPointer(paths)).toBeNull();
     expect(existsSync(paths.releasesDir) ? readdirSync(paths.releasesDir) : []).toEqual([]);
+  });
+
+  function strictSelection(
+    staged: StagedAuthoritySnapshotFiles,
+    overrides: Partial<ConsumerVersionCombination> = {},
+  ): ConsumerProductionSelection {
+    const combination: ConsumerVersionCombination = {
+      authorityReleaseId: staged.manifest.releaseId,
+      authoritySnapshotId: staged.snapshotId,
+      authoritySnapshotHash: staged.snapshotHash,
+      projectionId: null,
+      projectionHash: null,
+      scopeId: null,
+      captureRevision: staged.manifest.captureRevision,
+      ...overrides,
+    };
+    const resolved: ResolvedConsumerActivation = {
+      status: 'ready',
+      consumerId: 'engineering-graph',
+      activationId: 'activation-test',
+      activationHash: hash,
+      consumerStatus: 'READY',
+      combination,
+      priorCombination: null,
+      reasons: [],
+      record: null,
+      manifest: null,
+    };
+    return {
+      mode: 'use-combination',
+      consumerId: 'engineering-graph',
+      combination,
+      resolved,
+      reasons: [],
+    };
+  }
+
+  it('strictly resolves READY use-combination with matching Authority identity and null projection', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: strictSelection(staged),
+    });
+    expect(resolved).toMatchObject({
+      status: 'ready',
+      consumerId: 'engineering-graph',
+      activationMode: 'use-combination',
+      consumerStatus: 'READY',
+      activationId: 'activation-test',
+      activationHash: hash,
+      snapshotId: staged.snapshotId,
+      snapshotHash: staged.snapshotHash,
+      releaseId: staged.manifest.releaseId,
+      projectionId: null,
+      projectionHash: null,
+      teachingProjectionRequired: false,
+    });
+    expect(resolved.snapshot?.authorityState).toBe('active');
+  });
+
+  it('fails closed when activation is absent even if a global Authority pointer exists', () => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    activateEngineeringAuthority(paths, { snapshotId: staged.snapshotId });
+    const absent = strictSelection(staged);
+    absent.mode = 'absent';
+    absent.combination = null;
+    absent.resolved = {
+      ...absent.resolved,
+      status: 'unavailable',
+      consumerStatus: null,
+      combination: null,
+      reasons: ['current-pointer-missing'],
+    };
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: absent,
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.reason).toBe('engineering-graph-activation-absent');
+    expect(resolved.snapshot).toBeNull();
+  });
+
+  it.each([
+    ['pin-combination', 'engineering-graph-consumer-not-ready'],
+    ['unavailable', 'activation-drift'],
+  ] as const)('fails closed for %s consumer selection', (mode, expectedReason) => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const selection = strictSelection(staged);
+    selection.mode = mode;
+    selection.reasons = [expectedReason];
+    selection.resolved = {
+      ...selection.resolved,
+      status: mode === 'pin-combination' ? 'pinned' : 'unavailable',
+      consumerStatus: mode === 'pin-combination' ? 'PINNED_PREVIOUS' : null,
+    };
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: selection,
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.reason).toBe(expectedReason === 'activation-drift'
+      ? expectedReason
+      : 'engineering-graph-consumer-not-ready');
+  });
+
+  it.each([
+    ['authoritySnapshotHash', { authoritySnapshotHash: 'f'.repeat(64) }],
+    ['authorityReleaseId', { authorityReleaseId: 'release-mismatch' }],
+    ['projectionId', { projectionId: 'teaching-projection' }],
+    ['projectionHash', { projectionHash: 'e'.repeat(64) }],
+  ] as const)('fails closed for mismatched %s identity', (_field, overrides) => {
+    const paths = tempAuthorityRoot();
+    const staged = stageAuthoritySnapshot(paths, { snapshot: baseSnapshot() });
+    const resolved = resolveActiveEngineeringGraphAuthority(paths, {
+      activationSelection: strictSelection(staged, overrides),
+    });
+    expect(resolved.status).toBe('unavailable');
+    expect(resolved.snapshot).toBeNull();
+    expect(resolved.reason).toMatch(/mismatch|must-be-null/);
   });
 });

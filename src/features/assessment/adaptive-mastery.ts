@@ -44,11 +44,22 @@ export interface MasteryConfidenceInput {
   attemptCount: number;
 }
 
+export interface MicroInterventionMasteryEvidence {
+  evidenceId: string;
+  knowledgeTag: string;
+  isCorrect: boolean;
+  occurredAt: Date;
+  profileWeight: number;
+  limitations: string[];
+}
+
 export interface MasteryRebuildOptions {
   algorithmVersion?: string;
   parameters?: AdaptiveAssessmentBktParameters;
   prerequisitesByTag?: Record<string, string[]>;
   prerequisiteStaleAfterMs?: number;
+  microInterventionEvidence?: MicroInterventionMasteryEvidence[];
+  consumeMicroInterventionEvidence?: boolean;
 }
 
 export interface RebuiltMasteryUpdate {
@@ -64,6 +75,7 @@ export interface RebuiltMasteryUpdate {
   prerequisiteEvidence: {
     missing: string[];
     stale: string[];
+    microInterventionLimitations?: string[];
   };
 }
 
@@ -134,7 +146,34 @@ export function rebuildMasteryUpdatesFromAnswers(
   const algorithmVersion = options.algorithmVersion ?? ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION;
   const parameters = options.parameters ?? ADAPTIVE_ASSESSMENT_BKT_PARAMETERS;
   const prerequisitesByTag = options.prerequisitesByTag ?? DEFAULT_PREREQUISITES_BY_TAG;
-  const sortedAnswers = [...answers].sort((left, right) => {
+  const microInterventionLimitationsByTag = new Map<string, string[]>();
+  if (options.consumeMicroInterventionEvidence) {
+    for (const item of options.microInterventionEvidence ?? []) {
+      const current = microInterventionLimitationsByTag.get(item.knowledgeTag) ?? [];
+      for (const limitation of item.limitations) {
+        if (!current.includes(limitation)) current.push(limitation);
+      }
+      if (current.length > 0) microInterventionLimitationsByTag.set(item.knowledgeTag, current);
+    }
+  }
+  const microEvidence = options.consumeMicroInterventionEvidence
+    ? (options.microInterventionEvidence ?? [])
+      .filter((item) => item.profileWeight > 0)
+      .map((item) => ({
+        id: item.evidenceId,
+        questionId: item.evidenceId,
+        isCorrect: item.isCorrect,
+        answeredAt: item.occurredAt,
+        knowledgeTags: [item.knowledgeTag],
+        evidenceKind: 'non_assessment' as const,
+        profileWeight: item.profileWeight,
+      }))
+    : [];
+  const sortedAnswers = [...answers.map((answer) => ({
+    ...answer,
+    evidenceKind: 'assessment' as const,
+    profileWeight: 1,
+  })), ...microEvidence].sort((left, right) => {
     const timeDelta = left.answeredAt.getTime() - right.answeredAt.getTime();
     return timeDelta !== 0 ? timeDelta : left.id.localeCompare(right.id);
   });
@@ -151,7 +190,9 @@ export function rebuildMasteryUpdatesFromAnswers(
         posterior: parameters.initialMastery,
         attempts: 0,
       };
-      const posterior = computePosterior(previous.posterior, answer.isCorrect, parameters);
+      const fullPosterior = computePosterior(previous.posterior, answer.isCorrect, parameters);
+      const weight = clamp(answer.profileWeight, 0, 1);
+      const posterior = previous.posterior + (fullPosterior - previous.posterior) * weight;
       const attemptCount = previous.attempts + 1;
 
       updates.push({
@@ -161,21 +202,26 @@ export function rebuildMasteryUpdatesFromAnswers(
         priorMastery: round(previous.posterior),
         posteriorMastery: round(posterior),
         confidence: resolveMasteryConfidence({
-          evidenceKind: 'assessment',
-          calibrated: true,
+          evidenceKind: answer.evidenceKind,
+          calibrated: answer.evidenceKind === 'assessment',
           posteriorMastery: posterior,
           attemptCount,
         }),
         attemptCount,
         algorithmVersion,
-        evidenceKind: 'assessment',
-        prerequisiteEvidence: resolvePrerequisiteEvidence(
-          tag,
-          observedTags,
-          prerequisitesByTag,
-          answer.answeredAt,
-          options.prerequisiteStaleAfterMs,
-        ),
+        evidenceKind: answer.evidenceKind,
+        prerequisiteEvidence: {
+          ...resolvePrerequisiteEvidence(
+            tag,
+            observedTags,
+            prerequisitesByTag,
+            answer.answeredAt,
+            options.prerequisiteStaleAfterMs,
+          ),
+          ...((microInterventionLimitationsByTag.get(tag)?.length ?? 0) > 0
+            ? { microInterventionLimitations: microInterventionLimitationsByTag.get(tag) }
+            : {}),
+        },
       });
 
       masteryByTag.set(tag, {

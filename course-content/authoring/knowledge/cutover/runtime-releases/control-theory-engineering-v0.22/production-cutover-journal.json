@@ -1,0 +1,77 @@
+{
+  "contract": "actkg-v022-production-cutover-journal/v1",
+  "transactionId": "v022-cutover-2026-08-20T125026397Z",
+  "createdAt": "2026-08-20T12:51:34.189Z",
+  "status": "COMMITTED",
+  "prestate": "control-theory-engineering-v0.18",
+  "ready": true,
+  "failure": null,
+  "steps": [
+    {
+      "component": "authority",
+      "predecessor": {
+        "id": "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+        "hash": "1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed",
+        "fileSha256": "d0a3dd3de9f176cdd185302d91a67d2c3406fdfb271fea75bd583c3127e8cd9d"
+      },
+      "target": {
+        "id": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "hash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151"
+      },
+      "status": "APPLIED"
+    },
+    {
+      "component": "projection",
+      "predecessor": {
+        "id": "proj-17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+        "hash": "17f00f669b22c25126ca4c562e1e019c074a7738502825d2d109a77c47202ba9",
+        "fileSha256": "53cc566e0e590b4127b121291aceeb847e38aa16449767d3c8db3e951f79e812"
+      },
+      "target": {
+        "id": "proj-1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+        "hash": "1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457"
+      },
+      "status": "APPLIED"
+    },
+    {
+      "component": "prerequisite",
+      "predecessor": {
+        "id": "proj-0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+        "hash": "0bdda82e1bc922fd8b910a9782dffbb147c64aed176b11d772b43f89eb8b3cf7",
+        "fileSha256": "ee266789e779bce9c7bec07d87809f550fb241deebecffb25f250e2467df6db2"
+      },
+      "target": {
+        "id": "proj-1adcc27f4e0e1b35e7b288da1920242fd4552e60e16a4b0aa7742c32891f9421",
+        "hash": "1adcc27f4e0e1b35e7b288da1920242fd4552e60e16a4b0aa7742c32891f9421"
+      },
+      "status": "APPLIED"
+    },
+    {
+      "component": "authority-domain-shards",
+      "predecessor": {
+        "id": "ads-30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+        "hash": "30cd92a6be1035c981428d1cb144e2d1dc37578020b6e99b1b02d41f7c2752af",
+        "fileSha256": "b128456356799c4382d8e4ccd4c13b28ec7b95f40079389e728fad017892b3b6"
+      },
+      "target": {
+        "id": "ads-a982e77740f768ca009165208253df8f949761bfb02c9ec9a80050bebf855385",
+        "hash": "a982e77740f768ca009165208253df8f949761bfb02c9ec9a80050bebf855385"
+      },
+      "status": "APPLIED"
+    },
+    {
+      "component": "consumer-activation",
+      "predecessor": {
+        "id": "v018-cutover-1b64a853dda5-17f00f669b22",
+        "hash": "b88996b578fbb2afaa822cf055af634871b796011efda3ccc0755f7cc0184300",
+        "fileSha256": "8e0a7a69124afcd9d9d6baa324db297c4f4e479bbeca6cc658881fe5b353e881"
+      },
+      "target": {
+        "id": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+        "hash": "63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129"
+      },
+      "status": "APPLIED"
+    }
+  ],
+  "journalHash": "cfa1e9eac01450504addc03886c8736ae654c9d7ad61dd35965968e68ba0f23e"
+}

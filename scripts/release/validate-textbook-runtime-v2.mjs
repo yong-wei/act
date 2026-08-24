@@ -7,11 +7,19 @@ import process from 'node:process';
 import {
   inspectTextbookRetrievalIndex,
   inspectTextbookRuntimeV2,
-  TEXTBOOK_V2_BOOK_IDS,
   TEXTBOOK_V2_REQUIRED_FILES,
 } from './textbook-runtime-v2-provenance.mjs';
+import {
+  loadTextbookResourceSet,
+  TEXTBOOK_RESOURCE_SET_PATH,
+  textbookBookIds,
+} from './textbook-resource-set.mjs';
 
-export { TEXTBOOK_V2_BOOK_IDS, TEXTBOOK_V2_REQUIRED_FILES };
+export {
+  TEXTBOOK_RESOURCE_SET_PATH,
+  TEXTBOOK_V2_REQUIRED_FILES,
+  textbookBookIds,
+};
 
 function parseArgs(argv) {
   let runtimeRoot = 'course-content/runtime/resources/textbooks-v2';
@@ -39,13 +47,14 @@ function parseArgs(argv) {
     filesOnly,
     expectedSourceRevision,
     indexDir: path.resolve(
-      indexDir ?? path.join(path.dirname(runtimeRoot), 'textbook-retrieval'),
+      indexDir ?? path.join(path.dirname(runtimeRoot), 'textbook-hybrid-retrieval', 'bge-m3'),
     ),
     assetsRoot: assetsRoot ? path.resolve(assetsRoot) : undefined,
   };
 }
 
 function validateRecords(runtimeRoot) {
+  const bookIds = textbookBookIds();
   const validatorPath = path.resolve(
     'course-content/scripts/validate_structured_textbook_runtime_v2.mjs',
   );
@@ -56,7 +65,7 @@ function validateRecords(runtimeRoot) {
     validatorPath,
     '--schema',
     schemaPath,
-    ...TEXTBOOK_V2_BOOK_IDS.flatMap((bookId) => [
+    ...bookIds.flatMap((bookId) => [
       '--runtime-dir',
       path.join(runtimeRoot, bookId),
     ]),
@@ -82,19 +91,20 @@ function validateRecords(runtimeRoot) {
     throw new Error(`textbook-v2-schema-validation-failed:${result.status ?? 'signal'}`);
   }
   const summary = JSON.parse(result.stdout);
-  if (summary.runtimeDirectories !== TEXTBOOK_V2_BOOK_IDS.length || summary.failures?.length !== 0) {
+  if (summary.runtimeDirectories !== bookIds.length || summary.failures?.length !== 0) {
     throw new Error('textbook-v2-schema-validation-summary-invalid');
   }
   return summary;
 }
 
 function validateClosure(runtimeRoot) {
+  const bookIds = textbookBookIds();
   const validatorPath = path.resolve(
     'course-content/scripts/validate_written_textbook_runtime_v2.py',
   );
   const validatorArgs = [
     validatorPath,
-    ...TEXTBOOK_V2_BOOK_IDS.flatMap((bookId) => [
+    ...bookIds.flatMap((bookId) => [
       '--runtime-dir',
       path.join(runtimeRoot, bookId),
     ]),
@@ -108,7 +118,7 @@ function validateClosure(runtimeRoot) {
     throw new Error(`textbook-v2-closure-validation-failed:${result.status ?? 'signal'}`);
   }
   const summary = JSON.parse(result.stdout);
-  if (summary.runtimeDirectories !== TEXTBOOK_V2_BOOK_IDS.length || summary.failures?.length !== 0) {
+  if (summary.runtimeDirectories !== bookIds.length || summary.failures?.length !== 0) {
     throw new Error('textbook-v2-closure-validation-summary-invalid');
   }
   return summary;
@@ -122,8 +132,8 @@ function validateIndex(runtimeRoot, indexDir, expectedSourceRevision) {
     runtimeRoot,
     '--index-dir',
     indexDir,
-    '--expected-book-count',
-    String(TEXTBOOK_V2_BOOK_IDS.length),
+    '--resource-set',
+    TEXTBOOK_RESOURCE_SET_PATH,
   ], {
     cwd: process.cwd(),
     encoding: 'utf8',
@@ -168,18 +178,25 @@ function main() {
   const index = filesOnly
     ? null
     : inspectTextbookRetrievalIndex(indexDir, {
-      expectedSourceRevision: runtime.sourceRevision,
+      expectedSourceRevision: runtime.authoringSourceRevision,
+      expectedResourceSetId: runtime.resourceSetId ?? undefined,
+      expectedBookIds: runtime.provenanceGeneration === 'v2' ? runtime.bookIds : undefined,
+      runtimeRoot,
     });
   const validation = filesOnly ? null : validateRecords(runtimeRoot);
   const closureValidation = filesOnly ? null : validateClosure(runtimeRoot);
   const indexValidation = filesOnly
     ? null
-    : validateIndex(runtimeRoot, indexDir, runtime.sourceRevision);
+    : validateIndex(runtimeRoot, indexDir, runtime.authoringSourceRevision);
+  const bookIds = runtime.bookIds;
   process.stdout.write(`${JSON.stringify({
     runtimeRoot,
-    bookIds: TEXTBOOK_V2_BOOK_IDS,
+    bookIds,
     requiredFiles: TEXTBOOK_V2_REQUIRED_FILES,
-    sourceRevision: runtime.sourceRevision,
+    sourceRevision: runtime.authoringSourceRevision,
+    authoringSourceRevision: runtime.authoringSourceRevision,
+    provenanceGeneration: runtime.provenanceGeneration,
+    resourceSetId: runtime.resourceSetId,
     runtimeDigest: runtime.runtimeDigest,
     inputDigest: runtime.inputDigest,
     runtimeFileCount: runtime.fileCount,
@@ -187,8 +204,10 @@ function main() {
     indexRoot: filesOnly ? null : indexDir,
     indexDigest: index?.indexDigest ?? null,
     indexFiles: index?.fileCount ?? null,
+    indexResourceSetId: index?.resourceSetId ?? null,
     indexWindows: indexValidation?.windows ?? null,
-    runtimeDirectories: TEXTBOOK_V2_BOOK_IDS.length,
+    currentResourceSetId: loadTextbookResourceSet().resourceSetId,
+    runtimeDirectories: bookIds.length,
     recordsValidated: validation?.recordsValidated ?? null,
     closureDirectoriesValidated: closureValidation?.runtimeDirectories ?? null,
     failures: validation?.failures ?? [],

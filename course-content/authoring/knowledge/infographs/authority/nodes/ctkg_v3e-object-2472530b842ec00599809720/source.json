@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2472530b842ec00599809720",
+  "safe_id": "ctkg_v3e-object-2472530b842ec00599809720",
+  "node": {
+    "name": "Relay Nonlinearity",
+    "name_en": "Relay Nonlinearity",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Relay Nonlinearity：Relay Nonlinearity",
+  "intuition": null,
+  "explanation": "Relay Nonlinearity",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Relay Nonli…",
+    "Relay Nonlin"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2472530b842ec00599809720.md",
+  "provider_policy": "grok-image_gen"
+}

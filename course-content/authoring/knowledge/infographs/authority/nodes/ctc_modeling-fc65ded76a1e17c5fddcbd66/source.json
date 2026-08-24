@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+  "safe_id": "ctc_modeling-fc65ded76a1e17c5fddcbd66",
+  "node": {
+    "name": "求解齐次状态方程的一种方法",
+    "name_en": "modeling_fc65ded76a1e17c5fddcbd66",
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "求解齐次状态方程的一种方法，对状态方程取拉普拉斯变换，得到 $\\boldsymbol{X}(s)=(s \\boldsymbol{I}-\\boldsymbol{A})^{-1} \\boldsymbol{x}(0)$，再取反变换得到 $\\bo…",
+  "intuition": null,
+  "explanation": "求解齐次状态方程的一种方法，对状态方程取拉普拉斯变换，得到 $\\boldsymbol{X}(s)=(s \\boldsymbol{I}-\\boldsymbol{A})^{-1} \\boldsymbol{x}(0)$，再取反变换得到 $\\boldsymbol{x}(t)$。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "求解齐次状态方程的一种…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-fc65ded76a1e17c5fddcbd66.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,64 @@
+{
+  "pack_id": "P0187",
+  "offset": 935,
+  "items": [
+    {
+      "safe_id": "ctkg_domainconcept_275296ae58e9a926faac7ae3",
+      "batch": "C",
+      "name": "速度误差系数",
+      "definition": "速度误差系数是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "速度误差系数"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 速度误差系数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 速度误差系数是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「速度误差系数」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_28bfca2df331c329cea26464",
+      "batch": "C",
+      "name": "朱利稳定判据",
+      "definition": "朱利稳定判据是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "朱利稳定判据",
+        "一种·Routh-…",
+        "用于分析·朱利稳定…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 朱利稳定判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 朱利稳定判据是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「朱利稳定判据」、「一种·Routh-…」、「用于分析·朱利稳定…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_4b8188f6e3ad1985a3208055",
+      "batch": "C",
+      "name": "数字校正装置",
+      "definition": "数字校正装置是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "数字校正装置"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 数字校正装置\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 数字校正装置是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「数字校正装置」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_64d1931785ee06183744e4e4",
+      "batch": "C",
+      "name": "超前校正网络",
+      "definition": "超前校正网络是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "超前校正网络",
+        "一种·Phase-…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 超前校正网络\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 超前校正网络是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「超前校正网络」、「一种·Phase-…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_80cea7656ffd01203a570296",
+      "batch": "C",
+      "name": "稳态跟踪误差",
+      "definition": "稳态跟踪误差是自动控制原理权威图谱中的领域概念。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态跟踪误差"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳态跟踪误差\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 稳态跟踪误差是自动控制原理权威图谱中的领域概念。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳态跟踪误差」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

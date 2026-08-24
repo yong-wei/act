@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0018",
+  "offset": 90,
+  "items": [
+    {
+      "safe_id": "ctc_modeling-cfe23fc89a7d2442f25e31e1",
+      "batch": "B",
+      "name": "type of ideal element",
+      "definition": "type of ideal element：A type of ideal element that dissipates energy, including electrical resistance, translational damper, rotational dampe…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "type of ide…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: type of ideal element\nSOURCE DEFINITION (fail-closed, do not invent beyond this): type of ideal element：A type of ideal element that dissipates energy, including electrical resistance, translational damper, rotational dampe…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「type of id」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-02f9f0ab62cde123ae7dcc9a",
+      "batch": "B",
+      "name": "Left Companion Matrix",
+      "definition": "Left Companion Matrix：The matrix Aₒ in observer canonical form, where the coefficients of the characteristic equation appear on the left side.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Left Compan…",
+        "Left Compani"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Left Companion Matrix\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Left Companion Matrix：The matrix Aₒ in observer canonical form, where the coefficients of the characteristic equation appear on the left side.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Left Compa」、「Left Compa」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-077a4ec4c19112baa379c0f5",
+      "batch": "B",
+      "name": "Asynchronous Sampling",
+      "definition": "Asynchronous Sampling：As noted in the previous paragraphs, divorcing the prefilter design from the control-law design may require using a fas…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Asynchronou…",
+        "Asynchronous"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Asynchronous Sampling\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Asynchronous Sampling：As noted in the previous paragraphs, divorcing the prefilter design from the control-law design may require using a fas…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Asynchrono」、「Asynchrono」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5baddb9163a6af3f17f2522d",
+      "batch": "B",
+      "name": "Small-signal analysis",
+      "definition": "Small-signal analysis：For a system with smooth nonlinearities and a continuous derivative, one can compute a linear model that is valid for s…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Small-signa…",
+        "Small-signal",
+        "用于分析·Equi…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Small-signal analysis\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Small-signal analysis：For a system with smooth nonlinearities and a continuous derivative, one can compute a linear model that is valid for s…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Small-sign」、「Small-sign」、「用于分析·Equi…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-69488c745082536d87afd1a7",
+      "batch": "B",
+      "name": "Closed-loop bandwidth",
+      "definition": "Closed-loop bandwidth：The closed-loop bandwidth is defined in Section 6.1 and Fig. 6.5. For a second-order system, the natural frequency is a…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Closed-loop…",
+        "Closed-loop "
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Closed-loop bandwidth\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Closed-loop bandwidth：The closed-loop bandwidth is defined in Section 6.1 and Fig. 6.5. For a second-order system, the natural frequency is a…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Closed-loo」、「Closed-loo」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

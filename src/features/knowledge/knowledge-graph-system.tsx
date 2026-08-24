@@ -117,6 +117,14 @@ const FOCUSABLE_SELECTOR = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+
+function restoreKnowledgeInspectorFocus(nodeId: string | null) {
+  const nodeControl = nodeId
+    ? Array.from(document.querySelectorAll<HTMLElement>('[data-knowledge-node-control]'))
+      .find((element) => element.dataset.knowledgeNodeControl === nodeId)
+    : null;
+  (nodeControl ?? document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]'))?.focus();
+}
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
   id: string;
@@ -683,8 +691,10 @@ export function KnowledgeGraphSystem({
 
   // 关闭资源面板
   const handleClosePanel = useCallback(() => {
+    const closedNodeId = selectedNode?.id ?? null;
     dispatchInspection({ type: 'close-inspector' });
-  }, []);
+    window.requestAnimationFrame(() => restoreKnowledgeInspectorFocus(closedNodeId));
+  }, [selectedNode]);
 
   const chapterOptions = useMemo(() => {
     const chapterSet = new Set<string>();
@@ -1665,14 +1675,17 @@ export function KnowledgeGraphSystem({
 
         {!aiSidebarOpen && (
           <div
-            className={`absolute left-3 right-3 top-3 grid gap-2 lg:hidden ${
+            className={`absolute left-3 right-3 top-16 lg:top-3 grid gap-2 lg:hidden ${
               mobileToolPanelOpen ? 'z-[60]' : 'z-30'
             }`}
             data-knowledge-mobile-command-surface="single-tool-panel"
             data-knowledge-local-tool={mobileActiveTool}
             data-state={mobileToolPanelOpen ? 'open' : 'closed'}
           >
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
+          <div
+            className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
+            data-knowledge-mobile-command-toolbar="true"
+          >
             {([
               ['chapter-directory', '目录'],
               ['node-filters', '筛选'],

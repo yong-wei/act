@@ -34,7 +34,7 @@ describe('adaptive path journey contracts', () => {
       context: { requestedNodeId: 'node-1' },
       current: { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz' },
       progress: { completed: 1, total: 2 },
-      return: { href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-2' },
+      return: { href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1' },
       pathStatus: 'active',
       nextAction: {
         state: 'ready',
@@ -47,6 +47,46 @@ describe('adaptive path journey contracts', () => {
     });
     expect(journey.nextAction.href).toContain('pathId=path-1');
     expect(journey.nextAction.href).toContain('nodeId=node-2');
+  });
+
+  it('returns from node execution to the current path overview', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath(), { requestedNodeId: 'node-1' });
+
+    expect(journey.return).toEqual({
+      label: '返回学习路径',
+      href: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1',
+    });
+    expect(journey.return.href).not.toContain('nodeId=');
+    expect(journey.return.href).toContain('intent=path-execution');
+    expect(journey.return.href).toContain('pathId=path-1');
+    expect(journey.nextAction.href).toContain('nodeId=node-2');
+  });
+
+  it('allows an interactive resource only when its persisted source context matches the target', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'registry:lesson13-physics-builder-simple',
+      nodeIds: ['registry:lesson13-physics-builder-simple'],
+      pathPayload: {
+        mainPathNodeIds: ['registry:lesson13-physics-builder-simple'],
+        planNodes: [{
+          nodeId: 'registry:lesson13-physics-builder-simple',
+          title: '阻尼调节实验',
+          type: 'lesson_step',
+          sourceKind: 'resource_registry',
+          sourceRef: 'lesson13-physics-builder-simple',
+          target: '/interactive-learning/resources/lesson13-physics-builder-simple',
+          status: 'current',
+          readiness: { state: 'ready' },
+        }],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    }));
+
+    expect(journey.nextAction).toMatchObject({
+      state: 'ready',
+      nodeId: 'registry:lesson13-physics-builder-simple',
+      type: 'lesson_step',
+    });
   });
 
   it('blocks continuation while the authoritative current node remains incomplete', () => {

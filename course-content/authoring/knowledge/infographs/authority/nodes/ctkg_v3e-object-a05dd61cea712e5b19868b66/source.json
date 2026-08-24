@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-a05dd61cea712e5b19868b66",
+  "safe_id": "ctkg_v3e-object-a05dd61cea712e5b19868b66",
+  "node": {
+    "name": "离散系统时域分析法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。",
+  "intuition": "本节主要介绍在时域中如何求取离散系统的时间响应，并指出采样器和保持器对系统动态性能的影响。",
+  "explanation": "应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。本节主要介绍在时域中如何求取离散系统的时间响应，并指出采样器和保持器对系统动态性能的影响。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "离散系统时域分析法"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-a05dd61cea712e5b19868b66.md",
+  "provider_policy": "grok-image_gen"
+}

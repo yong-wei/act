@@ -24,17 +24,15 @@ import {
   type PortfolioFeedbackDraft,
 } from '@/lib/student-feedback-task-contract';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import type {
+  PortfolioEvidenceSourceState,
+  ClassroomPortfolioWork,
+  EthicsPortfolioCase,
+  SimulationPortfolioDesign,
+} from '@/lib/data-governance/profile-portfolio-evidence';
 
 interface PortfolioData {
-  // Representative works from classroom sessions
-  classWorks: Array<{
-    id: string;
-    title: string;
-    type: string;
-    content: string;
-    createdAt: string;
-    sessionName?: string;
-  }>;
+  classWorks: ClassroomPortfolioWork[];
   // Quality prompt designs
   promptDesigns: Array<{
     id: string;
@@ -44,27 +42,26 @@ interface PortfolioData {
     createdAt: string;
   }>;
   // Simulation designs
-  simulationDesigns: Array<{
-    id: string;
-    name: string;
-    score: number;
-    parameters: Record<string, number>;
-    createdAt: string;
-  }>;
+  simulationDesigns: SimulationPortfolioDesign[];
   // Ethics remediation cases
-  ethicsCases: Array<{
-    id: string;
-    violationType: string;
-    description: string;
-    remediationAction: string;
-    createdAt: string;
-  }>;
+  ethicsCases: EthicsPortfolioCase[];
+  evidenceStates: {
+    classroom: PortfolioEvidenceSourceState;
+    simulations: PortfolioEvidenceSourceState;
+    ethics: PortfolioEvidenceSourceState;
+  };
   // AI collaboration reflections
   reflections: Array<{
     id: string;
+    source: string;
+    assignment: string | null;
+    intent: string;
+    title: string;
     content: string;
-    category: string;
+    status: 'DRAFT';
+    idempotencyKey: string;
     createdAt: string;
+    updatedAt: string;
   }>;
 }
 
@@ -103,7 +100,8 @@ export default function PortfolioPage() {
     : null;
   const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
   const feedbackPortfolioDraft = feedbackContext ? buildPortfolioFeedbackDraft(feedbackContext) : null;
-  const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft);
+  const selectedReflectionId = searchParams.get('draftId');
+  const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft || selectedReflectionId);
   const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>(
     hasLocalPortfolioTask ? 'reflections' : 'works',
   );
@@ -111,50 +109,53 @@ export default function PortfolioPage() {
   const fetchPortfolio = useCallback(async () => {
     try {
       setLoading(true);
-      // For now, generate mock data from existing data sources
-      // In production, this would be a dedicated API endpoint
-      const mockData: PortfolioData = {
-        classWorks: [],
+      const [reflectionResponse, evidenceResponse] = await Promise.all([
+        fetch('/api/profile/portfolio-reflection-drafts'),
+        fetch('/api/profile/portfolio-evidence'),
+      ]);
+      if (!reflectionResponse.ok) {
+        throw new Error('加载反思草稿失败');
+      }
+      const reflectionData = (await reflectionResponse.json()) as { drafts: PortfolioData['reflections'] };
+      const evidenceData = evidenceResponse.ok
+        ? await evidenceResponse.json() as {
+            classroom: { state: PortfolioEvidenceSourceState; items: ClassroomPortfolioWork[] };
+            simulations: { state: PortfolioEvidenceSourceState; items: SimulationPortfolioDesign[] };
+            ethics: { state: PortfolioEvidenceSourceState; items: EthicsPortfolioCase[] };
+          }
+        : null;
+
+      setPortfolio({
+        classWorks: evidenceData?.classroom.items ?? [],
         promptDesigns: [],
-        simulationDesigns: [],
-        ethicsCases: [],
-        reflections: [],
-      };
-
-      // Fetch simulation logs for designs
-      const simResponse = await fetch('/api/simulation/cruise-summary-insight');
-      if (simResponse.ok) {
-        const simData = await simResponse.json();
-        if (simData.designs) {
-          mockData.simulationDesigns = simData.designs.slice(0, 5);
-        }
-      }
-
-      // Fetch prompt assessments
-      const promptResponse = await fetch('/api/evaluation/prompt-history/' + session?.user?.id);
-      if (promptResponse.ok) {
-        const promptData = await promptResponse.json();
-        if (promptData.prompts) {
-          mockData.promptDesigns = promptData.prompts.filter((p: { score: number }) => p.score >= 70).slice(0, 5);
-        }
-      }
-
-      // Fetch ethics logs
-      const ethicsResponse = await fetch('/api/ethics/violation');
-      if (ethicsResponse.ok) {
-        const ethicsData = await ethicsResponse.json();
-        if (ethicsData.violations) {
-          mockData.ethicsCases = ethicsData.violations.filter((v: { isResolved: boolean }) => v.isResolved).slice(0, 5);
-        }
-      }
-
-      setPortfolio(mockData);
+        simulationDesigns: evidenceData?.simulations.items ?? [],
+        ethicsCases: evidenceData?.ethics.items ?? [],
+        evidenceStates: {
+          classroom: evidenceData?.classroom.state ?? 'unavailable',
+          simulations: evidenceData?.simulations.state ?? 'unavailable',
+          ethics: evidenceData?.ethics.state ?? 'unavailable',
+        },
+        reflections: reflectionData.drafts,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, []);
+
+  const selectedReflection = portfolio?.reflections.find((reflection) => reflection.id === selectedReflectionId) ?? null;
+  const openReflectionDraft = useCallback((draftId: string) => {
+    router.replace(`/profile/portfolio?category=reflection&draftId=${encodeURIComponent(draftId)}`);
+  }, [router]);
+  const handleDraftSaved = useCallback((draftId: string) => {
+    openReflectionDraft(draftId);
+    void fetchPortfolio();
+  }, [fetchPortfolio, openReflectionDraft]);
+  const handleDraftDiscarded = useCallback(() => {
+    router.replace('/profile/portfolio?category=reflection');
+    void fetchPortfolio();
+  }, [fetchPortfolio, router]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
@@ -167,10 +168,10 @@ export default function PortfolioPage() {
   }, [status, session, router, fetchPortfolio]);
 
   useEffect(() => {
-    if (searchParams.get('category') === 'reflection' || feedbackPortfolioDraft) {
+    if (searchParams.get('category') === 'reflection' || feedbackPortfolioDraft || selectedReflectionId) {
       setActiveTab('reflections');
     }
-  }, [feedbackPortfolioDraft, searchParams]);
+  }, [feedbackPortfolioDraft, searchParams, selectedReflectionId]);
 
   if (status === 'authenticated' && session?.user?.role !== 'STUDENT') {
     return (
@@ -284,15 +285,26 @@ export default function PortfolioPage() {
 
         {/* Tab Content */}
         <div className="min-h-[400px]">
-          {activeTab === 'works' && <ClassWorksTab works={portfolio?.classWorks || []} />}
+          {activeTab === 'works' && (
+            <ClassWorksTab works={portfolio?.classWorks || []} sourceState={portfolio?.evidenceStates.classroom ?? 'unavailable'} />
+          )}
           {activeTab === 'prompts' && <PromptDesignsTab designs={portfolio?.promptDesigns || []} />}
-          {activeTab === 'simulations' && <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} />}
-          {activeTab === 'ethics' && <EthicsCasesTab cases={portfolio?.ethicsCases || []} />}
+          {activeTab === 'simulations' && (
+            <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} sourceState={portfolio?.evidenceStates.simulations ?? 'unavailable'} />
+          )}
+          {activeTab === 'ethics' && (
+            <EthicsCasesTab cases={portfolio?.ethicsCases || []} sourceState={portfolio?.evidenceStates.ethics ?? 'unavailable'} />
+          )}
           {activeTab === 'reflections' && (
             <ReflectionsTab
+              key={reflectionDraft?.id ?? selectedReflection?.id ?? 'reflection-list'}
               reflections={portfolio?.reflections || []}
               draft={reflectionDraft}
               feedbackDraft={feedbackPortfolioDraft}
+              selectedDraft={selectedReflection}
+              onDraftSaved={handleDraftSaved}
+              onDraftDiscarded={handleDraftDiscarded}
+              onOpenDraft={openReflectionDraft}
             />
           )}
         </div>
@@ -325,14 +337,20 @@ function PortfolioAppShell({
   );
 }
 
-function ClassWorksTab({ works }: { works: PortfolioData['classWorks'] }) {
+function ClassWorksTab({
+  works,
+  sourceState,
+}: {
+  works: PortfolioData['classWorks'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (works.length === 0) {
     return (
       <EmptyState
         icon="📝"
-        title="暂无课堂作品"
-        description="参与互动课程后，你的优秀作品将在这里展示"
-        action={{ label: '进入互动课程', href: '/interactive-learning' }}
+        title={sourceState === 'unavailable' ? '课堂作品暂不可用' : '暂无课堂作品'}
+        description={sourceState === 'unavailable' ? '课堂证据来源暂时无法读取，请稍后重试。' : '参与互动课程后，你的课堂提交将在这里展示'}
+        action={sourceState === 'empty' ? { label: '进入互动课程', href: '/interactive-learning' } : undefined}
       />
     );
   }
@@ -404,14 +422,20 @@ function PromptDesignsTab({ designs }: { designs: PortfolioData['promptDesigns']
   );
 }
 
-function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationDesigns'] }) {
+function SimulationDesignsTab({
+  designs,
+  sourceState,
+}: {
+  designs: PortfolioData['simulationDesigns'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (designs.length === 0) {
     return (
       <EmptyState
         icon="🚢"
-        title="暂无仿真设计记录"
-        description="完成仿真任务后，你的设计方案将在这里展示"
-        action={{ label: '开始仿真', href: '/simulations/destroyer' }}
+        title={sourceState === 'unavailable' ? '仿真记录暂不可用' : '暂无仿真设计记录'}
+        description={sourceState === 'unavailable' ? '仿真证据来源暂时无法读取，请稍后重试。' : '完成仿真任务后，你的设计方案将在这里展示'}
+        action={sourceState === 'empty' ? { label: '开始仿真', href: '/simulations/destroyer' } : undefined}
       />
     );
   }
@@ -423,7 +447,7 @@ function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationD
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-foreground">{design.name || '未命名设计'}</h3>
             <div className="flex items-center gap-1">
-              <span className="text-lg font-bold text-emerald-500">{design.score}</span>
+               <span className="text-lg font-bold text-emerald-500">{design.score ?? '未评分'}</span>
               <span className="text-xs text-subtle">分</span>
             </div>
           </div>
@@ -446,14 +470,20 @@ function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationD
   );
 }
 
-function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
+function EthicsCasesTab({
+  cases,
+  sourceState,
+}: {
+  cases: PortfolioData['ethicsCases'];
+  sourceState: PortfolioEvidenceSourceState;
+}) {
   if (cases.length === 0) {
     return (
       <EmptyState
         icon="⚖️"
-        title="暂无伦理整改记录"
-        description="良好的工程伦理意识是优秀工程师的基础，继续保持！"
-        action={{ label: '了解工程伦理', href: '/ethics' }}
+        title={sourceState === 'unavailable' ? '伦理记录暂不可用' : '暂无伦理整改记录'}
+        description={sourceState === 'unavailable' ? '伦理证据来源暂时无法读取，请稍后重试。' : '良好的工程伦理意识是优秀工程师的基础，继续保持！'}
+        action={sourceState === 'empty' ? { label: '了解工程伦理', href: '/ethics' } : undefined}
       />
     );
   }
@@ -464,7 +494,9 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
         <div key={item.id} className="surface-card-soft border-l-4 border-green-500 p-5">
           <div className="flex items-start justify-between">
             <div>
-              <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs text-green-500">已整改</span>
+              <span className={`rounded px-2 py-0.5 text-xs ${item.isResolved ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500'}`}>
+                {item.isResolved ? '已整改' : '待整改'}
+              </span>
               <h3 className="mt-2 font-medium text-foreground">
                 {item.violationType === 'EXCESSIVE_RUDDER_RATE'
                   ? '舵角速度违规'
@@ -482,7 +514,7 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
             <span className="text-xs text-subtle">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <p className="mt-2 text-sm text-subtle">{item.description}</p>
-          {item.remediationAction && (
+          {item.isResolved && item.remediationAction && (
             <div className="mt-3 flex items-start gap-2 rounded bg-green-500/5 p-3">
               <svg className="mt-0.5 h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -505,13 +537,19 @@ function ReflectionsTab({
   reflections,
   draft,
   feedbackDraft,
+  selectedDraft,
+  onDraftSaved,
+  onDraftDiscarded,
+  onOpenDraft,
 }: {
   reflections: PortfolioData['reflections'];
   draft?: ReturnType<typeof buildPortfolioReflectionDraft> | null;
   feedbackDraft?: PortfolioFeedbackDraft | null;
+  selectedDraft?: PortfolioData['reflections'][number] | null;
+  onDraftSaved: (draftId: string) => void;
+  onDraftDiscarded: () => void;
+  onOpenDraft: (draftId: string) => void;
 }) {
-  const [draftDisposition, setDraftDisposition] = useState<'candidate' | 'saved-draft' | 'discarded'>('candidate');
-
   if (feedbackDraft) {
     const state = buildAiAuditTaskState({
       taskType: 'portfolio-reflection',
@@ -543,73 +581,10 @@ function ReflectionsTab({
     );
   }
   if (draft) {
-    const isSavedDraft = draftDisposition === 'saved-draft';
-    const isDiscarded = draftDisposition === 'discarded';
-    const state = buildAiAuditTaskState({
-      taskType: 'portfolio-reflection',
-      status: isDiscarded ? 'blocked' : isSavedDraft ? 'succeeded' : 'pending',
-      message: isDiscarded
-        ? '作品集反思草稿候选已丢弃，未写入学习档案。'
-        : isSavedDraft
-          ? '作品集反思已标记为本页草稿，本页尚未发布到学习档案。'
-          : '作品集反思草稿候选已创建，本页尚未保存到学习档案。',
-      nextAction: isDiscarded
-        ? '重新生成候选或返回反思页'
-        : isSavedDraft
-          ? '继续整理后再执行正式保存或发布'
-          : '返回反思页继续整理、标记本页草稿或丢弃候选',
-      targetId: draft.id,
-    });
-    return (
-      <div className="space-y-4">
-        <ActionStatusPanel state={state} />
-        <div
-          className="surface-card-soft p-5"
-          data-ai-task-boundary="portfolio-reflection-draft"
-          data-task-workspace-zone="local-primary-input"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
-              {draftDisposition === 'candidate' ? draft.status : draftDisposition}
-            </span>
-            <span className="text-xs text-subtle">来源：{draft.source}</span>
-          </div>
-          <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
-          <p className="mt-2 text-sm text-subtle">{draft.detail}</p>
-          <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
-            任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：
-            {draft.intent} · 输出：{draft.outputTarget} · 晋升策略：
-            {draft.promotionPolicy}
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setDraftDisposition('saved-draft')}
-              className="btn-ghost-themed rounded px-4 py-2 text-sm"
-              data-primary-task-input="portfolio-reflection-draft"
-            >
-              标记本页草稿
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraftDisposition('discarded')}
-              className="btn-ghost-themed rounded px-4 py-2 text-sm"
-            >
-              丢弃候选
-            </button>
-            <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
-              返回反思页
-            </Link>
-            <Link
-              href="/ai/copilot?context=portfolio-reflection&source=portfolio"
-              className="btn-ghost-themed rounded px-4 py-2 text-sm"
-            >
-              重新生成候选
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <PortfolioReflectionCandidate draft={draft} onDraftSaved={onDraftSaved} />;
+  }
+  if (selectedDraft) {
+    return <SavedReflectionDraft draft={selectedDraft} onDraftSaved={onDraftSaved} onDraftDiscarded={onDraftDiscarded} />;
   }
   if (reflections.length === 0) {
     return (
@@ -630,12 +605,248 @@ function ReflectionsTab({
       {reflections.map((reflection) => (
         <div key={reflection.id} className="surface-card-soft p-5">
           <div className="flex items-center justify-between">
-            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{reflection.category}</span>
-            <span className="text-xs text-subtle">{new Date(reflection.createdAt).toLocaleDateString('zh-CN')}</span>
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">已保存草稿</span>
+            <span className="text-xs text-subtle">{new Date(reflection.updatedAt).toLocaleDateString('zh-CN')}</span>
           </div>
-          <p className="mt-3 text-foreground">{reflection.content}</p>
+          <h3 className="mt-3 font-medium text-foreground">{reflection.title}</h3>
+          <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-subtle">{reflection.content}</p>
+          <button
+            type="button"
+            onClick={() => onOpenDraft(reflection.id)}
+            className="btn-ghost-themed mt-4 rounded px-4 py-2 text-sm"
+          >
+            继续编辑
+          </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PortfolioReflectionCandidate({
+  draft,
+  onDraftSaved,
+}: {
+  draft: ReturnType<typeof buildPortfolioReflectionDraft>;
+  onDraftSaved: (draftId: string) => void;
+}) {
+  const [content, setContent] = useState(draft.detail);
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDiscarded, setIsDiscarded] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const state = buildAiAuditTaskState({
+    taskType: 'portfolio-reflection',
+    status: isDiscarded ? 'blocked' : 'pending',
+    message: isDiscarded
+      ? '作品集反思草稿候选已丢弃，未写入学习档案。'
+      : '作品集反思草稿候选已创建，确认内容后保存到学习档案。',
+    nextAction: isDiscarded ? '重新生成候选或返回反思页' : '编辑候选内容后保存草稿，或丢弃候选。',
+    targetId: draft.id,
+  });
+
+  const saveDraft = async () => {
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      const response = await fetch('/api/profile/portfolio-reflection-drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: draft.source,
+          assignment: draft.assignment,
+          intent: draft.intent,
+          title: draft.title,
+          content,
+          idempotencyKey,
+        }),
+      });
+      const payload = (await response.json()) as { draft?: { id: string }; error?: string };
+      if (!response.ok || !payload.draft?.id) {
+        throw new Error(payload.error ?? '保存草稿失败');
+      }
+      onDraftSaved(payload.draft.id);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : '保存草稿失败');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <ActionStatusPanel state={state} />
+      <div
+        className="surface-card-soft p-5"
+        data-ai-task-boundary="portfolio-reflection-draft"
+        data-task-workspace-zone="local-primary-input"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{isDiscarded ? 'discarded' : draft.status}</span>
+          <span className="text-xs text-subtle">来源：{draft.source}</span>
+        </div>
+        <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
+        <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
+          任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：
+          {draft.intent} · 输出：{draft.outputTarget} · 晋升策略：
+          {draft.promotionPolicy}
+        </div>
+        <label className="mt-4 block text-sm font-medium text-foreground" htmlFor="portfolio-reflection-content">
+          反思内容
+        </label>
+        <textarea
+          id="portfolio-reflection-content"
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          rows={7}
+          disabled={isDiscarded || isSaving}
+          className="mt-2 w-full resize-y rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
+          data-portfolio-reflection-draft-editor
+        />
+        {saveError && <p className="mt-2 text-sm text-destructive" role="alert">{saveError}</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={saveDraft}
+            disabled={isDiscarded || isSaving}
+            className="btn-ghost-themed rounded px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            data-primary-task-input="portfolio-reflection-draft"
+          >
+            {isSaving ? '保存中...' : '保存草稿'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDiscarded(true)}
+            disabled={isSaving || isDiscarded}
+            className="btn-ghost-themed rounded px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            丢弃候选
+          </button>
+          <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+            返回反思页
+          </Link>
+          <Link
+            href="/ai/copilot?context=portfolio-reflection&source=portfolio"
+            className="btn-ghost-themed rounded px-4 py-2 text-sm"
+          >
+            重新生成候选
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SavedReflectionDraft({
+  draft,
+  onDraftSaved,
+  onDraftDiscarded,
+}: {
+  draft: PortfolioData['reflections'][number];
+  onDraftSaved: (draftId: string) => void;
+  onDraftDiscarded: () => void;
+}) {
+  const [content, setContent] = useState(draft.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const state = buildAiAuditTaskState({
+    taskType: 'portfolio-reflection',
+    status: 'succeeded',
+    message: '作品集反思已保存为个人草稿，尚未发布到正式学习档案。',
+    nextAction: '继续编辑、保留草稿或丢弃草稿。',
+    targetId: draft.id,
+  });
+
+  const updateDraft = async () => {
+    try {
+      setIsSaving(true);
+      setActionError(null);
+      const response = await fetch(`/api/profile/portfolio-reflection-drafts/${encodeURIComponent(draft.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+        }),
+      });
+      const payload = (await response.json()) as { draft?: { id: string }; error?: string };
+      if (!response.ok || !payload.draft?.id) {
+        throw new Error(payload.error ?? '更新草稿失败');
+      }
+      onDraftSaved(payload.draft.id);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '更新草稿失败');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const discardDraft = async () => {
+    try {
+      setIsDiscarding(true);
+      setActionError(null);
+      const response = await fetch(`/api/profile/portfolio-reflection-drafts/${encodeURIComponent(draft.id)}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? '丢弃草稿失败');
+      }
+      onDraftDiscarded();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '丢弃草稿失败');
+    } finally {
+      setIsDiscarding(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <ActionStatusPanel state={state} />
+      <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">已保存草稿</span>
+          <span className="text-xs text-subtle">来源：{draft.source}</span>
+        </div>
+        <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
+        <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
+          任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：{draft.intent}
+        </div>
+        <label className="mt-4 block text-sm font-medium text-foreground" htmlFor={`portfolio-reflection-content-${draft.id}`}>
+          反思内容
+        </label>
+        <textarea
+          id={`portfolio-reflection-content-${draft.id}`}
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          rows={7}
+          disabled={isSaving || isDiscarding}
+          className="mt-2 w-full resize-y rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
+          data-portfolio-reflection-draft-editor
+        />
+        {actionError && <p className="mt-2 text-sm text-destructive" role="alert">{actionError}</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={updateDraft}
+            disabled={isSaving || isDiscarding}
+            className="btn-ghost-themed rounded px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? '保存中...' : '保存修改'}
+          </button>
+          <button
+            type="button"
+            onClick={discardDraft}
+            disabled={isSaving || isDiscarding}
+            className="btn-ghost-themed rounded px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDiscarding ? '丢弃中...' : '丢弃草稿'}
+          </button>
+          <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+            返回草稿列表
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

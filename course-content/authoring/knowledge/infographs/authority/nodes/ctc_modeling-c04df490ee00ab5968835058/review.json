@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T07:45:03+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-c04df490ee00ab5968835058",
+  "safe_id": "ctc_modeling-c04df490ee00ab5968835058",
+  "node_name": "领域概念",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "W0 r6 accept"
+}

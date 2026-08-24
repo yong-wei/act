@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+  "safe_id": "ctkg_v3e-object-6ecfad78b7fb0ba7b233047c",
+  "node": {
+    "name": "数字控制系统",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。",
+  "intuition": null,
+  "explanation": "把数字序列形式的离散系统，称为数字控制系统或计算机控制系统。",
+  "relation_head": "后续 → 离散时间系统、模拟信号、数字信号",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "离散时间系统",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "模拟信号",
+      "relation": "包含组件"
+    },
+    {
+      "direction": "后续",
+      "peer": "数字信号",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "数字控制系统",
+    "是一种·离散时间系统",
+    "包含组件·模拟信号",
+    "包含组件·数字信号"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-6ecfad78b7fb0ba7b233047c.md",
+  "provider_policy": "grok-image_gen"
+}

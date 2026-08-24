@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e70e153907f2fa8a69ad2c62",
+  "safe_id": "ctkg_v3e-object-e70e153907f2fa8a69ad2c62",
+  "node": {
+    "name": "Observer poles location",
+    "name_en": "Observer poles location",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Observer poles location：Observer poles are located furthest to the left for faster convergence, approximately at (-16, 21) and (-16, -22).",
+  "intuition": "在图谱邻接中可把握：后续 → Observer poles。",
+  "explanation": "Observer poles are located furthest to the left for faster convergence, approximately at (-16, 21) and (-16, -22).",
+  "relation_head": "后续 → Observer poles",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Observer poles",
+      "relation": "有表示"
+    }
+  ],
+  "labels": [
+    "Observer po…",
+    "Observer pol",
+    "有表示·Obser…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e70e153907f2fa8a69ad2c62.md",
+  "provider_policy": "grok-image_gen"
+}

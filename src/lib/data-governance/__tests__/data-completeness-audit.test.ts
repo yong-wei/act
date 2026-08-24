@@ -1,21 +1,108 @@
 import { createHash } from 'node:crypto';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
+  type DataCompletenessDocumentGradingAuditInput,
+  type DataCompletenessDocumentRubricDraftInput,
+  type DataCompletenessLearningFactInput,
 } from '../data-completeness-audit';
+import { writeGradingAudit } from '../math-document-grading-persistence';
+import { pseudonymousAuditId } from '../math-document-grading-contracts';
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
+
+function workbenchSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
+  return `grading:${[runId, criterionId, rubricVersion].map(encodeURIComponent).join(':')}`;
+}
+
+function approvedWorkbenchDraft(
+  overrides: Partial<DataCompletenessDocumentRubricDraftInput> = {},
+): DataCompletenessDocumentRubricDraftInput {
+  return {
+    id: 'draft-approved-1',
+    ownerUserId: 'student-1',
+    reviewerState: 'approved',
+    runId: 'run-1',
+    rubricId: 'rubric-1',
+    rubricVersion: 'rubric-v1',
+    approvedCriterionIds: ['criterion-1'],
+    ...overrides,
+  };
+}
+
+function pipelineSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
+  return `adaptive-assessment:document-rubric-grading:${[runId, criterionId, rubricVersion].map(encodeURIComponent).join(':')}`;
+}
+
+function teacherReviewDigest(value: string, field: string) {
+  return pseudonymousAuditId(`${field}:${value}`, `teacher-review:${field}`);
+}
+
+function approvedPipelineAudit(
+  overrides: Partial<DataCompletenessDocumentGradingAuditInput> = {},
+): DataCompletenessDocumentGradingAuditInput {
+  const sourceEventId = pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question');
+  return {
+    id: 'audit-1',
+    action: 'grading-run.teacher-reviewed',
+    resourceType: 'GradingRun',
+    resourceId: teacherReviewDigest('run-1', 'resource'),
+    decision: 'approved',
+    rubricVersion: 'sha256:question',
+    sourceEventDigests: [teacherReviewDigest(sourceEventId, 'source-event')],
+    criterionDigests: [teacherReviewDigest('criterion-1', 'criterion')],
+    ...overrides,
+  };
+}
+
+function pipelineFact(
+  overrides: Partial<DataCompletenessLearningFactInput> = {},
+): DataCompletenessLearningFactInput {
+  return {
+    id: 'fact-document-grading-1',
+    userId: 'student-1',
+    factType: 'document_rubric_grading',
+    sourceEventId: pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question'),
+    sourceLogId: 'audit-1',
+    contextJson: { gradingRunId: 'run-1', criterionId: 'criterion-1', rubricVersion: 'sha256:question' },
+    ...overrides,
+  };
+}
+
+function approvedPipelineRun() {
+  return { id: 'run-1', state: 'APPROVED', rubricVersion: 'sha256:question', studentId: 'student-1', assessments: [{ criterionId: 'criterion-1' }] };
+}
+
+function workbenchFact(
+  overrides: Partial<DataCompletenessLearningFactInput> = {},
+): DataCompletenessLearningFactInput {
+  return {
+    id: 'workbench-fact-1',
+    userId: 'student-1',
+    factType: 'document_rubric_grading',
+    sourceEventId: workbenchSourceEventId('run-1', 'criterion-1', 'rubric-v1'),
+    sourceLogId: 'draft-approved-1',
+    contextJson: {
+      gradingRunId: 'run-1',
+      rubricId: 'rubric-1',
+      rubricVersion: 'rubric-v1',
+      criterionId: 'criterion-1',
+    },
+    ...overrides,
+  };
+}
 
 describe('data completeness audit', () => {
   it('accepts governed document-rubric grading source events without dangling lineage', () => {
     const report = buildDataCompletenessAuditReport({
       generatedAt: '2026-07-14T00:00:00.000Z',
-      learningFacts: [{ id: 'fact-document-grading-1', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion', sourceLogId: null, contextJson: { gradingRunId: 'run-1', criterionId: 'criterion-1', rubricVersion: 'sha256:question' } }],
-      documentGradingRuns: [{ id: 'run-1', state: 'APPROVED', rubricVersion: 'sha256:question', studentId: 'student-1', assessments: [{ criterionId: 'criterion-1' }] }],
+      learningFacts: [pipelineFact()],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits: [approvedPipelineAudit()],
     });
     const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
     expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(0);
@@ -25,11 +112,96 @@ describe('data completeness audit', () => {
   it('rejects forged or missing document-rubric grading lineage', () => {
     for (const documentGradingRuns of [[], [{ id: 'run-1', state: 'AWAITING_REVIEW', rubricVersion: 'rubric-v1', studentId: 'other-student', assessments: [{ criterionId: 'other-criterion' }] }]]) {
       const report = buildDataCompletenessAuditReport({
-        learningFacts: [{ id: 'forged-fact', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion' }],
+        learningFacts: [pipelineFact({ id: 'forged-fact', sourceLogId: null })],
         documentGradingRuns,
       });
       expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(1);
     }
+  });
+
+  it.each([
+    ['rejects a missing pipeline audit anchor', pipelineFact({ sourceLogId: null }), [approvedPipelineAudit()], 1],
+    ['rejects a tampered pipeline sourceLogId', pipelineFact({ sourceLogId: 'audit-forged-1' }), [approvedPipelineAudit()], 1],
+    ['rejects a pipeline audit for another run', pipelineFact(), [approvedPipelineAudit({ resourceId: teacherReviewDigest('run-2', 'resource') })], 1],
+    ['rejects a non-teacher-reviewed pipeline audit action', pipelineFact(), [approvedPipelineAudit({ action: 'grading-run.created' })], 1],
+    ['rejects a pipeline audit that is not approved', pipelineFact(), [approvedPipelineAudit({ decision: 'returned' })], 1],
+    ['rejects a mismatched pipeline source-event digest', pipelineFact(), [approvedPipelineAudit({ sourceEventDigests: [teacherReviewDigest('forged-source', 'source-event')] })], 1],
+    ['rejects a mismatched pipeline criterion digest', pipelineFact(), [approvedPipelineAudit({ criterionDigests: [teacherReviewDigest('criterion-2', 'criterion')] })], 1],
+  ])('%s', (_label, learningFact, documentGradingAudits, expectedDanglingEvents) => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [learningFact],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits,
+    });
+    expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(expectedDanglingEvents);
+  });
+
+  it('accepts pipeline facts whose resourceId was stored by writeGradingAudit', async () => {
+    let stored: { action: string; resourceType: string; resourceId: string; metadata: Record<string, unknown> } | undefined;
+    const db = {
+      gradingAuditEvent: {
+        create: vi.fn(async ({ data }: { data: typeof stored }) => {
+          stored = data;
+          return { id: 'audit-1' };
+        }),
+      },
+    };
+    const sourceEventId = pipelineSourceEventId('run-1', 'criterion-1', 'sha256:question');
+    await writeGradingAudit(db as never, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      action: 'grading-run.teacher-reviewed',
+      purpose: 'teacher-review',
+      resourceType: 'GradingRun',
+      resourceId: 'run-1',
+      metadata: {
+        decision: 'approved',
+        rubric: { version: 'sha256:question' },
+        sourceEventDigests: [teacherReviewDigest(sourceEventId, 'source-event')],
+        gradeChanges: [{ criterionDigest: teacherReviewDigest('criterion-1', 'criterion') }],
+      },
+    });
+    expect(stored?.resourceId).not.toBe('run-1');
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [pipelineFact()],
+      documentGradingRuns: [approvedPipelineRun()],
+      documentGradingAudits: [{
+        id: 'audit-1',
+        action: stored!.action,
+        resourceType: stored!.resourceType,
+        resourceId: stored!.resourceId,
+        decision: 'approved',
+        rubricVersion: 'sha256:question',
+        sourceEventDigests: stored!.metadata.sourceEventDigests as string[],
+        criterionDigests: [(stored!.metadata.gradeChanges as Array<{ criterionDigest: string }>)[0].criterionDigest],
+      }],
+    });
+    expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(0);
+  });
+
+  it.each([
+    ['accepts an approved workbench draft anchor', [approvedWorkbenchDraft()], workbenchFact(), 0],
+    ['rejects a missing workbench draft', [], workbenchFact(), 1],
+    ['rejects a mismatched workbench sourceLogId', [approvedWorkbenchDraft()], workbenchFact({ sourceLogId: 'draft-forged-1' }), 1],
+    ['rejects a workbench draft owned by another learner', [approvedWorkbenchDraft({ ownerUserId: 'student-2' })], workbenchFact(), 1],
+    ['rejects a workbench draft that is not approved', [approvedWorkbenchDraft({ reviewerState: 'pending' })], workbenchFact(), 1],
+    ['rejects a mismatched workbench criterion', [approvedWorkbenchDraft()], workbenchFact({
+      sourceEventId: workbenchSourceEventId('run-1', 'criterion-2', 'rubric-v1'),
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-1', rubricVersion: 'rubric-v1', criterionId: 'criterion-2' },
+    }), 1],
+    ['rejects a mismatched workbench rubric', [approvedWorkbenchDraft()], workbenchFact({
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-forged', rubricVersion: 'rubric-v1', criterionId: 'criterion-1' },
+    }), 1],
+    ['rejects a mismatched workbench rubric version', [approvedWorkbenchDraft()], workbenchFact({
+      sourceEventId: workbenchSourceEventId('run-1', 'criterion-1', 'rubric-v2'),
+      contextJson: { gradingRunId: 'run-1', rubricId: 'rubric-1', rubricVersion: 'rubric-v2', criterionId: 'criterion-1' },
+    }), 1],
+  ])('%s', (_label, documentRubricDrafts, learningFact, expectedDanglingEvents) => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [learningFact],
+      documentRubricDrafts,
+    });
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(expectedDanglingEvents);
   });
 
   it('reports graph, resource, citation, path, lineage, and learner readiness separately', () => {

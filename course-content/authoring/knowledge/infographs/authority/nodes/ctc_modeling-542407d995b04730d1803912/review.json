@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T11:54:34+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-542407d995b04730d1803912",
+  "safe_id": "ctc_modeling-542407d995b04730d1803912",
+  "node_name": "用线性微分方程描述的元件或系统",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch8 A accept"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T16:20:44+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+  "safe_id": "ctkg_v3e-canonical-4ce9b77cff23117a65f42588",
+  "node_name": "有零点的二阶系统",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0081 vision-mapped accept"
+}

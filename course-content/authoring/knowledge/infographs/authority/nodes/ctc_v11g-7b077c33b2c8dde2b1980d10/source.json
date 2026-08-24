@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+  "safe_id": "ctc_v11g-7b077c33b2c8dde2b1980d10",
+  "node": {
+    "name": "percent overshoot",
+    "name_en": "percent_overshoot",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "percent overshoot：The percentage by which the output response exceeds the final value in response to a step input.",
+  "intuition": null,
+  "explanation": "The percentage by which the output response exceeds the final value in response to a step input.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "percent ove…",
+    "percent over"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-7b077c33b2c8dde2b1980d10.md",
+  "provider_policy": "grok-image_gen"
+}

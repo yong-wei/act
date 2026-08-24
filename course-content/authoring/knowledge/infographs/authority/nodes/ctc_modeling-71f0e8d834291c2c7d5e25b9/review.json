@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:13:10+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+  "safe_id": "ctc_modeling-71f0e8d834291c2c7d5e25b9",
+  "node_name": "输出方程中D≡0的系统",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-C vision-mapped accept (IO vars/time behavior/D0/LTI/mixed node)"
+}

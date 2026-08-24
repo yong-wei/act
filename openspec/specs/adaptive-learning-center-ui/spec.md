@@ -236,13 +236,41 @@ The adaptive learning center SHALL pass integrated product QA across generation,
 - **AND** the final QA evidence SHALL compare the visible result to the accepted handoff and concept images.
 
 ### Requirement: Adaptive path center renders readiness gates in product language
-The adaptive learning center SHALL show preparation, locked, and evidence-needed states without exposing internal readiness codes.
+The adaptive learning center SHALL show preparation, locked, and evidence-needed states without exposing internal readiness codes, and SHALL explain locked nodes with a student-facing unlock chain derived from existing readiness data.
 
 #### Scenario: Locked node is visible in a path option
 - **WHEN** a generated path option includes a locked node
 - **THEN** the UI SHALL label it with student-facing text such as `稍后解锁` or `Arena 暂未解锁`
-- **AND** it SHALL show the preparation action required before unlock
+- **AND** it SHALL show the student-facing unlock chain with the missing conditions and the preparation action required before unlock
 - **AND** it SHALL NOT render internal strings such as `locked`, `low-resource-fallback`, `reasonCodes`, `policyBundle`, `missing-*`, or `terminal-validation-unavailable`.
+
+#### Scenario: Locked node is visible in execution timeline
+- **WHEN** the selected path execution timeline includes a locked node
+- **THEN** the UI SHALL show the locked node's reason, unmet readiness conditions, and next unlock action
+- **AND** it SHALL NOT expose internal readiness codes, node IDs, or raw field names.
+
+#### Scenario: Multiple readiness gaps exist
+- **WHEN** a locked node has multiple unmet readiness conditions
+- **THEN** the UI SHALL list only the unmet conditions in a stable student-readable order
+- **AND** it SHALL show current and required values where available.
+
+#### Scenario: Readiness details are unavailable
+- **WHEN** a locked node has no structured readiness gaps and no usable unlock message
+- **THEN** the UI SHALL state that the specific unlock conditions are temporarily unavailable
+- **AND** it SHALL NOT fabricate resource titles, thresholds, or unlock actions.
+
+#### Scenario: Next unlock action has a target
+- **WHEN** the next unlock action resolves to an executable path node
+- **THEN** the UI SHALL render an actionable link or button for that node.
+
+#### Scenario: Next unlock action has no target
+- **WHEN** the next unlock action has no executable target
+- **THEN** the UI SHALL render the next action as text only.
+
+#### Scenario: Unlock chain scope remains node-local
+- **WHEN** the UI renders a locked node explanation
+- **THEN** it SHALL explain only that node's missing conditions and next action
+- **AND** it SHALL NOT require or replace a complete global progress map.
 
 #### Scenario: Current node is selected
 - **WHEN** the selected path contains active and locked nodes
@@ -263,7 +291,7 @@ The adaptive learning center SHALL open path generation in a focused editable ta
 - **AND** the UI SHALL NOT require JSON, internal field names, or global chat input to modify path parameters.
 
 ### Requirement: Generated path options are selectable and comparable
-The adaptive learning center SHALL display generated path options as comparable, actionable route choices where each option is a complete decision module and not a detached action target.
+The adaptive learning center SHALL display generated path options as comparable, actionable route choices where each option is a complete decision module and not a detached action target, and SHALL synchronize a successful Konling selection from the same persisted candidate batch.
 
 #### Scenario: Options are shown after generation
 - **WHEN** generation succeeds
@@ -275,6 +303,11 @@ The adaptive learning center SHALL display generated path options as comparable,
 - **WHEN** the student selects, asks Konling to adjust, rejects, or asks why an option was recommended
 - **THEN** the action SHALL be recorded through governed path activity
 - **AND** the UI SHALL preserve other options as alternatives until a later recalculation or explicit dismissal.
+
+#### Scenario: Konling selection refreshes the path center
+- **WHEN** Konling reports a successful selection with a verified `batchId` and `candidateId`
+- **THEN** the path center SHALL reload that authorized batch and display the matching candidate as selected
+- **AND** it SHALL NOT infer the selected candidate from assistant prose or automatically start path execution.
 
 #### Scenario: Desktop comparison is rendered
 - **WHEN** the path-selection workspace renders on desktop
@@ -331,7 +364,7 @@ The adaptive learning center SHALL render one primary workspace per route intent
 - **THEN** the page SHALL render path completion overview, timeline, selection or adjustment history, node results, Konling interventions, skip and return records, and evidence labels as the primary workspace.
 
 ### Requirement: Adaptive path center preserves path context across states
-The adaptive learning center SHALL preserve selected path context while students move between generation, selection, execution, launched resources, and evidence review.
+The adaptive learning center SHALL preserve saved path state while students move between generation, selection, execution, launched resources, the center landing, and evidence review.
 
 #### Scenario: Student selects a generated option
 - **WHEN** the student selects a path option
@@ -340,7 +373,8 @@ The adaptive learning center SHALL preserve selected path context while students
 
 #### Scenario: Student returns from a resource
 - **WHEN** a launched knowledge, exercise, simulation, workbench, Arena, or Konling activity returns to the path center
-- **THEN** the same path id, node id, goal id, and route intent SHALL be restored unless the path was explicitly recalculated.
+- **THEN** the route SHALL return to the center landing with the learning goal preserved and without path-execution, node, or candidate-batch parameters
+- **AND** the saved path id, current node, and progress SHALL remain available for `继续原路径` without entering candidate comparison.
 
 ### Requirement: Adaptive path states use task-first responsive layouts
 The adaptive path center SHALL provide desktop and mobile layouts tailored to each primary workspace.
@@ -355,17 +389,28 @@ The adaptive path center SHALL provide desktop and mobile layouts tailored to ea
 - **AND** controls and text SHALL not overlap or require desktop multi-column scanning.
 
 ### Requirement: Path-launched resources return to the path center
-The adaptive learning center SHALL provide a path-aware launch and return contract for every resource opened from a selected path.
+The adaptive learning center SHALL provide a path-aware launch and return contract for every resource opened from a selected path. A resource return action SHALL return to the path center entry point, where the saved path can be continued or a new path can be created.
 
 #### Scenario: Student launches a path node
 - **WHEN** the student starts a knowledge, interactive lesson, adaptive assessment, simulation, control workbench, Arena, reflection, external resource, or Konling node from the current path
 - **THEN** the launch target SHALL receive a normalized path launch context containing source, goal id, path id, node id, route intent, return href, and resource type
-- **AND** the visible resource destination SHALL have enough context to return to the same path execution workspace.
+- **AND** the visible resource destination SHALL have enough context to identify the originating learning goal and saved path
 
 #### Scenario: Student uses the resource return control
 - **WHEN** a resource or course runtime was opened from a valid path launch context
 - **THEN** the visible return control SHALL read as `返回学习路径` or equivalent path-specific language
-- **AND** it SHALL return to the adaptive path execution workspace for the same path and node.
+- **AND** it SHALL return to `/assessment/adaptive-practice` with the learning goal preserved
+- **AND** it SHALL NOT retain path-execution, node, or candidate-batch parameters that would reopen an execution or comparison workspace
+
+#### Scenario: Student continues a saved path after returning
+- **WHEN** the path center receives a return navigation and a saved path exists for the preserved goal
+- **THEN** the center SHALL offer `继续原路径`
+- **AND** selecting it SHALL restore the saved path progress and current node without entering candidate comparison
+
+#### Scenario: Student creates a new path after returning
+- **WHEN** the student selects `新建学习路径` from the path center
+- **THEN** the center SHALL start the candidate path generation and comparison flow
+- **AND** returning from a resource alone SHALL NOT start that flow
 
 #### Scenario: Resource is opened outside a path
 - **WHEN** the same resource is opened from Interactive Learning, a course entry, or another non-path surface
@@ -706,4 +751,170 @@ The adaptive learning center SHALL render the server-owned structured result of 
 #### Scenario: Difference result is read on a narrow viewport
 - **WHEN** the structured explanation is displayed at a 320px viewport width
 - **THEN** path names, node lists, metric labels, values, units, trade-offs and limitations SHALL remain readable without page-level horizontal overflow.
+
+### Requirement: Candidate path cards expose aggregate recommendation basis
+The adaptive learning center SHALL let students inspect how generation-time aggregate learning state influenced each formally generated candidate path before selecting it.
+#### Scenario: Candidate path has aggregate recommendation basis
+- **WHEN** a formally generated candidate path includes an aggregate recommendation basis
+- **THEN** its card SHALL always show a concise recommendation-basis summary
+- **AND** an on-demand disclosure SHALL show aggregate state summary, capability or knowledge judgment, affected recommended resources, confidence, limitations, and a governed link to review learning records.
+- **AND** the disclosure SHALL NOT claim to identify a specific evidence event, source occurrence, or event timestamp.
+#### Scenario: Candidate path has low-confidence provenance
+- **WHEN** the candidate path provenance is marked low confidence
+- **THEN** the card SHALL explain that the path primarily follows course structure, prerequisite rules, and available resources
+- **AND** it SHALL offer a student action such as completing diagnosis or practice to improve later recommendations.
+#### Scenario: Candidate path predates provenance support
+- **WHEN** a restored candidate path does not contain recommendation provenance
+- **THEN** the card SHALL retain the existing student-facing recommendation summary
+- **AND** it SHALL NOT synthesize a historical evidence chain from the student's current learner state.
+#### Scenario: Recommendation provenance is viewed on narrow screens
+- **WHEN** the candidate path card is rendered at a 320px viewport
+- **THEN** the summary, disclosure control, explanation chain, evidence link, and existing path actions SHALL remain readable and operable without horizontal clipping or action overlap.
+
+### Requirement: Recommendation explanations expose verifiable learning events
+The adaptive learning center SHALL display student-safe event references within candidate-path recommendation explanations, including event type, occurrence time, readable summary, affected judgment, affected resources, and a valid student navigation action.
+
+#### Scenario: Candidate path has sufficient event evidence
+- **WHEN** a student expands recommendation provenance containing event references
+- **THEN** the center displays each reference's type, occurrence time, summary, affected judgment and affected resources
+- **AND** provides the source-specific safe navigation action
+
+#### Scenario: Candidate path has low-confidence evidence
+- **WHEN** event references exist but the associated judgment is low confidence
+- **THEN** the center labels the evidence limitation and does not claim that the event directly selected a specific resource
+
+#### Scenario: Candidate path has no verifiable event reference
+- **WHEN** provenance contains only aggregate evidence or no evidence
+- **THEN** the center explains that no verifiable event-level record is available
+- **AND** does not present unrelated recent learning records as recommendation evidence
+
+#### Scenario: Event reference is opened
+- **WHEN** a student activates an event reference action
+- **THEN** navigation uses the existing safe destination for that evidence source
+- **AND** never exposes an internal source identifier in the URL
+
+### Requirement: Active path nodes expose their historical event basis
+The adaptive learning center SHALL display persisted event references in an active node's historical selection explanation separately from current readiness and latest adjustment state.
+
+#### Scenario: Active node contains historical event references
+- **WHEN** a student expands an active node whose selection basis includes event references
+- **THEN** the center displays those references under the historical selection explanation
+- **AND** current lock, completion, skip, or adjustment state is displayed separately
+
+#### Scenario: Active node predates event-reference support
+- **WHEN** a student expands an active node without persisted event references
+- **THEN** the center shows the existing legacy evidence limitation without inventing event history
+
+#### Scenario: Event evidence is viewed at supported widths
+- **WHEN** candidate or active-node event evidence is rendered at desktop width or 320px mobile width
+- **THEN** labels, timestamps, summaries and actions remain readable without overlap or horizontal clipping
+
+### Requirement: Successful path generation updates the integrated comparison surface immediately
+The adaptive learning center SHALL synchronize a successfully generated, authorized candidate batch with the current generation workspace so that the active path, generation controls, and candidate comparison remain available in one integrated interface without a manual reload.
+
+#### Scenario: Authenticated student generates candidates while an active path exists
+- **WHEN** an authenticated student with an active learning path successfully generates an authorized candidate batch from the generation workspace
+- **THEN** the same page SHALL retain the current-path continuation and generation controls
+- **AND** it SHALL immediately display and expand the generated candidate comparison before any reload
+- **AND** the route state SHALL identify the same persisted candidate batch.
+
+#### Scenario: Student reloads the successful generation route
+- **WHEN** the student reloads or reopens the generation route containing the authorized candidate batch identifier
+- **THEN** the center SHALL restore the same candidate comparison and current active path.
+
+#### Scenario: Student continues the active path
+- **WHEN** the student chooses to continue the current active path instead of generating or selecting a new candidate
+- **THEN** the execution workspace SHALL not display an unrelated candidate comparison flow.
+
+#### Scenario: Candidate batch belongs to another learner
+- **WHEN** a student requests a candidate batch that is not authorized for that learner
+- **THEN** the center SHALL not display that batch or its candidates
+- **AND** it SHALL retain the governed recovery behavior.
+
+### Requirement: Candidate adjustment remains separate from path selection
+The adaptive learning center SHALL treat adjustment as a request for a derived candidate batch and SHALL preserve the current active path until the learner explicitly selects a candidate through the existing path-choice workflow.
+
+#### Scenario: Student opens adjustment for a candidate
+- **WHEN** the student activates adjustment from a persisted candidate
+- **THEN** the adjustment controls SHALL identify that candidate as the source and SHALL retain editable time, rhythm, resource, checkpoint, and supported intent parameters
+- **AND** opening or submitting adjustment SHALL NOT change the active path.
+
+#### Scenario: Adjusted candidates are returned
+- **WHEN** an authorized material adjustment succeeds
+- **THEN** the same learning-center workspace SHALL load and display the derived candidate batch for comparison
+- **AND** the current-path continuation and execution state SHALL remain available and unchanged.
+
+#### Scenario: Student selects an adjusted candidate
+- **WHEN** the student explicitly selects a candidate from the derived batch
+- **THEN** the center SHALL use the existing governed path-choice workflow before entering execution
+- **AND** adjustment success alone SHALL NOT be presented as a selected or switched path.
+
+### Requirement: Candidate adjustment states follow server truth
+The adaptive learning center SHALL bind visible adjustment results to the current source batch, source candidate, request identity, and active-progress version and SHALL render server-owned degraded outcomes without fabricating alternatives.
+
+#### Scenario: Adjustment has no material difference
+- **WHEN** the server returns `no_material_difference`
+- **THEN** the center SHALL keep the source candidates available and explain that the requested settings produced no substantive route change
+- **AND** it SHALL offer parameter editing without displaying a duplicate successful option.
+
+#### Scenario: An older adjustment completes late
+- **WHEN** a newer request, candidate source, batch, or active-progress version is current before an older response completes
+- **THEN** the center SHALL ignore the obsolete result
+- **AND** it SHALL NOT replace the current comparison or execution state.
+
+#### Scenario: Adjustment evidence is incomplete
+- **WHEN** the server cannot resolve a stable source candidate or sufficient governed facts
+- **THEN** the center SHALL show an unavailable or data-insufficient state
+- **AND** it SHALL NOT infer a source from candidate order or synthesize a comparison result.
+
+### Requirement: Adaptive path generation starts once from the primary action
+The adaptive learning center SHALL open Konling and start exactly one governed path-generation request when an eligible student activates the primary generation action.
+
+#### Scenario: Student activates generation once
+- **WHEN** an eligible student activates the primary path-generation action
+- **THEN** the page SHALL open the Konling sidebar and submit one generation request without requiring a second action
+
+#### Scenario: Student activates generation twice before rerender
+- **WHEN** two activation callbacks occur before React commits the first pending state
+- **THEN** a synchronous admission guard SHALL allow only one request to be submitted
+- **AND** both callbacks SHALL NOT create distinct request identities
+
+### Requirement: Path generation lifecycle remains visible and target-safe
+The adaptive learning center SHALL expose pending, running, succeeded, and failed generation states while preserving the selected target during active work.
+
+#### Scenario: Generation is active
+- **WHEN** a generation request is pending or running
+- **THEN** the learning target control SHALL be disabled
+- **AND** the Konling sidebar SHALL show the current request status without creating a model chat request
+
+#### Scenario: Generation succeeds
+- **WHEN** the governed generation request succeeds
+- **THEN** the page SHALL refresh the generated path in place and show succeeded status in Konling
+- **AND** it SHALL NOT immediately replace the page before the status can render
+
+#### Scenario: Definitive generation failure is retried explicitly
+- **WHEN** the server reports a definitive failed or blocked result and the student explicitly activates regeneration
+- **THEN** the page SHALL create a new generation request identity
+
+### Requirement: Path comparison reads persisted candidate batches
+The adaptive learning center SHALL render the existing comparison workspace from a persisted candidate batch and SHALL default to the learner's latest successful batch when no batch is specified.
+
+#### Scenario: Center opens latest comparison
+- **WHEN** the learner opens the path center without a batch query parameter and successful batches exist
+- **THEN** the existing comparison UI displays the newest successful batch
+
+#### Scenario: Current path remains visible
+- **WHEN** the latest candidate batch differs from the learner's selected or executing path
+- **THEN** the center preserves and displays the current-path state independently from the candidate comparison
+
+### Requirement: Candidate comparison supports stable deep links
+The adaptive learning center SHALL support a batch ID and optional candidate ID in the URL, focus a valid candidate in the existing comparison UI, and retain an action to compare every candidate in the batch.
+
+#### Scenario: Valid candidate deep link
+- **WHEN** an authorized learner opens a URL containing a valid batch and candidate ID
+- **THEN** the comparison focuses that candidate and offers an action to show the full batch
+
+#### Scenario: Invalid candidate deep link
+- **WHEN** the candidate ID does not belong to the requested batch
+- **THEN** the center fails closed and does not substitute a candidate by title or ordinal
 

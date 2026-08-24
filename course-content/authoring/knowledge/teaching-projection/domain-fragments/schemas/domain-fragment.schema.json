@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "act-domain-teaching-fragment/v1",
+  "title": "ACT Domain Teaching Fragment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "builderVersion",
+    "fragmentId",
+    "fragmentKey",
+    "fragmentVersion",
+    "fragmentDigest",
+    "domainKeys",
+    "authorityBinding",
+    "authoritySelection",
+    "authoringRevision",
+    "sourceInventoryDigest",
+    "authorityDigest",
+    "evidenceRefs",
+    "coreNodes",
+    "relations",
+    "coreNodeCount",
+    "relationCount"
+  ],
+  "properties": {
+    "contract": { "const": "act-domain-teaching-fragment/v1" },
+    "builderVersion": { "const": "act-domain-teaching-fragment-builder/v1" },
+    "fragmentId": {
+      "type": "string",
+      "pattern": "^dtf-[a-f0-9]{64}$"
+    },
+    "fragmentKey": { "type": "string", "minLength": 1 },
+    "fragmentVersion": { "type": "string", "minLength": 1 },
+    "fragmentDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "domainKeys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "system-modeling",
+          "time-domain-analysis",
+          "stability-analysis",
+          "frequency-domain-analysis",
+          "root-locus",
+          "classical-control-design",
+          "discrete-time-control-analysis",
+          "state-space-control-analysis-and-design"
+        ]
+      }
+    },
+    "authorityBinding": { "$ref": "#/$defs/authorityBinding" },
+    "authoritySelection": { "$ref": "#/$defs/authoritySelection" },
+    "authoringRevision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "sourceInventoryDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authorityDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "evidenceRefs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "coreNodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/coreNode" }
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relation" }
+    },
+    "coreNodeCount": { "type": "integer", "minimum": 0 },
+    "relationCount": { "type": "integer", "minimum": 0 }
+  },
+  "$defs": {
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseId", "releaseSetId", "snapshotId", "snapshotHash"],
+      "properties": {
+        "releaseId": { "type": "string", "minLength": 1 },
+        "releaseSetId": { "type": "string", "minLength": 1 },
+        "snapshotId": {
+          "type": "string",
+          "pattern": "^snap-[a-f0-9]{64}$"
+        },
+        "snapshotHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "authoritySelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityBinding",
+        "sourceDatasetHash",
+        "captureRevision",
+        "nodeIndexDigest"
+      ],
+      "properties": {
+        "authorityBinding": { "$ref": "#/$defs/authorityBinding" },
+        "sourceDatasetHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "captureRevision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "nodeIndexDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "coreNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalId",
+        "domainKeys",
+        "pathEligible",
+        "cardPolicy",
+        "moduleId",
+        "rationale",
+        "sourceKind",
+        "sourceEvidence",
+        "nodeDigest"
+      ],
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "domainKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "pathEligible": { "type": "boolean" },
+        "cardPolicy": { "enum": ["REQUIRED", "OPTIONAL"] },
+        "moduleId": { "type": ["string", "null"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "sourceKind": {
+          "enum": [
+            "OBJECTIVE",
+            "PRIMARY_COVERS",
+            "PREREQUISITE_ENDPOINT",
+            "TEACHER_CURATION"
+          ]
+        },
+        "sourceEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "nodeDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeId",
+        "sourceNodeId",
+        "targetNodeId",
+        "layer",
+        "relationType",
+        "strength",
+        "domainKeys",
+        "evidenceRefs",
+        "curatorId",
+        "curatorRationale",
+        "authorDecisionId",
+        "edgeDigest",
+        "presentationFamily"
+      ],
+      "properties": {
+        "edgeId": { "type": "string", "minLength": 1 },
+        "sourceNodeId": { "type": "string", "minLength": 1 },
+        "targetNodeId": { "type": "string", "minLength": 1 },
+        "layer": { "const": "ACT_TEACHING" },
+        "relationType": { "const": "PREREQUISITE" },
+        "strength": { "enum": ["REQUIRED", "RECOMMENDED"] },
+        "domainKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "curatorId": { "type": ["string", "null"] },
+        "curatorRationale": { "type": ["string", "null"] },
+        "authorDecisionId": { "type": ["string", "null"] },
+        "edgeDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "presentationFamily": { "const": "teaching-prerequisite" }
+      }
+    }
+  }
+}

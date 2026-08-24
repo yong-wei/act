@@ -1,0 +1,501 @@
+{
+  "wave_id": "W23",
+  "batch": "C",
+  "title": "Batch C slice 6",
+  "offset": 250,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-99e2b54e9474379206799dfa",
+      "entity_id": "ctkg:v3e-object-99e2b54e9474379206799dfa",
+      "name": "正阻尼",
+      "name_en": null,
+      "definition": "正阻尼。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "正阻尼",
+        "关联·自激振荡"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9a4c8dc9963685a6c39a5653",
+      "entity_id": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+      "name": "容许控制",
+      "name_en": null,
+      "definition": "容许控制。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "容许控制",
+        "应用于·状态可控"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9bad410f2b9662132c16c8f2",
+      "entity_id": "ctkg:v3e-object-9bad410f2b9662132c16c8f2",
+      "name": "z变换法",
+      "name_en": null,
+      "definition": "z变换法。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "z变换法",
+        "用于分析·线性定常…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-9e5c7acbf973dd58acd749ef",
+      "entity_id": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "name": "分隔线",
+      "name_en": null,
+      "definition": "分隔线。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "分隔线",
+        "是一种·极限环",
+        "包含组件·相平面图"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a0440022b39b4796d91d4e3d",
+      "entity_id": "ctkg:v3e-object-a0440022b39b4796d91d4e3d",
+      "name": "绝对式轴角编码",
+      "name_en": null,
+      "definition": "绝对式轴角编码。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "绝对式轴角编码",
+        "包含组件·多极双通…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a2b0a7b010b1060501e788c2",
+      "entity_id": "ctkg:v3e-object-a2b0a7b010b1060501e788c2",
+      "name": "数字信号",
+      "name_en": null,
+      "definition": "数字信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "数字信号",
+        "包含组件·数字控制…",
+        "关联·A/D转换器",
+        "关联·D/A转换器"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "entity_id": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+      "name": "反馈校正",
+      "name_en": null,
+      "definition": "反馈校正装置接在系统局部反馈通路之中。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "反馈校正",
+        "是一种·校正装置"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a36f17ddac0ec65e08118916",
+      "entity_id": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "name": "Discrete signal",
+      "name_en": "Discrete signal",
+      "definition": "Discrete signal：Discrete signal",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Discrete si…",
+        "Discrete sig",
+        "一种·Sample…",
+        "包含组件·Samp…",
+        "包含组件·Disc…",
+        "派生自·Sampl…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a9730b9a039605d79315e24f",
+      "entity_id": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "name": "摩擦特性",
+      "name_en": null,
+      "definition": "摩擦特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "摩擦特性",
+        "关联·等效增益",
+        "关联·低速爬行现象"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-aa79b6fedda690cfd68855aa",
+      "entity_id": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "name": "relay",
+      "name_en": "relay",
+      "definition": "relay：relay",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "relay",
+        "一种·memory…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-af604268b1e07a0ddba886f3",
+      "entity_id": "ctkg:v3e-object-af604268b1e07a0ddba886f3",
+      "name": "Nichols chart",
+      "name_en": "Nichols chart",
+      "definition": "Nichols chart：Nichols chart",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Nichols cha…",
+        "Nichols char",
+        "关联·Freque…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-af9c2e9b81c0a2bc815ac424",
+      "entity_id": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "name": "速度反馈",
+      "name_en": null,
+      "definition": "速度反馈。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "速度反馈"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b0896b071da350e2cc6ca186",
+      "entity_id": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "name": "间隙特性",
+      "name_en": null,
+      "definition": "间隙特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "间隙特性",
+        "关联·等效增益",
+        "关联·死区",
+        "关联·自振荡"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b202af6c06c27c558d00e9f4",
+      "entity_id": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "name": "拉普拉斯变换法求解非齐次状态方程",
+      "name_en": null,
+      "definition": "拉普拉斯变换法求解非齐次状态方程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "拉普拉斯变换法求解非齐…",
+        "用于分析·非齐次状…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-b2913d437161b8d1e3eecfdf",
+      "entity_id": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+      "name": "理想脉冲",
+      "name_en": null,
+      "definition": "理想脉冲。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "理想脉冲",
+        "是一种·脉冲序列",
+        "包含组件·采样控制…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bbde87998fe5c58705383e29",
+      "entity_id": "ctkg:v3e-object-bbde87998fe5c58705383e29",
+      "name": "可控性判别阵",
+      "name_en": null,
+      "definition": "可控性判别阵。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可控性判别阵",
+        "包含组件·秩判据"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bc0986d0d67b0409733e3b95",
+      "entity_id": "ctkg:v3e-object-bc0986d0d67b0409733e3b95",
+      "name": "信号复现滤波器",
+      "name_en": null,
+      "definition": "信号复现滤波器。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "信号复现滤波器",
+        "是一种·保持器",
+        "包含组件·信号复现…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bda94d95d799211be70fabf9",
+      "entity_id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "name": "自振荡",
+      "name_en": null,
+      "definition": "自振荡。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自振荡",
+        "关联·极限环",
+        "关联·稳定极限环",
+        "关联·间隙特性"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bf9e8241330bdf92c90e15f7",
+      "entity_id": "ctkg:v3e-object-bf9e8241330bdf92c90e15f7",
+      "name": "积分时间常数",
+      "name_en": null,
+      "definition": "积分时间常数。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "积分时间常数",
+        "包含组件·PID控…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
+      "entity_id": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+      "name": "Quantization error",
+      "name_en": "Quantization error",
+      "definition": "Quantization error：Quantization error",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Quantizatio…",
+        "Quantization",
+        "一种·Amplit…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c48bcd580d97376ade8dda83",
+      "entity_id": "ctkg:v3e-object-c48bcd580d97376ade8dda83",
+      "name": "状态反馈镇定",
+      "name_en": null,
+      "definition": "状态反馈镇定。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态反馈镇定"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c4f81d9a0c83195cd1cebfe6",
+      "entity_id": "ctkg:v3e-object-c4f81d9a0c83195cd1cebfe6",
+      "name": "Hold delay",
+      "name_en": "Hold delay",
+      "definition": "Hold delay：Hold delay",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Hold delay"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "entity_id": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "name": "饱和特性",
+      "name_en": null,
+      "definition": "饱和特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "饱和特性",
+        "关联·等效增益"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d7425132087d7b73ba04acb6",
+      "entity_id": "ctkg:v3e-object-d7425132087d7b73ba04acb6",
+      "name": "flash memory",
+      "name_en": "flash memory",
+      "definition": "flash memory：flash memory",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "flash memory",
+        "一种·read-o…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d881210ed83df13e00d2e095",
+      "entity_id": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "name": "死区特性",
+      "name_en": null,
+      "definition": "死区特性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "死区特性",
+        "关联·等效增益",
+        "关联·死区",
+        "关联·开关线"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d973ab89da26720699edb366",
+      "entity_id": "ctkg:v3e-object-d973ab89da26720699edb366",
+      "name": "量化单位",
+      "name_en": null,
+      "definition": "量化单位。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "量化单位"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-da8cedbf0ebbeecfe0b184b6",
+      "entity_id": "ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6",
+      "name": "拉普拉斯变换法求解齐次状态方程",
+      "name_en": null,
+      "definition": "拉普拉斯变换法求解齐次状态方程。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "拉普拉斯变换法求解齐次…",
+        "用于分析·齐次状态…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-e867ce7d25f7cc3834456417",
+      "entity_id": "ctkg:v3e-object-e867ce7d25f7cc3834456417",
+      "name": "采样角频率",
+      "name_en": null,
+      "definition": "采样角频率 ω_s = 2π/T。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样角频率"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-eacdf5b7407bac89d24540ed",
+      "entity_id": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "name": "quantization",
+      "name_en": "quantization",
+      "definition": "quantization：quantization",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "quantization",
+        "一种·memory…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-edc0d1a17b9cbb23167788e0",
+      "entity_id": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+      "name": "谐波线性化",
+      "name_en": null,
+      "definition": "谐波线性化。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "谐波线性化",
+        "包含组件·描述函数法",
+        "用于分析·描述函数"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f1ec085ab5a77428affa50eb",
+      "entity_id": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "name": "极点配置",
+      "name_en": null,
+      "definition": "极点配置。",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "极点配置"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f2f59dc7fc5571446872d432",
+      "entity_id": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "name": "系统完全可控",
+      "name_en": null,
+      "definition": "系统完全可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统完全可控",
+        "是一种·可控性",
+        "包含组件·秩判据",
+        "应用于·格拉姆矩阵…"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-f3ae1a478d0e8faba241ebbb",
+      "entity_id": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+      "name": "preloaded spring",
+      "name_en": "preloaded spring",
+      "definition": "preloaded spring：preloaded spring",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "preloaded s…",
+        "preloaded sp",
+        "一种·memory…",
+        "关联·coulom…"
+      ],
+      "has_cjk": false,
+      "status": "pending"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-fac828826746b38462ac91ba",
+      "entity_id": "ctkg:v3e-object-fac828826746b38462ac91ba",
+      "name": "系统不可控",
+      "name_en": null,
+      "definition": "系统不可控。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "系统不可控"
+      ],
+      "has_cjk": true,
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-08-05T07:38:03+00:00"
+}

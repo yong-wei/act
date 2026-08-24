@@ -1,0 +1,25 @@
+{
+  "contract": "actkg-to-act-cutover-preparation-run/v1",
+  "runId": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+  "captureRevision": "7cf10253884e0c5188b4b1b471d0efd5af36f087",
+  "root": "artifacts/actkg-cutover-preparation/7cf10253884e0c5188b4b1b471d0efd5af36f087",
+  "phaseArtifacts": [
+    {
+      "phase": 0,
+      "path": "phase-0-safety-baseline.json",
+      "sha256": "f338f4fbaaf513e6d1d0f1c24017be0c8732a34b0c384b341f9ed734baa71bdd",
+      "status": "PASS"
+    },
+    {
+      "phase": 1,
+      "path": "phase-1-authority-candidate.json",
+      "sha256": "15abcc1a7932462ddf89e999d0df80d7f8fa33e12f6f9fc60d749c5f187d9dd8",
+      "status": "BLOCKED"
+    }
+  ],
+  "nextPhase": null,
+  "stopReason": "LOCAL_AUTHORITY_SNAPSHOT_INPUT_UNAVAILABLE",
+  "defaultPointersModified": false,
+  "activeConsumersModified": false,
+  "legacyRetirementModified": false
+}

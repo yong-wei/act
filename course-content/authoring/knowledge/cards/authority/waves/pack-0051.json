@@ -1,0 +1,30 @@
+{
+  "pack_id": "P0051",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-d0323a65e86911f11fa1e579",
+      "name": "副回路",
+      "definition": "串级控制系统中，由副调节器、被控对象和测量变送器构成的内部回路。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+      "name": "谐振峰值",
+      "definition": "闭环幅频特性的极大值，记为M_r(dB)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-003aff0599f6e3790bfdb93a",
+      "name": "根轨迹法",
+      "definition": "根轨迹法：A method for designing compensators by altering the root locus of the closed-loop system to achieve desired root locati…"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "name": "Eigenvalue",
+      "definition": "Eigenvalue：A scalar p_i such that A t_i = p_i t_i"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-166cf6d8d911865faa1f8f30",
+      "name": "Digital-to-analog (D/A) converter",
+      "definition": "Digital-to-analog (D/A) converter：Digital-to-analog (D/A) converter"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "adapterPath": "scripts/runtime-release/retire-unused-oss-runtime.py",
+  "adapterSha256AtExecution": "be459b40e2d3e243eb0df2b3620a38a0fe48937b9af1bbf28d6be977eeb35689",
+  "attestationSha256": "81fe7e7ba32a2d51c144efd6c7f6a9171f64576abaa3bb123a2ba2250e099248",
+  "attestedAt": "2026-08-16T23:45:00Z",
+  "deletedUnreachableBlobCount": 0,
+  "deletedV1ObjectCount": 20458,
+  "executedGitRevision": "0b45d48399ba508c8210efb6d436265269e1ef9f",
+  "executedPlan": {
+    "lackedFields": [
+      "gitRevision",
+      "lifecycleGeneration",
+      "lifecycleSha256",
+      "retainedLeases"
+    ],
+    "path": "artifacts/runtime-release/unused-oss-runtime-retirement-plan-20260816.json",
+    "planSha256": "8fec8dc2b179e6a3b47e9f92d68325d69498ac9d2cfd8dce7ce372f25276630d"
+  },
+  "executedReceipt": {
+    "lackedFields": [
+      "gitRevision",
+      "lifecycleGeneration",
+      "lifecycleSha256"
+    ],
+    "path": "artifacts/runtime-release/unused-oss-runtime-retirement-receipt-20260816.json",
+    "receiptSha256": "b2017b5339353ffc755f53a7aa4cb353aeb1bf830834b634e40a3f30bfa59024"
+  },
+  "lifecycleAtExecution": {
+    "activeReleaseId": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+    "desired": null,
+    "generation": 10,
+    "lifecycleSha256Captured": false,
+    "protectedIdentities": [
+      {
+        "fileCount": 11302,
+        "manifestSha256": "5a618fc774fbfbc36af981d5f059e18c3b214659d5f701794a9f1d91b33acc31",
+        "releaseId": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+        "totalBytes": 6365274964,
+        "treeSha256": "cb009def83ef8e8a37117965c37477d84ec758411959876a322b293eacf90b1a"
+      },
+      {
+        "fileCount": 10228,
+        "manifestSha256": "e675ccd7eab763b1f01dc7ebbb71e655c81ac286b0bd642c7bf1442d3ab3cb23",
+        "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+        "totalBytes": 6361518627,
+        "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b"
+      }
+    ],
+    "publishing": [],
+    "retainedLeases": [],
+    "rollbackReleaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6"
+  },
+  "notes": "The 2026-08-16 production deletion of 20458 v1 objects was executed by the adapter at 0b45d48399ba508c8210efb6d436265269e1ef9f, before git-revision binding and lifecycle lock/digest fields existed. This attestation does not claim a later adapter executed that deletion.",
+  "schemaVersion": "act-runtime-unused-oss-retirement-attestation.v1",
+  "servingProof": {
+    "lackedFields": [
+      "gitRevision"
+    ],
+    "path": "artifacts/runtime-release/unused-oss-runtime-retirement-serving-proof-20260816.json",
+    "servingProofSha256": "60eedb609c408b2621ea9df6910dd3044c70096b53c1a843cf9583794e08bb0f"
+  }
+}

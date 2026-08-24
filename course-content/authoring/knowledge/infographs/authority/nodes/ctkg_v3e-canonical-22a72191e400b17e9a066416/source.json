@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-22a72191e400b17e9a066416",
+  "safe_id": "ctkg_v3e-canonical-22a72191e400b17e9a066416",
+  "node": {
+    "name": "用矩形脉动函数近似单位脉冲函数…",
+    "name_en": null,
+    "concept_kind": "analysis_method",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "常用具有一定脉宽 b 和有限幅度的矩形脉动函数来代替理想单位脉冲函数，要求实际脉动函数的宽度 b 远小于系统的时间常数 T，一般规定 b<0.1T。",
+  "intuition": null,
+  "explanation": "常用具有一定脉宽 b 和有限幅度的矩形脉动函数来代替理想单位脉冲函数，要求实际脉动函数的宽度 b 远小于系统的时间常数 T，一般规定 b<0.1T。",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "用矩形脉动函数近似单位…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-22a72191e400b17e9a066416.md",
+  "provider_policy": "grok-image_gen"
+}

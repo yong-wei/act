@@ -1,0 +1,62 @@
+{
+  "contract": "actkg-to-act-first-activation-report/v1",
+  "status": "COMMITTED",
+  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceRelease": {
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseHash": "bf885accc94ad95fea40a042600181606e076625ea3e9e6452137c261e4b1f92",
+    "bundleDigest": "25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6"
+  },
+  "authority": {
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "teachingProjection": {
+    "projectionId": "proj-769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+    "projectionHash": "769b1a832622c0abb898becdf7218535ba6ab970ee7a7828afb067d14701e10d",
+    "activeResourceCount": 551,
+    "boundCount": 519,
+    "explicitNoneCount": 32,
+    "reviewRequiredCount": 0,
+    "textbookResourceCount": 15
+  },
+  "prerequisite": {
+    "publicationId": "proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b",
+    "publicationHash": "b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b"
+  },
+  "consumers": {
+    "engineering-graph": "ready",
+    "engineering-rag": "ready",
+    "course-runtime": "ready",
+    "konling": "ready",
+    "teaching-resource-rag": "ready",
+    "learning-path": "ready"
+  },
+  "shadow": {
+    "discrepancies": 0,
+    "writes": false
+  },
+  "rollback": {
+    "exercise": "ROLLED_BACK",
+    "actualJournal": "course-content/runtime/knowledge/consumer-activation/first-activation-transactions/first-cutover-7f4cdd1084af419a3e837876.json",
+    "protocol": "identity-constrained-first-activation-compensation"
+  },
+  "legacyRetirementPointer": "ABSENT",
+  "journalHash": "fcb5822b4cced3bf6e76102f49bc6ceb89b53823ebca86d6766521c4b463f277",
+  "journalMigration": {
+    "contract": "actkg-to-act-first-activation-journal-migration/v1",
+    "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
+    "legacyJournalHash": "382828011e7c24385af20b3b974fe09da7f7fad601c807d16a2c8821870b3d4e",
+    "journalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
+    "migratedAt": "2026-08-10T16:10:00.000Z",
+    "migrationRevision": "a9f5723fa44434a8c7169b70684e4e32c9e7dec9"
+  },
+  "journalStateCorrection": {
+    "contract": "actkg-to-act-first-activation-journal-state-correction/v1",
+    "transactionId": "first-cutover-7f4cdd1084af419a3e837876",
+    "beforeJournalHash": "5b5ea2ddd9a9e495957c975c430fc9596affdb902f802b9d73d3a14df127aef3",
+    "afterJournalHash": "fcb5822b4cced3bf6e76102f49bc6ceb89b53823ebca86d6766521c4b463f277",
+    "correctedAt": "2026-08-11T00:30:00.000Z"
+  }
+}

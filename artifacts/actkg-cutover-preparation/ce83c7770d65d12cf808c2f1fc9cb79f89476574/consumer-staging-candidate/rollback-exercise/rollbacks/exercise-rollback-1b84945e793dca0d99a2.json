@@ -1,0 +1,15 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation-rollback-receipt/v1",
+  "receiptId": "exercise-rollback-1b84945e793dca0d99a2",
+  "fromActivationId": "exercise-candidate-1b84945e793dca0d99a2",
+  "fromActivationHash": "ad3924bb467aa517dddf8e1688000541cfda9ec217dd7c218bf641f863305ac2",
+  "toActivationId": "exercise-prior-1b84945e793dca0d99a2",
+  "toActivationHash": "95da19a5ab53fa20bb8a8b9a94775c5cf380dee31ac4cd7f00d1911061b3b685",
+  "rolledBackAt": "2026-08-10T13:41:03.000Z",
+  "status": "rolled-back",
+  "reasons": [
+    "one-pointer-rollback",
+    "prior-activation-immutable",
+    "prior-activation-from-current-manifest"
+  ]
+}

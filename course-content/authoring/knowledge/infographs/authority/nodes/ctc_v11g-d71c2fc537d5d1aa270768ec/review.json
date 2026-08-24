@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T15:21:49+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+  "safe_id": "ctc_v11g-d71c2fc537d5d1aa270768ec",
+  "node_name": "three way catalyst",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack0038"
+}

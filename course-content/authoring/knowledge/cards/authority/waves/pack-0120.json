@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0120",
+  "offset": 600,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-8d214840417a4c3b5780c715",
+      "batch": "B",
+      "name": "稳态误差",
+      "definition": "当时间 t 趋于无穷时，误差响应 e(t) 的稳态值称为稳态误差，以 e_ss(∞) 标志。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳态误差",
+        "关联·误差响应"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳态误差\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当时间 t 趋于无穷时，误差响应 e(t) 的稳态值称为稳态误差，以 e_ss(∞) 标志。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳态误差」、「关联·误差响应」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-001f3d1e666624493091691f",
+      "batch": "B",
+      "name": "最大滞后角",
+      "definition": "滞后网络在最大滞后角频率处达到的最大滞后相角，φm=arcsin((1-b)/(1+b))。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "最大滞后角"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 最大滞后角\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 滞后网络在最大滞后角频率处达到的最大滞后相角，φm=arcsin((1-b)/(1+b))。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「最大滞后角」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-476e6f531eebde6502af36f6",
+      "batch": "B",
+      "name": "w域中的劳斯稳定判据",
+      "definition": "通过w变换将z平面上的特征方程转换为w平面上的特征方程，然后应用劳斯表判断离散系统的稳定性。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "w域中的劳斯稳定判据",
+        "派生自·w变换（双…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: w域中的劳斯稳定判据\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 通过w变换将z平面上的特征方程转换为w平面上的特征方程，然后应用劳斯表判断离散系统的稳定性。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「w域中的劳斯稳定判据」、「派生自·w变换（双…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-4a74e178b598d5d576c2ad57",
+      "batch": "B",
+      "name": "开环幅相特性曲线起点",
+      "definition": "开环幅相特性曲线在ω=0+处的点，取决于比例环节K和系统积分或微分环节的个数v（系统型别）。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "开环幅相特性曲线起点"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 开环幅相特性曲线起点\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 开环幅相特性曲线在ω=0+处的点，取决于比例环节K和系统积分或微分环节的个数v（系统型别）。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「开环幅相特性曲线起点」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-821d0c6dd9fb62ae909fb60f",
+      "batch": "B",
+      "name": "稳定极限环",
+      "definition": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷向极限环，则该极限环称为稳定的极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳定极限环",
+        "是一种·极限环",
+        "包含组件·双极限环",
+        "关联·自振荡"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 稳定极限环\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷向极限环，则该极限环称为稳定的极限环。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「稳定极限环」、「是一种·极限环」、「包含组件·双极限环」、「关联·自振荡」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -7,6 +7,9 @@
 
 import { createHash } from 'node:crypto';
 
+import { multilingualLabelCountForRelease } from '../actkg-envelope/composite-envelope-registry';
+import { STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL } from './contracts';
+
 import type {
   AuthoritativeKnowledgeSnapshot,
   AuthoritativeObjectRecord,
@@ -14,6 +17,7 @@ import type {
   AuthoritativeSourceMappingRecord,
   AuthoritativeSourceObjectRecord,
   AuthoritativeEvidenceRecord,
+  AuthoritativeV2Evidence,
 } from './contracts';
 
 export const AUTHORITY_SNAPSHOT_CONTRACT =
@@ -77,6 +81,9 @@ export interface AuthorityProvenanceSummary {
   bundleId: string | null;
   captureRevision: string | null;
   lockRawHash: string | null;
+  v2ProfileCount?: number;
+  v2MultilingualLabelCount?: number;
+  v2AdmissionBindingDigest?: string | null;
 }
 
 /** Engineering body that is hash-bound into the snapshot (byte-stable). */
@@ -162,6 +169,8 @@ export interface AuthorityEngineeringBody {
     payload: unknown;
     bundleReceiptId: string | null;
   }>;
+  /** Complete typed V2 evidence; absent for V1 and historical snapshots. */
+  v2Evidence?: AuthoritativeV2Evidence;
 }
 
 /**
@@ -354,6 +363,117 @@ function normalizePayload(payload: unknown): unknown {
     return out;
   }
   return payload;
+}
+
+function assertV2EvidenceCounts(
+  profileCount: number,
+  labelCount: number,
+  releaseId?: string,
+): void {
+  if (profileCount !== 3) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3, got ${profileCount}`,
+    );
+  }
+  const expectedLabelCount = releaseId ? multilingualLabelCountForRelease(releaseId) : null;
+  if (expectedLabelCount !== null) {
+    if (labelCount !== expectedLabelCount) {
+      throw new AuthoritySnapshotError(
+        'count-mismatch',
+        `V2 evidence counts must be profiles=3 and multilingualLabels=${expectedLabelCount}, got ${profileCount}/${labelCount}`,
+      );
+    }
+    return;
+  }
+  if (labelCount <= 0) {
+    throw new AuthoritySnapshotError(
+      'count-mismatch',
+      `V2 evidence counts must be profiles=3 and a recorded multilingual label set, got ${profileCount}/${labelCount}`,
+    );
+  }
+}
+
+function normalizeV2Evidence(
+  value: AuthoritativeV2Evidence | null | undefined,
+  expectedReleaseId?: string,
+): AuthoritativeV2Evidence | undefined {
+  if (!value) return undefined;
+  if (value.protocol !== 'actkg-public-bundle/2') {
+    throw new AuthoritySnapshotError('schema-invalid', 'V2 evidence protocol mismatch');
+  }
+  const profiles = [...value.profiles]
+    .map((row) => ({
+      ...row,
+      payload: normalizePayload(row.payload),
+    }))
+    .sort((left, right) => left.profileKey.localeCompare(right.profileKey));
+  const multilingualLabels = [...value.multilingualLabels]
+    .map((row) => ({
+      ...row,
+      payload: normalizePayload(row.payload),
+    }))
+    .sort((left, right) => left.ordinal - right.ordinal || left.terminologyAssertionId.localeCompare(right.terminologyAssertionId));
+  assertV2EvidenceCounts(
+    profiles.length,
+    multilingualLabels.length,
+    expectedReleaseId ?? profiles[0]?.releaseId,
+  );
+  assertUniqueIds(profiles.map((row) => row.profileKey), 'V2 profiles');
+  assertUniqueIds(profiles.map((row) => row.profileId), 'V2 profile IDs');
+  assertUniqueIds(
+    multilingualLabels.map((row) => row.terminologyAssertionId),
+    'V2 terminology assertions',
+  );
+  for (const profile of profiles) {
+    if (expectedReleaseId && profile.releaseId !== expectedReleaseId) {
+      throw new AuthoritySnapshotError('identity-mismatch', `V2 profile ${profile.profileKey} release identity mismatch`);
+    }
+  }
+  const labelOrdinals = new Set<number>();
+  for (const label of multilingualLabels) {
+    if (!Number.isInteger(label.ordinal) || label.ordinal < 0 || labelOrdinals.has(label.ordinal)) {
+      throw new AuthoritySnapshotError('identity-mismatch', `V2 multilingual label ordinal ${label.ordinal} is invalid`);
+    }
+    if (expectedReleaseId && label.releaseId !== expectedReleaseId) {
+      throw new AuthoritySnapshotError('identity-mismatch', `V2 multilingual label ${label.terminologyAssertionId} release identity mismatch`);
+    }
+    labelOrdinals.add(label.ordinal);
+  }
+  const binding = {
+    ...value.admissionBinding,
+    registryIdentity: normalizePayload(value.admissionBinding.registryIdentity),
+    upstreamRepository: normalizePayload(value.admissionBinding.upstreamRepository),
+    publicationRevision: normalizePayload(value.admissionBinding.publicationRevision),
+    sourceRevision: normalizePayload(value.admissionBinding.sourceRevision),
+    bundleIdentity: normalizePayload(value.admissionBinding.bundleIdentity),
+  };
+  const bindingPayload = {
+    provenance: binding.provenance,
+    verificationScope: binding.verificationScope,
+    verifiedDuringLoad: binding.verifiedDuringLoad,
+    registryIdentity: binding.registryIdentity,
+    upstreamRepository: binding.upstreamRepository,
+    publicationRevision: binding.publicationRevision,
+    sourceRevision: binding.sourceRevision,
+    bundleIdentity: binding.bundleIdentity,
+  };
+  if (binding.protocol !== 'actkg-public-bundle/2'
+    || binding.provenance !== 'registry'
+    || binding.verificationScope !== 'admission-time'
+    || binding.verifiedDuringLoad !== false
+    || !binding.releaseId
+    || !binding.bundleReceiptId
+    || (expectedReleaseId !== undefined && binding.releaseId !== expectedReleaseId)
+    || authorityDigest(bindingPayload) !== binding.bindingDigest) {
+    throw new AuthoritySnapshotError('hash-invalid', 'V2 admission binding is not digest-bound');
+  }
+  return {
+    protocol: value.protocol,
+    profiles,
+    multilingualLabels,
+    admissionBinding: binding,
+  };
 }
 
 function assertUniqueIds(ids: string[], label: string): void {
@@ -598,6 +718,8 @@ export function buildAuthorityEngineeringBody(
       left.ordinal - right.ordinal || left.relationId.localeCompare(right.relationId)
     ));
 
+  const v2Evidence = normalizeV2Evidence(snapshot.v2Evidence, snapshot.release.id);
+
   return {
     objects,
     relations,
@@ -609,6 +731,7 @@ export function buildAuthorityEngineeringBody(
     releaseComponents,
     projectionIdentities,
     linkMetadata,
+    ...(v2Evidence ? { v2Evidence } : {}),
   };
 }
 
@@ -766,7 +889,6 @@ export function materializeAuthoritySnapshot(
     ),
     'upstreamRagReferences',
   );
-
   const engineeringDigest = authorityDigest(engineering);
   const captureRevision = resolveConsistentCaptureRevision({
     captureRevision: input.captureRevision,
@@ -790,6 +912,13 @@ export function materializeAuthoritySnapshot(
       ?? snapshot.receipt?.lockRawHash
       ?? snapshot.release.lockRawHash
       ?? null,
+    ...(engineering.v2Evidence
+      ? {
+          v2ProfileCount: engineering.v2Evidence.profiles.length,
+          v2MultilingualLabelCount: engineering.v2Evidence.multilingualLabels.length,
+          v2AdmissionBindingDigest: engineering.v2Evidence.admissionBinding.bindingDigest,
+        }
+      : {}),
   };
 
   const deltaReceiptIds = [...new Set(input.deltaReceiptIds ?? [])].sort();
@@ -873,6 +1002,22 @@ export function verifyMaterializedSnapshot(input: {
     ),
     'upstreamRagReferences',
   );
+
+  const normalizedV2Evidence = normalizeV2Evidence(engineering.v2Evidence, manifest.releaseId);
+  if (normalizedV2Evidence) {
+    if (authorityCanonicalJson(normalizedV2Evidence) !== authorityCanonicalJson(engineering.v2Evidence)) {
+      throw new AuthoritySnapshotError('hash-invalid', 'V2 evidence is not canonically normalized');
+    }
+    if (manifest.provenance.v2ProfileCount !== normalizedV2Evidence.profiles.length
+      || manifest.provenance.v2MultilingualLabelCount !== normalizedV2Evidence.multilingualLabels.length
+      || manifest.provenance.v2AdmissionBindingDigest !== normalizedV2Evidence.admissionBinding.bindingDigest) {
+      throw new AuthoritySnapshotError('count-mismatch', 'manifest V2 evidence summary does not match engineering body');
+    }
+  } else if (manifest.provenance.v2ProfileCount !== undefined
+    || manifest.provenance.v2MultilingualLabelCount !== undefined
+    || manifest.provenance.v2AdmissionBindingDigest !== undefined) {
+    throw new AuthoritySnapshotError('count-mismatch', 'manifest declares V2 evidence without an engineering body');
+  }
 
   const engineeringDigest = authorityDigest(engineering);
   if (engineeringDigest !== manifest.engineeringDigest) {
@@ -1135,6 +1280,7 @@ export function authoritySnapshotToRepositoryView(input: {
       payload: row.payload,
       bundleReceiptId: row.bundleReceiptId,
     })),
+    ...(engineering.v2Evidence ? { v2Evidence: engineering.v2Evidence } : {}),
     bundleReceipt: manifest.bundleDigest && manifest.bundleReceiptId
       ? {
           id: manifest.bundleReceiptId,
@@ -1143,7 +1289,9 @@ export function authoritySnapshotToRepositoryView(input: {
           bundleDigest: manifest.bundleDigest,
           bundleKind: 'public',
           releaseStage: 'stable',
-          bundleContractVersion: 'actkg-public-bundle/1',
+          bundleContractVersion: manifest.protocol === STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL
+            ? STANDARD_PUBLIC_BUNDLE_V2_PROTOCOL
+            : 'actkg-public-bundle/1',
           controlledPath: `authority/releases/${manifest.snapshotId}`,
           manifestRawSha256: manifest.snapshotHash,
           normalization: 'authority-snapshot/v1',

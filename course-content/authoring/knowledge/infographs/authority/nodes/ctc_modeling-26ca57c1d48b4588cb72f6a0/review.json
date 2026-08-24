@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04T12:03:26+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-26ca57c1d48b4588cb72f6a0",
+  "safe_id": "ctc_modeling-26ca57c1d48b4588cb72f6a0",
+  "node_name": "system that is both",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "batch18 A en accept"
+}

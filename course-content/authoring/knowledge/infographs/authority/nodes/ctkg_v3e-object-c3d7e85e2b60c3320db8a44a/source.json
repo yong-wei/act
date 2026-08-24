@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+  "safe_id": "ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
+  "node": {
+    "name": "Quantization error",
+    "name_en": "Quantization error",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Quantization error：Quantization error",
+  "intuition": null,
+  "explanation": "Quantization error",
+  "relation_head": "前置 → Amplitude quantization error",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Amplitude quantization error",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "Quantizatio…",
+    "Quantization",
+    "一种·Amplit…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-c3d7e85e2b60c3320db8a44a.md",
+  "provider_policy": "grok-image_gen"
+}

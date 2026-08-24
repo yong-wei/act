@@ -2,7 +2,7 @@
 
 import { BlackBoxIdentificationPanel } from '@/features/control-workbench/presets/blackbox-identification-preset';
 import type { ChallengeTask } from '../types';
-import type { ArenaSubmissionRecord } from './submission-service';
+import type { ArenaSubmissionRecord } from './types';
 
 export function ArenaBlackBoxSubmissionPanel({
   task,

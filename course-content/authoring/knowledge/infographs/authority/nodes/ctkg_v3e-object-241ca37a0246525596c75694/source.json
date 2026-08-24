@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-241ca37a0246525596c75694",
+  "safe_id": "ctkg_v3e-object-241ca37a0246525596c75694",
+  "node": {
+    "name": "Zero-order hold",
+    "name_en": "Zero-order hold",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Zero-order hold：A circuit that takes the value r(kT) and holds it constant for kT ≤ t < (k+1)T.",
+  "intuition": null,
+  "explanation": "A circuit that takes the value r(kT) and holds it constant for kT ≤ t < (k+1)T.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Zero-order …",
+    "Zero-order h"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-241ca37a0246525596c75694.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+  "safe_id": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
+  "node": {
+    "name": "Laplace transform",
+    "name_en": "Laplace transform",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "Laplace transform：Laplace transform",
+  "intuition": null,
+  "explanation": "Laplace transform",
+  "relation_head": "前置 → z-transform",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "z-transform",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "Laplace tra…",
+    "Laplace tran",
+    "关联·z-tran…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   classFindUnique: vi.fn(),
   learningPathFindFirst: vi.fn(),
+  readAdaptivePathCandidateBatch: vi.fn(),
   isRegisteredAdaptiveLearningPathGoal: vi.fn(),
   resolveKonlingTeachingAssistantServerModeContext: vi.fn(),
   resolveKonlingTeachingAssistantSignedGraphNodeId: vi.fn(),
@@ -34,8 +35,16 @@ vi.mock('@/lib/adaptive-learning-path-planner', () => ({
   isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
 }));
 
+vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
+}));
+
 vi.mock('@/lib/adaptive-path-goal-options', () => ({
   getAdaptivePracticeGoalOption: () => ({ title: '控制校正' }),
+}));
+
+vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
 }));
 
 vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
@@ -79,7 +88,7 @@ function post(body: Record<string, unknown>) {
 
 describe('path advisor tool route readiness', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getServerAuthSession.mockResolvedValue({
       user: {
         id: 'student-1',
@@ -91,6 +100,7 @@ describe('path advisor tool route readiness', () => {
     mocks.isRegisteredAdaptiveLearningPathGoal.mockReturnValue(true);
     mocks.classFindUnique.mockResolvedValue({ teacherId: 'teacher-1' });
     mocks.learningPathFindFirst.mockResolvedValue(null);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue(null);
     mocks.verifyKonlingRuntimeScope.mockResolvedValue({
       ok: true,
       scope: {
@@ -101,6 +111,7 @@ describe('path advisor tool route readiness', () => {
       },
     });
     mocks.resolveKonlingTeachingAssistantSignedGraphNodeId.mockReturnValue(null);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue(null);
     mocks.buildKonlingRuntimeContext.mockResolvedValue({ citationContext: undefined });
     mocks.buildKonlingRuntimeGraphContext.mockReturnValue({});
     mocks.resolveKonlingTeachingAssistantServerModeContext.mockResolvedValue({});
@@ -298,6 +309,140 @@ describe('path advisor tool route readiness', () => {
     });
   });
 
+  it('binds path adjustment to an authorized persisted candidate and progress version', async () => {
+    const activeProgressVersion = '2026-08-18T02:00:00.000Z';
+    const sourceCandidateFingerprint = 'a'.repeat(64);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'source-request-1',
+      sourcePathId: 'source-path-1',
+      plannerVersion: 'stage-1-rules-graph',
+      status: 'succeeded',
+      createdAt: '2026-08-17T00:00:00.000Z',
+      metadata: {},
+      candidates: [{
+        id: 'candidate-1',
+        fingerprint: sourceCandidateFingerprint,
+        ordinal: 0,
+        styleId: 'simulation-driven',
+        policyFamily: 'simulation-driven',
+        label: '仿真路径',
+        snapshot: { optionId: 'path-option-1', nodeIds: ['node-1'] },
+      }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: { executionStatus: { completedNodeIds: [] } },
+      lastExecutionMetadata: {},
+      updatedAt: new Date(activeProgressVersion),
+    });
+    const reviseLearningPathOptions = vi.fn().mockResolvedValue({
+      generationStatus: 'persisted',
+      candidateBatch: { id: 'derived-batch-1' },
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions,
+    });
+
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      idempotencyKey: 'path-adjustment-request:adjustment-1',
+      selectedOptionId: 'path-option-client-order-must-not-authorize',
+    });
+
+    expect(response.status).toBe(200);
+    expect(reviseLearningPathOptions).toHaveBeenCalledWith(expect.objectContaining({
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      selectedStyleId: 'simulation-driven',
+      preferredStyleId: 'simulation-driven',
+    }));
+  });
+
+  it('keeps stale adjustment conflicts retryable without replacing readiness with a permission block', async () => {
+    const activeProgressVersion = '2026-08-18T02:00:00.000Z';
+    const sourceCandidateFingerprint = 'a'.repeat(64);
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValue({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      classId: 'class-1',
+      generationRequestId: 'source-request-1',
+      sourcePathId: 'source-path-1',
+      plannerVersion: 'stage-1-rules-graph',
+      status: 'succeeded',
+      createdAt: '2026-08-17T00:00:00.000Z',
+      metadata: {},
+      candidates: [{
+        id: 'candidate-1',
+        fingerprint: sourceCandidateFingerprint,
+        ordinal: 0,
+        styleId: 'simulation-driven',
+        policyFamily: 'simulation-driven',
+        label: '仿真路径',
+        snapshot: { optionId: 'path-option-1', nodeIds: ['node-1'] },
+      }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: { executionStatus: { completedNodeIds: [] } },
+      lastExecutionMetadata: {},
+      updatedAt: new Date(activeProgressVersion),
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff: vi.fn(),
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn().mockRejectedValue(
+        new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。'),
+      ),
+    });
+
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+      sourceBatchId: 'batch-1',
+      sourceCandidateId: 'candidate-1',
+      sourceCandidateFingerprint,
+      activeProgressVersion,
+      idempotencyKey: 'path-adjustment-request:stale-adjustment',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      error: '学习路径进度已更新，请基于最新进度重新调整。',
+    });
+    expect(payload).not.toHaveProperty('readiness');
+  });
+
+  it('rejects path adjustment without a stable candidate source', async () => {
+    const response = await post({
+      operation: 'revise',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选路径调整缺少稳定的来源或进度版本。',
+    });
+  });
+
   it('keeps a reused running tool request active', async () => {
     mocks.buildKonlingToolRuntime.mockReturnValueOnce({
       explainLearningPathTradeoff: vi.fn(),
@@ -374,6 +519,177 @@ describe('path advisor tool route readiness', () => {
       selectedStyleId: 'recommended',
       styleId: 'recommended',
     }));
+  });
+
+  it('rejects a candidate comparison outside the authorized batch', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      candidates: [{ styleId: 'style-a' }],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|version-1|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选比较对象不属于当前学习路径批次',
+    });
+  });
+
+  it('forwards an authorized candidate pair and comparison identity to the runtime', async () => {
+    const explainLearningPathTradeoff = vi.fn().mockResolvedValue({
+      comparison: { status: 'no-material-difference' },
+    });
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:00.000Z'),
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff,
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(200);
+    expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
+      pathId: 'path-1',
+      selectedStyleId: 'style-a',
+      compareWithStyleId: 'style-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-08-16T10:00:00.000Z|path-option-a:path-option-b',
+    }));
+  });
+
+  it('rejects a candidate comparison after the saved path version changes', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:02.000Z'),
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'batch-1|2026-08-16T10:00:02.000Z|path-option-a:path-option-b',
+    });
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '当前学习路径已更新，请重新生成候选方案后再比较',
+    });
+  });
+
+  it('rejects a forged candidate comparison key', async () => {
+    mocks.readAdaptivePathCandidateBatch.mockResolvedValueOnce({
+      id: 'batch-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      sourcePathId: 'path-1',
+      createdAt: '2026-08-16T10:00:01.000Z',
+      candidates: [
+        { styleId: 'style-a', snapshot: { optionId: 'path-option-a' } },
+        { styleId: 'style-b', snapshot: { optionId: 'path-option-b' } },
+      ],
+    });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      updatedAt: new Date('2026-08-16T10:00:00.000Z'),
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [
+          { optionId: 'path-option-a', styleId: 'style-a', nodeIds: ['node-1'] },
+          { optionId: 'path-option-b', styleId: 'style-b', nodeIds: ['node-1'] },
+        ],
+      },
+      lastExecutionMetadata: {},
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-a',
+      compareWithOptionId: 'path-option-b',
+      candidateBatchId: 'batch-1',
+      comparisonKey: 'forged-key',
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: '候选比较身份已失效，请重新选择比较对象',
+    });
   });
 
   it('allows empty-node path options to reach the runtime insufficient-data result', async () => {

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "act-runtime-task-4-1-denial.v1",
+  "recordedAt": "2026-08-16T07:34:25Z",
+  "ecs": {
+    "role": "act-runtime-oss-read",
+    "ossutil": "act-ops-ossutil",
+    "endpoint": "oss-cn-hangzhou-internal.aliyuncs.com",
+    "region": "cn-hangzhou",
+    "bucket": "act-course-assets",
+    "mode": "EcsRamRole"
+  },
+  "operations": [
+    {
+      "operation": "PutObject",
+      "key": "runtime/blob-releases/_task41-deny-probe/deny.txt",
+      "httpStatus": 403,
+      "errorCode": "AccessDenied",
+      "requestId": "6A8168012F534C3138CF5E90"
+    },
+    {
+      "operation": "DeleteObject",
+      "key": "runtime/blob-releases/_task41-deny-probe/deny.txt",
+      "httpStatus": 403,
+      "errorCode": "AccessDenied",
+      "requestId": "6A8168011D151C36307B0C91"
+    },
+    {
+      "operation": "AbortMultipartUpload",
+      "key": "runtime/blobs/sha256/0000000000000000000000000000000000000000000000000000000000000000",
+      "httpStatus": 404,
+      "errorCode": "NoSuchUpload",
+      "requestId": "6A816801D8209B3332A0C1EB",
+      "denialVerified": false,
+      "note": "Invalid upload id returned NoSuchUpload. This is not AbortMultipartUpload denial evidence. 4.1 write-denial is established only by PutObject and DeleteObject 403 AccessDenied."
+    },
+    {
+      "operation": "HeadObject",
+      "key": "runtime/blob-releases/runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6/receipt.json",
+      "httpStatus": 200,
+      "errorCode": null
+    }
+  ],
+  "localPublisher": {
+    "tool": "act-runtime-publisher",
+    "principal": "act-runtime-publisher-local",
+    "credentialStore": "platform-keychain-via-launcher; credentials are not written to the repository, .env, scripts, or release artifacts",
+    "ossutilSha256": "8c84259d886e131646150535935faa94ef7ac5af9c14ce7486fde41c364389f1",
+    "identityCommandSha256": "7a418ea428dcbfeaab2af8760938aeda8d2f16bd77b586cbe4c75b07034df8fb",
+    "knownHosts": "launcher-managed"
+  }
+}

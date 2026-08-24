@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+  "safe_id": "ctkg_v3e-canonical-0e5d22ed0afee37f65584d36",
+  "node": {
+    "name": "正弦函数",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "正弦函数。",
+  "intuition": null,
+  "explanation": "正弦函数",
+  "relation_head": "前置 → 典型输入信号",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "典型输入信号",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "正弦函数",
+    "包含组件·典型输入…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-0e5d22ed0afee37f65584d36.md",
+  "provider_policy": "grok-image_gen"
+}

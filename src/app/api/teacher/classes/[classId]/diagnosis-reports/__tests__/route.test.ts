@@ -10,6 +10,9 @@ const mocks = vi.hoisted(() => {
     DiagnosisReportScopeError,
     getServerAuthSession: vi.fn(),
     readDiagnosisReports: vi.fn(),
+    parseGenerationRequest: vi.fn(),
+    startGenerationJob: vi.fn(),
+    enqueueGenerationJob: vi.fn(),
   };
 });
 
@@ -24,7 +27,22 @@ vi.mock('@/lib/diagnosis-persistence', () => ({
   readDiagnosisReports: mocks.readDiagnosisReports,
 }));
 
-import { GET } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+vi.mock('@/lib/diagnosis-generation', () => ({
+  diagnosisGenerationRequestSchema: { parse: mocks.parseGenerationRequest },
+  diagnosisGenerationErrorResponse: (error: unknown) => error instanceof Error && error.message === 'browser-report-body-forbidden'
+    ? { status: 400, body: { error: 'invalid-diagnosis-generation-request' } }
+    : null,
+  startDiagnosisGenerationJob: mocks.startGenerationJob,
+  projectDiagnosisGenerationJob: (job: unknown) => job,
+}));
+
+vi.mock('@/lib/diagnosis-generation-queue', () => ({
+  enqueueDiagnosisGenerationJob: mocks.enqueueGenerationJob,
+}));
+
+vi.mock('@/lib/prisma', () => ({ prisma: { marker: 'prisma' } }));
+
+import { GET, POST } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
 
 describe('GET teacher diagnosis reports', () => {
   beforeEach(() => {
@@ -110,5 +128,78 @@ describe('GET teacher diagnosis reports', () => {
 
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: '班级或学生范围不可用' });
+  });
+});
+
+describe('POST teacher diagnosis generation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.parseGenerationRequest.mockImplementation((body: Record<string, unknown>) => {
+      if ('reportBody' in body) throw new Error('browser-report-body-forbidden');
+      return body;
+    });
+  });
+
+  it('accepts only generation intent and enqueues the durable job', async () => {
+    const job = { id: 'job-1', state: 'QUEUED' };
+    mocks.startGenerationJob.mockResolvedValue(job);
+    mocks.enqueueGenerationJob.mockResolvedValue({ queued: true, job, errorCode: null });
+
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({ idempotencyKey: 'request-123', targetStudentId: 'student-1' }),
+    }), { params: Promise.resolve({ classId: 'class-1' }) });
+
+    expect(response.status).toBe(202);
+    expect(mocks.startGenerationJob).toHaveBeenCalledWith(
+      { marker: 'prisma' },
+      {
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        targetStudentId: 'student-1',
+        idempotencyKey: 'request-123',
+        force: undefined,
+        forceReason: null,
+      },
+    );
+    expect(mocks.enqueueGenerationJob).toHaveBeenCalledWith({ marker: 'prisma' }, 'job-1');
+  });
+
+  it('does not pass a browser-authored report body to persistence', async () => {
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({ idempotencyKey: 'request-123', reportBody: { summary: '伪造报告' } }),
+    }), { params: Promise.resolve({ classId: 'class-1' }) });
+
+    expect(response.status).toBe(400);
+    expect(mocks.startGenerationJob).not.toHaveBeenCalled();
+    expect(mocks.enqueueGenerationJob).not.toHaveBeenCalled();
+  });
+
+  it('passes only explicit force intent and teacher reason to server-side job creation', async () => {
+    const job = { id: 'job-forced', state: 'QUEUED' };
+    mocks.startGenerationJob.mockResolvedValue(job);
+    mocks.enqueueGenerationJob.mockResolvedValue({ queued: true, job, errorCode: null });
+
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({
+        idempotencyKey: 'request-forced',
+        force: true,
+        forceReason: '用于本周教学复盘会议留档',
+      }),
+    }), { params: Promise.resolve({ classId: 'class-1' }) });
+
+    expect(response.status).toBe(202);
+    expect(mocks.startGenerationJob).toHaveBeenCalledWith(
+      { marker: 'prisma' },
+      expect.objectContaining({
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        force: true,
+        forceReason: '用于本周教学复盘会议留档',
+      }),
+    );
   });
 });

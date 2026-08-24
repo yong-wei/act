@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:20:02+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:domainconcept:39456197a7214a933f3d5e83",
+  "safe_id": "ctkg_domainconcept_39456197a7214a933f3d5e83",
+  "node_name": "有纹波最少拍系统结构图（图7-…",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch wave: OCR-mapped 1107-1111"
+}

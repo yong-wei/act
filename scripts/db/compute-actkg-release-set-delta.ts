@@ -4,6 +4,7 @@ import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
   CURRENT_AGGREGATE_RELEASE_ID,
   CURRENT_AGGREGATE_RELEASE_SET_ID,
+  STANDARD_PUBLIC_BUNDLE_PROTOCOL,
 } from '../../src/lib/authoritative-knowledge';
 import { computeAndPersistReleaseSetDelta } from '../actkg-release/release-set-delta';
 
@@ -45,7 +46,12 @@ async function main(): Promise<void> {
           select: { releaseId: true },
         })).releaseId
         : (await db.actkgBundleReceipt.findUniqueOrThrow({
-          where: { bundleDigest: candidateBundleDigest! },
+          where: {
+            bundleContractVersion_bundleDigest: {
+              bundleContractVersion: STANDARD_PUBLIC_BUNDLE_PROTOCOL,
+              bundleDigest: candidateBundleDigest!,
+            },
+          },
           select: { releaseId: true },
         })).releaseId);
 

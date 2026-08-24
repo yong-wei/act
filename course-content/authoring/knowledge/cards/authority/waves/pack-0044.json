@@ -1,0 +1,84 @@
+{
+  "pack_id": "P0044",
+  "offset": 220,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-66dd287a007d9b2b74781de5",
+      "batch": "B",
+      "name": "采样控制系统",
+      "definition": "把系统中的离散信号是脉冲序列形式的离散系统，称为采样控制系统或脉冲控制系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "采样控制系统",
+        "是一种·误差采样控制",
+        "是一种·离散时间系统",
+        "是一种·开环采样系统",
+        "是一种·线性采样系统",
+        "是一种·闭环采样系统"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d09d1eba56a786a96d39d085",
+      "batch": "B",
+      "name": "稳定性",
+      "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "稳定性",
+        "一种·平衡状态稳定性",
+        "一种·大范围稳定系统",
+        "一种·Neutra…",
+        "一种·Margin…",
+        "一种·BIBO"
+      ]
+    },
+    {
+      "safe_id": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "batch": "B",
+      "name": "传递函数",
+      "definition": "传递函数：v3T accepted candidate for transfer function.。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "传递函数",
+        "transfer fun",
+        "应用于·evans…",
+        "应用于·根轨迹法",
+        "派生自·在时间域描…",
+        "派生自·The r…",
+        "派生自·零点"
+      ]
+    },
+    {
+      "safe_id": "ctc_v11g-e8d4b4f1c63aa5a052b15538",
+      "batch": "B",
+      "name": "根轨迹法",
+      "definition": "根轨迹法：A graphical method for sketching the locus of roots in the s-plane as a parameter is varied, used to analyze the relati…",
+      "visual_archetype": "s 平面机理板",
+      "labels": [
+        "根轨迹法",
+        "root locus m",
+        "用于分析·root…",
+        "用于分析·特征方程",
+        "应用于·传递函数",
+        "应用于·根轨迹",
+        "派生自·Root …"
+      ]
+    },
+    {
+      "safe_id": "ctkg_v3e-object-2ca939471631d90bd6098990",
+      "batch": "B",
+      "name": "保持器",
+      "definition": "在脉冲序列和连续信号之间要用保持器，实现两种信号的转换。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "保持器",
+        "是一种·零阶保持器",
+        "是一种·一阶保持器",
+        "一种·信号复现滤波器",
+        "属于·采样控制系统",
+        "包含组件·采样控制…"
+      ]
+    }
+  ],
+  "created_at": "2026-08-05T15:29:59.760546+00:00"
+}

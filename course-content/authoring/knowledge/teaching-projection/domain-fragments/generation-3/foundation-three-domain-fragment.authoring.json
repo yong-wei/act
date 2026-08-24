@@ -1,0 +1,113 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "fragmentKey": "foundation-three-domain-published-v3",
+  "fragmentVersion": "1",
+  "domainKeys": [
+    "stability-analysis",
+    "system-modeling",
+    "time-domain-analysis"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    },
+    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+  },
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+  "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40",
+  "evidenceRefs": [
+    "course-content/authoring/lessons/1-5/design/1-5-boppps.md",
+    "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "domainKeys": [
+        "system-modeling"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-1-modeling",
+      "rationale": "1-5 课程目标要求学生调节增益并以同一对象读取闭环行为。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "domainKeys": [
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 教学主线从单位阶跃响应开始建立时域指标语言。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "domainKeys": [
+        "stability-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "OPTIONAL",
+      "moduleId": "module-2-stability",
+      "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+      "sourceKind": "PREREQUISITE_ENDPOINT",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "domainKeys": [
+        "stability-analysis",
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 将调节时间定义为单位阶跃响应的动态性能指标。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "edgeId": "dt-edge-00e52fde282924eca7ad0ee9",
+      "sourceNodeId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "relationType": "PREREQUISITE",
+      "strength": "REQUIRED",
+      "domainKeys": [
+        "time-domain-analysis",
+        "stability-analysis"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "curatorId": "act.foundation.domain-review",
+      "curatorRationale": "2-2 以单位阶跃响应为入口，随后定义调节时间等动态性能指标，属于同一教学主线中的直接依赖。",
+      "authorDecisionId": "foundation-1371-step-response-settling-time"
+    }
+  ]
+}

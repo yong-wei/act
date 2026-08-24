@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0034",
+  "offset": 170,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-3e15ed6ae20f1d1e4d170e57",
+      "batch": "B",
+      "name": "equivalent gain",
+      "definition": "equivalent gain：A gain that replaces a memoryless nonlinearity in a root locus analysis, taking on a range of values for a range of inp…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "equivalent …",
+        "equivalent g",
+        "包含组件·Equi…",
+        "关联·Root-L…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: equivalent gain\nSOURCE DEFINITION (fail-closed, do not invent beyond this): equivalent gain：A gain that replaces a memoryless nonlinearity in a root locus analysis, taking on a range of values for a range of inp…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「equivalent」、「equivalent」、「包含组件·Equi…」、「关联·Root-L…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-cd815451e75b895951dd747e",
+      "batch": "B",
+      "name": "Evaluation of st",
+      "definition": "Evaluation of st：Determine Phi(s) by evaluating Phi(s) = [sI - A]^{-1} through matrix inversion, then obtain Phi(t) via inverse Laplace…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Evaluation …"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Evaluation of st\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Evaluation of st：Determine Phi(s) by evaluating Phi(s) = [sI - A]^{-1} through matrix inversion, then obtain Phi(t) via inverse Laplace…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Evaluation」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-df836fc47a815d82f963b7a8",
+      "batch": "B",
+      "name": "Zero assignment ",
+      "definition": "Zero assignment ：A method to increase the velocity constant K_v by placing a zero near a slow estimator pole, using Truxal's formula to…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Zero assign…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Zero assignment \nSOURCE DEFINITION (fail-closed, do not invent beyond this): Zero assignment ：A method to increase the velocity constant K_v by placing a zero near a slow estimator pole, using Truxal's formula to…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Zero assig」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-eb888786c5eb738a65d705f7",
+      "batch": "B",
+      "name": "Stabilizability",
+      "definition": "Stabilizability：A system is stabilizable if the states (or linear combinations thereof) that cannot be controlled are inherently stable.",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Stabilizabi…",
+        "Stabilizabil"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Stabilizability\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Stabilizability：A system is stabilizable if the states (or linear combinations thereof) that cannot be controlled are inherently stable.\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Stabilizab」、「Stabilizab」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_v12g-8f6f1a49cc2cbdfe216e5204",
+      "batch": "B",
+      "name": "dominant roots",
+      "definition": "dominant roots：Complex conjugate roots near the origin of the s-plane relative to other closed-loop system roots, which dominate the t…",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "dominant ro…",
+        "dominant roo"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: dominant roots\nSOURCE DEFINITION (fail-closed, do not invent beyond this): dominant roots：Complex conjugate roots near the origin of the s-plane relative to other closed-loop system roots, which dominate the t…\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「dominant r」、「dominant r」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-e85c0145d63244c46853c9cf",
+  "safe_id": "ctc_v11g-e85c0145d63244c46853c9cf",
+  "node": {
+    "name": "lead compensation",
+    "name_en": "lead_compensation",
+    "concept_kind": "design_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "lead compensation：A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing tran…",
+  "intuition": null,
+  "explanation": "A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing transient overshoot.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "lead compen…",
+    "lead compens"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-e85c0145d63244c46853c9cf.md",
+  "provider_policy": "grok-image_gen"
+}

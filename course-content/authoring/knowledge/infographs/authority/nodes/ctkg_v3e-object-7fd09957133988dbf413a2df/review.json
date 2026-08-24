@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:38:41+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-7fd09957133988dbf413a2df",
+  "safe_id": "ctkg_v3e-object-7fd09957133988dbf413a2df",
+  "node_name": "时域法校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (幅相终点/时域校正/离散指标/0型/等ζ映射)"
+}

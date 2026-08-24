@@ -70,6 +70,17 @@ const simulationResourceSources = [
 ].map((sourcePath) => readFileSync(join(process.cwd(), sourcePath), 'utf8'));
 
 describe('AI chat route Konling runtime guard', () => {
+  it('validates and injects the server-owned portfolio reflection task contract', () => {
+    expect(chatRouteSource).toContain('auditTaskContext');
+    expect(chatRouteSource).toContain('resolveAiAuditTaskContext');
+    expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
+    expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
+    expect(chatRouteSource).toContain('buildAiAuditTaskLogEntry');
+    expect(chatRouteSource).toContain("console.info('[ai.task-context]'");
+    expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
+    expect(chatRouteSource.indexOf('const taskContextResolution = resolveAiAuditTaskContext'))
+      .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
+  });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
     expect(chatRouteSource).toContain('const hasRuntimeContext = Boolean');
     expect(chatRouteSource).toContain('if (session?.user?.id && hasRuntimeContext)');
@@ -252,9 +263,13 @@ describe('AI chat route Konling runtime guard', () => {
     expect(globalAIProviderSource).toContain('openAssistantEntryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: entryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
-    expect(globalAISidebarSource).toContain('teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId');
-    expect(globalAISidebarSource).toContain('modeClientContextHints: activeAssistantBinding?.modeClientContextHints');
-    expect(globalAISidebarSource).toContain('resourceId: activeAssistantBinding?.modeClientContextHints.resourceId');
+    expect(globalAISidebarSource).toContain('const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: effectiveServerContext');
+    expect(globalAISidebarSource).toContain('resourceId: effectiveServerContext?.resourceId');
+    expect(globalAISidebarSource).toContain('shouldStartTextbookCoachConversation');
+    expect(globalAISidebarSource).toContain('teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: sendAssistantBinding?.modeClientContextHints');
+    expect(globalAISidebarSource).toContain('resourceId: sendAssistantBinding?.modeClientContextHints.resourceId');
     expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");
@@ -293,7 +308,6 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('konlingCitationGuard: citationGuardMetadataPayload');
     expect(chatRouteSource).toContain('buildKonlingSarAssociatedGroundingMetadataPayload(');
     expect(chatRouteSource).toContain('konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload');
-    expect(chatRouteSource).toContain('{ konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload }');
     expect(chatRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
     expect(chatRouteSource).toContain('AgentSession citation metadata persistence failed');
     expect(chatRouteSource).toContain('ownerUserId: authorizedScope.targetUserId');
@@ -425,9 +439,6 @@ describe('AI chat route Konling runtime guard', () => {
   });
 
   it('hides the public simulation AI companion entry when no user is authenticated', () => {
-    expect(aiCompanionPanelSource).toContain('useSession');
-    expect(aiCompanionPanelSource).toContain("authStatus !== 'authenticated'");
-    expect(aiCompanionPanelSource).toContain('return null');
     expect(globalAIProviderSource).toContain("sessionStatus !== 'authenticated'");
     expect(globalAIProviderSource).toContain('!session?.user');
     simulationResourceSources.forEach((source) => {

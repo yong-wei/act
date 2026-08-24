@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-820fb2c5830d5ebc1878a753",
+  "safe_id": "ctkg_v3e-object-820fb2c5830d5ebc1878a753",
+  "node": {
+    "name": "Reduced-order estimator design method",
+    "name_en": "Reduced-order estimator design method",
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Reduced-order estimator design method：A method to design an estimator of reduced order by partitioning the state into measured and unmeasured parts, establis…",
+  "intuition": null,
+  "explanation": "A method to design an estimator of reduced order by partitioning the state into measured and unmeasured parts, establishing substitutions, and selecting gain L to place the estimator poles.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Reduced-ord…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-820fb2c5830d5ebc1878a753.md",
+  "provider_policy": "grok-image_gen"
+}

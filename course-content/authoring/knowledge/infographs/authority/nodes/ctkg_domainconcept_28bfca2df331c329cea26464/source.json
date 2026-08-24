@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:52:07+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:domainconcept:28bfca2df331c329cea26464",
+  "safe_id": "ctkg_domainconcept_28bfca2df331c329cea26464",
+  "node": {
+    "name": "朱利稳定判据",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "C",
+    "coverage_role": null
+  },
+  "definition": "朱利稳定判据是自动控制原理权威图谱中的领域概念。",
+  "intuition": null,
+  "explanation": "权威图谱尚未提供足够描述，本卡仅作占位，待补描述后重写。",
+  "relation_head": "后续 → Routh-Hurwitz stability criterion、朱利稳定判据",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Routh-Hurwitz stability criterion",
+      "relation": "是一种"
+    },
+    {
+      "direction": "后续",
+      "peer": "朱利稳定判据",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "朱利稳定判据",
+    "一种·Routh-…",
+    "用于分析·朱利稳定…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_domainconcept_28bfca2df331c329cea26464.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+  "safe_id": "ctkg_v3e-object-84d4e25a62819cdb7ccb6caf",
+  "node": {
+    "name": "Type-zero system",
+    "name_en": "Type-zero system",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Type-zero system：A system with no poles at the origin in the loop transfer function.",
+  "intuition": null,
+  "explanation": "A system with no poles at the origin in the loop transfer function.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Type-zero s…",
+    "Type-zero sy"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-84d4e25a62819cdb7ccb6caf.md",
+  "provider_policy": "grok-image_gen"
+}

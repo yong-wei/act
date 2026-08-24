@@ -3,3 +3,8 @@ export * from './delta-inventory';
 export * from './impact';
 export * from './decisions';
 export * from './rebuild';
+export * from './v018-contracts';
+export * from './v018-capture';
+export * from './v018-mapping';
+export * from './v018-rebuild';
+export * from './v018-receipt';

@@ -180,8 +180,20 @@ export function AdaptivePathJourneyControl({
   className,
 }: AdaptivePathJourneyControlProps) {
   const state = journey?.nextAction.state ?? (status === 'error' ? 'blocked' : 'pending-result');
-  const returnAction = journey?.return ?? { label: '返回学习路径', href: launchContext.returnHref };
+  const returnAction = journey?.return
+    ? {
+        ...journey.return,
+        // The journey control is the single owner of resource-page return
+        // navigation. Always target the path-center landing page so the
+        // user leaves the execution workspace instead of re-entering it.
+        href: buildAdaptivePathOverviewHref(launchContext),
+      }
+    : {
+    label: '返回学习路径',
+    href: buildAdaptivePathOverviewHref(launchContext),
+      };
   const nextAction = journey?.nextAction ?? null;
+  const sourceReturnAction = journey?.return ?? returnAction;
   const correction = journey?.correction ?? null;
   const correctionHistory = correction?.history ?? [];
   const correctionCanBeDecided = Boolean(
@@ -190,13 +202,18 @@ export function AdaptivePathJourneyControl({
   const [correctionDecisionPending, setCorrectionDecisionPending] = useState(false);
   const [correctionDecisionError, setCorrectionDecisionError] = useState<string | null>(null);
   const nextActionDuplicatesReturn = nextAction?.href
-    ? areEquivalentJourneyActions(returnAction, { label: nextAction.title, href: nextAction.href })
+    ? areEquivalentJourneyActions(sourceReturnAction, { label: nextAction.title, href: nextAction.href })
     : false;
+  const nextActionIsCurrentNodeSelfLink = nextAction?.state === 'ready'
+    && Boolean(nextAction.href)
+    && normalizeJourneyActionTarget(nextAction.href ?? '') === normalizeJourneyActionTarget(launchContext.returnHref);
   const navigationActionDuplicatesReturn = nextActionDuplicatesReturn &&
     (nextAction?.state === 'ready' || nextAction?.state === 'path-complete');
   const recoveryDuplicatesReturn = nextAction?.recovery
-    ? areEquivalentJourneyActions(returnAction, nextAction.recovery)
+    ? areEquivalentJourneyActions(sourceReturnAction, nextAction.recovery)
     : false;
+  const recoveryIsCurrentNodeSelfLink = Boolean(nextAction?.recovery)
+    && normalizeJourneyActionTarget(nextAction?.recovery?.href ?? '') === normalizeJourneyActionTarget(launchContext.returnHref);
   const refreshLabel = recoveryDuplicatesReturn
     ? '刷新路径状态'
     : nextAction?.recovery?.label ?? '刷新路径状态';
@@ -278,7 +295,10 @@ export function AdaptivePathJourneyControl({
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {returnAction.label}
           </Link>
-          {nextAction?.state === 'ready' && nextAction.href && !nextActionDuplicatesReturn ? (
+          {nextAction?.state === 'ready'
+          && nextAction.href
+          && !nextActionDuplicatesReturn
+          && !nextActionIsCurrentNodeSelfLink ? (
             <Link
               href={nextAction.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-platform-action-primary px-3 text-sm font-medium text-platform-action-primary-fg"
@@ -295,14 +315,18 @@ export function AdaptivePathJourneyControl({
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               {nextAction.title}
             </Link>
-          ) : navigationActionDuplicatesReturn ? null : nextAction?.state === 'blocked' && nextAction.recovery && !recoveryDuplicatesReturn ? (
+          ) : navigationActionDuplicatesReturn ? null : nextAction?.state === 'blocked'
+          && nextAction.recovery
+          && !recoveryDuplicatesReturn
+          && !recoveryIsCurrentNodeSelfLink ? (
             <Link
               href={nextAction.recovery.href}
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-platform-border px-3 text-sm font-medium text-platform-fg-primary hover:border-platform-border-strong"
             >
               {nextAction.recovery.label}
             </Link>
-          ) : nextAction?.state === 'blocked' && recoveryDuplicatesReturn ? null : (
+          ) : nextAction?.state === 'blocked'
+          && (recoveryDuplicatesReturn || recoveryIsCurrentNodeSelfLink) ? null : (
             <button
               type="button"
               onClick={onRefresh}
@@ -513,6 +537,14 @@ function normalizeJourneyActionTarget(href: string): string | null {
 
   parsed.searchParams.sort();
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
+function buildAdaptivePathOverviewHref(context: AdaptivePathLaunchContext): string {
+  // Return to the path center entry so it can restore the current path and
+  // render the landing actions. Keeping path-execution here leaves the user
+  // on the execution workspace and makes the return action appear inert.
+  const params = new URLSearchParams({ goal: context.goalId });
+  return `/assessment/adaptive-practice?${params.toString()}`;
 }
 
 export function AdaptivePathOwnedResourceAction({

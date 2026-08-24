@@ -1,0 +1,53 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+      "releaseId": "ctr:release:control-theory-engineering-v0.9",
+      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+      "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
+      "activationHash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogHash": "dfcf6ef56276dd2d560e430f670087671234fceb0efd2a0b9129f8a43b1ff7f5",
+      "catalogVersion": "1.0.0"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+    "canonicalType": "DomainConcept",
+    "label": "名称暂不可用",
+    "description": "为了使稳定的系统具有良好的动态响应，我们常常希望在 s 左半平面上系统特征根的位置与虚轴之间有一定的距离。为此，可在 s 左半平面上作一条 s=-a 的垂线，而 a 是系统特征根位置与虚轴之间的最小给定距离，通常称为给定稳定度，然后用新变量 s1=s+a 代入原系统特征方程，得到一个以 s1 为变量的新特征方程，对新特征方程应用劳斯稳定判据，可以判别系统的特征根是否全部位于 s=-a 垂线之左。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T15:53:25+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+  "safe_id": "ctkg_v3e-object-821d0c6dd9fb62ae909fb60f",
+  "node_name": "稳定极限环",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0060 vision-mapped accept"
+}

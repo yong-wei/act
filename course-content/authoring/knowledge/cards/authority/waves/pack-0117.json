@@ -1,0 +1,71 @@
+{
+  "pack_id": "P0117",
+  "offset": 585,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-63919e7aa7d3d49925074a68",
+      "batch": "B",
+      "name": "Saturation Nonlinearity",
+      "definition": "Saturation Nonlinearity：Saturation Nonlinearity",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Saturation …",
+        "Saturation N",
+        "一种·memory…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Saturation Nonlinearity\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Saturation Nonlinearity：Saturation Nonlinearity\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Saturation」、「Saturation」、「一种·memory…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-7eb703ff92835fa45948a0bf",
+      "batch": "B",
+      "name": "离散模拟信号",
+      "definition": "控制器中的脉冲元件，其输人和输出为脉冲序列，即时间上离散而幅值上连续的信号，称为离散模拟信号。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "离散模拟信号",
+        "是一种·脉冲序列",
+        "包含组件·采样控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散模拟信号\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 控制器中的脉冲元件，其输人和输出为脉冲序列，即时间上离散而幅值上连续的信号，称为离散模拟信号。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散模拟信号」、「是一种·脉冲序列」、「包含组件·采样控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-a05dd61cea712e5b19868b66",
+      "batch": "B",
+      "name": "离散系统时域分析法",
+      "definition": "应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。",
+      "visual_archetype": "频域仪表盘",
+      "labels": [
+        "离散系统时域分析法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 离散系统时域分析法\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 应用z变换法分析线性定常离散系统的动态性能，通常有时域法、根轨迹法和频域法，其中时域法最简便。\nvisual_archetype: 频域仪表盘\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「离散系统时域分析法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-ae1017494c7f2d20cd53efad",
+      "batch": "B",
+      "name": "自激振荡",
+      "definition": "所谓自激振荡是指没有外界信号的作用时，系统内产生的具有固定振幅和频率的稳定周期运动，简称自振。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "自激振荡",
+        "用于分析·描述函数法",
+        "关联·非线性系统",
+        "关联·继电特性",
+        "关联·正阻尼"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 自激振荡\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 所谓自激振荡是指没有外界信号的作用时，系统内产生的具有固定振幅和频率的稳定周期运动，简称自振。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「自激振荡」、「用于分析·描述函数法」、「关联·非线性系统」、「关联·继电特性」、「关联·正阻尼」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-c866a4872c0f99bf61bb4859",
+      "batch": "B",
+      "name": "不稳定极限环",
+      "definition": "当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷离极限环，则该极限环称为不稳定的极限环。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "不稳定极限环",
+        "是一种·极限环",
+        "包含组件·双极限环"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 不稳定极限环\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 当 t → ∞ 时，起始于极限环内部或外部的相轨迹均卷离极限环，则该极限环称为不稳定的极限环。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「不稳定极限环」、「是一种·极限环」、「包含组件·双极限环」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0077",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-fbebd7b09546031f82f974ed",
+      "name": "前置滤波器",
+      "definition": "前馈校正装置的一种形式，接在系统给定值之后及主反馈作用点之前的前向通道上，相当于对给定值信号进行整形或滤波。"
+    },
+    {
+      "safe_id": "ctc_modeling-6ba251594a75698f1a092f8d",
+      "name": "系统的输入-输出描述",
+      "definition": "系统的输入-输出描述，将系统看作黑箱，只反映外部变量间的因果关系。"
+    },
+    {
+      "safe_id": "ctc_modeling-930ada7e5567a735a2feadc9",
+      "name": "block diagram",
+      "definition": "block diagram：v3T accepted candidate for block diagram."
+    },
+    {
+      "safe_id": "ctc_modeling-987e08a63a394f1a848101dc",
+      "name": "只有输入支路而没有输出支路的节点",
+      "definition": "只有输入支路而没有输出支路的节点，一般代表系统的输出变量。"
+    },
+    {
+      "safe_id": "ctc_modeling-a2b2e4c67cee79eef87f3b81",
+      "name": "forward path",
+      "definition": "forward path：v3T accepted candidate for forward path."
+    }
+  ],
+  "created_at": "2026-08-05T16:14:01.538862+00:00"
+}

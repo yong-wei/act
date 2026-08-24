@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "active",
-  "lastUpdated": "2026-07-12",
+  "lastUpdated": "2026-08-13",
   "root": ".agents/skills",
   "purpose": "Machine-readable index for project-local skills that may not be automatically exposed by devspace or global skill discovery.",
   "usage": {
@@ -15,6 +15,12 @@
       "path": "agent-evolver/SKILL.md",
       "category": "agents",
       "description": "Audit, tune, extend, or quality-track project-local Codex custom agents under .codex/agents/*.toml."
+    },
+    {
+      "name": "cursor-subagent-routing",
+      "path": "cursor-subagent-routing/SKILL.md",
+      "category": "agents",
+      "description": "Route Cursor Task subagents to explicit model slugs by task type; separate from Codex TOML routing."
     },
     {
       "name": "brandkit",
@@ -194,7 +200,7 @@
       "name": "server-ops",
       "path": "server-ops/SKILL.md",
       "category": "operations",
-      "description": "Investigate server-side operations, production faults, remote deployment, runtime environment, or database sync."
+      "description": "Use only for explicit deployment or publication of this project to a server, or tasks that necessarily inspect or change remote server state."
     },
     {
       "name": "skillopt-sleep",

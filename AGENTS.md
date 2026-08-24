@@ -20,9 +20,10 @@
 
 ## 项目子代理工作流
 
-- 项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
+- **Cursor 会话**：子代理模型路由以 `.cursor/rules/subagent-routing.mdc` 与 `.agents/skills/cursor-subagent-routing/SKILL.md` 为准；不要套用 `.codex/agents` 的模型名或独立 reasoning 档位。Cursor `Task` 无独立 effort 参数，强度写在 model slug 中。
+- **Codex 会话**：项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
 - 用户已授权子代理时，只要存在匹配的项目命名角色，就必须使用该角色；不得以自由派发替代命名角色。自由派发仅用于没有匹配角色且运行时能够显式控制模型与推理强度的情况。
-- 模型与推理档位遵循全局路由；项目层只通过 TOML 固定角色当前配置，并补充 ACT 的职责、权限、领域和验证约束，不在本文件维护第二套通用模型矩阵。
+- Codex 下模型与推理档位遵循全局路由；项目层只通过 TOML 固定角色当前配置，并补充 ACT 的职责、权限、领域和验证约束。Cursor 下的模型矩阵不在本文件展开，见上述 cursor-subagent-routing skill。
 - 派发使用完整、非重叠工作包；默认一次派发、一次最终回报，禁止轮询和常规进度汇报。子代理返回 `COMPLETE` / `BLOCKED`、修改文件或提交、验证结果、残余风险和待裁决事项。
 - 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。父线程不得无证据重复可信代理已完成的探索、实现或聚焦验证。
 - `deep-debugger` 使用 Terra Max 汇集复杂排障证据；遇到架构、并发、权限、数据完整性、迁移或范围取舍等高影响决策时，由主线程形成紧凑决策包后调用只读 `decision-advisor`（Sol Medium）。顾问不写代码、不派发代理、不承担最终审查，每个工作包原则上最多调用一次。

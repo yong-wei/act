@@ -18,6 +18,11 @@ import {
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import {
+  buildAiAuditTaskLogEntry,
+  buildAiAuditTaskPrompt,
+  resolveAiAuditTaskContext,
+} from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -62,6 +67,14 @@ import {
   resolveKonlingContextEventScope,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
+import {
+  findLatestPinnedTextbookIdentity,
+  pinTextbookCoachIdentity,
+} from '@/lib/textbook-resource-coach';
+import {
+  applyTextbookCoachRuntimeContext,
+  readTextbookCoachServerBag,
+} from '@/lib/textbook-resource-coach/runtime-bridge';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 import type { Prisma } from '@prisma/client';
@@ -72,6 +85,11 @@ import {
 } from '@/lib/konling-citation-repair';
 import type { KonlingAssignedCitation } from '@/lib/konling-citation-protocol';
 import { createKonlingMessageRevisionStream } from '@/lib/konling-message-revision-stream';
+import {
+  buildMathPrecomputeContext,
+  precomputeMathAnswer,
+  withoutCalculateTool,
+} from '@/lib/konling-math-precompute';
 import { resolveKonlingTextbookOptimizations } from '@/lib/konling-textbook-background-optimization';
 import {
   correctKonlingMalformedStructuredResponse,
@@ -210,6 +228,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId,
       modeClientContextHints,
       knowledgeWorkspaceHint,
+      auditTaskContext,
       studyAnswerPreferences,
     } = body as {
       messages: IncomingMessage[];
@@ -227,6 +246,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId?: string;
       modeClientContextHints?: Record<string, unknown>;
       knowledgeWorkspaceHint?: Record<string, unknown>;
+      auditTaskContext?: unknown;
       studyAnswerPreferences?: unknown;
     };
 
@@ -265,6 +285,22 @@ export async function POST(request: Request) {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    const taskContextResolution = resolveAiAuditTaskContext(auditTaskContext);
+    if (taskContextResolution.status === 'invalid') {
+      return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const serverTaskContext = taskContextResolution.status === 'valid'
+      ? taskContextResolution.context
+      : null;
+    const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+
+    if (serverTaskContext) {
+      console.info('[ai.task-context]', JSON.stringify(buildAiAuditTaskLogEntry(serverTaskContext, requestId)));
     }
 
     let uiMessages = rawMessages.map(toUIMessage);
@@ -459,6 +495,10 @@ export async function POST(request: Request) {
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(authorizedScope.courseId && authorizedScope.pageId),
       };
+      const existingTextbookPin = findLatestPinnedTextbookIdentity(
+        (Array.isArray(conversation?.messages) ? conversation.messages as unknown as IncomingMessage[] : messages)
+          .map((message) => toLegacyMessage(message)),
+      );
       const serverModeContext = candidateOnly
         ? null
         : await resolveKonlingTeachingAssistantServerModeContext({
@@ -466,14 +506,37 @@ export async function POST(request: Request) {
             modeId: effectiveModeId,
             scope: authorizedScope,
             clientContextHints: effectiveModeClientContextHints,
+            pinnedTextbookIdentity: existingTextbookPin,
           });
+      const textbookCoach = readTextbookCoachServerBag(serverModeContext);
+      if (textbookCoach.textbookCoachFailure) {
+        return new Response(JSON.stringify({
+          error: 'KONLING_MODE_UNAVAILABLE',
+          mode: 'resource-coach',
+          status: 'unavailable',
+          unavailableReasons: [`textbook-coach:${textbookCoach.textbookCoachFailure}`],
+        }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       const assistantBinding = candidateOnly
         ? null
-        : normalizeKonlingConversationAssistantBinding({
-            modeId: effectiveModeId,
-            clientContextHints: effectiveModeClientContextHints,
-            validatedModeContext: serverModeContext,
-          });
+        : (() => {
+            const binding = normalizeKonlingConversationAssistantBinding({
+              modeId: effectiveModeId,
+              clientContextHints: effectiveModeClientContextHints,
+              validatedModeContext: serverModeContext,
+            });
+            if (!binding || !textbookCoach.structuredTextbook) return binding;
+            return {
+              ...binding,
+              pinnedTextbookResourceIdentity: pinTextbookCoachIdentity({
+                existingPin: existingTextbookPin,
+                verified: textbookCoach.structuredTextbook.identity,
+              }).identity,
+            };
+          })();
       const smartPrepBinding = serverModeContext
         ? resolveKonlingSmartPrepSessionBinding(serverModeContext)
         : null;
@@ -481,9 +544,10 @@ export async function POST(request: Request) {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
       });
+      const textbookRuntimeContext = applyTextbookCoachRuntimeContext(runtimeContext, serverModeContext);
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
         modeId: effectiveModeId,
-        runtimeContext,
+        runtimeContext: textbookRuntimeContext,
         scope: authorizedScope,
         serverModeContext,
         clientContextHints: effectiveModeClientContextHints,
@@ -513,7 +577,7 @@ export async function POST(request: Request) {
       forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
         && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
-        ...runtimeContext,
+        ...textbookRuntimeContext,
         knowledgeCapabilityContext: modeContract.groundingContext,
         teachingAssistantMode: modeContract,
       };
@@ -709,6 +773,16 @@ export async function POST(request: Request) {
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
     }
 
+    if (serverTaskContext) {
+      systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
+    }
+
+    tools = withoutCalculateTool(tools);
+    modelRequirements = {
+      ...modelRequirements,
+      tools: Object.keys(tools).length > 0,
+    };
+
     // 检查 API Key 配置
     if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
       return new Response(
@@ -725,10 +799,19 @@ export async function POST(request: Request) {
 
     // 使用 Vercel AI SDK 生成流式响应
     const responseModel = await getConfiguredAIModel(undefined, modelRequirements);
-    const frozenModelMessages = await toModelMessages(uiMessages);
+    const frozenModelMessages = (await toModelMessages(uiMessages)).filter(
+      (message) => (message as { role?: string }).role !== 'system',
+    );
+    const effectiveUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+    const precomputedMath = effectiveUserMessage
+      ? await precomputeMathAnswer(effectiveUserMessage.content)
+      : null;
+    const mathPrecomputeContext = precomputedMath
+      ? `\n\n${buildMathPrecomputeContext(precomputedMath)}`
+      : '';
     const result = await streamText({
       model: responseModel,
-      system: systemPrompt,
+      system: `${systemPrompt}${mathPrecomputeContext}`,
       messages: frozenModelMessages,
       tools,
       ...(forceStructuredSmartPrepTool ? {

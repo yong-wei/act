@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+  "safe_id": "ctkg_v3e-object-e28c6b3ef5b1335c8a086f34",
+  "node": {
+    "name": "Full-state feedback",
+    "name_en": "Full-state feedback",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Full-state feedback：A control design approach where all state variables are assumed available for feedback, and the control input is a line…",
+  "intuition": "在图谱邻接中可把握：前置 → Full-state feedback design procedure。",
+  "explanation": "A control design approach where all state variables are assumed available for feedback, and the control input is a linear function of the state vector.",
+  "relation_head": "前置 → Full-state feedback design procedure",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Full-state feedback design procedure",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Full-state …",
+    "Full-state f",
+    "应用于·Full-…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-e28c6b3ef5b1335c8a086f34.md",
+  "provider_policy": "grok-image_gen"
+}

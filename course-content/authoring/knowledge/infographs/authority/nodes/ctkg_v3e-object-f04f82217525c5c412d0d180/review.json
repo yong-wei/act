@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:47:27+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+  "safe_id": "ctkg_v3e-object-f04f82217525c5c412d0d180",
+  "node_name": "非最小相位系统",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (Mpw/Nbar/nonmin-phase/S1rank/phi_m lead)"
+}

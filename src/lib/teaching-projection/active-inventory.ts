@@ -421,6 +421,8 @@ function inventoryResource(input: {
   title: string | null;
   sourcePath: string;
   sourceDigest: string;
+  blueprintPath?: string | null;
+  blueprintDigest?: string | null;
   legacyIds: string[];
   labels: string[];
   cardIds: string[];
@@ -443,6 +445,8 @@ function inventoryResource(input: {
     title: input.title,
     sourcePath: input.sourcePath,
     sourceDigest: input.sourceDigest,
+    blueprintPath: input.blueprintPath ?? null,
+    blueprintDigest: input.blueprintDigest ?? null,
     legacyIds: [...new Set(input.legacyIds)].sort(),
     labels: [...new Set(input.labels)].sort(),
     cardIds: [...new Set(input.cardIds)].sort(),
@@ -470,6 +474,13 @@ function inventPackage(
   const lessonPath = join(runtimeDir, 'lesson.json');
   const manifestPath = join(runtimeDir, 'interactive-manifest.json');
   const overlayPath = join(runtimeDir, 'graph-overlay.json');
+  const blueprintCandidates = [
+    join(repoRoot, 'course-content/authoring/lessons', spec.packageId, 'design', `${spec.packageId}-boppps.md`),
+    join(repoRoot, 'course-content/authoring/lessons', spec.packageId, 'design', `${spec.packageId}-interactive-page.md`),
+  ];
+  const blueprintPath = blueprintCandidates.find((candidate) => existsSync(candidate)) ?? null;
+  const blueprintRelativePath = blueprintPath ? relPath(repoRoot, blueprintPath) : null;
+  const blueprintDigest = blueprintPath ? fileDigest(blueprintPath) : null;
 
   // Fail closed on corrupt JSON for any present inventory input file.
   const lessonJson = readOptionalJson(lessonPath, `lesson.json (${spec.packageId})`);
@@ -489,6 +500,7 @@ function inventPackage(
 
   const extracted = extractLegacyAndLabels(lessonJson, overlayJson);
   const sourcePaths: string[] = [];
+  if (blueprintRelativePath) sourcePaths.push(blueprintRelativePath);
   const resources: ActiveCourseInventoryResource[] = [];
 
   // Lesson resource
@@ -505,6 +517,8 @@ function inventPackage(
         title,
         sourcePath,
         sourceDigest: fileDigest(lessonPath),
+        blueprintPath: blueprintRelativePath,
+        blueprintDigest,
         legacyIds: extracted.focusNodeIds,
         labels: extracted.focusNodeIds
           .map((id) => extracted.labelsById.get(id))
@@ -532,6 +546,8 @@ function inventPackage(
         title: name,
         sourcePath,
         sourceDigest: fileDigest(abs),
+        blueprintPath: blueprintRelativePath,
+        blueprintDigest,
         legacyIds: [],
         labels: [],
         cardIds: [],
@@ -564,6 +580,8 @@ function inventPackage(
           title: step.title,
           sourcePath: `${sourcePath}#${step.stepId}`,
           sourceDigest: sha256Buffer(`${digest}:${step.stepId}`),
+          blueprintPath: blueprintRelativePath,
+          blueprintDigest,
           legacyIds,
           labels,
           cardIds: legacyIds,
@@ -794,6 +812,8 @@ export function buildActiveCourseInventory(
       resources: p.resources.map((r) => ({
         resourceId: r.resourceId,
         sourceDigest: r.sourceDigest,
+        blueprintPath: r.blueprintPath ?? null,
+        blueprintDigest: r.blueprintDigest ?? null,
         projectionMode: r.projectionMode,
         legacyIds: r.legacyIds,
       })),

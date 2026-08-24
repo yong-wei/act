@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:05:43+00:00",
+  "namespace": "authority",
+  "entity_id": "ctc:modeling-b39d2fc34a2e7f4d7a214652",
+  "safe_id": "ctc_modeling-b39d2fc34a2e7f4d7a214652",
+  "node_name": "测速发电机输出斜率Kt",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (状态选取/积分器/Kt/误差检测/观测器)"
+}

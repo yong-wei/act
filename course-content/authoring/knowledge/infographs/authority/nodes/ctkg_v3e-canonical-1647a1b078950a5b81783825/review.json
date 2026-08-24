@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T17:19:10+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+  "safe_id": "ctkg_v3e-canonical-1647a1b078950a5b81783825",
+  "node_name": "测速反馈控制改善系统性能的方法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "queue-B vision-mapped accept (测速反馈/矩形脉冲/阻尼系数/过阻尼/阶跃)"
+}

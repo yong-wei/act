@@ -6,11 +6,21 @@ import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-asses
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import { listMicroTutoringGovernedResources } from './micro-tutoring-resource-registry';
+import {
+  MICRO_TUTORING_VALIDATION_ACTION_PATH,
+  MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES,
+  canonicalMicroTutoringQuestionId,
+  findMicroTutoringGovernedValidationBinding,
+  listMicroTutoringGovernedValidationItems,
+  microTutoringValidationQuestionIds,
+} from './micro-tutoring-validation-registry';
 
 export const REMEDIATION_ORCHESTRATOR_VERSION = 'remediation-orchestrator.v1';
-export const REMEDIATION_MANUAL_PRACTICE_PATH = '/student/practice';
-const REMEDIATION_VALIDATION_ESTIMATED_MINUTES = 2;
-const REMEDIATION_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
+export const REMEDIATION_MANUAL_PRACTICE_PATH = '/assessment/adaptive-practice?intent=practice';
+const REMEDIATION_VALIDATION_ESTIMATED_MINUTES = MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES;
+const REMEDIATION_VALIDATION_ACTION_PATH = MICRO_TUTORING_VALIDATION_ACTION_PATH;
 
 export type RemediationUnavailableReason =
   | 'ATTRIBUTION_UNCERTAIN'
@@ -23,7 +33,9 @@ export type RemediationUnavailableReason =
 interface AttributionRow {
   id: string;
   userId: string;
+  sessionId: string;
   questionId: string;
+  itemContentHash?: string;
   state: string;
   knowledgeNodeIds: string[];
   misconceptionTags: string[];
@@ -35,7 +47,7 @@ interface KnowledgeNodeRow {
   isActive: boolean;
 }
 
-interface ResourceRow {
+export interface RemediationResourceRow {
   id: string;
   title: string;
   displayName: string | null;
@@ -54,7 +66,7 @@ interface ResourceRow {
   }>;
 }
 
-interface ValidationItemRow {
+export interface RemediationValidationItemRow {
   id: string;
   questionId: string;
   contentHash: string;
@@ -81,11 +93,11 @@ export interface RemediationOrchestrationDb {
     findFirst(input: any): Promise<KnowledgeNodeRow | null>;
   };
   teachingResource: {
-    findMany(input: any): Promise<ResourceRow[]>;
+    findMany(input: any): Promise<RemediationResourceRow[]>;
   };
   adaptiveAssessmentItemRef: {
-    findMany(input: any): Promise<ValidationItemRow[]>;
-    findFirst(input: any): Promise<ValidationItemRow | null>;
+    findMany(input: any): Promise<RemediationValidationItemRow[]>;
+    findFirst(input: any): Promise<RemediationValidationItemRow | null>;
   };
   remediationOrchestrationResult: {
     upsert(input: any): Promise<PersistedResultRow>;
@@ -93,7 +105,7 @@ export interface RemediationOrchestrationDb {
   };
 }
 
-interface GovernedResource {
+export interface GovernedRemediationResource {
   id: string;
   title: string;
   version: string;
@@ -102,16 +114,17 @@ interface GovernedResource {
   tier: number;
 }
 
-interface GovernedValidationItem {
+export interface GovernedRemediationValidationItem {
   id: string;
   questionId: string;
   contentHash: string;
   version: string;
+  itemRevision: string;
   estimatedMinutes: number;
   actionPath: string;
 }
 
-interface RemediationTaskSnapshot {
+export interface RemediationTaskSnapshot {
   version: 'remediation-task-snapshot.v1';
   goal: string;
   estimatedMinutes: number;
@@ -124,12 +137,17 @@ interface RemediationTaskSnapshot {
     version: string;
     estimatedMinutes: number;
     actionPath: string;
+    registryId?: string;
+    actionId?: string;
+    actionVersion?: string;
+    resourceRevision?: string;
   }>;
   validationQuestion: {
     itemRefId: string;
     questionId: string;
     contentHash: string;
     version: string;
+    itemRevision?: string;
     estimatedMinutes: number;
     actionPath: string;
   };
@@ -141,6 +159,13 @@ interface RemediationTaskProjection {
   estimatedMinutes: number;
   resources: RemediationTaskSnapshot['resources'];
   validationQuestion: RemediationTaskSnapshot['validationQuestion'];
+}
+
+export interface AvailableRemediationInterventionSource {
+  remediationResultId: string;
+  orchestratorVersion: string;
+  learnerSessionId: string;
+  task: RemediationTaskSnapshot;
 }
 
 export type RemediationOrchestrationProjection =
@@ -187,7 +212,7 @@ function governedActionPath(value: unknown): string | null {
   return path?.startsWith('/') && !path.startsWith('//') ? path : null;
 }
 
-function resourceSelect() {
+export function remediationResourceSelect() {
   return {
     id: true,
     title: true,
@@ -211,11 +236,11 @@ function resourceSelect() {
 }
 
 function parseResource(
-  row: ResourceRow,
+  row: RemediationResourceRow,
   authorityNode: ResourceNode | null,
   knowledgeNodeId: string,
   misconceptionTag: string,
-): GovernedResource | null {
+): GovernedRemediationResource | null {
   const remediation = record(record(row.config)?.remediation);
   const disposition = authorityNode?.planningMetadata.pathDisposition;
   const version = nonEmptyString(disposition?.sourceVersionRef);
@@ -257,15 +282,14 @@ function parseResource(
 }
 
 function parseValidationItem(
-  row: ValidationItemRow,
+  row: RemediationValidationItemRow,
   sourceQuestionId: string,
-  knowledgeNodeId: string,
-  misconceptionTag: string,
-): GovernedValidationItem | null {
+  _knowledgeNodeId: string,
+  _misconceptionTag: string,
+): Omit<GovernedRemediationValidationItem, 'itemRevision'> | null {
   const metadata = record(row.metadata);
   const catalogSnapshotValue = record(metadata?.adaptiveAssessmentItemRef);
   const validation = record(metadata?.remediationValidation);
-  const relationship = record(validation?.relationship);
   const currentCatalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(row.questionId);
   const version = nonEmptyString(
     currentCatalogSnapshot?.versionRefs.adaptiveAssessmentSnapshotVersion ??
@@ -275,33 +299,19 @@ function parseValidationItem(
     validation?.estimatedMinutes ?? REMEDIATION_VALIDATION_ESTIMATED_MINUTES,
   );
   const actionPath = governedActionPath(REMEDIATION_VALIDATION_ACTION_PATH);
-  const graphNodeIds = currentCatalogSnapshot?.semanticRefs.graphNodeIds;
-  const misconceptionTags = currentCatalogSnapshot?.semanticRefs.misconceptionTags;
-  const sourceQuestionIds = stringArray(relationship?.sourceQuestionIds);
-  const relationshipKind = nonEmptyString(relationship?.kind);
-  const relationshipMatches = (
-    relationshipKind === 'isomorphic' || relationshipKind === 'variant'
-  ) && (sourceQuestionIds?.includes(sourceQuestionId) ?? false);
-  const misconceptionMatches = misconceptionTags?.includes(misconceptionTag) ?? false;
   const authority = evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
     catalogSnapshotValue as unknown as AssessmentEvidenceCatalogSnapshot,
     currentCatalogSnapshot,
-    {
-      requestedStage: 'remediation',
-      knownGraphNodeIds: [knowledgeNodeId],
-    },
+    {},
   );
 
   if (
-    row.questionId === sourceQuestionId ||
+    canonicalMicroTutoringQuestionId(row.questionId) === canonicalMicroTutoringQuestionId(sourceQuestionId) ||
     validation?.learnerVisible === false ||
-    !authority.remediation ||
+    !authority.mastery ||
     !version ||
     !estimatedMinutes ||
     !actionPath ||
-    !graphNodeIds?.includes(knowledgeNodeId) ||
-    !misconceptionTags ||
-    (!relationshipMatches && !misconceptionMatches) ||
     !/^[a-f0-9]{64}$/.test(row.contentHash)
   ) {
     return null;
@@ -317,19 +327,19 @@ function parseValidationItem(
   };
 }
 
-function orderedResources(resources: GovernedResource[]): GovernedResource[] {
+function orderedResources(resources: GovernedRemediationResource[]): GovernedRemediationResource[] {
   return [...resources].sort((left, right) =>
     left.tier - right.tier ||
     left.version.localeCompare(right.version) ||
     left.id.localeCompare(right.id));
 }
 
-function orderedValidationItems(items: GovernedValidationItem[]): GovernedValidationItem[] {
+function orderedValidationItems(items: GovernedRemediationValidationItem[]): GovernedRemediationValidationItem[] {
   return [...items].sort((left, right) =>
     left.version.localeCompare(right.version) || left.id.localeCompare(right.id));
 }
 
-function resourceAuthorityByTeachingResourceId(rows: ResourceRow[]): Map<string, ResourceNode> {
+function resourceAuthorityByTeachingResourceId(rows: RemediationResourceRow[]): Map<string, ResourceNode> {
   const registry = buildResourceNodeRegistryFromTeachingResources(
     rows,
     getAllRegisteredResourceMetadata(),
@@ -340,9 +350,9 @@ function resourceAuthorityByTeachingResourceId(rows: ResourceRow[]): Map<string,
 }
 
 function selectMinimalResourceSet(
-  resources: GovernedResource[],
+  resources: GovernedRemediationResource[],
   validationMinutes: number,
-): GovernedResource[] | null {
+): GovernedRemediationResource[] | null {
   const minimumResourceMinutes = Math.max(1, 5 - validationMinutes);
   const maximumResourceMinutes = 10 - validationMinutes;
   if (maximumResourceMinutes < minimumResourceMinutes) return null;
@@ -366,6 +376,56 @@ function selectMinimalResourceSet(
     .filter(([minutes]) => minutes >= minimumResourceMinutes && minutes <= maximumResourceMinutes)
     .sort((left, right) => left[1].length - right[1].length || compareIndexes(left[1], right[1]));
   return valid[0]?.[1].map((index) => resources[index]) ?? null;
+}
+
+export function listGovernedRemediationResources(input: {
+  rows: RemediationResourceRow[];
+  knowledgeNodeId: string;
+  misconceptionTag: string;
+}): GovernedRemediationResource[] {
+  const authorityById = resourceAuthorityByTeachingResourceId(input.rows);
+  return orderedResources(input.rows
+    .map((row) => parseResource(
+      row,
+      authorityById.get(row.id) ?? null,
+      input.knowledgeNodeId,
+      input.misconceptionTag,
+    ))
+    .filter((resource): resource is GovernedRemediationResource => resource !== null));
+}
+
+export function listGovernedRemediationValidationItems(input: {
+  rows: RemediationValidationItemRow[];
+  sourceQuestionId: string;
+  sourceContentHash?: string;
+  knowledgeNodeId: string;
+  misconceptionTag: string;
+}): GovernedRemediationValidationItem[] {
+  const projected = listMicroTutoringGovernedValidationItems({
+    knowledgeNodeId: input.knowledgeNodeId,
+    misconceptionTag: input.misconceptionTag,
+    sourceQuestionId: input.sourceQuestionId,
+    sourceContentHash: input.sourceContentHash ?? '',
+  });
+  if (projected.length === 0) return [];
+  const projectedByQuestionId = new Map(
+    projected.map((item) => [canonicalMicroTutoringQuestionId(item.questionId), item]),
+  );
+  return orderedValidationItems(input.rows
+    .map((row) => {
+      const projectedItem = projectedByQuestionId.get(canonicalMicroTutoringQuestionId(row.questionId));
+      if (!projectedItem || projectedItem.contentHash !== row.contentHash) return null;
+      const parsed = parseValidationItem(
+        row,
+        input.sourceQuestionId,
+        input.knowledgeNodeId,
+        input.misconceptionTag,
+      );
+      return parsed
+        ? { ...parsed, itemRevision: projectedItem.itemRevision }
+        : null;
+    })
+    .filter((item): item is GovernedRemediationValidationItem => item !== null));
 }
 
 function compareIndexes(left: number[], right: number[]): number {
@@ -393,18 +453,19 @@ async function persistUnavailable(input: {
   db: RemediationOrchestrationDb;
   attribution: AttributionRow;
   reason: RemediationUnavailableReason;
+  orchestratorVersion: string;
 }): Promise<PersistedResultRow> {
   return input.db.remediationOrchestrationResult.upsert({
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: input.attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: input.attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.attribution.userId,
       status: 'UNAVAILABLE',
       unavailableReason: input.reason,
@@ -422,7 +483,9 @@ function unavailableProjection(
     status: 'UNAVAILABLE',
     orchestratorVersion: row.orchestratorVersion,
     unavailableReason: reason,
-    manualPracticePath: row.manualPracticePath ?? REMEDIATION_MANUAL_PRACTICE_PATH,
+    manualPracticePath: row.manualPracticePath === REMEDIATION_MANUAL_PRACTICE_PATH
+      ? row.manualPracticePath
+      : REMEDIATION_MANUAL_PRACTICE_PATH,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -432,8 +495,21 @@ function learnerTaskProjection(task: RemediationTaskSnapshot): RemediationTaskPr
     version: task.version,
     goal: task.goal,
     estimatedMinutes: task.estimatedMinutes,
-    resources: task.resources.map((resource) => ({ ...resource })),
-    validationQuestion: { ...task.validationQuestion },
+    resources: task.resources.map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      version: resource.version,
+      estimatedMinutes: resource.estimatedMinutes,
+      actionPath: resource.actionPath,
+    })),
+    validationQuestion: {
+      itemRefId: task.validationQuestion.itemRefId,
+      questionId: task.validationQuestion.questionId,
+      contentHash: task.validationQuestion.contentHash,
+      version: task.validationQuestion.version,
+      estimatedMinutes: task.validationQuestion.estimatedMinutes,
+      actionPath: task.validationQuestion.actionPath,
+    },
   };
 }
 
@@ -457,14 +533,29 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
     const version = nonEmptyString(resource?.version);
     const minutes = governedMinutes(resource?.estimatedMinutes);
     const actionPath = governedActionPath(resource?.actionPath);
+    const registryId = nonEmptyString(resource?.registryId) ?? undefined;
+    const actionId = nonEmptyString(resource?.actionId) ?? undefined;
+    const actionVersion = nonEmptyString(resource?.actionVersion) ?? undefined;
+    const resourceRevision = nonEmptyString(resource?.resourceRevision) ?? undefined;
     return id && title && version && minutes && actionPath
-      ? { id, title, version, estimatedMinutes: minutes, actionPath }
+      ? {
+        id,
+        title,
+        version,
+        estimatedMinutes: minutes,
+        actionPath,
+        ...(registryId ? { registryId } : {}),
+        ...(actionId ? { actionId } : {}),
+        ...(actionVersion ? { actionVersion } : {}),
+        ...(resourceRevision ? { resourceRevision } : {}),
+      }
       : null;
   });
   const itemRefId = nonEmptyString(validation.itemRefId);
   const questionId = nonEmptyString(validation.questionId);
   const contentHash = nonEmptyString(validation.contentHash);
   const version = nonEmptyString(validation.version);
+  const itemRevision = nonEmptyString(validation.itemRevision) ?? undefined;
   const validationMinutes = governedMinutes(validation.estimatedMinutes);
   const actionPath = governedActionPath(validation.actionPath);
   if (
@@ -492,6 +583,7 @@ function parseTaskSnapshot(value: unknown): RemediationTaskSnapshot | null {
       questionId,
       contentHash,
       version,
+      ...(itemRevision ? { itemRevision } : {}),
       estimatedMinutes: validationMinutes,
       actionPath,
     },
@@ -508,7 +600,7 @@ async function projectResult(
 
   const resources = await db.teachingResource.findMany({
     where: { id: { in: task.resources.map((resource) => resource.id) } },
-    select: resourceSelect(),
+    select: remediationResourceSelect(),
   });
   if (resources.length !== task.resources.length) return unavailableProjection(row, 'REFERENCE_DRIFT');
   const authorityById = resourceAuthorityByTeachingResourceId(resources);
@@ -527,6 +619,24 @@ async function projectResult(
       parsed.version !== stored.version ||
       parsed.estimatedMinutes !== stored.estimatedMinutes ||
       parsed.actionPath !== stored.actionPath
+    ) {
+      return unavailableProjection(row, 'REFERENCE_DRIFT');
+    }
+    const projected = listMicroTutoringGovernedResources({
+      knowledgeNodeId: task.knowledgeNodeId,
+      misconceptionTag: task.misconceptionTag,
+    }).find((candidate) =>
+      candidate.registryId === stored.registryId ||
+      candidate.registryId === stored.id ||
+      candidate.id === stored.id);
+    if (
+      !stored.actionId ||
+      !stored.actionVersion ||
+      !stored.resourceRevision ||
+      !projected ||
+      projected.actionId !== stored.actionId ||
+      projected.actionVersion !== stored.actionVersion ||
+      projected.version !== stored.resourceRevision
     ) {
       return unavailableProjection(row, 'REFERENCE_DRIFT');
     }
@@ -556,6 +666,22 @@ async function projectResult(
   ) {
     return unavailableProjection(row, 'REFERENCE_DRIFT');
   }
+  if (task.validationQuestion.itemRevision) {
+    const projectedValidation = findMicroTutoringGovernedValidationBinding({
+      knowledgeNodeId: task.knowledgeNodeId,
+      misconceptionTag: task.misconceptionTag,
+      questionId: task.validationQuestion.questionId,
+      contentHash: task.validationQuestion.contentHash,
+      itemRevision: task.validationQuestion.itemRevision,
+    });
+    if (
+      !projectedValidation ||
+      projectedValidation.itemRevision !== task.validationQuestion.itemRevision ||
+      projectedValidation.contentHash !== task.validationQuestion.contentHash
+    ) {
+      return unavailableProjection(row, 'REFERENCE_DRIFT');
+    }
+  }
 
   return {
     id: row.id,
@@ -566,10 +692,81 @@ async function projectResult(
   };
 }
 
+export async function readAvailableRemediationInterventionSource(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  resultId: string;
+}): Promise<AvailableRemediationInterventionSource | null> {
+  const row = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      id: input.resultId,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!row) return null;
+
+  const attribution = await input.db.wrongAnswerAttribution.findFirst({
+    where: {
+      id: row.wrongAnswerAttributionId,
+      userId: input.authenticatedUserId,
+    },
+    select: { id: true, userId: true, sessionId: true },
+  });
+  if (!attribution?.sessionId) return null;
+
+  const projection = await projectResult(input.db, row);
+  if (projection.status !== 'AVAILABLE') return null;
+  const task = parseTaskSnapshot(row.taskSnapshot);
+  if (!task) return null;
+
+  return {
+    remediationResultId: row.id,
+    orchestratorVersion: row.orchestratorVersion,
+    learnerSessionId: attribution.sessionId,
+    task,
+  };
+}
+
 export async function orchestrateRemediation(input: {
   db: RemediationOrchestrationDb;
   authenticatedUserId: string;
   attributionId: string;
+}): Promise<RemediationOrchestrationProjection | null> {
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+  });
+}
+
+export async function refreshRemediationOrchestration(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  refreshKey: string;
+}): Promise<RemediationOrchestrationProjection | null> {
+  const existing = await input.db.remediationOrchestrationResult.findFirst({
+    where: {
+      wrongAnswerAttributionId: input.attributionId,
+      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      userId: input.authenticatedUserId,
+    },
+  });
+  if (!existing) return null;
+  const projection = await projectResult(input.db, existing);
+  if (projection.status !== 'UNAVAILABLE' || projection.unavailableReason !== 'REFERENCE_DRIFT') {
+    return projection;
+  }
+  return orchestrateRemediationVersion({
+    ...input,
+    orchestratorVersion: `${REMEDIATION_ORCHESTRATOR_VERSION}:refresh:${input.refreshKey}`,
+  });
+}
+
+async function orchestrateRemediationVersion(input: {
+  db: RemediationOrchestrationDb;
+  authenticatedUserId: string;
+  attributionId: string;
+  orchestratorVersion: string;
 }): Promise<RemediationOrchestrationProjection | null> {
   const attribution = await input.db.wrongAnswerAttribution.findFirst({
     where: { id: input.attributionId, userId: input.authenticatedUserId },
@@ -577,6 +774,7 @@ export async function orchestrateRemediation(input: {
       id: true,
       userId: true,
       questionId: true,
+      itemContentHash: true,
       state: true,
       knowledgeNodeIds: true,
       misconceptionTags: true,
@@ -587,7 +785,7 @@ export async function orchestrateRemediation(input: {
   const existing = await input.db.remediationOrchestrationResult.findFirst({
     where: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: input.authenticatedUserId,
     },
   });
@@ -602,23 +800,44 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'ATTRIBUTION_UNCERTAIN',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
   const knowledgeNodeId = attribution.knowledgeNodeIds[0];
   const misconceptionTag = attribution.misconceptionTags[0];
-  const knowledgeNode = await input.db.knowledgeNode.findFirst({
+  const persistedKnowledgeNode = await input.db.knowledgeNode.findFirst({
     where: { id: knowledgeNodeId, isActive: true },
     select: { id: true, name: true, isActive: true },
   });
+  const canonicalGraphNode = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.find((node) => (
+    node.id === knowledgeNodeId && node.status === 'active'
+  ));
+  const knowledgeNode = persistedKnowledgeNode ?? (canonicalGraphNode
+    ? { id: canonicalGraphNode.id, name: canonicalGraphNode.title, isActive: true }
+    : null);
   if (!knowledgeNode) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
+  const projectedResources = listMicroTutoringGovernedResources({
+    knowledgeNodeId,
+    misconceptionTag,
+  });
+  if (projectedResources.length === 0) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+  const projectedKeys = new Set(projectedResources.flatMap((resource) => [resource.id, resource.registryId]));
   const resourceRows = await input.db.teachingResource.findMany({
     where: {
       teacherOnly: false,
@@ -627,47 +846,75 @@ export async function orchestrateRemediation(input: {
         { config: { path: ['remediation', 'prerequisiteKnowledgeNodeIds'], array_contains: [knowledgeNodeId] } },
       ],
     },
-    select: resourceSelect(),
+    select: remediationResourceSelect(),
   });
-  const authorityById = resourceAuthorityByTeachingResourceId(resourceRows);
-  const resources = orderedResources(resourceRows
-    .map((row) => parseResource(
-      row,
-      authorityById.get(row.id) ?? null,
-      knowledgeNodeId,
-      misconceptionTag,
-    ))
-    .filter((resource): resource is GovernedResource => resource !== null));
+  const matchingRows = resourceRows.filter((row) =>
+    projectedKeys.has(row.id) || (row.registryId !== null && projectedKeys.has(row.registryId)));
+  const resources = listGovernedRemediationResources({
+    rows: matchingRows,
+    knowledgeNodeId,
+    misconceptionTag,
+  });
   if (resources.length === 0) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
       attribution,
       reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
+  const sourceContentHash = nonEmptyString(attribution.itemContentHash);
+  if (!sourceContentHash || !/^[a-f0-9]{64}$/.test(sourceContentHash)) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+  const projectedValidations = listMicroTutoringGovernedValidationItems({
+    knowledgeNodeId,
+    misconceptionTag,
+    sourceQuestionId: attribution.questionId,
+    sourceContentHash,
+  });
+  if (projectedValidations.length === 0) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
   const validationRows = await input.db.adaptiveAssessmentItemRef.findMany({
     where: {
-      NOT: { questionId: attribution.questionId },
-      metadata: {
-        path: ['adaptiveAssessmentItemRef', 'semanticRefs', 'graphNodeIds'],
-        array_contains: [knowledgeNodeId],
+      questionId: {
+        in: [...new Set(projectedValidations.flatMap((item) => microTutoringValidationQuestionIds(item.questionId)))],
       },
     },
     select: { id: true, questionId: true, contentHash: true, metadata: true },
   });
-  const validations = orderedValidationItems(validationRows
-    .map((row) => parseValidationItem(row, attribution.questionId, knowledgeNodeId, misconceptionTag))
-    .filter((item): item is GovernedValidationItem => item !== null));
+  const validations = listGovernedRemediationValidationItems({
+    rows: validationRows,
+    sourceQuestionId: attribution.questionId,
+    sourceContentHash,
+    knowledgeNodeId,
+    misconceptionTag,
+  });
   if (validations.length === 0) {
     return unavailableProjection(await persistUnavailable({
       db: input.db,
       attribution,
       reason: 'VALIDATION_QUESTION_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
-  let selection: { resources: GovernedResource[]; validation: GovernedValidationItem } | null = null;
+  let selection: {
+    resources: GovernedRemediationResource[];
+    validation: GovernedRemediationValidationItem;
+  } | null = null;
   for (const validation of validations) {
     const selectedResources = selectMinimalResourceSet(resources, validation.estimatedMinutes);
     if (selectedResources) {
@@ -680,6 +927,31 @@ export async function orchestrateRemediation(input: {
       db: input.db,
       attribution,
       reason: 'TIME_BUDGET_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
+    }));
+  }
+
+  const boundResources = selection.resources.map(({ tier: _tier, ...resource }) => {
+    const row = matchingRows.find((candidate) => candidate.id === resource.id);
+    const projected = projectedResources.find((candidate) =>
+      candidate.registryId === resource.id ||
+      candidate.id === resource.id ||
+      (row?.registryId !== null && row?.registryId === candidate.registryId));
+    if (!projected?.actionId || !projected.actionVersion) return null;
+    return {
+      ...resource,
+      registryId: projected.registryId,
+      actionId: projected.actionId,
+      actionVersion: projected.actionVersion,
+      resourceRevision: projected.version,
+    };
+  });
+  if (boundResources.some((resource) => resource === null)) {
+    return unavailableProjection(await persistUnavailable({
+      db: input.db,
+      attribution,
+      reason: 'RESOURCE_UNAVAILABLE',
+      orchestratorVersion: input.orchestratorVersion,
     }));
   }
 
@@ -691,12 +963,13 @@ export async function orchestrateRemediation(input: {
     sourceQuestionId: attribution.questionId,
     knowledgeNodeId,
     misconceptionTag,
-    resources: selection.resources.map(({ tier: _tier, ...resource }) => resource),
+    resources: boundResources as RemediationTaskSnapshot['resources'],
     validationQuestion: {
       itemRefId: selection.validation.id,
       questionId: selection.validation.questionId,
       contentHash: selection.validation.contentHash,
       version: selection.validation.version,
+      itemRevision: selection.validation.itemRevision,
       estimatedMinutes: selection.validation.estimatedMinutes,
       actionPath: selection.validation.actionPath,
     },
@@ -705,13 +978,13 @@ export async function orchestrateRemediation(input: {
     where: {
       wrongAnswerAttributionId_orchestratorVersion: {
         wrongAnswerAttributionId: attribution.id,
-        orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+        orchestratorVersion: input.orchestratorVersion,
       },
     },
     update: {},
     create: {
       wrongAnswerAttributionId: attribution.id,
-      orchestratorVersion: REMEDIATION_ORCHESTRATOR_VERSION,
+      orchestratorVersion: input.orchestratorVersion,
       userId: attribution.userId,
       status: 'AVAILABLE',
       taskSnapshot,

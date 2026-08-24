@@ -16,7 +16,11 @@ export type LearningFactProfilePolicyReason =
   | 'arena_client_evaluation_context_only'
   | 'adaptive_assessment_evidence'
   | 'adaptive_assessment_provisional_context_only'
-  | 'adaptive_assessment_missing_kaq_context_only';
+  | 'adaptive_assessment_missing_kaq_context_only'
+  | 'unmanaged_learning_fact_context_only'
+  | 'micro_intervention_context_only'
+  | 'micro_intervention_validation_bounded'
+  | 'micro_intervention_validation_shadow';
 
 export interface LearningFactEvidenceGovernance {
   evidenceQuality: SubmissionEvidenceQuality;
@@ -169,6 +173,25 @@ export function resolveLearningFactEvidenceGovernance(
     });
   }
 
+  if (actionType === 'micro_intervention_context' || actionType === 'micro_intervention_event') {
+    return toJsonObject({
+      evidenceQuality: 'missing',
+      profileWeight: 0,
+      skipProfileContribution: true,
+      policyReason: 'micro_intervention_context_only',
+    });
+  }
+
+  if (actionType === 'micro_intervention_validation') {
+    const consume = payload.consumeMicroInterventionEvidence === true;
+    return toJsonObject({
+      evidenceQuality: 'partial',
+      profileWeight: consume ? PARTIAL_EVIDENCE_PROFILE_WEIGHT : 0,
+      skipProfileContribution: !consume,
+      policyReason: consume ? 'micro_intervention_validation_bounded' : 'micro_intervention_validation_shadow',
+    });
+  }
+
   if (actionType === 'lesson_submit' || actionType === 'lesson_resubmit') {
     const summary = summarizeSubmissionEvidencePayload(payload);
     const base = {
@@ -219,13 +242,31 @@ export function resolveLearningFactEvidenceGovernance(
     });
   }
 
-  return null;
+  return toJsonObject({
+    evidenceQuality: 'missing',
+    profileWeight: 0,
+    skipProfileContribution: true,
+    policyReason: 'unmanaged_learning_fact_context_only',
+  });
+}
+
+export function hasCompleteLearningFactEvidenceGovernance(contextJson: unknown): boolean {
+  const governance = readRecord(readRecord(contextJson).evidenceGovernance);
+  return readFiniteNumber(governance.profileWeight) !== null
+    && typeof governance.skipProfileContribution === 'boolean'
+    && readNonEmptyString(governance.policyReason) !== null;
+}
+
+export function isLearningFactEligibleForPersonalization(contextJson: unknown): boolean {
+  return hasCompleteLearningFactEvidenceGovernance(contextJson)
+    && resolveLearningFactProfileWeight(contextJson) > 0;
 }
 
 export function resolveLearningFactProfileWeight(contextJson: unknown): number {
+  if (!hasCompleteLearningFactEvidenceGovernance(contextJson)) return 0;
   const governance = readRecord(readRecord(contextJson).evidenceGovernance);
   if (governance.skipProfileContribution === true) return 0;
   const profileWeight = readFiniteNumber(governance.profileWeight);
-  if (profileWeight === null) return 1;
+  if (profileWeight === null) return 0;
   return Math.max(0, Math.min(1, profileWeight));
 }

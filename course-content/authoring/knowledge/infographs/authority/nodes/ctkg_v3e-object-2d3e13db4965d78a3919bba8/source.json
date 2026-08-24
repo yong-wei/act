@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-2d3e13db4965d78a3919bba8",
+  "safe_id": "ctkg_v3e-object-2d3e13db4965d78a3919bba8",
+  "node": {
+    "name": "MATLAB绘制相轨迹",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "应用MATLAB软件，调用命令ode45及plot，可解出系统微分方程高阶数值，并在线性坐标平面上方便地绘出相应的相轨迹。",
+  "intuition": "在图谱邻接中可把握：后续 → 相轨迹、相平面法。",
+  "explanation": "应用MATLAB软件，调用命令ode45及plot，可解出系统微分方程高阶数值，并在线性坐标平面上方便地绘出相应的相轨迹。",
+  "relation_head": "后续 → 相轨迹、相平面法",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "相轨迹",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "相平面法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "MATLAB绘制相轨迹",
+    "用于分析·相轨迹",
+    "关联·相平面法"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-2d3e13db4965d78a3919bba8.md",
+  "provider_policy": "grok-image_gen"
+}

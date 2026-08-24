@@ -28,6 +28,7 @@ import { sha256, stableStringify } from '../math-document-grading-contracts';
 import { assertPipelineReviewActor, buildPipelineReviewFacts, validatePipelineReviewContract } from '../math-document-grading-review';
 import { calculateCompetencyVector } from '../competency-engine';
 import { mapLearningFactsToPortraitEvidence } from '../portrait-v2-incremental-update';
+import { isTrustedLearningFact } from '../trusted-learning-fact-filter';
 import { getLocalTestSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const mocks = vi.hoisted(() => ({
@@ -108,6 +109,12 @@ const now = new Date('2026-06-04T08:00:00.000Z');
 
 function source(path: string) {
   return readFileSync(join(root, path), 'utf8');
+}
+
+function workbenchFactSourceEventId(runId: string, criterionId: string, rubricVersion: string) {
+  return `grading:${[runId, criterionId, rubricVersion]
+    .map((value) => encodeURIComponent(value))
+    .join(':')}`;
 }
 
 function postJson(body: unknown, origin: string | null = 'http://localhost') {
@@ -1757,6 +1764,9 @@ describe('document rubric grading routes', () => {
       expect.objectContaining({ outcome: 'success', score: 1, courseId: 'course-control', sourceEventId: expect.stringMatching(/^adaptive-assessment:document-rubric-grading:/), competencyContribution: { controlModeling: 1 }, contextJson: expect.objectContaining({ assessmentId: 'a1', assignmentId: 'assignment-1', assignmentRevisionId: 'revision-1', rawScore: 4, maxPoints: 4, normalizedScore: 1, rubricWeight: 0.4, evidenceAuthority: 'ai-draft', decisionAuthority: 'teacher-reviewed', reviewState: 'approved', privacyScope: 'student-private', evidenceAnchorPrivacyScope: 'teacher-review' }) }),
       expect.objectContaining({ outcome: 'success', score: 1, courseId: 'course-control', competencyContribution: { engineeringDecision: 1 }, contextJson: expect.objectContaining({ rawScore: 6, maxPoints: 6, normalizedScore: 1, rubricWeight: 0.6, competencyDimension: 'engineeringDecision', evidenceAuthority: 'ai-draft', decisionAuthority: 'teacher-reviewed' }) }),
     ]);
+    expect(facts.every((fact: { sourceLogId?: string }) => fact.sourceLogId === 'audit-1')).toBe(true);
+    expect(facts.some((fact: { sourceLogId?: string }) => fact.sourceLogId === run.id || fact.sourceLogId === run.idempotencyKey)).toBe(false);
+    expect(facts.every(isTrustedLearningFact)).toBe(true);
     expect(JSON.stringify(facts)).not.toContain('reviewerId');
     expect(mocks.prisma.gradingRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: run.id, state: 'AWAITING_REVIEW', teacherReviewedAt: null },
@@ -1852,6 +1862,7 @@ describe('document rubric grading routes', () => {
     expect(replay.status).toBe(200);
     await expect(replay.json()).resolves.toMatchObject({ status: 'approved', createdFacts: 0, skippedFacts: 2 });
     expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.gradingAuditEvent.create).toHaveBeenCalledTimes(1);
 
     const conflict = await postJson({ gradingRunId: run.id, decision: 'approved', edits: [{ ...edits[0], comment: '不同内容' }, edits[1]] });
     expect(conflict.status).toBe(409);
@@ -2165,7 +2176,7 @@ describe('document rubric grading routes', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-07-14T12:00:00.000Z'));
     const run = pipelineRun();
-    const facts = buildPipelineReviewFacts({ run, edits: [], reviewedAt: new Date() });
+    const facts = buildPipelineReviewFacts({ run, edits: [], reviewedAt: new Date(), sourceLogId: 'audit-1' });
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     mocks.prisma.gradingRun.findUnique.mockResolvedValue(run);
     mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
@@ -2397,6 +2408,61 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.gradingAuditEvent.create).not.toHaveBeenCalled();
   });
 
+  it('does not write native learning facts when creating the audit anchor fails', async () => {
+    const run = pipelineRun();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(run);
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.gradingAuditEvent.create.mockRejectedValueOnce(new Error('grading-audit-write-failed'));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const response = await postJson({ gradingRunId: run.id, decision: 'approved' });
+
+    consoleError.mockRestore();
+    expect(response.status).toBe(500);
+    expect(mocks.prisma.gradingAuditEvent.create).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rolls back the native audit when learning fact persistence fails', async () => {
+    const run = pipelineRun();
+    const committedAudits: Array<Record<string, unknown>> = [];
+    const committedFacts: Array<Record<string, unknown>> = [];
+    const stagedAuditCreate = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'audit-transaction-1', ...data }));
+    const stagedFactCreate = vi.fn(async ({ data }: { data: Array<Record<string, unknown>> }) => {
+      void data;
+      throw new Error('learning-fact-write-failed');
+    });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique.mockResolvedValue(run);
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.$transaction.mockImplementation(async (callback) => {
+      const transaction = {
+        ...mocks.prisma,
+        gradingAuditEvent: { create: stagedAuditCreate },
+        learningFact: { ...mocks.prisma.learningFact, createMany: stagedFactCreate },
+      };
+      try {
+        const result = await callback(transaction);
+        committedAudits.push(...stagedAuditCreate.mock.calls.map(([input]) => input.data));
+        committedFacts.push(...stagedFactCreate.mock.calls.flatMap(([input]) => input.data));
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const response = await postJson({ gradingRunId: run.id, decision: 'approved' });
+
+    consoleError.mockRestore();
+    expect(response.status).toBe(500);
+    expect(stagedAuditCreate).toHaveBeenCalledTimes(1);
+    expect(stagedFactCreate).toHaveBeenCalledTimes(1);
+    expect(committedAudits).toEqual([]);
+    expect(committedFacts).toEqual([]);
+  });
+
   it('previews native pipeline writeback without mutating the run or copying evidence', async () => {
     const run = pipelineRun();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
@@ -2410,7 +2476,7 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
   });
 
-  it('approves persisted grading runs and writes governed learning facts', async () => {
+  it('anchors persisted grading facts to the current server draft and ignores client sourceLogId', async () => {
     const draft = await gradingDraft();
     draft.summary.run.createdAt = '2025-01-01T00:00:00.000Z';
     const expectedRun = approveGradingRun(draft.summary.run, {
@@ -2428,6 +2494,7 @@ describe('document rubric grading routes', () => {
       run: { assetId: 'client-forged-asset' },
       rubric: { id: 'client-forged-rubric' },
       studentId: 'client-forged-student',
+      sourceLogId: 'client-forged-source-log',
     });
     const payload = await response.json();
 
@@ -2454,6 +2521,13 @@ describe('document rubric grading routes', () => {
         }),
       ]),
     }));
+    const [writtenFact] = mocks.prisma.learningFact.createMany.mock.calls[0][0].data;
+    expect(writtenFact).toEqual(expect.objectContaining({
+      sourceEventId: workbenchFactSourceEventId(expectedRun.id, 'modeling', draft.summary.rubric.version),
+      sourceLogId: draft.id,
+    }));
+    expect(writtenFact.sourceLogId).not.toBe('client-forged-source-log');
+    expect(isTrustedLearningFact(writtenFact)).toBe(true);
     expect(mocks.prisma.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
     });
@@ -2478,10 +2552,14 @@ describe('document rubric grading routes', () => {
     run.questionSnapshot.rubric.criteria[1].maxPoints = 9;
     run.questionSnapshot.rubric.maxScore = 10;
     run.assessments[0].score = 1;
-    const fact: any = { id: 'fact-low-weight-full', createdAt: now, ...buildPipelineReviewFacts({ run, edits: [], reviewedAt: now })[0] };
+    const fact: any = { id: 'fact-low-weight-full', createdAt: now, ...buildPipelineReviewFacts({ run, edits: [], reviewedAt: now, sourceLogId: 'audit-1' })[0] };
     expect(fact.competencyContribution.controlModeling).toBe(1);
     expect(fact.contextJson.rubricWeight).toBe(0.1);
-    expect(fact.contextJson.evidenceGovernance).not.toHaveProperty('profileWeight');
+    expect(fact.contextJson.evidenceGovernance).toMatchObject({
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'adaptive_assessment_evidence',
+    });
     expect(calculateCompetencyVector([fact], 'all').controlModeling.score).toBe(100);
     expect(mapLearningFactsToPortraitEvidence([fact]).evidence[0].contributions.controlModelingRepresentation).toBe(1);
   });
@@ -2554,7 +2632,7 @@ describe('document rubric grading routes', () => {
       createdFacts: 0,
       skippedFacts: 1,
       blockedFacts: 0,
-      evidenceSourceEventIds: [`${draft.id}:modeling:${draft.summary.run.rubricVersion}`],
+      evidenceSourceEventIds: [workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version)],
     }));
   });
 
@@ -2611,7 +2689,8 @@ describe('document rubric grading routes', () => {
         expect.objectContaining({
           score: 1,
           competencyContribution: { controlModeling: 0.1 },
-          sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+          sourceEventId: workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version),
+          sourceLogId: draft.id,
         }),
       ]),
     }));
@@ -2865,16 +2944,16 @@ describe('document rubric grading routes', () => {
       wouldCreateFacts: 1,
       blockedFacts: 0,
       evidenceSourceEventIds: expect.arrayContaining([
-        `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+        workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version),
       ]),
       dedupeKeys: expect.arrayContaining([
-        `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+        workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version),
       ]),
     }));
     expect(payload.affectedDimensions[0]).toEqual(expect.objectContaining({
       criterionId: 'modeling',
       competencyDimension: 'controlModeling',
-      sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+      sourceEventId: workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version),
     }));
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
@@ -2947,7 +3026,7 @@ describe('document rubric grading routes', () => {
       criterionId: 'modeling',
       competencyDimension: 'controlModeling',
       contribution: 0.1,
-      sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+      sourceEventId: workbenchFactSourceEventId(draft.id, 'modeling', draft.summary.rubric.version),
     }));
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();

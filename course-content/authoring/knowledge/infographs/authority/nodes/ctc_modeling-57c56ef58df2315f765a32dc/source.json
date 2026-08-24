@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-57c56ef58df2315f765a32dc",
+  "safe_id": "ctc_modeling-57c56ef58df2315f765a32dc",
+  "node": {
+    "name": "formula for evaluating the",
+    "name_en": "modeling_57c56ef58df2315f765a32dc",
+    "concept_kind": "analysis_method",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "formula for evaluating the：A formula for evaluating the transfer function of a system from its signal-flow graph by considering forward paths, loo…",
+  "intuition": "在图谱邻接中可把握：后续 → signal flow graph。",
+  "explanation": "A formula for evaluating the transfer function of a system from its signal-flow graph by considering forward paths, loops, and the determinant.",
+  "relation_head": "后续 → signal flow graph",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "signal flow graph",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "formula for…",
+    "应用于·signa…"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-57c56ef58df2315f765a32dc.md",
+  "provider_policy": "grok-image_gen"
+}

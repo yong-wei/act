@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-9a7f6e28a612b00c77f8ea94",
+  "safe_id": "ctkg_v3e-object-9a7f6e28a612b00c77f8ea94",
+  "node": {
+    "name": "Phase-lead design using the root locus",
+    "name_en": "Phase-lead design using the root locus",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-lead design using the root locus：The design of the phase-lead compensator using the root locus method. The locations of the compensator zero and pole ar…",
+  "intuition": "在图谱邻接中可把握：后续 → Phase-Lead Compensator、Phase-lead compensator。",
+  "explanation": "The design of the phase-lead compensator using the root locus method. The locations of the compensator zero and pole are selected so as to result in a satisfactory root locus for the compensated system.",
+  "relation_head": "后续 → Phase-Lead Compensator、Phase-lead compensator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Phase-Lead Compensator",
+      "relation": "应用于"
+    },
+    {
+      "direction": "后续",
+      "peer": "Phase-lead compensator",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-lead …",
+    "应用于·Phase…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-9a7f6e28a612b00c77f8ea94.md",
+  "provider_policy": "grok-image_gen"
+}

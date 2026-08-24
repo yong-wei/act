@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0203",
+  "offset": 1015,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-868cdcdd22cf6d7b46ac2aa8",
+      "batch": "C",
+      "name": "线性叠加原理",
+      "definition": "线性叠加原理。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "线性叠加原理"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 线性叠加原理\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 线性叠加原理。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「线性叠加原理」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-89f58618b8927a2026f2799b",
+      "batch": "C",
+      "name": "微分时间常数",
+      "definition": "微分时间常数。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "微分时间常数",
+        "包含组件·PID控…",
+        "包含组件·衰减曲线法"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 微分时间常数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 微分时间常数。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「微分时间常数」、「包含组件·PID控…」、「包含组件·衰减曲线法」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-902a7486fad0f7f8ea7accb9",
+      "batch": "C",
+      "name": "状态完全可达",
+      "definition": "状态完全可达。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "状态完全可达",
+        "是一种·完全可达"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 状态完全可达\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 状态完全可达。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「状态完全可达」、「是一种·完全可达」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bbde87998fe5c58705383e29",
+      "batch": "C",
+      "name": "可控性判别阵",
+      "definition": "可控性判别阵。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "可控性判别阵",
+        "包含组件·秩判据"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 可控性判别阵\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 可控性判别阵。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「可控性判别阵」、「包含组件·秩判据」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-bf9e8241330bdf92c90e15f7",
+      "batch": "C",
+      "name": "积分时间常数",
+      "definition": "积分时间常数。",
+      "visual_archetype": "机制剖面图",
+      "labels": [
+        "积分时间常数",
+        "包含组件·PID控…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 积分时间常数\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 积分时间常数。\nvisual_archetype: 机制剖面图\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「积分时间常数」、「包含组件·PID控…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

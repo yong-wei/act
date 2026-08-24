@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "act-runtime-unused-oss-retirement-serving-proof.v1",
+  "mode": "v2",
+  "activeReleaseId": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+  "rollbackReleaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+  "readyzHttpStatus": 200,
+  "v1OssfsMounted": false,
+  "protectedReleaseIds": [
+    "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+    "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6"
+  ],
+  "lifecycleGeneration": 10,
+  "capturedAt": "2026-08-16T12:50:00Z",
+  "notes": "Captured from ECS lifecycle inspect and public/local readyz. Only blob helper ossfs mounts are present; v1 release prefix is unmounted. desired/publishing/retained are empty."
+}

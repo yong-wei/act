@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T15:40:16+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+  "safe_id": "ctkg_v3e-object-0008b516b8ac52f0e05c7596",
+  "node_name": "谐振峰值",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "pack-0051 vision-mapped accept"
+}

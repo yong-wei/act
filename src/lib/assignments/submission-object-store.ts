@@ -2,7 +2,8 @@ import { DeleteObjectCommand, GetObjectCommand, GetObjectTaggingCommand, HeadBuc
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createHash, createHmac } from 'node:crypto';
 
-import { opaqueObjectKey, SubmissionError } from './submission-domain';
+import { SubmissionError } from './submission-domain';
+import { opaqueObjectKey } from './submission-integrity';
 
 export interface StoredObjectMetadata { key: string; ownerId: string; answerId: string; sizeBytes: number; mimeType: string; checksum: string; scanState: 'CLEAN' | 'PENDING' | 'UNSAFE'; attemptId?: string; workerClaimFingerprint?: string }
 export interface SubmissionObjectStore {

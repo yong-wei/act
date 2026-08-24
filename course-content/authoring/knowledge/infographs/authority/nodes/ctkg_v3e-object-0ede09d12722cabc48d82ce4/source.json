@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-0ede09d12722cabc48d82ce4",
+  "safe_id": "ctkg_v3e-object-0ede09d12722cabc48d82ce4",
+  "node": {
+    "name": "Phase-Lead Design Using the Bode Plot",
+    "name_en": "Phase-Lead Design Using the Bode Plot",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Phase-Lead Design Using the Bode Plot：A method to design a phase-lead compensator by adding the frequency response of the cascade compensator to the frequenc…",
+  "intuition": "在图谱邻接中可把握：后续 → Phase-lead compensator、Phase-Lead Compensator。",
+  "explanation": "A method to design a phase-lead compensator by adding the frequency response of the cascade compensator to the frequency response of the uncompensated system, using the Bode plot to determine suitable locations for the pole and zero of the compensator.",
+  "relation_head": "后续 → Phase-lead compensator、Phase-Lead Compensator",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "Phase-lead compensator",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "Phase-Lead Compensator",
+      "relation": "应用于"
+    }
+  ],
+  "labels": [
+    "Phase-Lead …",
+    "用于分析·Phas…",
+    "应用于·Phase…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-0ede09d12722cabc48d82ce4.md",
+  "provider_policy": "grok-image_gen"
+}

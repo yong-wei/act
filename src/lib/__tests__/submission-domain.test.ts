@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import {
   assertDeliveryWindow,
-  assertSubmissionObjectIntegrity,
   deriveAggregate,
   deriveLegacyAssignmentAssetOrder,
   finalizeSchema,
@@ -14,6 +13,7 @@ import {
   textDraftSchema,
   uploadIntentSchema,
 } from '@/lib/assignments/submission-domain';
+import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
 import { deriveStudentAssignmentPresentation, safePromptText } from '@/lib/assignments/submission-dto';
 import { getLocalTestSubmissionObjectStore, MemorySubmissionObjectStore, S3CompatibleSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 

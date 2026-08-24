@@ -4,6 +4,8 @@
 
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=cb90d0d79e83d738150fe14497684efc&v=1777514452862&puid=26652392&enc=fed2c10f2748f8dfdee22f36ac801807&wps=453bff72155f83be79351358800540c5d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-791990083&timestamp=1777514452862&signature=7f260cf2581ec7e0ade673c1d91092a2
 
+本地成品已发布：`media/processed/4-5-intro-video.mp4`（闲聊自控 Remotion 导入片，2026-08-17）。
+
 # 4-5-slides.pdf
 
 - 约束下的优化设计实践：参数约束翻译与带约束的参数优化

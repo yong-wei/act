@@ -15,39 +15,39 @@
       "corpusUsageTokens": 0,
       "embeddingLatencyMs": {
         "batchCount": 3,
-        "p50": 318.52487474679947,
-        "p95": 329.4952747412026,
+        "p50": 9670.590800000355,
+        "p95": 15343.705069972202,
         "samples": [
-          330.71420807391405,
-          318.52487474679947,
-          252.66250036656857
+          9670.590800000355,
+          15974.051099969074,
+          7753.107400028966
         ],
-        "total": 901.9015831872821
+        "total": 33397.749299998395
       },
       "evaluatedQueries": 39,
       "hitsAt10": 32,
-      "indexBytes": 133271373,
-      "indexManifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+      "indexBytes": 138471754,
+      "indexManifestHash": "sha256:35b1d6c28a06a5b38d97dc54e0b1772cbbbab6807f3e5cebc4a6247ce6589e28",
       "model": "BAAI/bge-m3",
       "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
       "observedDimension": 1024,
       "passed": true,
       "providerTraceIds": [
-        "ti_t7h5rerxl9dil49g4n",
-        "ti_ioorenweca62z6k4zz",
-        "ti_8a48mor8xio6bwrxwm"
+        "ti_nvgmevoyni6fkndxtk",
+        "ti_8zw7yksm1bdjj4bheo",
+        "ti_cgy7ck6u8t87l6tsdm"
       ],
       "queryApiCostCny": 0.0,
       "queryTraceIds": [
-        "ti_t7h5rerxl9dil49g4n",
-        "ti_ioorenweca62z6k4zz",
-        "ti_8a48mor8xio6bwrxwm"
+        "ti_nvgmevoyni6fkndxtk",
+        "ti_8zw7yksm1bdjj4bheo",
+        "ti_cgy7ck6u8t87l6tsdm"
       ],
       "queryUsageTokens": 1466,
       "recallAt10": 0.8205128205128205,
       "recallPassed": true,
       "residentArtifactBudgetBytes": 157286400,
-      "residentArtifactBytes": 86511505,
+      "residentArtifactBytes": 91711886,
       "residentArtifactPassed": true,
       "results": [
         {
@@ -725,39 +725,39 @@
       "corpusUsageTokens": 0,
       "embeddingLatencyMs": {
         "batchCount": 3,
-        "p50": 377.59875040501356,
-        "p95": 422.06152472645044,
+        "p50": 6714.842099929228,
+        "p95": 7974.12641994888,
         "samples": [
-          377.59875040501356,
-          427.0018329843879,
-          289.07962515950203
+          8114.046899951063,
+          6714.842099929228,
+          6712.006699992344
         ],
-        "total": 1093.6802085489035
+        "total": 21540.895699872635
       },
       "evaluatedQueries": 39,
       "hitsAt10": 37,
-      "indexBytes": 133271401,
-      "indexManifestHash": "sha256:f47e2c709a431c083d132199eea2600e3b49a607e3b2a9458b2b59bf93f54cee",
+      "indexBytes": 138471782,
+      "indexManifestHash": "sha256:240f8d3b2c5db670372e03f94c61f386de64fdc14b084d78af82c10a5987b4c2",
       "model": "Qwen/Qwen3-Embedding-0.6B",
       "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
       "observedDimension": 1024,
       "passed": true,
       "providerTraceIds": [
-        "ti_dp331dawx0n4985luw",
-        "ti_61bhkg26v841p4ho3u",
-        "ti_wjuu8xpapx7gxlvswo"
+        "ti_2jh0i8vkob5s4dca4c",
+        "ti_thc4zq4qpbihn9s5ok",
+        "ti_fma7kyxio93f8vza5b"
       ],
       "queryApiCostCny": 9.219000000000001e-05,
       "queryTraceIds": [
-        "ti_dp331dawx0n4985luw",
-        "ti_61bhkg26v841p4ho3u",
-        "ti_wjuu8xpapx7gxlvswo"
+        "ti_2jh0i8vkob5s4dca4c",
+        "ti_thc4zq4qpbihn9s5ok",
+        "ti_fma7kyxio93f8vza5b"
       ],
       "queryUsageTokens": 1317,
       "recallAt10": 0.9487179487179487,
       "recallPassed": true,
       "residentArtifactBudgetBytes": 157286400,
-      "residentArtifactBytes": 86511533,
+      "residentArtifactBytes": 91711914,
       "residentArtifactPassed": true,
       "results": [
         {
@@ -1435,39 +1435,39 @@
       "corpusUsageTokens": 0,
       "embeddingLatencyMs": {
         "batchCount": 3,
-        "p50": 405.68945836275816,
-        "p95": 440.71130831725895,
+        "p50": 11809.663599939086,
+        "p95": 12746.504199982155,
         "samples": [
-          405.68945836275816,
-          444.60262497887015,
-          304.318499751389
+          11809.663599939086,
+          12850.59759998694,
+          6569.519800017588
         ],
-        "total": 1154.6105830930173
+        "total": 31229.780999943614
       },
       "evaluatedQueries": 39,
-      "hitsAt10": 35,
-      "indexBytes": 214937445,
-      "indexManifestHash": "sha256:05f246790aaf664ca2caa896b9216a9bb2682aac11f6c1497a113e6439016539",
+      "hitsAt10": 36,
+      "indexBytes": 220137826,
+      "indexManifestHash": "sha256:3727d9f2a9ce1512f31bc573b5d245cb638ac2e5128f87ec0b265c2fcf2bbc41",
       "model": "Qwen/Qwen3-Embedding-4B",
       "normalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
       "observedDimension": 2560,
       "passed": false,
       "providerTraceIds": [
-        "ti_qbksd2brw2kp8q7bsd",
-        "ti_k12kqs8e6u4w8c6xgy",
-        "ti_5yf3772qszfcglujxg"
+        "ti_pqz6y43immvbxqv4hn",
+        "ti_jh7g7oj64o2r0bwibg",
+        "ti_gjektbuxlg9uq3nczf"
       ],
       "queryApiCostCny": 0.00018438000000000002,
       "queryTraceIds": [
-        "ti_qbksd2brw2kp8q7bsd",
-        "ti_k12kqs8e6u4w8c6xgy",
-        "ti_5yf3772qszfcglujxg"
+        "ti_pqz6y43immvbxqv4hn",
+        "ti_jh7g7oj64o2r0bwibg",
+        "ti_gjektbuxlg9uq3nczf"
       ],
       "queryUsageTokens": 1317,
-      "recallAt10": 0.8974358974358975,
+      "recallAt10": 0.9230769230769231,
       "recallPassed": true,
       "residentArtifactBudgetBytes": 157286400,
-      "residentArtifactBytes": 168177577,
+      "residentArtifactBytes": 173377958,
       "residentArtifactPassed": false,
       "results": [
         {
@@ -1493,12 +1493,12 @@
             "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2::embedding-chunk-000001-of-000002",
             "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/example-5.12",
             "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution",
-            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution",
+            "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-04/chapter-4/section-4.1/item-1-occurrence-2/solution-occurrence-2::embedding-chunk-000001-of-000002",
             "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
             "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-1",
-            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-05/section-5.2/section-5.2.1/solution-occurrence-2"
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1/item-2"
           ],
           "hitAt10": true,
           "mode": "lexical-vector-rrf",
@@ -1616,10 +1616,10 @@
             "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.3",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5/item-3",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-01/chapter-1/section-1.1/item-5",
-            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6/section-1.6.2",
-            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.1/section-1.1.4"
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-04/section-4.1/item-1-occurrence-2/item-2-occurrence-2",
+            "textbook-window:liu-sheng-auto-control-2015@2015版/chapter-chapter-01/unnumbered-001/section-1.6/section-1.6.2"
           ],
-          "hitAt10": false,
+          "hitAt10": true,
           "mode": "lexical-vector-rrf",
           "queryId": "bilingual-steady-state-error"
         },
@@ -1649,8 +1649,8 @@
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-1",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-2",
             "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/item-3",
-            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3",
+            "textbook-window:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4",
             "textbook-window:hu-shousong-auto-control-7th@第七版/chapter-chapter-03/chapter-3/section-3.3/item-2/second-order-analysis-3/item-4"
           ],
           "hitAt10": true,
@@ -2141,7 +2141,7 @@
   ],
   "formatVersion": "textbook-hybrid-retrieval.v1",
   "recordType": "selection-report",
-  "selectedIndexManifestHash": "sha256:35e3cce3bacc3c9beca23cf192496b3c85a179fcbf0d98d1644cedb4f3802423",
+  "selectedIndexManifestHash": "sha256:35b1d6c28a06a5b38d97dc54e0b1772cbbbab6807f3e5cebc4a6247ce6589e28",
   "selectedModel": "BAAI/bge-m3",
   "selectedNormalizationVersion": "nfkc-lower-cjk-unigram-bigram-technical-v1",
   "selectedObservedDimension": 1024,

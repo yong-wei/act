@@ -1,0 +1,66 @@
+{
+  "pack_id": "P0113",
+  "offset": 565,
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-aeb5c6a36d9a565300cacaa7",
+      "batch": "B",
+      "name": "分析法（试探法）",
+      "definition": "用分析法设计校正装置比较直观，在物理上易于实现，但要求设计者有一定的工程设计经验，设计过程带有试探性。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "分析法（试探法）",
+        "包含组件·频率响应…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 分析法（试探法）\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 用分析法设计校正装置比较直观，在物理上易于实现，但要求设计者有一定的工程设计经验，设计过程带有试探性。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「分析法（试探法）」、「包含组件·频率响应…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-d193b6e8d31cd34677110ff5",
+      "batch": "B",
+      "name": "Harmonic Balance Analysis",
+      "definition": "Harmonic Balance Analysis：Harmonic Balance Analysis",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "Harmonic Ba…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: Harmonic Balance Analysis\nSOURCE DEFINITION (fail-closed, do not invent beyond this): Harmonic Balance Analysis：Harmonic Balance Analysis\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「Harmonic B」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctc_modeling-caf9d1bfa4acd33993e1d039",
+      "batch": "B",
+      "name": "流出端负载阀门的阻力",
+      "definition": "流出端负载阀门的阻力，定义为R=Δh/ΔQo，由非线性关系Qo=Ao√(2gh)在平衡点线性化得到。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "流出端负载阀门的阻力"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 流出端负载阀门的阻力\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 流出端负载阀门的阻力，定义为R=Δh/ΔQo，由非线性关系Qo=Ao√(2gh)在平衡点线性化得到。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「流出端负载阀门的阻力」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-10c37fd947ba55593ff03ede",
+      "batch": "B",
+      "name": "性能指标",
+      "definition": "进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。",
+      "visual_archetype": "流程板",
+      "labels": [
+        "性能指标",
+        "是一种·系统带宽",
+        "应用于·校正问题"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 性能指标\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 进行控制系统的校正设计，除了应已知系统不可变部分的特性与参数外，还需要已知对系统提出的全部性能指标。\nvisual_archetype: 流程板\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「性能指标」、「是一种·系统带宽」、「应用于·校正问题」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-00c82f915797f85ae708834a",
+      "batch": "B",
+      "name": "前馈通路",
+      "definition": "在复合控制系统中，前馈通路是加入反馈控制回路中的前向通路，用于组成前馈控制与反馈控制相结合的系统。",
+      "visual_archetype": "科普百科图鉴",
+      "labels": [
+        "前馈通路",
+        "包含组件·前馈控制",
+        "包含组件·复合控制…"
+      ],
+      "prompt": "Generate ONE landscape 16:9 premium educational control-theory infographic.\n\nTitle: 前馈通路\nSOURCE DEFINITION (fail-closed, do not invent beyond this): 在复合控制系统中，前馈通路是加入反馈控制回路中的前向通路，用于组成前馈控制与反馈控制相结合的系统。\nvisual_archetype: 科普百科图鉴\nlayout: main visual ~50% + 1-2 technical insets + boundary strip; left-to-right reading.\ntext: short Chinese labels only: 「前馈通路」、「包含组件·前馈控制」、「包含组件·复合控制…」\nNegative: no metadata, no watermarks, no long paragraphs, no invented numbers/formulas absent from source.\nStyle: deep navy, teal accents, paper-white panels, high-end teaching infographic.\n"
+    }
+  ]
+}

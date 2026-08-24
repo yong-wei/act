@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-503d2c6683ea029b37af79d3",
+  "safe_id": "ctkg_v3e-canonical-503d2c6683ea029b37af79d3",
+  "node": {
+    "name": "Causal system",
+    "name_en": "Causal system",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Causal system：A system is said to be causal if the output is not dependent on future inputs, that is, 'the system does not laugh befo…",
+  "intuition": null,
+  "explanation": "A system is said to be causal if the output is not dependent on future inputs, that is, 'the system does not laugh before it is tickled.'",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "Causal syst…",
+    "Causal syste"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-503d2c6683ea029b37af79d3.md",
+  "provider_policy": "grok-image_gen"
+}

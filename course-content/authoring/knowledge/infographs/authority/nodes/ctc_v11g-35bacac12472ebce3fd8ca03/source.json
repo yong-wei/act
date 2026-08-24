@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-35bacac12472ebce3fd8ca03",
+  "safe_id": "ctc_v11g-35bacac12472ebce3fd8ca03",
+  "node": {
+    "name": "lumped parameter circuit",
+    "name_en": "lumped_parameter_circuit",
+    "concept_kind": "system_component",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "lumped parameter circuit：A circuit with normal attenuation of 20n dB/decade, in contrast to distributed RC networks.",
+  "intuition": null,
+  "explanation": "A circuit with normal attenuation of 20n dB/decade, in contrast to distributed RC networks.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "lumped para…",
+    "lumped param"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-35bacac12472ebce3fd8ca03.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,18 @@
+{
+  "contract": "act-domain-teaching-authority-source/v1",
+  "sourcePath": "course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json",
+  "extraction": "objects[].canonicalId,lifecycleStatus||active,payload successorCanonicalId",
+  "nodeCount": 4891,
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
+    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
+  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40",
+  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "generation": "generation-3"
+}

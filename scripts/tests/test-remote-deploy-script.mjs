@@ -16,12 +16,34 @@ function writeExecutable(directory, name, content) {
   return filePath;
 }
 
-function verifyCutoverFailureGate() {
-  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-cutover-gate-'));
+function toBashPath(filePath) {
+  if (process.platform !== 'win32') {
+    return filePath;
+  }
+  const converted = spawnSync(
+    'bash',
+    ['-lc', `cygpath -u '${filePath.replace(/'/g, "'\\''")}'`],
+    { encoding: 'utf8' },
+  );
+  if (converted.status !== 0 || !converted.stdout.trim()) {
+    throw new Error(`cannot convert Windows path to bash path: ${filePath}`);
+  }
+  return converted.stdout.trim();
+}
+
+function verifyLegacyRsyncRetired() {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-legacy-rsync-retired-'));
   try {
     const fakeBin = path.join(fixtureRoot, 'bin');
     const sshLog = path.join(fixtureRoot, 'ssh.log');
+    const rsyncLog = path.join(fixtureRoot, 'rsync.log');
     fs.mkdirSync(fakeBin);
+    const bashEnvFile = path.join(fixtureRoot, 'bash-env.sh');
+    fs.writeFileSync(
+      bashEnvFile,
+      `export PATH="${toBashPath(fakeBin)}:$PATH"\n`,
+      'utf8',
+    );
     writeExecutable(fakeBin, 'ssh', [
       '#!/usr/bin/env bash',
       `printf '%s\\n' "$*" >> ${JSON.stringify(sshLog)}`,
@@ -49,108 +71,177 @@ function verifyCutoverFailureGate() {
       'exit 0',
       '',
     ].join('\n'));
-    const baseEnv = {
-      ...process.env,
-      PATH: `${fakeBin}:${process.env.PATH}`,
-      SKIP_BUILD: '1',
-      SSH_TARGET: 'fixture.invalid',
-      REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
-    };
-    const missingImage = path.join(fixtureRoot, 'missing-image.tar');
-    const preCutover = spawnSync(
-      'bash',
-      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
-      {
-        cwd: root,
-        encoding: 'utf8',
-        env: {
-          ...baseEnv,
-          LOCAL_IMAGE_TAR: missingImage,
-          LOCAL_PROVENANCE_FILE: `${missingImage}.provenance.json`,
-        },
-      },
-    );
-    assert.notEqual(preCutover.status, 0, '缺少本地镜像的 pre-cutover 应失败');
-    assert.equal(
-      fs.existsSync(sshLog) ? fs.readFileSync(sshLog, 'utf8') : '',
+    writeExecutable(fakeBin, 'rsync', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(rsyncLog)}`,
+      'exit 0',
       '',
-      'pre-cutover 本地失败不得通过 SSH 停止或探测生产消费者',
-    );
-
+    ].join('\n'));
     const imageTar = path.join(fixtureRoot, 'image.tar');
     const provenance = `${imageTar}.provenance.json`;
     const runtimeRoot = path.join(fixtureRoot, 'runtime');
     fs.writeFileSync(imageTar, 'fixture-image');
     fs.writeFileSync(provenance, '{}\n');
-    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-retrieval'), {
+    fs.mkdirSync(path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3'), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(runtimeRoot, 'resources', 'textbook-retrieval', 'manifest.json'),
+      path.join(runtimeRoot, 'resources', 'textbook-hybrid-retrieval', 'bge-m3', 'manifest.json'),
       '{}\n',
     );
-    writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 73\n');
-    const postCutover = spawnSync(
+    const retired = spawnSync(
       'bash',
       [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
       {
         cwd: root,
         encoding: 'utf8',
         env: {
-          ...baseEnv,
+          ...process.env,
+          PATH: `${fakeBin}:${process.env.PATH}`,
+          BASH_ENV: bashEnvFile,
+          SKIP_BUILD: '1',
+          SSH_TARGET: 'fixture.invalid',
+          REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
+          RUNTIME_DELIVERY_MODE: 'legacy-rsync',
           LOCAL_IMAGE_TAR: imageTar,
           LOCAL_PROVENANCE_FILE: provenance,
           LOCAL_RUNTIME_DIR: runtimeRoot,
         },
       },
     );
-    assert.notEqual(postCutover.status, 0, 'runtime rsync 失败应终止 cutover');
-    const stopCalls = (
-      fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []
-    ).length;
-    assert.equal(
-      stopCalls,
-      2,
-      'cutover 开始后的 ERR 必须执行初始 stop，并在失败处理时再次确认消费者停止',
-    );
-
-    fs.writeFileSync(sshLog, '');
-    writeExecutable(fakeBin, 'rsync', '#!/usr/bin/env bash\nexit 0\n');
-    const postCutoverExplicitExit = spawnSync(
-      'bash',
-      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
-      {
-        cwd: root,
-        encoding: 'utf8',
-        env: {
-          ...baseEnv,
-          LOCAL_IMAGE_TAR: imageTar,
-          LOCAL_PROVENANCE_FILE: provenance,
-          LOCAL_RUNTIME_DIR: runtimeRoot,
-        },
-      },
-    );
-    assert.notEqual(
-      postCutoverExplicitExit.status,
-      0,
-      'cutover 开始后的远端镜像哈希显式 fail 应终止部署',
-    );
+    assert.notEqual(retired.status, 0, 'legacy-rsync 必须失败关闭');
     assert.match(
-      postCutoverExplicitExit.stderr,
-      /远端临时文件 SHA256 不一致/u,
-      '合同夹具应到达 cutover 后的显式 fail 路径',
+      retired.stderr,
+      /legacy-rsync 已退役/u,
+      'legacy-rsync 必须明确提示改用 deploy:runtime',
     );
-    const explicitExitStopCalls = (
-      fs.readFileSync(sshLog, 'utf8').match(/runtime consumer still running/gu) ?? []
-    ).length;
     assert.equal(
-      explicitExitStopCalls,
-      2,
-      'cutover 开始后的显式非零 EXIT 必须执行初始 stop，并在退出处理时再次确认消费者停止',
+      fs.existsSync(rsyncLog),
+      false,
+      '已退役的 legacy-rsync 不得调用 rsync',
+    );
+    assert.equal(
+      fs.existsSync(sshLog) ? fs.readFileSync(sshLog, 'utf8') : '',
+      '',
+      '已退役的 legacy-rsync 不得打开 SSH 同步 runtime',
     );
   } finally {
     fs.rmSync(fixtureRoot, { recursive: true, force: true });
   }
+}
+
+function verifyDefaultDoesNotRsync() {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'remote-deploy-blob-view-default-'));
+  try {
+    const fakeBin = path.join(fixtureRoot, 'bin');
+    const rsyncLog = path.join(fixtureRoot, 'rsync.log');
+    fs.mkdirSync(fakeBin);
+    const bashEnvFile = path.join(fixtureRoot, 'bash-env.sh');
+    fs.writeFileSync(bashEnvFile, `export PATH="${toBashPath(fakeBin)}:$PATH"\n`, 'utf8');
+    writeExecutable(fakeBin, 'ssh', '#!/usr/bin/env bash\nexit 0\n');
+    for (const command of ['scp', 'curl']) {
+      writeExecutable(fakeBin, command, '#!/usr/bin/env bash\nexit 0\n');
+    }
+    writeExecutable(fakeBin, 'node', [
+      '#!/usr/bin/env bash',
+      'field=""',
+      'while [[ "$#" -gt 0 ]]; do',
+      '  if [[ "$1" == "--field" ]]; then field="$2"; break; fi',
+      '  shift',
+      'done',
+      'case "$field" in',
+      '  appRevision|runtimeSourceRevision|indexSourceRevision)',
+      '    printf "%s\\n" "1111111111111111111111111111111111111111"',
+      '    ;;',
+      '  runtimeDigest|indexDigest)',
+      '    printf "%s\\n" "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
+      '    ;;',
+      'esac',
+      'exit 0',
+      '',
+    ].join('\n'));
+    writeExecutable(fakeBin, 'rsync', [
+      '#!/usr/bin/env bash',
+      `printf '%s\\n' "$*" >> ${JSON.stringify(rsyncLog)}`,
+      'exit 73',
+      '',
+    ].join('\n'));
+    const imageTar = path.join(fixtureRoot, 'image.tar');
+    const provenance = `${imageTar}.provenance.json`;
+    fs.writeFileSync(imageTar, 'fixture-image');
+    fs.writeFileSync(provenance, '{}\n');
+    const result = spawnSync(
+      'bash',
+      [path.join(root, 'scripts/remote-deploy.sh'), '--skip-build'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          PATH: `${fakeBin}:${process.env.PATH}`,
+          BASH_ENV: bashEnvFile,
+          SKIP_BUILD: '1',
+          SSH_TARGET: 'fixture.invalid',
+          REMOTE_PROJECT_DIR: '/tmp/act-remote-deploy-fixture',
+          LOCAL_IMAGE_TAR: imageTar,
+          LOCAL_PROVENANCE_FILE: provenance,
+        },
+      },
+    );
+    assert.notEqual(result.status, 0, '默认 blob-view 在夹具中应失败关闭');
+    assert.equal(
+      fs.existsSync(rsyncLog),
+      false,
+      '默认 RUNTIME_DELIVERY_MODE 不得调用 rsync 传输 runtime',
+    );
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
+function verifyLegacyRemoteTransactionQuoting(script) {
+  const start = script.indexOf(`remote "bash -lc 'set -euo pipefail`);
+  const end = script.indexOf('\n\nlog "[5/5] 部署验证"', start);
+  assert.ok(start >= 0 && end > start, '远端部署必须保留单一 Step 4 事务');
+  const transaction = script.slice(start, end);
+  assert.doesNotMatch(
+    transaction,
+    /RUNTIME_DELIVERY_MODE=legacy-rsync/,
+    'Step 4 不得再把已退役的 legacy-rsync 传入 4-deploy',
+  );
+  const result = spawnSync('bash', ['-c', `
+set -euo pipefail
+remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
+DEPLOY_SCOPE=all
+RUNTIME_DELIVERY_MODE=ossfs-blob-view
+REMOTE_PROJECT_DIR=/tmp/act
+APP_NAME_HINT=app
+WORKER_NAME_HINT=worker
+GC_NAME_HINT=gc
+REMOTE_RUNTIME_DIR=/tmp/act/course-content/runtime
+REMOTE_BLOB_VIEW_ROOT=/tmp/act/data/runtime/blob-views
+REMOTE_PROVENANCE_HELPER=/tmp/act/provenance.mjs
+REMOTE_TEXTBOOK_V2_RUNTIME_DIR=/tmp/act/course-content/runtime/resources/textbooks-v2
+REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR=/tmp/act/course-content/runtime/resources/textbook-hybrid-retrieval/bge-m3
+REMOTE_PROVENANCE_FILE=/tmp/act/provenance.json
+REMOTE_EXPORT_DB_SCRIPT=/tmp/act/export-db.sh
+REMOTE_LOAD_IMAGES_SCRIPT=/tmp/act/load-images.sh
+REMOTE_APP_IMAGE=localhost/test:latest
+PROVENANCE_APP_REVISION=${'a'.repeat(40)}
+REMOTE_APP_DEPLOY_SCRIPT=/tmp/act/deploy.sh
+REMOTE_IMPORT_DB_SCRIPT=/tmp/act/import-db.sh
+REMOTE_RUNTIME_ACTIVATE_SCRIPT=/tmp/act/activate.sh
+RUNTIME_OSS_RAM_ROLE=act-runtime-oss-read
+RUNTIME_RELEASE_ID=runtime-test
+RUNTIME_EXPECTED_ACTIVE_RELEASE=none
+REMOTE_RUNTIME_VERIFICATION_RECEIPT=/tmp/act/receipt.json
+REMOTE_NGINX_SCRIPT=/tmp/act/nginx.sh
+REMOTE_SERVICE_SCRIPT=/tmp/act/service.sh
+REMOTE_LOG_FILE=/tmp/act/deploy.log
+${transaction}
+`], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^argc=1$/m, 'Step 4 must send one syntactically valid remote command rather than split local shell words');
 }
 
 function main() {
@@ -170,6 +261,38 @@ function main() {
     false,
     'bash -lc 单引号脚本内的 runtime grep 不得再嵌套单引号，否则远端 shell 会提前截断',
   );
+  verifyDefaultDoesNotRsync();
+  verifyLegacyRsyncRetired();
+  verifyLegacyRemoteTransactionQuoting(script);
+  assert.match(
+    script,
+    /legacy-rsync 已退役/,
+    'legacy-rsync 必须失败关闭并提示改用 deploy:runtime',
+  );
+  assert.equal(
+    script.includes('rsync "${runtime_rsync_args[@]}"'),
+    false,
+    'remote-deploy.sh 不得再包含 course-content/runtime rsync',
+  );
+
+  assert.match(
+    script,
+    /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/,
+    '远端部署默认必须绑定已物化 OSS blob-view，而不是 rsync runtime',
+  );
+
+  assert.equal(
+    script.includes('$(dirname "${REMOTE_RESOURCE_SET_CONFIG}")')
+      && script.includes('scp -q "${LOCAL_RESOURCE_SET_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_HELPER}"')
+      && script.includes('scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"'),
+    true,
+    '远端 provenance 校验必须随同部署 resourceSet helper 与配置',
+  );
+  assert.match(
+    script,
+    /remote "cd '\$\{REMOTE_PROJECT_DIR\}' && node '\$\{REMOTE_PROVENANCE_HELPER\}' verify-runtime \\/,
+    '远端 runtime provenance 校验必须从远端项目根目录解析 resourceSet 配置',
+  );
 
   assert.equal(
     buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),
@@ -181,6 +304,14 @@ function main() {
     script,
     /bash "\$\{ROOT_DIR\}\/scripts\/build\.sh"/,
     '远端部署脚本必须先调用本地 build.sh'
+  );
+
+  assert.equal(
+    script.includes('BUILD_SCOPE="$([[ "${DEPLOY_SCOPE}" == "app" ]] && printf \'%s\' app-only || printf \'%s\' runtime-bound)"') &&
+      script.includes('--app-only 必须使用 deploymentScope=app-only 的镜像 provenance') &&
+      script.includes('包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance'),
+    true,
+    'app-only 部署必须使用不声明 runtime 的 provenance，runtime 选择部署仍必须绑定完整 provenance',
   );
 
   assert.match(
@@ -196,14 +327,40 @@ function main() {
   );
 
   assert.equal(
-    script.includes('stop_remote_runtime_consumers') &&
-      script.indexOf('stop_remote_runtime_consumers', script.indexOf('[2/5]')) <
-        script.indexOf('rsync -az --delete') &&
-      script.includes('REMOTE_RUNTIME_STAGING_DIR') &&
-      script.includes('保持教材 runtime 消费者停止') &&
-      script.includes('trap on_exit EXIT'),
+    script.includes('trap on_exit EXIT') &&
+      script.includes('REMOTE_RUNTIME_SELECTION_LOCK') &&
+      script.includes('ossfs-blob-view：不传输 runtime 内容'),
     true,
-    '远端部署必须在 runtime 同步前停止消费者，并让 ERR 或显式非零退出都保持消费者停止',
+    '远端部署必须保留失败处理，并默认绑定已物化 blob-view',
+  );
+
+  assert.equal(
+    script.includes('REMOTE_RUNTIME_PARENT_DIR="$(dirname "${REMOTE_RUNTIME_DIR}")"') &&
+      script.includes(
+        'remote "mkdir -p \'${REMOTE_IMAGES_DIR}\' \'${REMOTE_RUNTIME_PARENT_DIR}\'',
+      ),
+    true,
+    '远端部署仍需准备 runtime 父目录，但不得再 rsync 本地 tree',
+  );
+  assert.match(
+    script,
+    /REMOTE_PRODUCTION_CUTOVER_MARKER="\$\{REMOTE_PRODUCTION_CUTOVER_MARKER:-\$\{REMOTE_BLOB_VIEW_ROOT\}\/current\/knowledge\/production-cutover-transactions\/current\.json\}"/,
+    '默认 blob-view 必须定位已物化 view 上的生产切换 marker',
+  );
+  const blobViewVerify = script.slice(
+    script.indexOf('log "- 校验远端已物化 blob-view'),
+    script.indexOf('log "- 校验远端 runtime 目录"'),
+  );
+  assert.match(blobViewVerify, /check_remote_blob_view/);
+  assert.doesNotMatch(
+    blobViewVerify,
+    /guard_no_committed_production_cutover|check_remote_authority_current_pointer_absence/,
+    '默认 ossfs-blob-view 验收不得因 Legacy cutover/authority 门禁失败',
+  );
+  assert.match(
+    script,
+    /check_remote_runtime_pointer_absence/,
+    'ossfs-release 验收仍须检查 production pointer 不存在',
   );
 
   assert.match(
@@ -463,7 +620,7 @@ function main() {
     '远端部署脚本必须验证 BullMQ 队列 key'
   );
 
-  verifyCutoverFailureGate();
+  verifyLegacyRsyncRetired();
 
   console.log('remote deploy script test passed');
 }

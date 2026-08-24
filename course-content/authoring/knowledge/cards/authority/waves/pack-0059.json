@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0059",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-object-5a821f717b644300ab32cf21",
+      "name": "对数幅频渐近特性曲线",
+      "definition": "在控制工程中，为简化惯性环节、一阶微分环节、振荡环节和二阶微分环节的对数幅频曲线的作图，常用低频和高频渐近线近似表示对数幅频曲线，称之为对数幅频渐近特性曲线。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-5eb50007d0dc046e1646374d",
+      "name": "D/A converter",
+      "definition": "D/A converter：A device to convert the digital word from the computer to an analog voltage."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-64e8b62fbd0bb7ae801304db",
+      "name": "特征方程",
+      "definition": "特征方程：Characteristic equation。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-65968c0bbb3a54d4c9247dd0",
+      "name": "Internal model design",
+      "definition": "Internal model design：A technique for tracking reference inputs with guaranteed steady-state tracking errors."
+    },
+    {
+      "safe_id": "ctkg_v3e-object-67d5555e935df3a1d09971f1",
+      "name": "复现过程",
+      "definition": "D/A 转换的第二个过程：因为离散的模拟信号无法直接控制连续的被控对象，需要经过保持器将离散模拟信号复现为连续的模拟信号。"
+    }
+  ],
+  "created_at": "2026-08-05T15:51:02.465066+00:00"
+}

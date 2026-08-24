@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "safe_id": "ctkg_v3e-object-1c159c9cc34ce696a62bf837",
+  "node": {
+    "name": "相角裕度",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "开环频率特性在截止频率处的相角与-180°的差值，记为γ。",
+  "intuition": null,
+  "explanation": "开环频率特性在截止频率处的相角与-180°的差值，记为γ",
+  "relation_head": "前置 → 相频特性、利用开环频域指标估算时域性能方法 · 后续 → 截止频率、利用开环频域指标估算时域性能方法",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "相频特性",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "利用开环频域指标估算时域性能方法",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "后续",
+      "peer": "截止频率",
+      "relation": "关联"
+    },
+    {
+      "direction": "后续",
+      "peer": "利用开环频域指标估算时域性能方法",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "相角裕度",
+    "用于分析·相频特性",
+    "用于分析·利用开环…",
+    "关联·截止频率",
+    "关联·利用开环频域…"
+  ],
+  "visual_archetype": "频域仪表盘",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-1c159c9cc34ce696a62bf837.md",
+  "provider_policy": "grok-image_gen"
+}

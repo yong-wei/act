@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-21637e32df41e433f01db54b",
+  "safe_id": "ctkg_v3e-object-21637e32df41e433f01db54b",
+  "node": {
+    "name": "等倾线法",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。",
+  "intuition": "先确定相轨迹的等倾线，进而绘出相轨迹的切线方向场，然后从初始条件出发，沿方向场逐步绘制相轨迹。",
+  "explanation": "等倾线法是求取相轨迹的一种作图方法，不需求解微分方程。先确定相轨迹的等倾线，进而绘出相轨迹的切线方向场，然后从初始条件出发，沿方向场逐步绘制相轨迹。",
+  "relation_head": "前置 → 等倾线 · 后续 → 等倾线",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "等倾线",
+      "relation": "属于"
+    },
+    {
+      "direction": "后续",
+      "peer": "等倾线",
+      "relation": "包含组件"
+    }
+  ],
+  "labels": [
+    "等倾线法",
+    "属于·等倾线",
+    "包含组件·等倾线"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-21637e32df41e433f01db54b.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+  "safe_id": "ctkg_v3e-object-7d3704ae133f6be94bf5991b",
+  "node": {
+    "name": "脉冲传递函数",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "线性定常离散系统的脉冲传递函数定义为系统输出采样信号的z变换与输入采样信号的z变换之比。",
+  "intuition": "在图谱邻接中可把握：后续 → 线性定常离散系统。",
+  "explanation": "线性定常离散系统的脉冲传递函数定义为系统输出采样信号的z变换与输入采样信号的z变换之比。",
+  "relation_head": "后续 → 线性定常离散系统",
+  "relations": [
+    {
+      "direction": "后续",
+      "peer": "线性定常离散系统",
+      "relation": "关联"
+    }
+  ],
+  "labels": [
+    "脉冲传递函数",
+    "关联·线性定常离散…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-7d3704ae133f6be94bf5991b.md",
+  "provider_policy": "grok-image_gen"
+}

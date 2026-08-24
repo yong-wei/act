@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-05T18:39:13+00:00",
+  "namespace": "authority",
+  "entity_id": "ctkg:v3e-object-fac828826746b38462ac91ba",
+  "safe_id": "ctkg_v3e-object-fac828826746b38462ac91ba",
+  "node_name": "系统不可控",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "C batch FINAL wave: OCR-mapped 1257-1260"
+}

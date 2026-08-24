@@ -1,0 +1,31 @@
+{
+  "pack_id": "P0084",
+  "items": [
+    {
+      "safe_id": "ctkg_v3e-canonical-bc4ff6668a7e4eed69404826",
+      "name": "Steady-state error e ss",
+      "definition": "Steady-state error e ss：The difference between the final value of the response and the desired input magnitude."
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-d2d3366e7f924f0ab8b19205",
+      "name": "串级控制系统",
+      "definition": "串级控制系统在结构上比单回路控制系统多了一个副回路，因而对进入副回路的二次扰动有很强的抑制能力。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-e5eec53e01f5ac974d074ac4",
+      "name": "误差响应",
+      "definition": "对于图3-8所示的单位反馈系统，误差响应为 e(t)=r(t)-c(t)。"
+    },
+    {
+      "safe_id": "ctkg_v3e-canonical-ea380a2917dde24b49c608e4",
+      "name": "可求出单位阶跃响应",
+      "definition": "利用MATLAB软件，先建立高阶系统模型，再直接调用step命令即可求出单位阶跃响应。"
+    },
+    {
+      "safe_id": "ctkg_v3e-object-0079fafb4b8e0579bedea1a6",
+      "name": "External Stability",
+      "definition": "External Stability：Stability analysis based on input-output behavior, as in frequency-response methods."
+    }
+  ],
+  "created_at": "2026-08-05T16:23:19.969264+00:00"
+}

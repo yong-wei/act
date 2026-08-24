@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:modeling-7fa2352b16acf995839bcabf",
+  "safe_id": "ctc_modeling-7fa2352b16acf995839bcabf",
+  "node": {
+    "name": "representation of the motion",
+    "name_en": "modeling_7fa2352b16acf995839bcabf",
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "A",
+    "coverage_role": "explicit_extension"
+  },
+  "definition": "representation of the motion：A representation of the motion of any finite dynamic system as a set of first-order ODEs.",
+  "intuition": null,
+  "explanation": "A representation of the motion of any finite dynamic system as a set of first-order ODEs.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "representat…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-7fa2352b16acf995839bcabf.md",
+  "provider_policy": "grok-image_gen"
+}

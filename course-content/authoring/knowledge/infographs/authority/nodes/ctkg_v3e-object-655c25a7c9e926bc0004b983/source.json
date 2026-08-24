@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+  "safe_id": "ctkg_v3e-object-655c25a7c9e926bc0004b983",
+  "node": {
+    "name": "Nonlinear System",
+    "name_en": "Nonlinear System",
+    "concept_kind": null,
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "Nonlinear System：A physical system that is nonlinear at some level of signal strength or at any and all signal levels.",
+  "intuition": "在图谱邻接中可把握：前置 → Root-Locus Techn、Describing Function Method、Lyapunov's First Method。",
+  "explanation": "A physical system that is nonlinear at some level of signal strength or at any and all signal levels.",
+  "relation_head": "前置 → Root-Locus Techn、Describing Function Method、Lyapunov's First Method",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "Root-Locus Techn",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Describing Function Method",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Lyapunov's First Method",
+      "relation": "用于分析"
+    },
+    {
+      "direction": "前置",
+      "peer": "Circle Criterion",
+      "relation": "用于分析"
+    }
+  ],
+  "labels": [
+    "Nonlinear S…",
+    "Nonlinear Sy",
+    "用于分析·Root…",
+    "用于分析·Desc…",
+    "用于分析·Lyap…",
+    "用于分析·Circ…"
+  ],
+  "visual_archetype": "科普百科图鉴",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-655c25a7c9e926bc0004b983.md",
+  "provider_policy": "grok-image_gen"
+}

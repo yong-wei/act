@@ -72,7 +72,48 @@ const reportBody = {
   limitations: ['One evidence source is currently available.'],
 };
 
+function reviewedAssignment(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'submission-1',
+    studentId: 'student-1',
+    frozenStudentId: 'student-1',
+    frozenAudienceClassId: 'class-1',
+    assignmentRevisionId: 'revision-1',
+    reviewState: 'REVIEWED',
+    reviewedAt: new Date('2026-07-30T07:00:00.000Z'),
+    audience: {
+      classId: 'class-1',
+      assignmentRevisionId: 'revision-1',
+    },
+    revision: { id: 'revision-1' },
+    ...overrides,
+  };
+}
+
 describe('diagnosis report persistence', () => {
+  it('persists a blank optional knowledge node id as missing without a preparation link', async () => {
+    const db = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        findings: [{
+          ...reportBody.findings[0],
+          knowledgeNodeId: '   ',
+        }],
+      },
+    }, db);
+
+    const createCall = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { reportBody: { findings: Array<Record<string, unknown>> } };
+    };
+    const storedFinding = createCall.data.reportBody.findings[0];
+    expect(storedFinding).not.toHaveProperty('knowledgeNodeId');
+    expect(storedFinding).not.toHaveProperty('prepLink');
+  });
+
   it('derives the student scope, validates membership, and stores governed evidence metadata', async () => {
     const db = createDb();
 
@@ -98,7 +139,6 @@ describe('diagnosis report persistence', () => {
           findings: [
             expect.objectContaining({
               knowledgeNodeId: 'node-1',
-              prepLink: '/teacher/preparation?knowledgeNodeId=node-1&classId=class-1',
             }),
           ],
         }),
@@ -116,6 +156,49 @@ describe('diagnosis report persistence', () => {
           },
         },
         generatorVersion: DIAGNOSIS_REPORT_GENERATOR_VERSION,
+      }),
+    });
+    const createCall = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { reportBody: { findings: Array<Record<string, unknown>> } };
+    };
+    expect(createCall.data.reportBody.findings[0]).not.toHaveProperty('prepLink');
+  });
+
+  it('binds generation governance audit metadata to the formal report', async () => {
+    const db = createDb();
+    const inputSummary = {
+      schemaVersion: 'teacher-diagnosis-input-summary.v1',
+      categories: {
+        learningBehavior: { currentCount: 1, itemDigests: ['digest-1'] },
+      },
+    };
+
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody,
+      generationJobId: 'job-1',
+      generatorVersion: 'teacher-diagnosis.v2',
+      ruleVersion: 'teacher-diagnosis-preflight.v1',
+      generationReason: 'teacher-forced',
+      forceReason: '用于本周教学复盘会议留档',
+      previousReportId: 'report-previous',
+      inputSummary,
+      inputDigest: 'input-digest',
+    }, db);
+
+    expect(db.diagnosisReport.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'teacher-1',
+        generationJobId: 'job-1',
+        generatorVersion: 'teacher-diagnosis.v2',
+        ruleVersion: 'teacher-diagnosis-preflight.v1',
+        generationReason: 'teacher-forced',
+        forceReason: '用于本周教学复盘会议留档',
+        previousReportId: 'report-previous',
+        inputSummary,
+        inputDigest: 'input-digest',
       }),
     });
   });
@@ -201,6 +284,43 @@ describe('diagnosis report persistence', () => {
       teacherId: 'teacher-1',
       classId: 'class-1',
       reportBody,
+    }, db)).rejects.toMatchObject({
+      status: 400,
+      message: 'diagnosis-evidence-not-found',
+    });
+    expect(db.diagnosisReport.create).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      label: 'cross-class audience',
+      row: reviewedAssignment({
+        audience: { classId: 'class-2', assignmentRevisionId: 'revision-1' },
+      }),
+    },
+    {
+      label: 'frozen student mismatch',
+      row: reviewedAssignment({ frozenStudentId: 'student-2' }),
+    },
+    {
+      label: 'revision mismatch',
+      row: reviewedAssignment({ revision: { id: 'revision-2' } }),
+    },
+  ])('rejects $label assignment evidence during persistence', async ({ row }) => {
+    const db = createDb({
+      assignmentSubmission: {
+        findMany: vi.fn().mockResolvedValue([row]),
+      },
+    });
+
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody: {
+        ...reportBody,
+        evidenceRefs: ['assignment-submission:submission-1'],
+      },
     }, db)).rejects.toMatchObject({
       status: 400,
       message: 'diagnosis-evidence-not-found',
@@ -335,7 +455,7 @@ describe('diagnosis report persistence', () => {
 
   it('reads only the requested class-level reports with a bounded limit', async () => {
     const db = createDb();
-    await readDiagnosisReports({
+    const reports = await readDiagnosisReports({
       teacherId: 'teacher-1',
       classId: 'class-1',
       limit: 500,
@@ -348,5 +468,7 @@ describe('diagnosis report persistence', () => {
       },
       take: 100,
     }));
+    expect(reports[0]?.reportBody.findings[0]).toMatchObject({ knowledgeNodeId: 'node-1' });
+    expect(reports[0]?.reportBody.findings[0]).not.toHaveProperty('prepLink');
   });
 });

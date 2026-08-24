@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "status": "passed",
+  "captureProfile": "diagnosis-report-delivery",
+  "baseUrl": "http://127.0.0.1:3001",
+  "revisionProbePath": "/api/internal/local-qa/revision",
+  "sourceRevision": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+  "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+  "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
+  "initialServiceRevision": {
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+    "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
+    "clean": true
+  },
+  "finalServiceRevision": {
+    "commitSha": "32d6c136d4de1aada6a24a402f9f3aaf9bebaf93",
+    "treeSha": "173e0cff98cbad54e92c803b149289e78eae2afb",
+    "sourceFingerprint": "25966d30a4314666e7db0908f2d7d70e483b5b41a70c28001464908796dca3a6",
+    "clean": true
+  },
+  "sourceFiles": [
+    {
+      "file": "prisma/schema.prisma",
+      "gitBlobId": "fdb0907fb39222efd61f70f8cb04f517cfe71d57",
+      "sha256": "79190abd6b4186961a659c984268ee9db8a513ced21af484774362dcc77a5fb2"
+    },
+    {
+      "file": "src/app/api/diagnosis-reports/[reportId]/student-safe/route.ts",
+      "gitBlobId": "96b91a2dc1ff02ebdbe1e492b834bfe71968cdad",
+      "sha256": "23653f76116da968c71abfc3d464d8bbdbe54321ca22b74b67b74fd82e2690a7"
+    },
+    {
+      "file": "src/app/api/diagnosis-reports/[reportId]/student-safe/pdf/route.ts",
+      "gitBlobId": "f6c8c9b7d1f3c3eceae2050a511bfe7838770121",
+      "sha256": "bfc2de59f6dabc2ecb986beb1b4bb62241e3f13014176eaf0e162891939eaa15"
+    },
+    {
+      "file": "src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/route.ts",
+      "gitBlobId": "15b8823efac45c405ba3ad5dd81b98ad772e68b7",
+      "sha256": "9ce1514068e9fe4aabd313d49f05414ac12cddd09f77c88bb0b45ae9fb5128c2"
+    },
+    {
+      "file": "src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/pdf/route.ts",
+      "gitBlobId": "8794e779fbb022c6beb8b50337222a7632bc3d9a",
+      "sha256": "9cd174fc3a447c2ed2a28521ee3a21c9f0f21a959691f93f6022f569034647d6"
+    },
+    {
+      "file": "src/app/api/teacher/classes/[classId]/diagnosis-reports/[reportId]/dispositions/route.ts",
+      "gitBlobId": "5b5bba76dd06d2b2e198455d2b192bcc8fa86950",
+      "sha256": "0367111df899072e490d333d641237ee1a71be5d7e67ffa674f8d795ebe1832f"
+    },
+    {
+      "file": "src/app/diagnosis-reports/[reportId]/page.tsx",
+      "gitBlobId": "e4493c9d527dca86ef12c0bdab4752895bab9b74",
+      "sha256": "8b2b5b7ddc2ab19bc634c0a3122627df15cea73cdc0af1aebcf246f343dff70d"
+    },
+    {
+      "file": "src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx",
+      "gitBlobId": "892df48b298ccf3033d612a2b873131092fbb8e3",
+      "sha256": "a420028d95547ef8ace89ccadc3f7c2d3b3b25ecf7ebabb1882d8aa1a9c4839e"
+    },
+    {
+      "file": "src/features/teacher/diagnosis-report-delivery-view.tsx",
+      "gitBlobId": "3d211deeb5dd568de0ee45f9f08d2fe20e3bf0b7",
+      "sha256": "124f6b1f2eb59ff3b10df0f1be5b30dd015962943d0a87b94b92540ef539b8d5"
+    },
+    {
+      "file": "src/lib/diagnosis-report-delivery-projection.ts",
+      "gitBlobId": "c425ddc685ed65a85676ed944afe7ceff0f45e0f",
+      "sha256": "1ad40dc15fba758f83ed10df0ce10e16ec187137e295b6fb07e8f33688f198e8"
+    },
+    {
+      "file": "src/lib/diagnosis-report-delivery.ts",
+      "gitBlobId": "39a0c672a1eca399fbfd124402e362662a51740c",
+      "sha256": "b023b197bb9db1820cc21b787c00950dff241db479d37343cd26be5601951363"
+    },
+    {
+      "file": "src/lib/diagnosis-report-pdf.ts",
+      "gitBlobId": "bdc17f270e99ea4ae92c23553c1fc3811aa1b096",
+      "sha256": "9e4f69c6285655cdcd0fef2a518c258ee81a1ec06f4118adfe398cf6fe44bafd"
+    },
+    {
+      "file": "src/lib/diagnosis-report-delivery-evidence.ts",
+      "gitBlobId": "2ae986de971223449ef00484f05db32ce14b2def",
+      "sha256": "35fc86d12fb7b7fdd23fa647b5b6155840f2e569611caec0e5fe47b58cb40b65"
+    },
+    {
+      "file": "playwright.config.ts",
+      "gitBlobId": "dc35a7cd2c709c94261bb3d72748d985e2e1f10f",
+      "sha256": "659f960aeb4b1baf8b6d365dd7a8a57fd447bd8366fe153a22f835e0d090cf1a"
+    },
+    {
+      "file": "tests/diagnosis-report-delivery-evidence.spec.ts",
+      "gitBlobId": "350f6f9564008863c7c3cbe9933665d2795e4d59",
+      "sha256": "3f4744ddc1c0171ac847b29d0049c0301159c404a1a777a8262b99f1e75d49fb"
+    },
+    {
+      "file": "src/lib/commercial-ui-capture-revision.ts",
+      "gitBlobId": "efa6b48f62265161edb6e5e1ed1b3cd873a6f0f9",
+      "sha256": "a77b59d3b97cd24f67ac8912278ee94c6480bd2b23875217f904ac91c6b67db1"
+    },
+    {
+      "file": "src/lib/commercial-ui-capture-revision-runtime.ts",
+      "gitBlobId": "f5c0eef56884252afa56c6f6e593df1bc1fe8e8e",
+      "sha256": "654379d126d3d1773d89d4a185ece3885c716d71363f8afc592dc6a8d90976eb"
+    },
+    {
+      "file": "src/app/api/internal/local-qa/revision/route.ts",
+      "gitBlobId": "a2f4cc3313ac5f7f241d97ecb7f1d04b8c39c0ac",
+      "sha256": "f83032a982397066052adaaf7b3743b9cd024b6f1ca93e173a57b05d4d468857"
+    }
+  ],
+  "provenance": "The dedicated Playwright service is non-reusable. Capture reads the actual baseUrl revision probe before and after every state, rejects dirty or mismatched runtime bytes, and publishes output only after the final proof.",
+  "captures": [
+    {
+      "file": "teacher-delivery-1440-light.png",
+      "sha256": "2e7a7b2d7ead9d5dc424a1e790d3aa078b4d601e8824eb31010cbcb8cb8d7bef",
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "assertions": [
+        "teacher projection visible",
+        "bounded evidence visible",
+        "report-level preparation entry visible",
+        "suggestion visible",
+        "disposition recorded",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "file": "teacher-print-only-1440-light.png",
+      "sha256": "548c348590506d505d3f016285c25516c0ae101be8b22ea31a685c6b775763d7",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "assertions": [
+        "print control visible",
+        "PDF export control absent"
+      ]
+    },
+    {
+      "file": "student-safe-delivery-320-dark.png",
+      "sha256": "c68610e370034a3638b82b0b599fc61c0b5bbebc6afb4a7c5dbdfcfc5be0c3a9",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "assertions": [
+        "student-safe projection visible",
+        "print control visible",
+        "PDF export control absent",
+        "teacher controls absent",
+        "force reason absent",
+        "no horizontal overflow"
+      ]
+    }
+  ]
+}

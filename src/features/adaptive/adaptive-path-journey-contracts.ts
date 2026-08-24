@@ -1,6 +1,9 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
-import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
-import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
+import {
+  canonicalizeAdaptivePathInternalHref as canonicalizeDestinationHref,
+  resolveAdaptivePathCenterOwnedTargetHref as resolveDestinationCenterTarget,
+  resolveAdaptivePathDestinationContract,
+} from '@/lib/adaptive-path-destination-contract';
 import {
   projectAdaptivePathCorrectionOutcome,
   type AdaptivePathCorrectionOutcome,
@@ -12,6 +15,8 @@ export interface AdaptivePathJourneyNodeView {
   nodeId: string;
   title: string;
   type: string;
+  sourceKind?: string | null;
+  sourceRef?: string | null;
 }
 
 export interface AdaptivePathJourneyNextAction {
@@ -131,26 +136,13 @@ export type AdaptivePathJourneyTargetDisposition =
 export function resolveAdaptivePathJourneyTargetDisposition(
   resourceType: string,
   target: string,
+  context: { nodeId?: string | null; sourceKind?: string | null; sourceRef?: string | null } = {},
 ): AdaptivePathJourneyTargetDisposition {
-  if (resourceType === 'external_resource') {
-    return isSafeExternalTarget(target) ? 'external-fallback' : 'blocked';
-  }
-  const rawTarget = normalizePathCenterOwnedRawTarget(target);
-  if (rawTarget) {
-    if (!PATH_CENTER_RAW_RESOURCE_TYPES.has(resourceType)) return 'blocked';
-    return ['knowledge_card', 'textbook_section', 'slides', 'handout'].includes(resourceType)
-      ? 'path-center-explicit'
-      : 'path-center-server-evidence';
-  }
-  const canonicalTarget = canonicalizeAdaptivePathInternalHref(target);
-  if (!canonicalTarget || !isStudentVisiblePathTarget(canonicalTarget)) return 'blocked';
-  return hasIntegratedJourneyDestination(resourceType, canonicalTarget) ? 'destination-control' : 'blocked';
+  return resolveAdaptivePathDestinationContract(resourceType, target, context).disposition;
 }
 
 export function resolveAdaptivePathCenterOwnedTargetHref(resourceType: string, target: string): string | null {
-  if (resourceType === 'external_resource') return isSafeExternalTarget(target) ? target : null;
-  if (!PATH_CENTER_RAW_RESOURCE_TYPES.has(resourceType)) return null;
-  return normalizePathCenterOwnedRawTarget(target);
+  return resolveDestinationCenterTarget(resourceType, target);
 }
 
 export function buildAuthorizedAdaptivePathJourney(
@@ -244,7 +236,7 @@ export function buildAuthorizedAdaptivePathJourney(
       completed: mainPathNodeIds.filter((nodeId) => completedNodeIds.has(nodeId)).length,
       total: mainPathNodeIds.length,
     },
-    return: { label: '返回学习路径', href: returnHref },
+    return: { label: '返回学习路径', href: summaryHref },
     pathStatus: normalizedPathStatus,
     correction: projectedCorrection,
   };
@@ -326,7 +318,7 @@ export function buildAuthorizedAdaptivePathJourney(
       nextAction: blockedAction(actionNode, '当前节点缺少可验证的启动目标。', returnHref),
     };
   }
-  const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(actionNode.type, target);
+  const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(actionNode.type, target, actionNode);
   if (targetDisposition === 'blocked') {
     return {
       ...base,
@@ -355,98 +347,8 @@ export function buildAuthorizedAdaptivePathJourney(
   };
 }
 
-function normalizePathCenterOwnedRawTarget(target: string): string | null {
-  const normalized = target.startsWith('course-content/runtime/')
-    ? `/${target.replace(/^course-content\/runtime\//, 'course-runtime/')}`
-    : target;
-  if (!normalized.startsWith('/') || normalized.startsWith('//') || /[\s\p{Cc}]/u.test(normalized)) return null;
-  try {
-    const parsed = new URL(normalized, 'https://act.local');
-    if (parsed.origin !== 'https://act.local' || !parsed.pathname.startsWith('/course-runtime/')) return null;
-    if (!parsed.pathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-  } catch {
-    return null;
-  }
-}
-
-function isSafeEncodedPathSegment(segment: string): boolean {
-  let decoded = segment;
-  for (let index = 0; index < 8; index += 1) {
-    try {
-      const next = decodeURIComponent(decoded);
-      if (next === decoded) break;
-      decoded = next;
-    } catch {
-      return false;
-    }
-  }
-  try {
-    if (decodeURIComponent(decoded) !== decoded) return false;
-  } catch {
-    return false;
-  }
-  return decoded !== '..' && !decoded.includes('/') && !decoded.includes('\\') && !/[\p{Cc}]/u.test(decoded);
-}
-
-function isSafeExternalTarget(target: string): boolean {
-  try {
-    const url = new URL(target);
-    return url.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
-const PATH_CENTER_RAW_RESOURCE_TYPES = new Set([
-  'knowledge_card',
-  'textbook_section',
-  'slides',
-  'handout',
-]);
-const INTEGRATED_ARENA_TASK_IDS = new Set(ARENA_CHALLENGE_TASKS.map((task) => task.id));
-
-function hasIntegratedJourneyDestination(resourceType: string, target: string): boolean {
-  const pathname = new URL(target, 'https://act.local').pathname;
-  if (resourceType === 'knowledge_card' || resourceType === 'knowledge_node') {
-    return pathname === '/knowledge' || pathname.startsWith('/knowledge/');
-  }
-  if (resourceType === 'interactive_lesson') {
-    return pathname.startsWith('/interactive-learning/courses/');
-  }
-  if (['lesson_step', 'video', 'audio', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
-    return pathname.startsWith('/interactive-learning/resources/');
-  }
-  if (['adaptive_quiz', 'checkpoint', 'reflection', 'konling', 'ai_intervention', 'intervention'].includes(resourceType)) {
-    return pathname === '/assessment/adaptive-practice';
-  }
-  if (resourceType === 'control_workbench') {
-    return pathname === '/interactive-learning/control-workbench';
-  }
-  if (resourceType === 'simulation') {
-    return pathname.startsWith('/simulations/');
-  }
-  if (resourceType === 'arena_task') {
-    const match = /^\/arena\/challenges\/([^/?#]+)$/.exec(pathname);
-    return Boolean(match?.[1] && INTEGRATED_ARENA_TASK_IDS.has(match[1]));
-  }
-  return false;
-}
-
 export function canonicalizeAdaptivePathInternalHref(target: string): string | null {
-  if (!target.startsWith('/') || target.startsWith('//') || target.includes('\\') || /[\s\p{Cc}]/u.test(target)) {
-    return null;
-  }
-  const rawPathname = target.split(/[?#]/, 1)[0] ?? target;
-  if (!rawPathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
-  try {
-    const parsed = new URL(target, 'https://act.local');
-    if (parsed.origin !== 'https://act.local') return null;
-    if (!parsed.pathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-  } catch {
-    return null;
-  }
+  return canonicalizeDestinationHref(target);
 }
 
 interface JourneyNodeRecord extends AdaptivePathJourneyNodeView {
@@ -467,6 +369,8 @@ function readJourneyNode(value: Record<string, unknown>): JourneyNodeRecord | nu
     nodeId,
     title,
     type,
+    sourceKind: readNonEmptyString(value.sourceKind),
+    sourceRef: readNonEmptyString(value.sourceRef),
     target: readNonEmptyString(value.target),
     status: readNonEmptyString(value.status),
     readiness: value.readiness,
@@ -932,7 +836,13 @@ function unavailableAction(
 }
 
 function toNodeView(node: JourneyNodeRecord): AdaptivePathJourneyNodeView {
-  return { nodeId: node.nodeId, title: node.title, type: node.type };
+  return {
+    nodeId: node.nodeId,
+    title: node.title,
+    type: node.type,
+    sourceKind: node.sourceKind,
+    sourceRef: node.sourceRef,
+  };
 }
 
 function buildPathCenterHref(input: { pathId: string; goalId: string; nodeId: string | null }): string {

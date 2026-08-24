@@ -5,6 +5,8 @@ import { selectNextQuestionWithPersistenceFallback } from '@/features/assessment
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import { verifyCompanionPracticeMetadata } from '@/lib/konling-continuity-assessment';
+import type { ContinuityDb } from '@/lib/konling-learning-continuity';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,7 @@ interface NextQuestionRequest {
   routeIntent?: string | null;
   pathId?: string | null;
   nodeId?: string | null;
+  continuity?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -32,10 +35,19 @@ export async function POST(request: Request) {
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
     const verifiedPathContext = await readVerifiedPathContext(body, userId, sessionId);
-    const goalId = verifiedPathContext?.goalId ?? readStandaloneGoalId(body);
-    const questionScope: AdaptiveQuestionScope = verifiedPathContext?.questionScope ?? 'practice';
-
-    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId, questionScope });
+    const continuity = await verifyCompanionPracticeMetadata(prisma as unknown as ContinuityDb, { userId, continuity: body.continuity });
+    if (sessionId.startsWith('konling-continuity:') && !continuity) {
+      throw new Error('Companion-practice metadata is required for the reserved session.');
+    }
+    if (continuity && sessionId !== `konling-continuity:${continuity.snapshotId}`) {
+      throw new Error('Companion-practice session does not match the continuity snapshot.');
+    }
+    if (continuity && verifiedPathContext) {
+      throw new Error('Companion practice cannot use learning-path execution context.');
+    }
+    const goalId = continuity?.targetKnowledgeId ?? verifiedPathContext?.goalId ?? readStandaloneGoalId(body);
+    const questionScope: AdaptiveQuestionScope = continuity ? 'practice' : verifiedPathContext?.questionScope ?? 'practice';
+    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId, questionScope, continuity });
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -130,10 +142,17 @@ function inferPathAssessmentScope(
   return pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness';
 }
 
-function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation'> | null {
+function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation'> | null {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
+  if (
+    normalized.includes('terminal-validation') ||
+    normalized.includes('终结验证') ||
+    normalized.includes('题目型终结')
+  ) {
+    return 'terminal-validation';
+  }
   if (
     normalized.includes('remediation') ||
     normalized.includes('remedial') ||

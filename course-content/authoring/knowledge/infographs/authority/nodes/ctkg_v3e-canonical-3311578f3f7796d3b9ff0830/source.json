@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+  "safe_id": "ctkg_v3e-canonical-3311578f3f7796d3b9ff0830",
+  "node": {
+    "name": "时间常数",
+    "name_en": null,
+    "concept_kind": "theoretical_construct",
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "一阶系统运动微分方程中T=RC，反映系统惯性，度量系统输出量的数值。",
+  "intuition": null,
+  "explanation": "一阶系统运动微分方程中T=RC，反映系统惯性，度量系统输出量的数值",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "时间常数"
+  ],
+  "visual_archetype": "机制剖面图",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-3311578f3f7796d3b9ff0830.md",
+  "provider_policy": "grok-image_gen"
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+  "safe_id": "ctc_v11g-9dfc90c240d6bf3ebc285faf",
+  "node": {
+    "name": "frequency of oscillation",
+    "name_en": "frequency_of_oscillation",
+    "concept_kind": "performance_metric",
+    "release_tier": "gold",
+    "batch": "B",
+    "coverage_role": "excluded_with_rationale"
+  },
+  "definition": "frequency of oscillation：The frequency at which the system oscillates at the borderline stability gain.",
+  "intuition": null,
+  "explanation": "The frequency at which the system oscillates at the borderline stability gain.",
+  "relation_head": "（权威图邻接待补充）",
+  "relations": [],
+  "labels": [
+    "frequency o…",
+    "frequency of"
+  ],
+  "visual_archetype": "工程评审板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_v11g-9dfc90c240d6bf3ebc285faf.md",
+  "provider_policy": "grok-image_gen"
+}

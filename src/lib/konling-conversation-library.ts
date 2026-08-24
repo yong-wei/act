@@ -5,6 +5,10 @@ import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
 import type { KonlingTeachingAssistantModeId } from '@/lib/konling-agent-runtime';
+import {
+  PINNED_TEXTBOOK_IDENTITY_METADATA_KEY,
+  type StructuredTextbookUnitIdentity,
+} from '@/lib/textbook-resource-coach';
 import type { CandidateGraphPageContext } from '@/types/ai-context';
 
 export const KONLING_DEFAULT_CONVERSATION_TITLE = '新对话';
@@ -55,6 +59,8 @@ export async function resolveKonlingContextEventScope(
   const authorizedPathAdvisor = scope.role === 'student'
     && (scope.pageId === 'adaptive-path-center' || scope.pageId === 'student-path-center')
     && isAdaptivePracticeGoalId(scope.courseId);
+  const authorizedTextbookReader = scope.courseId === 'automatic-control'
+    && (scope.pageId.startsWith('/textbooks/') || scope.pageId.startsWith('textbooks/'));
   const smartPrepCourseBasis = !registeredStep
     && !authorizedSmartPrepBootstrap
     && scope.pageId === '/teacher/smart-prep'
@@ -74,6 +80,7 @@ export async function resolveKonlingContextEventScope(
     !registeredStep
     && !authorizedSmartPrepBootstrap
     && !authorizedPathAdvisor
+    && !authorizedTextbookReader
     && !smartPrepCourseBasis
     && (!registeredRoute || registeredRoute.courseId !== scope.courseId)
   ) {
@@ -83,10 +90,10 @@ export async function resolveKonlingContextEventScope(
   return {
     authenticatedUserId: scope.authenticatedUserId,
     role: scope.role,
-    courseId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || smartPrepCourseBasis
+    courseId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || authorizedTextbookReader || smartPrepCourseBasis
       ? scope.courseId
       : registeredRoute!.courseId!,
-    pageId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || smartPrepCourseBasis
+    pageId: registeredStep || authorizedSmartPrepBootstrap || authorizedPathAdvisor || authorizedTextbookReader || smartPrepCourseBasis
       ? scope.pageId
       : registeredRoute!.stepId!,
     classId: scope.classId ?? null,
@@ -113,6 +120,7 @@ export interface KonlingContextEventMetadata {
 export interface KonlingConversationAssistantBinding {
   teachingAssistantModeId: Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>;
   modeClientContextHints: Record<string, string>;
+  pinnedTextbookResourceIdentity?: StructuredTextbookUnitIdentity;
 }
 
 interface KonlingAssistantBindingEventMetadata extends KonlingConversationAssistantBinding {
@@ -125,7 +133,17 @@ const KONLING_ASSISTANT_BINDING_HINT_KEYS: Record<
 > = {
   'diagnosis-explainer': ['answerId'],
   'path-advisor': ['classId', 'courseId', 'goalId', 'graphNodeId', 'candidateBatchId', 'modeContextToken'],
-  'resource-coach': ['resourceId'],
+  'resource-coach': [
+    'resourceId',
+    'resourceKind',
+    'bookId',
+    'edition',
+    'sourceRevision',
+    'unitId',
+    'contentHash',
+    'anchorId',
+    'selectionHint',
+  ],
   'grading-assistant': ['gradingRunId'],
   'feedback-explainer': ['gradingRunId'],
   'class-summarizer': ['goalId', 'classReportId', 'modeContextToken'],
@@ -195,7 +213,13 @@ export function createKonlingAssistantBindingEvent(
   binding: KonlingConversationAssistantBinding,
   id: string = createKonlingMessageId(),
 ): Message {
-  const metadata: KonlingAssistantBindingEventMetadata = { version: 1, ...binding };
+  const metadata: KonlingAssistantBindingEventMetadata = {
+    version: 1,
+    ...binding,
+    ...(binding.pinnedTextbookResourceIdentity
+      ? { [PINNED_TEXTBOOK_IDENTITY_METADATA_KEY]: binding.pinnedTextbookResourceIdentity }
+      : {}),
+  };
   return toLegacyMessage({
     id,
     role: 'system',
@@ -223,7 +247,12 @@ export function findLatestKonlingAssistantBinding(
         ? { 'student-path-center': true }
         : null,
     });
-    if (record.version === 1 && binding) return binding;
+    if (record.version === 1 && binding) {
+      const pinned = record[PINNED_TEXTBOOK_IDENTITY_METADATA_KEY];
+      return pinned && typeof pinned === 'object'
+        ? { ...binding, pinnedTextbookResourceIdentity: pinned as StructuredTextbookUnitIdentity }
+        : binding;
+    }
   }
   return null;
 }

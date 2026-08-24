@@ -18,7 +18,7 @@ import {
 export const AI_PROVIDER_SETTINGS_KEY = 'ai_provider_settings';
 export const AI_PROVIDER_SETTINGS_AUDIT_KEY = 'ai_provider_settings_audit';
 const SECRET_REF_PATTERN = /^env:[A-Z][A-Z0-9_]*$/;
-type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
+export type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
 
 export interface AIProviderModelSetting {
   id: string;
@@ -59,14 +59,14 @@ const BUILTIN_SILICONFLOW_MODELS: AIProviderModelSetting[] = [
     id: 'qwen-3-5-35b-a3b',
     label: 'Qwen3.5 35B A3B',
     model: 'Qwen/Qwen3.5-35B-A3B',
-    description: '支持图像输入的评分与视觉描述候选模型，关闭推理输出以保留可消费的结构化结果。',
+    description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
     options: { enableThinking: false },
   },
   {
     id: 'qwen-3-6-35b-a3b',
     label: 'Qwen3.6 35B A3B',
     model: 'Qwen/Qwen3.6-35B-A3B',
-    description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
+    description: 'SiliconFlow 可选语言模型。',
     options: { enableThinking: false },
   },
   {
@@ -406,6 +406,21 @@ export function getModelRuntimeOptions(settings: AIProviderSettings, providerId:
     ?.options;
 }
 
+export function withSiliconFlowQwenDefault(settings: AIProviderSettings): AIProviderSettings {
+  return {
+    ...settings,
+    providers: settings.providers.map((provider) => {
+      if (
+        provider.id !== SILICONFLOW_PROVIDER_ID
+        || (provider.selectedModel !== '' && provider.selectedModel !== 'deepseek-ai/DeepSeek-V4-Flash')
+      ) {
+        return provider;
+      }
+      return { ...provider, selectedModel: DEFAULT_SILICONFLOW_MODEL };
+    }),
+  };
+}
+
 export function redactAIProviderSettings(settings: AIProviderSettings): AIProviderSettings {
   return {
     activeProvider: settings.activeProvider,
@@ -436,39 +451,36 @@ export async function setAIProviderSettings(
 ): Promise<AIProviderSettings> {
   const normalized = normalizeAIProviderSettings(settings);
   const value = normalized as unknown as Prisma.InputJsonValue;
-  await db.platformSetting.upsert({
-    where: { key: AI_PROVIDER_SETTINGS_KEY },
-    create: { key: AI_PROVIDER_SETTINGS_KEY, value },
-    update: { value },
-  });
-  await db.platformSetting.upsert({
-    where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
-    create: {
-      key: AI_PROVIDER_SETTINGS_AUDIT_KEY,
-      value: {
-        updatedAt: new Date().toISOString(),
-        providerIds: normalized.providers.map((provider) => provider.id),
-        activeProvider: normalized.activeProvider,
-        secretRefSchemes: normalized.providers.map((provider) => ({
-          providerId: provider.id,
-          scheme: provider.secretRef.split(':')[0] ?? 'unknown',
-          configured: Boolean(provider.secretRef),
-        })),
-      } as Prisma.InputJsonValue,
-    },
-    update: {
-      value: {
-        updatedAt: new Date().toISOString(),
-        providerIds: normalized.providers.map((provider) => provider.id),
-        activeProvider: normalized.activeProvider,
-        secretRefSchemes: normalized.providers.map((provider) => ({
-          providerId: provider.id,
-          scheme: provider.secretRef.split(':')[0] ?? 'unknown',
-          configured: Boolean(provider.secretRef),
-        })),
-      } as Prisma.InputJsonValue,
-    },
-  });
+  const auditValue = {
+    updatedAt: new Date().toISOString(),
+    providerIds: normalized.providers.map((provider) => provider.id),
+    activeProvider: normalized.activeProvider,
+    secretRefSchemes: normalized.providers.map((provider) => ({
+      providerId: provider.id,
+      scheme: provider.secretRef.split(':')[0] ?? 'unknown',
+      configured: Boolean(provider.secretRef),
+    })),
+  } as Prisma.InputJsonValue;
+  const write = async (tx: Pick<typeof prisma, 'platformSetting'>) => {
+    await tx.platformSetting.upsert({
+      where: { key: AI_PROVIDER_SETTINGS_KEY },
+      create: { key: AI_PROVIDER_SETTINGS_KEY, value },
+      update: { value },
+    });
+    await tx.platformSetting.upsert({
+      where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
+      create: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY, value: auditValue },
+      update: { value: auditValue },
+    });
+  };
+  const transactionDb = db as Pick<typeof prisma, 'platformSetting'> & {
+    $transaction?: (operation: (tx: Pick<typeof prisma, 'platformSetting'>) => Promise<unknown>) => Promise<unknown>;
+  };
+  if (transactionDb.$transaction) {
+    await transactionDb.$transaction(write);
+  } else {
+    await write(db);
+  }
   return normalized;
 }
 

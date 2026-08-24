@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-04T11:43:56+00:00",
+  "namespace": "authority",
+  "release_id": "control-theory-engineering-v0.12",
+  "entity_id": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+  "safe_id": "ctkg_v3e-object-f1df5739a34bf55489aeeeeb",
+  "node": {
+    "name": "校正装置",
+    "name_en": null,
+    "concept_kind": null,
+    "release_tier": "silver",
+    "batch": "B",
+    "coverage_role": null
+  },
+  "definition": "如果通过调整放大器增益后仍然不能全面满足设计要求的性能指标，就需要在系统中增加一些参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求。",
+  "intuition": "在图谱邻接中可把握：前置 → PID控制器、前馈校正、反馈校正。",
+  "explanation": "如果通过调整放大器增益后仍然不能全面满足设计要求的性能指标，就需要在系统中增加一些参数及特性可按需要改变的校正装置，使系统性能全面满足设计要求。",
+  "relation_head": "前置 → PID控制器、前馈校正、反馈校正",
+  "relations": [
+    {
+      "direction": "前置",
+      "peer": "PID控制器",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "前馈校正",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "反馈校正",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "复合校正",
+      "relation": "是一种"
+    },
+    {
+      "direction": "前置",
+      "peer": "串联校正",
+      "relation": "是一种"
+    }
+  ],
+  "labels": [
+    "校正装置",
+    "是一种·PID控制器",
+    "是一种·前馈校正",
+    "是一种·反馈校正",
+    "是一种·复合校正",
+    "是一种·串联校正"
+  ],
+  "visual_archetype": "流程板",
+  "card_path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-f1df5739a34bf55489aeeeeb.md",
+  "provider_policy": "grok-image_gen"
+}

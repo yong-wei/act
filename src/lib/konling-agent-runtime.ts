@@ -35,7 +35,10 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
-import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  hasAuthoritativePortraitV2Evidence,
+  summarizePortraitV2,
+} from '@/lib/data-governance/portrait-v2-consumer';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
@@ -45,12 +48,15 @@ import {
 } from '@/lib/control-correction-path-rounds';
 import {
   AdaptivePathCandidateBatchConflictError,
+  assertAdaptivePathCandidateBatchMatchesInput,
+  buildAdaptivePathCandidateDifferenceSummary,
   persistAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatchByGenerationRequest,
   resolveAdaptivePathCandidateSelection,
   type AdaptivePathCandidateBatchView,
 } from '@/lib/adaptive-path-candidate-batches';
+import { authorizeAdaptivePathComparisonIdentity } from '@/lib/adaptive-path-comparison';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,
@@ -203,6 +209,8 @@ export type KonlingToolName =
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
   | 'analyze_attempt'
+  | 'get_class_assignment_outcomes'
+  | 'get_class_assessment_outcomes'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
   | 'calculate'
@@ -691,7 +699,6 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'apply_controller_patch',
       'record_intervention_result',
       'analyze_attempt',
-      'calculate',
     ],
     citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
     payload: 'student-visible-summary',
@@ -798,6 +805,8 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     requiredContext: ['evidence-citations'],
     optionalContext: ['class-report', 'diagnosis-view', 'learner-state-summary', 'resource-node'],
     permittedTools: [
+      'get_class_assignment_outcomes',
+      'get_class_assessment_outcomes',
       'get_student_risk_flags',
       'get_class_competency_summary',
       'get_student_knowledge_progress',
@@ -883,6 +892,9 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     citationContext: input.runtimeContext.citationContext,
     preferences: input.studyAnswerPreferences,
     currentUserQuery: input.currentUserQuery,
+    mathToolAvailable: mode.id === 'generic-chat'
+      ? input.runtimeContext.permittedTools.includes('calculate')
+      : mode.permittedTools.includes('calculate'),
   });
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
@@ -1107,9 +1119,14 @@ function buildKonlingStudyQuestionContract(input: {
   citationContext: KonlingCitationContext | null | undefined;
   preferences: unknown;
   currentUserQuery?: string | null;
+  mathToolAvailable?: boolean;
 }): KonlingStudyQuestionContract | null {
   if (!isStudyQuestionIntent(input.answerIntent)) return null;
-  const preferences = normalizeKonlingStudyAnswerPreferences(input.preferences, input.currentUserQuery);
+  const preferences = normalizeKonlingStudyAnswerPreferences(
+    input.preferences,
+    input.currentUserQuery,
+    input.mathToolAvailable,
+  );
   const normativeGuidance = input.answerIntent === 'normative-content'
     ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
       ? 'verified'
@@ -1152,6 +1169,7 @@ function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['int
 function normalizeKonlingStudyAnswerPreferences(
   value: unknown,
   currentUserQuery?: string | null,
+  mathToolAvailable = false,
 ): KonlingStudyAnswerPreferences {
   const source = readRecord(value);
   const query = currentUserQuery?.trim().toLowerCase().normalize('NFKC') ?? '';
@@ -1166,7 +1184,9 @@ function normalizeKonlingStudyAnswerPreferences(
         ? 'concise'
         : includesAny(query, ['详细', '深入', '完整推导', 'detailed', 'in depth'])
           ? 'detailed'
-          : 'standard',
+          : mathToolAvailable
+            ? 'detailed'
+            : 'standard',
     format: format === 'steps' || format === 'table' || format === 'code-first'
       ? format
       : includesAny(query, ['表格', '对照表', 'table'])
@@ -1175,7 +1195,9 @@ function normalizeKonlingStudyAnswerPreferences(
           ? 'steps'
           : includesAny(query, ['先给代码', '代码优先', 'code first'])
             ? 'code-first'
-            : 'default',
+            : mathToolAvailable
+              ? 'steps'
+              : 'default',
     hintStrength: hintStrength === 'guided'
       ? 'guided'
       : includesAny(query, ['循序渐进', '逐步提示', '只给提示', '不要直接给答案', 'guided hint'])
@@ -1628,6 +1650,7 @@ export interface KonlingPlanContext {
   nextNodeIds: string[];
   recentPathIds: string[];
   completedNodeIds: string[];
+  progressVersion?: string;
   pathOptions?: KonlingPathOptionContext[];
   pathOptionFallback?: KonlingPathOptionFallbackContext | null;
   selectionHistory?: KonlingPathSelectionContext[];
@@ -1898,6 +1921,7 @@ interface KonlingToolRuntimeInput {
   context: KonlingRuntimeContext;
   agentSessionId?: string | null;
   permittedTools?: string[] | null;
+  evidenceCutoff?: Date;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
   /**
    * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
@@ -2109,7 +2133,6 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
-  'calculate',
 ];
 
 export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
@@ -2239,6 +2262,7 @@ async function readTeacherScopedRiskFlags(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2264,6 +2288,7 @@ async function readTeacherScopedRiskFlags(
       userId: { in: studentIds },
       isResolved: false,
       flagType: { in: ['constraint', 'stagnation', 'cross_domain'] },
+      ...(evidenceCutoff ? { evidenceObservedAt: { lte: evidenceCutoff } } : {}),
     },
     orderBy: { triggeredAt: 'desc' },
     take: 500,
@@ -2311,6 +2336,7 @@ async function readTeacherScopedRiskFlags(
 async function readTeacherScopedClassCompetencySummary(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
+  evidenceCutoff?: Date,
 ) {
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope);
   const { studentIds } = memberScope;
@@ -2318,7 +2344,10 @@ async function readTeacherScopedClassCompetencySummary(
     throw new KonlingRuntimeScopeError(409, '班级能力快照暂不可用。');
   }
   const rows = arrayOfRecords(await db.studentCompetencySnapshot.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { snapshotAt: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
     distinct: ['userId'],
     take: Math.max(studentIds.length, 1),
@@ -2393,6 +2422,7 @@ async function readTeacherScopedKnowledgeProgress(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
   args: z.infer<typeof teacherDiagnosisStudentParameters>,
+  evidenceCutoff?: Date,
 ) {
   const parsed = teacherDiagnosisStudentParameters.parse(args);
   const memberScope = await resolveTeacherDiagnosisStudentIds(db, scope, parsed.studentId);
@@ -2401,7 +2431,10 @@ async function readTeacherScopedKnowledgeProgress(
     throw new KonlingRuntimeScopeError(409, '知识点进度数据暂不可用。');
   }
   const rows = arrayOfRecords(await db.knowledgeProgress.findMany({
-    where: { userId: { in: studentIds } },
+    where: {
+      userId: { in: studentIds },
+      ...(evidenceCutoff ? { lastVisited: { lte: evidenceCutoff } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { lastVisited: 'desc' }],
     take: 1_001,
     select: {
@@ -2477,6 +2510,8 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   calculate: toolRegistryEntry('calculate', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+  get_class_assignment_outcomes: toolRegistryEntry('get_class_assignment_outcomes', 'read'),
+  get_class_assessment_outcomes: toolRegistryEntry('get_class_assessment_outcomes', 'read'),
   get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
   get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
   get_student_knowledge_progress: toolRegistryEntry('get_student_knowledge_progress', 'read'),
@@ -2713,6 +2748,10 @@ const reviseLearningPathOptionsParameters = generateLearningPathParameters.exten
   priorRequestId: z.string().min(1).optional(),
   rejectedStyleIds: z.array(z.string().min(1)).max(8).optional(),
   selectedStyleId: z.string().min(1).optional(),
+  sourceBatchId: z.string().min(1),
+  sourceCandidateId: z.string().min(1),
+  sourceCandidateFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+  activeProgressVersion: z.string().min(1),
 });
 
 const selectLearningPathParameters = adaptivePathToolBaseParameters.extend({
@@ -2728,6 +2767,8 @@ const rejectLearningPathOptionParameters = adaptivePathToolBaseParameters.extend
 const explainLearningPathTradeoffParameters = adaptivePathToolBaseParameters.extend({
   styleId: z.string().min(1).optional(),
   compareWithStyleId: z.string().min(1).optional(),
+  candidateBatchId: z.string().min(1).optional(),
+  comparisonKey: z.string().min(1).optional(),
 });
 
 const recordPathAdjustmentOutcomeParameters = adaptivePathToolBaseParameters.extend({
@@ -3130,6 +3171,8 @@ export async function buildKonlingRuntimeContext(
     ? ['propose_smart_lesson_task_change']
     : citationMode.id === 'teacher-diagnosis'
       ? [
+          'get_class_assignment_outcomes',
+          'get_class_assessment_outcomes',
           'get_student_risk_flags',
           'get_class_competency_summary',
           'get_student_knowledge_progress',
@@ -3514,15 +3557,15 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getStudentRiskFlags: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_risk_flags', args, async () =>
-        readTeacherScopedRiskFlags(input.db, input.scope, args)),
+        readTeacherScopedRiskFlags(input.db, input.scope, args, input.evidenceCutoff)),
     getClassCompetencySummary: async (args: z.infer<typeof teacherDiagnosisClassParameters>) =>
       runKonlingRuntimeTool(input, 'get_class_competency_summary', args, async () => {
         teacherDiagnosisClassParameters.parse(args);
-        return readTeacherScopedClassCompetencySummary(input.db, input.scope);
+        return readTeacherScopedClassCompetencySummary(input.db, input.scope, input.evidenceCutoff);
       }),
     getStudentKnowledgeProgress: async (args: z.infer<typeof teacherDiagnosisStudentParameters>) =>
       runKonlingRuntimeTool(input, 'get_student_knowledge_progress', args, async () =>
-        readTeacherScopedKnowledgeProgress(input.db, input.scope, args)),
+        readTeacherScopedKnowledgeProgress(input.db, input.scope, args, input.evidenceCutoff)),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
@@ -4056,13 +4099,28 @@ function applySmartLessonCollectionPatches(
 async function buildAdaptivePathToolOutput(
   input: KonlingToolRuntimeInput,
   operation: 'generated' | 'revised',
-  args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+  rawArgs: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
 ) {
-  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const goalId = resolveScopedAdaptivePathGoalId(input, rawArgs.goalId);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goalId);
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
+  const revisedArgs = operation === 'revised'
+    ? reviseLearningPathOptionsParameters.parse(rawArgs)
+    : null;
+  const adjustmentSource = revisedArgs
+    ? await resolveAdaptivePathAdjustmentSource(input, goalId, revisedArgs)
+    : null;
+  const effectiveRevisionArgs = adjustmentSource && revisedArgs
+    ? {
+        ...revisedArgs,
+        priorRequestId: adjustmentSource.batch.generationRequestId,
+        preferredStyleId: adjustmentSource.candidate.styleId,
+        selectedStyleId: adjustmentSource.candidate.styleId,
+      }
+    : null;
+  const args = effectiveRevisionArgs ?? generateLearningPathParameters.parse(rawArgs);
   const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   // Use the legacy bounded generation cap when the learner omitted one. This
   // cap only controls candidate generation; the minimum executable duration is
@@ -4219,15 +4277,20 @@ async function buildAdaptivePathToolOutput(
     candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
-  const persistedPlan = operation === 'generated'
-    ? {
-        ...plan,
-        id: `${plan.id}:candidate_${createHash('sha256')
-          .update(args.idempotencyKey)
-          .digest('hex')
-          .slice(0, 24)}`,
-      }
-    : plan;
+  const differenceSummary = adjustmentSource && hasPersistablePath
+    ? buildAdaptivePathCandidateDifferenceSummary(adjustmentSource.candidate, plan)
+    : null;
+  if (effectiveRevisionArgs) {
+    await assertAdaptivePathAdjustmentProgressStillCurrent(input, goalId, effectiveRevisionArgs);
+  }
+  const hasMaterialPath = hasPersistablePath && (!differenceSummary || differenceSummary.material);
+  const persistedPlan = {
+    ...plan,
+    id: `${plan.id}:candidate_${createHash('sha256')
+      .update(args.idempotencyKey)
+      .digest('hex')
+      .slice(0, 24)}`,
+  };
   const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
     .map((source) => source.reason)
     .filter((reason): reason is string => Boolean(reason));
@@ -4238,7 +4301,7 @@ async function buildAdaptivePathToolOutput(
   };
   const persistSourcePath = (db: any) => persistLearningPathRound(db, {
     plan: persistedPlan,
-    pathStatus: operation === 'generated' ? 'candidate' : undefined,
+    pathStatus: 'candidate',
     classId: input.scope.classId ?? null,
     learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
     inputSnapshot: {
@@ -4261,59 +4324,73 @@ async function buildAdaptivePathToolOutput(
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
-  const canPersistCandidateBatch = operation === 'generated'
-    && candidateBatchStore
+  const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
+  const candidateBatchInput = {
+    generationRequestId: args.idempotencyKey,
+    plan: persistedPlan,
+    classId: input.scope.classId ?? null,
+    ...(adjustmentSource && differenceSummary ? {
+      derivation: {
+        kind: 'adjustment' as const,
+        sourceBatchId: adjustmentSource.batch.id,
+        sourceCandidateId: adjustmentSource.candidate.id,
+        sourceCandidateFingerprint: adjustmentSource.candidate.fingerprint,
+        activeProgressVersion: effectiveRevisionArgs!.activeProgressVersion,
+        requestSnapshot: readRecord(requestSnapshot),
+        differenceSummary,
+      },
+    } : {}),
+  };
+  if (operation === 'revised' && !canPersistCandidateBatch) {
+    throw new KonlingRuntimeScopeError(409, '候选路径调整暂不可用，请稍后重试。');
+  }
   if (canPersistCandidateBatch) {
     const readExistingBatch = async () => {
       const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
         input.db as any,
         args.idempotencyKey,
       );
-      if (
-        existingBatch
-        && (existingBatch.userId !== persistedPlan.userId || existingBatch.goalId !== persistedPlan.goal.id)
-      ) {
-        throw new AdaptivePathCandidateBatchConflictError(
-          'Generation request identity is bound to a different learner or goal',
-        );
-      }
+      if (existingBatch) assertAdaptivePathCandidateBatchMatchesInput(existingBatch, candidateBatchInput);
       return existingBatch;
     };
     candidateBatch = await readExistingBatch();
-    if (!candidateBatch && hasPersistablePath) {
+    if (!candidateBatch && hasMaterialPath) {
+      const writeFencePathId = effectiveRevisionArgs
+        ? effectiveRevisionArgs.pathId ?? input.context.planContext?.currentPathId
+        : persistedPlan.id;
+      if (!writeFencePathId) {
+        throw new KonlingRuntimeScopeError(409, '当前学习路径不存在，请刷新后重新调整。');
+      }
       try {
         candidateBatch = await runWithLearningPathWriteFence(
           input.db as any,
-          persistedPlan.id,
+          writeFencePathId,
           async (tx, existingPath) => {
             const existingBatch = await readAdaptivePathCandidateBatchByGenerationRequest(
               tx as any,
               args.idempotencyKey,
             );
             if (existingBatch) {
-              if (
-                existingBatch.userId !== persistedPlan.userId
-                || existingBatch.goalId !== persistedPlan.goal.id
-              ) {
-                throw new AdaptivePathCandidateBatchConflictError(
-                  'Generation request identity is bound to a different learner or goal',
-                );
-              }
+              assertAdaptivePathCandidateBatchMatchesInput(existingBatch, candidateBatchInput);
               return existingBatch;
             }
-            if (existingPath) {
+            if (!effectiveRevisionArgs && existingPath) {
               throw new AdaptivePathCandidateBatchConflictError(
                 'Candidate source path exists without its immutable candidate batch',
               );
             }
+            if (effectiveRevisionArgs) {
+              await assertAdaptivePathAdjustmentProgressStillCurrent(
+                input,
+                goalId,
+                effectiveRevisionArgs,
+                tx,
+              );
+            }
             await persistSourcePath(tx);
-            return persistAdaptivePathCandidateBatch(tx as any, {
-              generationRequestId: args.idempotencyKey,
-              plan: persistedPlan,
-              classId: input.scope.classId ?? null,
-            });
+            return persistAdaptivePathCandidateBatch(tx as any, candidateBatchInput);
           },
           { requireWritable: false },
         );
@@ -4322,35 +4399,16 @@ async function buildAdaptivePathToolOutput(
         if (!candidateBatch) throw error;
       }
     }
-  } else if (hasPersistablePath) {
+  } else if (hasMaterialPath) {
     await persistSourcePath(input.db as any);
   }
-  if (operation === 'revised' && hasPersistablePath) {
-    await recordPathChoiceEvidence(input.db as any, {
-      pathId: args.pathId ?? input.context.planContext?.currentPathId ?? plan.id,
-      userId: input.scope.targetUserId,
-      goalId,
-      action: 'switch',
-      selectedStyleId: 'selectedStyleId' in args ? args.selectedStyleId ?? null : null,
-      rejectedStyleIds: 'rejectedStyleIds' in args ? args.rejectedStyleIds ?? [] : [],
-      resourceMix: buildPathResourceMix(plan.mainPath),
-      rationaleMetadata: {
-        outcome: 'revised',
-        priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
-        checkpointPreference: args.checkpointPreference ?? null,
-        graphNodeId: args.graphNodeId ?? null,
-        intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
-        excludedNodeIds: args.excludedNodeIds ?? [],
-        preferredStyleId: args.preferredStyleId ?? null,
-        requestedAt: args.requestedAt ?? null,
-      },
-      idempotencyKey: `${args.idempotencyKey}:revision`,
-      actorUserId: input.scope.authenticatedUserId,
-      actorRole: input.scope.role,
-    });
-  }
-  const hasPersistedOutput = hasPersistablePath || Boolean(candidateBatch);
-  const pathOptions = candidateBatch
+  const noMaterialDifference = operation === 'revised'
+    && !candidateBatch
+    && differenceSummary?.material === false;
+  const hasPersistedOutput = hasMaterialPath || Boolean(candidateBatch);
+  const pathOptions = noMaterialDifference
+    ? []
+    : candidateBatch
     ? candidateBatch.candidates.map((candidate) => ({
           ...buildStudentSafeCandidatePathOption(candidate.snapshot),
           candidateId: candidate.id,
@@ -4370,7 +4428,9 @@ async function buildAdaptivePathToolOutput(
   return {
     operation,
     scope: toolScope,
-    generationStatus: hasPersistedOutput ? 'persisted' : 'blocked',
+    generationStatus: noMaterialDifference
+      ? 'no_material_difference'
+      : hasPersistedOutput ? 'persisted' : 'blocked',
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -4387,7 +4447,7 @@ async function buildAdaptivePathToolOutput(
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: candidateBatch?.sourcePathId ?? (hasPersistablePath ? persistedPlan.id : null),
+    pathId: candidateBatch?.sourcePathId ?? (hasPersistedOutput ? persistedPlan.id : null),
     candidateBatch: candidateBatch ? {
       id: candidateBatch.id,
       generationRequestId: candidateBatch.generationRequestId,
@@ -4399,13 +4459,19 @@ async function buildAdaptivePathToolOutput(
     ),
     comparison: {
       optionCount: pathOptions.length,
-      message: hasPersistablePath
+      message: noMaterialDifference
+        ? '调整后的方案与原候选没有实质差异，请修改调整条件后重试。'
+        : hasPersistablePath
         ? singleOptionDiversityUnavailable
           ? '当前资源只能形成单一推荐方案。'
           : '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
-    limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
+    limitations: uniqueStringList([
+      ...fallbackReasons,
+      ...candidatePoolLimitationCodes,
+      ...(noMaterialDifference ? ['no-material-difference'] : []),
+    ]),
     candidatePoolLimited,
     diagnostics: {
       candidatePool: candidatePoolDiagnostics,
@@ -4416,6 +4482,63 @@ async function buildAdaptivePathToolOutput(
       ...(timeBudget.insufficient ? [`当前学习时长不足以覆盖必需验证，至少需要 ${timeBudget.minimumMinutes} 分钟。`] : []),
     ],
   };
+}
+
+async function resolveAdaptivePathAdjustmentSource(
+  input: KonlingToolRuntimeInput,
+  goalId: string,
+  args: z.infer<typeof reviseLearningPathOptionsParameters>,
+) {
+  const batch = await readAdaptivePathCandidateBatch(input.db as any, args.sourceBatchId);
+  if (!batch) {
+    throw new KonlingRuntimeScopeError(404, '调整基线候选不存在，请刷新后重试。');
+  }
+  if (
+    batch.userId !== input.scope.targetUserId ||
+    batch.goalId !== goalId ||
+    (input.scope.classId && batch.classId !== input.scope.classId)
+  ) {
+    throw new KonlingRuntimeScopeError(403, '调整基线候选不属于当前学习范围。');
+  }
+  const candidate = batch.candidates.find((item) => item.id === args.sourceCandidateId);
+  if (!candidate) {
+    throw new KonlingRuntimeScopeError(404, '调整基线候选不属于指定批次。');
+  }
+  if (candidate.fingerprint !== args.sourceCandidateFingerprint) {
+    throw new KonlingRuntimeScopeError(409, '候选路径版本已更新，请刷新后重新调整。');
+  }
+  const progressVersion = input.context.planContext?.progressVersion;
+  if (!progressVersion || progressVersion !== args.activeProgressVersion) {
+    throw new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。');
+  }
+  return { batch, candidate };
+}
+
+async function assertAdaptivePathAdjustmentProgressStillCurrent(
+  input: KonlingToolRuntimeInput,
+  goalId: string,
+  args: z.infer<typeof reviseLearningPathOptionsParameters>,
+  db: unknown = input.db,
+) {
+  const pathId = args.pathId ?? input.context.planContext?.currentPathId;
+  if (!pathId) {
+    throw new KonlingRuntimeScopeError(409, '当前学习路径不存在，请刷新后重新调整。');
+  }
+  const current = await (db as any).learningPath?.findFirst?.({
+    where: {
+      id: pathId,
+      userId: input.scope.targetUserId,
+      goalId,
+      ...(input.scope.classId ? { classId: input.scope.classId } : {}),
+    },
+    select: { updatedAt: true },
+  });
+  const currentVersion = current?.updatedAt instanceof Date
+    ? current.updatedAt.toISOString()
+    : typeof current?.updatedAt === 'string' ? current.updatedAt : '';
+  if (!currentVersion || currentVersion !== args.activeProgressVersion) {
+    throw new KonlingRuntimeScopeError(409, '学习路径进度已更新，请基于最新进度重新调整。');
+  }
 }
 
 function toStudentConfigurationFulfillment(
@@ -4744,6 +4867,8 @@ function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): Ada
     knowledgeMastery: {
       tags,
     },
+    primaryPortraitState: 'NO_EVIDENCE',
+    primaryPortraitAvailability: 'no-eligible-evidence',
     evidence: {
       confidence: {
         level: 'low',
@@ -4772,6 +4897,8 @@ function normalizeAdaptivePathLearnerStateForPlanner(
   const vector = learnerState.primaryCompetencies?.vector ?? {};
   return {
     ...learnerState,
+    primaryPortraitState: learnerState.primaryPortraitState,
+    primaryPortraitAvailability: learnerState.primaryPortraitAvailability,
     primaryCompetencies: {
       ...learnerState.primaryCompetencies,
       vector: Object.fromEntries(Object.entries(vector).map(([key, value]) => [
@@ -5080,6 +5207,12 @@ async function buildAdaptivePathTradeoffOutput(
   args: z.infer<typeof explainLearningPathTradeoffParameters>,
 ) {
   const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  if (!args.candidateBatchId || !args.styleId || !args.compareWithStyleId || !args.comparisonKey) {
+    throw new KonlingRuntimeScopeError(400, '候选路径比较必须提供完整的批次、路径和比较身份。');
+  }
+  if (args.styleId === args.compareWithStyleId) {
+    throw new KonlingRuntimeScopeError(400, '候选路径比较不能选择同一条路径。');
+  }
   const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
   const path = await assertScopedAdaptivePathToolPath(input, pathId, {
     goalId,
@@ -5094,15 +5227,41 @@ async function buildAdaptivePathTradeoffOutput(
     { allowPolicyFallback: true },
   );
   const options = [...storedOptions.values()];
-  const selectedOption = args.styleId
-    ? storedOptions.get(args.styleId) ?? null
-    : options[0] ?? null;
-  const comparedOption = args.compareWithStyleId
-    ? storedOptions.get(args.compareWithStyleId) ?? null
-    : options.find((option) => option.styleId !== selectedOption?.styleId) ?? null;
+  const selectedOption = storedOptions.get(args.styleId) ?? null;
+  const comparedOption = storedOptions.get(args.compareWithStyleId) ?? null;
+  const candidateBatch = await readAdaptivePathCandidateBatch(input.db as any, args.candidateBatchId);
+  if (
+    !candidateBatch
+    || candidateBatch.userId !== input.scope.targetUserId
+    || candidateBatch.goalId !== goalId
+    || candidateBatch.sourcePathId !== path.id
+  ) {
+    throw new KonlingRuntimeScopeError(403, '候选比较对象不属于当前学习路径批次。');
+  }
+  const comparisonAuthorization = authorizeAdaptivePathComparisonIdentity({
+    candidateBatchId: candidateBatch.id,
+    candidateBatchCreatedAt: candidateBatch.createdAt,
+    currentPathUpdatedAt: toIsoOrNull(getValue(path, 'updatedAt')) ?? '',
+    candidates: candidateBatch.candidates.map((candidate, index) => ({
+      optionId: getString(readRecord(candidate.snapshot), 'optionId') || `path-option-${index + 1}`,
+      styleId: candidate.styleId,
+    })),
+    selectedStyleId: selectedOption?.styleId,
+    comparedStyleId: comparedOption?.styleId,
+    requestedComparisonKey: args.comparisonKey,
+  });
+  if (!comparisonAuthorization.ok) {
+    throw new KonlingRuntimeScopeError(
+      comparisonAuthorization.reason === 'stale-path-version' ? 409 : 403,
+      comparisonAuthorization.reason === 'stale-path-version'
+        ? '当前学习路径已更新，请重新生成候选方案后再比较。'
+        : '候选比较身份已失效，请重新选择比较对象。',
+    );
+  }
   const comparison = selectedOption && comparedOption && selectedOption.styleId !== comparedOption.styleId
     ? buildAdaptivePathDifferenceExplanation(path.id, selectedOption, comparedOption)
     : buildUnavailableAdaptivePathDifferenceExplanation(path.id, options);
+  comparison.comparisonKey = comparisonAuthorization.comparisonKey;
   return {
     operation: 'explained',
     scope: buildAdaptivePathToolScope(input, goalId, path.id),
@@ -5406,7 +5565,7 @@ async function assertScopedAdaptivePathToolPath(
       goalId: options.goalId,
       ...(input.scope.classId ? { classId: input.scope.classId } : {}),
     },
-    select: { id: true, pathPayload: true, learnerStateRef: true, inputSnapshot: true },
+    select: { id: true, pathPayload: true, learnerStateRef: true, inputSnapshot: true, updatedAt: true },
   });
   if (!path) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能访问不属于当前学生的学习路径。');
@@ -5444,6 +5603,7 @@ interface AdaptivePathStoredNodeSummary {
 interface AdaptivePathDifferenceExplanation {
   status: 'ready' | 'no-material-difference' | 'insufficient-data';
   pathId: string;
+  comparisonKey?: string;
   options: Array<{
     optionId: string;
     styleId: string;
@@ -5874,24 +6034,33 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
     goalId: getString(record, 'goalId') || null,
     pathId: getString(record, 'pathId') || null,
     graphNodeId: getString(record, 'graphNodeId') || null,
-    routeIntentProvided: Boolean(getString(record, 'routeIntent')),
+    routeIntent: getString(record, 'routeIntent') || null,
     naturalLanguageIntent: summarizeStudentIntent(getString(record, 'naturalLanguageIntent')),
   };
   if (toolName === 'generate_learning_path' || toolName === 'revise_learning_path_options') {
-    return redactSensitivePayload({
+    const generationSummary = {
       ...base,
       timeBudgetMinutes: getNumber(record, 'timeBudgetMinutes') || null,
       difficultyRhythm: getString(record, 'difficultyRhythm') || null,
-      resourcePreference: arrayOfStrings(record.resourcePreference),
+      resourcePreference: uniqueStringList(arrayOfStrings(record.resourcePreference)).sort(),
       checkpointPreference: getString(record, 'checkpointPreference') || null,
       allowExternalResources: typeof record.allowExternalResources === 'boolean' ? record.allowExternalResources : null,
-      excludedNodeIds: arrayOfStrings(record.excludedNodeIds),
+      excludedNodeIds: uniqueStringList(arrayOfStrings(record.excludedNodeIds)).sort(),
       preferredStyleId: getString(record, 'preferredStyleId') || null,
       requestedAt: getString(record, 'requestedAt') || null,
       priorRequestId: getString(record, 'priorRequestId') || null,
-      rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
+      rejectedStyleIds: uniqueStringList(arrayOfStrings(record.rejectedStyleIds)).sort(),
       selectedStyleId: getString(record, 'selectedStyleId') || null,
-    });
+    };
+    return redactSensitivePayload(toolName === 'revise_learning_path_options'
+      ? {
+          ...generationSummary,
+          sourceBatchId: getString(record, 'sourceBatchId') || null,
+          sourceCandidateId: getString(record, 'sourceCandidateId') || null,
+          sourceCandidateFingerprint: getString(record, 'sourceCandidateFingerprint') || null,
+          activeProgressVersion: getString(record, 'activeProgressVersion') || null,
+        }
+      : generationSummary);
   }
   if (toolName === 'reject_learning_path_option') {
     return redactSensitivePayload({
@@ -6268,6 +6437,13 @@ async function runKonlingRuntimeTool<T>(
     assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
     assertReusedCandidateSelectionToolRunMatchesInput(toolName, toolRun, toolInput);
     if (toolRun.status === 'succeeded') {
+      await assertReusedAdaptivePathAdjustmentToolRunMatchesInput(
+        runtimeInput,
+        toolName,
+        toolRun,
+        toolInput,
+        adaptivePathGoalId,
+      );
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
         toolRunId: toolRun.id,
@@ -6360,6 +6536,35 @@ function assertReusedCandidateSelectionToolRunMatchesInput(
   ) {
     throw new KonlingRuntimeScopeError(409, '幂等候选路径选择与已完成的工具请求不一致。');
   }
+}
+
+async function assertReusedAdaptivePathAdjustmentToolRunMatchesInput(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolRun: KonlingToolRunView,
+  toolInput: unknown,
+  goalId: string | null,
+): Promise<void> {
+  if (toolName !== 'revise_learning_path_options') return;
+  const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
+  const requestedSummary = buildKonlingToolInputSummary(toolName, parsed);
+  if (stableKonlingToolIdentityJson(toolRun.inputSummary) !== stableKonlingToolIdentityJson(requestedSummary)) {
+    throw new KonlingRuntimeScopeError(409, '幂等候选路径调整与已完成的工具请求不一致。');
+  }
+  const scopedGoalId = goalId ?? resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+  await resolveAdaptivePathAdjustmentSource(runtimeInput, scopedGoalId, parsed);
+  await assertAdaptivePathAdjustmentProgressStillCurrent(runtimeInput, scopedGoalId, parsed);
+}
+
+function stableKonlingToolIdentityJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableKonlingToolIdentityJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${stableKonlingToolIdentityJson(nested)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
 }
 
 async function validateKonlingToolPreflight(
@@ -7597,7 +7802,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
     }),
     calculate: tool({
-      description: '使用 SymPy 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；支持化简、展开、因式分解、部分分式展开、求导、积分、拉普拉斯变换与逆变换。推导关键代数步骤时应调用本工具确认真实结果。',
+      description: '使用 Wolfram 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；该运行时入口仅供受治理的服务端调用，不向聊天模型暴露。',
       inputSchema: calculateToolParameters,
       execute: (args) => runtime.calculate(args),
     }),
@@ -7867,21 +8072,38 @@ export async function recordKonlingInterventionFeedback(
     helpful: input.helpful ?? null,
     recordedAt: new Date().toISOString(),
   };
-  const updateResult = await db.aIIntervention?.updateMany?.({
-    where: {
-      id: input.interventionId,
-      userId: input.scope.targetUserId,
-      classId: input.scope.classId ?? null,
-      resourceId: input.scope.resourceId ?? null,
-      pathNodeId: input.scope.pathNodeId ?? null,
-    },
-    data: {
-      wasHelpful: input.helpful ?? null,
-      studentResponse: input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : undefined,
-      outcome,
-    },
-  });
-  const updatedCount = typeof getValue(updateResult, 'count') === 'number' ? getValue(updateResult, 'count') as number : 0;
+  const executeRaw = (db as { $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<number> }).$executeRaw;
+  let updatedCount = 0;
+  if (typeof executeRaw === 'function') {
+    updatedCount = await executeRaw`
+      UPDATE "AIIntervention"
+      SET
+        "wasHelpful" = ${input.helpful ?? null},
+        "studentResponse" = COALESCE(${input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : null}, "studentResponse"),
+        outcome = COALESCE(outcome, '{}'::jsonb) || ${JSON.stringify(outcome)}::jsonb
+      WHERE id = ${input.interventionId}
+        AND "userId" = ${input.scope.targetUserId}
+        AND "classId" IS NOT DISTINCT FROM ${input.scope.classId ?? null}
+        AND "resourceId" IS NOT DISTINCT FROM ${input.scope.resourceId ?? null}
+        AND "pathNodeId" IS NOT DISTINCT FROM ${input.scope.pathNodeId ?? null}
+    `;
+  } else {
+    const updateResult = await db.aIIntervention?.updateMany?.({
+      where: {
+        id: input.interventionId,
+        userId: input.scope.targetUserId,
+        classId: input.scope.classId ?? null,
+        resourceId: input.scope.resourceId ?? null,
+        pathNodeId: input.scope.pathNodeId ?? null,
+      },
+      data: {
+        wasHelpful: input.helpful ?? null,
+        studentResponse: input.studentResponse ? sanitizeMemorySummary(input.studentResponse) : undefined,
+        outcome,
+      },
+    });
+    updatedCount = typeof getValue(updateResult, 'count') === 'number' ? getValue(updateResult, 'count') as number : 0;
+  }
   if (updatedCount !== 1) {
     throw new KonlingRuntimeScopeError(404, '干预不存在或不属于当前 Konling 作用域。');
   }
@@ -7898,8 +8120,14 @@ export async function recordKonlingInterventionFeedback(
     summary: `学生对干预 ${input.interventionId} 的反馈：${input.feedback}${input.helpful === undefined ? '' : `，helpful=${input.helpful}`}`,
     evidenceRefs: [{ kind: 'ai-intervention', ref: input.interventionId }],
   });
-  await recordKonlingPathInterventionOutcome(db, input, existingIntervention ?? null);
+  if (!isArenaOfficialIntervention(existingIntervention)) {
+    await recordKonlingPathInterventionOutcome(db, input, existingIntervention ?? null);
+  }
   return { success: true, outcome };
+}
+
+function isArenaOfficialIntervention(intervention: unknown): boolean {
+  return getString(intervention, 'sessionId').startsWith('arena-official:');
 }
 
 async function recordKonlingPathInterventionOutcome(
@@ -9672,12 +9900,23 @@ function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Part
   };
 }
 
+function hasTrustedPortraitForKonling(state: AdaptiveLearnerState | null): boolean {
+  return Boolean(
+    state
+      && state.primaryPortraitState === 'SNAPSHOT'
+      && state.primaryPortraitAvailability === 'available'
+      && state.primaryPortrait
+      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
+  );
+}
+
 function buildServerOwnedUserProfile(input: {
   userId: string;
   name: string;
   learnerState: AdaptiveLearnerState | null;
 }): UserProfile {
-  const portraitPayload = input.learnerState?.primaryPortrait;
+  const trustedPortrait = hasTrustedPortraitForKonling(input.learnerState);
+  const portraitPayload = trustedPortrait ? input.learnerState?.primaryPortrait : null;
   const portraitV2 = portraitPayload && Array.isArray(portraitPayload.dimensions)
     ? summarizePortraitV2(portraitPayload)
     : undefined;
@@ -9692,6 +9931,7 @@ function buildServerOwnedUserProfile(input: {
 }
 
 function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
+  if (!hasTrustedPortraitForKonling(state)) return 3;
   const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
     ? state.primaryPortrait.dimensions
     : [];
@@ -9703,11 +9943,7 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
   )
     ? portraitDimensions.map((entry) => entry.score)
     : [];
-  const values = portraitValues.length > 0
-    ? portraitValues
-    : Object.values(state?.primaryCompetencies.vector ?? {}) // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cold-start fallback only.
-      .map((entry) => typeof entry?.score === 'number' ? entry.score : null)
-      .filter((value): value is number => value !== null);
+  const values = portraitValues;
   if (values.length === 0) return 3;
   const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
   if (avg >= 85) return 5;
@@ -9719,7 +9955,10 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
 
 function toLegacyAbilityVector(state: AdaptiveLearnerState | null): AbilityVector {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: AIContext still exposes this legacy field.
-  const vector = (state?.primaryCompetencies.vector ?? {}) as Record<string, { score?: number } | undefined>;
+  const trustedState = state && hasTrustedPortraitForKonling(state) ? state : null;
+  const vector = trustedState
+    ? trustedState.primaryCompetencies.vector as unknown as Record<string, { score?: number } | undefined>
+    : {};
   return {
     computational: normalizeScore(vector.controlModeling?.score),
     crossDomain: normalizeScore(vector.crossDomainTransfer?.score),

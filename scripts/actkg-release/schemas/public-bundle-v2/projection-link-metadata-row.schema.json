@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actkg.example/schema/public-bundle/projection-link-metadata-row.schema.json",
+  "title": "ActKG Projection Link Metadata Row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "relation_id",
+    "release_tier",
+    "evidence_refs",
+    "relation_component_release",
+    "source_component_release",
+    "target_component_release",
+    "source_release",
+    "source_release_hash"
+  ],
+  "properties": {
+    "relation_id": {"type": "string", "minLength": 1},
+    "release_tier": {"enum": ["gold", "silver"]},
+    "evidence_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "relation_component_release": {"type": "string", "minLength": 1},
+    "source_component_release": {"type": "string", "minLength": 1},
+    "target_component_release": {"type": "string", "minLength": 1},
+    "source_release": {"type": "string", "minLength": 1},
+    "source_release_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "integration_release": {"type": "string", "minLength": 1},
+    "integration_release_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "dependentRequired": {
+    "integration_release": ["integration_release_hash"],
+    "integration_release_hash": ["integration_release"]
+  }
+}
