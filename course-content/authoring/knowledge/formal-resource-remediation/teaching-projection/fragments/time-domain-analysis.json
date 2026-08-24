@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "time-domain-analysis",
  "memberCount": 584,
  "edgeCount": 165,
- "bindingCount": 492,
- "fragmentHash": "c4e7a89bb0319ee9a135c1fa6a2aa26ef0294107e0f55b2f1d0faba9aaad6f5f",
+ "bindingCount": 753,
+ "fragmentHash": "0c9e98dc3483de4023a7c8377de2b30f7fbd017356ef536456252807642cb5af",
  "members": [
   {
    "canonicalId": "ctkg:m3-v1j:canonical-object:03e84e6868be470e89d7b189",
@@ -1073,7 +1073,7 @@
    "canonicalId": "ctkg:v3e-canonical-3b7f357d3842ce18560a54cf",
    "excluded": false,
    "label": "M_{p}=e^{-\\pi \\zeta / \\sqrt{1-\\zeta^{2}}}, \\quad 0 \\leq \\zeta<1",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-3c09875818993a2fd71e3dd6",
@@ -1091,7 +1091,7 @@
    "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
    "excluded": false,
    "label": "测速反馈控制",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-3e670eae83dcdd8c322cd8f3",
@@ -1109,7 +1109,7 @@
    "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
    "excluded": false,
    "label": "单位脉冲函数",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-402520f5d0666a4005583d67",
@@ -1211,7 +1211,7 @@
    "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
    "excluded": false,
    "label": "极点",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
@@ -1331,7 +1331,7 @@
    "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
    "excluded": false,
    "label": "单位阶跃函数",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-4facb5e3154c492305396a68",
@@ -1379,7 +1379,7 @@
    "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
    "excluded": false,
    "label": "复合控制系统",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-522a10f6a751d96b26c1d8c6",
@@ -1727,7 +1727,7 @@
    "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
    "excluded": false,
    "label": "比例-微分控制",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-6dbb5c144b45c1f35822330c",
@@ -2387,7 +2387,7 @@
    "canonicalId": "ctkg:v3e-canonical-accbc123052ef16a32580910",
    "excluded": false,
    "label": "属性断言：影响稳态误差的诸因素是：系统型别，开环增益，输入信号的形式和幅值。",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
@@ -2423,7 +2423,7 @@
    "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
    "excluded": false,
    "label": "典型输入信号",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
@@ -2765,7 +2765,7 @@
    "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
    "excluded": false,
    "label": "稳态过程",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-canonical-c91169cfe7abdf6075e77ae1",
@@ -4840,1197 +4840,2968 @@
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-082b6d465951bbf38b2c7ac7",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-5dc86f7821fec8296fe06c62",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-468e59605791d7cf38c1df12",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-7eff0c2ac23bc1b638a95e3a",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-3b2a117d878e1c727f8dcfb8",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-02a757def545121e7b2e2518",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-ae0240a21f9b88705167537b",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-058751ac04a9391e5ed57d68",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-50fc8482cf6e2260a8a31f7a",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-eb53f73426a0a8eaa2e6ce95",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-0ab9da8712fb8b79675547d4",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-一阶系统_3_4f3b29ce",
    "anchorId": "atom-a953f088fceb3aa0d8cb45bd",
    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-be75f2db06bdedc62ea7e3be",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-0eb6714a46f0b9ebe102dd5a",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-04444667c1d2281470384283",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-f508caa8a01958bc38f262fe",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-ae90030034bc9944d2f92e07",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-64ca3eaa3db8fd666c1dc70b",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-b62bc0d1bb32e061ab2c62f8",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-上升时间_3_6fa0ec00",
+   "anchorId": "atom-2bca8e477c7ff1b9304c04fd",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界阻尼_1_3",
+   "anchorId": "atom-242d59affb1efa5c5eaafd97",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界阻尼_1_3",
+   "anchorId": "atom-d79b787cfc87a6f0fa8d4e80",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界阻尼_1_3",
+   "anchorId": "atom-805c63c0dfd7564ea6a3930f",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-9f36ee92d2a9d53e2aa2281f",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-a22ffaddc4e242ead02be9eb",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-2128736d61ef95cd965ffa19",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-6ca3584a8a7873530f06220b",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-47393daeb7ea436369f157cb",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-b6378331c22d5a49375a67b6",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-554e92f6a6810350481ec6ed",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-a512425f8c6069f73f41f248",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-临界阻尼响应_3_5839e0e4",
    "anchorId": "atom-d08825e3b091fc2fd300a9e9",
    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-577ab32bc7702f2372a5a5c8",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-b0667c938bcd9fe36c54d5bd",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-ac368d3818855dfc2954bb45",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-ae8787a5789babac4b73338a",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-f1d05ab7cd6b9bb5906bb5cf",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-b14c65b3461463554bd62b44",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-4dc55b11078c29db9f6248e0",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-9e1db890aaaeecbd4ed019f3",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-ae9f1761467a0b4bc1ee5707",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-伯德图_6_1a069614",
+   "anchorId": "atom-ca3d0a2733f85bd73267e3c4",
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-典型输入信号_3_897a572d",
+   "anchorId": "atom-f7d5c7fae698e2a3c88936a0",
+   "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-典型输入信号_3_897a572d",
+   "anchorId": "atom-42702d410276105e9d986264",
+   "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-典型输入信号_3_897a572d",
+   "anchorId": "atom-42deb4b830f5ac4d97a61ed4",
+   "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-典型输入信号_3_897a572d",
+   "anchorId": "atom-9c822c8012bbd6267a5324a4",
+   "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-0f650328dce3007e6c1a9f2b",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-e095520c75e21b573c53b2a3",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-0722ece71b58f55197f96ab9",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-07526ac126b6739c690046a6",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-1c4ce9e5ca6609ad54ddfb8a",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-0960ae844151e3c63899e007",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-动态性能指标_3_a10733c1",
    "anchorId": "atom-eb0dad16155eaa8d70dd6196",
    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-动态过程_3_8a8051ec",
+   "anchorId": "atom-1844775b21d7c56ba58b7fa4",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-动态过程_3_8a8051ec",
+   "anchorId": "atom-c246d9cfe2178a53d546ca9a",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-动态过程_3_8a8051ec",
+   "anchorId": "atom-96a49dd500936ba6e0d342d6",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-动态过程_3_8a8051ec",
+   "anchorId": "atom-b81b37968cf7ca01aee9cb3d",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位脉冲函数_3_8a68d227",
+   "anchorId": "atom-25089e6c3c065d2bb5f38317",
+   "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位脉冲函数_3_8a68d227",
+   "anchorId": "atom-9c9a261487719afb19cfaaf4",
+   "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位脉冲函数_3_8a68d227",
+   "anchorId": "atom-b3ea3ed4c5215b2dc59e10c8",
+   "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位脉冲函数_3_8a68d227",
+   "anchorId": "atom-f04b3703bac9395999996390",
+   "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位阶跃函数_3_c077ea6e",
+   "anchorId": "atom-19d575b767bda8c07c84aca6",
+   "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位阶跃函数_3_c077ea6e",
+   "anchorId": "atom-d9b80dc4c2d598686b9673b9",
+   "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位阶跃函数_3_c077ea6e",
+   "anchorId": "atom-1514f8215a6b58ab5eb0e73a",
+   "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-单位阶跃函数_3_c077ea6e",
+   "anchorId": "atom-9c457e70b270142da28a3c4f",
+   "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-e4c58ce7089d03295fe43b0b",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-d46d68c544670a1bdfde0730",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-00d26520688a08f92136ceb4",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-2890b5f108cf491580667317",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-9765eac0e3bb0b0a396078dc",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-7d576ed5b88bda28d8fad62b",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-9059b5be6fd72a3eff8a0c8b",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-87260c62f4d382a521511bec",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-914a7dc5a1c9deff42e0252a",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_2_6a2a83b9",
    "anchorId": "atom-1a18fc4095b6484762b17fd6",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-76cf61f51f0fc97bfb7f3c4f",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-f2be5bb2fc01b7bc1886f312",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-b148a7ae3ceb69699c550f23",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-eab9cc439d704890a1a78b90",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-21fac513d0b00c359a04f7ec",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-ab77a79ec2bf5435eda2a76f",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-aaa108cfc43ec31cbae4a1cb",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_3_04fc55dc",
    "anchorId": "atom-7fd1c32ab56ccf075b327f90",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_9_dd4abbe1",
    "anchorId": "atom-1751fe7ccfec59016e7bf13e",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_9_dd4abbe1",
    "anchorId": "atom-bf885e1f4b5f1a7023269cb9",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_9_dd4abbe1",
    "anchorId": "atom-67c7d95c111468e5be65d696",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-单位阶跃响应_9_dd4abbe1",
    "anchorId": "atom-f07ebda6b643618f4a77e976",
    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-叠加原理_2_dda8499e",
+   "anchorId": "atom-6c8e4529a7d6113f5f9aaedf",
+   "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-叠加原理_2_dda8499e",
+   "anchorId": "atom-24c25cd9d7d895fe9c506db7",
+   "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-叠加原理_2_dda8499e",
+   "anchorId": "atom-a6ce3aa819df6a932912c150",
+   "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-叠加原理_2_dda8499e",
+   "anchorId": "atom-11069a998772cb113c1a6af8",
+   "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-e87d958720f987eaf84036f8",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-fb3db8aa04affd60695649fa",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-cc9b8a9ff80e94f7b627634a",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-f178ec86df7852783af7f923",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-37a33cf49db3817e555a8cfa",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-6c7c22491b5f02ff81ba777c",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-b1d9f71ad0800c7f85b85b79",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-复合控制系统_6_cd8f5178",
+   "anchorId": "atom-37010625ce8b0b90d28d3506",
+   "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-81bb88e574dd4b00f467a2c3",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-aa4399db3b3dd883e6926475",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-7f34abb8a5628ab561c1b07c",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-e46f4a1ff4bea30b247dbff1",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-eee81d88f46eed713431e2c5",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-57961a65489a1a7649ff542d",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-9426338a1151e49d955dac1f",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-bb7414085143361cf7c9a0f1",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-7d7e1180ba3a96b1e90fea23",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-f1362dc53414cf274ee29e48",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-f1aa88d30188dddaa8cd77f9",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-峰值时间_3_adc7ea95",
+   "anchorId": "atom-04a469d2dbc30b32334f4750",
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-2606167b10ff3091d36bdb3b",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-f1168dcb52b466201b86df43",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-3ccc8267a7d5717d90b7e44f",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-8ee79705451024722e77b084",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-eed2f8c79b53a7fda57a96f6",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-118a79346c14d4d655f41449",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-49f80fe1ad0d5af41ac14725",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-0036b833ae8ce5c8feead754",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-00c2dfc31bea96d613a55135",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-234ec3429df747193ae27b3c",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-无阻尼自然频率_3_13001",
    "anchorId": "atom-c746d22332f9aa7626c48b6e",
    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-a8b47ca345ed4233455dbd69",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-e653c75e444b263f1be59abb",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-b0fc560ca56b96f95326e0fb",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-08aba5a83193247d0d6999db",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-4bd2d86d51cac34a24f8ddad",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-d07ad3fdebd4c497bb652eee",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-c489724d165b15d352827451",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-8d19edabe929c70dfcfb77a5",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-35a238a09d2116680082e7d2",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-57e00c077ff1c0497bc6bbbf",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-9820f0f517d27e9ac1fd0a14",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_2_68356eae",
+   "anchorId": "atom-f5eb529b70b17732287d27f2",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_3_17162973",
+   "anchorId": "atom-1f09d977463a71afb9f622d9",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_3_17162973",
+   "anchorId": "atom-392fc13b47d2756958a9e3fa",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_3_17162973",
+   "anchorId": "atom-7242f90d8b11c7f429c0d124",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-时间常数_3_17162973",
+   "anchorId": "atom-6774f732abd7745824f29c4d",
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_1",
+   "anchorId": "atom-f28aaff80dba2d8b72f7ce10",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_1",
+   "anchorId": "atom-cf7bc8d63327edf8dcffd57e",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_1",
+   "anchorId": "atom-19f80ea3e3b30fb9e70ac60f",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_1",
+   "anchorId": "atom-d48aad57922fe931b86b378f",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_2",
+   "anchorId": "atom-67b667962fc9b25123feea0d",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_2",
+   "anchorId": "atom-2dcc0b10148f71eb7995fb12",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_2",
+   "anchorId": "atom-84004d55993d9dfd6a14a99f",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_1_2",
+   "anchorId": "atom-097c6e95fc73a92c3bb63136",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-67ef102bf33f711fa54d60e5",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-daad12528cbf9a4ce7a43975",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-e98af394d1a1817dbe46c0e1",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-59100554e54f911842a487a1",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-f72495d2c90ef4cbe0125482",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-2b74ed9dd2b1d936452d9716",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点_2_cc79a4c5",
+   "anchorId": "atom-75edda07cd46e12669dacafa",
+   "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-1c7bc7b4068e444a16a780f4",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-58cb62994c437c2e0041ed32",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-a037c660a9b8e52e7f2c0d66",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-b71797aa1ee13d2f02f457e6",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-ab478286afcc355622adc852",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-c77f1b6f1934b25914a7f042",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-61bc95911271044f9a6c8f6b",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-62c5c66044a667488c37a01d",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-正弦函数_1_98499ac0",
    "anchorId": "atom-eaa99a80f4c0d86203dbe572",
    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-6a4710c08e37f35bfa3fb21d",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-1c79a7518e1682c5f52c5fec",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-72e3129dbe84642f21004283",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-4e588a7981b4d5f85a631d76",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-6185fd23eee909de9c62949b",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-7af3089366410c502b86322f",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-42e850c8e834b3723fcdc9d8",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-比例-微分控制_3_8428a70d",
+   "anchorId": "atom-e6938f99aa987aa9da341cbe",
+   "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-bddbfa2f35e8cd26b7674bbd",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-9fe9fc638365f71267ebc343",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-d786e4d078892c4456bc9fd5",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-f97a9bb7c7d5708037c3d108",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-5eba3101b4c5f03274fff0b8",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-be5358607ec543c1bf06f18d",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-86c31c1f36b6df414c76b768",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-b538773543af31d01a2eb68a",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-比例-积分控制器_3_2d540516",
    "anchorId": "atom-29365031c0ffce724dc44b19",
    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-9064c1646a009429ce69b129",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-725961cafc7aabfb6397f651",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-c22ada7c6fd70cc37090ff93",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-850a1f8cdf5bd4426989d6c4",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-67ae34c2a2b304aeb706d6cb",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-bf2effa875e02340d5d0d157",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-0afe38d3b67badc14d7bda78",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-测速反馈控制_3_4c2ec80f",
+   "anchorId": "atom-bf4814c842de3d99a25dcef7",
+   "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_1",
+   "anchorId": "atom-817500513057ad8afc8aac13",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_1",
+   "anchorId": "atom-4d8107609a928b332d7e4259",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_1",
+   "anchorId": "atom-af9e53163de6fb627964c78d",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_1",
+   "anchorId": "atom-609048c62953cfa6d2164b25",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_7288b4ea",
+   "anchorId": "atom-9379928f4b9152e56355c84f",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_7288b4ea",
+   "anchorId": "atom-c40ae5d449f766c5fd928700",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_7288b4ea",
+   "anchorId": "atom-e817fdf519952c70fb9b886c",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_1_7288b4ea",
+   "anchorId": "atom-bdb5b275048c84a8baaf7806",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-a9183e1fe344f647920e9c4e",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-5ded0c6c92eb50e6b8013d35",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-75644b0437102223d0bc4191",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-6376d12e400298ac70ca1fcf",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-c8ae0ff72b7916e46f5cc9fa",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-7d109ed809b743c9f036aee9",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-3e89799df29d0c50c9bd28e7",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-6542379a87fc249a0c50c0b3",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-ac71f70e4615c95f4a6b70d7",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-21556475cddd85dc064eac92",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_3_72d04fbd",
+   "anchorId": "atom-b8ded6b834331cbb9275b829",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_4_b56bde88",
+   "anchorId": "atom-942f42c854ab08a989707d5f",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_4_b56bde88",
+   "anchorId": "atom-f9eb56d279d07d2d58a99362",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_4_b56bde88",
+   "anchorId": "atom-34e87415c78c6d7272daf153",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_4_b56bde88",
+   "anchorId": "atom-adfc8d6916bbe1eb5b949069",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-a8d9b3866eae3beabed6d3bb",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-fce1ae010ed17f6c90b7f9cc",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-d23d9e10e870643c3521fc8c",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-286454364c166eb995bdb527",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-3abf35162cdb4ede4e8e07e4",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳定性_7_2e521218",
+   "anchorId": "atom-5ec7d168ed27df404064b698",
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_1_a34b94a7",
+   "anchorId": "atom-3f3d9a0d4fd6b620e1619e4f",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_1_a34b94a7",
+   "anchorId": "atom-e74e7dc350e73d4c6e7dd113",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_1_a34b94a7",
+   "anchorId": "atom-d470463b3feb592b1237c68c",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_1_a34b94a7",
+   "anchorId": "atom-31f47bfaa2e40c4c45626c2b",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-b2d662fb164e1a9bb723eb73",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-08070d9e49bfed937e5ca680",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-2536d3b12ebd8c687dc4fecf",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-459641784a24684f918987f4",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-82d351ebe7e05c53e32ab48b",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-a1aee9f8269e08169f967989",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-bd21a8a745bc9b33998046a6",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-2ad56605dda805c8ddf02d2c",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-e949cdcebd58cb558bf4447e",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-75b2cdf2f744a49ad07b2bf7",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_3_c0207063",
+   "anchorId": "atom-c3b2360aa9e36d22a58654bf",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-f23e86a70f79621388d1a59a",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-2e24569c412c229d09631f96",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-081d72f25f9770942cc1b1a8",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-a2bf25ae9829455989235f12",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-60ae6c3140713f9f25e9d9ce",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_4_ef410c98",
+   "anchorId": "atom-f0ad524f815cf49cdddc3b8a",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-4c07ef9897129aa2fddbd6ff",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-3b16b944e6db772d0be7867a",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-1abe13363490575615aa5a13",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-2a1d41af012d30b806fcff3a",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-d51c0128c5915f4e7d02a46a",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态误差_7_18e1e095",
+   "anchorId": "atom-479eb8d268432b25e261ed51",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态过程_3_6d95ec21",
+   "anchorId": "atom-3613a920b0b4adb372edc038",
+   "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态过程_3_6d95ec21",
+   "anchorId": "atom-c2c4816ed495c4ed351bc3bf",
+   "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态过程_3_6d95ec21",
+   "anchorId": "atom-4d210b41c067360a0dc0548d",
+   "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态过程_3_6d95ec21",
+   "anchorId": "atom-b01d016c35a7c5c0ed3322b9",
+   "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-3fb455d49503128538d345f8",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-7b05e01e9dd979381a42ca78",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-4718e9806a5f704d7e6436d9",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-5e17d48996a34eceb3f00730",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-7a02ef0fe675c9a4ce357c23",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-6e674f6a3a23e9839e55d5dd",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-a1e2f260cface2ed0720550f",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_3_5573c2c3",
    "anchorId": "atom-4b0242f6535d2bf7f5e8934d",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-b9d80d0308672a314a715cc6",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-741d07ea1aa6f995011fadf4",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-429df41fb9612ffa3600a65d",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-c022d5d33b61f5294fa98a94",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-6aaa5b6e3fa50f162b09f973",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_5_13c42c40",
    "anchorId": "atom-45293858800f20b7dbcfeedb",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_6_be6e63a4",
    "anchorId": "atom-c497f018e0ff51e6d381565d",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_6_be6e63a4",
    "anchorId": "atom-ff07b78f14d6d6f2aa13ce16",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_6_be6e63a4",
    "anchorId": "atom-f5a4150ad1c71f37337f88d4",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-系统型别_6_be6e63a4",
    "anchorId": "atom-a5c9f33d699e6e2650bd8527",
    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-2b217b71e5cd96ad38d9ff62",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-64487c635cbee7b499f615b8",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-150bedd184a424db44cd9a1e",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-357bf31dbed8022c3eb7a328",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-98c74b0a008777317ca87757",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-cdee73b18260301f01189586",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-1d81fc67e89370bfb60bff5e",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_3_be8fe1ad",
+   "anchorId": "atom-573a1d7f94a49a6de25b7638",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-89b2e5a79f3b6c2c3519fd50",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-a3b443ffae2d5ecccb1ae7ff",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-72e6b165aa6421034a2bc952",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-64c8a6449a6283b125e7f46f",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-3db31aaa642c18991d693968",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-54a9747868855b76ff50cd36",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-终值定理_7_0adf63db",
+   "anchorId": "atom-1896f0bba43b23bce486e3e6",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-26528a7e9c9a055cef251572",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-49e98d649b42a9a9e1959307",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-3937edb82bc0c30e824c437c",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-9899e86efcbd6907fb13d796",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-b26b441fde224ca7214cbab8",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-d97765d770c642c293e6120e",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-4c395be968ee5ab57fc589b8",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-97a88a19852876a61ff66612",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-681a5f7f553488aa97974455",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-5f8ff13301a0542de8f0fb3b",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-1587e28e8860d76a35e47d35",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-925bfaaf34545906d892dbd7",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-73031ebf4e38975d94625c5f",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-c6748cbbe5a36ee8d2674b7a",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-8275dcb3dc5658278e77130e",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-b73a93b817ea73a1c6b12672",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_10_51a8b7d0",
    "anchorId": "atom-0a339f37a6641ede3431bec1",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-3167ec5b0daf1a80b395b5c2",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-87b692b1b90a464244fdbcba",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-5ef63e51f084801212bcb8eb",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-a754f075e6e118b26dd63371",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-74f9141dc78152ed33a07546",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-自然频率_3_ab7d6dc0",
    "anchorId": "atom-8cf2405fe9542f95a19a1390",
    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-8d06ff52f4495647ec419af7",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-2cb274d58a7183bfc88ef6c4",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-504633dbf6d3c11f841e55e2",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-b46db4a07eecbae8d0169f03",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-3aa62c88daa13af3820ebc31",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-09d742388227fae0e2059c61",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-3873d426b114e1fd4b832c71",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-a50db0862e06eb86aa5dcb88",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-a04f07e5ebed03af472ebf0e",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-e62b22ed316175f044f14737",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-ca8ef4217c14cc8b6fbc4508",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_10_fcbccf4e",
+   "anchorId": "atom-89705d4297f958e8259fc633",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-fd1cb200f1975c6ab082a923",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-4e069e3b82a5ab85c17c3c63",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-29478628d80780819a7ca0c7",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-36a6d0766957a870b17d8577",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-8379bfff7fd5650cfab2afcb",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-8289a15feba6baece330713d",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_3_bc329c21",
+   "anchorId": "atom-658ee37a6c96a0092cd91d2d",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-cce704c44e2e2db87b6138ce",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-eddcc74ce71fca794e5506b0",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-4ea1146c6166f6dc7d7e0bda",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-d7c3125aeecd01f4b157fa93",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-d48df5e5be6c0cfbc2cae877",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-调节时间_6_c53f6314",
+   "anchorId": "atom-2fcf95761fff15121523b74d",
+   "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-0f4e2435b51c5be7b2c2aea4",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-177a93b52909198d2121dc17",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-2aa8a4f9d0f5badeeac973d7",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-2c85d6243f2bd39301f6537c",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-f529d0ecb9e59c8bf5e6d995",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-c7613d3aeb2cceab93d1f5aa",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-4558eb21c260e6c0d62186a8",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-1079fe63ac9f671dc2d7ef7c",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-b511de31e303cbf6d5abec9c",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-fcb337f4730b75422c7d4d51",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-dff59342f289fe4b8ad9f4b5",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_3_fc3f5b17",
+   "anchorId": "atom-6d8dd736736077b4e60b8289",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-75c2969c6081ff84f8087e75",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-c000ac5c7ec041817747c953",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-c2a5c80f3f15df58056e2d75",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-c113ebc1d5b088c6d3544c66",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-d5c548e5f274e30331219ae3",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_4_bad49999",
+   "anchorId": "atom-38c7d2df9254ad9fa67df24a",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-fc841c1be5fbc4c9734ab8f9",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-63bb435d229d029a07e202b9",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-855df08f90c2814d0c9da0b5",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-f61b5cca438cc2a009e15b33",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-49cd72b49c595f5c82c4299e",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超调量_6_f91c1939",
+   "anchorId": "atom-b3ad3b297c07fdb2830d417e",
+   "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-7dd3d8a7410668c51ced1dff",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-4e71102ab9afc789b76b23a4",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-15d10d78df07a2ce03981aee",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-221f899335cdc811dc9a2204",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-d3a925a19f85ef4166214331",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-e62608ec834c0460ac991d24",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-ba30b7fd45e0ab47923f5046",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-过阻尼响应_3_adf3867e",
    "anchorId": "atom-2532c8ce68fa58f5b1fcbd87",
    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-0f94e6f9f68eb3dda2f1e87c",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-99dad7a2e416c7e42ecec8d4",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-94fb973d721cad6fd1e7fb00",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-8b0e5cef5a656805a084ea36",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-46b52543b3255833452fe3ff",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-部分分式展开_7_d822352e",
+   "anchorId": "atom-e3fd2efcc5e399cd5c59f924",
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-f32761bdf15e7662deff8fe3",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-464b5f4cb6536515bf58ed94",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-17ab5c86fa7e984e1088defe",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-90433fbd149b7f9dab1c8dba",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-62bd0f8c095c265c0b74b00c",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-c37c44d36e967f06b4d02147",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-ccb81de9ae894b9757b929b3",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-c1071a927973ed83c3f2ec08",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-b622ab331712aff805366e1f",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-4e582896eb101c26b0aed718",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-ee883a4908ee580d16c1ea35",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-892bb006bd3cacc7546e1b78",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-70f3cd8727de459f3f9913e7",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_3_de941720",
    "anchorId": "atom-cb839d8e4ed5dadc8cb2bf10",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_4_0f26f554",
    "anchorId": "atom-cbc11aed8f381c9d47471ac6",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_4_0f26f554",
    "anchorId": "atom-224ea185f2677139a7e64ce5",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_4_0f26f554",
    "anchorId": "atom-b5459c0250beb0883de48343",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环主导极点_4_0f26f554",
    "anchorId": "atom-bcc39291b4d7270a1af9adda",
    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-352255e6842179d846bc1767",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-d5dab241e7cc057c967a472b",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-308e6fdd7705a185f361413b",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-5f1601cebfdc667c4ea15e4d",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-bb0a9e0c9e01956630959669",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-88e5472b77b749e7e57c4208",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-844456d68ff36c05f30e737a",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-2eb6627b1c6f5905f3a65882",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-39fb8fbdaabd7be1b4ca7c94",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-994c4685842ae19f664adca7",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-b91125f2eb720a14f5231335",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-bed20c066161116e6728cb70",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-6b3ee024df31a1605994a2fe",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_3_f9432bf3",
    "anchorId": "atom-a6c7c7ea4c13e528026e281c",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-7c3ca9ec41e117ff3f962100",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-ceef968f40867a41a3de3be8",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-009c19e0398b7448a6ae3657",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-96feb50a8680ddbd2342c14a",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-60816e267a5550932785e378",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-a9d37511636f0a0df8bfffea",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_4_f359fb50",
    "anchorId": "atom-24bd66e1d7ee8f3222137dad",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_9_a8bbda51",
    "anchorId": "atom-0c4259cda243ea66d4cecd30",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_9_a8bbda51",
    "anchorId": "atom-23d4522e629db335c19c9fd6",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_9_a8bbda51",
    "anchorId": "atom-66c10e91cc7742fbe5da6ceb",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-闭环极点_9_a8bbda51",
    "anchorId": "atom-b109a0a36cdf9ef2aac96ba1",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-d298c5e8f220c99478aba988",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-286ae35db70b2cfe26f46dfb",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-adac2928b00c7c745a5d60ef",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-413d92c61b8ba90e0b576e10",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-06a8c4e56df2be3b874fe26a",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-505f8ab1a082c2861466e175",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_3_d83660dd",
+   "anchorId": "atom-95d12d8cb5f5901297b6de45",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_4_949a3b23",
+   "anchorId": "atom-63b83c72cd59f80c1e211747",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_4_949a3b23",
+   "anchorId": "atom-721d34849483813c73de71d1",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_4_949a3b23",
+   "anchorId": "atom-ab40fd36c7915b11ec9aa875",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_4_949a3b23",
+   "anchorId": "atom-a2189896b8c34bb8299933d2",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_9_2ab177de",
+   "anchorId": "atom-d7eb0fa8d2dca83666db3505",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_9_2ab177de",
+   "anchorId": "atom-9d8bb2ce220f6cad0b4500c4",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_9_2ab177de",
+   "anchorId": "atom-37b0e9a79f8ee4c61bf1fbf2",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环零点_9_2ab177de",
+   "anchorId": "atom-1a6e9f297dc1ce158e671589",
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "audio",
@@ -8242,42 +10013,98 @@
    "resourceId": "exercises-1-2",
    "anchorId": "1-2/step-03/pre-2",
    "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-1-3",
    "anchorId": "1-3/step-03/pre-pole",
    "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-07/root-locus-observation",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-1-3",
    "anchorId": "1-3/step-10/post-stage",
    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-1-4",
    "anchorId": "1-4/step-03/pole-trend",
    "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-1-5",
    "anchorId": "1-5/step-03/pole-natural-response",
    "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-5",
+   "anchorId": "1-5/step-13/rise-versus-settle",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-2-2",
+   "anchorId": "2-2/step-02/step-02:response",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-2-2",
+   "anchorId": "2-2/step-11/step-11:response",
+   "canonicalId": "ctkg:v3e-canonical-3b7f357d3842ce18560a54cf",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-3-8",
+   "anchorId": "3-8/step-03/card-03-c",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-4-2",
+   "anchorId": "4-2/step-03/pre-q2",
+   "canonicalId": "ctkg:v3e-canonical-accbc123052ef16a32580910",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-4-2",
+   "anchorId": "4-2/step-19/post-q1",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-5-4",
    "anchorId": "5-4/step-04/model-evidence",
    "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "handout-exercises-1-3",
+   "anchorId": "1-3/layered/2",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "evidence": "codex-semantic-mapping:round2-layered"
   }
  ]
 }

@@ -64,12 +64,12 @@ const COVERED_DOMAINS = [
 const ALL_DOMAINS: readonly string[] = [...COVERED_DOMAINS, ...EXCLUDED_DOMAINS];
 const SEALED_AT = '2026-08-24T19:30:00.000Z';
 const ENVELOPE_LIMITATIONS = [
-  'exercise mapping review (gpt-5.6-sol, conservative): 33 of 455 mapped, 26 kept (covered-domain targets), 7 filtered (D1-excluded targets), 422 null (open/operational cards without a single concept core)',
+  'layered handout exercises join the exercise binding channel as their own resources (13 units, 46 questions; owner sampling decision 1)',
   'simulation/interactive launcher atoms (85 DB launchers) bind registry identity and config digest; task/scene semantics and Canonical mapping are pending semantic review',
   'exercise semantic Canonical mapping review is in flight (455 cards); exercise atoms currently carry no canonical bindings',
   'intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)',
   'handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass',
-  'course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound',
+  'card bindings use the crosswalk exact-name index (205 of 838 card keys, 1383 atom-level rows); name-variant and graph-missing keys stay unbound (tracked as G9)',
   'audio/video/exercise bindings are filtered to covered-domain targets in the projection binding layer (audio 586/741 rows kept, intro-video 539/727 kept, exercise 26/33 kept); D1-excluded targets stay bound in the resource-layer binding files as modal facts but do not join the teaching projection',
 ];
 
@@ -200,10 +200,16 @@ function main(): void {
   if (simulationRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
     throw new Error('simulation records are not bound to the current allocation; run process-simulations first');
   }
-  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords, ...introVideoRecords, ...simulationRecords];
+  const handoutExerciseDir = `${REMEDIATION_ROOT}/resource-layer/handout-exercises`;
+  const handoutExerciseRecords = readJson<ResourceProcessingRecord[]>(`${handoutExerciseDir}/handout-exercise-processing-records.json`);
+  const handoutExerciseAtomsCount = readJson<{ readonly atomCount: number }>(`${handoutExerciseDir}/handout-exercise-run-summary.json`).atomCount;
+  if (handoutExerciseRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
+    throw new Error('handout-exercise records are not bound to the current allocation; run process-handout-exercises first');
+  }
+  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords, ...introVideoRecords, ...simulationRecords, ...handoutExerciseRecords];
 
   // Build the modality-independent binding rows.
-  const authorityMap = readJson<Record<string, string>>(`${ASR_BATCH}/course-to-authority-map.json`);
+  const cardNameIndex = readJson<{ readonly index: Record<string, string> }>(`${REMEDIATION_ROOT}/resource-layer/text/card-name-index.json`).index;
   const coveredMemberIds = new Set(
     scope.members
       .filter((member) => !(EXCLUDED_DOMAINS as readonly string[]).includes(member.preferredDomainId))
@@ -215,14 +221,14 @@ function main(): void {
   for (const atom of textAtoms) {
     if (!atom.canonicalKey) continue;
     const conceptName = cardKeyToConceptName(atom.canonicalKey);
-    const canonicalId = conceptName ? authorityMap[conceptName] : undefined;
+    const canonicalId = conceptName ? cardNameIndex[conceptName] : undefined;
     if (!canonicalId) continue;
     cardBindings.push({
       modality: 'card',
       resourceId: atom.resourceId,
       anchorId: atom.atomId,
       canonicalId,
-      evidence: 'course-to-authority-map:exact-name',
+      evidence: 'card-name-index:crosswalk-exact-name',
     });
   }
   const audioBindings: ProjectionBindingRow[] = [];
@@ -259,9 +265,17 @@ function main(): void {
     resourceId: `exercises-${row.questionId.split('/')[0]}`,
     anchorId: row.questionId,
     canonicalId: row.canonicalId,
-    evidence: 'codex-semantic-mapping:conservative',
+    evidence: 'codex-semantic-mapping:round1+round2',
   }));
-  const bindings = filterToCovered([...cardBindings, ...audioBindings, ...introVideoBindings, ...exerciseBindings]);
+  const handoutExerciseBindingFile = readJson<{ readonly rows: readonly { readonly questionId: string; readonly canonicalId: string }[] }>(`${handoutExerciseDir}/handout-exercise-node-bindings.json`);
+  const handoutExerciseBindings: ProjectionBindingRow[] = handoutExerciseBindingFile.rows.map((row) => ({
+    modality: 'exercise',
+    resourceId: `handout-exercises-${row.questionId.split('/')[0]}`,
+    anchorId: row.questionId,
+    canonicalId: row.canonicalId,
+    evidence: 'codex-semantic-mapping:round2-layered',
+  }));
+  const bindings = filterToCovered([...cardBindings, ...audioBindings, ...introVideoBindings, ...exerciseBindings, ...handoutExerciseBindings]);
 
   // Seal the formal resource envelope over the refreshed resource layer.
   const artifactRoles: readonly { readonly role: string; readonly path: string }[] = [
@@ -287,6 +301,11 @@ function main(): void {
     { role: 'intro-video-run-summary', path: `${introVideoDir}/intro-video-run-summary.json` },
     { role: 'intro-video-node-bindings', path: `${introVideoDir}/intro-video-node-bindings.json` },
     { role: 'exercise-node-bindings', path: `${exerciseDir}/exercise-node-bindings.json` },
+    { role: 'card-name-index', path: `${REMEDIATION_ROOT}/resource-layer/text/card-name-index.json` },
+    { role: 'handout-exercise-processing-records', path: `${handoutExerciseDir}/handout-exercise-processing-records.json` },
+    { role: 'handout-exercise-atoms', path: `${handoutExerciseDir}/handout-exercise-atoms.json` },
+    { role: 'handout-exercise-run-summary', path: `${handoutExerciseDir}/handout-exercise-run-summary.json` },
+    { role: 'handout-exercise-node-bindings', path: `${handoutExerciseDir}/handout-exercise-node-bindings.json` },
     { role: 'simulation-processing-records', path: `${simulationDir}/simulation-processing-records.json` },
     { role: 'simulation-atoms', path: `${simulationDir}/simulation-atoms.json` },
     { role: 'simulation-run-summary', path: `${simulationDir}/simulation-run-summary.json` },
@@ -296,7 +315,7 @@ function main(): void {
     allocationHash: allocation.allocationHash,
     scopeHash: scope.scopeHash,
     processingRecords,
-    atomCount: textAtoms.length + exerciseAtomsCount + introVideoAtomsCount + simulationAtomsCount,
+    atomCount: textAtoms.length + exerciseAtomsCount + introVideoAtomsCount + simulationAtomsCount + handoutExerciseAtomsCount,
     bindingCount: bindings.length,
     artifacts: artifactRoles.map((artifact) => ({ ...artifact, sha256: sha256File(artifact.path) })),
     limitations: ENVELOPE_LIMITATIONS,

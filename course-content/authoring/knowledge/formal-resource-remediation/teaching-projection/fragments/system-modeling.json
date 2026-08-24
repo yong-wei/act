@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "system-modeling",
  "memberCount": 666,
  "edgeCount": 57,
- "bindingCount": 221,
- "fragmentHash": "042121e5f64094efb02416d4d222ce5ec6889267c7fb624db2b00f455fa23398",
+ "bindingCount": 248,
+ "fragmentHash": "bf973677349c68a9596df932aff50bc38ac558094bda057dfc85806a46c9d42d",
  "members": [
   {
    "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -41,7 +41,7 @@
    "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
    "excluded": false,
    "label": "状态变量",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-029518e82a518c01bc626b66",
@@ -329,7 +329,7 @@
    "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
    "excluded": false,
    "label": "建模",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-34d3b4c651b0047e6e180fe2",
@@ -827,7 +827,7 @@
    "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
    "excluded": false,
    "label": "零点",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctc:modeling-82926f44dbd08d4b847f084c",
@@ -4468,602 +4468,777 @@
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-198453300851b3cdacac1f31",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-fa172130b9e58d7920331aa4",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-08397c4413fbb4aa07fe2055",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-2b9472168a01da9440ae86bd",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-17b10ed6bed94961ee385a43",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-9422bc98533cd071b0483e73",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-串联连接_2_98ee18bc",
    "anchorId": "atom-4f07722c391927ff1338f639",
    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-ea81b4b401d388fa3f57af10",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-66998b93782ae6f8afe085a0",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-9719a60ec7cd815dddbb3ff5",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-a95fc15be04aaef86e8fb175",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-25efb41cd8c9cd8939178432",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-二阶系统_3_3a0af45b",
+   "anchorId": "atom-004dda838b063de572fc83c4",
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-62c7526c018388032cfc44b9",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-d70c4b9be37203050c4f0db9",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-c1bab9f930421b2b4fe5b2f8",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-127d33795eef2614cc08e383",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-e2e40ea40ed677efb457f8f2",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-36a5c6ed203af035cc00cc03",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_10_6c2d17e5",
    "anchorId": "atom-300ba524409c50ad11729abe",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_1",
    "anchorId": "atom-1134e95221dbdfa85abd037c",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_1",
    "anchorId": "atom-e86af319823119cdb927fed7",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_1",
    "anchorId": "atom-4fa8457aa5dabbd8750b6ea7",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_1",
    "anchorId": "atom-83848129336bbd8ef2c8209d",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_2",
    "anchorId": "atom-07248b30e22da6df8f91d833",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_2",
    "anchorId": "atom-0b038eba65378fda05b71b20",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_2",
    "anchorId": "atom-8903f9d1dd868e5f6aac32cf",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_2",
    "anchorId": "atom-37024566157f6cd585133252",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-dccdb4973e8f96cc3d2fbf2f",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-6b0ebef9ad1cb8fcd8d98c3b",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-48293623093e2835291caf41",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-e7c765112467e9af4a2098ec",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-c630d72508d46e6f4da4e6c6",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-a3a4aa1d51eb4d4af22290ae",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-bcc4fc7b549fa43ba40349e7",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-7ab98717059a30670a9db5b8",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-c259505b5d0a2e9c88213bbd",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-cccd0b0b0671ece8c337bec2",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_1_5b0faf8b",
    "anchorId": "atom-0971d69fa0c405820c9b62d4",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-d5411ca6c4da1631ce246edd",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-bc7942bdbd2a7b6910b1daca",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-f65dd96c87a9ec05a461d2bf",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-06d44b8326edf19377209909",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-88da3e68d24993c6cdcf0a70",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-8e1fd34d0be0216e47a00350",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-ab14eaac17aab5f722c09f66",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-1209b41fbb63714474a4932a",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-7c843b8820e41b6b7525fcab",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-a3894aad715db98fd004223c",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-726238bd70ac0da71b2867d7",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-24ebe5637d84e481749d950d",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-d0dc3469b831b57ee46ca0e9",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-e1582ae1aeea8c6248a26ca6",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_2_2c5e2589",
    "anchorId": "atom-91f6958dc8bd51dca174cd88",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_3_92e14aa2",
    "anchorId": "atom-f537e1794b23f9281730dc93",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_3_92e14aa2",
    "anchorId": "atom-3c4569943613bd1de88aed7b",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_3_92e14aa2",
    "anchorId": "atom-a62922147b0f8abb0b904e23",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_3_92e14aa2",
    "anchorId": "atom-86a3d9bc66abc7565e9e8f13",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-0e8a6602a25968f36aff9108",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-5d88c92d07bea41782aa03bc",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-37638cdf31a90c61f74068a7",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-7b061d2a66536b761a53df7f",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-c5daceecc9365061230bf151",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-传递函数_9_a86a3adf",
    "anchorId": "atom-0bb936161ca4da86b16fdaee",
    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_1_2",
    "anchorId": "atom-2c1a6430f313c66c7dd0a4bf",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_1_2",
    "anchorId": "atom-7a08ebf972bd08e54b45c96b",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_1_2",
    "anchorId": "atom-2afb57efda4ba168fefcc4a4",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_1_2",
    "anchorId": "atom-d962842459ae74d71e9fd845",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-7997322c071c306005c909d1",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-26c2ed5bbc3f8414f42b0328",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-db8a690b5db840a2bc259e97",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-f703974c99f7f550e044770f",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-e09675ec27e951718ee95264",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-e387a9af083d28a04ab89f56",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-806996d82c94fd31b72a838b",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-55bd1541bd86671a17112bf7",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-信号流图_2_372d4084",
    "anchorId": "atom-8dacda43359e034305461d24",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-2dca17e53a7f1121463e84d4",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-754feeddf39b9c2cd34609ff",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-fe09e86e199ca33dc34bb6f5",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-793f5218779021297bcf2116",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-0df07410541623893fce2a49",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-55b31e16e109d922c62b9705",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-1e508b07788a56d99dcc0be2",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-回路_2_e1adbdfa",
    "anchorId": "atom-7d4e3960ecd706fe5be5c16d",
    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-a23ebb9ee3622bae7b790bfa",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-2684e09f804c778e978a884e",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-733a6a39d931931c1b5c19bd",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-cf673b21833a7e6e40655669",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-074129ab7b87af43ec091027",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-27e80e520b4f958e670cd4d0",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "card",
    "resourceId": "card-并联连接_2_0e5f1ec2",
    "anchorId": "atom-654a5756b112abc9c622d7f3",
    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
-   "evidence": "course-to-authority-map:exact-name"
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-建模_1_2",
+   "anchorId": "atom-3b757a28a37309004fde7a37",
+   "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-建模_1_2",
+   "anchorId": "atom-383886e0f2c751563988a443",
+   "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-建模_1_2",
+   "anchorId": "atom-35dc6bd32da78f9065610a2f",
+   "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-建模_1_2",
+   "anchorId": "atom-282ce886049b0d089ed0d581",
+   "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-数学模型_2_b21e01f6",
+   "anchorId": "atom-98067b77d639e8852654276b",
+   "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-数学模型_2_b21e01f6",
+   "anchorId": "atom-58064c50d82f96c2cb98c6ec",
+   "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-数学模型_2_b21e01f6",
+   "anchorId": "atom-11a889a43dc9fab62f794ca7",
+   "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-数学模型_2_b21e01f6",
+   "anchorId": "atom-086078e41c6a6b0eb4f998c1",
+   "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态变量_9_2dedb9d8",
+   "anchorId": "atom-16f73fa29ecd054a24fc8a14",
+   "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态变量_9_2dedb9d8",
+   "anchorId": "atom-1c7bc4f10829afa1c6f8f78e",
+   "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态变量_9_2dedb9d8",
+   "anchorId": "atom-0e61a3597c5cce7dda9d0e0f",
+   "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态变量_9_2dedb9d8",
+   "anchorId": "atom-b7d64ef9e74722b2821b7fb8",
+   "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-70bdb5d7381ef61a10ca0570",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-3fc7ab0d1490557788f9721a",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-326b5e74715f7da7de467be6",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-7f596c63133d1f6972ecab24",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-6784593300e6ecb5375365d3",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-8d2d4aaa82cc8fe44b09787a",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-零点_2_c29600a1",
+   "anchorId": "atom-d06ecaa77292c0b84a1ce6d5",
+   "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+   "evidence": "card-name-index:crosswalk-exact-name"
   },
   {
    "modality": "audio",
@@ -6001,14 +6176,28 @@
    "resourceId": "exercises-1-2",
    "anchorId": "1-2/step-08/sfg-quiz-1",
    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-2-1",
+   "anchorId": "2-1/step-11/step-11-activity",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-1",
+   "anchorId": "5-1/step-03/model-range",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "evidence": "codex-semantic-mapping:round1+round2"
   },
   {
    "modality": "exercise",
    "resourceId": "exercises-5-2",
    "anchorId": "5-2/step-17/tool-choice",
    "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
   }
  ]
 }

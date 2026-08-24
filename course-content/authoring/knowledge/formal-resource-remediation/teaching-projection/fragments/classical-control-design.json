@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "classical-control-design",
  "memberCount": 776,
  "edgeCount": 0,
- "bindingCount": 82,
- "fragmentHash": "af827aa8c3a8690e75c5cfd05f62587671076566b0d2d9e05ef79d1d69d12b08",
+ "bindingCount": 206,
+ "fragmentHash": "5b8cd6176e366a580348d5b0a9e86a57b02b39bb00e04951a3727f914c8c0461",
  "members": [
   {
    "canonicalId": "ctkg:m1t-v2c:01c79541df32c50b537caddf",
@@ -197,7 +197,7 @@
    "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
    "excluded": false,
    "label": "PID控制器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2j:source-object:268ace9238794805c098eddb",
@@ -245,7 +245,7 @@
    "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
    "excluded": false,
    "label": "ITAE性能指标",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2l:canonical-object:9f153ed8f3c202a4d7efedde",
@@ -413,7 +413,7 @@
    "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
    "excluded": false,
    "label": "P控制器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-0208dc891c06007b1a08905c",
@@ -839,7 +839,7 @@
    "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
    "excluded": false,
    "label": "串联补偿器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-1b73680eb4459f7d61aecdd7",
@@ -1337,7 +1337,7 @@
    "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
    "excluded": false,
    "label": "I控制器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-35e4f6084fd4b7c6cfd7b297",
@@ -1361,13 +1361,13 @@
    "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
    "excluded": false,
    "label": "频率响应法",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-374a42c24f7d69fe919a28e2",
    "excluded": false,
    "label": "1. Obtain the root locus of the uncompensated system with a constant gain controller. 2. Determine transient performance specifications and locate suitable dominant root locations. 3. Calculate loop gain and uncompensated error constant. 4. Compare error constants and calculate necessary increase from pole-zero ratio alpha. 5. Determine suitable pole and zero location near origin so compensated root locus passes through desired root location.",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-379731f0b79780c8ea63352e",
@@ -1607,7 +1607,7 @@
    "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
    "excluded": false,
    "label": "系统带宽",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-438a7a9f5df42d3b61858b52",
@@ -1985,7 +1985,7 @@
    "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
    "excluded": false,
    "label": "串联超前校正",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-5b8c6af0e4998923cea89805",
@@ -2195,7 +2195,7 @@
    "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
    "excluded": false,
    "label": "PI控制器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-690f2a1edf295f82e622333c",
@@ -2717,7 +2717,7 @@
    "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
    "excluded": false,
    "label": "超前补偿",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-83d0805f5bcd8a6654402540",
@@ -3173,7 +3173,7 @@
    "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
    "excluded": false,
    "label": "积分控制规律",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-9bfb3258bd5aef70b4fc7c90",
@@ -3293,7 +3293,7 @@
    "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
    "excluded": false,
    "label": "反馈校正",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-a367a1b36ca0b494e084ad2b",
@@ -4667,6 +4667,867 @@
  "edges": [],
  "bindings": [
   {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-a6e2097d3728e5b8e63108c2",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-f4c208cd1ea6c5cf2a6806a4",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-cc54c46e14ae8da87843cb32",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-5e20ef84e2db36c73d6dffeb",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-8cecf47e401e962516d9573e",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-ITAE性能指标_10_16ea2a23",
+   "anchorId": "atom-a9b01a26de127493044462b1",
+   "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-a8ede06b824521d88a02797b",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-bc014a2bed0100c4f04eb584",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-2cd8ef13959b9e080bb63b62",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-f6122e07d1bd8ab9112ae58f",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-386bdc1a7dd1dd07257c3c51",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-I控制器_6_f0772f17",
+   "anchorId": "atom-3566d2b7f1f4fb219248abcb",
+   "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-d90ef3ee036fbbb1d44cc5bb",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-659f409b8691408e20f7ebc5",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-a6d720c29d16b5a2b4d515ec",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-9af0f0f89e020f55e579c006",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-6442db0f7292832f13995f73",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-beea94dc7e3aed3d9a7f30b5",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PD控制器_6_3eb1a935",
+   "anchorId": "atom-cf22b07e351169b235fbf929",
+   "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-2c658b878f7868e52cf0bf7c",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-cf49858864d796d5e2503703",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-699dc42f878f64595bf42d65",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-d10b933ea3ff341de6c737e2",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-49df4eb5aed048731c989979",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-cc10f296b4a9418ca5861105",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_10_cfaedf40",
+   "anchorId": "atom-77dd6e8705ccc44afa6f6d11",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-6ed5f01156d18f949f815b38",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-55ac3f2857b1209c102684dc",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-191d25852642e8918908e70e",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-6c181effb9d59ee32749d0bc",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-aacc1753e53c0ab81970568d",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-c7dad654e48796fe8e22f9a5",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-089362776bffea64b4c9cbca",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_6_656b8b52",
+   "anchorId": "atom-abddf7cb3b1521de0bae3c00",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-2ab5a13e165fdb468b061b35",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-b95b67efc7c8c379d40b86c7",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-c3f108a400392d99b35a26e5",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-cb8ca66fbdef125f2af50170",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-82eccd06b58dfb5e54641ec8",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-787e6f4c321df65004caf0d2",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PID控制器_8_34f1aeb5",
+   "anchorId": "atom-9fa0b5b85e99f93913e79242",
+   "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-cc9cff279fee6d8054cafe1a",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-12414fb4c1e9ccaebe9a5dda",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-a74d507283bf7ebb7c5291be",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-1e6fee3a2d398015e304cd35",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-0af989816270a87fccb0a86d",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-3a6c2a6992215533dbdaae25",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-8249b04394a46dc035949651",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-1f7767039931199f4cffd3d4",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_6_29ebe858",
+   "anchorId": "atom-a66665ca64cc9f5a7a01a317",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-9b7d75191e827695fd5f302f",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-93ba17c73dc232d10c406f17",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-30b02a18bffe6e3a500ac4a6",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-8197a03c8b482386420b5346",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-a601ab018253fb81bd676705",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-633a342379ecc3c36a9c5351",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PI控制器_8_50f96fae",
+   "anchorId": "atom-793e196e7c7cff4c6a5d2b2b",
+   "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-72c52c8d2516d545ef27eb7e",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-732ac580eefeb712fdb0c056",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-c38d74a2ac76f596592b75a0",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-a6751ea1c58ce718de4e10ab",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-b277bf02ee77cb0aede53f1d",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-P控制器_6_63f2f5eb",
+   "anchorId": "atom-732bf8dbc9b0757974edce6a",
+   "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-f1d10459c2b3902dcfc8486e",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-4339edad871c708dfe35942c",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-42bcd593d43d463022ac7ecb",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-375ed8ad2ed14c27cacf0b4e",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-e5b119754d1f7032da85ac6a",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联校正_6_fede5751",
+   "anchorId": "atom-3e75cf2b5065194a124cde19",
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-0f394418bc2e8ed47a7c39ac",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-0e21522a916249124efbfb1f",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-954d14a5cd0f1c584544237a",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-9437b08dc307c6f4184e51d8",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-cf17e962272f2b8b57c79abc",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联滞后-超前校正_6_23ee8cb9",
+   "anchorId": "atom-c6cae15178a9063183ed1b76",
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-92d81ff8eefb930c43b05f13",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-d57457c94a4074ebcb427e1b",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-979b7796381e14f33a70cb27",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-a5afe9792c4c36984ed6c74d",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-e270c4107a4bb40b533fc432",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联补偿器_9_e0444c1f",
+   "anchorId": "atom-93cdf6a4869f8db61439716a",
+   "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-e62ab036e816ffab0ea5bdea",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-5bbbcfa1b81ff4fe4cdcf885",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-e438ea45464bf31d56c6cf5b",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-20d37651d746029750565733",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-92c8b77537a6266748978e2f",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-串联超前校正_8_5d889b7d",
+   "anchorId": "atom-b0a677a7efecdc98023a4f81",
+   "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-反馈校正_6_c96d771b",
+   "anchorId": "atom-bd5715e8316f6c7621d01be7",
+   "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-反馈校正_6_c96d771b",
+   "anchorId": "atom-16564c30a22c14340a56d875",
+   "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-反馈校正_6_c96d771b",
+   "anchorId": "atom-bd1fbdf994aaa380700d9afd",
+   "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_1_1",
+   "anchorId": "atom-b734987dd752a2e8863c9f39",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_1_1",
+   "anchorId": "atom-e8f4f09aa82562ce3f3966a4",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_1_1",
+   "anchorId": "atom-65268342adf7394e74a591fc",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_1_1",
+   "anchorId": "atom-4f2fed19587835db6ce15a00",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_6_6af5c715",
+   "anchorId": "atom-50769506d83b65cfbdf7064e",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_6_6af5c715",
+   "anchorId": "atom-55c05b6d615b2cf8ca78e7ec",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_6_6af5c715",
+   "anchorId": "atom-f1553cdae887a7e920280dbf",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-性能指标_6_6af5c715",
+   "anchorId": "atom-4a6fd8e4aae3546d363dc532",
+   "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-989d21c5429775728e2653e2",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-75d37b673a7f624174718f73",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-842e75194ccf5884f36c8fac",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-36e7de2512c76ded73207218",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-51115f80f8399917e4ff1942",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-积分控制规律_6_01aa3db3",
+   "anchorId": "atom-71a9409430dd77c467fcf23f",
+   "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-系统带宽_5_eaed82b2",
+   "anchorId": "atom-03b96776dbbb8314563039d2",
+   "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-系统带宽_5_eaed82b2",
+   "anchorId": "atom-45d432e9132ca0ffa7f8e125",
+   "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-系统带宽_5_eaed82b2",
+   "anchorId": "atom-5ef830b33a2f929897789612",
+   "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-系统带宽_5_eaed82b2",
+   "anchorId": "atom-82755aa1f1d95df3394d3820",
+   "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-9f6e8defa46ff00d2c9cf4cc",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-a818d69d0f545519641482a3",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-8b6acae8afae8294f4421831",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-98087deb292e3e698b708cc9",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-36ec4f3f33daa1c63569fdcf",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-超前补偿_4_3d4fc55d",
+   "anchorId": "atom-4549747d8b0aa47e20fa4684",
+   "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-d186a994e867ff7d90e8a86e",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-8f8312ecf4468221845ddb36",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-0e229631c0672ec015af7acc",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-0a413cf98578ad6018910353",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-aa6dd379f4e3d5029f8174e6",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-febed3963d7642aaf42587dc",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-801e8e0addfd15b646c08c7b",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-aaa4efe102414329717579d7",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-频率响应法_5_1c7f0705",
+   "anchorId": "atom-7f4235bd970c11f2a0c4bdd8",
+   "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
    "modality": "audio",
    "resourceId": "audio-2-2",
    "anchorId": "2-2-seg-10",
@@ -5239,6 +6100,13 @@
    "anchorId": "atom-3c67a45965f5233febc3cb4e",
    "canonicalId": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
    "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "handout-exercises-1-5",
+   "anchorId": "1-5/layered/3",
+   "canonicalId": "ctkg:v3e-object-374a42c24f7d69fe919a28e2",
+   "evidence": "codex-semantic-mapping:round2-layered"
   }
  ]
 }

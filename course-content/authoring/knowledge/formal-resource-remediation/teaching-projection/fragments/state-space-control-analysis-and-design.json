@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "state-space-control-analysis-and-design",
  "memberCount": 1300,
  "edgeCount": 19,
- "bindingCount": 40,
- "fragmentHash": "be62914baf6970e0f4ec4871551a18ddfe7020886847293f3b9291f220732e30",
+ "bindingCount": 172,
+ "fragmentHash": "db69f2d91875b07feafb4ef5cf9a82a771ef05c350da22331db36faeb2af553e",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
@@ -761,7 +761,7 @@
    "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
    "excluded": false,
    "label": "可控性",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-13648743d187f6fdf844ba05",
@@ -917,7 +917,7 @@
    "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
    "excluded": false,
    "label": "格拉姆矩阵判据",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-175e4288ddc5209de160fcb9",
@@ -1277,13 +1277,13 @@
    "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
    "excluded": false,
    "label": "完全可达",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
    "excluded": false,
    "label": "PBH秩判据",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-23c476c224557bbef81dcec9",
@@ -1541,7 +1541,7 @@
    "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
    "excluded": false,
    "label": "稳态跟踪误差",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-2bfa63b85b2fd9fcd5ff66a7",
@@ -2897,7 +2897,7 @@
    "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
    "excluded": false,
    "label": "可观测性",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-55d780f982ca1d3c70a82d57",
@@ -3203,7 +3203,7 @@
    "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
    "excluded": false,
    "label": "内模控制器",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-5e54ff14778bcccafad17aca",
@@ -4859,7 +4859,7 @@
    "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
    "excluded": false,
    "label": "容许控制",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-9a618d18e717e382e033a6a6",
@@ -4901,7 +4901,7 @@
    "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
    "excluded": false,
    "label": "秩判据",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-9b847979215492ca1f790499",
@@ -5549,7 +5549,7 @@
    "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
    "excluded": false,
    "label": "状态转移矩阵",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-b17cb2cad43c5523128d01b4",
@@ -7445,7 +7445,7 @@
    "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
    "excluded": false,
    "label": "极点配置",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-f1fc1eb61d62e53cc5a3d4c0",
@@ -7655,7 +7655,7 @@
    "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
    "excluded": false,
    "label": "对角线规范型判据",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-fac828826746b38462ac91ba",
@@ -7757,7 +7757,7 @@
    "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
    "excluded": false,
    "label": "输出可控性",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-ff6ca77430b804369f679597",
@@ -7963,6 +7963,916 @@
   }
  ],
  "bindings": [
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-2dd0d77d05df659f32a195c5",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-de193bc349a098abf485cb03",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-c42a39e05102186ab418e992",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-abb36c04076cba8a8316ba47",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-d7ee3e7a8285a172f68e3b89",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-f1b9b27535da64f7236b9cb5",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-PBH秩判据_9_bdf533f4",
+   "anchorId": "atom-52ae1bd2e6653b06bc6a7dd3",
+   "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-a9548f1e0b597e5d16b2b6c9",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-95ffa149a9ec40ddf6b321b5",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-426d5c0751975721b879085e",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-081d10b7e370676b365c80e1",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-b812e680e96c8cf85aba77a8",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-9727100c94f52dc7bc553194",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-f4d93c248f09f2e8aa0e8775",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-d21f9058c3cc3dd40433ff80",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_3_4c4c6bbd",
+   "anchorId": "atom-8bd94a497a7ce88f31f9caa4",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_4_7b49c6c5",
+   "anchorId": "atom-80985c0bf389c15b174ae316",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_4_7b49c6c5",
+   "anchorId": "atom-2a8f680bd3922e2520621e2f",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_4_7b49c6c5",
+   "anchorId": "atom-59282b4f56397a32a8412b72",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_4_7b49c6c5",
+   "anchorId": "atom-c978db536a07c29371b1b0d7",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_5_5a720cf2",
+   "anchorId": "atom-895ecc4877c9863a4b3f0d2b",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_5_5a720cf2",
+   "anchorId": "atom-f85a32cb85194d17ed4be0e4",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_5_5a720cf2",
+   "anchorId": "atom-5e36b37b0361b8a5d0c072ff",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-主导极点_5_5a720cf2",
+   "anchorId": "atom-1563ef52b63629a1a0724b70",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-7ef0bcea5ffed6b9dccf0e2a",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-21ec5dff29a2792ae3f7a485",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-5185dc75ba96b906ebd1dc03",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-536a4021ff4982e1149f3721",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-38e531de2a16b44605d22674",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-7483a416963f589c274f4cce",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-7b74ed8f82e250bf35eedb5b",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-内模控制器_9_b2d43456",
+   "anchorId": "atom-64a18dd2dae5be1816447400",
+   "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-33e0e0ffa949174cde794ae3",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-e965015f06c2e4fcb0ef6db4",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-5744c2355e7ce56e8c83b255",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-22760e5deb54c6c93ec28930",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-776f34f517db14b3a87bbd67",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-a9c0f9198dd53073faa73264",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-7e9427322b29e613f4b0f0dc",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-87dcc2a901cca2f5d46d2bb8",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可控性_9_b22a45c8",
+   "anchorId": "atom-e21a76bc69f3501c5096bd14",
+   "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-d39380356a36ee7acfb04716",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-ceb1e8f93e3c55f4230e7d0e",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-32bd38181a14c571e9b19580",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-35949d2dcff17acce2c87f5b",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-648d1fe6a808dbb338979a7b",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-8804adaa6979d377932948eb",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-e1572d289d622a8e86051b1e",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-7bf1cfc09cfb04757f446301",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-528b814a88f68a3147ece175",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-16332d93af2e601f2bf4f684",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-可观测性_9_b26c542c",
+   "anchorId": "atom-93621688d1cffcd105608094",
+   "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-e6f26e448eca8ffd5920370b",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-79ea098389c711e61715d805",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-2ddb03584794a4f4e998c76a",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-c45a6504dbf35e2cc2b42783",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-afa67fb836b0020fc50db7f7",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-完全可达_9_f0aa6191",
+   "anchorId": "atom-60ba0ff144b03a6d7dc8541e",
+   "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-05573abf1d336782a80c75d0",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-4c7989fc8b5027129fdd5a68",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-136e87d9d3afbb521e4bc490",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-437730e83a88dd2735c03266",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-548b355cabf3a69e6f31eaeb",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-容许控制_10_cbc0aa55",
+   "anchorId": "atom-6bed902b4ed0620038d8fb40",
+   "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-ad2fa56667628bf360abcd9c",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-e76862837d92d1bcce6213f4",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-64d4dc751376120b30bba0f5",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-0038cf1252132bf0fe79c80c",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-edb8376d34ad68f4a1a6bdc6",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-fe30455c62c59ca81e929ef4",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-对角线规范型判据_9_db607dca",
+   "anchorId": "atom-c6ba0a613f1e3d90aa2d7da3",
+   "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-b0ecb3fc126622473d6aab63",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-ef61593f88ee1f18b18a73c1",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-8f564c960386e962e8086493",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-78968e41b2a2fd49e7429309",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-26d173c3135f4b235111af11",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-8e73bb1924e168917e906b89",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_3_d367ec42",
+   "anchorId": "atom-e507ef39cfacf4ce6154da9d",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-7cefe3f9ffca40a082ef044a",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-7bd0bc24dccc80e0b28273a7",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-7830525fc98eb990e6ef3e06",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-5338ecb61f6a9ec76f0ae302",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-a70ba722d0ef68990d809d38",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-4936499e8e00ec24837986bd",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-e78fad6adecbb16d8432e3a9",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-24e34ae6ebb386d2e868ef69",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极点配置_9_b5578c51",
+   "anchorId": "atom-e08104dcc524377ae9b0d79d",
+   "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-92ad102401770333b06a08f5",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-66e06643e0a0b8fd266390da",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-ad33ab4510333a04e0bf97a4",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-cf456d0934bdd92a11494799",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-3eaad0f9f1229b77a5f80ee5",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-dc8e24f1e5d0cada6c48bb54",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-格拉姆矩阵判据_9_a745338c",
+   "anchorId": "atom-019e805a14a6a23d1eb5aa62",
+   "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-a560d81a1448ae0c4328986a",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-f4ae1a90f269bb7df8344fcf",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-93f753925ac891f272708468",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-3db086614cb15464f4047eb4",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-55dff12025c641d78a0912e1",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-007c49ba82792d6d3fbcce96",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-状态转移矩阵_9_dca84f8f",
+   "anchorId": "atom-cfa368c7c1144b8efbd4df8a",
+   "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-ada4d627be47c553ef6018bd",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-d66347f2f1634520ae878700",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-df2e1fc1778de6bb4a606516",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-6f963d9b1f21ce5630c90f86",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-3d706c17343f6ce8bba613a7",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-秩判据_9_daff6c3c",
+   "anchorId": "atom-f9e004569902d1a0dcaeb077",
+   "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-95047580ded709e224cef7f2",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-47104f2e377432162732ad66",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-d95a8377d5774d53be684963",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-b74f80b4e164c73f6fc6cfdd",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-cab16695a320ec3ec10238ac",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_3_48c882fd",
+   "anchorId": "atom-1ef61286161dc9601f482122",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-71fd420d19f45f86e61bcc4f",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-030916e624d59f42841b954e",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-5ea02bc54f94e0da81c22a40",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-207fe4e4f02f50b8da9abced",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-dbe40c716ea0c2dd8f332a47",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-33d33b403938d1abf0ce6bb1",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_7_222f853d",
+   "anchorId": "atom-0a90e6fc5c0094cd1db4aab1",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_9_73c6314b",
+   "anchorId": "atom-b63421df1e4f4dfda112ca26",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_9_73c6314b",
+   "anchorId": "atom-f41ee3fe952db7cc269ca5d6",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_9_73c6314b",
+   "anchorId": "atom-3cedbbd889ea1274c5a5c148",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-稳态跟踪误差_9_73c6314b",
+   "anchorId": "atom-3de6837eea056a106d1ef041",
+   "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-1ec50d54d7ab65319879eac3",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-77d4aec06b71a9f70734efbb",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-2b4ab320b898aef403132d13",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-6da4bcf7fb3147488dc6d103",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-f4163655aff3da007c30854c",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-输出可控性_9_7c4fb777",
+   "anchorId": "atom-d1aafe19bed26fd6da3ed107",
+   "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
   {
    "modality": "audio",
    "resourceId": "audio-2-2",
@@ -8238,10 +9148,24 @@
   },
   {
    "modality": "exercise",
+   "resourceId": "exercises-1-5",
+   "anchorId": "1-5/step-13/near-critical-state",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
    "resourceId": "exercises-5-4",
    "anchorId": "5-4/step-12/perception-error",
    "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-cruise-comfort-boppps",
+   "anchorId": "cruise-comfort-boppps/precheck/dominant-pole-risk",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "evidence": "codex-semantic-mapping:round1+round2"
   }
  ]
 }

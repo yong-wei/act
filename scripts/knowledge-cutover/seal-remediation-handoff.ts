@@ -115,6 +115,7 @@ function main(): void {
     `${REMEDIATION_ROOT}/resource-layer/exercises/exercise-processing-records.json`,
     `${REMEDIATION_ROOT}/resource-layer/intro-videos/intro-video-processing-records.json`,
     `${REMEDIATION_ROOT}/resource-layer/simulations/simulation-processing-records.json`,
+    `${REMEDIATION_ROOT}/resource-layer/handout-exercises/handout-exercise-processing-records.json`,
   ];
   const processingRecords = recordPaths.flatMap((recordPath) => readJson<ResourceProcessingRecord[]>(recordPath));
   const envelopeReopen = reopenResourceEnvelope({
@@ -197,7 +198,7 @@ function main(): void {
     }
   }
   // Rebuild the modality-independent bindings from the envelope sources.
-  const authorityMap = readJson<Record<string, string>>(`${REMEDIATION_ROOT}/20260823-asr-batch/course-to-authority-map.json`);
+  const cardNameIndex = readJson<{ readonly index: Record<string, string> }>(`${REMEDIATION_ROOT}/resource-layer/text/card-name-index.json`).index;
   const cardKeyConceptName = (canonicalKey: string): string | null => {
     const last = canonicalKey.lastIndexOf('_');
     if (last <= 0) return null;
@@ -207,9 +208,9 @@ function main(): void {
   };
   for (const atom of readJson<{ readonly atomId: string; readonly resourceId: string; readonly canonicalKey: string | null }[]>(`${REMEDIATION_ROOT}/resource-layer/text/text-atoms.json`)) {
     if (!atom.canonicalKey) continue;
-    const canonicalId = authorityMap[cardKeyConceptName(atom.canonicalKey) ?? ''] ;
+    const canonicalId = cardNameIndex[cardKeyConceptName(atom.canonicalKey) ?? ''];
     if (canonicalId && coveredMemberIds.has(canonicalId)) {
-      bindings.push({ modality: 'card', resourceId: atom.resourceId, anchorId: atom.atomId, canonicalId, evidence: 'course-to-authority-map:exact-name' });
+      bindings.push({ modality: 'card', resourceId: atom.resourceId, anchorId: atom.atomId, canonicalId, evidence: 'card-name-index:crosswalk-exact-name' });
     }
   }
   const segmentDir = `${REMEDIATION_ROOT}/20260823-asr-batch/audio-semantic-segments`;
@@ -231,7 +232,12 @@ function main(): void {
   const exerciseBindingsFile = readJson<{ readonly rows: readonly { readonly questionId: string; readonly canonicalId: string }[] }>(`${REMEDIATION_ROOT}/resource-layer/exercises/exercise-node-bindings.json`);
   for (const row of exerciseBindingsFile.rows) {
     if (!coveredMemberIds.has(row.canonicalId)) continue;
-    bindings.push({ modality: 'exercise', resourceId: `exercises-${row.questionId.split('/')[0]}`, anchorId: row.questionId, canonicalId: row.canonicalId, evidence: 'codex-semantic-mapping:conservative' });
+    bindings.push({ modality: 'exercise', resourceId: `exercises-${row.questionId.split('/')[0]}`, anchorId: row.questionId, canonicalId: row.canonicalId, evidence: 'codex-semantic-mapping:round1+round2' });
+  }
+  const handoutExerciseBindingsFile = readJson<{ readonly rows: readonly { readonly questionId: string; readonly canonicalId: string }[] }>(`${REMEDIATION_ROOT}/resource-layer/handout-exercises/handout-exercise-node-bindings.json`);
+  for (const row of handoutExerciseBindingsFile.rows) {
+    if (!coveredMemberIds.has(row.canonicalId)) continue;
+    bindings.push({ modality: 'exercise', resourceId: `handout-exercises-${row.questionId.split('/')[0]}`, anchorId: row.questionId, canonicalId: row.canonicalId, evidence: 'codex-semantic-mapping:round2-layered' });
   }
   const projectionValid = validateRemediationTeachingProjection({
     projection: projection as never,

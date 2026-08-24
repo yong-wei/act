@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "stability-analysis",
  "memberCount": 263,
  "edgeCount": 0,
- "bindingCount": 43,
- "fragmentHash": "b134956f94c00a8ada14a4d55da33cc60d39db210965d9369d74ca3999db9288",
+ "bindingCount": 81,
+ "fragmentHash": "be347f38107fdc52030a36ceb29a412eed7ae0fa37519d59891d462b2cc9d016",
  "members": [
   {
    "canonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
@@ -113,7 +113,7 @@
    "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
    "excluded": false,
    "label": "闭环特征方程",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:m3-v2r:canonical-object:43796246fc41ae3fa4fe6c82",
@@ -761,7 +761,7 @@
    "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
    "excluded": false,
    "label": "For Case 2, replace zero in first column with small positive number epsilon",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
@@ -1169,7 +1169,7 @@
    "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
    "excluded": false,
    "label": "运动稳定性",
-   "zeroResource": true
+   "zeroResource": false
   },
   {
    "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
@@ -1589,6 +1589,244 @@
  "edges": [],
  "bindings": [
   {
+   "modality": "card",
+   "resourceId": "card-临界稳定_3_ca03ed18",
+   "anchorId": "atom-7d58b3a4ad78bc020b7ea943",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界稳定_3_ca03ed18",
+   "anchorId": "atom-c07d778684693e4d3b6134c8",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界稳定_3_ca03ed18",
+   "anchorId": "atom-c72bbaa518d665a53cd28dec",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-临界稳定_3_ca03ed18",
+   "anchorId": "atom-07931e153f6d0c84d64e830f",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-运动稳定性_3_df61e98d",
+   "anchorId": "atom-9a81e2c3ac5b674e3f7ad434",
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-运动稳定性_3_df61e98d",
+   "anchorId": "atom-92a5ca54572210c79db4a3c5",
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-运动稳定性_3_df61e98d",
+   "anchorId": "atom-1b10afa6acaead4729edbe1a",
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-运动稳定性_3_df61e98d",
+   "anchorId": "atom-35929c14518b83aff0615833",
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_1_3",
+   "anchorId": "atom-5bd6123a28f57020bdebaec4",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_1_3",
+   "anchorId": "atom-d2ea2202f522076444a57ea2",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_1_3",
+   "anchorId": "atom-b0a7d2c0fbf16d46975c5d80",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_1_3",
+   "anchorId": "atom-11b8828b4d5574047154f937",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-8a42e1ab4b8f973668d4b426",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-f84410d82b6448e330e65f8a",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-58b29b122619dbae2eedb638",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-424100009ab3ba8a413ba244",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-0632d003c712d11829903a38",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-fad4f92752162a9aea0f4c79",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-b0fe96507e7df0212c98b3b5",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-909f33653c9236f2559dda33",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-c5ebbd4aa23fc263fb61f675",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-6bce3458d31dd3bd5fb8e6da",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-36f56e724bfe541ebd0d7658",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-68de355690efdd24c4133bf6",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-dc744345b41a969c9bbb84bc",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-ed946cbf652499ad7a7c1619",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_3_87c88e19",
+   "anchorId": "atom-a6b51cfe69ee627c3fed7bec",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-79158dd9beaa0cd0a57d8a8f",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-ffe0ffb4162be8965233bdbf",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-81f6222d33ac380ccc9a51cd",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-c5dc9e6030fef69c6dc6fd22",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-c5be4652f88c5e8420199401",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-387462332e7feb594bb816bb",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环特征方程_4_455ce3a5",
+   "anchorId": "atom-17eb6e7e54abc08b86e5dd8b",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
    "modality": "audio",
    "resourceId": "audio-3-2",
    "anchorId": "3-2-seg-2",
@@ -1884,10 +2122,38 @@
   },
   {
    "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-04/gain-role",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-5",
+   "anchorId": "1-5/step-03/feedback-characteristic",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
    "resourceId": "exercises-1-5",
    "anchorId": "1-5/step-12/zero-added-routh",
    "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
-   "evidence": "codex-semantic-mapping:conservative"
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-3-2",
+   "anchorId": "3-2/step-07/step-07:response",
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-05/local-result",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "evidence": "codex-semantic-mapping:round1+round2"
   }
  ]
 }

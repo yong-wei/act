@@ -4,8 +4,8 @@
  "reviewSource": "/tmp/remediation-run/review/exercise-mapping-review.jsonl",
  "totalQuestions": 455,
  "mappedTotal": 33,
- "keptBindings": 26,
- "excludedDomainTargets": 7,
+ "keptBindings": 57,
+ "excludedDomainTargets": 5,
  "nullCount": 422,
  "rows": [
   {
@@ -24,19 +24,34 @@
    "rationale": "题目核心是信号流图及其与方框图的表征差异。"
   },
   {
-   "questionId": "1-3/step-03/pre-pole",
-   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
-   "rationale": "极点实部为负，题目直接考查左半平面位置。"
-  },
-  {
    "questionId": "1-3/step-03/pre-feedback",
    "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
    "rationale": "题目直接考查单位负反馈闭环的特征方程。"
   },
   {
+   "questionId": "1-3/step-03/pre-pole",
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "rationale": "极点实部为负，题目直接考查左半平面位置。"
+  },
+  {
+   "questionId": "1-3/step-04/gain-role",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "rationale": "增益改变闭环特征方程，从而改变闭环极点。 [owner-ruled fix 2026-08-25: redirected to covered-domain exact-name node]"
+  },
+  {
+   "questionId": "1-3/step-07/root-locus-observation",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "rationale": "题目围绕闭环极点随增益变化所处路径展开，核心对应“闭环极点”节点。"
+  },
+  {
    "questionId": "1-3/step-08/meeting-point",
    "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
    "rationale": "题目明确求两支实轴根轨迹的会合位置。"
+  },
+  {
+   "questionId": "1-3/step-10/post-definition",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "rationale": "题目要求给出根轨迹这一单一概念的定义。"
   },
   {
    "questionId": "1-3/step-10/post-gain",
@@ -49,9 +64,9 @@
    "rationale": "题目直接判断给定增益范围内闭环极点的形态。"
   },
   {
-   "questionId": "1-3/step-10/post-definition",
-   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
-   "rationale": "题目要求给出根轨迹这一单一概念的定义。"
+   "questionId": "1-4/step-03/feedback-denominator",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "rationale": "题干直接给出单位负反馈闭环传递函数的分母结构。"
   },
   {
    "questionId": "1-4/step-03/pole-trend",
@@ -59,9 +74,14 @@
    "rationale": "题目由左半平面复极点判断自然响应的衰减趋势。"
   },
   {
-   "questionId": "1-4/step-03/feedback-denominator",
-   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
-   "rationale": "题干直接给出单位负反馈闭环传递函数的分母结构。"
+   "questionId": "1-4/step-11/same-frequency-translation",
+   "canonicalId": "ctkg:v3e-object-e476786bb3bd2081da5e3682",
+   "rationale": "题目核心是同一频点在 Bode 与 Nyquist 表示之间的映射，候选节点直接描述该转换。"
+  },
+  {
+   "questionId": "1-5/step-03/feedback-characteristic",
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "rationale": "题干直接陈述单位负反馈的闭环特征方程。 [owner-ruled fix 2026-08-25: redirected to covered-domain exact-name node]"
   },
   {
    "questionId": "1-5/step-03/pole-natural-response",
@@ -74,9 +94,84 @@
    "rationale": "题目明确要求应用三阶 Routh-Hurwitz 判据判断临界增益。"
   },
   {
+   "questionId": "1-5/step-13/near-critical-state",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "rationale": "题目以主导极点接近虚轴解释近临界动态，核心对应“主导极点”节点。"
+  },
+  {
+   "questionId": "1-5/step-13/rise-versus-settle",
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "rationale": "题目直接辨析上升时间不能替代整体收敛判断，核心对应“上升时间”节点。"
+  },
+  {
+   "questionId": "2-1/step-10/step-10-activity",
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "rationale": "题目围绕传感器提供反馈信号并闭合回路，核心对应测量组件节点。"
+  },
+  {
+   "questionId": "2-1/step-11/step-11-activity",
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "rationale": "题目要求按信号流图与方框图的表达职责分类，候选中的“信号流图”是明确概念核心。"
+  },
+  {
+   "questionId": "2-2/step-02/step-02:response",
+   "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "rationale": "题目要求评价稳定曲线的动态过程，核心对应“动态过程”节点。"
+  },
+  {
    "questionId": "2-2/step-08/step-08:response",
    "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
    "rationale": "无阻尼至过阻尼的连续谱由阻尼比统一刻画。"
+  },
+  {
+   "questionId": "2-2/step-11/step-11:response",
+   "canonicalId": "ctkg:v3e-canonical-3b7f357d3842ce18560a54cf",
+   "rationale": "题目直接考查二阶系统超调量与阻尼比的关系，候选公式与核心一致。"
+  },
+  {
+   "questionId": "2-3/step-13/step-13:response",
+   "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+   "rationale": "题目围绕 Bode 草图中的转折点组织步骤，核心对应“转折点”节点。"
+  },
+  {
+   "questionId": "2-4/step-13/step-13:response",
+   "canonicalId": "ctkg:v3e-object-e476786bb3bd2081da5e3682",
+   "rationale": "题目核心是把 Bode 频点转换为 Nyquist 表示，候选节点直接描述两图频点映射。"
+  },
+  {
+   "questionId": "3-2/step-07/step-07:response",
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "rationale": "题目围绕 Routh 表首列零元素的 epsilon 连续化方法展开，候选节点直接对应。"
+  },
+  {
+   "questionId": "3-4/step-13/step-13:response",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "rationale": "题目明确要求继续使用根轨迹条件，核心对应“根轨迹”节点。"
+  },
+  {
+   "questionId": "3-6/step-06/step-06-activity",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "rationale": "题目通过增益拖动观察纯增益根轨迹并解释失效，核心对应“根轨迹”节点。"
+  },
+  {
+   "questionId": "3-8/step-03/card-03-a",
+   "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+   "rationale": "题目直接考查频率响应读图需同时考虑幅值、相位和频带，核心对应“频率响应”节点。"
+  },
+  {
+   "questionId": "3-8/step-03/card-03-c",
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "rationale": "题目以闭环极点靠近虚轴解释稳定余量变化，核心对应“闭环极点”节点。"
+  },
+  {
+   "questionId": "3-8/step-13/card-11-a",
+   "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "rationale": "题目要求标出两类频率穿越位置，核心可由候选中的“穿越频率”节点统一承载。"
+  },
+  {
+   "questionId": "3-8/step-21/card-19-b",
+   "canonicalId": "ctkg:v3e-object-afd8969de4ddc267089ea69c",
+   "rationale": "题目围绕 Bode/Nyquist 的稳定边界证据展开，候选节点直接关联增益裕度与相位裕度。"
   },
   {
    "questionId": "3-9/step-05/gain_margin",
@@ -84,9 +179,24 @@
    "rationale": "题目只要求读取开环频域图中的增益裕度。"
   },
   {
+   "questionId": "4-2/step-03/pre-q2",
+   "canonicalId": "ctkg:v3e-canonical-accbc123052ef16a32580910",
+   "rationale": "题目考查低频开环增益对稳态误差等指标的影响，候选断言直接给出该关系。"
+  },
+  {
    "questionId": "4-2/step-03/pre-q3",
    "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
    "rationale": "题目围绕前馈补偿与反馈稳定职责的关系作判断。"
+  },
+  {
+   "questionId": "4-2/step-05/mid-frequency-structure",
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "rationale": "题目以相角裕度不足作为结构诊断入口，核心对应“相角裕度”节点。"
+  },
+  {
+   "questionId": "4-2/step-19/post-q1",
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "rationale": "题目以稳态误差偏大作为首轮结构选择依据，核心对应“稳态误差”节点。"
   },
   {
    "questionId": "4-3/step-04/gap-select",
@@ -99,14 +209,39 @@
    "rationale": "题目直接考查复合控制的首轮验证证据。"
   },
   {
+   "questionId": "4-3/step-16/setpoint-filter-observation",
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "rationale": "题目围绕给定滤波截止频率及其速度—平顺性影响展开，核心对应“截止频率”节点。"
+  },
+  {
+   "questionId": "4-7/step-02/bode-review",
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "rationale": "题目直接询问相位裕度在穿越频率附近的判别意义，核心对应“相位裕度”节点。"
+  },
+  {
+   "questionId": "5-1/step-03/model-range",
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "rationale": "题目考查辨识传递函数的适用范围与外推边界，核心对应“传递函数”节点。"
+  },
+  {
+   "questionId": "5-2/step-05/local-result",
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "rationale": "题目由特征值位于左半平面推断局部稳定性，候选稳定性断言直接对应。"
+  },
+  {
    "questionId": "5-2/step-07/lowpass-why",
    "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
    "rationale": "题目直接考查描述函数法成立所需的低通假设。"
   },
   {
-   "questionId": "5-2/step-17/tool-choice",
-   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
-   "rationale": "小扰动偏离工作点时应先用线性化判断线性主干。"
+   "questionId": "5-2/step-09/relay-observation-submit",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "rationale": "题目要求比较继电、滞环或间隙的描述函数及其虚部，核心对应“描述函数”节点。"
+  },
+  {
+   "questionId": "5-2/step-10/intersection-next",
+   "canonicalId": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+   "rationale": "题目围绕描述函数交点后的振幅、频率与自振核验展开，候选非线性分析节点与该判断一致。"
   },
   {
    "questionId": "5-2/step-17/df-condition",
@@ -117,6 +252,11 @@
    "questionId": "5-2/step-17/intersection-check",
    "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
    "rationale": "题干直接围绕负倒描述函数交点及其复核展开。"
+  },
+  {
+   "questionId": "5-2/step-17/tool-choice",
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "rationale": "小扰动偏离工作点时应先用线性化判断线性主干。"
   },
   {
    "questionId": "5-3/step-06/noise-diagnosis",
@@ -137,6 +277,22 @@
    "questionId": "5-4/step-12/perception-error",
    "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
    "rationale": "题目聚焦数据驱动方法对感知相关估计误差的局部处理。"
+  },
+  {
+   "questionId": "5-5/step-07/reward-omission",
+   "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+   "rationale": "题目考查只惩罚跟踪误差的奖励遗漏，核心对应“跟踪误差”节点。"
+  },
+  {
+   "questionId": "cruise-comfort-boppps/precheck/dominant-pole-risk",
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "rationale": "题目直接考查主导极点靠近虚轴的动态风险，核心对应“主导极点”节点。"
+  },
+  {
+   "questionId": "cruise-comfort-boppps/precheck/phase-margin-risk",
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "rationale": "题目直接考查相位裕度过低的稳定风险，核心对应“相位裕度”节点。"
   }
- ]
+ ],
+ "notes": "round 1 (conservative) + owner ruling 4 fix + round 2 re-review (owner ruling 4b, relaxed threshold for open questions)"
 }

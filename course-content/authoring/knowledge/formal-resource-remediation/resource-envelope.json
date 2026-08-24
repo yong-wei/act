@@ -4,9 +4,9 @@
  "sealedAt": "2026-08-24T19:30:00.000Z",
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
- "resourceCount": 1045,
- "atomCount": 13476,
- "bindingCount": 1585,
+ "resourceCount": 1058,
+ "atomCount": 13522,
+ "bindingCount": 2575,
  "subtypes": [
   {
    "subtype": "audio",
@@ -29,6 +29,11 @@
    "atoms": 5394
   },
   {
+   "subtype": "handout-exercise",
+   "resources": 13,
+   "atoms": 46
+  },
+  {
    "subtype": "intro-video",
    "resources": 31,
    "atoms": 1880
@@ -49,6 +54,11 @@
    "role": "audio-segmentation-summary",
    "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-segmentation-summary.json",
    "sha256": "4e32441fe5fbc1b18c063c48de2be9f3f326f20176fe79d7e55e592cd6f2b83f"
+  },
+  {
+   "role": "card-name-index",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/card-name-index.json",
+   "sha256": "8906ef04c38731029d10bde9ff9af4d98a21a8279937edb1db461c09f6673530"
   },
   {
    "role": "course-to-authority-map",
@@ -83,7 +93,7 @@
   {
    "role": "exercise-node-bindings",
    "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-node-bindings.json",
-   "sha256": "be79c93a0f88948b63fbf9b8d7738c5ce05a4471435ea3b4c7c80027a90888a6"
+   "sha256": "ccda07e75320c98f913ff5dc2192389bd3a16992c384ea53c99fda58329015b8"
   },
   {
    "role": "exercise-processing-records",
@@ -94,6 +104,26 @@
    "role": "exercise-run-summary",
    "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-run-summary.json",
    "sha256": "59d389061618bb8607f0dc1eadcd52903372b2d347f941d9947e2766a2e76deb"
+  },
+  {
+   "role": "handout-exercise-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-atoms.json",
+   "sha256": "99a018aa35b8bd344d07b6f514d5a87ebc2381adf3bba55477d23facbbbd5215"
+  },
+  {
+   "role": "handout-exercise-node-bindings",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-node-bindings.json",
+   "sha256": "3cbaec8567a631135ee1ab7ddb5db0576d0b4e25c48aea8a2c52729ed4b9157b"
+  },
+  {
+   "role": "handout-exercise-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-processing-records.json",
+   "sha256": "2e0f63c03d7bfcdc7aaf56b8a9a000b8607595a6b747c37a96a0031353f5ea8f"
+  },
+  {
+   "role": "handout-exercise-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-run-summary.json",
+   "sha256": "1b6e160fbbda4799023e37e3aa4e8158e4c344858dd6da17bd4897fce98d1a13"
   },
   {
    "role": "hotword-manifests",
@@ -167,13 +197,13 @@
   }
  ],
  "limitations": [
-  "exercise mapping review (gpt-5.6-sol, conservative): 33 of 455 mapped, 26 kept (covered-domain targets), 7 filtered (D1-excluded targets), 422 null (open/operational cards without a single concept core)",
+  "layered handout exercises join the exercise binding channel as their own resources (13 units, 46 questions; owner sampling decision 1)",
   "simulation/interactive launcher atoms (85 DB launchers) bind registry identity and config digest; task/scene semantics and Canonical mapping are pending semantic review",
   "exercise semantic Canonical mapping review is in flight (455 cards); exercise atoms currently carry no canonical bindings",
   "intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
-  "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
+  "card bindings use the crosswalk exact-name index (205 of 838 card keys, 1383 atom-level rows); name-variant and graph-missing keys stay unbound (tracked as G9)",
   "audio/video/exercise bindings are filtered to covered-domain targets in the projection binding layer (audio 586/741 rows kept, intro-video 539/727 kept, exercise 26/33 kept); D1-excluded targets stay bound in the resource-layer binding files as modal facts but do not join the teaching projection"
  ],
- "envelopeHash": "edf48bb65becffaab9d068a8c19826fc77e8d91fd4c06187333ec8ce855fa307"
+ "envelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7"
 }

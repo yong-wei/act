@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "domain": "optimal-control-foundations-and-linear-quadratic-design",
  "memberCount": 200,
  "edgeCount": 0,
  "bindingCount": 0,
- "fragmentHash": "0db762225d0265277407e80c20e31fdd0e15f210868e5a2803b2b6fc8b7e7618",
+ "fragmentHash": "3814d92bd4b9cb816eee1cd3b82cdefe80e78ca5fc3e8717531ded3fe97953c4",
  "members": [
   {
    "canonicalId": "ctkg:m1q:phase-g:source:0097b018d37b4c0f64f035ac",

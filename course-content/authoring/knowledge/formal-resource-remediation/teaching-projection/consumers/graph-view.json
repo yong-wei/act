@@ -1,7 +1,7 @@
 {
  "contract": "remediation-teaching-projection-consumer/v1",
  "consumer": "graph",
- "projectionHash": "8c8f32fbfc996934d68464696088cf56d014a608003163c43337ae3b879868ad",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
  "nodes": [
   {
    "id": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -43,7 +43,7 @@
    "domain": "system-modeling",
    "label": "状态变量",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctc:modeling-029518e82a518c01bc626b66",
@@ -379,7 +379,7 @@
    "domain": "system-modeling",
    "label": "建模",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctc:modeling-34d3b4c651b0047e6e180fe2",
@@ -960,7 +960,7 @@
    "domain": "system-modeling",
    "label": "零点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctc:modeling-82926f44dbd08d4b847f084c",
@@ -2066,7 +2066,7 @@
    "domain": "root-locus",
    "label": "正反馈系统",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctc:v11g-67c03c5207c095a08e761361",
@@ -2311,7 +2311,7 @@
    "domain": "root-locus",
    "label": "等效开环传递函数",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctc:v11g-d25e6196c789c546f7a61064",
@@ -6364,7 +6364,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "反馈控制系统",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:289e3beca59c9ef373836b12",
@@ -6399,7 +6399,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "前置滤波器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
@@ -6455,7 +6455,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "复合校正",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:3bdef317703581e0a2e1b82f",
@@ -6518,7 +6518,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "扰动抑制",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:42b62edf88d848137713e690",
@@ -6763,7 +6763,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "误差全补偿条件",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
@@ -6784,7 +6784,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "最小节拍响应",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:6e5429ed119ba2156807f7a0",
@@ -7743,7 +7743,7 @@
    "domain": "robustness-sensitivity-analysis",
    "label": "前馈校正",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:domainconcept:f4736bb9065505bbc327e2b7",
@@ -14323,7 +14323,7 @@
    "domain": "classical-control-design",
    "label": "PID控制器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:m3-v2j:source-object:268ace9238794805c098eddb",
@@ -14351,7 +14351,7 @@
    "domain": "root-locus",
    "label": "根轨迹图",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
@@ -14701,7 +14701,7 @@
    "domain": "classical-control-design",
    "label": "ITAE性能指标",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:m3-v2l:canonical-object:9f153ed8f3c202a4d7efedde",
@@ -15023,7 +15023,7 @@
    "domain": "stability-analysis",
    "label": "闭环特征方程",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:m3-v2r:canonical-object:37f52a59ccdbaf82a6634501",
@@ -16787,7 +16787,7 @@
    "domain": "time-domain-analysis",
    "label": "M_{p}=e^{-\\pi \\zeta / \\sqrt{1-\\zeta^{2}}}, \\quad 0 \\leq \\zeta<1",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-3c09875818993a2fd71e3dd6",
@@ -16808,7 +16808,7 @@
    "domain": "time-domain-analysis",
    "label": "测速反馈控制",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-3e670eae83dcdd8c322cd8f3",
@@ -16829,7 +16829,7 @@
    "domain": "time-domain-analysis",
    "label": "单位脉冲函数",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-402520f5d0666a4005583d67",
@@ -16948,7 +16948,7 @@
    "domain": "time-domain-analysis",
    "label": "极点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
@@ -17088,7 +17088,7 @@
    "domain": "time-domain-analysis",
    "label": "单位阶跃函数",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-4facb5e3154c492305396a68",
@@ -17144,7 +17144,7 @@
    "domain": "time-domain-analysis",
    "label": "复合控制系统",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-522a10f6a751d96b26c1d8c6",
@@ -17550,7 +17550,7 @@
    "domain": "time-domain-analysis",
    "label": "比例-微分控制",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-6dbb5c144b45c1f35822330c",
@@ -18320,7 +18320,7 @@
    "domain": "time-domain-analysis",
    "label": "属性断言：影响稳态误差的诸因素是：系统型别，开环增益，输入信号的形式和幅值。",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
@@ -18362,7 +18362,7 @@
    "domain": "time-domain-analysis",
    "label": "典型输入信号",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
@@ -18761,7 +18761,7 @@
    "domain": "time-domain-analysis",
    "label": "稳态过程",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-canonical-c91169cfe7abdf6075e77ae1",
@@ -19643,7 +19643,7 @@
    "domain": "frequency-domain-analysis",
    "label": "谐振峰值",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-001169006b8b5d49ab4f2797",
@@ -19846,7 +19846,7 @@
    "domain": "classical-control-design",
    "label": "P控制器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-01a9ac4b7e6150a3e686a428",
@@ -21792,7 +21792,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "可控性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-134f7e6a7aea460c5924bf05",
@@ -22275,7 +22275,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "格拉姆矩阵判据",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-1757f38ee7689067748a7b27",
@@ -22646,7 +22646,7 @@
    "domain": "classical-control-design",
    "label": "串联补偿器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-1b73680eb4459f7d61aecdd7",
@@ -22968,7 +22968,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "Consider the feedback system in Fig. 9.14. Determine the amplitude and the frequency of the limit cycle using the Nyquist plot.",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-1e9a880ef2f53925b280abc7",
@@ -23262,7 +23262,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "等倾线法",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-218ab5725c1b47797240a736",
@@ -23549,14 +23549,14 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "完全可达",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
    "domain": "state-space-control-analysis-and-design",
    "label": "PBH秩判据",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-23c32174a3ffdb07b05b892a",
@@ -24039,7 +24039,7 @@
    "domain": "frequency-domain-analysis",
    "label": "对数幅相曲线",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
@@ -24501,7 +24501,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "稳态跟踪误差",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-2be946ef96c6d5f8cc31b1e6",
@@ -24886,7 +24886,7 @@
    "domain": "frequency-domain-analysis",
    "label": "幅相频率特性曲线",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-2e29d3b715cc9dd693722e53",
@@ -25796,7 +25796,7 @@
    "domain": "classical-control-design",
    "label": "I控制器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-35af6839e82a784d4db48cf8",
@@ -25957,7 +25957,7 @@
    "domain": "classical-control-design",
    "label": "频率响应法",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-37427c0ceefae90634f93312",
@@ -25985,7 +25985,7 @@
    "domain": "classical-control-design",
    "label": "1. Obtain the root locus of the uncompensated system with a constant gain controller. 2. Determine transient performance specifications and locate suitable dominant root locations. 3. Calculate loop gain and uncompensated error constant. 4. Compare error constants and calculate necessary increase from pole-zero ratio alpha. 5. Determine suitable pole and zero location near origin so compensated root locus passes through desired root location.",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-3765d9ba047ae3b05afeaf37",
@@ -26300,7 +26300,7 @@
    "domain": "frequency-domain-analysis",
    "label": "\\sigma=0.16+0.4\\left(\\frac{1}{\\sin \\gamma}-1\\right), \\quad 35^{\\circ} \\leqslant \\gamma \\leqslant 90^{\\circ}",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-39e182cc26e391d8520ed313",
@@ -27343,7 +27343,7 @@
    "domain": "classical-control-design",
    "label": "系统带宽",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-4311848affc69120363b28e5",
@@ -29226,7 +29226,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "可观测性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-55ba5e683fbaca96197c493b",
@@ -29303,7 +29303,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "继电特性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
@@ -29702,7 +29702,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "半稳定极限环",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
@@ -29898,7 +29898,7 @@
    "domain": "frequency-domain-analysis",
    "label": "非最小相位环节",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-5a759f9ebd2c6cf98ec20572",
@@ -29940,7 +29940,7 @@
    "domain": "frequency-domain-analysis",
    "label": "对数幅频渐近特性曲线",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-5aa119c1211318de57450e5b",
@@ -30059,7 +30059,7 @@
    "domain": "classical-control-design",
    "label": "串联超前校正",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-5b8c6af0e4998923cea89805",
@@ -30325,7 +30325,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "内模控制器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-5e54ff14778bcccafad17aca",
@@ -30920,7 +30920,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "饱和非线性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-6394fe9e04ff3948149bbede",
@@ -30997,7 +30997,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "鞍点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-640aa99cc384d9047978efd3",
@@ -31487,7 +31487,7 @@
    "domain": "classical-control-design",
    "label": "PI控制器",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-68df257f762f259aef82b607",
@@ -32845,7 +32845,7 @@
    "domain": "stability-analysis",
    "label": "For Case 2, replace zero in first column with small positive number epsilon",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-765517079b6f24dc042a7af2",
@@ -34196,7 +34196,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "相轨迹",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-80c7d8f59e1ad1850271350c",
@@ -34525,7 +34525,7 @@
    "domain": "classical-control-design",
    "label": "超前补偿",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-83b6a1d555e30889f57bb4e9",
@@ -35925,7 +35925,7 @@
    "domain": "frequency-domain-analysis",
    "label": "条件稳定系统",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-906d58a041e874cb7914d610",
@@ -36989,7 +36989,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "容许控制",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-9a618d18e717e382e033a6a6",
@@ -37066,7 +37066,7 @@
    "domain": "classical-control-design",
    "label": "积分控制规律",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-9b4974009d9c3d3e04d01800",
@@ -37080,7 +37080,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "秩判据",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-9b847979215492ca1f790499",
@@ -37668,7 +37668,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "相平面法",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-a0e6fc310f822ff05f13f9da",
@@ -37780,7 +37780,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "N(A)=\\frac{2 K}{\\pi}\\left[\\frac{\\pi}{2}-\\arcsin \\frac{\\Delta}{A}-\\frac{\\Delta}{A} \\sqrt{1-\\left(\\frac{\\Delta}{A}\\right)^{2}}\\right], \\quad A \\geqslant \\Delta",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-a241f1b04d77793cee60f9d5",
@@ -37843,7 +37843,7 @@
    "domain": "classical-control-design",
    "label": "反馈校正",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-a32474ab07034c4b9b60301c",
@@ -38522,7 +38522,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "摩擦特性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-a98f424dd074fcab4c1d1f23",
@@ -38886,7 +38886,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "自激振荡",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-ae19d48070852776f268c32a",
@@ -39061,14 +39061,14 @@
    "domain": "nonlinear-system-analysis",
    "label": "速度反馈",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-afd8969de4ddc267089ea69c",
    "domain": "frequency-domain-analysis",
    "label": "The computed gain margin (GM) and phase margins (PM) for the system in Example 6.11, derived from the Nyquist and Bode plots.",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-aff03bf45406d5988cf257aa",
@@ -39124,7 +39124,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "间隙特性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-b092068b4c4f698ba04af03d",
@@ -39229,7 +39229,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "状态转移矩阵",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-b16306052cbaea0119b5b760",
@@ -40118,7 +40118,7 @@
    "domain": "frequency-domain-analysis",
    "label": "最小相位环节",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-ba60099b25cd6656ce827ba9",
@@ -40139,7 +40139,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "奇点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-ba97649bece9a696fad74362",
@@ -40559,7 +40559,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "自振荡",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-bdaac6586945ffbce37eb5a5",
@@ -41049,7 +41049,7 @@
    "domain": "stability-analysis",
    "label": "运动稳定性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-c37da3fe6742e86d69ad02ac",
@@ -42085,7 +42085,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "饱和特性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
@@ -42428,7 +42428,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "\\Delta \\ddot{x}=\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial x}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta x+\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial \\dot{x}}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta \\dot{x}",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
@@ -42869,7 +42869,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "实奇点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
@@ -43219,7 +43219,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "死区特性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-d88e037e6f9d7a862b228df2",
@@ -44199,7 +44199,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "虚奇点",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
@@ -44388,7 +44388,7 @@
    "domain": "frequency-domain-analysis",
    "label": "Points from the Bode plot (magnitude and phase) can be mapped to the Nyquist (polar) plot.",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-e4c422e1b20505e2370b0f2a",
@@ -45088,7 +45088,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "量化",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-ead94cd5737c9477254bca2b",
@@ -45935,7 +45935,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "极点配置",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-f1fc1eb61d62e53cc5a3d4c0",
@@ -46831,7 +46831,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "对角线规范型判据",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-fac828826746b38462ac91ba",
@@ -46992,7 +46992,7 @@
    "domain": "nonlinear-system-analysis",
    "label": "开关线",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-fc2fe9e4813f5c2c71a241cb",
@@ -47244,7 +47244,7 @@
    "domain": "state-space-control-analysis-and-design",
    "label": "输出可控性",
    "excluded": false,
-   "hasResource": false
+   "hasResource": true
   },
   {
    "id": "ctkg:v3e-object-ff6ca77430b804369f679597",
