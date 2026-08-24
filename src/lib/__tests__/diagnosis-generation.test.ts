@@ -1,12 +1,14 @@
 import { Prisma } from '@prisma/client';
+import { NoOutputGeneratedError } from 'ai';
 import { UnrecoverableError } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
 vi.mock('server-only', () => ({}));
 
-const { providerGenerate } = vi.hoisted(() => ({
+const { providerGenerate, TextJsonFallbackOutputError } = vi.hoisted(() => ({
   providerGenerate: vi.fn(),
+  TextJsonFallbackOutputError: class TextJsonFallbackOutputError extends Error {},
 }));
 
 vi.mock('@/lib/konling-agent-runtime', () => ({
@@ -16,6 +18,7 @@ vi.mock('@/lib/konling-agent-runtime', () => ({
 
 vi.mock('@/lib/smart-lesson-plan/provider-runtime', () => ({
   resolveSmartLessonStructuredProvider: vi.fn().mockResolvedValue({ generate: providerGenerate }),
+  TextJsonFallbackOutputError,
 }));
 
 import {
@@ -29,6 +32,7 @@ import {
 } from '@/lib/diagnosis-generation';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
+  DiagnosisGenerationProviderEmptyOutputError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
@@ -315,6 +319,55 @@ describe('teacher diagnosis generation contracts', () => {
     });
   });
 
+  it('maps an unusable text fallback to the retryable empty-output failure', async () => {
+    providerGenerate.mockRejectedValueOnce(new TextJsonFallbackOutputError());
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-invalid-fallback-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+  });
+
+  it('maps provider-schema-invalid text fallback output to the retryable empty-output failure', async () => {
+    const output = {
+      summary: '持久化报告模式可接受该结果。',
+      findings: Array.from({ length: 7 }, () => ({
+        title: '超出提供方诊断模式上限的发现项。',
+        evidenceRefs: [],
+      })),
+      evidenceRefs: ['knowledge-progress:progress-1'],
+      evidenceCutoff: now.toISOString(),
+      sourceCoverage: { progressRows: 1 },
+      confidence: 'medium' as const,
+      limitations: [],
+    };
+    expect(diagnosisReportBodySchema.safeParse(output).success).toBe(true);
+    providerGenerate.mockResolvedValueOnce({
+      output,
+      normalizedResponseId: 'provider-response-schema-invalid-fallback',
+      usedTextJsonFallback: true,
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-schema-invalid-fallback-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+  });
+
   it('bounds a large class provider projection while retaining complete governed coverage', async () => {
     const studentIds = Array.from({ length: 100 }, (_value, index) => `student-${index}`);
     const providerInput = {
@@ -509,6 +562,47 @@ describe('teacher diagnosis generation contracts', () => {
     }));
     expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
       data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('records a provider-schema-invalid fallback as retryable with a specific diagnosis code', async () => {
+    const { db, tx } = workerDbFixture();
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '持久化报告模式可接受该结果。',
+        findings: Array.from({ length: 7 }, () => ({
+          title: '超出提供方诊断模式上限的发现项。',
+          evidenceRefs: [],
+        })),
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { progressRows: 1 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-schema-invalid-fallback',
+      usedTextJsonFallback: true,
+    });
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 2, opts: { attempts: 3 } } as never,
+    )).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-provider-empty-output',
+        errorMessage: '诊断模型未返回可用的结构化结果。',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'diagnosis-provider-empty-output',
+        retryable: true,
+      }),
     }));
   });
 

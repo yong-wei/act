@@ -15,7 +15,10 @@ import {
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
-import { resolveSmartLessonStructuredProvider } from '@/lib/smart-lesson-plan/provider-runtime';
+import {
+  resolveSmartLessonStructuredProvider,
+  TextJsonFallbackOutputError,
+} from '@/lib/smart-lesson-plan/provider-runtime';
 
 const DIAGNOSIS_TOOLS = [
   'get_class_assignment_outcomes',
@@ -93,6 +96,13 @@ export class DiagnosisGenerationValidationError extends Error {
   constructor(readonly code: string, message = code) {
     super(message);
     this.name = 'DiagnosisGenerationValidationError';
+  }
+}
+
+export class DiagnosisGenerationProviderEmptyOutputError extends Error {
+  constructor() {
+    super('诊断模型未返回可用的结构化结果。');
+    this.name = 'DiagnosisGenerationProviderEmptyOutputError';
   }
 }
 
@@ -223,33 +233,51 @@ export async function generateGovernedDiagnosisReport(
   };
 
   const provider = await resolveSmartLessonStructuredProvider();
-  const generated = await provider.generate({
-    schema: diagnosisProviderReportBodySchema,
-    schemaVersion: 'teacher-diagnosis-report-body.v1',
-    promptVersion: input.generatorVersion,
-    system: [
-      '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
-      '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
-      '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
-      '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
-      '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
-      'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
-      `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
-    ].join('\n'),
-    prompt: JSON.stringify({
-      scope: input.targetStudentId
-        ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
-        : { type: 'class', classId: input.classId },
-      evidenceCutoff: input.evidenceCutoff.toISOString(),
-      governedToolResults: providerToolResults,
-    }),
-    idempotencyKey: input.attemptId,
-    maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
-    deferValidation: true,
-    timeoutMs: 120_000,
-  });
+  let generated;
+  try {
+    generated = await provider.generate({
+      schema: diagnosisProviderReportBodySchema,
+      schemaVersion: 'teacher-diagnosis-report-body.v1',
+      promptVersion: input.generatorVersion,
+      system: [
+        '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
+        '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
+        '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
+        '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
+        '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
+        'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
+        `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
+      ].join('\n'),
+      prompt: JSON.stringify({
+        scope: input.targetStudentId
+          ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
+          : { type: 'class', classId: input.classId },
+        evidenceCutoff: input.evidenceCutoff.toISOString(),
+        governedToolResults: providerToolResults,
+      }),
+      idempotencyKey: input.attemptId,
+      maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
+      deferValidation: true,
+      fallbackToTextJson: true,
+      timeoutMs: 120_000,
+    });
+  } catch (error) {
+    if (error instanceof TextJsonFallbackOutputError) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
+    throw error;
+  }
+  if (generated.usedTextJsonFallback) {
+    const parsedFallback = diagnosisProviderReportBodySchema.safeParse(generated.output);
+    if (!parsedFallback.success) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
+  }
   const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
   if (!parsedReportBody.success) {
+    if (generated.usedTextJsonFallback) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
     throw new DiagnosisGenerationOutputValidationError(parsedReportBody.error);
   }
   const reportBody = {
