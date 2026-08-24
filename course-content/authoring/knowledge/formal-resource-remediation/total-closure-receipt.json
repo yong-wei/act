@@ -1,0 +1,180 @@
+{
+ "contract": "remediation-total-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 7476,
+ "rowCount": 22428,
+ "unresolved": 0,
+ "publishedEdges": 420,
+ "perDomain": [
+  {
+   "domain": "root-locus",
+   "members": 104,
+   "rows": 312,
+   "publishedEdges": 45,
+   "complete": true
+  },
+  {
+   "domain": "robustness-sensitivity-analysis",
+   "members": 259,
+   "rows": 777,
+   "publishedEdges": 41,
+   "complete": true
+  },
+  {
+   "domain": "stability-analysis",
+   "members": 263,
+   "rows": 789,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "nonlinear-system-analysis",
+   "members": 349,
+   "rows": 1047,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "time-domain-analysis",
+   "members": 584,
+   "rows": 1752,
+   "publishedEdges": 165,
+   "complete": true
+  },
+  {
+   "domain": "system-modeling",
+   "members": 666,
+   "rows": 1998,
+   "publishedEdges": 57,
+   "complete": true
+  },
+  {
+   "domain": "classical-control-design",
+   "members": 776,
+   "rows": 2328,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "frequency-domain-analysis",
+   "members": 954,
+   "rows": 2862,
+   "publishedEdges": 93,
+   "complete": true
+  },
+  {
+   "domain": "state-space-control-analysis-and-design",
+   "members": 1300,
+   "rows": 3900,
+   "publishedEdges": 19,
+   "complete": true
+  },
+  {
+   "domain": "robust-control-analysis-and-design",
+   "members": 707,
+   "rows": 2121,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "discrete-time-control-analysis",
+   "members": 619,
+   "rows": 1857,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "discrete-time-control-design",
+   "members": 450,
+   "rows": 1350,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "optimal-control-foundations-and-linear-quadratic-design",
+   "members": 200,
+   "rows": 600,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "lyapunov-stability",
+   "members": 141,
+   "rows": 423,
+   "publishedEdges": 0,
+   "complete": true
+  },
+  {
+   "domain": "nonlinear-control-design",
+   "members": 104,
+   "rows": 312,
+   "publishedEdges": 0,
+   "complete": true
+  }
+ ],
+ "domainReceipts": [
+  {
+   "domain": "root-locus",
+   "sha256": "e883727ca9227b4f57dae64397284515f19d808ae512fffe0416bd9543654f97"
+  },
+  {
+   "domain": "robustness-sensitivity-analysis",
+   "sha256": "da1d9227e2fe99a2d377978f8968c1b8f9495a1c17a2e6938f17bd67b5a96631"
+  },
+  {
+   "domain": "stability-analysis",
+   "sha256": "6e0aed16df0d00f14291141818c21659a000c973929a1c23c91ce3cfed7b4a2a"
+  },
+  {
+   "domain": "nonlinear-system-analysis",
+   "sha256": "d2d5fa85de6fccb430a8ad5fa41df6d3579f9221edca7a282d7e40bd3e2785f3"
+  },
+  {
+   "domain": "time-domain-analysis",
+   "sha256": "eb97701e8b14c793a8f0b771b5b10f4a11f395eca92d4724888f00af06307472"
+  },
+  {
+   "domain": "system-modeling",
+   "sha256": "7fce2905f9b2beb3c3d4e17ac3e7b140795974efb9ef2aba348ee46aaf8be093"
+  },
+  {
+   "domain": "classical-control-design",
+   "sha256": "f74ce1971b57823d599f7bd81e8087f0be03d5ac4f4f2e4554a1c89672291ac6"
+  },
+  {
+   "domain": "frequency-domain-analysis",
+   "sha256": "e4530e1960be4ff4964e3c49aeccca8f253cfcbf12cc94bcce1eefd8e626880f"
+  },
+  {
+   "domain": "state-space-control-analysis-and-design",
+   "sha256": "9ac719b44d512a0e5fe44c94d49bb5922a162c3a3b56195c68da360756706cb4"
+  },
+  {
+   "domain": "robust-control-analysis-and-design",
+   "sha256": "5c28ec11cc5ebe248ec7461428bf6e8b69c698ebac37aaef2b011649dd5ac5c5"
+  },
+  {
+   "domain": "discrete-time-control-analysis",
+   "sha256": "e0b7ce5487787421a88d3142face856ec28ebd1722b8c615209d611cbe7df8fd"
+  },
+  {
+   "domain": "discrete-time-control-design",
+   "sha256": "26a5ad3f8fa919a0b428b13784b4215a8483a5bd5cdfcc05890b1bffb7ab0516"
+  },
+  {
+   "domain": "optimal-control-foundations-and-linear-quadratic-design",
+   "sha256": "eb0568f6a6c1393181647d62b7004e32d62feebde5f4542507d35842b63812ab"
+  },
+  {
+   "domain": "lyapunov-stability",
+   "sha256": "e0a88e4fc1033bf24df13a343672437a7483cecdd8c2336193391cc6a3c97fee"
+  },
+  {
+   "domain": "nonlinear-control-design",
+   "sha256": "9009fe5d089af812b8622a754045359092cd40f06c294dad337bacf645946327"
+  }
+ ],
+ "closureComplete": true
+}

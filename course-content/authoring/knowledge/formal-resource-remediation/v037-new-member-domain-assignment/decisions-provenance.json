@@ -1,0 +1,27 @@
+{
+ "contract": "remediation-v037-new-member-decision-provenance/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/v037-covered-162-review.jsonl",
+ "sourceSha256": "cf54f2ecd8ba5aa186a55f54e71dc882eb2674c050f015f4ba6301f3aec4b734",
+ "decisionsSha256": "cf54f2ecd8ba5aa186a55f54e71dc882eb2674c050f015f4ba6301f3aec4b734",
+ "reviewIdentity": "codex act:issue-1515:review-14 continuation (gpt-5.6-sol, medium), 162/162 verified, targets validated against crosswalk-v037",
+ "rowCount": 162,
+ "classCounts": {
+  "A": 148,
+  "C-handout-gap": 4,
+  "C-out-of-scope": 10
+ },
+ "edgeCount": 12,
+ "edgesByDomain": {
+  "state-space-control-analysis-and-design": 6,
+  "system-modeling": 6
+ },
+ "assignmentReconciliation": {
+  "totalAssignments": 176,
+  "coveredMembers": 162,
+  "reviewRows": 162,
+  "excludedMembers": 14,
+  "oneToOne": true
+ },
+ "allTargetsInScope": true
+}
