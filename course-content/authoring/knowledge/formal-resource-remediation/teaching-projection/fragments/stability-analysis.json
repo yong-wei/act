@@ -1,0 +1,1690 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "domain": "stability-analysis",
+ "memberCount": 263,
+ "edgeCount": 0,
+ "bindingCount": 14,
+ "fragmentHash": "b835f148c956f38f876edccb5ebfa8be06d943c47c7c2b8abe50a2dd5672891d",
+ "members": [
+  {
+   "canonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
+   "excluded": false,
+   "label": "劳斯-赫尔维茨判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:canonical-object:12f9f8b6f6fcb55e6fda7f84",
+   "excluded": false,
+   "label": "相对稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:canonical-object:3ed16711b862a82d767ce305",
+   "excluded": false,
+   "label": "轴平移法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:canonical-object:9275aaa56098fb48e1ed598e",
+   "excluded": false,
+   "label": "相对阻尼系数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:source-object:3dde22225f47bb2bbcde4b2b",
+   "excluded": false,
+   "label": "特征方程q(s)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:source-object:3f3cf2020b9054c957783d6a",
+   "excluded": false,
+   "label": "移位特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:source-object:8bf7fff26521a9c78458487c",
+   "excluded": false,
+   "label": "辅助多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:source-object:b25d682cf6846bc880f4b09e",
+   "excluded": false,
+   "label": "移位变量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2b:source-object:f7a0552cfddba3b956028a81",
+   "excluded": false,
+   "label": "移位特征方程的劳斯阵列",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2c:source-object:136c72dc12727185d55c09b1",
+   "excluded": false,
+   "label": "阶跃输入下系统稳定的条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2c:source-object:3e88ffe42ed2e06718eb6e5a",
+   "excluded": false,
+   "label": "单位负反馈控制系统的特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2k:source-object:8d0c6470c62c1469ff425f38",
+   "excluded": false,
+   "label": "系统稳定增益范围",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2k:source-object:91256c721d84a652519732aa",
+   "excluded": false,
+   "label": "含右半平面零点的闭环系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2k:source-object:f7550344c6b867ee724f8edf",
+   "excluded": false,
+   "label": "含右半平面零点系统的闭环传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2l:source-object:471c9775fec005b51eb28722",
+   "excluded": false,
+   "label": "三阶特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+   "excluded": false,
+   "label": "特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2m:source-object:6f24469a649646c86dab24d4",
+   "excluded": false,
+   "label": "示例系统特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "excluded": false,
+   "label": "闭环特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2r:canonical-object:43796246fc41ae3fa4fe6c82",
+   "excluded": false,
+   "label": "反馈稳定性特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2r:canonical-object:9ac16bf52d9b4863fc508987",
+   "excluded": false,
+   "label": "开环稳定性要求",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-006e5276f9c8e6d41fed8b72",
+   "excluded": false,
+   "label": "Example: Case 4 with repeated jω-axis roots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-00bc31c66979e1b4ca29dfec",
+   "excluded": false,
+   "label": "例3-11变量替换后的特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-03b16fad0404c4dd8faf890e",
+   "excluded": false,
+   "label": "A capacitor driven by a current source has impulse response h(t)=1(t) (unit step); the integral of |h| is unbounded, so the capacitor is not BIBO-stable. Its transfer function 1/s has a pole on the imaginary axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-04ae640742aad70aa69b194b",
+   "excluded": false,
+   "label": "The shifting of the s-plane axis to ascertain the relative stability of a system is a very useful approach, particularly for higher-order systems with several pairs of closed-loop complex conjugate roots.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+   "excluded": false,
+   "label": "\\lim _{t \\rightarrow \\infty} c(t)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-068eb8697a3eeaec29fe8c76",
+   "excluded": false,
+   "label": "Arrange coefficients of characteristic polynomial in two rows (first and second coefficients, then even- and odd-numbered coefficients), then add subsequent rows using determinants from the two previous rows.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-06da478c63df32f958ccb33a",
+   "excluded": false,
+   "label": "已知系统特征方程为 D（s）=s^6+s^5-2s^4-3s^3-7s^2-4s-4=0，试用劳斯稳定判据分析系统的稳定性。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0bf4e8e7d4442f1b5c71a1fe",
+   "excluded": false,
+   "label": "Quotient after dividing Example 6.4 polynomial by auxiliary polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c2428053f75b115f075c134",
+   "excluded": false,
+   "label": "Capacitor impulse response integral",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c95c7a03ede0b2ff917ea86",
+   "excluded": false,
+   "label": "对于稳定的线性系统，必然在大范围内和小范围内都能稳定；只有非线性系统才可能有小范围稳定而大范围不稳定的情况。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cb2701bdfded72d72bf7808",
+   "excluded": false,
+   "label": "For K=10 and K_I=5, the closed-loop poles are at -0.46 and -1.26 ± 3.3j and the zero is at -0.5.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cef8900607559a26de997cc",
+   "excluded": false,
+   "label": "This criterion requires that there be no changes in sign in the first column for a stable system. This requirement is both necessary and sufficient.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+   "excluded": false,
+   "label": "q(s)=a_{3} s^{3}+a_{2} s^{2}+a_{1} s+a_{0}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-10b5819d0d443ede60d2ba1c",
+   "excluded": false,
+   "label": "For K=1 and K_I=0, the closed-loop poles are at 0 and -1.5 ± 0.86j, and there is a zero at the origin.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+   "excluded": false,
+   "label": "q(s)= a_{n} s^{n}-a_{n}\\left(r_{1}+r_{2}+\\cdots+r_{n}\\right) s^{n-1} +a_{n}\\left(r_{1} r_{2}+r_{2} r_{3}+r_{1} r_{3}+\\cdots\\right) s^{n-2} -a_{n}\\left(r_{1} r_{2} r_{3}+r_{1} r_{2} r_{4} \\cdots\\right) s^{n-3}+\\cdots +a_{n}(-1)^{n} r_{1} r_{2} r_{3} \\cdots r_{n}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1472ae88c04a791a1cb96179",
+   "excluded": false,
+   "label": "For K=K_I=1, the poles and zeros are all at -1.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-150d418d638a2861be369aa3",
+   "excluded": false,
+   "label": "Stability condition for Case 3 example",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-166681519b0bd66e0bea52d8",
+   "excluded": false,
+   "label": "The location in the s-plane of the poles of a system indicates the resulting transient response. Poles in the left-hand portion of the s-plane result in a decreasing response for disturbance inputs. Poles on the jω-axis and in the right-hand plane result in a neutral and an increasing response, respectively.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1757f38ee7689067748a7b27",
+   "excluded": false,
+   "label": "Example 3.34 characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18093182807aacf13187d33b",
+   "excluded": false,
+   "label": "例3-11闭环传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18ef510f584cac663f6b98fd",
+   "excluded": false,
+   "label": "例3-11新劳斯表",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1bec89fe061b3db5f56a7b7b",
+   "excluded": false,
+   "label": "设比例－积分（PI）控制系统如图 3－32 所示。其中，K1 为与积分器时间常数有关的待定参数。已知参数 ζ=0.2 及 ωn=86.6，试用劳斯稳定判据确定使闭环系统稳定的 K1 取值范围。如果要求闭环系统的极点全部位于 s=-1 垂线之左，问 K1 值范围又应取多大？",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e6e6e4b6871662fcb4c03c5",
+   "excluded": false,
+   "label": "Routh array for Case 4 example",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1f006788439504cf6e5bee05",
+   "excluded": false,
+   "label": "Example polynomial with two right-half-plane roots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ff4286be8d997db84f4f092",
+   "excluded": false,
+   "label": "Four distinct cases of first column array must be considered in Routh-Hurwitz criterion",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2265b9d4d567045c0e01d062",
+   "excluded": false,
+   "label": "The system is unstable for all values of gain K.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2360f80ce087d9cff8bd5ee6",
+   "excluded": false,
+   "label": "Example normalization: divided by ω_n^3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+   "excluded": false,
+   "label": "辅助多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23cfd45cc09cdaaf6a05d0b5",
+   "excluded": false,
+   "label": "Case 4 example characteristic polynomial with repeated jω roots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-258b42cef31585c4159bc46f",
+   "excluded": false,
+   "label": "Stability inequality for welding control",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-25f8175180c74d1acddaa5ed",
+   "excluded": false,
+   "label": "A system is stable if and only if all elements in the first column of the Routh array are positive.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+   "excluded": false,
+   "label": "b_{1}=-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{2} \\\\ a_{1} & a_{3} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{2}-a_{3}}{a_{1}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+   "excluded": false,
+   "label": "The Routh-Hurwitz criterion states that the number of roots of q(s) with positive real parts is equal to the number of changes in sign of the first column of the Routh array.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
+   "excluded": false,
+   "label": "A linear system is stable if and only if the absolute value of its impulse response g(t), integrated over an infinite range, is finite.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d3fc506b74f5c4a57720caf",
+   "excluded": false,
+   "label": "This problem is circumvented by utilizing the auxiliary polynomial, U(s), which immediately precedes the zero entry in the Routh array.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd14d2ca692ed9dd5281ec8",
+   "excluded": false,
+   "label": "Example characteristic equation with all positive coefficients but unstable",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd75669fa53b88a2c7778c1",
+   "excluded": false,
+   "label": "劳斯判据不能保证系统具备满意的动态性能",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+   "excluded": false,
+   "label": "对称根对",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-308e82671458823c736c225b",
+   "excluded": false,
+   "label": "The relative stability of a system can also be defined in terms of the relative damping coefficients ζ of each complex root pair and, therefore, in terms of the speed of response and overshoot instead of settling time.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-32266a64feaa077e3a3d1464",
+   "excluded": false,
+   "label": "Denominator polynomial for closed-loop system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+   "excluded": false,
+   "label": "劳斯法参数范围确定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-340c40de80ac89222ca59cb6",
+   "excluded": false,
+   "label": "Case 2 example 6.3 Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3496e007d3d6b86331d55269",
+   "excluded": false,
+   "label": "MATLAB command to form the denominator polynomial of the closed-loop system for stability analysis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+   "excluded": false,
+   "label": "平衡状态稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+   "excluded": false,
+   "label": "\\int_{-\\infty}^{\\infty}|h(\\tau)| d \\tau<\\infty",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-38db240fe66d9da83dfb95a5",
+   "excluded": false,
+   "label": "在线性控制系统中，劳斯判据主要用来判断系统的稳定性。如果系统不稳定，则这种判据并不能直接指出使系统稳定的方法；如果系统稳定，则劳斯判据也不能保证系统具备满意的动态性能。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3912357dc593f019141d8c29",
+   "excluded": false,
+   "label": "The requirement for a stable second-order system is that all the coefficients be positive or all the coefficients be negative.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-39903086002f9e7c1d7feacb",
+   "excluded": false,
+   "label": "Case 2 example characteristic polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "excluded": false,
+   "label": "线性系统稳定的充分必要条件是：闭环系统特征方程的所有根均具有负实部；或者说，闭环传递函数的极点均位于 s 左半平面。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
+   "excluded": false,
+   "label": "Welding control characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+   "excluded": false,
+   "label": "A system has bounded input-bounded output (BIBO) stability if every bounded input results in a bounded output.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3eadba5d5e22a6f60e5d19f6",
+   "excluded": false,
+   "label": "根据稳定的充分必要条件判别线性系统的稳定性，需要求出系统的全部特征根，因此希望使用一种间接判断系统特征根是否全部位于 s 左半平面的代替方法。劳斯和赫尔维茨分别于1877年和1895年独立提出了判断系统稳定性的代数判据，称为劳斯－赫尔维茨稳定判据。这种判据以线性系统特征方程的系数为依据。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f131b1a1233f692a731044b",
+   "excluded": false,
+   "label": "Internal stability occurs when all poles are strictly in the LHP.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+   "excluded": false,
+   "label": "在特征方程的所有系数为正的条件下，若所有奇次顺序赫尔维茨行列式为正，则所有偶次顺序赫尔维茨行列式亦必为正；反之亦然。这就是所谓李纳德－戚帕特稳定判据。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+   "excluded": false,
+   "label": "\\begin{array}{c|cc} s^{2} & a_{2} & a_{0} \\\\ s^{1} & a_{1} & 0, \\\\ s^{0} & b_{1} & 0 \\end{array}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+   "excluded": false,
+   "label": "\\begin{aligned} b_{2} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{4} \\\\ a_{1} & a_{5} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{4}-a_{5}}{a_{1}}, \\\\ b_{3} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{6} \\\\ a_{1} & a_{7} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{6}-a_{7}}{a_{1}}, \\\\ c_{1} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{3} \\\\ b_{1} & b_{2} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{3}-a_{1} b_{2}}{b_{1}}, \\\\ c_{2} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{5} \\\\ b_{1} & b_{3} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{5}-a_{1} b_{3}}{b_{1}}, \\\\ c_{3} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{7} \\\\ b_{1} & b_{4} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{7}-a_{1} b_{4}}{b_{1}} . \\end{aligned}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b85903417762e876a3cbc8",
+   "excluded": false,
+   "label": "Routh array for Example 6.4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+   "excluded": false,
+   "label": "Case 4: Repeated roots on the jω-axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46332a35facdf88977e655c9",
+   "excluded": false,
+   "label": "Example 3.34 stability condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+   "excluded": false,
+   "label": "a_{n} s^{n}+a_{n-1} s^{n-1}+a_{n-2} s^{n-2}+\\cdots+a_{1} s+a_{0}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46aab00af4ef3e0163a6e5ee",
+   "excluded": false,
+   "label": "numT = [K KI]; % form numerator",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-48b61d1e62cb23367138fe4f",
+   "excluded": false,
+   "label": "If K=40, we require a ≤ 0.639.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4a0df2541966f21b7474a608",
+   "excluded": false,
+   "label": "An example of how mechanical resonance can cause large displacements occurred in a 39-story shopping mall in Seoul, Korea. After a Tae Bo workout session on the 12th floor with about twenty participants, the building shook for 10 minutes triggering an evacuation for two days. A team of experts concluded that the building was likely excited to mechanical resonance by the vigorous exercise.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4afce8349b77117bdae7b453",
+   "excluded": false,
+   "label": "The IHMC humanoid robot is not inherently stable and requires active control to remain upright during walking.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4c1139ac90c58aae414980c7",
+   "excluded": false,
+   "label": "The closed-loop zero of the system is at -K_I / K.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+   "excluded": false,
+   "label": "Table 6.1 summarizes stability criterion for up to sixth-order normalized characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+   "excluded": false,
+   "label": "稳定系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-521899e2aa37f3bcb04efbe0",
+   "excluded": false,
+   "label": "For Case 3, use auxiliary polynomial preceding zero entry in Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+   "excluded": false,
+   "label": "通过变量替换检验给定稳定度的方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-527f16dacd77760a8ecc802f",
+   "excluded": false,
+   "label": "设线性系统在初始条件为零时，作用一个理想单位脉冲δ（t），这时系统的输出增量为脉冲响应c（t）。若t→∞时，脉冲响应c（t）趋于0，则线性系统是稳定的。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5559ec0ce76661c53fac59e2",
+   "excluded": false,
+   "label": "劳斯判据可确定一个或两个可调参数对稳定性的影响",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+   "excluded": false,
+   "label": "s^{n}+a_{1} s^{n-1}+a_{2} s^{n-2}+\\cdots+a_{n}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
+   "excluded": false,
+   "label": "A common example of the potential destabilizing effect of feedback is that of feedback in audio amplifier and speaker systems used for public address in auditoriums. As the distance between the loudspeaker and the microphone decreases, if the microphone is placed too close to the speaker, then the system will be unstable, resulting in excessive amplification and distortion of audio signals and an oscillatory squeal.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+   "excluded": false,
+   "label": "临界稳定系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5826984bbdaae585fa46559c",
+   "excluded": false,
+   "label": "Welding control Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-582ba4056b0e8959170a3c4d",
+   "excluded": false,
+   "label": "Procedure to compute the zero of the closed-loop system by finding the root of the numerator polynomial.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+   "excluded": false,
+   "label": "有界输入有界输出稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+   "excluded": false,
+   "label": "不稳定系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5950f0c8d930f48df5bef6cc",
+   "excluded": false,
+   "label": "Example 3.33 stability condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5af66aa867667163af3ca825",
+   "excluded": false,
+   "label": "对于线性系统，运动稳定性与平衡状态稳定性是等价的。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5b758f6663299a97ab99e923",
+   "excluded": false,
+   "label": "The transient response comparison highlights the trade-off between speed of response, stability, and steady-state accuracy in control system tuning.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5d8d533c786b32df70bc5632",
+   "excluded": false,
+   "label": "Example 3.33 open-loop characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+   "excluded": false,
+   "label": "q(s)= a_{n} s^{n}-a_{n}(\\text { sum of all the roots }) s^{n-1} +a_{n}(\\text { sum of the products of the roots taken } 2 \\text { at a time }) s^{n-2} -a_{n}(\\text { sum of the products of the roots taken } 3 \\text { at a time }) s^{n-3} +\\cdots+a_{n}(-1)^{n}(\\text { product of all } n \\text { roots })=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-61bcb3c4f8a81d0dd8c5d2f4",
+   "excluded": false,
+   "label": "The Kharitonov Theorem (1978) allows testing four Kharitonov polynomials using the Routh test to check stability under coefficient variations.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+   "excluded": false,
+   "label": "大范围稳定系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+   "excluded": false,
+   "label": "特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65817d2012cc0b385538d24b",
+   "excluded": false,
+   "label": "A necessary condition for stability is that all coefficients of the characteristic polynomial be positive.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65a20d13b18c4bffda9675f5",
+   "excluded": false,
+   "label": "Case 2 example 6.3 characteristic polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-674e2f84a1653bdfe725af0c",
+   "excluded": false,
+   "label": "单摆在外界扰动力去除后，在重力作用下经来回几次减幅摆动，可以回到原平衡点 a，故称 a 为稳定平衡点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+   "excluded": false,
+   "label": "Internal stability",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+   "excluded": false,
+   "label": "a(s)=s^{n}+a_{1} s^{n-1}+a_{2} s^{n-2}+\\cdots+a_{n-1} s+a_{n}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "excluded": false,
+   "label": "劳斯稳定判据为表格形式，见表 3－4 劳斯表。劳斯表的前两行由系统特征方程（3－68）的系数直接构成。劳斯表中的第一行，由特征方程的第一，三，五，⋯项系数组成；第二行，由第二，四，六，⋯项系数组成。劳斯表中以后各行的数值，需按表3－4所示逐行计算，凡在运算过程中出现的空位，均置以零，这种过程一直进行到第 n 行为止，第 n+1 行仅第一列有值，且正好等于特征方程最后一项系数 an。表中系数排列呈上三角形。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+   "excluded": false,
+   "label": "Case 3: Zero in first column and other elements of that row are also zero",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b36ffd8bd9cfb032fa2c858",
+   "excluded": false,
+   "label": "线性系统的稳定性仅取决于系统自身的固有特性，而与外界条件无关。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b8961a28ee810cd2fcac8b4",
+   "excluded": false,
+   "label": "若线性控制系统在初始扰动的影响下，其动态过程随时间的推移逐渐衰减并趋于零（原平衡工作点），则称系统渐近稳定，简称稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+   "excluded": false,
+   "label": "\\begin{array}{lcclll} s^{n} & : & 1 & a_{2} & a_{4} & \\cdots \\\\ s^{n-1} & : & a_{1} & a_{3} & a_{5} & \\cdots \\end{array}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+   "excluded": false,
+   "label": "相对稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6f33ccd1e8c172b2e686f9d3",
+   "excluded": false,
+   "label": "Case 1: No element in the first column is zero",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ff0fffa58a6744d7475e83c",
+   "excluded": false,
+   "label": "The Routh-Hurwitz criterion is based on ordering the coefficients of the characteristic equation into an array as follows: first two rows are s^n and s^(n-1) rows with alternating coefficients; further rows are computed using determinant-based formulas.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+   "excluded": false,
+   "label": "给定稳定度概念",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+   "excluded": false,
+   "label": "y(t)=\\sum_{k=1}^{Q} A_{k} e^{-\\sigma_{k} t}+\\sum_{m=1}^{R} B_{m}\\left(\\frac{1}{\\omega_{m}}\\right) e^{-\\alpha_{m} t} \\sin \\left(\\omega_{m} t+\\theta_{m}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73247769835fa0fee0255533",
+   "excluded": false,
+   "label": "则使线性系统稳定的必要条件是：在特征方程（3—68）中各项系数为正数。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73efa711e60db7c64de62b1c",
+   "excluded": false,
+   "label": "Characteristic equation for Example 6.6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+   "excluded": false,
+   "label": "The correct magnitude to shift the vertical axis must be obtained on a trial-and-error basis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74e7c10bacba901647c5f622",
+   "excluded": false,
+   "label": "To compute the roots of a characteristic polynomial in Matlab, define the coefficient row vector denT = [1 5 K-6 K] and use the function roots(denT).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "excluded": false,
+   "label": "For Case 2, replace zero in first column with small positive number epsilon",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
+   "excluded": false,
+   "label": "Routh array for Case 3 example (Equation 6.12)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+   "excluded": false,
+   "label": "\\operatorname{Re}\\left\\{p_{i}\\right\\}<0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-795b6d002f98390eadbe4b70",
+   "excluded": false,
+   "label": "线性系统稳定的充分必要条件是：闭环系统特征方程的所有根均具有负实部；或者说，闭环传递函数的极点均位于s左半平面。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+   "excluded": false,
+   "label": "Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aaa2d3ecec627719fb4757b",
+   "excluded": false,
+   "label": "If the first element in a row of the Routh array is zero or an entire row is zero, special modifications are necessary.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+   "excluded": false,
+   "label": "中性稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+   "excluded": false,
+   "label": "\\Delta(s)=q(s)=a_{n} s^{n}+a_{n-1} s^{n-1}+\\cdots+a_{1} s+a_{0}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+   "excluded": false,
+   "label": "\\left.\\begin{array}{rlrl}\n\\frac{a_{1}}{a_{0}} & =-\\sum_{i=1}^{n} s_{i}, & \\frac{a_{2}}{a_{0}} & =\\sum_{\\substack{i, j=1 \\\\\ni \\neq j}}^{n} s_{i} s_{j} \\\\\n\\frac{a_{3}}{a_{0}} & =-\\sum_{\\substack{i, j, k=1 \\\\\n(i \\neq j \\neq k)}}^{n} s_{i} s_{j} s_{k}, & \\cdots, & \\frac{a_{n}}{a_{0}}\n\\end{array}=(-1)^{n} \\prod_{i=1}^{n} s_{i}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+   "excluded": false,
+   "label": "为了克服这种困难，可以用因子 （s+a） 乘以原特征方程，其中 a 可为任意正数，再对新的特征方程应用劳斯稳定判据，可以防止上述特殊情况的出现。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7eaf9b4b69cbde2cbeb86ea9",
+   "excluded": false,
+   "label": "Shifted characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7edcf4a9fa5492e1fbc84190",
+   "excluded": false,
+   "label": "Example 3.33 closed-loop transfer function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+   "excluded": false,
+   "label": "a_{n}\\left(s-r_{1}\\right)\\left(s-r_{2}\\right) \\cdots\\left(s-r_{n}\\right)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-81939eff73552b8937c06b84",
+   "excluded": false,
+   "label": "Routh-Hurwitz criteria does not reveal instability from repeated jω-axis roots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-824b853ff897a09b2926da9d",
+   "excluded": false,
+   "label": "单摆处于另一平衡点 d，一旦受到外界扰动力的作用偏离了原平衡位置后，即使外界扰动力消失，无论经过多长时间，单摆不可能再回到原平衡点 d。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+   "excluded": false,
+   "label": "y(t)=\\sum_{i=1}^{n} K_{i} e^{p_{i} t}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+   "excluded": false,
+   "label": "\\Delta_{1}=a_{1}>0, \\quad \\Delta_{2}=\\left|\\begin{array}{ll}\na_{1} & a_{3} \\\\\na_{0} & a_{2}\n\\end{array}\\right|>0, \\quad \\Delta_{3}=\\left|\\begin{array}{ccc}\na_{1} & a_{3} & a_{5} \\\\\na_{0} & a_{2} & a_{4} \\\\\n0 & a_{1} & a_{3}\n\\end{array}\\right|>0, \\quad \\cdots, \\quad \\Delta_{n}>0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "excluded": false,
+   "label": "临界稳定",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+   "excluded": false,
+   "label": "有界输入有界输出稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86add70d7a20e65586c10105",
+   "excluded": false,
+   "label": "这种情况表明特征方程中存在一些绝对值相同但符号相异的特征根。例如，两个大小相等但符号相反的实根和（或）一对共轭纯虚根，或者是对称于实轴的两对共轭复根。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86d8c30e9bb243ddcd23e599",
+   "excluded": false,
+   "label": "Routh array for quotient polynomial in Example 6.4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-89414b1095600b2af39cce0a",
+   "excluded": false,
+   "label": "An LTI system is stable if all roots of the transfer function denominator polynomial have negative real parts (i.e., are in the left half s-plane) and unstable otherwise.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+   "excluded": false,
+   "label": "\\begin{aligned} b_{n-1} &= \\frac{a_{n-1} a_{n-2} - a_{n} a_{n-3}}{a_{n-1}} = \\frac{-1}{a_{n-1}} \\left|\\begin{array}{ll} a_{n} & a_{n-2} \\\\ a_{n-1} & a_{n-3} \\end{array}\\right|, \\\\ b_{n-3} &= -\\frac{1}{a_{n-1}} \\left|\\begin{array}{cc} a_{n} & a_{n-4} \\\\ a_{n-1} & a_{n-5} \\end{array}\\right|, \\cdots \\\\ c_{n-1} &= \\frac{-1}{b_{n-1}} \\left|\\begin{array}{ll} a_{n-1} & a_{n-3} \\\\ b_{n-1} & b_{n-3} \\end{array}\\right|, \\cdots \\end{aligned}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+   "excluded": false,
+   "label": "b_{n-1}=\\frac{a_{n-1} a_{n-2}-a_{n} a_{n-3}}{a_{n-1}}=\\frac{-1}{a_{n-1}}\\left|\\begin{array}{ll} a_{n} & a_{n-2} \\\\ a_{n-1} & a_{n-3} \\end{array}\\right|, b_{n-3}=-\\frac{1}{a_{n-1}}\\left|\\begin{array}{cc} a_{n} & a_{n-4} \\\\ a_{n-1} & a_{n-5} \\end{array}\\right|, \\cdots c_{n-1}=\\frac{-1}{b_{n-1}}\\left|\\begin{array}{ll} a_{n-1} & a_{n-3} \\\\ b_{n-1} & b_{n-3} \\end{array}\\right|, \\cdots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c4ae68de59350da99046135",
+   "excluded": false,
+   "label": "b3 and c3 for welding control",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8fae1e29c01c2715c1959d5c",
+   "excluded": false,
+   "label": "Characteristic equation for a marginally stable system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+   "excluded": false,
+   "label": "A block diagram of a welding head positioning system is shown in Figure 6.5. The welding head is moved to different positions on the auto body, and a rapid, accurate response is required.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+   "excluded": false,
+   "label": "\\begin{array}{c|cc} s^{3} & a_{3} & a_{1} \\\\ s^{2} & a_{2} & a_{0} \\\\ s^{1} & b_{1} & 0 \\\\ s^{0} & c_{1} & 0 \\end{array}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-906d58a041e874cb7914d610",
+   "excluded": false,
+   "label": "If the elements of the first column of the Routh array are not all positive, the number of roots in the right half-plane equals the number of sign changes in that column.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9103ed62af432260b2436f00",
+   "excluded": false,
+   "label": "设某单位反馈系统的开环传递函数为 G（s）=K（s+1）/[s（Ts+1）（2s+1）]，试用赫尔维茨稳定判据确定使闭环系统稳定的 K 及 T 的取值范围。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-91d2b0c54a7778878a9f5840",
+   "excluded": false,
+   "label": "例3-11整理后的新特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+   "excluded": false,
+   "label": "c(t)= \\sum_{j=1}^{q} A_{j} \\mathrm{e}^{s_{j} t}+\\sum_{k=1}^{r} B_{k} \\mathrm{e}^{-\\zeta_{k} \\omega_{k} t} \\cos \\left(\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}\\right) t +\\sum_{k=1}^{r} \\frac{C_{k}-B_{k} \\zeta_{k} \\omega_{k}}{\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}} \\mathrm{e}^{-\\zeta_{k} \\omega_{k} t} \\sin \\left(\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}\\right) t, \\quad t \\geqslant 0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9324b4194a263316921b55ed",
+   "excluded": false,
+   "label": "The three approaches to the question of stability are (1) the s-plane approach, (2) the frequency (jω) approach, and (3) the time-domain approach.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9374d45c76123cf3c68e9b7d",
+   "excluded": false,
+   "label": "If only one element in the array is zero, it may be replaced with a small positive number, ε, that is allowed to approach zero after completing the array.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f40588759e636c002f9aba",
+   "excluded": false,
+   "label": "Auxiliary polynomial for Example 6.4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f57211c1e038c80dd43089",
+   "excluded": false,
+   "label": "Example normalization: final normalized form",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-94ab50df201f12ed2ff86819",
+   "excluded": false,
+   "label": "To compute the step response of a closed-loop transfer function in Matlab: define the Laplace variable with s=tf('s'), define the transfer function sysT = K*(s+1)/(s^3+5*s^2+(K-6)*s+K), then use step(sysT).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-95337ad9c2ce1377d65823f5",
+   "excluded": false,
+   "label": "Transient response results for three sets of feedback gains: (K=1, K_I=0), (K=1, K_I=1), (K=10, K_I=5).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+   "excluded": false,
+   "label": "C(s)=\\sum_{j=1}^{q} \\frac{A_{j}}{s-s_{j}}+\\sum_{k=1}^{r} \\frac{B_{k} s+C_{k}}{s^{2}+2 \\zeta_{k} \\omega_{k} s+\\omega_{k}^{2}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+   "excluded": false,
+   "label": "T(s)=\\frac{p(s)}{q(s)}=\\frac{K \\prod_{i=1}^{M}\\left(s+z_{i}\\right)}{s^{N} \\prod_{k=1}^{Q}\\left(s+\\sigma_{k}\\right) \\prod_{m=1}^{R}\\left[s^{2}+2 \\alpha_{m} s+\\left(\\alpha_{m}^{2}+\\omega_{m}^{2}\\right)\\right]}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f4b9b214860588b3306c5a",
+   "excluded": false,
+   "label": "设系统特征方程为 s^4+2s^3+3s^2+4s+5=0，试用劳斯稳定判据判别该系统的稳定性。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+   "excluded": false,
+   "label": "按照劳斯稳定判据，由特征方程（3－68）所表征的线性系统稳定的充分且必要条件是：劳斯表中第一列各值为正。如果劳斯表第一列中出现小于零的数值，系统就不稳定，且第一列各系数符号的改变次数，代表特征方程（3－68）的正实部根的数目。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9a1527a39fe9ab702fbec095",
+   "excluded": false,
+   "label": "Example 3.34 Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9be373d41f24289811b1343b",
+   "excluded": false,
+   "label": "The order of the auxiliary polynomial is always even and indicates the number of symmetrical root pairs.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9d41615ec8d8cef559a502bc",
+   "excluded": false,
+   "label": "For LTI systems, BIBO stability is equivalent to all poles being strictly in the left half-plane (LHP); any pole on the imaginary axis or in the right half-plane (RHP) results in BIBO instability.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9dc82ce0173803420ef89358",
+   "excluded": false,
+   "label": "Normalized characteristic equation form for stability criterion summary",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+   "excluded": false,
+   "label": "Case 3 occurs when all the elements in one row are zero or when the row consists of a single element that is zero. This condition occurs when the polynomial contains singularities that are symmetrically located about the origin of the s-plane.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+   "excluded": false,
+   "label": "q(s)=a_{2} s^{2}+a_{1} s+a_{0}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a1c9746e09be2a51f6337956",
+   "excluded": false,
+   "label": "Example 3.33 Routh array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+   "excluded": false,
+   "label": "C(s)=\\frac{M(s)}{D(s)}=\\sum_{i=1}^{n} \\frac{A_{i}}{s-s_{i}}=\\frac{K \\prod_{i=1}^{m}\\left(s-z_{i}\\right)}{\\prod_{j=1}^{q}\\left(s-s_{j}\\right) \\prod_{k=1}^{r}\\left(s^{2}+2 \\zeta_{k} \\omega_{k} s+\\omega_{k}^{2}\\right)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+   "excluded": false,
+   "label": "对于 n ≤ 4 的线性系统，其稳定的充分必要条件还可以表示为如下简单形式：n=2：特征方程的各项系数为正。n=3：特征方程的各项系数为正，且 a1 a2 - a0 a3 > 0。n=4：特征方程的各项系数为正，且 Δ2 = a1 a2 - a0 a3 > 0，以及 Δ2 > a1^2 a4 / a3。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+   "excluded": false,
+   "label": "劳斯阵列第一列",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a9bc0f34547142e79d17146f",
+   "excluded": false,
+   "label": "c1 for Case 2 example 6.3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa6546dc4dac93a0c05e2020",
+   "excluded": false,
+   "label": "c1 and d1 for Case 2 example",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aaec4598c2b819e7b4d7c9e3",
+   "excluded": false,
+   "label": "若在初始扰动影响下，系统的动态过程随时间的推移而发散，则称系统不稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+   "excluded": false,
+   "label": "|y| \\leq M \\int_{-\\infty}^{\\infty}|h(\\tau)| d \\tau",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+   "excluded": false,
+   "label": "稳定性边界",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+   "excluded": false,
+   "label": "李雅普诺夫稳定性分析方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3465eb4492a845b41e6a29a",
+   "excluded": false,
+   "label": "Case 2: Zero in first column but other elements of that row are nonzero",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+   "excluded": false,
+   "label": "A_{j}=\\lim _{s \\rightarrow s_{j}}\\left(s-s_{j}\\right) C(s) ; \\quad j=1,2, \\cdots, q",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+   "excluded": false,
+   "label": "绝对稳定性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b5dcdf6e5488de031d9f939b",
+   "excluded": false,
+   "label": "当且仅当系统的特征根全部具有负实部时，脉冲响应c（t）趋于0，系统稳定；若特征根中有一个或一个以上正实部根，则系统不稳定；若特征根中具有一个或一个以上零实部根，而其余的特征根均具有负实部，则脉冲响应c（t）趋于常数或等幅正弦振荡，系统不是渐近稳定的，称为临界稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba4785dad8cd6ce021217957",
+   "excluded": false,
+   "label": "For system with characteristic equation s^3+5s^2+(K-6)s+K=0, Routh's method yields stability condition K>7.5.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bab4514d83fa63eeedfec2c4",
+   "excluded": false,
+   "label": "A necessary (but not sufficient) condition for stability is that all coefficients of the characteristic polynomial be positive.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+   "excluded": false,
+   "label": "相对稳定性的轴偏移法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bec07962922afb75c3729ef1",
+   "excluded": false,
+   "label": "Example 3.34 open-loop characteristic equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+   "excluded": false,
+   "label": "当应用劳斯稳定判据分析线性系统的稳定性时，有时会遇到下面两种特殊情况，使得劳斯表中的计算无法进行到底，因此需要进行相应的数学处理，处理的原则是不影响劳斯稳定判据的判别结果。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c2d61fb5964e61c1d43b4c7a",
+   "excluded": false,
+   "label": "If a system has nonrepeated jω axis poles, it is said to be neutrally stable; repeated jω axis poles lead to instability.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "excluded": false,
+   "label": "运动稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+   "excluded": false,
+   "label": "中性稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c431d1667cf3472e08e8bf4b",
+   "excluded": false,
+   "label": "If the characteristic equation of a closed-loop system is (s+10)(s^2+16)=0, then the system is said to be marginally stable. If this system is excited by a sinusoid of frequency ω=4, the output becomes unbounded.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c4e828da272374abcfa8c36a",
+   "excluded": false,
+   "label": "Example 6.4 characteristic polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c562bde02b2d80a2b984c67d",
+   "excluded": false,
+   "label": "例3-11稳定K1范围",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c5a37b3e9d347948085f31c1",
+   "excluded": false,
+   "label": "The relative stability of a system can be defined as the property that is measured by the relative real part of each root or pair of roots.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c609ac68010c1f7e98a961e0",
+   "excluded": false,
+   "label": "Auxiliary polynomial for Case 3 example with K=8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+   "excluded": false,
+   "label": "劳斯-赫尔维茨稳定性判据法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+   "excluded": false,
+   "label": "根据赫尔维茨稳定判据，线性系统稳定的充分且必要条件应是：由系统特征方程（3－68）各项系数所构成的主行列式及其顺序主子式全部为正。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c798b3e99c91d8876565d869",
+   "excluded": false,
+   "label": "For polynomial a(s)=s^6+4s^5+3s^4+2s^3+s^2+4s+4, the Routh array first column is not all positive, indicating two RHP roots.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c7fa6f8faa23e8b9a134563a",
+   "excluded": false,
+   "label": "Stability condition for welding control (a positive)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+   "excluded": false,
+   "label": "D(s)=a_{0} s^{n}+a_{1} s^{n-1}+\\cdots+a_{n-1} s+a_{n}=0, \\quad a_{0}>0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+   "excluded": false,
+   "label": "s^{n}+a_{n-1} s^{n-1}+a_{n-2} s^{n-2}+\\cdots+a_{1} s+\\omega_{n}^{n}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+   "excluded": false,
+   "label": "Routh-Hurwitz criterion is based on ordering coefficients of characteristic equation into an array",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9a8d2b9908677b92feb7564",
+   "excluded": false,
+   "label": "The Routh-Hurwitz criterion states that the number of roots of q(s) with positive real parts is equal to the number of changes in sign of the first column of the Routh array. This criterion requires that there be no changes in sign in the first column for a stable system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9abd42497d942a87922154d",
+   "excluded": false,
+   "label": "例3-11极点位于s=-1左侧的K1范围",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9d323a6559df045d2cb415a",
+   "excluded": false,
+   "label": "If the jω-axis roots are repeated, the system response will be unstable with a form t sin(ωt+φ). The Routh-Hurwitz criteria will not reveal this form of instability.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ca1deef94714481e6a61555d",
+   "excluded": false,
+   "label": "Factored characteristic polynomial for Case 3 example with K=8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+   "excluded": false,
+   "label": "当劳斯表中出现全零行时，可用全零行上面一行的系数构造一个辅助方程 F（s）=0，并将辅助方程对复变量 s 求导，用所得导数方程的系数取代全零行的元，便可按劳斯稳定判据的要求继续运算下去，直到得出完整的劳斯计算表。辅助方程的次数通常为偶数，它表明数值相同但符号相反的根数。所有那些数值相同但符号相异的根，均可由辅助方程求得。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb94b27a46a9754c9c429adc",
+   "excluded": false,
+   "label": "例3-11代入参数后的特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+   "excluded": false,
+   "label": "归一化特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+   "excluded": false,
+   "label": "Right half-plane roots",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cd90ce8052411bdb187f151b",
+   "excluded": false,
+   "label": "Marginal stability occurs when jω-axis roots are simple",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cef321303ea6fceb23452460",
+   "excluded": false,
+   "label": "For the third-order characteristic equation q(s)=s^3+4s^2+6s+4, shifting by s_n = s+1 yields a Routh array with a row of zeros, indicating roots on the shifted imaginary axis, obtained from the auxiliary polynomial s_n^2+1.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf5cc8d7b0c21a68d5e31352",
+   "excluded": false,
+   "label": "例3-11闭环特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+   "excluded": false,
+   "label": "劳斯-赫尔维茨稳定性判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "excluded": false,
+   "label": "稳定性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d1f657c47ce4b5513d0f0137",
+   "excluded": false,
+   "label": "For the third-order system to be stable, it is necessary and sufficient that the coefficients be positive and a2 a1 > a0 a3.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d28427304161c758470479d6",
+   "excluded": false,
+   "label": "Example: normalization of third-order polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4859320ca5d006cd18cc576",
+   "excluded": false,
+   "label": "Example: Case 2 with epsilon method (Equation 6.10)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4d25ff410f335fae3ac2621",
+   "excluded": false,
+   "label": "MATLAB commands to define the system by its numerator and denominator and compute the step response.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d55bd94c0daf47e1f56561e5",
+   "excluded": false,
+   "label": "Routh array for Case 2 example (Equation 6.10)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5648e2431a7c751e4cbb2ba",
+   "excluded": false,
+   "label": "Example 3.34 closed-loop transfer function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+   "excluded": false,
+   "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{K \\prod_{i=1}^{m}\\left(s-z_{i}\\right)}{\\prod_{i=1}^{n}\\left(s-p_{i}\\right)}, \\quad m \\leq n",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d832b275fcf04c9d2a7d15cc",
+   "excluded": false,
+   "label": "若特征根中有一个或一个以上正实部根，则 lim_{t→∞} c（t） → ∞，表明系统不稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+   "excluded": false,
+   "label": "\\Delta_{n}=\\left|\\begin{array}{cccccc}\na_{1} & a_{3} & a_{5} & \\cdots & 0 & 0 \\\\\na_{0} & a_{2} & a_{4} & \\cdots & 0 & 0 \\\\\n0 & a_{1} & a_{3} & \\cdots & 0 & 0 \\\\\n0 & a_{0} & a_{2} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{1} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{0} & \\cdots & 0 & 0 \\\\\n\\vdots & \\vdots & \\vdots & & \\vdots & \\vdots \\\\\n0 & 0 & 0 & \\cdots & a_{n} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-1} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-2} & a_{n}\n\\end{array}\\right|",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d949ba9a0c35ea493a048b98",
+   "excluded": false,
+   "label": "A first approach using an s-plane formulation is to extend the Routh-Hurwitz criterion to ascertain relative stability. This can be accomplished by utilizing a change of variable, which shifts the s-plane axis in order to utilize the Routh-Hurwitz criterion.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-db265bb55206fea4d038b505",
+   "excluded": false,
+   "label": "待定参数不能超过两个",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-de7bb55c5f9159206342ada0",
+   "excluded": false,
+   "label": "劳斯判据不能表明系统特征根在s平面上相对于虚轴的距离",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+   "excluded": false,
+   "label": "A necessary and sufficient condition for a feedback system to be stable is that all the poles of the system transfer function have negative real parts.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+   "excluded": false,
+   "label": "\\stackrel{*}{s}^{n}+b \\stackrel{* n-1}{s}+c \\stackrel{* n-2}{s}+\\cdots+1=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+   "excluded": false,
+   "label": "\\begin{array}{l|cccc} s^{n} & a_{n} & a_{n-2} & a_{n-4} & \\cdots \\\\ s^{n-1} & a_{n-1} & a_{n-3} & a_{n-5} & \\cdots \\end{array}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+   "excluded": false,
+   "label": "b_{1}=\\frac{a_{1} a_{0}-(0) a_{2}}{a_{1}}=\\frac{-1}{a_{1}}\\left|\\begin{array}{cc} a_{2} & a_{0} \\\\ a_{1} & 0 \\end{array}\\right|=a_{0}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e4364a63a0cb19584fafff02",
+   "excluded": false,
+   "label": "For PI feedback system with characteristic equation s^3+3s^2+(2+K)s+K_I=0, stability requires K_I>0 and K > (1/3)K_I - 2.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+   "excluded": false,
+   "label": "A system with simple poles on the imaginary axis and all other poles in the left half-plane is marginally stable; sustained oscillations occur for bounded inputs unless the input frequency matches the pole frequency.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+   "excluded": false,
+   "label": "小范围稳定系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+   "excluded": false,
+   "label": "Shift the vertical axis in the s-plane to -σ1 on a trial-and-error basis, then apply the Routh-Hurwitz criterion to the shifted polynomial to determine the real part of dominant roots without solving the original polynomial.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e5eeb633370c81fdd5349d17",
+   "excluded": false,
+   "label": "可利用MATLAB软件解决稳定性分析及参数选择问题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e661ab47605bded23c92fcd2",
+   "excluded": false,
+   "label": "Example normalization: original polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e6ab11b185b97c36ba89ccd6",
+   "excluded": false,
+   "label": "Auxiliary polynomial for shifted system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e785e657cafcc979bfea904f",
+   "excluded": false,
+   "label": "Normalize characteristic equation by dividing by ω_n^n",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+   "excluded": false,
+   "label": "b_{1}=\\frac{a_{2} a_{1}-a_{0} a_{3}}{a_{2}} \\quad \\text { and } \\quad c_{1}=\\frac{b_{1} a_{0}}{b_{1}}=a_{0}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1d7854c123fa2e53fb717d",
+   "excluded": false,
+   "label": "若特征根中具有一个或一个以上零实部根，而其余的特征根均具有负实部，则脉冲响应 c（t） 趋于常数，或趋于等幅正弦振荡，此时系统不是渐近稳定的，称为临界稳定情况。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1ebd6cf15a5caa099efe4c",
+   "excluded": false,
+   "label": "The investigation of the relative stability of each root is important because the location of the closed-loop poles in the s-plane determines the performance of the system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb75ed988d9eae5ce87779c5",
+   "excluded": false,
+   "label": "劳斯判据不能直接指出使系统稳定的方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb7dfee16a7d49cdba8e537f",
+   "excluded": false,
+   "label": "Case 3 example characteristic polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ec7d9890887cbba965f49b43",
+   "excluded": false,
+   "label": "The two changes in sign in the first column indicate the presence of two roots in the right-hand plane, and the system is unstable. The roots in the right-hand plane are s=+1 ± j√6.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ecdf6b17af0c070069a8fd15",
+   "excluded": false,
+   "label": "Example: polynomial with all positive coefficients but unstable (Equation 6.7)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eed504770777fa381a2a1135",
+   "excluded": false,
+   "label": "Example: Case 3 with K=8 marginal stability",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ef6d8f424b4533cb4bed7e86",
+   "excluded": false,
+   "label": "All the coefficients of the polynomial will have the same sign if all the roots are in the left-hand plane. Also, it is necessary that all the coefficients for a stable system be nonzero. These requirements are necessary but not sufficient.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-efc16e3143675f8268793253",
+   "excluded": false,
+   "label": "To plot the allowable stability region in the (K_I, K) plane in Matlab: define anonymous functions fh=@(KI,K) 6+3*K-KI and f=@(KI,K) KI, then use ezplot(fh) and ezplot(f) with hold on.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f1b74d4fff76a5bf2dd0af2b",
+   "excluded": false,
+   "label": "Routh array for shifted system in Example 6.6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+   "excluded": false,
+   "label": "The Routh-Hurwitz criterion is a necessary and sufficient criterion for the stability of linear systems.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f4f5ef101b23cdb2db015a1c",
+   "excluded": false,
+   "label": "Numerator polynomial for closed-loop system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "excluded": false,
+   "label": "例3-11劳斯表",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
+   "excluded": false,
+   "label": "There is a large steady-state error when K_I=0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+   "excluded": false,
+   "label": "劳斯稳定判据与赫尔维茨稳定判据在实质上是相同的。显然，劳斯表中第一列各数与各顺序赫尔维茨行列式之间，存在如下关系：a1=Δ1, c13=Δ2/Δ1, c14=Δ3/Δ2, c15=Δ4/Δ3, ...，c1,n=Δn-1/Δn-2, c1,n+1=Δn/Δn-1。因此，在 a0>0 的情况下，如果所有的顺序赫尔维茨行列式为正，则劳斯表中第一列的所有元素必大于零。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+   "excluded": false,
+   "label": "给定稳定度检验方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd5067cee3fb3cd591ea3e2f",
+   "excluded": false,
+   "label": "Welding control characteristic polynomial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd6baf667b8745f5d1f9679a",
+   "excluded": false,
+   "label": "Example 3.33 characteristic equation",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": [
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-2",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-10",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-20",
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-29",
+   "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-29",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-10",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-38",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-25",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-24",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-26",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-32",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-8",
+   "anchorId": "3-8-seg-16",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-17",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-5",
+   "anchorId": "5-5-seg-40",
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  }
+ ]
+}

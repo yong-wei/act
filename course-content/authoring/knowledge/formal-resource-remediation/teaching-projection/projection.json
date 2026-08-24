@@ -1,0 +1,121 @@
+{
+ "contract": "remediation-teaching-projection/v1",
+ "builderVersion": "formal-resource-remediation-builder/v1",
+ "sealedAt": "2026-08-24T19:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "envelopeHash": "ae620b93ffaee2504360316293d50d58f42525486ff1eee73b799ab53d229add",
+ "totalClosureReceiptSha256": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258",
+ "totalConservationCheckSha256": "7e66801dc553119a455d9168fde3ef070a01c87c3f6bb0bdd88035d3f8f78295",
+ "membership": {
+  "memberCount": 7476,
+  "coveredMemberCount": 5255,
+  "excludedMemberCount": 2221,
+  "byDomain": [
+   {
+    "domain": "classical-control-design",
+    "members": 776,
+    "excluded": 0
+   },
+   {
+    "domain": "discrete-time-control-analysis",
+    "members": 619,
+    "excluded": 619
+   },
+   {
+    "domain": "discrete-time-control-design",
+    "members": 450,
+    "excluded": 450
+   },
+   {
+    "domain": "frequency-domain-analysis",
+    "members": 954,
+    "excluded": 0
+   },
+   {
+    "domain": "lyapunov-stability",
+    "members": 141,
+    "excluded": 141
+   },
+   {
+    "domain": "nonlinear-control-design",
+    "members": 104,
+    "excluded": 104
+   },
+   {
+    "domain": "nonlinear-system-analysis",
+    "members": 349,
+    "excluded": 0
+   },
+   {
+    "domain": "optimal-control-foundations-and-linear-quadratic-design",
+    "members": 200,
+    "excluded": 200
+   },
+   {
+    "domain": "robust-control-analysis-and-design",
+    "members": 707,
+    "excluded": 707
+   },
+   {
+    "domain": "robustness-sensitivity-analysis",
+    "members": 259,
+    "excluded": 0
+   },
+   {
+    "domain": "root-locus",
+    "members": 104,
+    "excluded": 0
+   },
+   {
+    "domain": "stability-analysis",
+    "members": 263,
+    "excluded": 0
+   },
+   {
+    "domain": "state-space-control-analysis-and-design",
+    "members": 1300,
+    "excluded": 0
+   },
+   {
+    "domain": "system-modeling",
+    "members": 666,
+    "excluded": 0
+   },
+   {
+    "domain": "time-domain-analysis",
+    "members": 584,
+    "excluded": 0
+   }
+  ]
+ },
+ "relations": {
+  "edgeCount": 418,
+  "courseRootCount": 2,
+  "byFamily": {
+   "containment": 138,
+   "prerequisite": 141,
+   "association": 139
+  }
+ },
+ "bindings": {
+  "bindingCount": 1175,
+  "byModality": {
+   "card": 434,
+   "audio": 741
+  },
+  "bindingCoverageNote": "modality-independent direct bindings; unresolved modal atoms stay unbound rather than inherit another modality's mapping"
+ },
+ "zeroResourceNodes": {
+  "count": 5132
+ },
+ "limitations": [
+  "exercise and simulation subtypes are not yet processed (task family 6 pending)",
+  "intro-video production-source import is not yet processed (task family 3 pending)",
+  "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
+  "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
+  "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)",
+  "2221 members across six domains are excluded by course-owner D1 ruling and carry NO_RELATION dispositions only"
+ ],
+ "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373"
+}

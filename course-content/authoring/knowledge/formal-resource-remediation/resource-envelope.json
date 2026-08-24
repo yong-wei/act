@@ -1,0 +1,92 @@
+{
+ "contract": "remediation-formal-resource-envelope/v1",
+ "builderVersion": "formal-resource-remediation-builder/v1",
+ "sealedAt": "2026-08-24T19:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "resourceCount": 897,
+ "atomCount": 11056,
+ "bindingCount": 1175,
+ "subtypes": [
+  {
+   "subtype": "audio",
+   "resources": 28,
+   "atoms": 56
+  },
+  {
+   "subtype": "card",
+   "resources": 838,
+   "atoms": 5662
+  },
+  {
+   "subtype": "handout",
+   "resources": 31,
+   "atoms": 5394
+  }
+ ],
+ "artifacts": [
+  {
+   "role": "asr-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/asr-processing-records.json",
+   "sha256": "16050630cef13e781057fbf63b3e06939baa6a8f1c072346ba7db45b2500691a"
+  },
+  {
+   "role": "audio-segmentation-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-segmentation-summary.json",
+   "sha256": "4e32441fe5fbc1b18c063c48de2be9f3f326f20176fe79d7e55e592cd6f2b83f"
+  },
+  {
+   "role": "course-to-authority-map",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/course-to-authority-map.json",
+   "sha256": "1849579b7aa925818ef839b6d1720aee9ae8760f6b172c7201de2bc537b6a033"
+  },
+  {
+   "role": "crosswalk-v037",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/crosswalk-v037.json",
+   "sha256": "c1bdc2fb6e798127e7b22c879322c80f40c939efc46c114f0653cee18f555d35"
+  },
+  {
+   "role": "excluded-domains-decisions",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/excluded-domains-decisions.jsonl",
+   "sha256": "8fd9aed5143bda2b088ccb8de3f5715a00899c36ba5ccdc21aa21d8e141bc2f4"
+  },
+  {
+   "role": "hotword-manifests",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/hotword-manifests.json",
+   "sha256": "a7b31ae3e828f2938b978e8985979c509cb904060de72defb42b865cca30f106"
+  },
+  {
+   "role": "processor-registry",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/processor-registry.json",
+   "sha256": "6bc85ba5a0999cc31f2fa7a1f9cf667645c3cda49a0dbf857830b58c9c39c6ea"
+  },
+  {
+   "role": "qualification-receipt",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/qualification-receipt.json",
+   "sha256": "7992832a72837a6264fd4ab16e236ae94e66b49a495147673c462d17137ef4f1"
+  },
+  {
+   "role": "text-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-atoms.json",
+   "sha256": "757050d754dfc1b36f62bbb8e8d4fd92753b8c460478f0d06db3b6f005e4aba0"
+  },
+  {
+   "role": "text-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-processing-records.json",
+   "sha256": "9487bb62a24a5c9a7965f249a2753ab5660b85e121f2ac1175a1545b60578a3a"
+  },
+  {
+   "role": "text-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-run-summary.json",
+   "sha256": "4ba02bf5b3286220e77f1e534c55c704cb96735dfe7574668496a2afb423c10d"
+  }
+ ],
+ "limitations": [
+  "exercise and simulation subtypes are not yet processed (task family 6 pending)",
+  "intro-video production-source import is not yet processed (task family 3 pending)",
+  "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
+  "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
+  "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)"
+ ],
+ "envelopeHash": "ae620b93ffaee2504360316293d50d58f42525486ff1eee73b799ab53d229add"
+}

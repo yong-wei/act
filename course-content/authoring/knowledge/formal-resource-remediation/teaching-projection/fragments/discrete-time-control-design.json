@@ -1,0 +1,3610 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "domain": "discrete-time-control-design",
+ "memberCount": 450,
+ "edgeCount": 0,
+ "bindingCount": 128,
+ "fragmentHash": "e40163253b938a5777f10421887c7b78ee9ead5716bb16c48aaf88432d036052",
+ "members": [
+  {
+   "canonicalId": "ctkg:condition:031b82c2261221a7e1990c32",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:04f699f6f74d3d99d3a4e6c5",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:04f73e4774a5a12d6753cfae",
+   "excluded": true,
+   "label": "z-plane root locus design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "excluded": true,
+   "label": "PID controller difference equation algorithm",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:09109992ea9fbcd44a25e28c",
+   "excluded": true,
+   "label": "For more noise attenuation in discrete design, the pole can be moved to the right of z=0, resulting in less derivative action and more smoothing, the same trade-off as in continuous control design.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:09d53a0557357454c1a7cc8e",
+   "excluded": true,
+   "label": "Simulation of a digital control system is advisable in any case, as it may expose instabilities that are impossible to detect using continuous or discrete linear analysis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:0d659ced2f36280661a3026e",
+   "excluded": true,
+   "label": "系统为离散系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:102c69042491bbc8cd3c5ba0",
+   "excluded": true,
+   "label": "When the sample rate is fast compared to ω_n (ω_s ≈ 20 × ω_n), the performance and control equations of discrete design and discrete equivalent design are not substantially different.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:154dd0c0fedb2d295cde0440",
+   "excluded": true,
+   "label": "最少拍系统调节时间与输入形式无关的论证",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:15c29c0983ed9a3cbe3dc8ee",
+   "excluded": true,
+   "label": "In discrete design, the location of the zero in the compensator is determined by trial and error until the root locus passes through the desired z-plane locations.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:17197f6be19b26519855f5be",
+   "excluded": true,
+   "label": "Common design damping ratio zeta = 1/sqrt(2) yields sigma = -omega",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:219895d4ca20c8b8caa04016",
+   "excluded": true,
+   "label": "系统为线性时不变离散系统。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:24147b2dc870e26c6c8dd8d9",
+   "excluded": true,
+   "label": "闭环离散系统如图 7-73 所示，采样周期 T 在 0 ≤ T ≤ 1.2s 范围内变化。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2421e42a1b1a04ee0a2673f8",
+   "excluded": true,
+   "label": "G(z) 无延迟且在 z 平面单位圆上及单位圆外无零极点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2687cb34927b559aba2e3cd9",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:26b1cdea09fc0a68b9e15186",
+   "excluded": true,
+   "label": "Sampling period selection for continuous-to-discrete design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2856d2f356dad0d161e28636",
+   "excluded": true,
+   "label": "采样周期 T 足够小以保证离散化精度。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2984828967139f058d0d3085",
+   "excluded": true,
+   "label": "The root-locus techniques used in continuous systems to find roots of a polynomial in s apply equally well and without modification to the polynomial in z.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2a8630f9f355011ee8e4d31f",
+   "excluded": true,
+   "label": "系统为单位反馈，期望一拍响应。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2bef8f644b9c6bf301a7ee95",
+   "excluded": true,
+   "label": "系统为离散控制系统，输入信号为典型信号（如单位阶跃、单位斜坡等）。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2f0f96a3c790bac7bfc70cfb",
+   "excluded": true,
+   "label": "最少拍系统设计前提成立",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2f73ef23e716de469c78b062",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:35eaf20a94b23675e6830a7f",
+   "excluded": true,
+   "label": "Parameter relationships for first-order compensator conversion",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3641bdca4d1eda6a457d0f77",
+   "excluded": true,
+   "label": "无纹波最少拍系统增加拍数等于 G(z) 单位圆内零点数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:381cb3df98591eb4a8be6594",
+   "excluded": true,
+   "label": "针对单位斜坡输入设计的最少拍系统，选择 Φ(z)=2z^{-1}-z^{-2}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:388ebca272cb71071db2a9f1",
+   "excluded": true,
+   "label": "Proportional feedback in the continuous case yields pure oscillatory motion; in the discrete case, for very low K, the root locus is tangent to the unit circle (ζ ≈ 0), matching the proportional continuous design.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:398f2ed0792aa7981c9ca84e",
+   "excluded": true,
+   "label": "The controller from discrete design differs from the continuously designed controller mainly in the absence of the u(k-1) term, which results from the lag term in the continuous compensation.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3a484f24084789d7df0511b3",
+   "excluded": true,
+   "label": "Digital control design consists of using the basic feedback elements of Eqs. (8.43) to (8.49) and iterating on the design parameters until all specifications are met.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3a7e4333ded10c2c45dd6202",
+   "excluded": true,
+   "label": "A discrete system with a ZOH and proportional feedback is analyzed.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3e5a18261983bb601e69e047",
+   "excluded": true,
+   "label": "Root locus may break away from and reenter the real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3e7c4c0a88b8e718d844005f",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:3f969172bccf543d0b8dac57",
+   "excluded": true,
+   "label": "连续控制器为 G_c(s) = K*(s+a)/(s+b)，采样周期为 T。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:4c454463e59772096bd06965",
+   "excluded": true,
+   "label": "Sampling period T is given.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:4d15a0b4bf83f568734a05cf",
+   "excluded": true,
+   "label": "Sampling period T is constant; backward difference for derivative; forward rectangular integration for integration.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:4d95bc5cb5e2a1cd32650c6e",
+   "excluded": true,
+   "label": "The plant transfer function G(z) is known.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:51207004780cc60408073854",
+   "excluded": true,
+   "label": "典型输入形式为 R(z)=A(z)/(1-z^{-1})^m",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:52109e75946d341f09824126",
+   "excluded": true,
+   "label": "已设计连续控制器 G_c(s)，采样周期 T 已知。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:56184a170fa56fbd37375aa8",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:56659d9e602c840bb82f82c8",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:566be2b8047710d884262953",
+   "excluded": true,
+   "label": "The discrete model is derived from the continuous system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:57848d068270bfb0632a764b",
+   "excluded": true,
+   "label": "系统为二阶，特征多项式系数为实数。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:63aa5b40e84c9083ce5ba6c5",
+   "excluded": true,
+   "label": "The system is unstable with D(z)=1. A digital controller D(z) = (z-a)/(z-b) is selected.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:640d847d091d1bc6c4dea745",
+   "excluded": true,
+   "label": "The exact discrete equivalent of a continuous plant preceded by a ZOH is an exact discrete model relating the sampled input u(kT) to the sampled output y(kT), with no approximation.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:69d84d2aeb8a600a18a7873b",
+   "excluded": true,
+   "label": "系统为离散控制系统，输入信号为典型信号，且要求输出在采样点之间无纹波。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:6b663e22a18fa7f138710213",
+   "excluded": true,
+   "label": "z-plane root locus design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:6c218cb496f16a0c997389d0",
+   "excluded": true,
+   "label": "In discrete design, specifications such as ω_n and ζ map to desired z-plane root locations, which can be used to guide the design.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:70b87f12aaf1261a31b99960",
+   "excluded": true,
+   "label": "输入信号为 r(t)=R0+R1 t+1/2 R2 t^2+...+1/(q-1)! R_{q-1} t^{q-1}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:7580d69cf6f06c9a681123f9",
+   "excluded": true,
+   "label": "Pole cancellation in digital compensator design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:768f76ee1044659c0fe0cf68",
+   "excluded": true,
+   "label": "The digital controller is D(z) = (z-a)/(z-b). The term (z-a) cancels a pole of G(z).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:77ad06900b90c5972465c940",
+   "excluded": true,
+   "label": "As a general rule, discrete design should be used if the sampling frequency is slower than 10 × ω_n; otherwise, discrete equivalent design should be verified by discrete analysis or simulation.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:77c4aec2ecddb205789fee23",
+   "excluded": true,
+   "label": "离散控制系统闭环传递函数为 Φ(z)，增益 K 为可调参数。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:7c622bb46a857dffd0a66412",
+   "excluded": true,
+   "label": "系统广义被控对象 G(z) 无延迟且在 z 平面单位圆上及单位圆外无零极点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:7dfbd78dd45a2efbc7a8509f",
+   "excluded": true,
+   "label": "对于单位反馈离散系统，期望闭环脉冲传递函数为 Φ(z) = z^{-1}，误差脉冲传递函数为 Φ_e(z) = 1 - z^{-1}，广义对象脉冲传递函数为 G(z)。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:7f269c538356b04db5f625c8",
+   "excluded": true,
+   "label": "采用零阶保持器等效离散化方法。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:80a0738ca4d66b0bc6f97b6d",
+   "excluded": true,
+   "label": "离散控制系统闭环传递函数为 Φ(z)，增益 K 为可调参数。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:845f5b7c01cfedb1df594309",
+   "excluded": true,
+   "label": "Continuous state-space design methods are described in Chapter 7.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:8846773bfb57f189abc27dcd",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:8a840f5b8479a442afcda4e1",
+   "excluded": true,
+   "label": "Discrete design (or direct digital design) uses an exact discrete model of the plant and feedback system to develop a discrete controller entirely in the discrete domain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:8c006708c24b058c3028d388",
+   "excluded": true,
+   "label": "Discrete analysis of any digital controller consists of: (1) finding the discrete model of the plant and ZOH using Eq. (8.41), (2) forming the feedback system including D_d(z), and (3) analyzing the resulting discrete system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:94071087fcd4c5be7c751f30",
+   "excluded": true,
+   "label": "已设计连续控制器 G_c(s)，采样周期 T=0.1s 或 T=0.01s。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:9472d0cd85121ec4fdaf2357",
+   "excluded": true,
+   "label": "The design based on the continuous system should accurately carry over to the z-plane, but computation requirements should not be excessive.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:95fe54226a4d48f6389ca1d4",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0. The root locus is plotted in the z-plane.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:96077c3c7cf47b463c0ea068",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0. The root locus is plotted in the z-plane.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:96331326a301e9af180eba26",
+   "excluded": true,
+   "label": "The pole to be cancelled is at z = a.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:96e40b8940677c2fe3681797",
+   "excluded": true,
+   "label": "The desired closed-loop pole locations are specified.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:a01be7620559276f22400834",
+   "excluded": true,
+   "label": "系统为线性时不变离散系统。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "excluded": true,
+   "label": "The PID controller has s-domain transfer function G_c(s) = K_P + K_I/s + K_D s.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:a66f739012d9c5245375a3a2",
+   "excluded": true,
+   "label": "The discrete design method can achieve damping close to the desired value (e.g., ζ=0.733 vs ζ=0.7), while the discrete equivalent method may show decreased damping and increased overshoot.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:a80a779df8b578226336153b",
+   "excluded": true,
+   "label": "In analog controllers, a lag term provides noise attenuation and avoids pure differentiators; in discrete design, an equivalent lag appears as a pole at z=0, representing the one-sample delay in computing the derivative by a first difference.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "excluded": true,
+   "label": "最少拍系统对单位阶跃输入有100%超调量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:ae5b78f9349a1426a12db5c0",
+   "excluded": true,
+   "label": "系统为线性时不变离散系统。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:ae8b8eb036d55126d509ebff",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:aff5a8a6566081a0eea7b96b",
+   "excluded": true,
+   "label": "If the sample rate is decreased, the numerical values in the compensations become increasingly different and performance degrades considerably for the discrete equivalent case.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b30876ca22e91baa81a470fb",
+   "excluded": true,
+   "label": "对于二阶离散时间系统，其特征方程为 D(z) = a_2 z^2 + a_1 z + a_0 = 0，其中 a_2 = 1。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b32a5eb937a749d35e6df094",
+   "excluded": true,
+   "label": "采样周期 T 已知且固定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b44483c16f5d53e0245d7578",
+   "excluded": true,
+   "label": "Performance improvement via digital compensator",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b72a59d8d95002750ac397f8",
+   "excluded": true,
+   "label": "The control law from discrete design can be similar to the control equation obtained from continuous design, especially when the sample rate is fast.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:ba6066f58f43d7efaaf9a6a8",
+   "excluded": true,
+   "label": "Continuous system bandwidth ω_B is known.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:ba9bde87bec1c58272799533",
+   "excluded": true,
+   "label": "对于具有零阶保持器的二阶采样系统，开环传递函数为 G_0(s) = K/(s(T_1 s+1))，采样周期为 T，且 K > 0, T > 0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:bffb22a46faf537f152a841e",
+   "excluded": true,
+   "label": "G_c(s) = K (s+a)/(s+b) and D(z) = C (z-A)/(z-B) are related by Z{G_c(s)} = D(z).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:c16a66fd5d954306c9b4fc1b",
+   "excluded": true,
+   "label": "The root-locus techniques are applied to the polynomial in z.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:c504c12c7bf610a3aed7293a",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0. Let z = sigma (real). Then K = -N(z)/D(z) = F(sigma).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d01fcc69b311c3e20663a4bb",
+   "excluded": true,
+   "label": "采样周期 T 足够小以保证离散化精度。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d08643f795de379a74356226",
+   "excluded": true,
+   "label": "Sampling period selection trade-off",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d32a3c6ceebc2e0742f53378",
+   "excluded": true,
+   "label": "要求最少拍系统无纹波",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d599bd6cd2ac2c169ce236d5",
+   "excluded": true,
+   "label": "G_c(s)-to-D(z) conversion method.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d62d2e65425b2c7d91f34f54",
+   "excluded": true,
+   "label": "Normally, it is not particularly advantageous to match specific z-plane root locations; it is necessary only to pick K and α (or T_D) to obtain acceptable z-plane roots.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d756e899b07ef0595ce3234f",
+   "excluded": true,
+   "label": "The digital controller is D(z) = (z-a)/(z-b). The plant G(z) has a pole on the positive real axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:db8729d4616dd5ce22701f6d",
+   "excluded": true,
+   "label": "Digital controller D(z) = (z-a)/(z-b) used for pole-zero cancellation and desired root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:dc15f72d75dbd60043cdf5da",
+   "excluded": true,
+   "label": "使 e(∞) 为零",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:dd73fa2a9c39b30d04c7ff37",
+   "excluded": true,
+   "label": "最少拍系统在非采样时刻存在纹波",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:dd7705ec1b3e72b635eb7882",
+   "excluded": true,
+   "label": "系统为二阶，K>0, T>0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:df0f7d6c8511637e83c10e9e",
+   "excluded": true,
+   "label": "z-plane root locus design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:e31f5fdf5180abcb6fbcd9bf",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:e58798a30b4fbde5cc81f689",
+   "excluded": true,
+   "label": "无纹波最少拍系统要求 E2(z) 为有限多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:e8aa7ac75519b61a6ee492d1",
+   "excluded": true,
+   "label": "Constant damping ratio lines in z-plane derived from s-plane mapping z = e^{sT}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:e8feba1a6ea2f42c02642270",
+   "excluded": true,
+   "label": "采样周期 T 已知且固定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:f4ddcbfc10e5e22a4a10c6c5",
+   "excluded": true,
+   "label": "For higher values of K, the discrete root locus diverges into the unstable region because of the effect of the ZOH and sampling.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:f7cef26ad9ab73f69dc3a091",
+   "excluded": true,
+   "label": "The discrete state-space design methods are not detailed in this section; they are described in Section W8.7 of the companion website and in Franklin, Powell, and Workman (1998).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:f8410781e665d6d486a993d3",
+   "excluded": true,
+   "label": "系统为离散系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:f98254207e96d02b1faba8d3",
+   "excluded": true,
+   "label": "The sample rates are constrained to be very slow compared to the system bandwidth (ω_s < 10 × ω_n).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:f9bb373b7470e4812936c47d",
+   "excluded": true,
+   "label": "K is a real positive gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:faea0418d758c029175acb5b",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:fb82a334ecd55ffab55b5ade",
+   "excluded": true,
+   "label": "Root locus plot requires solving characteristic equation 1+K G(z) D(z)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:ffbc2b2480a046b3845f4f04",
+   "excluded": true,
+   "label": "The characteristic equation is 1 + K G(z) D(z) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:01352d9fa7bd87ffcb11e7c8",
+   "excluded": true,
+   "label": "题7-22系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:05c3bce244e51f0c3dae9747",
+   "excluded": true,
+   "label": "误差脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:09da4c7fe48a9407a1d68ec5",
+   "excluded": true,
+   "label": "离散分析过程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0e906643242ab739e7ea2c35",
+   "excluded": true,
+   "label": "二阶采样系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+   "excluded": true,
+   "label": "无纹波最少拍系统设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "excluded": true,
+   "label": "主导极点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1a8ef03e3724854770d0995b",
+   "excluded": true,
+   "label": "离散化设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+   "excluded": true,
+   "label": "最少拍系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1d3fbc0debb0aa898ddc8773",
+   "excluded": true,
+   "label": "题7-19闭环离散系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "excluded": true,
+   "label": "超调量 σ%",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:2207a84d0bef6d71a51fe50b",
+   "excluded": true,
+   "label": "题7-25系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:236ec108cc45299398bac0b8",
+   "excluded": true,
+   "label": "数字补偿器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+   "excluded": true,
+   "label": "速度误差系数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+   "excluded": true,
+   "label": "零阶保持器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:28bfca2df331c329cea26464",
+   "excluded": true,
+   "label": "朱利稳定判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:28c066f4f9ccd20a720fc299",
+   "excluded": true,
+   "label": "单位阶跃响应曲线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:28c7b2fa3807573e2160fad0",
+   "excluded": true,
+   "label": "稳态误差 e(∞)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+   "excluded": true,
+   "label": "误差脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+   "excluded": true,
+   "label": "最少拍系统设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:36950d29dd27bdca0a483237",
+   "excluded": true,
+   "label": "最少拍系统设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3741d57a147fed5d8c495e34",
+   "excluded": true,
+   "label": "数字控制设计中的零极点对消",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:38cc333389960ef01572e768",
+   "excluded": true,
+   "label": "纯离散等效系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:39456197a7214a933f3d5e83",
+   "excluded": true,
+   "label": "有纹波最少拍系统结构图（图7-46）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3bdef317703581e0a2e1b82f",
+   "excluded": true,
+   "label": "题7-20闭环离散系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:402f9f89ded980774ffb02c4",
+   "excluded": true,
+   "label": "前向矩形积分",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42b62edf88d848137713e690",
+   "excluded": true,
+   "label": "数字滞后补偿",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4763f84157de71b678a091e7",
+   "excluded": true,
+   "label": "题7-23数字控制系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:48988e52fe44c4738e0647cf",
+   "excluded": true,
+   "label": "闭环脉冲传递函数 Φ(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+   "excluded": true,
+   "label": "相位超前补偿器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:492c3f3c5e6d3c57cc074391",
+   "excluded": true,
+   "label": "最少拍系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+   "excluded": true,
+   "label": "数字校正装置",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:51031d894f2189c8d2db8f36",
+   "excluded": true,
+   "label": "题7-26系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:53433e0044a66cd171c6e1d1",
+   "excluded": true,
+   "label": "数字补偿器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:59058addd30398485c529e9f",
+   "excluded": true,
+   "label": "数字控制器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:59abd9632700f1634517f74c",
+   "excluded": true,
+   "label": "离散状态空间设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+   "excluded": true,
+   "label": "直接z域补偿器设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:61472f9425cd8eaba17968db",
+   "excluded": true,
+   "label": "离散设计",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:64d1931785ee06183744e4e4",
+   "excluded": true,
+   "label": "超前校正网络",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+   "excluded": true,
+   "label": "z平面根轨迹",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+   "excluded": true,
+   "label": "一阶被控对象离散模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+   "excluded": true,
+   "label": "无纹波最少拍系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6e5429ed119ba2156807f7a0",
+   "excluded": true,
+   "label": "模拟化设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6ec72a95052d52a56c6074ef",
+   "excluded": true,
+   "label": "题7-23系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:729526b31fd86a3f058b87ad",
+   "excluded": true,
+   "label": "z平面等阻尼比曲线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:78189b463d4f111e115c4201",
+   "excluded": true,
+   "label": "向后差分法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:79bb55c4c06d07fd357ec824",
+   "excluded": true,
+   "label": "连续状态空间设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "excluded": true,
+   "label": "调节时间 t_s",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7ba6b61691803d7422f99c16",
+   "excluded": true,
+   "label": "闭环脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7d7b2c2093e1b52795076344",
+   "excluded": true,
+   "label": "Curves of constant damping ratio in z-plane (Figure 13.27)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:80cea7656ffd01203a570296",
+   "excluded": true,
+   "label": "稳态跟踪误差",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:819e5c8e8bb74988bfaf76cb",
+   "excluded": true,
+   "label": "Root locus plot in z-plane (Figure 13.25)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:821f239699f8571f105125f0",
+   "excluded": true,
+   "label": "二阶采样系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3",
+   "excluded": true,
+   "label": "无纹波最少拍系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+   "excluded": true,
+   "label": "开环脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8596324a9d5a50d2998e7d97",
+   "excluded": true,
+   "label": "广义被控对象脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:86e0adb71633ae527d8afb11",
+   "excluded": true,
+   "label": "前向矩形积分用于积分近似",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:879cc307466d1a688cd3747f",
+   "excluded": true,
+   "label": "题7-25闭环离散系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9411610b02962c59cae258a3",
+   "excluded": true,
+   "label": "G_c(s)-D(z) 变换方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9431ee70cd4c3af657882c63",
+   "excluded": true,
+   "label": "直接数字设计法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9788d660e7e83cadc79a4ba6",
+   "excluded": true,
+   "label": "G_c(s)-D(z) 变换方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+   "excluded": true,
+   "label": "Root locus plot for compensated system (Figure 13.26)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9971389501e6c9bf6d378160",
+   "excluded": true,
+   "label": "题7-20系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+   "excluded": true,
+   "label": "z平面单位圆",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9bec0d6aa9ae6cf731207e85",
+   "excluded": true,
+   "label": "根轨迹z平面法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+   "excluded": true,
+   "label": "采样周期",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a007da62df7bd509e16eab25",
+   "excluded": true,
+   "label": "离散比例控制",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+   "excluded": true,
+   "label": "离散模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a45eae6f2246a7b9b35bf444",
+   "excluded": true,
+   "label": "连续到离散等效设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a55a1dccfb81a726e05539cc",
+   "excluded": true,
+   "label": "G_c(s)-to-D(z) conversion method",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a85bf0c53a7d633a260a63d7",
+   "excluded": true,
+   "label": "单位反馈线性定常离散系统（例7-29）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a9db9c0d98a9759008f3c37b",
+   "excluded": true,
+   "label": "题7-17闭环离散系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:aa8ea79b87e1a61e5f117b98",
+   "excluded": true,
+   "label": "数字控制器 D(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+   "excluded": true,
+   "label": "一拍系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:adbc098775012a91ff4207e3",
+   "excluded": true,
+   "label": "无纹波最少拍系统设计方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+   "excluded": true,
+   "label": "离散积分控制",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4252232f738d2575767fd6b",
+   "excluded": true,
+   "label": "z平面根轨迹的入射点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "excluded": true,
+   "label": "根轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b621a897dafceaba35cce329",
+   "excluded": true,
+   "label": "题7-26闭环离散系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b",
+   "excluded": true,
+   "label": "采样周期",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "excluded": true,
+   "label": "z 特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b9e17d7d49dcfcec06ee70e7",
+   "excluded": true,
+   "label": "题7-17系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+   "excluded": true,
+   "label": "离散微分控制",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bbb77635a4753e2de17d81ca",
+   "excluded": true,
+   "label": "典型输入",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bca773190d368f3faaaab995",
+   "excluded": true,
+   "label": "数字控制器脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bdae7eeb9e64719b93446a14",
+   "excluded": true,
+   "label": "后向差分规则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "excluded": true,
+   "label": "稳态误差",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+   "excluded": true,
+   "label": "精确离散等效",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c762d9e6b65175bba817ef32",
+   "excluded": true,
+   "label": "具有数字控制器的离散系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "excluded": true,
+   "label": "阻尼比",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c8c9bf27db6d626df6437323",
+   "excluded": true,
+   "label": "混合连续-离散系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+   "excluded": true,
+   "label": "离散超前补偿",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cddf1c071aa52e4f1dece3ee",
+   "excluded": true,
+   "label": "带数字计算机补偿的闭环采样系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ce58ea6e6a7dad56e9b4a8cd",
+   "excluded": true,
+   "label": "零阶保持器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ceba1e9ff71d5f284ca106d9",
+   "excluded": true,
+   "label": "闭环脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cec53f7d2e39cb58f30ccc8a",
+   "excluded": true,
+   "label": "题7-19系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "excluded": true,
+   "label": "超调量",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d128c3dba70d4cc962b3e854",
+   "excluded": true,
+   "label": "数字超前-滞后补偿",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d1afe8495e77510fc5846c95",
+   "excluded": true,
+   "label": "PID 数字控制器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "excluded": true,
+   "label": "相角裕度 γ",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d526b90368de52c39e27ffe6",
+   "excluded": true,
+   "label": "数字超前补偿",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d53f007c903cb2a964bacf4d",
+   "excluded": true,
+   "label": "广义对象脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d896c1f43c2ff7a05c1543b4",
+   "excluded": true,
+   "label": "零阶保持器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:da1326600f3311fd52008dd3",
+   "excluded": true,
+   "label": "z平面根轨迹分离点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ddb1cbf0f8a591b01ba3373b",
+   "excluded": true,
+   "label": "题7-22电机控制系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+   "excluded": true,
+   "label": "PID 数字控制器实现方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e037175898e502a748c0341d",
+   "excluded": true,
+   "label": "有纹波最少拍系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+   "excluded": true,
+   "label": "闭环特征方程",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e23f10cef7e7b7c484be97c9",
+   "excluded": true,
+   "label": "z平面等阻尼比线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+   "excluded": true,
+   "label": "纹波",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e981b0bcba817f0997c460e8",
+   "excluded": true,
+   "label": "PID控制器的数字实现",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "excluded": true,
+   "label": "调节时间",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ee5adf8518a6ea2ab503ae7f",
+   "excluded": true,
+   "label": "Closed-loop system with digital controller (Figure 13.24)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ef3b1e7fb0615020b11a78f9",
+   "excluded": true,
+   "label": "后向差分法用于导数近似",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f4736bb9065505bbc327e2b7",
+   "excluded": true,
+   "label": "采样系统的连续系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "excluded": true,
+   "label": "PID控制器",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f51115d2ed968014f4f4b3e9",
+   "excluded": true,
+   "label": "单位斜坡响应",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fa0849954056406029bd497f",
+   "excluded": true,
+   "label": "脉冲传递函数 G(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:facdf919012f47aa910cae13",
+   "excluded": true,
+   "label": "采样周期 T",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:00f6e1eaf3a819e21484f7cd",
+   "excluded": true,
+   "label": "误差脉冲传递函数公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:0b3ff2e60198215e061a2d95",
+   "excluded": true,
+   "label": "最少拍系统 Φ_e（z） 条件公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:0b98d0faa39e28ba093dcb9d",
+   "excluded": true,
+   "label": "PID controller difference equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:11177502e4a7ed8b1909e8af",
+   "excluded": true,
+   "label": "Z-transform equivalence condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:14a06ded326682454ac434a5",
+   "excluded": true,
+   "label": "二阶采样系统闭环特征方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:1858dc4c144b150e897b4fe5",
+   "excluded": true,
+   "label": "F(z) for breakaway calculation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:19281f80bb3814166057df56",
+   "excluded": true,
+   "label": "单位速度输入 z 变换",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:1c7518aa72657b6bb0245171",
+   "excluded": true,
+   "label": "Angle condition for root locus in z-plane",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:22b9642084164edbfc5c3fda",
+   "excluded": true,
+   "label": "Closed-loop transfer function T(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:23636bc2add6d6f68e4304fe",
+   "excluded": true,
+   "label": "Closed-loop transfer function of digital control system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:26e41fabdc321cd33ec51bd6",
+   "excluded": true,
+   "label": "数字控制器通用形式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:279237c8f46ea96c9c3cf6de",
+   "excluded": true,
+   "label": "First-order digital controller D(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:2cf788de14aa9e1bfea889b4",
+   "excluded": true,
+   "label": "数字控制器设计公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:2da9d0f8555adf5e05d4af3f",
+   "excluded": true,
+   "label": "磁盘驱动广义对象脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "excluded": true,
+   "label": "PID 控制器 z 域传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:38fe89bc112284d3df1bc0a4",
+   "excluded": true,
+   "label": "单位阶跃输入最少拍系统 Φ（z） 和 Φ_e（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3c729e2b87361a3f58a32593",
+   "excluded": true,
+   "label": "PID 控制器差分方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3f9997ea7d9ef57c69406125",
+   "excluded": true,
+   "label": "Magnitude condition for root locus in z-plane",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:4268f4234a6ae3b22feea1e0",
+   "excluded": true,
+   "label": "Discrete Characteristic Equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:452e5ebbe8e51427e60d42bd",
+   "excluded": true,
+   "label": "稳态跟踪误差公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:45d18ff50eb571400d280edd",
+   "excluded": true,
+   "label": "典型输入一般形式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:4901960cc6fc72f2ec6370f6",
+   "excluded": true,
+   "label": "Closed-Loop Transfer Function for Discrete System",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:4a5062b14b089af09817c1d6",
+   "excluded": true,
+   "label": "z-plane expression for zeta = 1/sqrt(2) with theta = omega T",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:4a9d3452c27a426263004c2e",
+   "excluded": true,
+   "label": "数字控制器增益匹配条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:4ce58aeb489b3a81f6ba32a1",
+   "excluded": true,
+   "label": "单位阶跃输入最少拍系统 D（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:581677addcafaad600221be0",
+   "excluded": true,
+   "label": "First-Order Plant Discrete Transfer Function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:59adfb084a2bbc643ddd2aeb",
+   "excluded": true,
+   "label": "单位加速度输入最少拍系统 Φ（z） 和 Φ_e（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:5b89535a1ab1c2c27e165a51",
+   "excluded": true,
+   "label": "一拍系统闭环和误差脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:5c38c5d27e227eaa858d0533",
+   "excluded": true,
+   "label": "Discrete Transfer Function of Plant with ZOH",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6197b4953c9653c42e289af4",
+   "excluded": true,
+   "label": "z-plane expression from s-plane mapping",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:619d7260b43881d4ed4bbe4f",
+   "excluded": true,
+   "label": "Mapping from s-plane to z-plane for constant damping ratio",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6435cf709a0b1b0adcf16e8f",
+   "excluded": true,
+   "label": "z-transform of backward difference derivative",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:65143bb6fce714abea666e60",
+   "excluded": true,
+   "label": "Gain matching condition for G_c(s)-to-D(z) conversion",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:668e98cb9bbba4f6caa4e6a0",
+   "excluded": true,
+   "label": "积分项递推公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6742642c7fca61d23c902af8",
+   "excluded": true,
+   "label": "Digital compensator transfer function D(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6c2810d95ccb712cf93e83aa",
+   "excluded": true,
+   "label": "Discrete Lead Compensation Difference Equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6dd3cf9302ddd6c2ba3101c6",
+   "excluded": true,
+   "label": "Characteristic equation of digital control system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6ed3a71e1ed9a13d9c41bb5d",
+   "excluded": true,
+   "label": "单位加速度输入 z 变换",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6eeee023eee220db0edb4be2",
+   "excluded": true,
+   "label": "磁盘驱动数字控制器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:6f80a1c8fc9000d3d2a6386d",
+   "excluded": true,
+   "label": "z-domain transfer function of forward rectangular integrator",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7640a129c18abf199a3142fd",
+   "excluded": true,
+   "label": "Alpha Definition for First-Order Plant",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7a2e7a7a18e02453a6db5a96",
+   "excluded": true,
+   "label": "Derivative condition for breakaway/entry points",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7dd3720f8622a215a1b36a15",
+   "excluded": true,
+   "label": "数字控制器脉冲传递函数公式（由 Φ_e（z） 表示）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7e3bb62cb91a34aeac11c756",
+   "excluded": true,
+   "label": "General F(z) for breakaway calculation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:8006c5e846d8b8735e667668",
+   "excluded": true,
+   "label": "单位斜坡输入最少拍系统 D（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:82e12c4d15b3a43b96658ef2",
+   "excluded": true,
+   "label": "单位加速度输入最少拍系统 D（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:87a4342ab8d63156e06da1a3",
+   "excluded": true,
+   "label": "backward difference derivative approximation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:88b65519b13dac991dfb371a",
+   "excluded": true,
+   "label": "闭环脉冲传递函数公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:892fdb1f2ef05e10803fb928",
+   "excluded": true,
+   "label": "z-domain PID controller transfer function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:8dfd95cc048042da352b0774",
+   "excluded": true,
+   "label": "单位斜坡输入最少拍系统 Φ（z） 和 Φ_e（z）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:8e04bba5ef9087af84f98b61",
+   "excluded": true,
+   "label": "Discrete Derivative Control Law",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:8e209931560de27ae4c7930a",
+   "excluded": true,
+   "label": "Digital controller transfer function for root locus design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:910345a2bbfeb5dbbf417caf",
+   "excluded": true,
+   "label": "Open-loop transfer function G(z)D(z) for compensated second-order system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:a0aff72ff8abe5ccb75586a2",
+   "excluded": true,
+   "label": "工作台数字控制器参数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:a0f79f13291bb85d2c588f90",
+   "excluded": true,
+   "label": "Discrete Integral Control Law",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:a93f10f63ce7f43e80a6a97a",
+   "excluded": true,
+   "label": "无纹波最少拍系统附加条件公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:ae8fe6a07bdbe0f10018a426",
+   "excluded": true,
+   "label": "z-plane expression for zeta = 1/sqrt(2)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:b33306ecafccb3eac92a9a64",
+   "excluded": true,
+   "label": "稳态误差终值定理公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:bdff9961599de631b85192af",
+   "excluded": true,
+   "label": "Discrete Lead Compensation Transfer Function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c520d61c825a88a7d493e271",
+   "excluded": true,
+   "label": "单位阶跃输入 z 变换",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c5ff59a03c2f75187ba76a81",
+   "excluded": true,
+   "label": "速度误差系数定义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c8e7de75e6a2354fc9aab082",
+   "excluded": true,
+   "label": "工作台广义对象脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:cc1df25eb7821b66fe50611c",
+   "excluded": true,
+   "label": "Discrete Proportional Control Law",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:cfea61bd0ce0baac181eb16c",
+   "excluded": true,
+   "label": "数字控制器脉冲传递函数公式（由 Φ（z） 表示）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:da65efe979f87300e254ab02",
+   "excluded": true,
+   "label": "误差 z 变换公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:e741d88b917ab23bb4b20408",
+   "excluded": true,
+   "label": "Φ（z） 与 Φ_e（z） 关系公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:e777272395b96ab368ce4557",
+   "excluded": true,
+   "label": "forward rectangular integration formula",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:ef450df3f71c85da4fd7cdad",
+   "excluded": true,
+   "label": "工作台数字控制器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:f5031d3526940bd7c71f6881",
+   "excluded": true,
+   "label": "Discrete Derivative Transfer Function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:f795bd18f57352e1bc8ec1c9",
+   "excluded": true,
+   "label": "Discrete Integral Transfer Function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:f8a6ced126b965d96f8f14d2",
+   "excluded": true,
+   "label": "微分项向后差分公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:fb79c87ed41fcbad0e4f70ee",
+   "excluded": true,
+   "label": "z-transform of forward rectangular integration",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:fbbef56117bf5a7d8937ace0",
+   "excluded": true,
+   "label": "Relation between sigma and omega for constant damping ratio",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:ff5bb626a1caa9de522481cb",
+   "excluded": true,
+   "label": "二阶采样系统开环脉冲传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:011fbb3e5e167b08b4a9b3c1",
+   "excluded": true,
+   "label": "最少拍系统调节时间与输入形式无关",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:097c45254792d19661a72d98",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Root Locus Comparison",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0b4226b18f3ad28f43f5ac27",
+   "excluded": true,
+   "label": "系统稳定性条件（基于增益 K）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0be8f3886cdd74970bee6122",
+   "excluded": true,
+   "label": "Breakaway and entry points determined from derivative of F(sigma)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e27f3f0b9605671e1145e97",
+   "excluded": true,
+   "label": "Simulation Importance for Digital Control",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e65f44f883b16369379646b",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Control Law Similarity",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0ff64a35d001e2c9393df2ca",
+   "excluded": true,
+   "label": "Applicability of Continuous State-Space Design to Discrete Models",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:1b450139f10818765435407c",
+   "excluded": true,
+   "label": "连续控制器到数字控制器的转换方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:1e18883159fc8353c5e3f69b",
+   "excluded": true,
+   "label": "G_c（s）-D（z） 变换方法准则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2485e31d915a7d8730645ca5",
+   "excluded": true,
+   "label": "General Rule for Discrete Design Usage",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2be0e3c8bba0d35da2eb2f0c",
+   "excluded": true,
+   "label": "无纹波最少拍系统增加拍数等于 G（z） 单位圆内零点数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3c513ba4aa86ae371a4acad2",
+   "excluded": true,
+   "label": "Sufficient condition for instability when roots outside unit circle",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3e1544faa0fa9cbb609d84ae",
+   "excluded": true,
+   "label": "Root locus may break away from and reenter the real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:456537663795bccd405a008d",
+   "excluded": true,
+   "label": "无纹波最少拍系统必要条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:46b55e66284f3e5f56bc06fa",
+   "excluded": true,
+   "label": "Discrete Design Specification Matching",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:46c4dca658506579cc539223",
+   "excluded": true,
+   "label": "Digital controller D(z) = (z-a)/(z-b) used for pole-zero cancellation and desired root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:47529cffb31af2b89cf34748",
+   "excluded": true,
+   "label": "Parameter relationships for first-order compensator conversion",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4b6b01db5608ef2baa8c734d",
+   "excluded": true,
+   "label": "Discrete Analysis Procedure",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51849daf1dd67e5b4b313566",
+   "excluded": true,
+   "label": "Relationship between continuous and discrete compensator parameters",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:548733402844713cedca59b1",
+   "excluded": true,
+   "label": "最少拍系统在非采样时刻存在纹波",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:58051f60e7b62a9e5b09266e",
+   "excluded": true,
+   "label": "Discrete Design Iterative Process",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:5d86ee8f40fc11a27eaf3430",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Damping Comparison",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:69297947d5156bf51cf63085",
+   "excluded": true,
+   "label": "Discrete Design Practicality",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6ad9351ceee52d75495890ab",
+   "excluded": true,
+   "label": "Common design damping ratio zeta = 1/sqrt(2) yields sigma = -omega",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6cc8a5752304d09f4fc76cb7",
+   "excluded": true,
+   "label": "Magnitude condition for root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6f7339b8df98e960a9e94d58",
+   "excluded": true,
+   "label": "Lag Term in Analog vs Discrete Controllers",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:70429c911cfc1334ec904009",
+   "excluded": true,
+   "label": "无纹波最少拍系统设计准则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:77e38747716fa2d029a66c3d",
+   "excluded": true,
+   "label": "Discrete Design Root Locus Divergence",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7aa3348efc51fb874155b5b5",
+   "excluded": true,
+   "label": "最少拍系统设计原则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7ad683871936f85a440e24cc",
+   "excluded": true,
+   "label": "无纹波最少拍系统要求 E2（z） 为有限多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7b850ca36e27774e4ac4c1c3",
+   "excluded": true,
+   "label": "Angle condition for root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7e0e6a9f37f2f5d06762b452",
+   "excluded": true,
+   "label": "Digital controller design using root locus method",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:84469768912b5a0d1175c8c7",
+   "excluded": true,
+   "label": "Root locus is symmetrical with respect to horizontal real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:865b66b857b5e005071c2a73",
+   "excluded": true,
+   "label": "PID controller difference equation algorithm",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:87f9529de6e2abfa1d758eef",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Control Law Difference",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:88ca1487d6986dd18923f899",
+   "excluded": true,
+   "label": "Instability Due to ZOH in Discrete Systems",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8a10ed953d67681917acb74a",
+   "excluded": true,
+   "label": "PID controller digital implementation via backward difference and forward rectangular integration",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8b003e030147beada0151e64",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Difference at Slow Sample Rates",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:9185b36640e0f1e8cab34e34",
+   "excluded": true,
+   "label": "Sampling period selection guideline",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:986b06a8796d8d2d722780ed",
+   "excluded": true,
+   "label": "Sampling period selection for continuous-to-discrete design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:9a198eb2a6ba9cf2536a22d0",
+   "excluded": true,
+   "label": "Sampling period selection trade-off",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:9a435d80852bc739f115ff8b",
+   "excluded": true,
+   "label": "Constant damping ratio lines in z-plane derived from s-plane mapping z = e^{sT}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:9ca858c2e5f6ebb53761c297",
+   "excluded": true,
+   "label": "最少拍系统调节时间与输入形式无关的论证",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:9cf247fe5e0fb9d9e2a30191",
+   "excluded": true,
+   "label": "离散控制器设计准则（基于连续设计）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a0f289e68126dea924ca2d35",
+   "excluded": true,
+   "label": "一拍系统数字控制器设计公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a240f21a63737d5ac0361daa",
+   "excluded": true,
+   "label": "最少拍系统设计准则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a662a28495865f2307f78059",
+   "excluded": true,
+   "label": "二阶采样系统稳定等价必要条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a9f4092840366013e59fc68d",
+   "excluded": true,
+   "label": "Exact Discrete Equivalent Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:acb48a04522e05e35ce328d5",
+   "excluded": true,
+   "label": "Selection of controller pole for desired root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b0a2c596f77b6e6f788ef834",
+   "excluded": true,
+   "label": "Pole-zero cancellation using digital controller",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b4839b9c0d4a5e14f6f48c00",
+   "excluded": true,
+   "label": "Stability Boundary in Discrete Root Locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b83f440b480ad27ab355f116",
+   "excluded": true,
+   "label": "二阶采样系统稳定性充分必要条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ba59c3b8af1ecbfba90c9e75",
+   "excluded": true,
+   "label": "Performance improvement via digital compensator",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:bb5861fbbe64feca19e9620a",
+   "excluded": true,
+   "label": "无纹波最少拍系统附加条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:bcc74a2a08ea2bb729150a71",
+   "excluded": true,
+   "label": "超调量约束条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c84055535188be11132bef45",
+   "excluded": true,
+   "label": "最少拍系统对单位阶跃输入有100%超调量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ca8d2cd2a81d6d696a13bc9c",
+   "excluded": true,
+   "label": "最少拍系统稳态误差为零的条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:cb2689ede46ff97ca478d053",
+   "excluded": true,
+   "label": "Root locus lies on real axis to left of odd number of poles and zeros",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ceeefdd63f3c93b815ac9288",
+   "excluded": true,
+   "label": "Noise Attenuation Trade-off in Discrete Design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d293fcbdab4cd7835113952b",
+   "excluded": true,
+   "label": "Discrete Design Advantage for Slow Sample Rates",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d54164f0bc46310120bac159",
+   "excluded": true,
+   "label": "Root locus plot requires solving characteristic equation 1+K G(z) D(z)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d6342c6e75158ff62aabf890",
+   "excluded": true,
+   "label": "Discrete Design Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d9584a72df8768467c24ffeb",
+   "excluded": true,
+   "label": "Discrete Design Root Locus Matching",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:dee6551dbdb22531c38273a6",
+   "excluded": true,
+   "label": "Stability condition for digital control system via root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e20b93082935a9d82a45c5e7",
+   "excluded": true,
+   "label": "Pole cancellation in digital compensator design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f26139e2167750c13b37231b",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Similarity at Fast Sample Rates",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f46dccc18d7347d61bb2aff8",
+   "excluded": true,
+   "label": "Root locus starts at poles and progresses to zeros",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f630bcd4c46e76c1ba44918e",
+   "excluded": true,
+   "label": "Discrete State-Space Design Methods are Described in External References",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:fd1829c53a8bf114fbfa02f3",
+   "excluded": true,
+   "label": "采样周期对系统性能的影响",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ff9a8a9dc4844f6c5a377260",
+   "excluded": true,
+   "label": "Root Locus Applicability to Discrete Systems",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:03050eec261a56ebb4a7fcca",
+   "excluded": true,
+   "label": "前向矩形积分器传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:0d1aa49ded1fe538b7e628f2",
+   "excluded": true,
+   "label": "PID控制器的数字实现",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:2ad95c5cb12db70492c62393",
+   "excluded": true,
+   "label": "后向差分规则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:2c433efc6fe64c1d7561ce61",
+   "excluded": true,
+   "label": "前向矩形积分规则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:3096b2482f9840abe600cdb0",
+   "excluded": true,
+   "label": "前向矩形积分的z变换",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:59cc5921a01e7d90daa903a9",
+   "excluded": true,
+   "label": "PID控制器z域传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:5c2c8d5c96e2464d188f4f7d",
+   "excluded": true,
+   "label": "后向差分的z变换",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:762ac4d37f3b07136c93b746",
+   "excluded": true,
+   "label": "PID控制器s域传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2d:source-object:bc5221e1b6d9b5648a193482",
+   "excluded": true,
+   "label": "PID控制器差分方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:56f1adca244fd06087afe3ea",
+   "excluded": true,
+   "label": "磁盘驱动采样读取系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:d59700afb9d185b8c5ad6390",
+   "excluded": true,
+   "label": "工作台数字控制系统结构图",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:0281d747a9fd92873bf7cfaf",
+   "excluded": true,
+   "label": "确定 K 的合适值，使系统的超调量不大于 30%。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:02d25c51d0bbd943c76a1472",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Similarity at Fast Sample Rates",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:03a6bbff9d17a6dad31c2917",
+   "excluded": true,
+   "label": "Discrete Design Root Locus Matching",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:09544487a7bfa3fe1ecc4c57",
+   "excluded": true,
+   "label": "无纹波最少拍系统要求 E2(z) 为有限多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:0c3d7ed242f836ca6d85a11c",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Difference at Slow Sample Rates",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:0dc0570e9ec8b8e3134f02dd",
+   "excluded": true,
+   "label": "The system becomes oscillatory with decreasing damping ratio and eventually becomes unstable due to the lagging effect of the ZOH.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:0dd22dd663ce3136481b7c9f",
+   "excluded": true,
+   "label": "采用 G_c(s)-D(z) 变换方法，可求出相应的数字控制器 D(z)。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:1397ede338ff4b9af98b51b0",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Control Law Difference",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:15adb584d334b6638b0ac946",
+   "excluded": true,
+   "label": "采用 G_c(s)-D(z) 变换方法，可设计合适的数字控制器 D(z)。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:161ad4a3cc0fcd1aaf72d693",
+   "excluded": true,
+   "label": "通过设计数字控制器 D(z)，使系统在最少采样周期内达到无稳态误差且无纹波的跟踪。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:17663116fcf0f804777d53fa",
+   "excluded": true,
+   "label": "The angle condition is angle(G(z) D(z)) = 180 degrees ± k * 360 degrees, for k = 0, 1, 2, ...",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:18bc9241ca820489b63f15e6",
+   "excluded": true,
+   "label": "Lag Term in Analog vs Discrete Controllers",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:1c16f479faed6b57ebacc8ec",
+   "excluded": true,
+   "label": "系统稳定的等价必要条件为 K T_1 < (1-E)/(1-E - (T/T_1)E) 和 K T_1 < 2(1+E)/((T/T_1)(1+E) - 2(1-E))，其中 E = e^{-T/T_1}。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:20c6a492bf7368ec5f094536",
+   "excluded": true,
+   "label": "Root locus may break away from and reenter the real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:294732be908a7c07de7e024b",
+   "excluded": true,
+   "label": "最少拍系统调节时间与输入形式无关的论证",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:2a7f98d8b119b8483444964d",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Control Law Similarity",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:2ed44af8830e426d93cedb5a",
+   "excluded": true,
+   "label": "The system is stable if all closed-loop poles lie inside the unit circle in the z-plane.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:340fc48cb95d842dffc0e6c5",
+   "excluded": true,
+   "label": "The root-locus techniques can be used for discrete systems.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3a1a55a7034318807afa98f0",
+   "excluded": true,
+   "label": "Exact Discrete Equivalent Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3df913e1983a14daecb2ae93",
+   "excluded": true,
+   "label": "Simulation Importance for Digital Control",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3e954135161858e4336b22d0",
+   "excluded": true,
+   "label": "选择闭环脉冲传递函数 Φ(z)，使系统在典型输入作用下，经最少采样周期后能使输出序列在各采样时刻的稳态误差为零，达到完全跟踪的目的，从而确定所需要的数字控制器的脉冲传递函数 D(z)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3efe58f0e77de816394ee3bd",
+   "excluded": true,
+   "label": "被控对象传递函数 G0(s) 中至少应包含 (q-1) 个积分环节",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3f616d0860bdf742472c4345",
+   "excluded": true,
+   "label": "数字控制器为 D(z) = Φ(z) / (G(z) Φ_e(z))。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:4245fc24c4f3bfb2dfb270ef",
+   "excluded": true,
+   "label": "Discrete Design Iterative Process",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:427348910b0608c2e45d277c",
+   "excluded": true,
+   "label": "Discrete Design Specification Matching",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:428a490cb8ecd96c72104182",
+   "excluded": true,
+   "label": "随着 T 每增加 0.2s，系统的单位阶跃输入响应、超调量 σ% 和调节时间 t_s (Δ=2%) 会发生变化。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:429920ee52670ed8dae0c82a",
+   "excluded": true,
+   "label": "A = e^{-aT}, B = e^{-bT}, and when s=0, C (1-A)/(1-B) = K a/b.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:4ee2d5fc0cb49e95da989bfd",
+   "excluded": true,
+   "label": "Discrete Design Practicality",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:5cf397b3fdaf3afb7b77ae26",
+   "excluded": true,
+   "label": "Use a sampling period T ≈ 1/(10 f_B), where f_B = ω_B/(2π) and ω_B is the bandwidth of the closed-loop continuous system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:5f4284964a39fcf7bdcf7d33",
+   "excluded": true,
+   "label": "Parameter relationships for first-order compensator conversion",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:6f5ca1e43e5643c60a09fec4",
+   "excluded": true,
+   "label": "两个特征根都位于z平面单位圆内的充分必要条件是 D(1) > 0, D(-1) > 0, 且 |a_0| < a_2。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:748333d017414aaf987e1e7b",
+   "excluded": true,
+   "label": "Root locus plot requires solving characteristic equation 1+K G(z) D(z)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:79c0513c2785d440b2d662cc",
+   "excluded": true,
+   "label": "The root locus lies on a section of the real axis to the left of an odd number of poles and zeros.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:812f71ed2ed7d93e29e8da5e",
+   "excluded": true,
+   "label": "Common design damping ratio zeta = 1/sqrt(2) yields sigma = -omega",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:815f6866ac7b0ced947e1dcd",
+   "excluded": true,
+   "label": "通过计算闭环系统的 z 特征方程，可确定使系统稳定的 K 的最大值。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:8178df0f73c458eb053ab49e",
+   "excluded": true,
+   "label": "General Rule for Discrete Design Usage",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:81f55dfa33ff5a2de5ffeda8",
+   "excluded": true,
+   "label": "Discrete Analysis Procedure",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:886f2ba46cdaea1c3b5c9324",
+   "excluded": true,
+   "label": "The term (z-a) in the controller can be used to cancel one pole of G(z) that lies on the positive real axis of the z-plane.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:8b2eae9019e64fa02d3ca0a5",
+   "excluded": true,
+   "label": "Φ_e(z) 中包含有 (1-z^{-1})^m 的因子",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:8cfe5b516f087c27807d6b3a",
+   "excluded": true,
+   "label": "闭环脉冲传递函数 Φ(z) 除应满足最少拍要求的形式外，还必须包含 G(z) 的全部零点，而不论这些零点在 z 平面的何处",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:920f0cadfae4fc6e475303d2",
+   "excluded": true,
+   "label": "Discrete Design Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:9699830e3c91302b4d68edd6",
+   "excluded": true,
+   "label": "These methods can also be applied to discrete models.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:9c4d4199270e0f7acc9ec387",
+   "excluded": true,
+   "label": "Discrete design is particularly advantageous.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a009db0cd09a4333d1475f78",
+   "excluded": true,
+   "label": "对应的数字控制器为 D(z) = C (z-A)/(z-B)，其中 A = e^{-aT}, B = e^{-bT}, C = K* a (1-B) / (b (1-A))。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a00a925a2a7f0b2a2522fb65",
+   "excluded": true,
+   "label": "不论在何种输入形式作用下，系统均有二拍的调节时间",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a010665dee597164294872cd",
+   "excluded": true,
+   "label": "Sampling period selection trade-off",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a35758d2bc8ba84c1a852ff8",
+   "excluded": true,
+   "label": "The term (z-b) in the controller is selected so that the root locus of the compensated system gives a set of complex roots at a desired point within the unit circle.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a57850404ed6e8376297e1b7",
+   "excluded": true,
+   "label": "最少拍系统对单位阶跃输入有100%超调量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a5862b11b1dd0892a7b89313",
+   "excluded": true,
+   "label": "无纹波最少拍系统增加拍数等于 G(z) 单位圆内零点数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a66b4d281878bf082e2a2e6f",
+   "excluded": true,
+   "label": "Discrete Design Root Locus Divergence",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:a957f806b96572570af50c2d",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Damping Comparison",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:ad638615f57436e5720c1735",
+   "excluded": true,
+   "label": "If the system always has two roots outside the unit circle for all K > 0, then the system is always unstable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:ba1df40ff9cc57a9e9beb016",
+   "excluded": true,
+   "label": "最少拍系统在非采样时刻存在纹波",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:bb584b88d2e3b8d81d44c433",
+   "excluded": true,
+   "label": "The breakaway and entry points on the real axis are determined from the solution of dF(sigma)/d(sigma) = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c505ab0bf207696d44de0e2e",
+   "excluded": true,
+   "label": "Constant damping ratio lines in z-plane derived from s-plane mapping z = e^{sT}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c5aea2c9ac7d1fcb1770d509",
+   "excluded": true,
+   "label": "Noise Attenuation Trade-off in Discrete Design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c6cb75671a895a6dc2879a64",
+   "excluded": true,
+   "label": "The root locus method can be used to design a digital controller D(z) to achieve a specified response and stabilize the system.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c8b71fff8c574d980af65870",
+   "excluded": true,
+   "label": "Sampling period selection for continuous-to-discrete design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c9b18c701332a2c8127d902a",
+   "excluded": true,
+   "label": "The root locus is symmetrical with respect to the horizontal real axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:ccc22009a03c265a5dfd4236",
+   "excluded": true,
+   "label": "Pole cancellation in digital compensator design",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:cd6bdc011d9ec01561f628aa",
+   "excluded": true,
+   "label": "A digital implementation of the PID controller is obtained by approximating the derivative using the backward difference rule and the integration using the forward rectangular integration, resulting in the z-domain transfer function G_c(z) = K_P + (K_I T z)/(z-1) + K_D (z-1)/(T z) and the difference equation u(k) = [K_P + K_I T + (K_D/T)] x(k) - K_D T x(k-1) + K_I u(k-1).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:cdad09ef7e88096cb790f2c7",
+   "excluded": true,
+   "label": "PID controller difference equation algorithm",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:d47ace6f50a62bcf65bbaff4",
+   "excluded": true,
+   "label": "The root locus starts at the poles of G(z) D(z) and progresses to the zeros as K varies.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:d7fbfd5cc2118bf6a51e9950",
+   "excluded": true,
+   "label": "Discrete Design vs Continuous Design Root Locus Comparison",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:de2b5b1cffa216baf0e67956",
+   "excluded": true,
+   "label": "通过设计数字控制器 D(z)，使系统在最少采样周期内达到无稳态误差的跟踪。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:e51716abc221b106fa5bf2d2",
+   "excluded": true,
+   "label": "Digital controller D(z) = (z-a)/(z-b) used for pole-zero cancellation and desired root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:f62e765e138c5b1fd6ad91fc",
+   "excluded": true,
+   "label": "Discrete State-Space Design Methods are Described in External References",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:f684f2220cb0969c32fc4ff9",
+   "excluded": true,
+   "label": "The stability boundary is the unit circle instead of the imaginary axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:f8365b2bb9c106c75677e5a7",
+   "excluded": true,
+   "label": "Performance improvement via digital compensator",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:fe0d15bf96598be7f24df828",
+   "excluded": true,
+   "label": "The magnitude condition is |K G(z) D(z)| = 1.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:703096466a75f6381acd9faa",
+   "excluded": true,
+   "label": "磁盘驱动采样读取系统模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:b2e8dc39be1a23724e4e2d41",
+   "excluded": true,
+   "label": "工作台数字控制系统模型",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": [
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-23",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-23",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-27",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-28",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-30",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-35",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-37",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-1",
+   "anchorId": "2-1-seg-14",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-12",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-14",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-16",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-19",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-20",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-22",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-23",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-24",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-25",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-25",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-27",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-29",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-29",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-30",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-31",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-31",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-34",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-15",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-36",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-37",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-38",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-4",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-5",
+   "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-16",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-23",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-25",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-28",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-31",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-37",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-39",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-35",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-40",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-9",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-12",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-38",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-39",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-47",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-48",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-3",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-5",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-31",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-32",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-33",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-35",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-5",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-6",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-9",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-11",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-12",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-16",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-19",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-6",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-6",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-7",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-7",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-12",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-17",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-19",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-22",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-22",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-31",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-33",
+   "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-15",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-20",
+   "canonicalId": "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-20",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-23",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-25",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-25",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-7",
+   "anchorId": "3-7-seg-29",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-8",
+   "anchorId": "3-8-seg-12",
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-8",
+   "anchorId": "3-8-seg-22",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-8",
+   "anchorId": "3-8-seg-24",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-8",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-9",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-12",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-16",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-17",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-20",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-28",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-36",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-42",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-44",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-46",
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-8",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-8",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-14",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-14",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-14",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-16",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-25",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-25",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-26",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-28",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-29",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-34",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-37",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-2",
+   "anchorId": "4-2-seg-6",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-2",
+   "anchorId": "4-2-seg-14",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-2",
+   "anchorId": "4-2-seg-22",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-3",
+   "anchorId": "4-3-seg-6",
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-3",
+   "anchorId": "4-3-seg-28",
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-4",
+   "anchorId": "4-4-seg-7",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-6",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-11",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-14",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-22",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-22",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-23",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-5",
+   "anchorId": "4-5-seg-26",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-9",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-14",
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-14",
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-31",
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-41",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-42",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-39",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-3",
+   "anchorId": "5-3-seg-3",
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-6",
+   "anchorId": "5-6-seg-6",
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-6",
+   "anchorId": "5-6-seg-9",
+   "canonicalId": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-6",
+   "anchorId": "5-6-seg-17",
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  }
+ ]
+}

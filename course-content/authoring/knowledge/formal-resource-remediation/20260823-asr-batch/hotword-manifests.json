@@ -1,8 +1,8 @@
 [
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-c141f0a92586a1a471624d91",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-aa62101bbeded81974dd79a1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-1-1-audio",
   "sourceResourceId": "handout-1-1",
   "sourceParagraphIds": [
@@ -401,12 +401,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"对象\",\"v\":4},{\"w\":\"极点\",\"v\":3},{\"w\":\"strong\",\"v\":2},{\"w\":\"根轨迹\",\"v\":2},{\"w\":\"增益\",\"v\":2},{\"w\":\"matlab\",\"v\":2},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"center\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"开环控制\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"kp2\",\"v\":1},{\"w\":\"step\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"rlocus\",\"v\":1},{\"w\":\"示例\",\"v\":1},{\"w\":\"闭环控制\",\"v\":1},{\"w\":\"phi2\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"dec\",\"v\":1},{\"w\":\"isstable\",\"v\":1},{\"w\":\"margin\",\"v\":1},{\"w\":\"stepinfo\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"上升时间\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"期望输出\",\"v\":1},{\"w\":\"测量输出\",\"v\":1},{\"w\":\"feedback\",\"v\":1},{\"w\":\"共轭复数对\",\"v\":1},{\"w\":\"根轨迹与时域\",\"v\":1},{\"w\":\"模型与极点\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"kp\",\"v\":1},{\"w\":\"pid\",\"v\":1},{\"w\":\"关联衰减\",\"v\":1},{\"w\":\"参考输入\",\"v\":1},{\"w\":\"复变量\",\"v\":1},{\"w\":\"实际输出\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"控制器真正关心的\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"稳定判据\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"讲义\",\"v\":1}]",
-  "manifestHash": "c141f0a92586a1a471624d915616ca4241982aad5a31836900eb23970d97a235"
+  "manifestHash": "aa62101bbeded81974dd79a1750cf4a8db98b19b8454a18fb8253a7861c191b4"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-60803b292898020c03ece2dd",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-1d97160f58a13b5fc3060db2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-1-2-audio",
   "sourceResourceId": "handout-1-2",
   "sourceParagraphIds": [
@@ -720,12 +720,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"极点\",\"v\":5},{\"w\":\"系统\",\"v\":5},{\"w\":\"对象\",\"v\":3},{\"w\":\"传递函数\",\"v\":3},{\"w\":\"递函数\",\"v\":3},{\"w\":\"平面\",\"v\":2},{\"w\":\"复平面\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"rc\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"复变量\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"闭环控制\",\"v\":1},{\"w\":\"arg\",\"v\":1},{\"w\":\"sin\",\"v\":1},{\"w\":\"为横轴\",\"v\":1},{\"w\":\"也称\",\"v\":1},{\"w\":\"以实部\",\"v\":1},{\"w\":\"共用\",\"v\":1},{\"w\":\"共轭复数对\",\"v\":1},{\"w\":\"参考输入\",\"v\":1},{\"w\":\"命名\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"期望输出\",\"v\":1},{\"w\":\"测量输出\",\"v\":1},{\"w\":\"特征根\",\"v\":1},{\"w\":\"相位角\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "60803b292898020c03ece2dd7b711960282aa92110779f366061b09e354154a2"
+  "manifestHash": "1d97160f58a13b5fc3060db22857acfa2599c6eab30466e46a3df60a9c936ac1"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-3d397754e31d52114b0d940c",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-b594a744ac74392b88e86cbc",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-2-1-audio",
   "sourceResourceId": "handout-2-1",
   "sourceParagraphIds": [
@@ -1134,12 +1134,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"对象\",\"v\":5},{\"w\":\"系统\",\"v\":4},{\"w\":\"传递函数\",\"v\":2},{\"w\":\"递函数\",\"v\":2},{\"w\":\"模块\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"极点\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"零点\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"复变量\",\"v\":1},{\"w\":\"控制输入\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"正式展开\",\"v\":1},{\"w\":\"被控对象\",\"v\":1}]",
-  "manifestHash": "3d397754e31d52114b0d940c8c8940111fb8d73d3198d5596245a11dfc319eb9"
+  "manifestHash": "b594a744ac74392b88e86cbc8440f670eaac86ad19040cfa4caa903f9963e91d"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-889efe3c09041c8a4955f456",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-de71df1fd8790c4170482d31",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-2-2-audio",
   "sourceResourceId": "handout-2-2",
   "sourceParagraphIds": [
@@ -1690,12 +1690,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"极点\",\"v\":2},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"wn\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"上升时间\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"g1\",\"v\":1},{\"w\":\"g2\",\"v\":1},{\"w\":\"g3\",\"v\":1},{\"w\":\"grid\",\"v\":1},{\"w\":\"list\",\"v\":1},{\"w\":\"load\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"pkg\",\"v\":1},{\"w\":\"step\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"users\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"legend\",\"v\":1},{\"w\":\"log\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"无阻尼自然频率\",\"v\":1},{\"w\":\"模型与极点\",\"v\":1},{\"w\":\"百分比\",\"v\":1},{\"w\":\"角频率\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"闭环控制\",\"v\":1}]",
-  "manifestHash": "889efe3c09041c8a4955f456f6b6a271a180829ad925d3910470de3f58709790"
+  "manifestHash": "de71df1fd8790c4170482d31b553e24af03435966eceedcdc3c818872ae268f2"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-62e8e5f90b01fb9a3c9265b8",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-c7646e898235198dd50a539b",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-2-3-audio",
   "sourceResourceId": "handout-2-3",
   "sourceParagraphIds": [
@@ -2210,12 +2210,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"对象\",\"v\":2},{\"w\":\"linewidth\",\"v\":1},{\"w\":\"sin\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"high\",\"v\":1},{\"w\":\"low\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"freqresp\",\"v\":1},{\"w\":\"plot\",\"v\":1},{\"w\":\"semilogx\",\"v\":1},{\"w\":\"squeeze\",\"v\":1},{\"w\":\"grid\",\"v\":1},{\"w\":\"title\",\"v\":1},{\"w\":\"subplot\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"mag\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"abs\",\"v\":1},{\"w\":\"angle\",\"v\":1},{\"w\":\"hold\",\"v\":1},{\"w\":\"legend\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"atan\",\"v\":1},{\"w\":\"g1\",\"v\":1},{\"w\":\"g2\",\"v\":1},{\"w\":\"gd\",\"v\":1},{\"w\":\"gi\",\"v\":1},{\"w\":\"gk\",\"v\":1},{\"w\":\"linspace\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"相位角\",\"v\":1},{\"w\":\"base\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"filtered\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"seven\",\"v\":1},{\"w\":\"three\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"极点\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"角频率\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"零点\",\"v\":1},{\"w\":\"load\",\"v\":1},{\"w\":\"logspace\",\"v\":1},{\"w\":\"pkg\",\"v\":1},{\"w\":\"s-\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"users\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"等价\",\"v\":1}]",
-  "manifestHash": "62e8e5f90b01fb9a3c9265b82a9fddb8f15fbf0660934a32af2bfff4a7caffcc"
+  "manifestHash": "c7646e898235198dd50a539bca75cc7a1bbaa475e864b75da7bd732ef58a3865"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-49aeefb09578feb7d79972b0",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-5932ec21efc07c3562ed660e",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-2-4-audio",
   "sourceResourceId": "handout-2-4",
   "sourceParagraphIds": [
@@ -2625,12 +2625,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"对象\",\"v\":5},{\"w\":\"nyquist\",\"v\":4},{\"w\":\"db\",\"v\":4},{\"w\":\"bode\",\"v\":4},{\"w\":\"极点\",\"v\":3},{\"w\":\"系统\",\"v\":3},{\"w\":\"增益\",\"v\":2},{\"w\":\"dec\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"零点\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"gm\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"fprintf\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"mag\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"target\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"dcgain\",\"v\":1},{\"w\":\"deg\",\"v\":1},{\"w\":\"fd-11-margin-entry\",\"v\":1},{\"w\":\"feedback\",\"v\":1},{\"w\":\"find\",\"v\":1},{\"w\":\"first\",\"v\":1},{\"w\":\"idx\",\"v\":1},{\"w\":\"load\",\"v\":1},{\"w\":\"log10\",\"v\":1},{\"w\":\"logspace\",\"v\":1},{\"w\":\"margin\",\"v\":1},{\"w\":\"pkg\",\"v\":1},{\"w\":\"squeeze\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"稳定判据\",\"v\":1},{\"w\":\"等价\",\"v\":1}]",
-  "manifestHash": "49aeefb09578feb7d79972b00dad05dc22b49b213fbbd95529372c7f8bd20639"
+  "manifestHash": "5932ec21efc07c3562ed660e3c2bef6e0e454d59bd2c35c5002238ee058a359c"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-1794f0ef377d226a594ec50f",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-43793625e780dbc8efd9a15c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-1-audio",
   "sourceResourceId": "handout-3-1",
   "sourceParagraphIds": [
@@ -2903,12 +2903,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"极点\",\"v\":5},{\"w\":\"系统\",\"v\":4},{\"w\":\"带宽\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"fig\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"bode-reduction\",\"v\":1},{\"w\":\"convolution-step\",\"v\":1},{\"w\":\"dominant-step\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"modal-superposition\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"poles-and-modes\",\"v\":1},{\"w\":\"stability-half-plane\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "1794f0ef377d226a594ec50f4e3dc868d48872ff3baaae07628ac00eb2fae338"
+  "manifestHash": "43793625e780dbc8efd9a15c6df13b8a7a3bf092d9a5c4b8505634bb7026c189"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-1a127e5fed9d9cc8145c2b6c",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-4a271c2c6ae8e8015c7e92fc",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-2-audio",
   "sourceResourceId": "handout-3-2",
   "sourceParagraphIds": [
@@ -3389,12 +3389,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"平面\",\"v\":4},{\"w\":\"极点\",\"v\":4},{\"w\":\"对象\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"roots\",\"v\":1},{\"w\":\"示例\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"senior\",\"v\":1},{\"w\":\"wrangler\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"稳定判据\",\"v\":1},{\"w\":\"adolf\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"clerk\",\"v\":1},{\"w\":\"de\",\"v\":1},{\"w\":\"edward\",\"v\":1},{\"w\":\"hopkins\",\"v\":1},{\"w\":\"hurwitz\",\"v\":1},{\"w\":\"isaac\",\"v\":1},{\"w\":\"james\",\"v\":1},{\"w\":\"john\",\"v\":1},{\"w\":\"maxwell\",\"v\":1},{\"w\":\"morgan\",\"v\":1},{\"w\":\"routh\",\"v\":1},{\"w\":\"todhunter\",\"v\":1},{\"w\":\"william\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"标记\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"递函数\",\"v\":1}]",
-  "manifestHash": "1a127e5fed9d9cc8145c2b6c824842015ac1e6019a7af49eab815d6969a51fb0"
+  "manifestHash": "4a271c2c6ae8e8015c7e92fc8f701832d76efc28d856719c0bab851b254ae4c8"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-8a52e5741e76cc2bd71b4c2e",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-77b0d914edf652b8857d3bb7",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-3-audio",
   "sourceResourceId": "handout-3-3",
   "sourceParagraphIds": [
@@ -3735,12 +3735,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"极点\",\"v\":5},{\"w\":\"根轨迹\",\"v\":4},{\"w\":\"零点\",\"v\":2},{\"w\":\"增益\",\"v\":2},{\"w\":\"特征方程\",\"v\":2},{\"w\":\"系统\",\"v\":2},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"dk\",\"v\":1},{\"w\":\"ds\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"evans\",\"v\":1},{\"w\":\"walter\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"特征根\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1}]",
-  "manifestHash": "8a52e5741e76cc2bd71b4c2ea961ca54266b204d2ea85d3b43bc2fbf47afbf89"
+  "manifestHash": "77b0d914edf652b8857d3bb7e9ca6d1fde7f31e96528594ca00c83189ecdac2e"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-556231e041424cf20643e57b",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-c5a6565ce79a8761d2493bad",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-4-audio",
   "sourceResourceId": "handout-3-4",
   "sourceParagraphIds": [
@@ -4236,12 +4236,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"极点\",\"v\":5},{\"w\":\"根轨迹\",\"v\":4},{\"w\":\"增益\",\"v\":3},{\"w\":\"主导极点\",\"v\":3},{\"w\":\"系统\",\"v\":2},{\"w\":\"对象\",\"v\":2},{\"w\":\"带宽\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"g0\",\"v\":1},{\"w\":\"list\",\"v\":1},{\"w\":\"conv\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"feedback\",\"v\":1},{\"w\":\"grid\",\"v\":1},{\"w\":\"load\",\"v\":1},{\"w\":\"peak\",\"v\":1},{\"w\":\"pkg\",\"v\":1},{\"w\":\"rlocus\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"bw\",\"v\":1},{\"w\":\"disp\",\"v\":1},{\"w\":\"kref\",\"v\":1},{\"w\":\"mag\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"step\",\"v\":1},{\"w\":\"title\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"fprintf\",\"v\":1},{\"w\":\"hold\",\"v\":1},{\"w\":\"idx\",\"v\":1},{\"w\":\"labels\",\"v\":1},{\"w\":\"legend\",\"v\":1},{\"w\":\"length\",\"v\":1},{\"w\":\"locus\",\"v\":1},{\"w\":\"poles\",\"v\":1},{\"w\":\"root\",\"v\":1},{\"w\":\"wcp\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"bodemag\",\"v\":1},{\"w\":\"coefficient\",\"v\":1},{\"w\":\"deg\",\"v\":1},{\"w\":\"den\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"find\",\"v\":1},{\"w\":\"ge\",\"v\":1},{\"w\":\"generalized\",\"v\":1},{\"w\":\"gm\",\"v\":1},{\"w\":\"heading\",\"v\":1},{\"w\":\"local\",\"v\":1},{\"w\":\"log10\",\"v\":1},{\"w\":\"logspace\",\"v\":1},{\"w\":\"margin\",\"v\":1},{\"w\":\"max\",\"v\":1},{\"w\":\"num2str\",\"v\":1},{\"w\":\"of\",\"v\":1},{\"w\":\"pd\",\"v\":1},{\"w\":\"pole\",\"v\":1},{\"w\":\"responses\",\"v\":1},{\"w\":\"roots\",\"v\":1},{\"w\":\"ship\",\"v\":1},{\"w\":\"wc\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"角频率\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "556231e041424cf20643e57b65e5fc27093d365358ea5ba8301c8717cffb19e4"
+  "manifestHash": "c5a6565ce79a8761d2493bad5ed47304c0cbfad34e84b37ae38d8575fc26b8e8"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-91cab8d6107597575357863b",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-3c98d5782cfb4d980e243758",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-5-audio",
   "sourceResourceId": "handout-3-5",
   "sourceParagraphIds": [
@@ -4555,12 +4555,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"零点\",\"v\":5},{\"w\":\"pd\",\"v\":2},{\"w\":\"对象\",\"v\":2},{\"w\":\"极点\",\"v\":2},{\"w\":\"平面\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"vs\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"dec\",\"v\":1},{\"w\":\"测量噪声\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"参考输入\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"理想情况下\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"误差信号\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1}]",
-  "manifestHash": "91cab8d6107597575357863b737dbd9b374058bcbeefb33cb42c273a4d0d2346"
+  "manifestHash": "3c98d5782cfb4d980e24375807d47fb4dc5f7da71dd0f47c3e3ad15c9f29d4cb"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-19270ff16cdc4f0a3d80aa3b",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-1aaf8200d15c7cc963d3de3b",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-6-audio",
   "sourceResourceId": "handout-3-6",
   "sourceParagraphIds": [
@@ -5032,12 +5032,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"pd\",\"v\":5},{\"w\":\"零点\",\"v\":5},{\"w\":\"极点\",\"v\":3},{\"w\":\"根轨迹\",\"v\":3},{\"w\":\"平面\",\"v\":2},{\"w\":\"系统\",\"v\":2},{\"w\":\"增益\",\"v\":2},{\"w\":\"对象\",\"v\":1},{\"w\":\"fig\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"示例\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"cols\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"cover\",\"v\":1},{\"w\":\"design-map\",\"v\":1},{\"w\":\"info\",\"v\":1},{\"w\":\"lead-design\",\"v\":1},{\"w\":\"pd-design\",\"v\":1},{\"w\":\"pd-frequency-design\",\"v\":1},{\"w\":\"pd-rate-structure\",\"v\":1},{\"w\":\"rate-feedback\",\"v\":1},{\"w\":\"rhp-boundary\",\"v\":1},{\"w\":\"开环传递函数\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"调节时间\",\"v\":1}]",
-  "manifestHash": "19270ff16cdc4f0a3d80aa3b207e5d978a3d47eeac0c2512c08e23b1b8fdbdbd"
+  "manifestHash": "1aaf8200d15c7cc963d3de3ba7d64d88b3b73e4917e3656abb03aed2ff3af550"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-ce8cf5319059b298ce907f2e",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-0705ff3b7d1237e1debf9199",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-7-audio",
   "sourceResourceId": "handout-3-7",
   "sourceParagraphIds": [
@@ -5439,12 +5439,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"增益\",\"v\":5},{\"w\":\"系统\",\"v\":3},{\"w\":\"极点\",\"v\":3},{\"w\":\"对象\",\"v\":2},{\"w\":\"截止频率\",\"v\":2},{\"w\":\"fig\",\"v\":2},{\"w\":\"传递函数\",\"v\":2},{\"w\":\"递函数\",\"v\":2},{\"w\":\"零点\",\"v\":2},{\"w\":\"根轨迹\",\"v\":2},{\"w\":\"center\",\"v\":1},{\"w\":\"ii\",\"v\":1},{\"w\":\"pd\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"开环传递函数\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"lag-time\",\"v\":1},{\"w\":\"lowfreq\",\"v\":1},{\"w\":\"pi-frequency\",\"v\":1},{\"w\":\"pi-pd\",\"v\":1},{\"w\":\"pi-time\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"channels\",\"v\":1},{\"w\":\"example2-structure\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"根轨迹与时域\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"闭环控制\",\"v\":1}]",
-  "manifestHash": "ce8cf5319059b298ce907f2e8401753ed1b9a0e608e5b8a4da29c435e9c8d585"
+  "manifestHash": "0705ff3b7d1237e1debf919982d8d35463f19b74a9077313fa92a1bb2ccab915"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-e9000e4b665f3d78cf5670bf",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-2cc2272ecb78aca6988ee9cf",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-8-audio",
   "sourceResourceId": "handout-3-8",
   "sourceParagraphIds": [
@@ -5814,12 +5814,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"增益\",\"v\":5},{\"w\":\"截止频率\",\"v\":3},{\"w\":\"极点\",\"v\":3},{\"w\":\"系统\",\"v\":3},{\"w\":\"零点\",\"v\":2},{\"w\":\"平面\",\"v\":2},{\"w\":\"rad\",\"v\":2},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1},{\"w\":\"gm\",\"v\":1},{\"w\":\"pd\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"开环传递函数\",\"v\":1}]",
-  "manifestHash": "e9000e4b665f3d78cf5670bf8662c35aa3e635bbaea9854d341536bcb69dd095"
+  "manifestHash": "2cc2272ecb78aca6988ee9cf587d2ea6c5b3edbfb51e87bcf819c690af5e2c86"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-10b89a1ff6dfc1b8e1cc1be8",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-a0fd86902109c6d4029d4d78",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-3-9-audio",
   "sourceResourceId": "handout-3-9",
   "sourceParagraphIds": [
@@ -6050,12 +6050,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"极点\",\"v\":5},{\"w\":\"增益\",\"v\":3},{\"w\":\"零点\",\"v\":3},{\"w\":\"根轨迹\",\"v\":2},{\"w\":\"系统\",\"v\":2},{\"w\":\"模块\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"上升时间\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"开环传递函数\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"递函数\",\"v\":1}]",
-  "manifestHash": "10b89a1ff6dfc1b8e1cc1be847de696785ea897150a1fcb57024a62c81045988"
+  "manifestHash": "a0fd86902109c6d4029d4d784cc68d3fb7504e1dc46a678834a415ce47bef685"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-9635cbcccfc117623246141f",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-a8506ec7fcc9c1d9c2c64a67",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-1-audio",
   "sourceResourceId": "handout-4-1",
   "sourceParagraphIds": [
@@ -6357,12 +6357,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"带宽\",\"v\":3},{\"w\":\"调节时间\",\"v\":3},{\"w\":\"对象\",\"v\":3},{\"w\":\"根轨迹\",\"v\":2},{\"w\":\"极点\",\"v\":2},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"超调量\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"上升时间\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"开环传递函数\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"fig-pos\",\"v\":1},{\"w\":\"iae\",\"v\":1},{\"w\":\"ise\",\"v\":1},{\"w\":\"itae\",\"v\":1},{\"w\":\"主导极点\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"阻尼比\",\"v\":1}]",
-  "manifestHash": "9635cbcccfc117623246141fc96d58eb51874822fcce0a45c59197ffa7fb6a56"
+  "manifestHash": "a8506ec7fcc9c1d9c2c64a6733a8a0bc8cb63fca1977049617a3cb70cc4fd34d"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-ab1c587e973bf8e10ef31b87",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-49ab6c12eff29120741eb04a",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-2-audio",
   "sourceResourceId": "handout-4-2",
   "sourceParagraphIds": [
@@ -6549,12 +6549,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"对象\",\"v\":5},{\"w\":\"截止频率\",\"v\":5},{\"w\":\"增益\",\"v\":4},{\"w\":\"控制器\",\"v\":3},{\"w\":\"pid\",\"v\":3},{\"w\":\"极点\",\"v\":2},{\"w\":\"pd\",\"v\":2},{\"w\":\"零点\",\"v\":2},{\"w\":\"系统\",\"v\":2},{\"w\":\"bode\",\"v\":2},{\"w\":\"ziegler-nichols\",\"v\":2},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"特征方程\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"imc\",\"v\":1},{\"w\":\"simc\",\"v\":1},{\"w\":\"imc-pi\",\"v\":1},{\"w\":\"imc-pid\",\"v\":1},{\"w\":\"relay\",\"v\":1},{\"w\":\"tyreus-luyben\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"被控对象\",\"v\":1}]",
-  "manifestHash": "ab1c587e973bf8e10ef31b874339dbbe659d7f5c200ac8781b6be5679f6b7ae7"
+  "manifestHash": "49ab6c12eff29120741eb04a1f11b14768477f6c0c33934dd197124babda507a"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-a4ee17afeac2b7ce28c0d18c",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-d4cd9b74f7ff2db93534a803",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-3-audio",
   "sourceResourceId": "handout-4-3",
   "sourceParagraphIds": [
@@ -6993,12 +6993,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"执行器\",\"v\":5},{\"w\":\"对象\",\"v\":2},{\"w\":\"控制器\",\"v\":2},{\"w\":\"bode\",\"v\":2},{\"w\":\"pid\",\"v\":1},{\"w\":\"of\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"controllers\",\"v\":1},{\"w\":\"ed\",\"v\":1},{\"w\":\"mpc\",\"v\":1},{\"w\":\"pp\",\"v\":1},{\"w\":\"控制输入\",\"v\":1},{\"w\":\"误差信号\",\"v\":1},{\"w\":\"america\",\"v\":1},{\"w\":\"asme\",\"v\":1},{\"w\":\"automatic\",\"v\":1},{\"w\":\"craft\",\"v\":1},{\"w\":\"engineering\",\"v\":1},{\"w\":\"fossen\",\"v\":1},{\"w\":\"gglund\",\"v\":1},{\"w\":\"hall\",\"v\":1},{\"w\":\"handbook\",\"v\":1},{\"w\":\"hirano\",\"v\":1},{\"w\":\"honda\",\"v\":1},{\"w\":\"hydrodynamics\",\"v\":1},{\"w\":\"instrument\",\"v\":1},{\"w\":\"international\",\"v\":1},{\"w\":\"john\",\"v\":1},{\"w\":\"marine\",\"v\":1},{\"w\":\"modern\",\"v\":1},{\"w\":\"motion\",\"v\":1},{\"w\":\"nd\",\"v\":1},{\"w\":\"nichols\",\"v\":1},{\"w\":\"nomoto\",\"v\":1},{\"w\":\"ogata\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"optimum\",\"v\":1},{\"w\":\"prentice\",\"v\":1},{\"w\":\"progress\",\"v\":1},{\"w\":\"qualities\",\"v\":1},{\"w\":\"settings\",\"v\":1},{\"w\":\"shipbuilding\",\"v\":1},{\"w\":\"ships\",\"v\":1},{\"w\":\"smith\",\"v\":1},{\"w\":\"society\",\"v\":1},{\"w\":\"sons\",\"v\":1},{\"w\":\"steering\",\"v\":1},{\"w\":\"str\",\"v\":1},{\"w\":\"taguchi\",\"v\":1},{\"w\":\"th\",\"v\":1},{\"w\":\"theory\",\"v\":1},{\"w\":\"transactions\",\"v\":1},{\"w\":\"tuning\",\"v\":1},{\"w\":\"wiley\",\"v\":1},{\"w\":\"windup\",\"v\":1},{\"w\":\"ziegler\",\"v\":1},{\"w\":\"共用\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "a4ee17afeac2b7ce28c0d18c2e524373c4d2d2e3c8f9c512b20c7e32a50a912c"
+  "manifestHash": "d4cd9b74f7ff2db93534a803372ffe09206e3a4a0f305241c2904811ee68f676"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-5be93425ad2eefa002d41c81",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-e9f32eee7a984a9e162ffafa",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-4-audio",
   "sourceResourceId": "handout-4-4",
   "sourceParagraphIds": [
@@ -7208,12 +7208,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"itae\",\"v\":5},{\"w\":\"调节时间\",\"v\":5},{\"w\":\"pareto\",\"v\":3},{\"w\":\"控制器\",\"v\":3},{\"w\":\"front\",\"v\":3},{\"w\":\"itse\",\"v\":2},{\"w\":\"对象\",\"v\":2},{\"w\":\"执行器\",\"v\":2},{\"w\":\"deg\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"rad\",\"v\":1},{\"w\":\"db\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"约定\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "5be93425ad2eefa002d41c81409e648ce077436a3707cffb3e6d79d17b837b88"
+  "manifestHash": "e9f32eee7a984a9e162ffafab8872263083aef5282f49a4e6d743de68799d3c5"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-bc1288abf3bbf977bbcb4fe0",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-0f44832388820add2bbd8002",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-5-audio",
   "sourceResourceId": "handout-4-5",
   "sourceParagraphIds": [
@@ -7708,12 +7708,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"metrics\",\"v\":5},{\"w\":\"plant\",\"v\":3},{\"w\":\"tout\",\"v\":3},{\"w\":\"itae\",\"v\":2},{\"w\":\"itse\",\"v\":2},{\"w\":\"调节时间\",\"v\":2},{\"w\":\"refs\",\"v\":2},{\"w\":\"fmincon\",\"v\":2},{\"w\":\"star\",\"v\":2},{\"w\":\"nonlcon\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"matlab\",\"v\":1},{\"w\":\"pid\",\"v\":1},{\"w\":\"weights\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"margin\",\"v\":1},{\"w\":\"settling\",\"v\":1},{\"w\":\"time\",\"v\":1},{\"w\":\"collect\",\"v\":1},{\"w\":\"deg\",\"v\":1},{\"w\":\"final\",\"v\":1},{\"w\":\"phase\",\"v\":1},{\"w\":\"value\",\"v\":1},{\"w\":\"abs\",\"v\":1},{\"w\":\"ceq\",\"v\":1},{\"w\":\"function\",\"v\":1},{\"w\":\"lb\",\"v\":1},{\"w\":\"objective\",\"v\":1},{\"w\":\"options\",\"v\":1},{\"w\":\"ub\",\"v\":1},{\"w\":\"cost\",\"v\":1},{\"w\":\"feedback\",\"v\":1},{\"w\":\"idx\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"overshoot\",\"v\":1},{\"w\":\"peak\",\"v\":1},{\"w\":\"trapz\",\"v\":1},{\"w\":\"weighted\",\"v\":1},{\"w\":\"algorithm\",\"v\":1},{\"w\":\"disp\",\"v\":1},{\"w\":\"display\",\"v\":1},{\"w\":\"energy\",\"v\":1},{\"w\":\"error\",\"v\":1},{\"w\":\"eu\",\"v\":1},{\"w\":\"fval\",\"v\":1},{\"w\":\"grid\",\"v\":1},{\"w\":\"if\",\"v\":1},{\"w\":\"iter\",\"v\":1},{\"w\":\"linewidth\",\"v\":1},{\"w\":\"load\",\"v\":1},{\"w\":\"max\",\"v\":1},{\"w\":\"optimoptions\",\"v\":1},{\"w\":\"pkg\",\"v\":1},{\"w\":\"plot\",\"v\":1},{\"w\":\"signal\",\"v\":1},{\"w\":\"sqp\",\"v\":1},{\"w\":\"step\",\"v\":1},{\"w\":\"struct\",\"v\":1},{\"w\":\"tf\",\"v\":1},{\"w\":\"title\",\"v\":1},{\"w\":\"ts\",\"v\":1},{\"w\":\"xlabel\",\"v\":1},{\"w\":\"ylabel\",\"v\":1},{\"w\":\"yline\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"截止频率\",\"v\":1},{\"w\":\"dcgain\",\"v\":1},{\"w\":\"e-12\",\"v\":1},{\"w\":\"else\",\"v\":1},{\"w\":\"elseif\",\"v\":1},{\"w\":\"find\",\"v\":1},{\"w\":\"hold\",\"v\":1},{\"w\":\"isempty\",\"v\":1},{\"w\":\"isfinite\",\"v\":1},{\"w\":\"last\",\"v\":1},{\"w\":\"length\",\"v\":1},{\"w\":\"octave\",\"v\":1},{\"w\":\"optim\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "bc1288abf3bbf977bbcb4fe08f613c451bb654beb45571e263919658be39692b"
+  "manifestHash": "0f44832388820add2bbd800229b28208ee567f775034569da44429953248c5c4"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-b73384503c4c467af87ec882",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-929cc6655c76f5f08c18b1d4",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-6-audio",
   "sourceResourceId": "handout-4-6",
   "sourceParagraphIds": [
@@ -7936,12 +7936,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"对象\",\"v\":5},{\"w\":\"控制器\",\"v\":4},{\"w\":\"执行器\",\"v\":2},{\"w\":\"模块\",\"v\":2},{\"w\":\"引入\",\"v\":1},{\"w\":\"ga\",\"v\":1},{\"w\":\"pso\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"示例\",\"v\":1},{\"w\":\"ff\",\"v\":1},{\"w\":\"filtered\",\"v\":1},{\"w\":\"lead\",\"v\":1},{\"w\":\"pid\",\"v\":1},{\"w\":\"rate\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"极点\",\"v\":1},{\"w\":\"algorithm\",\"v\":1},{\"w\":\"ceil\",\"v\":1},{\"w\":\"genetic\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1}]",
-  "manifestHash": "b73384503c4c467af87ec8822c03a85fab3c1050c9ff57054ca967f01b706d9e"
+  "manifestHash": "929cc6655c76f5f08c18b1d4e28a26920e075eacf14b8ac0cac32311b9c6fd12"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-76f9f91b663708bb28de4c60",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-9229a2ac027a0f9e3d36b980",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-4-7-audio",
   "sourceResourceId": "handout-4-7",
   "sourceParagraphIds": [
@@ -8175,12 +8175,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"控制器\",\"v\":5},{\"w\":\"增益\",\"v\":2},{\"w\":\"bode\",\"v\":1},{\"w\":\"tabular\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"极点\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"cccccccc\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"zig-zag\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"测量噪声\",\"v\":1},{\"w\":\"mmg\",\"v\":1},{\"w\":\"rmse\",\"v\":1},{\"w\":\"共用\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"振荡区\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"讲义\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "76f9f91b663708bb28de4c60cdf4c17eaf1442ba976ba5eead6f1b9b310f86ec"
+  "manifestHash": "9229a2ac027a0f9e3d36b980e97ef001b96f29008e4e27ee35e1bdae8a72fde1"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-4ef544045f9e28ac48b24f5c",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-4b643b6901a20d54bfd88399",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-1-audio",
   "sourceResourceId": "handout-5-1",
   "sourceParagraphIds": [
@@ -8399,12 +8399,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"系统\",\"v\":5},{\"w\":\"对象\",\"v\":4},{\"w\":\"执行器\",\"v\":4},{\"w\":\"控制器\",\"v\":2},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"bode\",\"v\":1},{\"w\":\"参考输入\",\"v\":1},{\"w\":\"实际输出\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"根轨迹\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"命名\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"描述函数\",\"v\":1},{\"w\":\"极点\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"零点\",\"v\":1}]",
-  "manifestHash": "4ef544045f9e28ac48b24f5cc112e5470a8166c56fd9f37d5660fba63c687e93"
+  "manifestHash": "4b643b6901a20d54bfd8839962abf591f1bce458cc540fc82abe75f80242389d"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-4f465ff3e4501fdd1ec1824f",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-564b1b2c49f1037a6a969710",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-2-audio",
   "sourceResourceId": "handout-5-2",
   "sourceParagraphIds": [
@@ -8659,12 +8659,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"描述函数\",\"v\":5},{\"w\":\"平面\",\"v\":3},{\"w\":\"系统\",\"v\":3},{\"w\":\"增益\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"复平面\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"nyquist\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"等价\",\"v\":1},{\"w\":\"der\",\"v\":1},{\"w\":\"pol\",\"v\":1},{\"w\":\"van\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1}]",
-  "manifestHash": "4f465ff3e4501fdd1ec1824fa1ada0ade17a710203fb165dfdbc3528e068ef87"
+  "manifestHash": "564b1b2c49f1037a6a969710d2d48aef9b4cb70d35fce26fc7bdcc3ad9edc98d"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-897da8d5bbae9100ce01da65",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-5ddee216c6bc1b59970f68aa",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-3-audio",
   "sourceResourceId": "handout-5-3",
   "sourceParagraphIds": [
@@ -8896,12 +8896,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"控制器\",\"v\":5},{\"w\":\"系统\",\"v\":5},{\"w\":\"执行器\",\"v\":3},{\"w\":\"mass\",\"v\":2},{\"w\":\"传感器\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"code\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"autonomous\",\"v\":1},{\"w\":\"maritime\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"平面\",\"v\":1},{\"w\":\"控制信号\",\"v\":1},{\"w\":\"误差信号\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"闭环控制\",\"v\":1},{\"w\":\"imo\",\"v\":1},{\"w\":\"international\",\"v\":1},{\"w\":\"organization\",\"v\":1},{\"w\":\"ship\",\"v\":1},{\"w\":\"shipping\",\"v\":1},{\"w\":\"surface\",\"v\":1},{\"w\":\"参考输入\",\"v\":1},{\"w\":\"实际输出\",\"v\":1},{\"w\":\"带宽\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"控制输入\",\"v\":1},{\"w\":\"描述函数\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1},{\"w\":\"被控对象\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"闭环传递函数\",\"v\":1}]",
-  "manifestHash": "897da8d5bbae9100ce01da6529f80594f5ee2c6c1833d29f7d5abbeaa0dde0c2"
+  "manifestHash": "5ddee216c6bc1b59970f68aade590253b59588c1f876e1111194e070e0f77efa"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-6ca5e27ef0b39185faf70e54",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-432c155afd8a566dcff15f11",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-4-audio",
   "sourceResourceId": "handout-5-4",
   "sourceParagraphIds": [
@@ -9398,12 +9398,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"mpc\",\"v\":5},{\"w\":\"对象\",\"v\":5},{\"w\":\"系统\",\"v\":2},{\"w\":\"控制器\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"执行器\",\"v\":1},{\"w\":\"传递函数\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"递函数\",\"v\":1},{\"w\":\"predictive\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"cambridge\",\"v\":1},{\"w\":\"data-driven\",\"v\":1},{\"w\":\"de\",\"v\":1},{\"w\":\"ed\",\"v\":1},{\"w\":\"en\",\"v\":1},{\"w\":\"model\",\"v\":1},{\"w\":\"nd\",\"v\":1},{\"w\":\"of\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"publications\",\"v\":1},{\"w\":\"science\",\"v\":1},{\"w\":\"systems\",\"v\":1},{\"w\":\"theory\",\"v\":1},{\"w\":\"a-note-on-persistency-of-excitat\",\"v\":1},{\"w\":\"a58289370fd012e997610b86065da\",\"v\":1},{\"w\":\"allg\",\"v\":1},{\"w\":\"article\",\"v\":1},{\"w\":\"automatic\",\"v\":1},{\"w\":\"be\",\"v\":1},{\"w\":\"berberich\",\"v\":1},{\"w\":\"books\",\"v\":1},{\"w\":\"bpublication\",\"v\":1},{\"w\":\"brunton\",\"v\":1},{\"w\":\"ch\",\"v\":1},{\"w\":\"chemengr\",\"v\":1},{\"w\":\"cols\",\"v\":1},{\"w\":\"computation\",\"v\":1},{\"w\":\"core\",\"v\":1},{\"w\":\"coulson\",\"v\":1},{\"w\":\"data-enabled\",\"v\":1},{\"w\":\"datadriven-science-and-engineeri\",\"v\":1},{\"w\":\"deepc\",\"v\":1},{\"w\":\"diehl\",\"v\":1},{\"w\":\"dynamical\",\"v\":1},{\"w\":\"ecc\",\"v\":1},{\"w\":\"edu\",\"v\":1},{\"w\":\"engineering\",\"v\":1},{\"w\":\"ethz\",\"v\":1},{\"w\":\"excitation\",\"v\":1},{\"w\":\"forschung\",\"v\":1},{\"w\":\"guarantees\",\"v\":1},{\"w\":\"handle\",\"v\":1},{\"w\":\"hler\",\"v\":1},{\"w\":\"iae\",\"v\":1},{\"w\":\"identification\",\"v\":1},{\"w\":\"ieee\",\"v\":1},{\"w\":\"in\",\"v\":1},{\"w\":\"ion\",\"v\":1},{\"w\":\"irt\",\"v\":1},{\"w\":\"jbraw\",\"v\":1},{\"w\":\"kutz\",\"v\":1},{\"w\":\"learning\",\"v\":1},{\"w\":\"letters\",\"v\":1},{\"w\":\"ljung\",\"v\":1},{\"w\":\"ller\",\"v\":1},{\"w\":\"lygeros\",\"v\":1},{\"w\":\"machine\",\"v\":1},{\"w\":\"markovsky\",\"v\":1},{\"w\":\"mayne\",\"v\":1},{\"w\":\"moor\",\"v\":1},{\"w\":\"mpc-book-2nd-edition-5th-printin\",\"v\":1},{\"w\":\"ng\",\"v\":1},{\"w\":\"note\",\"v\":1},{\"w\":\"org\",\"v\":1},{\"w\":\"persistency\",\"v\":1},{\"w\":\"pid\",\"v\":1},{\"w\":\"pii\",\"v\":1},{\"w\":\"press\",\"v\":1},{\"w\":\"publikation-detail\",\"v\":1},{\"w\":\"publikationen\",\"v\":1},{\"w\":\"rapisarda\",\"v\":1},{\"w\":\"rawlings\",\"v\":1},{\"w\":\"research-collection\",\"v\":1},{\"w\":\"researchportal\",\"v\":1},{\"w\":\"rfler\",\"v\":1},{\"w\":\"robustness\",\"v\":1},{\"w\":\"s000510980100214x\",\"v\":1},{\"w\":\"sciencedirect\",\"v\":1},{\"w\":\"shallows\",\"v\":1},{\"w\":\"sites\",\"v\":1},{\"w\":\"stability\",\"v\":1},{\"w\":\"system\",\"v\":1}]",
-  "manifestHash": "6ca5e27ef0b39185faf70e545a41f2accc3caebd7ec4f84d8af98943a60efe28"
+  "manifestHash": "432c155afd8a566dcff15f1148b7f926cb171f490c2eefacc9c3fc16ebbda824"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-42b0ac674f443e01fcef35b7",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-af6e58e2ad7f673bfd112501",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-5-audio",
   "sourceResourceId": "handout-5-5",
   "sourceParagraphIds": [
@@ -9906,12 +9906,12 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"pid\",\"v\":5},{\"w\":\"控制器\",\"v\":4},{\"w\":\"rl\",\"v\":3},{\"w\":\"执行器\",\"v\":2},{\"w\":\"对象\",\"v\":2},{\"w\":\"mpc\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"learning\",\"v\":1},{\"w\":\"传感器\",\"v\":1},{\"w\":\"of\",\"v\":1},{\"w\":\"reinforcement\",\"v\":1},{\"w\":\"robotics\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"rms\",\"v\":1},{\"w\":\"引入\",\"v\":1},{\"w\":\"调节时间\",\"v\":1},{\"w\":\"nomoto\",\"v\":1},{\"w\":\"org\",\"v\":1},{\"w\":\"annual\",\"v\":1},{\"w\":\"annualreviews\",\"v\":1},{\"w\":\"autonomous\",\"v\":1},{\"w\":\"in\",\"v\":1},{\"w\":\"journal\",\"v\":1},{\"w\":\"journals\",\"v\":1},{\"w\":\"mit\",\"v\":1},{\"w\":\"q-learning\",\"v\":1},{\"w\":\"review\",\"v\":1},{\"w\":\"safe\",\"v\":1},{\"w\":\"systems\",\"v\":1},{\"w\":\"增益\",\"v\":1},{\"w\":\"实部\",\"v\":1},{\"w\":\"an\",\"v\":1},{\"w\":\"annurev-control-042920-020211\",\"v\":1},{\"w\":\"annurev-control-053018-023825\",\"v\":1},{\"w\":\"article\",\"v\":1},{\"w\":\"avoidance\",\"v\":1},{\"w\":\"bagnell\",\"v\":1},{\"w\":\"barto\",\"v\":1},{\"w\":\"based\",\"v\":1},{\"w\":\"bf00992698\",\"v\":1},{\"w\":\"brunke\",\"v\":1},{\"w\":\"collision\",\"v\":1},{\"w\":\"colregs-compliant\",\"v\":1},{\"w\":\"continuous\",\"v\":1},{\"w\":\"dayan\",\"v\":1},{\"w\":\"ddpg\",\"v\":1},{\"w\":\"deep\",\"v\":1},{\"w\":\"doi\",\"v\":1},{\"w\":\"ed\",\"v\":1},{\"w\":\"edu\",\"v\":1},{\"w\":\"engineering\",\"v\":1},{\"w\":\"greeff\",\"v\":1},{\"w\":\"hall\",\"v\":1},{\"w\":\"international\",\"v\":1},{\"w\":\"introduction\",\"v\":1},{\"w\":\"kober\",\"v\":1},{\"w\":\"learning-based\",\"v\":1},{\"w\":\"li\",\"v\":1},{\"w\":\"link\",\"v\":1},{\"w\":\"machine\",\"v\":1},{\"w\":\"marine\",\"v\":1},{\"w\":\"mdpi\",\"v\":1},{\"w\":\"mitpress\",\"v\":1},{\"w\":\"nd\",\"v\":1},{\"w\":\"on\",\"v\":1},{\"w\":\"panerati\",\"v\":1},{\"w\":\"peters\",\"v\":1},{\"w\":\"ppo\",\"v\":1},{\"w\":\"press\",\"v\":1},{\"w\":\"recht\",\"v\":1},{\"w\":\"reinforcement-learning\",\"v\":1},{\"w\":\"research\",\"v\":1},{\"w\":\"sac\",\"v\":1},{\"w\":\"schoellig\",\"v\":1},{\"w\":\"science\",\"v\":1},{\"w\":\"springer\",\"v\":1},{\"w\":\"surface\",\"v\":1},{\"w\":\"survey\",\"v\":1},{\"w\":\"sutton\",\"v\":1},{\"w\":\"td3\",\"v\":1},{\"w\":\"to\",\"v\":1},{\"w\":\"tour\",\"v\":1},{\"w\":\"unmanned\",\"v\":1},{\"w\":\"vehicles\",\"v\":1},{\"w\":\"view\",\"v\":1},{\"w\":\"wang\",\"v\":1},{\"w\":\"watkins\",\"v\":1},{\"w\":\"yuan\",\"v\":1},{\"w\":\"zhang\",\"v\":1},{\"w\":\"zhou\",\"v\":1},{\"w\":\"控制系统\",\"v\":1},{\"w\":\"控制输入\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"测量噪声\",\"v\":1},{\"w\":\"自动控制原理\",\"v\":1}]",
-  "manifestHash": "42b0ac674f443e01fcef35b7f09c4498bbc535a836130ff0a1071722510df404"
+  "manifestHash": "af6e58e2ad7f673bfd112501e7ef025a9d532ec71bf4365a309d9bc67e460552"
  },
  {
   "contract": "handout-derived-hotword-manifest/v1",
-  "manifestId": "hw-a6aed243061c099d25315b2d",
-  "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "manifestId": "hw-3d619b15e397e83befb14867",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
   "resourceId": "media-5-6-audio",
   "sourceResourceId": "handout-5-6",
   "sourceParagraphIds": [
@@ -10435,6 +10435,6 @@
   ],
   "exclusions": [],
   "requestRepresentation": "[{\"w\":\"传感器\",\"v\":5},{\"w\":\"pid\",\"v\":5},{\"w\":\"e2\",\"v\":3},{\"w\":\"e3\",\"v\":2},{\"w\":\"e1\",\"v\":2},{\"w\":\"min\",\"v\":1},{\"w\":\"对象\",\"v\":1},{\"w\":\"gov\",\"v\":1},{\"w\":\"控制器\",\"v\":1},{\"w\":\"模块\",\"v\":1},{\"w\":\"系统\",\"v\":1},{\"w\":\"cdc\",\"v\":1},{\"w\":\"control\",\"v\":1},{\"w\":\"of\",\"v\":1},{\"w\":\"press\",\"v\":1},{\"w\":\"ai\",\"v\":1},{\"w\":\"an\",\"v\":1},{\"w\":\"centers\",\"v\":1},{\"w\":\"disease\",\"v\":1},{\"w\":\"ed\",\"v\":1},{\"w\":\"fda\",\"v\":1},{\"w\":\"handling\",\"v\":1},{\"w\":\"hcp\",\"v\":1},{\"w\":\"introduction\",\"v\":1},{\"w\":\"learning\",\"v\":1},{\"w\":\"mit\",\"v\":1},{\"w\":\"nist\",\"v\":1},{\"w\":\"prevention\",\"v\":1},{\"w\":\"storage\",\"v\":1},{\"w\":\"vaccines\",\"v\":1},{\"w\":\"who\",\"v\":1},{\"w\":\"标记\",\"v\":1},{\"w\":\"administration\",\"v\":1},{\"w\":\"agement-framework-ai-rmf-10\",\"v\":1},{\"w\":\"artificial\",\"v\":1},{\"w\":\"artificial-intelligence-risk-man\",\"v\":1},{\"w\":\"barto\",\"v\":1},{\"w\":\"bengio\",\"v\":1},{\"w\":\"chain\",\"v\":1},{\"w\":\"controlled\",\"v\":1},{\"w\":\"controlled-temperature-chain-\",\"v\":1},{\"w\":\"courville\",\"v\":1},{\"w\":\"ctc\",\"v\":1},{\"w\":\"dation\",\"v\":1},{\"w\":\"deep\",\"v\":1},{\"w\":\"drug\",\"v\":1},{\"w\":\"engineering\",\"v\":1},{\"w\":\"engineers\",\"v\":1},{\"w\":\"essential-programme-on-immunizat\",\"v\":1},{\"w\":\"feedback\",\"v\":1},{\"w\":\"final\",\"v\":1},{\"w\":\"food\",\"v\":1},{\"w\":\"framework\",\"v\":1},{\"w\":\"general\",\"v\":1},{\"w\":\"general-principles-software-vali\",\"v\":1},{\"w\":\"goodfellow\",\"v\":1},{\"w\":\"guidance\",\"v\":1},{\"w\":\"health\",\"v\":1},{\"w\":\"icals\",\"v\":1},{\"w\":\"immunization-vaccines-and-biolog\",\"v\":1},{\"w\":\"immunobiologics\",\"v\":1},{\"w\":\"imz-best-practices\",\"v\":1},{\"w\":\"index\",\"v\":1},{\"w\":\"industry\",\"v\":1},{\"w\":\"institute\",\"v\":1},{\"w\":\"intelligence\",\"v\":1},{\"w\":\"ion\",\"v\":1},{\"w\":\"management\",\"v\":1},{\"w\":\"modern\",\"v\":1},{\"w\":\"murray\",\"v\":1},{\"w\":\"national\",\"v\":1},{\"w\":\"nd\",\"v\":1},{\"w\":\"ogata\",\"v\":1},{\"w\":\"organization\",\"v\":1},{\"w\":\"pearson\",\"v\":1},{\"w\":\"princeton\",\"v\":1},{\"w\":\"principles\",\"v\":1},{\"w\":\"publications\",\"v\":1},{\"w\":\"regulatory-information\",\"v\":1},{\"w\":\"reinforcement\",\"v\":1},{\"w\":\"risk\",\"v\":1},{\"w\":\"rmf\",\"v\":1},{\"w\":\"scientists\",\"v\":1},{\"w\":\"search-fda-guidance-documents\",\"v\":1},{\"w\":\"software\",\"v\":1},{\"w\":\"staff\",\"v\":1},{\"w\":\"standards\",\"v\":1},{\"w\":\"storage-handling\",\"v\":1},{\"w\":\"storage-handling-immunobiologics\",\"v\":1},{\"w\":\"str\",\"v\":1},{\"w\":\"supply-chain\",\"v\":1},{\"w\":\"sutton\",\"v\":1},{\"w\":\"systems\",\"v\":1},{\"w\":\"teams\",\"v\":1},{\"w\":\"technology\",\"v\":1},{\"w\":\"temperature\",\"v\":1}]",
-  "manifestHash": "a6aed243061c099d25315b2d5893b638a573a727ebccbf1295b65ea01cbabef3"
+  "manifestHash": "3d619b15e397e83befb148678b438308aea1948d6be0b297ba53ea9490ec7fad"
  }
 ]

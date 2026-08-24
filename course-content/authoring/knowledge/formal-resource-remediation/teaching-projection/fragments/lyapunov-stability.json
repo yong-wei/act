@@ -1,0 +1,944 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "domain": "lyapunov-stability",
+ "memberCount": 141,
+ "edgeCount": 0,
+ "bindingCount": 12,
+ "fragmentHash": "e657d4b654e13a884a724d9541b00fe159f9b39980e0bb4f971237901d8ad46a",
+ "members": [
+  {
+   "canonicalId": "ctkg:condition:0413d990ad64216cb81b6c81",
+   "excluded": true,
+   "label": "The system is continuously differentiable at the equilibrium point.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:04902ac05e581b306b33def7",
+   "excluded": true,
+   "label": "A Lyapunov function V(x) exists for the system (i.e., V(0)=0, V(x)>0 for x≠0, V is continuous with continuous derivatives, and V̇(x) ≤ 0 along trajectories).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:0c9f36e7ac3a991f81c8543f",
+   "excluded": true,
+   "label": "The system is described by an ODE.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:0fb1add4b13501cb9e88f154",
+   "excluded": true,
+   "label": "A is a constant matrix.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:0fbe7a6f786c19ed27015cb6",
+   "excluded": true,
+   "label": "A为非奇异矩阵",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:2069a4bbd6576c966e62f2f7",
+   "excluded": true,
+   "label": "The system is described by an ODE.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:23c91fa21e83938a05c0aa84",
+   "excluded": true,
+   "label": "For a linear system dx/dt = A x, there exists a symmetric positive definite matrix Q such that the Lyapunov equation A^T P + P A = -Q has a unique symmetric positive definite solution P.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:32609ca2b6631401e8e3944c",
+   "excluded": true,
+   "label": "g(x) satisfies lim_{||x||→0} ||g(x)||/||x|| = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:35cb5822b388b7520dcebf3d",
+   "excluded": true,
+   "label": "A Lyapunov function V(x) exists for the system and additionally V̇(x) < 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:44d67a20d3cdb505de9d455f",
+   "excluded": true,
+   "label": "At least one eigenvalue of A is in the right half-plane (RHP).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:59b725664bb10da9686be518",
+   "excluded": true,
+   "label": "线性定常系统ẋ = Ax, x(0)=x₀, t≥0；对于任意给定的一个正定对称矩阵Q，有唯一的正定对称矩阵P使AᵀP + PA = -Q成立",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:775dd9a0c354deacc6c76ef7",
+   "excluded": true,
+   "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x), V(0)=0，并且对于状态空间X中的一切非零点x满足：1) V(x)为正定；2) V̇(x)为负定；3) 当||x||→∞时V(x)→∞",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:81fb20afc3c72d73fa2595c0",
+   "excluded": true,
+   "label": "The system is linearized around an equilibrium point, yielding the Jacobian matrix A.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:85c59d96180fb2dfb8939945",
+   "excluded": true,
+   "label": "f(0)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:8db8e46a1cdbe08f5bb1980c",
+   "excluded": true,
+   "label": "线性定常系统ẋ = Ax, x(0)=x₀, t≥0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:93ba25670b4879ee1135ba08",
+   "excluded": true,
+   "label": "A is a stability matrix (all eigenvalues in LHP) and Q is any positive definite matrix.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:964d7fe35d437c5d7812f1f3",
+   "excluded": true,
+   "label": "A is a constant matrix.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:9cf9b8fb59f711fa90388bc2",
+   "excluded": true,
+   "label": "g(x) satisfies lim_{||x||→0} ||g(x)||/||x|| = 0.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:9f364a9a01d6135de28f85c7",
+   "excluded": true,
+   "label": "All eigenvalues of A (the linearized system matrix) are in the left half-plane (LHP).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b057aa1c4d09fb6b73dc4202",
+   "excluded": true,
+   "label": "f(0)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:b0f347943fcdbf4ab42c9bd4",
+   "excluded": true,
+   "label": "系统为线性定常",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:c2790bef0553b0f4dd2b6cda",
+   "excluded": true,
+   "label": "f(0)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:c63492124c3bf26ddd55f8a9",
+   "excluded": true,
+   "label": "A is a stability matrix.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d330e58cf06c60c6c7f4dff5",
+   "excluded": true,
+   "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x)（其中V(0)=0），和围绕原点的域Ω，使得对于一切x∈Ω和一切t≥t₀满足：1) V(x)为正定；2) V̇(x)为正定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:d457bb24d6d33c85bfac4998",
+   "excluded": true,
+   "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x), V(0)=0，并且对状态空间X中的一切非零点x满足：1) V(x)为正定；2) V̇(x)为负半定；3) 对任意x∈X, V̇(x(t; x₀,0)) ≠ 0；4) 当||x||→∞时V(x)→∞",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:condition:e7c0d34ff00eeb09acf404a5",
+   "excluded": true,
+   "label": "For a linear system dx/dt = A x, if A is Hurwitz (all eigenvalues have negative real parts), then for any symmetric positive definite Q, the Lyapunov equation A^T P + P A = -Q has a unique symmetric positive definite solution P.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+   "excluded": true,
+   "label": "正定性（标量函数）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+   "excluded": true,
+   "label": "李雅普诺夫稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+   "excluded": true,
+   "label": "负半定性（标量函数）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1e4a6b47555798ad4ccae81d",
+   "excluded": true,
+   "label": "正定矩阵",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+   "excluded": true,
+   "label": "正半定性（标量函数）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
+   "excluded": true,
+   "label": "平衡状态",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3f2b9364d6712170bfd6fb24",
+   "excluded": true,
+   "label": "稳定性矩阵",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+   "excluded": true,
+   "label": "能量函数（李雅普诺夫）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4440d7aea649c55d0359385c",
+   "excluded": true,
+   "label": "特征值",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:471808457837d110fa167faf",
+   "excluded": true,
+   "label": "负定性（标量函数）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4b98e3fbe8d7e5267277361f",
+   "excluded": true,
+   "label": "李雅普诺夫第一法（间接法）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+   "excluded": true,
+   "label": "李雅普诺夫函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:57f94170125768449cdfa1ba",
+   "excluded": true,
+   "label": "受扰运动",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:599dd42ca76813165e301c5b",
+   "excluded": true,
+   "label": "正定矩阵",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+   "excluded": true,
+   "label": "李雅普诺夫函数候选",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+   "excluded": true,
+   "label": "一致稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7b0f2a56598df8c8638bc63f",
+   "excluded": true,
+   "label": "吸引域",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "excluded": true,
+   "label": "特征方程",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+   "excluded": true,
+   "label": "李雅普诺夫第二法（直接法）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8a31109fa1ad3612b30e7a9a",
+   "excluded": true,
+   "label": "欧几里得范数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8daad3ce03210f036d591c02",
+   "excluded": true,
+   "label": "大范围稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:951014d55276cafabac48a25",
+   "excluded": true,
+   "label": "李雅普诺夫方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9a8a7e75e47dc5117ebb7adc",
+   "excluded": true,
+   "label": "李雅普诺夫函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9f0b378f72741e96820b891b",
+   "excluded": true,
+   "label": "李雅普诺夫第一法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+   "excluded": true,
+   "label": "李雅普诺夫直接法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+   "excluded": true,
+   "label": "李雅普诺夫函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a3186afbaab04b331226cdc9",
+   "excluded": true,
+   "label": "不稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b00a275496bb3493dc1436b9",
+   "excluded": true,
+   "label": "李雅普诺夫第二方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b35807c25dd0d822dda119c8",
+   "excluded": true,
+   "label": "不稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4aa88340e051572c027eb23",
+   "excluded": true,
+   "label": "李雅普诺夫间接法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53",
+   "excluded": true,
+   "label": "李雅普诺夫稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+   "excluded": true,
+   "label": "正定函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:bcb984982bdc0a405f967351",
+   "excluded": true,
+   "label": "李雅普诺夫间接法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+   "excluded": true,
+   "label": "渐近稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+   "excluded": true,
+   "label": "一致渐近稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+   "excluded": true,
+   "label": "李雅普诺夫意义下的稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:dbcf19cd7faa70a7b71ba715",
+   "excluded": true,
+   "label": "李雅普诺夫直接法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:dd4c15f1669f9b04911032e5",
+   "excluded": true,
+   "label": "不定性（标量函数）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
+   "excluded": true,
+   "label": "临界稳定",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd",
+   "excluded": true,
+   "label": "渐近稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+   "excluded": true,
+   "label": "平衡状态",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f2d758b656ba6d55337462e6",
+   "excluded": true,
+   "label": "指数稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+   "excluded": true,
+   "label": "大范围（全局）渐近稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fe96c44d0bc1b877a573201e",
+   "excluded": true,
+   "label": "李雅普诺夫函数候选",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ff2d00a3489f08f635fff5b4",
+   "excluded": true,
+   "label": "吸引域",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:0059627bd7923b648a35c66e",
+   "excluded": true,
+   "label": "线性定常系统状态方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:061f05e1da58fe16c42006d2",
+   "excluded": true,
+   "label": "Characteristic Equation from Determinant",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:0d8e6acaad93a69c7277e444",
+   "excluded": true,
+   "label": "李雅普诺夫意义下稳定性的轨迹约束不等式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:13a3e72894c81576e4110f24",
+   "excluded": true,
+   "label": "Characteristic Equation from Determinant (λI - A)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:21833bab62af4f5d10e52c4f",
+   "excluded": true,
+   "label": "Lyapunov equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:297f33c80823ca555aaaa059",
+   "excluded": true,
+   "label": "二次型李雅普诺夫函数及其导数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:2a8d599ce2b230268af31693",
+   "excluded": true,
+   "label": "Lyapunov function strict derivative condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:2d0594bfa8b24f92cb49856e",
+   "excluded": true,
+   "label": "Quadratic Lyapunov Function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:30caef0eac5efa1a5eb73eb1",
+   "excluded": true,
+   "label": "受扰运动与平衡状态之差表达式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:33d40e575c11ccb0cf9fe338",
+   "excluded": true,
+   "label": "约当规范型变换关系",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3744b08787067a274630d436",
+   "excluded": true,
+   "label": "Quadratic Lyapunov function derivative with nonlinear term",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3926bd18006fe07d71199286",
+   "excluded": true,
+   "label": "定常系统状态方程（第二法）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3a0c62770ccccc1065cb6832",
+   "excluded": true,
+   "label": "系统状态方程（展开式）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:3a4a907df98fa7b5625bdcd8",
+   "excluded": true,
+   "label": "李雅普诺夫意义下稳定性的初始条件不等式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:470d82ac22d299de9355ff1d",
+   "excluded": true,
+   "label": "约当规范型矩阵指数元素形式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:53328801022159ab48c99cc1",
+   "excluded": true,
+   "label": "Characteristic Equation from State Matrix",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7bd891182dc62424d28a2882",
+   "excluded": true,
+   "label": "Eigenvalue Equation (λI - A)x = 0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:7c86ba208ff8408ee5896e2b",
+   "excluded": true,
+   "label": "Energy-like Lyapunov function for position feedback system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:8d7a2bd9636830ebcf434a44",
+   "excluded": true,
+   "label": "渐近稳定性极限条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:945a3f4f34a4fdee4678c833",
+   "excluded": true,
+   "label": "二次型李雅普诺夫函数的导数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:9afd8c91f5be4dba0292c5e0",
+   "excluded": true,
+   "label": "系统状态方程（一般形式）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:9b698724528dc316adc0638e",
+   "excluded": true,
+   "label": "状态转移矩阵表达式（线性定常系统）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:a0647d01e1b347aea406358b",
+   "excluded": true,
+   "label": "二次型李雅普诺夫函数导数（用Q表示）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:a68331419f6b4332436525b0",
+   "excluded": true,
+   "label": "State Equation without Input",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:aa81fd18795e0b58fb59315b",
+   "excluded": true,
+   "label": "平衡状态方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:b51174ce90b5ad7f25b132bb",
+   "excluded": true,
+   "label": "Quadratic Lyapunov function candidate",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c6a376e1dd76637f7e41fb6b",
+   "excluded": true,
+   "label": "Exponential Solution Form",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c6c179af450bbb6e6d309d25",
+   "excluded": true,
+   "label": "Lyapunov function derivative condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:c90cba1f5338b7b640c27b38",
+   "excluded": true,
+   "label": "Derivative of quadratic Lyapunov function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:cecc9af40ec75fba560cebc4",
+   "excluded": true,
+   "label": "李雅普诺夫方程（连续系统）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:d006c4547aea7eb68d9a81b7",
+   "excluded": true,
+   "label": "Derivative of quadratic Lyapunov function with Lyapunov equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:d7e5c1e2c6705a655df29d0a",
+   "excluded": true,
+   "label": "Eigenvalue Equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:dd819f9fb0f37d57d8675219",
+   "excluded": true,
+   "label": "Derivative of energy-like Lyapunov function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:eaa4c189029c2356c5717699",
+   "excluded": true,
+   "label": "线性定常系统平衡状态方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:ef639bf35386bdf2d3f8665d",
+   "excluded": true,
+   "label": "Continuous Lyapunov Equation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:formula:f2f6f4b150f6ed28e1cb3acf",
+   "excluded": true,
+   "label": "Lyapunov equation for linear system",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e5f181eebc17f7eb2d647a5",
+   "excluded": true,
+   "label": "定理9-5（线性定常系统渐近稳定李雅普诺夫方程判据）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+   "excluded": true,
+   "label": "定理9-2（定常系统大范围渐近稳定判别定理1）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:21c9a381ce1ca948a433cb1d",
+   "excluded": true,
+   "label": "Hurwitz Stability via Lyapunov",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:233fffbe3f9073a1a8d1acf2",
+   "excluded": true,
+   "label": "Lyapunov's direct method asymptotic stability theorem",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+   "excluded": true,
+   "label": "Lyapunov Equation for Linear Systems",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:79cd9b3c1a9da579fa049889",
+   "excluded": true,
+   "label": "Lyapunov Indirect Method Stability Theorem",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7c2862c1e68ede0f556ed607",
+   "excluded": true,
+   "label": "定理9-3（定常系统大范围渐近稳定判别定理2）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:80fd9cbb987af7039f3468d0",
+   "excluded": true,
+   "label": "Lyapunov's direct method stability theorem",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8a793953be37bd1f58e51cf6",
+   "excluded": true,
+   "label": "Lyapunov equation positive definiteness result",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a6042a3bfc3f85b2a9e121ae",
+   "excluded": true,
+   "label": "Lyapunov's indirect method stability condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+   "excluded": true,
+   "label": "定理9-4（不稳定判别定理）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d361c0d4677388d948bbe5b6",
+   "excluded": true,
+   "label": "定理9-1（线性定常系统特征值判据）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f7f321e54cb1465922959091",
+   "excluded": true,
+   "label": "Lyapunov's indirect method instability condition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:42faa6d08b26b664c081ec25",
+   "excluded": true,
+   "label": "二次型李雅普诺夫函数候选",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:bdf84a64ab19daef95d6c305",
+   "excluded": true,
+   "label": "李雅普诺夫矩阵代数方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:cd417f39e4c9da05e3638546",
+   "excluded": true,
+   "label": "二次型李雅普诺夫函数（线性系统）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:1387459aed77efa87ed44279",
+   "excluded": true,
+   "label": "The origin is unstable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:139cc8229ceb7bc703bfce9b",
+   "excluded": true,
+   "label": "系统平衡状态为不稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:2a35e3a8d4ec76a1a71a504d",
+   "excluded": true,
+   "label": "系统的原点平衡状态xₑ=0为渐近稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:3badc1f49e14f02bc0b98692",
+   "excluded": true,
+   "label": "The equilibrium point x = 0 is globally asymptotically stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:6adb7453ee0e4d94d9f9edd7",
+   "excluded": true,
+   "label": "There is a region of stability about the origin.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:6e41ad36a72d8679504ddafa",
+   "excluded": true,
+   "label": "The motion is stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:c255b4c873ab774dd41e4f21",
+   "excluded": true,
+   "label": "If all eigenvalues of A have negative real parts, then the equilibrium point is locally asymptotically stable. If any eigenvalue has a positive real part, the equilibrium point is unstable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:d2e280e0f16bc706fe39a647",
+   "excluded": true,
+   "label": "系统的原点平衡状态是大范围渐近稳定的",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:d80c3a968d3513039de80c34",
+   "excluded": true,
+   "label": "The system is globally asymptotically stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:e27311b1bbd5b64b647d7fdc",
+   "excluded": true,
+   "label": "The solution P of A^T P + P A = -Q is positive definite.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:eca0246ceb9874f6cb034ab0",
+   "excluded": true,
+   "label": "系统的原点平衡状态是大范围渐近稳定的",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:f80186ee6c03d998fdc49342",
+   "excluded": true,
+   "label": "1) 系统的每一平衡状态是在李雅普诺夫意义下稳定的充分必要条件是，A的所有特征值均具有非正（负或零）实部，且具有零实部的特征值为A的最小多项式的单根。2) 系统的唯一平衡状态xₑ=0是渐近稳定的充分必要条件是，A的所有特征值均具有负实部。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:statement-argument:fed220917fe13b8a5f1e457a",
+   "excluded": true,
+   "label": "The motion is asymptotically stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:2006fb59e060c23067a2a5ef",
+   "excluded": true,
+   "label": "用于李雅普诺夫分析的线性近似系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:b53fee2f466d10d12d8fca14",
+   "excluded": true,
+   "label": "定常非线性系统（状态空间模型）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:c1abae76a4bcff675aa0e60d",
+   "excluded": true,
+   "label": "线性定常系统（状态空间模型）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:e02f42ef966a239ad29096fe",
+   "excluded": true,
+   "label": "Linear State Variable System",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:systemmodel:e0c4239133cfdd003dff075b",
+   "excluded": true,
+   "label": "用于李雅普诺夫分析的时不变常微分方程组",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": [
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-2",
+   "anchorId": "1-2-seg-45",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-5",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-9",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-12",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-20",
+   "canonicalId": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-31",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-28",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-10",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-20",
+   "canonicalId": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-20",
+   "canonicalId": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-33",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-34",
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  }
+ ]
+}
