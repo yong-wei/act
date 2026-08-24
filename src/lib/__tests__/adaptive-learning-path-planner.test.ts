@@ -53,6 +53,18 @@ describe('adaptive path recommendation provenance', () => {
       payloadVersion: 'adaptive-learner-state.v1',
       generatedAt: '2026-08-25T00:00:00.000Z',
       authority: 'server-owned',
+      evidence: {
+        evidenceWindow: {
+          firstStartedAt: '2026-08-01T00:00:00.000Z',
+          lastStartedAt: '2026-08-24T00:00:00.000Z',
+          daysCovered: 23,
+        },
+      },
+      knowledgeMastery: {
+        tags: {
+          'kn-bode': { freshness: 'partial' },
+        },
+      },
       resourcePreference: { preferredModalities: ['simulation', 'video'] },
     });
 
@@ -60,10 +72,16 @@ describe('adaptive path recommendation provenance', () => {
       payloadVersion: 'adaptive-learner-state.v1',
       generatedAt: '2026-08-25T00:00:00.000Z',
       authority: 'server-owned',
+      evidenceWindow: {
+        firstStartedAt: '2026-08-01T00:00:00.000Z',
+        lastStartedAt: '2026-08-24T00:00:00.000Z',
+        daysCovered: 23,
+      },
+      freshness: 'partial',
       preferredModalities: ['simulation', 'video'],
     });
     const persisted = serializeLearningPathPlan(plan);
-    expect(persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ')).toContain('��Ƶ');
+    expect(persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ')).toContain('视频');
   });
 
   it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {

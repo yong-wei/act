@@ -56,6 +56,7 @@ import {
 } from './source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
 import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
+import type { StudentEvidenceWindow } from './data-governance/student-evidence-feature-cache';
 import { resolveAdaptivePathDestinationContract } from './adaptive-path-destination-contract';
 import {
   resolveItemTypeTerminalValidation,
@@ -329,6 +330,7 @@ export interface AdaptiveLearningPathLearnerState {
       posteriorMastery?: number;
       confidence?: number;
       evidenceCount?: number;
+      freshness?: 'current' | 'partial' | 'stale' | 'missing';
       eventReferences?: StudentSafeEvidenceEventReference[];
     }>;
   };
@@ -347,6 +349,7 @@ export interface AdaptiveLearningPathLearnerState {
     preferredModalities?: string[];
   };
   evidence?: {
+    evidenceWindow?: StudentEvidenceWindow;
     confidence?: {
       level?: 'none' | 'low' | 'medium' | 'high';
       score?: number;
@@ -373,6 +376,8 @@ export interface AdaptiveLearningPathLearnerStateSnapshot {
   generatedAt: string | null;
   authority: 'server-owned' | 'unknown';
   sourceCoverage: Record<string, string>;
+  evidenceWindow: StudentEvidenceWindow | null;
+  freshness: 'current' | 'partial' | 'stale' | 'missing';
   confidence: {
     level: 'none' | 'low' | 'medium' | 'high';
     score: number;
@@ -388,11 +393,29 @@ export function buildAdaptiveLearningPathLearnerStateSnapshot(
 ): AdaptiveLearningPathLearnerStateSnapshot | null {
   if (!learnerState) return null;
   const confidence = learnerState.evidence?.confidence;
+  const freshnessValues = [
+    ...Object.values(learnerState.knowledgeMastery?.tags ?? {}).map((tag) => tag.freshness),
+    ...Object.values(learnerState.goalSlices ?? {}).flatMap((slice) =>
+      (slice?.capabilityTargets ?? []).map((target) => target.observedEvidence.freshness),
+    ),
+  ]
+    .filter((value): value is NonNullable<typeof value> => Boolean(value));
+  const freshness = freshnessValues.includes('stale')
+    ? 'stale'
+    : freshnessValues.includes('partial')
+      ? 'partial'
+      : freshnessValues.includes('current')
+        ? 'current'
+        : 'missing';
   return {
     payloadVersion: learnerState.payloadVersion ?? null,
     generatedAt: learnerState.generatedAt ?? null,
     authority: learnerState.authority === 'server-owned' ? 'server-owned' : 'unknown',
     sourceCoverage: { ...(learnerState.evidence?.sourceCoverage ?? {}) },
+    evidenceWindow: learnerState.evidence?.evidenceWindow
+      ? { ...learnerState.evidence.evidenceWindow }
+      : null,
+    freshness,
     confidence: {
       level: confidence?.level ?? 'none',
       score: confidence?.score ?? 0,
@@ -851,6 +874,7 @@ export interface AdaptiveLearningPathCapabilityEvidence {
     confidence: number;
     directEvidenceCount: number;
     supportingEvidenceCount: number;
+    freshness?: 'current' | 'partial' | 'stale' | 'missing';
     portraitDimensionIds?: PortraitV2DimensionId[];
     eventReferences?: StudentSafeEvidenceEventReference[];
     source: 'adaptive-learner-state';
@@ -5422,7 +5446,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
   ]);
   const personalizationNotes = input.learnerStateSnapshot?.preferredModalities.length
-    ? [`�������ʹ�õ�ѧϰ��ʽ��¼�����Ȱ���${input.learnerStateSnapshot.preferredModalities.map(resourceTypeLabel).join('��')}���͵���Դ��`]
+    ? [`根据你的学习方式偏好，优先安排${input.learnerStateSnapshot.preferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
     : [];
   return {
     summary: confidence === 'low'
@@ -5451,16 +5475,16 @@ function recommendationEntryConfidence(
 
 function resourceTypeLabel(resourceType: string): string {
   const labels: Record<string, string> = {
-    video: '��Ƶ',
-    handout: '����',
-    knowledge_card: '֪ʶ��Ƭ',
-    simulation: '����',
-    adaptive_quiz: '��Ӧ��ϰ',
-    quiz: '��ϰ��',
-    audio: '��Ƶ',
-    textbook_section: '�̲��Ķ�',
+    video: '视频',
+    handout: '讲义',
+    knowledge_card: '知识卡片',
+    simulation: '仿真',
+    adaptive_quiz: '自适应练习',
+    quiz: '练习题',
+    audio: '音频',
+    textbook_section: '教材阅读',
   };
-  return labels[resourceType] ?? '��һ��';
+  return labels[resourceType] ?? '学习';
 }
 
 function nodeMatchesRecommendationTarget(
