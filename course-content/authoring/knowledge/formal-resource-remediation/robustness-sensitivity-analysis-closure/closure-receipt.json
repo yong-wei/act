@@ -1,6 +1,6 @@
 {
- "contract": "remediation-rsa-closure-receipt/v1",
- "sealedAt": "2026-08-24",
+ "contract": "remediation-domain-closure-receipt/v1",
+ "sealedAt": "2026-08-25",
  "domain": "robustness-sensitivity-analysis",
  "packId": "rp-a53ca33bd0e6e23d4a772789",
  "packRows": 627,
@@ -12,8 +12,14 @@
   "COURSE_ROOT": 0,
   "REJECTED": 0
  },
- "allocationHash": "$NEW",
- "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+ "memberClasses": {
+  "C-out-of-scope": 9,
+  "A": 186,
+  "C-handout-gap": 14
+ },
+ "droppedInvalidIds": 0,
+ "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+ "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles + confirmed codex suggestions)",
  "closureComplete": true,
  "outcomes": [
   {
@@ -116,6 +122,39 @@
    }
   },
   {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:domainconcept:06e510e5b8555b4f541cdfc6",
    "family": "containment",
    "finalDisposition": {
@@ -215,6 +254,36 @@
    }
   },
   {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:domainconcept:0fda1802f8f2f950a188f4a1",
    "family": "containment",
    "finalDisposition": {
@@ -241,6 +310,36 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L11"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
     ]
    }
   },
@@ -671,6 +770,66 @@
    }
   },
   {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
    "family": "containment",
    "finalDisposition": {
@@ -730,6 +889,36 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
     ]
    }
   },
@@ -1271,6 +1460,36 @@
    }
   },
   {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
    "family": "containment",
    "finalDisposition": {
@@ -1639,6 +1858,66 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L60"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
     ]
    }
   },
@@ -2716,6 +2995,36 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L97"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
     ]
    }
   },
@@ -4406,6 +4715,36 @@
    }
   },
   {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:knowledgestatement:28073cae1e93887ae5c020d6",
    "family": "containment",
    "finalDisposition": {
@@ -4685,6 +5024,36 @@
    }
   },
   {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:knowledgestatement:4bb5ca53c13a90f2476294e4",
    "family": "containment",
    "finalDisposition": {
@@ -4775,6 +5144,36 @@
    }
   },
   {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
    "canonicalId": "ctkg:knowledgestatement:535da39bced2f934e6691ee4",
    "family": "containment",
    "finalDisposition": {
@@ -4801,6 +5200,36 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L170"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
     ]
    }
   },
@@ -4891,6 +5320,36 @@
     "kind": "NO_RELATION",
     "evidenceRefs": [
      "src:rsa-members.txt#L174"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
     ]
    }
   },
@@ -5995,459 +6454,6 @@
     "evidenceRefs": [
      "src:rsa-members.txt#L211",
      "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L13"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "NO_RELATION",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "PUBLISHED_EDGE",
-    "evidenceRefs": [
-     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
-   "family": "containment",
-   "finalDisposition": {
-    "kind": "NO_RELATION",
-    "evidenceRefs": [
-     "src:2-2#按输入补偿的误差公式变体"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
-   "family": "prerequisite",
-   "finalDisposition": {
-    "kind": "NO_RELATION",
-    "evidenceRefs": [
-     "src:2-2#按输入补偿的误差公式变体"
-    ]
-   }
-  },
-  {
-   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
-   "family": "association",
-   "finalDisposition": {
-    "kind": "NO_RELATION",
-    "evidenceRefs": [
-     "src:2-2#按输入补偿的误差公式变体"
     ]
    }
   }
