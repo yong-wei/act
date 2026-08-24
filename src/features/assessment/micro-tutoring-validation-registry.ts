@@ -139,7 +139,7 @@ export function microTutoringValidationRelationSourceRef(input: {
   misconceptionTag: string;
 }): string {
   const digest = sha256Hex(`${input.knowledgeNodeId}\0${input.misconceptionTag}`);
-  return `micro-tutoring-option-attributions.v2#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
+  return `micro-tutoring-option-attributions.v3#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
 }
 
 export function microTutoringValidationItemRevision(input: {

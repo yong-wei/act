@@ -27,12 +27,9 @@ const SOURCE_PATHS = [
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/assessment-item-semantic-review-snapshots.jsonl`,
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-assessment-baseline-v2.json`,
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-option-attributions-v2.json`,
+  `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-validation-purpose-reviews-v1.jsonl`,
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/micro-tutoring-goal-node-catalog.json`,
 ] as const;
-const REVIEWED_AT = '2026-08-21T00:00:00.000Z';
-const REVIEW_BATCH_ID = 'micro-tutoring-validation-registry.v1';
-const REVIEWER_ID = 'assessment-content-reviewer:issue-1395';
-const REVIEWER_ROLE = 'assessment-content-reviewer';
 
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort();
@@ -68,25 +65,21 @@ async function readJsonl<T>(fileName: string): Promise<T[]> {
   return raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => JSON.parse(line) as T);
 }
 
-function purposeDecision(knowledgeNodeId: string): MicroTutoringValidationPurposeDecision {
-  return {
-    kind: 'micro-tutoring-validation',
-    reviewerId: REVIEWER_ID,
-    reviewerRole: REVIEWER_ROLE,
-    reviewedAt: REVIEWED_AT,
-    reviewBatchId: REVIEW_BATCH_ID,
-    independenceRationale:
-      '该题与同节点其余已审核练习题的 sourceId 和 contentHash 均不同，是同一关键概念下的独立变式，不是来源题的重命名或非语义复制。',
-    purposeRationale:
-      `逐题确认该练习变式可用于规范节点 ${knowledgeNodeId} 上已审核错因的微辅导验证，不由 allowedStages 或 remediation/checkpoint 标签自动授权。`,
-  };
-}
-
 async function main() {
   const [catalogItems, reviewDecisions] = await Promise.all([
     readJsonl<AdaptiveAssessmentCatalogItem>('adaptive-assessment-item-catalog-items.jsonl'),
     readJsonl<AssessmentItemSemanticReviewDecision>('assessment-item-semantic-review-snapshots.jsonl'),
   ]);
+  const purposeReviews = new Map(
+    (await readJsonl<{
+      catalogItemId: string;
+      sourceId: string;
+      contentHash: string;
+      knowledgeNodeId: string;
+      purposeDecision: MicroTutoringValidationPurposeDecision;
+    }>('micro-tutoring-validation-purpose-reviews-v1.jsonl'))
+      .map((row) => [row.catalogItemId, row] as const),
+  );
   const catalogById = new Map(catalogItems.map((item) => [item.catalogItemId, item]));
   const reviewById = new Map(reviewDecisions.map((decision) => [decision.catalogItemId, decision]));
   const tagsByNode = new Map<string, Array<{ misconceptionTag: string; evidenceSummary: string }>>();
@@ -144,7 +137,16 @@ async function main() {
         misconceptionTag: tag.misconceptionTag,
         rationale: `使用独立已审核题 ${validationBaseline.sourceId} 作为验证，覆盖选项审核确认的错因：${tag.evidenceSummary}`,
       }));
-    const purpose = purposeDecision(goalNode.knowledgeNodeId);
+    const purposeReview = purposeReviews.get(validationBaseline.catalogItemId);
+    if (
+      !purposeReview ||
+      purposeReview.sourceId !== validationBaseline.sourceId ||
+      purposeReview.contentHash !== validationBaseline.contentHash ||
+      purposeReview.knowledgeNodeId !== goalNode.knowledgeNodeId
+    ) {
+      throw new Error(`Missing or mismatched validation-purpose review for ${validationBaseline.catalogItemId}`);
+    }
+    const purpose = purposeReview.purposeDecision;
     const snapshotVersion = validationBaseline.versionRefs.adaptiveAssessmentSnapshotVersion;
     if (!snapshotVersion) {
       throw new Error(`Missing snapshot version for ${baseline.catalogItemId}`);

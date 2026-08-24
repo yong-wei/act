@@ -34,6 +34,7 @@ const GOVERNANCE_CAPTURE_PATHS = [
   `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-purpose-reviews-v1.jsonl`,
   'src/features/assessment/micro-tutoring-coverage-audit.ts',
   'src/features/assessment/micro-tutoring-production-qualification.ts',
   'scripts/data-governance/qualify-micro-tutoring.ts',
