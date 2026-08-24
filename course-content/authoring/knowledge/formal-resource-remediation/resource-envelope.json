@@ -4,8 +4,8 @@
  "sealedAt": "2026-08-24T19:30:00.000Z",
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
- "resourceCount": 897,
- "atomCount": 11056,
+ "resourceCount": 929,
+ "atomCount": 11511,
  "bindingCount": 1175,
  "subtypes": [
   {
@@ -17,6 +17,11 @@
    "subtype": "card",
    "resources": 838,
    "atoms": 5662
+  },
+  {
+   "subtype": "exercise",
+   "resources": 32,
+   "atoms": 455
   },
   {
    "subtype": "handout",
@@ -51,6 +56,31 @@
    "sha256": "8fd9aed5143bda2b088ccb8de3f5715a00899c36ba5ccdc21aa21d8e141bc2f4"
   },
   {
+   "role": "exercise-answer-digests",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-answer-digests.json",
+   "sha256": "f4229bdddb1e8c842646ad392e7eac9c84ca7ddc7c710daa9f6b15c09469bac7"
+  },
+  {
+   "role": "exercise-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-atoms.json",
+   "sha256": "0577501b7750e2e3e0f50369c64bb89b9b07d89809e251bd24f73d189bda4036"
+  },
+  {
+   "role": "exercise-exclusions",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-exclusions.json",
+   "sha256": "7b9fdd9cfa609cbf4f005da58f8f95cf209a4d8de7efe4c86a23198a4339db2b"
+  },
+  {
+   "role": "exercise-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-processing-records.json",
+   "sha256": "92fd1e9018a2a806af82ed60699328a3385ae757383abce6dfbbbf32f809c998"
+  },
+  {
+   "role": "exercise-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-run-summary.json",
+   "sha256": "59d389061618bb8607f0dc1eadcd52903372b2d347f941d9947e2766a2e76deb"
+  },
+  {
    "role": "hotword-manifests",
    "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/hotword-manifests.json",
    "sha256": "a7b31ae3e828f2938b978e8985979c509cb904060de72defb42b865cca30f106"
@@ -82,11 +112,12 @@
   }
  ],
  "limitations": [
-  "exercise and simulation subtypes are not yet processed (task family 6 pending)",
+  "exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)",
+  "simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)",
   "intro-video production-source import is not yet processed (task family 3 pending)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
   "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
   "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)"
  ],
- "envelopeHash": "ae620b93ffaee2504360316293d50d58f42525486ff1eee73b799ab53d229add"
+ "envelopeHash": "f5f7af696a76f5310a4f33047cf3302391078bb705931f931d489e231fa5df0d"
 }

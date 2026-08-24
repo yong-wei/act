@@ -1,0 +1,9 @@
+{
+ "contract": "remediation-exercise-run/v1",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "manifestCount": 32,
+ "cardTotal": 528,
+ "atomCount": 455,
+ "excludedCardCount": 73,
+ "runHash": "5a66f12cba912f8c0e2f3ebe5bedea0806d5c2e5dfd6821cc1c680f65f0fc243"
+}

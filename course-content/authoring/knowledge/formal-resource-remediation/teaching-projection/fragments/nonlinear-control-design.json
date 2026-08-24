@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
  "domain": "nonlinear-control-design",
  "memberCount": 104,
  "edgeCount": 0,
  "bindingCount": 0,
- "fragmentHash": "652bf9b31392aa9a824e2b90edf1fe128cba2fbc89303c1814685c5f4f01be03",
+ "fragmentHash": "e84ea2fbd2d8e5a075d014efaf8d4fa277b13feda3cf61bc89828c3299c5b723",
  "members": [
   {
    "canonicalId": "ctkg:m1s-object-01b4067454d6530986b6189f",

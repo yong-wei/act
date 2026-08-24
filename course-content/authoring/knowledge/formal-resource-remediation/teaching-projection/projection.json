@@ -4,7 +4,7 @@
  "sealedAt": "2026-08-24T19:30:00.000Z",
  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
- "envelopeHash": "ae620b93ffaee2504360316293d50d58f42525486ff1eee73b799ab53d229add",
+ "envelopeHash": "f5f7af696a76f5310a4f33047cf3302391078bb705931f931d489e231fa5df0d",
  "totalClosureReceiptSha256": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258",
  "totalConservationCheckSha256": "7e66801dc553119a455d9168fde3ef070a01c87c3f6bb0bdd88035d3f8f78295",
  "membership": {
@@ -110,12 +110,13 @@
   "count": 5132
  },
  "limitations": [
-  "exercise and simulation subtypes are not yet processed (task family 6 pending)",
+  "exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)",
+  "simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)",
   "intro-video production-source import is not yet processed (task family 3 pending)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
   "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
   "audio bindings cover 355 of 1170 spoken segments (term-overlap model, modality independent; 741 binding rows because a segment may bind up to three nodes)",
   "2221 members across six domains are excluded by course-owner D1 ruling and carry NO_RELATION dispositions only"
  ],
- "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373"
+ "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25"
 }

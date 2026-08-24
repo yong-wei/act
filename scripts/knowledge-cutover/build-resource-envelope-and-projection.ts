@@ -64,7 +64,8 @@ const COVERED_DOMAINS = [
 const ALL_DOMAINS: readonly string[] = [...COVERED_DOMAINS, ...EXCLUDED_DOMAINS];
 const SEALED_AT = '2026-08-24T19:30:00.000Z';
 const ENVELOPE_LIMITATIONS = [
-  'exercise and simulation subtypes are not yet processed (task family 6 pending)',
+  'exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)',
+  'simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)',
   'intro-video production-source import is not yet processed (task family 3 pending)',
   'handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass',
   'course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound',
@@ -180,7 +181,13 @@ function main(): void {
   if (textRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
     throw new Error('text records are not bound to the current allocation; run process-text first');
   }
-  const processingRecords = [...textRecords, ...asrRecords];
+  const exerciseDir = `${REMEDIATION_ROOT}/resource-layer/exercises`;
+  const exerciseRecords = readJson<ResourceProcessingRecord[]>(`${exerciseDir}/exercise-processing-records.json`);
+  const exerciseAtomsCount = readJson<{ readonly atomCount: number }>(`${exerciseDir}/exercise-run-summary.json`).atomCount;
+  if (exerciseRecords.some((record) => record.allocationHash !== allocation.allocationHash)) {
+    throw new Error('exercise records are not bound to the current allocation; run process-exercises first');
+  }
+  const processingRecords = [...textRecords, ...asrRecords, ...exerciseRecords];
 
   // Build the modality-independent binding rows.
   const authorityMap = readJson<Record<string, string>>(`${ASR_BATCH}/course-to-authority-map.json`);
@@ -233,13 +240,18 @@ function main(): void {
     { role: 'course-to-authority-map', path: `${ASR_BATCH}/course-to-authority-map.json` },
     { role: 'audio-segmentation-summary', path: `${ASR_BATCH}/audio-segmentation-summary.json` },
     { role: 'excluded-domains-decisions', path: `${REMEDIATION_ROOT}/excluded-domains-decisions.jsonl` },
+    { role: 'exercise-atoms', path: `${exerciseDir}/exercise-atoms.json` },
+    { role: 'exercise-processing-records', path: `${exerciseDir}/exercise-processing-records.json` },
+    { role: 'exercise-answer-digests', path: `${exerciseDir}/exercise-answer-digests.json` },
+    { role: 'exercise-exclusions', path: `${exerciseDir}/exercise-exclusions.json` },
+    { role: 'exercise-run-summary', path: `${exerciseDir}/exercise-run-summary.json` },
   ];
   const envelope = sealResourceEnvelope({
     sealedAt: SEALED_AT,
     allocationHash: allocation.allocationHash,
     scopeHash: scope.scopeHash,
     processingRecords,
-    atomCount: textAtoms.length,
+    atomCount: textAtoms.length + exerciseAtomsCount,
     bindingCount: bindings.length,
     artifacts: artifactRoles.map((artifact) => ({ ...artifact, sha256: sha256File(artifact.path) })),
     limitations: ENVELOPE_LIMITATIONS,

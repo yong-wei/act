@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
  "domain": "lyapunov-stability",
  "memberCount": 141,
  "edgeCount": 0,
  "bindingCount": 12,
- "fragmentHash": "e657d4b654e13a884a724d9541b00fe159f9b39980e0bb4f971237901d8ad46a",
+ "fragmentHash": "ed2870f9fe106636b8140a4c29f2c2daac2a9fbbf7093de00f8b661c13b3fad3",
  "members": [
   {
    "canonicalId": "ctkg:condition:0413d990ad64216cb81b6c81",

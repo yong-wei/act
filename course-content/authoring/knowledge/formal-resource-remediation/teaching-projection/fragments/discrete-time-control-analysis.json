@@ -1,11 +1,11 @@
 {
  "contract": "remediation-teaching-projection-domain-fragment/v1",
- "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
  "domain": "discrete-time-control-analysis",
  "memberCount": 619,
  "edgeCount": 0,
  "bindingCount": 15,
- "fragmentHash": "4e23a60e581a5fce7d549de34be51a27140d16bdb11318813dd8e488ffd3cb11",
+ "fragmentHash": "ecc2375afa227b65d01047bce970c0124fb5a4592071486242338d9157d06704",
  "members": [
   {
    "canonicalId": "ctkg:v3e-object-01178a3425287ed79a6d9fcc",

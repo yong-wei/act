@@ -1,7 +1,7 @@
 {
  "contract": "remediation-teaching-projection-consumer/v1",
  "consumer": "prerequisite-publication",
- "projectionHash": "d48273f181535ab92db1186916ecfab91d8d3d7c44022274767555fd8869d373",
+ "projectionHash": "6cc9b31c4373cda090880bf46c16ab89eaf9932b253b7fc0c216a9913644cb25",
  "edgeCount": 141,
  "edges": [
   {
@@ -1134,7 +1134,8 @@
   }
  ],
  "limitations": [
-  "exercise and simulation subtypes are not yet processed (task family 6 pending)",
+  "exercise atoms cover 455 of 528 activity cards under the current allocation; 73 open-ended cards without reference answers carry explicit per-card exclusions; exercise semantic Canonical mapping is pending (atoms have no canonicalKey yet)",
+  "simulation and interactive-resource registry launchers are not yet processed (task family 6.4-6.5 pending)",
   "intro-video production-source import is not yet processed (task family 3 pending)",
   "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
   "course-to-authority-map resolves 31 of 220 course nodes by exact name; unresolved card keys stay unbound",
