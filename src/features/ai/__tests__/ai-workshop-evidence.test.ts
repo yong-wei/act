@@ -48,6 +48,13 @@ describe('AI Workshop evidence projection', () => {
       authority: 'server-owned',
       evidence: {
         count: 2,
+        readState: 'ready',
+        sourceCoverage: {
+          learningActivity: 'available',
+          competencySnapshot: 'missing',
+          portraitSnapshot: 'missing',
+          profileSummary: 'missing',
+        },
         confidence: { level: 'medium', score: 0.7 },
       },
       portrait: { state: 'available' },
@@ -93,6 +100,30 @@ describe('AI Workshop evidence projection', () => {
       path: { activeCount: 0, currentNodeId: null },
     });
     expect(projection.limitations.length).toBeGreaterThan(0);
+  });
+
+  it('keeps missing evidence cache separate from an existing portrait', () => {
+    const projection = projectAiWorkshopEvidence(state({
+      evidence: {
+        ...state().evidence,
+        readState: 'missing',
+        sourceCoverage: {},
+        confidence: { level: 'none', score: 0, evidenceCount: 0, sourceCompleteness: 0 },
+      },
+    }));
+
+    expect(projection.status).toBe('available');
+    expect(projection.evidence).toMatchObject({
+      readState: 'missing',
+      count: 0,
+      sourceCoverage: {
+        learningActivity: 'missing',
+        competencySnapshot: 'missing',
+        portraitSnapshot: 'missing',
+        profileSummary: 'missing',
+      },
+    });
+    expect(projection.limitations).toContain('当前学习证据缓存尚未建立，证据指标暂不能形成个人结论。');
   });
 
   it('preserves partial and stale limitations without treating them as complete', () => {

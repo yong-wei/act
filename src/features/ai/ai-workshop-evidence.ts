@@ -1,6 +1,22 @@
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { StudentEvidenceCoverageState } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type AiWorkshopEvidenceStatus = 'available' | 'empty' | 'unavailable';
+export type AiWorkshopEvidenceReadState = 'ready' | 'stale' | 'missing' | 'unavailable';
+
+export const AI_WORKSHOP_EVIDENCE_SOURCE_KEYS = [
+  'learningActivity',
+  'competencySnapshot',
+  'portraitSnapshot',
+  'profileSummary',
+] as const;
+
+export type AiWorkshopEvidenceSourceKey = typeof AI_WORKSHOP_EVIDENCE_SOURCE_KEYS[number];
+
+type AiWorkshopEvidenceSourceCoverage = Record<
+  AiWorkshopEvidenceSourceKey,
+  StudentEvidenceCoverageState
+>;
 
 export interface AiWorkshopEvidenceProjection {
   authority: 'server-owned';
@@ -8,6 +24,8 @@ export interface AiWorkshopEvidenceProjection {
   status: AiWorkshopEvidenceStatus;
   evidence: {
     count: number;
+    readState: AiWorkshopEvidenceReadState;
+    sourceCoverage: AiWorkshopEvidenceSourceCoverage;
     confidence: {
       level: 'none' | 'low' | 'medium' | 'high';
       score: number;
@@ -35,6 +53,8 @@ export function createUnavailableAiWorkshopEvidence(
     status: 'unavailable',
     evidence: {
       count: 0,
+      readState: 'unavailable',
+      sourceCoverage: emptySourceCoverage('missing'),
       confidence: { level: 'none', score: 0, sourceCompleteness: 0 },
     },
     portrait: { state: 'unavailable', availability: 'service-unavailable' },
@@ -69,6 +89,8 @@ export function projectAiWorkshopEvidence(
     status,
     evidence: {
       count: evidenceCount,
+      readState: state.evidence.readState,
+      sourceCoverage: projectSourceCoverage(state.evidence.sourceCoverage),
       confidence: {
         level: state.evidence.confidence.level,
         score: state.evidence.confidence.score,
@@ -103,6 +125,9 @@ function buildLimitations(
   if (state.evidence.readState === 'stale' || state.evidence.statusMarkers.includes('stale')) {
     limitations.push('学习证据需要更新，当前个性化结果可能不完整。');
   }
+  if (state.evidence.readState === 'missing') {
+    limitations.push('当前学习证据缓存尚未建立，证据指标暂不能形成个人结论。');
+  }
   if (state.evidence.statusMarkers.includes('partial')) {
     limitations.push('当前学习证据覆盖不完整，部分内容暂不能形成个人结论。');
   }
@@ -114,4 +139,21 @@ function buildLimitations(
   }
 
   return limitations;
+}
+
+function projectSourceCoverage(
+  sourceCoverage: Record<string, StudentEvidenceCoverageState>,
+): AiWorkshopEvidenceSourceCoverage {
+  return {
+    learningActivity: sourceCoverage.LearningFact ?? sourceCoverage.assessment ?? 'missing',
+    competencySnapshot: sourceCoverage.StudentCompetencySnapshot ?? sourceCoverage.competencySnapshot ?? 'missing',
+    portraitSnapshot: sourceCoverage.StudentPortraitV2Snapshot ?? sourceCoverage.portraitSnapshot ?? 'missing',
+    profileSummary: sourceCoverage.StudentProfileSummary ?? sourceCoverage.profileSummary ?? 'missing',
+  };
+}
+
+function emptySourceCoverage(state: StudentEvidenceCoverageState): AiWorkshopEvidenceSourceCoverage {
+  return Object.fromEntries(
+    AI_WORKSHOP_EVIDENCE_SOURCE_KEYS.map((key) => [key, state]),
+  ) as AiWorkshopEvidenceSourceCoverage;
 }

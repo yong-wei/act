@@ -37,7 +37,7 @@ export function JournalCarousel({ journals, evidence }: JournalCarouselProps) {
     return (
       <div className="border-t border-border bg-card p-4 text-sm text-muted-foreground" data-ai-workshop-empty="journals">
         {evidence.status === 'unavailable' ? '学习日志暂时不可用。' : '暂无已验证的学习日志记录。'}
-        <Link className="mt-3 inline-flex font-medium text-foreground underline" href="/ai/copilot" data-ai-workshop-action="journals">
+        <Link className="mt-3 inline-flex font-medium text-foreground underline" href="/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create" data-ai-workshop-action="journals">
           记录学习反思
         </Link>
       </div>

@@ -23,7 +23,8 @@ for (const viewport of [
     await expect(page.locator('[data-ai-workshop-action="achievements"]')).toHaveAttribute('href', '/interactive-learning');
     await expect(page.locator('[data-ai-workshop-action="tasks"]')).toHaveAttribute('href', '/interactive-learning');
     await expect(page.locator('[data-ai-workshop-action="experiments"]')).toHaveAttribute('href', '/arena');
-    await expect(page.locator('[data-ai-workshop-action="journals"]')).toHaveAttribute('href', '/ai/copilot');
+    await expect(page.locator('[data-ai-workshop-action="journals"]')).toHaveAttribute('href', '/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create');
+    await expect(page.locator('[data-ai-workshop-source-coverage]')).toContainText('来源覆盖');
     await page.locator('nextjs-portal').evaluateAll((portals) => {
       portals.forEach((portal) => {
         (portal as HTMLElement).style.display = 'none';

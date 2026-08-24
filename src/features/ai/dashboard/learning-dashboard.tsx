@@ -5,10 +5,11 @@ import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
 function formatWorkshopMetric(
   status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
   value: string,
 ): string {
   if (status === 'unavailable') return '不可用';
-  if (status === 'empty') return '暂无';
+  if (status === 'empty' || readState === 'missing') return '暂无';
   return value;
 }
 
@@ -42,11 +43,20 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <EvidenceMetric metricKey="evidence-count" icon={Database} label="已验证证据" value={formatWorkshopMetric(evidence.status, `${evidence.evidence.count}`)} />
-          <EvidenceMetric metricKey="confidence" icon={ShieldCheck} label="置信度" value={evidence.status === 'unavailable' ? '不可用' : confidenceLabel(evidence.evidence.confidence.level)} />
-          <EvidenceMetric metricKey="source-completeness" icon={Target} label="来源完整度" value={formatWorkshopMetric(evidence.status, `${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`)} />
-          <EvidenceMetric metricKey="path-count" icon={Target} label="学习路径" value={formatWorkshopMetric(evidence.status, `${evidence.path.activeCount} 条`)} />
+          <EvidenceMetric metricKey="evidence-count" icon={Database} label="已验证证据" value={formatWorkshopMetric(evidence.status, evidence.evidence.readState, `${evidence.evidence.count}`)} />
+          <EvidenceMetric metricKey="confidence" icon={ShieldCheck} label="置信度" value={formatConfidenceMetric(evidence.status, evidence.evidence.readState, evidence.evidence.confidence.level)} />
+          <EvidenceMetric metricKey="source-completeness" icon={Target} label="来源完整度" value={formatWorkshopMetric(evidence.status, evidence.evidence.readState, `${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`)} />
+          <EvidenceMetric metricKey="path-count" icon={Target} label="学习路径" value={formatWorkshopMetric(evidence.status, 'ready', `${evidence.path.activeCount} 条`)} />
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground" data-ai-workshop-source-coverage>
+        <span className="font-medium text-foreground">来源覆盖</span>
+        {Object.entries(evidence.evidence.sourceCoverage).map(([source, coverage]) => (
+          <span key={source} data-ai-workshop-source={source}>
+            {sourceLabel(source)}：{coverageLabel(evidence.status, evidence.evidence.readState, coverage)}
+          </span>
+        ))}
       </div>
 
       {evidence.limitations.length > 0 ? (
@@ -59,6 +69,36 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
       ) : null}
     </div>
   );
+}
+
+function formatConfidenceMetric(
+  status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
+  level: AiWorkshopEvidenceProjection['evidence']['confidence']['level'],
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty' || readState === 'missing') return '暂无';
+  return confidenceLabel(level);
+}
+
+function sourceLabel(source: string): string {
+  const labels: Record<string, string> = {
+    learningActivity: '学习活动',
+    competencySnapshot: '能力快照',
+    portraitSnapshot: '学习画像',
+    profileSummary: '学习档案',
+  };
+  return labels[source] ?? '其他来源';
+}
+
+function coverageLabel(
+  status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
+  coverage: 'available' | 'partial' | 'missing',
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty' || readState === 'missing' || coverage === 'missing') return '暂无';
+  return coverage === 'partial' ? '部分覆盖' : '已覆盖';
 }
 
 function EvidenceMetric({
