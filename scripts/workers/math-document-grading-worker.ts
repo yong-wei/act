@@ -5,6 +5,7 @@ import { Redis } from 'ioredis';
 import { createSubmissionObjectStore } from '../../src/lib/assignments/submission-object-store';
 import { createMathpixClient } from '../../src/lib/data-governance/math-document-conversion';
 import { processQuestionGradingBatch } from '../../src/lib/data-governance/math-document-grading-batch';
+import { refreshAssignmentAiGradingOperation } from '../../src/lib/data-governance/assignment-grading-orchestration';
 import {
   GRADING_JOB_LEASE_MS,
   processDocumentConversionJob,
@@ -73,7 +74,9 @@ export async function processMathDocumentGradingJob(job: Job<MathDocumentGrading
     return result;
   }
   if (job.data.kind === 'batch' || job.data.kind === 'retry') {
+    await refreshAssignmentAiGradingOperation({ db, batchId: job.data.batchId });
     const result = await processQuestionGradingBatch({ db, batchId: job.data.batchId, jobId: job.data.jobId, workerClaimToken, itemId: job.data.kind === 'retry' ? job.data.batchItemId : undefined, store, mathpix: createMathpixClient() });
+    await refreshAssignmentAiGradingOperation({ db, batchId: job.data.batchId });
     if (result.batch.state === 'RETRYABLE') throw new Error('grading-batch-retryable');
     return result;
   }
@@ -119,6 +122,9 @@ export async function settleMathDocumentGradingJobFailure(input: { db: any; job:
   };
   if (typeof input.db.$transaction === 'function') await input.db.$transaction((tx: any) => settle(tx));
   else await settle(input.db);
+  if (input.job.data.kind === 'batch' || input.job.data.kind === 'retry') {
+    await refreshAssignmentAiGradingOperation({ db: input.db, batchId: input.job.data.batchId, now });
+  }
 }
 
 async function claimGradingJobForFailureSettlement(model: any, id: string | undefined, workerClaimToken: string, attemptCount: number, now: Date): Promise<boolean> {

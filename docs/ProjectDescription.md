@@ -63,6 +63,8 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
 
+作业批改以已发布修订版和提交快照为边界。教师仅可处理本人班级的提交，作业作者、管理员和有效复核授权可跨班级处理；每次 AI 批改冻结提交与作答向量，幂等重放必须匹配同一冻结范围。题目批次与作业操作通过 `GradingBatch.assignmentGradingOperationId` 关联，队列 worker 在成功或失败结算后汇总操作为 `RUNNING`、`SUCCEEDED` 或 `PARTIAL`，教师端据此显示真实进度。
+
 教师创建课堂后，系统生成 `ClassSession`、课堂码、lesson version、manifest hash 和总步骤数。课堂结束后，session report、提交事件和治理摘要进入教师报告链路。班级洞察不应从前端状态重建，而应消费治理后的能力、证据和报告指标。
 
 ### 管理员端

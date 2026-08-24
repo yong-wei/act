@@ -33,13 +33,19 @@ async function loadPublishedRevision(db: GradingDb, assignmentId: string, revisi
   return revision;
 }
 
-function assertTeacherAssignmentScope(revision: any, actor: PipelineActor, now: Date) {
-  if (actor.role === 'ADMIN' || revision.assignment?.authorId === actor.id) return;
+function authorizedAudienceClassIds(revision: any, actor: PipelineActor, now: Date): string[] | null {
+  if (actor.role === 'ADMIN' || revision.assignment?.authorId === actor.id) return null;
   const grant = revision.assignment?.reviewGrants?.some((row: any) => row.teacherId === actor.id
     && row.revokedAt == null && (row.expiresAt == null || new Date(row.expiresAt) > now));
-  if (!grant && !revision.audiences?.some((audience: any) => audience.class?.teacherId === actor.id && audience.class?.isActive === true)) {
+  if (grant) return null;
+  const classIds = (revision.audiences ?? [])
+    .filter((audience: any) => audience.class?.teacherId === actor.id && audience.class?.isActive === true)
+    .map((audience: any) => audience.classId)
+    .sort();
+  if (classIds.length === 0) {
     throw new Error('assignment-grading-forbidden');
   }
+  return classIds;
 }
 
 function policyCoversClass(policy: { classScope?: unknown }, classId: string) {
@@ -72,13 +78,14 @@ export async function createAssignmentAiGradingBatches(input: {
 }) {
   const now = input.now ?? new Date();
   const revision = await loadPublishedRevision(input.db, input.assignmentId, input.revisionId);
-  assertTeacherAssignmentScope(revision, input.actor, now);
+  const authorizedClassIds = authorizedAudienceClassIds(revision, input.actor, now);
   const requestedStudentIds = normalizeStudentIds(input.studentIds);
   const excludedStudentIds = new Set(normalizeStudentIds(input.excludedStudentIds));
   const submissions = await input.db.assignmentSubmission.findMany({
     where: {
       assignmentRevisionId: revision.id,
       state: { in: ['SUBMITTED', 'IN_PROGRESS'] },
+      ...(authorizedClassIds ? { frozenAudienceClassId: { in: authorizedClassIds } } : {}),
       ...(requestedStudentIds.length ? { studentId: { in: requestedStudentIds } } : {}),
     },
     include: {
@@ -86,7 +93,21 @@ export async function createAssignmentAiGradingBatches(input: {
       gradingSnapshots: { include: { items: true, grade: true } },
     },
   });
-  const eligibleSubmissions = submissions.filter((submission: any) => !excludedStudentIds.has(submission.studentId)
+  const scopedSubmissions = submissions.filter((submission: any) => !authorizedClassIds || authorizedClassIds.includes(submission.frozenAudienceClassId));
+  const frozenSelection = scopedSubmissions
+    .filter((submission: any) => !excludedStudentIds.has(submission.studentId)
+      && now > new Date(submission.frozenAudienceDueAt)
+      && submissionHasCurrentAttempt(submission, revision.questions))
+    .map((submission: any) => {
+      const snapshot = assignmentSubmissionSnapshotData({ operationId: 'assignment-grading-request', submission, questions: revision.questions, now });
+      return {
+        submissionId: submission.id,
+        frozenAudienceClassId: submission.frozenAudienceClassId,
+        attemptVectorHash: snapshot.attemptVectorHash,
+      };
+    })
+    .sort((left, right) => left.submissionId.localeCompare(right.submissionId));
+  const eligibleSubmissions = scopedSubmissions.filter((submission: any) => !excludedStudentIds.has(submission.studentId)
     && now > new Date(submission.frozenAudienceDueAt)
     && submissionRequiresIncrementalGrading(submission, revision.questions));
   if (eligibleSubmissions.length === 0 && !input.db.assignmentGradingOperation) {
@@ -99,6 +120,7 @@ export async function createAssignmentAiGradingBatches(input: {
     actorId: input.actor.id,
     requestedStudentIds,
     excludedStudentIds: [...excludedStudentIds].sort(),
+    frozenSelection,
     batchOptions: input.batchOptions ?? {},
   }));
   const operation = await createOrReplayAssignmentGradingOperation({
@@ -259,6 +281,13 @@ export function submissionRequiresIncrementalGrading(submission: any, questions:
   });
 }
 
+function submissionHasCurrentAttempt(submission: any, questions: any[]) {
+  return questions.some((question: any) => {
+    const answer = (submission.answers ?? []).find((row: any) => row.assignmentQuestionId === question.id);
+    return Boolean(answer?.attempts?.some((row: any) => row.attemptNumber === answer.currentAttemptNumber));
+  });
+}
+
 function assertAssignmentGradingOperationReplay(operation: any, requestHash: string) {
   if (operation.requestHash !== requestHash) throw new Error('assignment-grading-operation-conflict');
   return { ...operation, replay: true };
@@ -305,6 +334,36 @@ export async function executeAssignmentAiGradingBatches(input: {
     });
   }
   return results;
+}
+
+export async function refreshAssignmentAiGradingOperation(input: { db: GradingDb; batchId: string; now?: Date }) {
+  if (!input.db.gradingBatch?.findUnique || !input.db.gradingBatch?.findMany || !input.db.assignmentGradingOperation?.updateMany) return;
+  const now = input.now ?? new Date();
+  const batch = await input.db.gradingBatch.findUnique({
+    where: { id: input.batchId },
+    select: { assignmentGradingOperationId: true },
+  });
+  const operationId = batch?.assignmentGradingOperationId;
+  if (!operationId) return;
+  const batches = await input.db.gradingBatch.findMany({
+    where: { assignmentGradingOperationId: operationId },
+    select: { state: true },
+  });
+  if (batches.length === 0) return;
+  const terminalStates = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'BLOCKED', 'CANCELLED', 'CONTENT_UNAVAILABLE']);
+  const terminal = batches.every((entry: any) => terminalStates.has(entry.state));
+  const state = terminal && batches.every((entry: any) => entry.state === 'SUCCEEDED') ? 'SUCCEEDED' : terminal ? 'PARTIAL' : 'RUNNING';
+  if (state === 'RUNNING') {
+    await input.db.assignmentGradingOperation.updateMany({
+      where: { id: operationId, state: 'QUEUED' },
+      data: { state, startedAt: now, updatedAt: now },
+    });
+    return;
+  }
+  await input.db.assignmentGradingOperation.updateMany({
+    where: { id: operationId, state: { in: ['QUEUED', 'RUNNING'] } },
+    data: { state, startedAt: now, completedAt: now, updatedAt: now },
+  });
 }
 
 export async function createManualQuestionGradingReview(input: {

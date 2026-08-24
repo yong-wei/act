@@ -29,6 +29,7 @@ import {
   createAssignmentAiGradingBatches,
   createManualQuestionGradingReview,
   executeAssignmentAiGradingBatches,
+  refreshAssignmentAiGradingOperation,
   submissionRequiresIncrementalGrading,
 } from '../assignment-grading-orchestration';
 
@@ -212,6 +213,56 @@ describe('assignment grading orchestration', () => {
       .rejects.toThrow('assignment-grading-operation-conflict');
   });
 
+  it('rejects an idempotency replay after a selected attempt changes', async () => {
+    const revision = revisionFixture();
+    const submissions = [{ id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', state: 'SUBMITTED', frozenAudienceClassId: 'class-1', frozenAudienceDueAt: revision.audiences[0].dueAt, answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1, answerVersion: 1 }] }] }];
+    const operations: any[] = [];
+    const db: any = {
+      assignmentRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      assignmentSubmission: { findMany: vi.fn().mockResolvedValue(submissions) },
+      assignmentGradingOperation: {
+        findUnique: vi.fn(async () => operations[0] ?? null),
+        create: vi.fn(async ({ data }: any) => {
+          const row = { ...data, snapshots: data.snapshots.create.map((snapshot: any) => ({ ...snapshot, items: snapshot.items.create, submission: { studentId: 'student-1' } })) };
+          operations.push(row);
+          return row;
+        }),
+      },
+    };
+    createQuestionScopedGradingBatch.mockResolvedValue({ batch: { id: 'batch-1' }, items: [], replay: true });
+    const input = { db, assignmentId: 'assignment-1', actor: { id: 'teacher-1', role: 'TEACHER' as const }, idempotencyKey: 'attempt-vector-replay', now };
+    await createAssignmentAiGradingBatches(input);
+    submissions[0].answers[0].currentAttemptNumber = 2;
+    submissions[0].answers[0].attempts.push({ id: 'attempt-2', attemptNumber: 2, answerVersion: 2 });
+
+    await expect(createAssignmentAiGradingBatches(input)).rejects.toThrow('assignment-grading-operation-conflict');
+  });
+
+  it('limits a class teacher to the audiences they own', async () => {
+    const revision = revisionFixture();
+    revision.assignment.authorId = 'author-1';
+    revision.audiences[1].class.teacherId = 'teacher-2';
+    const submissions = [
+      { id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', state: 'SUBMITTED', frozenAudienceClassId: 'class-1', frozenAudienceDueAt: revision.audiences[0].dueAt, answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }] },
+      { id: 'submission-2', assignmentRevisionId: 'revision-1', audienceId: 'audience-2', studentId: 'student-2', state: 'SUBMITTED', frozenAudienceClassId: 'class-2', frozenAudienceDueAt: revision.audiences[0].dueAt, answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-2', attemptNumber: 1 }] }] },
+    ];
+    const db: any = {
+      assignmentRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      assignmentSubmission: { findMany: vi.fn().mockResolvedValue(submissions) },
+      assignmentGradingOperation: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn(async ({ data }: any) => ({ ...data, snapshots: data.snapshots.create.map((snapshot: any) => ({ ...snapshot, items: snapshot.items.create, submission: { studentId: snapshot.submissionId === 'submission-1' ? 'student-1' : 'student-2' } })) })),
+      },
+    };
+    createQuestionScopedGradingBatch.mockResolvedValue({ batch: { id: 'batch-1' }, items: [], replay: false });
+
+    const result = await createAssignmentAiGradingBatches({ db, assignmentId: 'assignment-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'teacher-class-scope', now });
+
+    expect(db.assignmentSubmission.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ frozenAudienceClassId: { in: ['class-1'] } }) }));
+    expect(result.submittedStudentIds).toEqual(['student-1']);
+    expect(createQuestionScopedGradingBatch).toHaveBeenCalledWith(expect.objectContaining({ request: expect.objectContaining({ classId: 'class-1', studentIds: ['student-1'] }) }));
+  });
+
   it('rejects a concurrent duplicate attempt vector under a different idempotency key', async () => {
     const revision = revisionFixture();
     const submissions = [{ id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', state: 'SUBMITTED', frozenAudienceClassId: 'class-1', frozenAudienceDueAt: revision.audiences[0].dueAt, answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }] }];
@@ -252,6 +303,24 @@ describe('assignment grading orchestration', () => {
     const result = await executeAssignmentAiGradingBatches({ db: {}, batches: [{ batch: { id: 'batch-1' } }, { batch: { id: 'batch-2' } }], now });
     expect(result).toHaveLength(2);
     expect(processQuestionGradingBatch).toHaveBeenCalledTimes(2);
+  });
+
+  it('derives the operation lifecycle from all linked batches', async () => {
+    const updates: any[] = [];
+    const db: any = {
+      gradingBatch: {
+        findUnique: vi.fn().mockResolvedValue({ assignmentGradingOperationId: 'operation-1' }),
+        findMany: vi.fn().mockResolvedValue([{ state: 'SUCCEEDED' }, { state: 'FAILED' }]),
+      },
+      assignmentGradingOperation: { updateMany: vi.fn(async (input: any) => { updates.push(input); return { count: 1 }; }) },
+    };
+
+    await refreshAssignmentAiGradingOperation({ db, batchId: 'batch-1', now });
+
+    expect(updates).toEqual([expect.objectContaining({
+      where: { id: 'operation-1', state: { in: ['QUEUED', 'RUNNING'] } },
+      data: expect.objectContaining({ state: 'PARTIAL', completedAt: now }),
+    })]);
   });
 
   it('allows manual grading for a submitted question in an incomplete assignment', async () => {
