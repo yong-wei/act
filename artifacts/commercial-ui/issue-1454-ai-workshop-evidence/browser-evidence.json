@@ -5,12 +5,12 @@
   "routeFile": "src/app/ai/page.tsx",
   "routeArchetype": "knowledge-data-map",
   "dockState": "hidden",
-  "captureRevision": "ecb097d11f399e8c44e920d2039d8461482d3048",
-  "captureTime": "2026-08-24T05:27:05.239Z",
+  "captureRevision": "2cbb9573438b87ff29f9d39d73a09bc5635b39ca",
+  "captureTime": "2026-08-24T06:07:52.198Z",
   "generator": "tests/ai-workshop-evidence-1454.spec.ts",
   "baseUrl": "http://127.0.0.1:3101",
   "runtime": {
-    "runtimeRevision": "ecb097d11f399e8c44e920d2039d8461482d3048",
+    "runtimeRevision": "2cbb9573438b87ff29f9d39d73a09bc5635b39ca",
     "runtimeRevisionSource": "dedicated local dev server started from a clean capture worktree at captureRevision",
     "session": "authenticated student fixture: demo",
     "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
@@ -22,28 +22,28 @@
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop.png",
-      "sha256": "58110bfb9f4bf7b5d941827207273b982179c2bf1d9dbf2b46c7824bf1a17af1"
+      "sha256": "5eeef659f9d3e71bad8ed21a6fd71842809cad1ed594349497bd17791161f21b"
     },
     {
       "name": "desktop-collapsed",
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop-collapsed.png",
-      "sha256": "39eb562d442f4e0f5002df17df2ef4afc36113a5a46e27d29d98082cc6cce4be"
+      "sha256": "78573688ae0f30fb7f259e60979669acbb9660708ce58b8204649d0a167b0f7d"
     },
     {
       "name": "mobile",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile.png",
-      "sha256": "baf256c79966d09ca09c2559903ae4d25a5c9721a3fffe7e5483f0cfe1da1f83"
+      "sha256": "0b3640e7e2bfab208c5ee1b80ccc0f865acb1b71991962cb609d9f4eea17a90a"
     },
     {
       "name": "mobile-drawer",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile-drawer.png",
-      "sha256": "a442b3f37467646737e28c0147188751e0afd3f627b2d27ec89a10dc00fd48a0"
+      "sha256": "b9516669fa54bd97e15cea2db1e709ee6e2c6afc6e4c5c65489b51c601ffb8f6"
     }
   ],
   "sourceFiles": [
@@ -55,7 +55,7 @@
     { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "a4a733f21eb8848eecef156bcc47d9a8e15b6c5c02dae47990293e81d8cf52d7" },
     { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "89a5281f5e60b28a11718c345fe154e19e433e07237f49aa0786c2d4dcd985c1" },
     { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "bfed92b5a1c8fa2ddc7422a3e28b8536f1e751d7fcaaa80949a7a490bf9dcd29" },
-    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "4e55af5d582cc2281b4403035d770069b73652939a4c3589e434455904bbdb9d" }
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "40f6424d46bda4317a10943359ba97484067527323805fff6ba44c6bfec0774d" }
   ],
   "assertions": {
     "httpStatus": 200,

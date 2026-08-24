@@ -25,4 +25,4 @@
 - [x] 4.4 Run browser smoke at 1440px and 320px and attach revision-bound evidence before PR creation.
 - [x] 4.5 Preserve the evidence cache read state so an existing portrait cannot turn missing evidence metrics into personal zero values.
 - [x] 4.6 Project student-safe source coverage, render it in product language, and route the journal empty state into the portfolio reflection flow.
-- [x] 4.7 Re-run the focused tests, typecheck, strict OpenSpec validation, and browser evidence capture from clean revision `ecb097d11f399e8c44e920d2039d8461482d3048`.
+- [x] 4.7 Re-run the focused tests, typecheck, strict OpenSpec validation, and browser evidence capture from clean revision `2cbb9573438b87ff29f9d39d73a09bc5635b39ca`.
