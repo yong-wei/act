@@ -5,12 +5,12 @@
   "routeFile": "src/app/ai/page.tsx",
   "routeArchetype": "knowledge-data-map",
   "dockState": "hidden",
-  "captureRevision": "090e6147b947808c63cbea99cbcfac3342d2ef74",
-  "captureTime": "2026-08-24T03:17:09.568Z",
+  "captureRevision": "ecb097d11f399e8c44e920d2039d8461482d3048",
+  "captureTime": "2026-08-24T05:27:05.239Z",
   "generator": "tests/ai-workshop-evidence-1454.spec.ts",
   "baseUrl": "http://127.0.0.1:3101",
   "runtime": {
-    "runtimeRevision": "090e6147b947808c63cbea99cbcfac3342d2ef74",
+    "runtimeRevision": "ecb097d11f399e8c44e920d2039d8461482d3048",
     "runtimeRevisionSource": "dedicated local dev server started from a clean capture worktree at captureRevision",
     "session": "authenticated student fixture: demo",
     "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
@@ -22,40 +22,40 @@
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop.png",
-      "sha256": "4f5c698be8eb0b77c0aa87d6c17a0e56442bdc2de8c3c1d0ad257cd912ba7707"
+      "sha256": "58110bfb9f4bf7b5d941827207273b982179c2bf1d9dbf2b46c7824bf1a17af1"
     },
     {
       "name": "desktop-collapsed",
       "width": 1440,
       "height": 900,
       "screenshot": "ai-workshop-desktop-collapsed.png",
-      "sha256": "07e947b6ea115a0eb6f9ae93b67c3ceedf5f72481cf2373124c3cdc2357a9020"
+      "sha256": "39eb562d442f4e0f5002df17df2ef4afc36113a5a46e27d29d98082cc6cce4be"
     },
     {
       "name": "mobile",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile.png",
-      "sha256": "30e6d9994d5b0f3a17e57d98ca0f2681efc8b4d9bbe17176d58876736ccbcfd9"
+      "sha256": "baf256c79966d09ca09c2559903ae4d25a5c9721a3fffe7e5483f0cfe1da1f83"
     },
     {
       "name": "mobile-drawer",
       "width": 320,
       "height": 900,
       "screenshot": "ai-workshop-mobile-drawer.png",
-      "sha256": "bbd2a3bbffce1fd76b06e396b3c77df302758bc3ec5f978c678ceb0944d57506"
+      "sha256": "a442b3f37467646737e28c0147188751e0afd3f627b2d27ec89a10dc00fd48a0"
     }
   ],
   "sourceFiles": [
     { "path": "src/app/ai/page.tsx", "sha256": "7705fe21cc763d55f07ee369e10a8895c8ea11ce150d6f9bb72b173acb0716ac" },
-    { "path": "src/features/ai/ai-workshop-evidence.ts", "sha256": "4d816cefa010031e667efa357d8c71a2a0e7f55f8c26e57b27238dc486de3287" },
+    { "path": "src/features/ai/ai-workshop-evidence.ts", "sha256": "d666265dffe8da11de792f8682ce49f536a1f0a1e47581c3b604f239cc8d4632" },
     { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "e6400a5dd45480cdc2cc171c8c018d51ad082153713b430cb6e1f58a48549196" },
-    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "440eae2a50fbdbac9814ac03209ec3bd0094e81749f01b01aca34da7048fcde8" },
+    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "b616b0b96020c236094af17c7d0d3117195b87e9a339524c95a5dc2551f9a588" },
     { "path": "src/features/ai/compass/learning-compass.tsx", "sha256": "962e9863f3ca50ade016189b82f922fc9d982aa11781fe906ba1c13dbb632a81" },
     { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "a4a733f21eb8848eecef156bcc47d9a8e15b6c5c02dae47990293e81d8cf52d7" },
     { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "89a5281f5e60b28a11718c345fe154e19e433e07237f49aa0786c2d4dcd985c1" },
-    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "d23b773c4da443cdca37a70bdfbb798e6cafd44c016da8d79284a14967d41698" },
-    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "f9d15313ecf11bf167ed5f4c2f78315d662b90d56ca349b00a232448ed81bf62" }
+    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "bfed92b5a1c8fa2ddc7422a3e28b8536f1e751d7fcaaa80949a7a490bf9dcd29" },
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "4e55af5d582cc2281b4403035d770069b73652939a4c3589e434455904bbdb9d" }
   ],
   "assertions": {
     "httpStatus": 200,
@@ -67,6 +67,9 @@
     "playwrightResult": "2 passed",
     "authenticatedStudentSession": true,
     "zeroMetricsAbsent": true,
+    "missingEvidenceCacheDoesNotRenderZeroMetrics": true,
+    "sourceCoverageRenderedInStudentLanguage": true,
+    "journalEmptyStateUsesPortfolioReflectionContext": true,
     "emptyStateActionsReachable": true,
     "mobileCanvasFirstViewportTaskVisible": true,
     "mobileDrawerNavigationReachable": true
