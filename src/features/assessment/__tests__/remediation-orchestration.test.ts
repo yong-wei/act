@@ -17,12 +17,7 @@ import { listMicroTutoringGovernedValidationItems } from '../micro-tutoring-vali
 const HASH_A = 'a'.repeat(64);
 const GOVERNED_VALIDATION_SOURCE_ID = 'control-correction-practice-01';
 const GOVERNED_VALIDATION_HASH = '6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57eb59f40def07cb43297';
-const GOVERNED_VALIDATION_REVISION = listMicroTutoringGovernedValidationItems({
-  knowledgeNodeId: 'kn:autocontrol:controller-correction',
-  misconceptionTag: 'misconception:control-correction:confuses-overshoot-with-steady-error',
-  sourceQuestionId: 'question-original',
-  sourceContentHash: HASH_A,
-})[0]?.itemRevision;
+const GOVERNED_VALIDATION_REVISION = 'sha256:782b2f2e6af619c5cfbc92048647e942b81a12a481bc2c8562ea45b2c890202b';
 const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
 
 vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', () => ({

@@ -1,7 +1,7 @@
 {
   "version": "micro-tutoring-validation-registry.v1",
   "source": "micro-tutoring-assessment-baseline.v2+micro-tutoring-option-attributions.v3",
-  "sourceRevision": "bf263d7d07831c559c76e0e7ceda18018dd8c3c0",
+  "sourceRevision": "767ce0d05ece789819982131e85b59970ff79d5f",
   "entries": [
     {
       "id": "micro-tutoring-validation:control-correction-checkpoint-01",
@@ -11108,7 +11108,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-01",
       "sourceId": "ship-ocean-transfer-application-checkpoint-01",
       "contentHash": "ef6f0160cba624abcad6eb01fe6869070b122ae083b804ccb07ba8cdfc999a3a",
-      "itemRevision": "sha256:26917ab5eb97b6fe4977cd529be03602161f9fae05c564d69dd1c59bc85df13e",
+      "itemRevision": "sha256:31966cd70946d620d99c6d323e969c8493e941a2f47a546860a364c64b7110d5",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.7,
@@ -11188,11 +11188,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -11228,7 +11228,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -11273,7 +11273,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-02",
       "sourceId": "ship-ocean-transfer-application-checkpoint-02",
       "contentHash": "3522921ab39d95eac9b107f4a1cc83dd5d75e46b28fbdb88f1190137bc3c618f",
-      "itemRevision": "sha256:9e3f83d5772e078605eb18a21c196cc1e61a7317350eeafc61f3fe6cc6d587c4",
+      "itemRevision": "sha256:9bec4eb2b71a99b6623630396e0f931bddd09b6df6a31948037a4a2ef32ddfb3",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.68,
@@ -11353,11 +11353,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -11393,7 +11393,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -11438,7 +11438,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-03",
       "sourceId": "ship-ocean-transfer-application-checkpoint-03",
       "contentHash": "b692f32daf43fee4090b66f94ed9995696eb8c0a53dd4013f89c38e70c32f45d",
-      "itemRevision": "sha256:8b465d85b4ab80c40f4fc590caaf6193bedf72f958e63147f5fc2933c86a8f4b",
+      "itemRevision": "sha256:ffdeb17ec72ae1d66570b25a9a19b034779bdc9a37494800bbf5072cac237176",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.76,
@@ -11518,11 +11518,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -11558,7 +11558,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-checkpoint-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -11603,7 +11603,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
       "sourceId": "ship-ocean-transfer-application-practice-01",
       "contentHash": "7619947cfe1eb0499c5df6cd2e4e6835e6d9f5bd8b71234870716c14935a143b",
-      "itemRevision": "sha256:a9be27eb6fc4396a1129301aa3e3244564a18817861764e36a3625e78ffeb281",
+      "itemRevision": "sha256:223f8a4d24145043d1a6943f16c5d871ac654581f92b7b49db71e1c5c13ea9e9",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.54,
@@ -11683,11 +11683,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -11723,7 +11723,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -11768,7 +11768,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
       "sourceId": "ship-ocean-transfer-application-practice-02",
       "contentHash": "72ce72dd460860e6abbf08b28544e668b330709581aeaff028d604844e29541c",
-      "itemRevision": "sha256:5efe6159244b9fcc839d48aa9bbe838c352d072cba012e81b56e05d35a74d0be",
+      "itemRevision": "sha256:1bdb711fe694f93b6761648391be9c0b4e9d8bdaf8d1dfc1613026050bfe1fa8",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.62,
@@ -11848,11 +11848,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -11888,7 +11888,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -11933,7 +11933,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
       "sourceId": "ship-ocean-transfer-application-practice-03",
       "contentHash": "63a4bc83d81d1b1b37d9dcaa52071718a918ff53309b7dad70e295909afcddaa",
-      "itemRevision": "sha256:39cf5b34153f8de33dea032ca1468d8c5c0af50acbf1624ea3f46d03f59fcdfb",
+      "itemRevision": "sha256:e94b74d71fbd380911a53e62c30edae448d2eaf1faa90fca2bc67de365415e67",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.66,
@@ -12013,11 +12013,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12053,7 +12053,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12098,7 +12098,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
       "sourceId": "ship-ocean-transfer-application-practice-04",
       "contentHash": "52881be553d5443874ded3a73b09be1fcc4cc7e23914824a2d0611272baf6e55",
-      "itemRevision": "sha256:8c3a0277a2e9c0559d6c22184479d55db5b12ae347da5f5a4df099963afd5575",
+      "itemRevision": "sha256:612cebf720a18057890e88a759587562464cad7017b22ef72c9f339033e13b7f",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.64,
@@ -12178,11 +12178,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12218,7 +12218,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-04 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12263,7 +12263,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
       "sourceId": "ship-ocean-transfer-application-practice-05",
       "contentHash": "a5e1e304f3003681c9c86062a2a55cfcf7010e01c642242cc5ff3fea9adf305b",
-      "itemRevision": "sha256:e23926c7e770f0664fe4941d9c04e3ab75c010c4b277d001ff36f033689205a2",
+      "itemRevision": "sha256:f3829e036bca5cb5a0c251e8c2bf62bfac903f1f21431482006fab49a65bc9fe",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.58,
@@ -12343,11 +12343,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12383,7 +12383,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-05 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12428,7 +12428,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-06",
       "sourceId": "ship-ocean-transfer-application-practice-06",
       "contentHash": "a5554758c8184f860670cb4f99edbd20d520fae6241674560912896676d174af",
-      "itemRevision": "sha256:2f9440c63d70c09208514fc569d041464f80971fb72441c21995cf089b197610",
+      "itemRevision": "sha256:855de1d960bf5783edafb97a4e4c9600b663c9038189b7428c66763689a8db3f",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.7,
@@ -12508,11 +12508,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12548,7 +12548,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-practice-06 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12593,7 +12593,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-01",
       "sourceId": "ship-ocean-transfer-application-readiness-01",
       "contentHash": "c70159a49a2cddc7a5d29158c05cac3c544114789edefb9ed64cbb1c69442199",
-      "itemRevision": "sha256:d5397f78bf08f78893e709ad43c58e5771ad213481b8c819b4bf3224c49186b5",
+      "itemRevision": "sha256:c41654019db75024892240251e0ebcc62efff993370fb0a03617302c4682af64",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.38,
@@ -12673,11 +12673,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12713,7 +12713,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12758,7 +12758,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-02",
       "sourceId": "ship-ocean-transfer-application-readiness-02",
       "contentHash": "767389db5b50731ef6b76a7371430d5be830b22cb1713298eb7fdee6355e3af9",
-      "itemRevision": "sha256:eab4989c6c6beae06548760c34e763034c57618e046c79898ceb0d43663e7a17",
+      "itemRevision": "sha256:1ac11e3dc726f4166e58449d2782efaaf45aa5baf785ec828bfee6532ebd9883",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.42,
@@ -12838,11 +12838,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -12878,7 +12878,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -12923,7 +12923,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-readiness-03",
       "sourceId": "ship-ocean-transfer-application-readiness-03",
       "contentHash": "41bc5f5b1669d517687d3990fb0cf5a232801982fccb01f8ad291ebd56646eba",
-      "itemRevision": "sha256:232ac615226c83f2cddc5ae6a643dcb6bac8a88e393d0d679f5b91c74566a495",
+      "itemRevision": "sha256:46318bd40856382f6cf1e84dcb1dcc4996c1b3a424b68d640c6bea329077139d",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.48,
@@ -13003,11 +13003,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -13043,7 +13043,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-readiness-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -13088,7 +13088,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-01",
       "sourceId": "ship-ocean-transfer-application-remediation-01",
       "contentHash": "6244b207fb20f585a0079beba34937f8f354d728058225ff2ee0f08e385fb4e5",
-      "itemRevision": "sha256:22833bcd736cdb6b2bf07b5a116a1e87b5c2c7ed138603898c657f698ae04b4a",
+      "itemRevision": "sha256:a289898c523cf4e2777c02dea1b38b3d32a857fd618d3f40229c831d68e90dbf",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.46,
@@ -13168,11 +13168,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -13208,7 +13208,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-01 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -13253,7 +13253,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-02",
       "sourceId": "ship-ocean-transfer-application-remediation-02",
       "contentHash": "4b230f7cb91d7061a670baa24722cae62a69becd2101ff0fd91dad0205ac21d8",
-      "itemRevision": "sha256:42481edc51abe09f2c7f515e2572bccca39a2841f164c79451717d346a1684cc",
+      "itemRevision": "sha256:716e3d9c7b878680af8dc5ede4bfd43af6ff5324985d8dc63596b2e7c905932b",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.52,
@@ -13333,11 +13333,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -13373,7 +13373,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-02 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",
@@ -13418,7 +13418,7 @@
       "catalogItemId": "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-03",
       "sourceId": "ship-ocean-transfer-application-remediation-03",
       "contentHash": "255b2c3aa4449a6ddeb8c92749ebdbe8e96697b4c2418dc449832cbffea53095",
-      "itemRevision": "sha256:73c1a1aaaabb01dcb4093a5e9f0542460b9d98bcb63ee4db9178e5c0f49d0d6c",
+      "itemRevision": "sha256:efe1324d514899f82d60722c08615bccc11c806a8c21be6bf00d14ae1cd4d032",
       "learningGoalId": "ship-ocean-transfer-application",
       "knowledgeNodeId": "kn:autocontrol:modern-transfer",
       "difficulty": 0.56,
@@ -13498,11 +13498,11 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-a",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 A）：该选项对应误区：missing-operational-envelope。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 A）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-b",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（readiness-gate，错误选项 B）：该选项缺少本 LearningGoal 要求的证据或边界判断。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认（checkpoint，错误选项 B）：该选项对应误区：missing-operational-envelope。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:missing-operational-envelope-option-c",
@@ -13538,7 +13538,7 @@
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:single-objective-transfer",
-          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：仅以饱和率达标判定较高海况通过，遗漏航向误差指标超限。"
+          "rationale": "使用独立已审核题 ship-ocean-transfer-application-remediation-03 作为验证，覆盖选项审核确认的错因：逐选项审核确认：只追求最快响应，遗漏航向误差、控制代价和安全约束的联合目标。"
         },
         {
           "misconceptionTag": "misconception:ship-ocean-transfer-application:steady-error-only-mission-criterion",

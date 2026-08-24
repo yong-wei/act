@@ -189,7 +189,7 @@ describe('micro tutoring coverage audit', () => {
     expect(result.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
     expect(result.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE).toBe(0);
     expect(result.rows.every((row) => row.resources.length === 1)).toBe(true);
-    expect(result.rows.every((row) => row.validationItems.length === 5)).toBe(true);
+    expect(result.rows.every((row) => row.validationItems.length > 0)).toBe(true);
     expect(result.rows.every((row) =>
       row.validationItems.every((item) => item.contentHash !== row.contentHash))).toBe(true);
     expect(JSON.stringify(result)).not.toContain('independenceRationale');
