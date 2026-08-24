@@ -5,6 +5,7 @@
  */
 
 import { Archive, Beaker, Scale, AlertTriangle, Star } from 'lucide-react';
+import Link from 'next/link';
 import type { ExperimentRecord } from '../personal-learning-center';
 import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
@@ -38,7 +39,13 @@ export function ExperimentArchive({ experiments, evidence }: ExperimentArchivePr
       {/* 统计概览 */}
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded border border-border bg-background p-3 text-center">
-          <div className="text-2xl font-bold text-foreground">{experiments.length}</div>
+          <div className="text-2xl font-bold text-foreground" data-ai-workshop-metric="experiment-count">
+            {experiments.length > 0
+              ? experiments.length
+              : evidence.status === 'unavailable'
+                ? '不可用'
+                : '暂无'}
+          </div>
           <div className="text-xs text-muted-foreground">实验总数</div>
         </div>
         <div className="rounded border border-border bg-background p-3 text-center">
@@ -56,6 +63,9 @@ export function ExperimentArchive({ experiments, evidence }: ExperimentArchivePr
         {experiments.length === 0 ? (
           <div className="rounded border border-border bg-muted p-4 text-sm text-muted-foreground" data-ai-workshop-empty="experiments">
             {evidence.status === 'unavailable' ? '仿真记录暂时不可用。' : '暂无已验证的仿真训练记录。'}
+            <Link className="mt-3 inline-flex font-medium text-foreground underline" href="/arena" data-ai-workshop-action="experiments">
+              进入竞技场
+            </Link>
           </div>
         ) : null}
         {experiments.map((experiment) => {

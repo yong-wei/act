@@ -3,6 +3,15 @@
 import { AlertTriangle, Database, ShieldCheck, Target } from 'lucide-react';
 import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
+function formatWorkshopMetric(
+  status: AiWorkshopEvidenceProjection['status'],
+  value: string,
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty') return '暂无';
+  return value;
+}
+
 interface LearningDashboardProps {
   evidence: AiWorkshopEvidenceProjection;
   userName: string;
@@ -33,10 +42,10 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <EvidenceMetric icon={Database} label="已验证证据" value={`${evidence.evidence.count}`} />
-          <EvidenceMetric icon={ShieldCheck} label="置信度" value={confidenceLabel(evidence.evidence.confidence.level)} />
-          <EvidenceMetric icon={Target} label="来源完整度" value={`${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`} />
-          <EvidenceMetric icon={Target} label="学习路径" value={`${evidence.path.activeCount} 条`} />
+          <EvidenceMetric metricKey="evidence-count" icon={Database} label="已验证证据" value={formatWorkshopMetric(evidence.status, `${evidence.evidence.count}`)} />
+          <EvidenceMetric metricKey="confidence" icon={ShieldCheck} label="置信度" value={evidence.status === 'unavailable' ? '不可用' : confidenceLabel(evidence.evidence.confidence.level)} />
+          <EvidenceMetric metricKey="source-completeness" icon={Target} label="来源完整度" value={formatWorkshopMetric(evidence.status, `${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`)} />
+          <EvidenceMetric metricKey="path-count" icon={Target} label="学习路径" value={formatWorkshopMetric(evidence.status, `${evidence.path.activeCount} 条`)} />
         </div>
       </div>
 
@@ -53,16 +62,18 @@ export function LearningDashboard({ evidence, userName }: LearningDashboardProps
 }
 
 function EvidenceMetric({
+  metricKey,
   icon: Icon,
   label,
   value,
 }: {
+  metricKey: string;
   icon: typeof Database;
   label: string;
   value: string;
 }) {
   return (
-    <div className="min-w-[92px] rounded border border-border bg-background px-3 py-2">
+    <div className="min-w-[92px] rounded border border-border bg-background px-3 py-2" data-ai-workshop-metric={metricKey}>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Icon className="h-4 w-4 text-muted-foreground" />
         {label}

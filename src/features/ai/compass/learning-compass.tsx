@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertTriangle, CheckCircle2, Circle, Target } from 'lucide-react';
+import Link from 'next/link';
 import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 import type { MilestoneData } from '../personal-learning-center';
 
@@ -41,6 +42,9 @@ export function LearningCompass({ milestones, evidence }: LearningCompassProps) 
           {evidence.status === 'unavailable'
             ? '学习路径暂时不可用，请稍后重试。'
             : '暂无已验证的学习路径记录。完成学习活动后，这里会显示真实进度。'}
+          <Link className="mt-3 inline-flex font-medium text-foreground underline" href="/interactive-learning" data-ai-workshop-action="milestones">
+            开始学习
+          </Link>
         </div>
       ) : (
         <div className="space-y-3">

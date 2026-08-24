@@ -1,6 +1,6 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 
-test.use({ baseURL: 'http://localhost:3101' });
+test.use({ baseURL: 'http://127.0.0.1:3101' });
 
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 900 },
@@ -15,6 +15,15 @@ for (const viewport of [
     const response = await page.goto('/ai', { waitUntil: 'domcontentloaded' });
 
     expect(response?.status()).toBe(200);
+    const metricValues = await page.locator('[data-ai-workshop-metric]').allTextContents();
+    expect(metricValues).not.toEqual(expect.arrayContaining(['0', '0%']));
+    expect(metricValues.some((value) => value.trim() === '0' || value.trim() === '0%' || value.trim().startsWith('0 '))).toBe(false);
+    await expect(page.locator('[data-ai-workshop-metric="experiment-count"]')).not.toHaveText(/^0$/);
+    await expect(page.locator('[data-ai-workshop-action="milestones"]')).toHaveAttribute('href', '/interactive-learning');
+    await expect(page.locator('[data-ai-workshop-action="achievements"]')).toHaveAttribute('href', '/interactive-learning');
+    await expect(page.locator('[data-ai-workshop-action="tasks"]')).toHaveAttribute('href', '/interactive-learning');
+    await expect(page.locator('[data-ai-workshop-action="experiments"]')).toHaveAttribute('href', '/arena');
+    await expect(page.locator('[data-ai-workshop-action="journals"]')).toHaveAttribute('href', '/ai/copilot');
     await page.locator('nextjs-portal').evaluateAll((portals) => {
       portals.forEach((portal) => {
         (portal as HTMLElement).style.display = 'none';

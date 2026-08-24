@@ -1,6 +1,7 @@
 'use client';
 
 import { Award, Beaker, BookOpen, CheckCircle, Lock, Play, Scale } from 'lucide-react';
+import Link from 'next/link';
 import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 import type { AchievementData, TaskData } from '../personal-learning-center';
 
@@ -36,6 +37,9 @@ export function TaskMatrix({ tasks, achievements, evidence, selectedTask, onTask
         {achievements.length === 0 ? (
           <div className="text-sm text-muted-foreground" data-ai-workshop-empty="achievements">
             {evidence.status === 'unavailable' ? '成就记录暂时不可用。' : '暂无已验证的成就记录。'}
+            <Link className="ml-3 inline-flex font-medium text-foreground underline" href="/interactive-learning" data-ai-workshop-action="achievements">
+              去学习
+            </Link>
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
@@ -54,6 +58,9 @@ export function TaskMatrix({ tasks, achievements, evidence, selectedTask, onTask
         {tasks.length === 0 ? (
           <div className="rounded border border-border bg-muted p-5 text-sm text-muted-foreground" data-ai-workshop-empty="tasks">
             {evidence.status === 'unavailable' ? '学习任务暂时不可用，请稍后重试。' : '暂无已验证的学习任务记录。完成学习活动后，这里会显示真实任务状态。'}
+            <Link className="mt-3 inline-flex font-medium text-foreground underline" href="/interactive-learning" data-ai-workshop-action="tasks">
+              开始学习
+            </Link>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
