@@ -6,11 +6,19 @@ export { microTutoringOptionAttributionReviewSourceHash } from './micro-tutoring
 
 const MICRO_TUTORING_V2_ASSESSMENT_STAGES = new Set([
   'practice',
+  'low-stakes-practice',
   'checkpoint',
   'remediation',
   'readiness',
   'readiness-gate',
 ]);
+
+function normalizeMicroTutoringAssessmentStage(value: string | undefined): string | null {
+  if (!value) return null;
+  if (value === 'practice') return 'low-stakes-practice';
+  if (value === 'readiness-gate') return 'readiness';
+  return MICRO_TUTORING_V2_ASSESSMENT_STAGES.has(value) ? value : null;
+}
 
 export interface MicroTutoringOptionAttribution {
   catalogItemId: string;
@@ -60,7 +68,7 @@ export function isMicroTutoringOptionAttribution(
   if (!attribution) return false;
   const hasRequiredStage = attribution.version !== 'micro-tutoring-option-attribution.v3' || (
     nonEmptyString(attribution.assessmentStage) &&
-    MICRO_TUTORING_V2_ASSESSMENT_STAGES.has(attribution.assessmentStage)
+    normalizeMicroTutoringAssessmentStage(attribution.assessmentStage) !== null
   );
   return hasRequiredStage &&
     nonEmptyString(attribution.catalogItemId) &&
@@ -143,7 +151,8 @@ export function findMicroTutoringOptionAttribution(input: {
     !goalNode.ok ||
     (
       attribution.version === 'micro-tutoring-option-attribution.v3' &&
-      attribution.assessmentStage !== input.assessmentStage
+      normalizeMicroTutoringAssessmentStage(attribution.assessmentStage) !==
+        normalizeMicroTutoringAssessmentStage(input.assessmentStage)
     ) ||
     attribution.knowledgeNodeId !== goalNode.knowledgeNodeId ||
     attribution.itemReviewSourceHash !== input.itemReviewSourceHash ||
