@@ -1,0 +1,31 @@
+{
+ "contract": "remediation-v037-new-member-domain-assignment/v1",
+ "sealedAt": "2026-08-24",
+ "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+ "source": "control-theory-engineering v0.22 (7300 members) -> v0.37 (7476 members), +176 additions, zero removals",
+ "reviewIdentity": "codex act:issue-1515:review-13 (gpt-5.6-sol, medium), members list /tmp/remediation-run/review/v037-new-members.txt",
+ "totalMembers": 176,
+ "coveredDomainMembers": 162,
+ "excludedDomainMembers": 14,
+ "domainCounts": {
+  "robustness-sensitivity-analysis": 50,
+  "classical-control-design": 32,
+  "system-modeling": 25,
+  "stability-analysis": 20,
+  "state-space-control-analysis-and-design": 18,
+  "time-domain-analysis": 12,
+  "discrete-time-control-design": 9,
+  "robust-control-analysis-and-design": 5,
+  "frequency-domain-analysis": 2,
+  "nonlinear-system-analysis": 2,
+  "root-locus": 1
+ },
+ "classCounts": {
+  "C-handout-gap": 22,
+  "A": 140,
+  "C-out-of-scope": 14
+ },
+ "ruling": "course-owner D1 domain scope ruling (docs/remediation-1515/handout-coverage-decision.md): covered domains take item-level A/C dispositions; members assigned to excluded domains are C-out-of-scope by domain ruling",
+ "decidedBy": "course-owner-yongwei (via codex review-13, confirmed allocation)",
+ "nextStep": "assignments feed the next scope reseal; covered-domain gap members join their domain incremental review"
+}
