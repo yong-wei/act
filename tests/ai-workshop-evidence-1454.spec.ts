@@ -25,6 +25,13 @@ for (const viewport of [
     await expect(page.locator('[data-ai-workshop-action="experiments"]')).toHaveAttribute('href', '/arena');
     await expect(page.locator('[data-ai-workshop-action="journals"]')).toHaveAttribute('href', '/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create');
     await expect(page.locator('[data-ai-workshop-source-coverage]')).toContainText('来源覆盖');
+    const journalHref = await page.locator('[data-ai-workshop-action="journals"]').getAttribute('href');
+    expect(journalHref).toBe('/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create');
+    await page.goto(journalHref!, { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/ai\/copilot\?context=portfolio-reflection&source=learning-journal&intent=create$/);
+    await expect(page.getByText('已创建作品集反思草稿候选。', { exact: true })).toBeVisible();
+    await expect(page.getByText('打开作品集候选预览', { exact: true })).toBeVisible();
+    await page.goto('/ai', { waitUntil: 'domcontentloaded' });
     await page.locator('nextjs-portal').evaluateAll((portals) => {
       portals.forEach((portal) => {
         (portal as HTMLElement).style.display = 'none';
