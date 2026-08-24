@@ -1,0 +1,16 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "root-locus",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/root-locus-round2.jsonl",
+ "sourceSha256": "d97ca24516b6870e3289fcb3bba98003c5191def3930a690d3ae52865812230e",
+ "rowCount": 103,
+ "memberCount": 103,
+ "edgeCount": 44,
+ "receiptReconciliation": {
+  "packRows": 309,
+  "publishedEdgeInReceipt": 45,
+  "jsonlEdgeCount": 44,
+  "match": true,
+  "courseRootCount": 1
+ }
+}
