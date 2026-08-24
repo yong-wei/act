@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
   buildAdaptivePathRecommendationProvenance,
   buildControlCorrectionThreeStylePathBundle,
   getLearningGoal,
@@ -46,6 +47,25 @@ import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resou
 import type { SourcePackItem } from '../source-pack';
 
 describe('adaptive path recommendation provenance', () => {
+  it('retains the authoritative learner-state snapshot and explains modality personalization', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const snapshot = buildAdaptiveLearningPathLearnerStateSnapshot({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-08-25T00:00:00.000Z',
+      authority: 'server-owned',
+      resourcePreference: { preferredModalities: ['simulation', 'video'] },
+    });
+
+    expect(snapshot).toMatchObject({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-08-25T00:00:00.000Z',
+      authority: 'server-owned',
+      preferredModalities: ['simulation', 'video'],
+    });
+    const persisted = serializeLearningPathPlan(plan);
+    expect(persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ')).toContain('��Ƶ');
+  });
+
   it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({

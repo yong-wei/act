@@ -1232,6 +1232,11 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
         </span>
       </div>
       <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      {provenance.personalizationNotes?.map((note) => (
+        <p key={note} className="mt-2 break-words text-xs leading-5 text-subtle">
+          {note}
+        </p>
+      ))}
       <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
         <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
         <div className="mt-3 grid min-w-0 gap-3">

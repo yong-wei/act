@@ -69,6 +69,7 @@ import {
 } from '@/lib/structured-textbook-runtime';
 import {
   buildAdaptiveLearningPathPlan,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
   type AdaptiveLearningPathConfigurationRequest,
@@ -4275,6 +4276,9 @@ async function buildAdaptivePathToolOutput(
     preferredStyleId: args.preferredStyleId ?? null,
     requestedAt: args.requestedAt ?? null,
     candidatePoolDiagnostics,
+    learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(
+      normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any),
+    ),
   });
   const hasPersistablePath = plan.mainPath.length > 0;
   const differenceSummary = adjustmentSource && hasPersistablePath
