@@ -7,6 +7,12 @@
 - 先以只读方式检查 ECS 的磁盘、容器挂载、现有 runtime 体积、RAM Role metadata、`ossfs` 与 `ossutil` 可用性。没有可用 ECS RAM Role 时，停止 OSS 写入、挂载和切换，只提交所需最小 RAM policy；不得改用长期 AccessKey 或把密钥写入仓库、`.env`、脚本或主机配置文件。
 - 需要通过 ECS 控制台投予实例的角色，必须按“云服务 → 云服务器 ECS / ECS”创建，并在信任策略中使用 `ecs.aliyuncs.com`。信任当前云账号的普通 RAM 角色不能由 ECS 扮演；为实例角色创建前应复用已审计的最小 OSS 自定义策略，而不是授予 OSS 全权限。
 - 常规服务 ECS 只持有 `act-runtime-oss-read`，只读 ossfs 与 Podman runtime bind 仍必须只读。日常 v2 发布由本机受限 publisher 身份完成：启动时用 caller identity 校验账户、principal、Bucket、Region、endpoint 与前缀，并以本机 `flock` 串行。凭据只来自本机受管 credential provider；不得写入仓库、`.env`、脚本、release manifest 或日志。ECS 只执行只读物化、应用 smoke 和受锁的本地选择；浏览器不获得永久 OSS URL。
+- 本机 publisher 凭据的固定存放位置（2026-08-25 核实）：
+  - `~/.config/act/runtime-dev-read.env`（mode 0400）：`ALIBABA_CLOUD_ACCESS_KEY_ID` / `ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与 `ACT_RUNTIME_OSS_BUCKET` / `ACT_RUNTIME_OSS_ENDPOINT` / `ACT_RUNTIME_OSS_REGION` / `ACT_RUNTIME_OSS_EXPECTED_RAM_USER`（`act-runtime-dev-read`）/ `ACT_RUNTIME_OSS_EXPECTED_ACCOUNT_ID`。发布前 `source` 该文件；不得回显、复制或移动其内容。
+  - 安装与重置入口：`~/.config/act/install-runtime-dev-read-credentials.zsh`（隐藏输入读取 AK/SK，umask 077 原子写入；目标文件已存在时拒绝覆盖，重置需先手动删除旧文件再运行）。
+  - 发布工件 spool 与 artifact 目录：`~/.local/state/act-runtime-publisher/artifacts/`（`deploy-runtime-blob-release.sh --artifact-dir` 的历史落点，含 manifest / lifecycle-identity / receipt / publisher-verification）。
+  - `scripts/runtime-release/developer-oss/credential.py` 默认读写 `~/.config/act-runtime-dev-read/credentials.json`（developer 工具链的副本路径）；本机实际使用的是上面的 `~/.config/act` 路线，两者不要混用。
+  - `deploy-runtime-blob-release.sh` 另要求会话内装配 `ACT_RUNTIME_LOCAL_PYTHON`、`ACT_RUNTIME_LOCAL_OSSUTIL` 与 `ACT_RUNTIME_LOCAL_OSSUTIL_SHA256`、`ACT_RUNTIME_LOCAL_IDENTITY_COMMAND` 与 `ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256`、`ACT_RUNTIME_OPERATOR_ACCOUNT_ID`、`ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN`、`ACT_RUNTIME_PUBLISH_LOCK_DIR`、`ACT_RUNTIME_PUBLISH_SPOOL_DIR`、`ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE`（本地 ossutil / identity 命令与 operator 身份，不落盘；来自上次发布会话的临时装配，来源尚未固化到文件——复用时需按 publisher bridge 参数要求重建并核对各工具 SHA-256）。
 - Bucket 保持私有、阻止公共访问和服务器端加密。需要浏览器访问的媒体由服务端根据 allowlist 生成短时下载重定向；不得把 OSS 签名 URL 固化到 runtime 文件或长期配置。
 - 若 Next.js standalone 应用使用 `ali-oss` 与 `@alicloud/credentials` 生成该重定向，二者必须列为 `serverExternalPackages`，避免 Turbopack 进入 `urllib` 的动态 `proxy-agent` 分支并在生产构建失败；以生产所需 Node heap 完成一次 standalone build 验证。
 
