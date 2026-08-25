@@ -546,6 +546,18 @@ describe('teacher AI grading lab core', () => {
     expect(reportSnapshots).toHaveLength(2);
   });
 
+  it('lists imported datasets without reading their isolated baseline', async () => {
+    const dataRoot = await mkdtemp(join(tmpdir(), 'grading-lab-list-isolation-'));
+    temporaryRoots.push(dataRoot);
+    const datasetStore = createFileSystemTeacherAiGradingLabDatasetStore({ dataRoot });
+    await datasetStore.importPackage(await buildSyntheticTeacherAiGradingPackage());
+    await rm(join(dataRoot, 'datasets', 'synthetic-t1', 'v1', 'baseline.json'));
+
+    await expect(datasetStore.list()).resolves.toEqual([{
+      datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetKind: 'synthetic', sampleCount: 1, questionCount: 1,
+    }]);
+  });
+
   it('loads only an owner-confirmed redacted copy and rejects every incomplete gate', async () => {
     const dataRoot = await mkdtemp(join(tmpdir(), 'grading-lab-core-redaction-'));
     temporaryRoots.push(dataRoot);

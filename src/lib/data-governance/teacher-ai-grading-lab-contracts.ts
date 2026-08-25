@@ -115,9 +115,14 @@ const deductionSchema = z.object({
   reasonCode: identifierSchema,
 }).strict();
 
-const unsafeTeacherAnnotationPattern = /(?:姓名|学号|班级|身份证|手机号|邮箱|student\s*(?:name|number|id)|email|name)\s*[:：]|(?<!\d)\d{8,}(?!\d)/i;
-const teacherAnnotationSchema = z.string().trim().min(1).max(2_000)
-  .refine((value) => !unsafeTeacherAnnotationPattern.test(value), 'teacher-annotation-contains-identity');
+const teacherAnnotationCategorySchema = z.enum([
+  'calculation',
+  'concept',
+  'method',
+  'presentation',
+  'reasoning',
+  'other',
+]);
 
 export const teacherAiGradingLabBaselineSchema = z.object({
   schemaVersion: z.literal(TEACHER_AI_GRADING_LAB_BASELINE_VERSION),
@@ -128,12 +133,12 @@ export const teacherAiGradingLabBaselineSchema = z.object({
     sampleId: z.string().regex(/^sample-[a-z0-9]{4,32}$/),
     cleanupConfirmed: z.literal(true),
     baselineConfirmed: z.literal(true),
-    teacherTotalScore: halfPointScoreSchema.optional(),
+    teacherTotalScore: halfPointScoreSchema,
     questions: z.array(z.object({
       questionId: questionIdSchema,
       maxScore: halfPointScoreSchema.refine((value) => value > 0, 'score-must-be-positive'),
       teacherScore: halfPointScoreSchema,
-      teacherAnnotations: z.array(teacherAnnotationSchema).max(16).default([]),
+      teacherAnnotationCategories: z.array(teacherAnnotationCategorySchema).max(16).default([]),
       deductions: z.array(deductionSchema).max(64),
     }).strict()).min(1),
   }).strict()).min(1).max(50),

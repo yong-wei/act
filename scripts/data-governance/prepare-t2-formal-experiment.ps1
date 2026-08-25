@@ -1,4 +1,4 @@
-param(
+﻿param(
   [Parameter(Mandatory = $true)]
   [string]$SourceRoot,
   [Parameter(Mandatory = $true)]
@@ -94,41 +94,17 @@ function ConvertTo-Score([string]$Text, [string]$SampleId, [int]$ParagraphIndex)
   return [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture)
 }
 
-function ConvertTo-SafeTeacherAnnotation([string]$Text, [string]$SampleId, [int]$ParagraphIndex) {
+function ConvertTo-TeacherAnnotationCategory([string]$Text) {
   $script:preparationPhase = 'annotation-normalize'
   $normalized = ($Text -replace '[\r\a]+$', '').Trim()
   if ([string]::IsNullOrWhiteSpace($normalized)) { return $null }
-  $script:preparationPhase = 'annotation-length-check'
-  if ($normalized.Length -gt 2000) {
-    $script:preparationPhase = 'annotation-suppress'
-    $script:suppressedTeacherAnnotationCount += 1
-    return $null
-  }
-  $script:preparationPhase = 'annotation-label-check'
-  $lowerAnnotation = $normalized.ToLowerInvariant()
-  $identityLabels = @(
-    [string]::Concat([char]0x59D3, [char]0x540D),
-    [string]::Concat([char]0x5B66, [char]0x53F7),
-    [string]::Concat([char]0x73ED, [char]0x7EA7),
-    [string]::Concat([char]0x8EAB, [char]0x4EFD, [char]0x8BC1),
-    [string]::Concat([char]0x624B, [char]0x673A, [char]0x53F7),
-    [string]::Concat([char]0x90AE, [char]0x7BB1)
-  )
-  $containsIdentityLabel = @($identityLabels | Where-Object { $normalized.Contains($_) })
-  $containsEnglishIdentityLabel = @('student name', 'student number', 'student id', 'email') | Where-Object { $lowerAnnotation.Contains($_) }
-  if ($containsIdentityLabel.Count -gt 0 -or @($containsEnglishIdentityLabel).Count -gt 0) {
-    $script:preparationPhase = 'annotation-suppress'
-    $script:suppressedTeacherAnnotationCount += 1
-    return $null
-  }
-  $script:preparationPhase = 'annotation-number-check'
-  if ($normalized -match '(?<!\d)\d{8,}(?!\d)') {
-    $script:preparationPhase = 'annotation-suppress'
-    $script:suppressedTeacherAnnotationCount += 1
-    return $null
-  }
-  $script:preparationPhase = 'annotation-accept'
-  return $normalized
+  $script:preparationPhase = 'annotation-categorize'
+  if ($normalized -match '计算|运算|公式') { return 'calculation' }
+  if ($normalized -match '概念|定义|稳定性|性质') { return 'concept' }
+  if ($normalized -match '方法|步骤|模型|控制器') { return 'method' }
+  if ($normalized -match '表达|书写|图|单位|格式') { return 'presentation' }
+  if ($normalized -match '推理|论证|分析|判断') { return 'reasoning' }
+  return 'other'
 }
 
 if (-not (Test-Path -LiteralPath $SourceRoot -PathType Container)) {
@@ -155,7 +131,7 @@ $baselineSamples = @()
 $manifestSamples = @()
 $inventory = @()
 $scoreRecordInventory = @()
-$suppressedTeacherAnnotationCount = 0
+$categorizedTeacherAnnotationCount = 0
 
 try {
   foreach ($sample in $samples) {
@@ -202,8 +178,8 @@ try {
         $scores += ConvertTo-Score $document.Paragraphs.Item($paragraphIndex).Range.Text $sampleId $paragraphIndex
       }
       $preparationPhase = 'score-parse-annotation'
-      $teacherAnnotations = @($annotationParagraphs | ForEach-Object {
-        ConvertTo-SafeTeacherAnnotation $document.Paragraphs.Item($_).Range.Text $sampleId $_
+      $teacherAnnotationCategories = @($annotationParagraphs | ForEach-Object {
+        ConvertTo-TeacherAnnotationCategory $document.Paragraphs.Item($_).Range.Text
       })
     } finally {
       $document.Close($false)
@@ -226,12 +202,16 @@ try {
       $submissionKind = Assert-FileSignature $submission 'docx'
       $logicalPath = "submissions/$sampleId/$questionId.docx"
       $checksum = Get-Sha256 $submission
-      $annotations = if ([string]::IsNullOrWhiteSpace($teacherAnnotations[$index])) { @() } else { @($teacherAnnotations[$index]) }
+      $annotationCategories = @()
+      if (-not [string]::IsNullOrWhiteSpace([string]$teacherAnnotationCategories[$index])) {
+        $annotationCategories += [string]$teacherAnnotationCategories[$index]
+      }
+      $categorizedTeacherAnnotationCount += @($annotationCategories).Count
       $questions += [ordered]@{
         questionId = $questionId
         maxScore = $maxScore
         teacherScore = $score
-        teacherAnnotations = @($annotations)
+        teacherAnnotationCategories = @($annotationCategories)
         deductions = @()
       }
       $submissions += [ordered]@{ questionId = $questionId; path = $logicalPath; checksum = $checksum }
@@ -330,6 +310,7 @@ if ($OwnerConfirmed) {
         sampleId = $_.sampleId
         cleanupConfirmed = $true
         baselineConfirmed = $true
+        teacherTotalScore = $_.teacherTotalScore
         questions = $_.questions
       }
     })
@@ -386,7 +367,7 @@ if ($OwnerConfirmed) {
   datasetVersion = $datasetVersion
   sampleCount = $samples.Count
   submissionCount = $inventory.Count
-  suppressedTeacherAnnotationCount = $suppressedTeacherAnnotationCount
+  categorizedTeacherAnnotationCount = $categorizedTeacherAnnotationCount
   artifacts = @('baseline.draft.json', 'manifest.draft.json', 'redaction-review-inventory.json', 'score-record-inventory.json')
   packageCreated = [bool]$packagePath
   packageReady = [bool]($OwnerConfirmed -and $writableSourceCount -eq 0)

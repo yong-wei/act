@@ -99,7 +99,7 @@ export function createFileSystemTeacherAiGradingLabDatasetStore(input: {
         return Promise.all(versions
           .filter((entry) => entry.isDirectory() && /^[a-z0-9][a-z0-9_-]{1,63}$/.test(entry.name))
           .map(async (entry) => {
-            const loaded = await this.load({ datasetId, datasetVersion: entry.name });
+            const loaded = await loadEvaluationDataset(dataRoot, config, { datasetId, datasetVersion: entry.name });
             return {
               datasetId: loaded.datasetId,
               datasetVersion: loaded.datasetVersion,

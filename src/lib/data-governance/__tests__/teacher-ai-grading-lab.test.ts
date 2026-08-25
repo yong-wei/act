@@ -182,25 +182,26 @@ describe('teacher AI grading package validation and import', () => {
     expect(() => parseTeacherAiGradingBaseline({ ...baseline, samples: [{ ...baseline.samples[0], questions: [{ ...baseline.samples[0].questions[0], teacherScore: 25.5 }] }] })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
   });
 
-  it('keeps bounded teacher annotations in the isolated baseline and rejects identity fields', () => {
+  it('keeps only enumerated teacher annotation categories in the isolated baseline', () => {
     const baseline = {
       schemaVersion: 'teacher-ai-grading-package-baseline.v1', datasetId: 'synthetic-t1', datasetVersion: 'v1',
       samples: [{ sampleId: 'sample-abcd', cleanupConfirmed: true, baselineConfirmed: true, questions: [{
-        questionId: 'T1-4', maxScore: 25, teacherScore: 20, teacherAnnotations: ['缺少稳定性判断。'], deductions: [],
+        questionId: 'T1-4', maxScore: 25, teacherScore: 20, teacherAnnotationCategories: ['reasoning'], deductions: [],
       }] }],
     };
-    expect(parseTeacherAiGradingBaseline(baseline).samples[0].questions[0].teacherAnnotations)
-      .toEqual(['缺少稳定性判断。']);
+    const withTotal = { ...baseline, samples: [{ ...baseline.samples[0], teacherTotalScore: 20 }] };
+    expect(parseTeacherAiGradingBaseline(withTotal).samples[0].questions[0].teacherAnnotationCategories)
+      .toEqual(['reasoning']);
     expect(() => parseTeacherAiGradingBaseline({ ...baseline, studentName: 'forbidden' }))
       .toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
     expect(() => parseTeacherAiGradingBaseline({
-      ...baseline,
-      samples: [{ ...baseline.samples[0], teacherTotalScore: 19 }],
+      ...withTotal,
+      samples: [{ ...withTotal.samples[0], teacherTotalScore: 19 }],
     })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
     expect(() => parseTeacherAiGradingBaseline({
-      ...baseline,
-      samples: [{ ...baseline.samples[0], questions: [{
-        ...baseline.samples[0].questions[0], teacherAnnotations: ['学号：20261234'],
+      ...withTotal,
+      samples: [{ ...withTotal.samples[0], questions: [{
+        ...withTotal.samples[0].questions[0], teacherAnnotationCategories: ['person@example.test'],
       }] }],
     })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
   });

@@ -64,6 +64,7 @@ export async function buildSyntheticTeacherAiGradingPackage(
       sampleId,
       cleanupConfirmed: true,
       baselineConfirmed: options.baselineConfirmed ?? true,
+      teacherTotalScore: 13,
       questions: [{
         questionId: 'T1-4',
         maxScore: 15,
