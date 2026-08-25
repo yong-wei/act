@@ -63,6 +63,13 @@ admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无
 
 **构建器已实现并落盘（2603cd91f，2026-08-25）**：`scripts/knowledge-cutover/build-v037-authority-snapshot.ts` 产出 `snap-e955b1ca155573fafae21e9fa1ddab397da7462ab9fd66c60c6d97b87a37e520`（7476 objects / 3047 relations / 10640 entries / 17 components / 3 profiles / 3047 linkMetadata；两行 m3-v2u source-object 简写已展开并注明），`verifyMaterializedSnapshot` 读回通过，candidate-only（零 selector 写入）。catalog 的 10 个种子成员已确认被新 snapshot 覆盖。**剩余联动**：authoring catalog（catalog.json 的 authorityBinding 仍指 v0.9 snap-7f4cdd10）需在激活流程内重绑 snap-e955b1ca 并 runtime 化；shards 在激活事务内按 activation 身份物化（现有函数链），不属于构建器职责。
 
+## 前任实况与依赖图（2026-08-25 读取，工件 `cutover/predecessor-v022/`）
+
+- **生产 v0.22 前任组合**：authority 唯一 PRESENT（snap-9c4b2c1c，objectCount 7082，activatedAt 2026-08-20）；**六个 runtime 知识指针全部 ABSENT**（v0.22 只激活了 Authority 面）；active Runtime Release v2 = `runtime-89fef308…`（generation 17，7272 文件 / 6.18GB，inventory 已落 `runtime-active-inventory.json`）。
+- **切换形态**：Authority 继任（v0.22→v0.37）+ runtime 知识面（projection/prerequisites/shards/catalog/consumer）首激活的混合事务。v040 first-activation preflight（要求 all-ABSENT 含 authority）不适用。
+- **denominator 语义裁定**：baseline = runtime-89fef308 的 7272 文件级 blob 条目（全部 INCLUDED，不 retire）；delta = remediation 1058 治理资源（全 NEW）——两套身份体系诚实共存，successor runtime release 物化本就包含全部资源 blob。
+- **执行依赖图（钉死顺序）**：① successor 知识面物化（remediation 投影 → `stageTeachingProjection`：`TeachingProjectionAuthoringInput{scopeId, authoringRevision, authorityReleaseId=ctr:release:…v0.37, authoritySnapshotId=snap-e955b1ca…, resources/bindings/prerequisites/coreNodes, authorityNodes=7476 端点索引}`；prerequisites/consumer 面同链）→ ② successor Runtime Release v2 物化（OSS，含新知识面）→ ③ 正式 candidate（predecessor=上述实况，successor expectations 引用①②身份）→ ④ 8 节事务（predecessor 混合形态：authority 匹配 v0.22、六指针 ABSENT→PRESENT）→ ⑤ 镜像/部署/激活。
+
 ## 切换执行时的硬性前提
 
 - `rtk bash scripts/build.sh` 构建当前 revision 镜像 + provenance；镜像内知识消费实现与 v0.37 工件形态相容（容器内自检在 `verify_staged_application_image` 内置）
