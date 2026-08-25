@@ -27,6 +27,7 @@ external_bundle=""
 external_bundle_root=""
 generated_resources_root=""
 artifact_dir=""
+resume_artifact_dir=""
 expected_active_release=""
 matching_parent_release_id=""
 ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
@@ -35,6 +36,7 @@ coordinated_graph_receipt=""
 coordinated_runtime_binding=""
 publishing_identity_started=0
 publishing_generation=""
+resuming_published_release=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -44,6 +46,7 @@ while [[ $# -gt 0 ]]; do
     --external-bundle-root) external_bundle_root="$2"; shift 2 ;;
     --generated-resources-root) generated_resources_root="$2"; shift 2 ;;
     --artifact-dir) artifact_dir="$2"; shift 2 ;;
+    --resume-published-artifact-dir) resume_artifact_dir="$2"; shift 2 ;;
     --expected-active-release) expected_active_release="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
     --coordinated-cutover-declaration) coordinated_cutover_declaration="$2"; shift 2 ;;
@@ -53,8 +56,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ "$source_revision" =~ ^[a-f0-9]{40}$ ]] || { echo "ERROR: --source-revision must be a full Git SHA" >&2; exit 1; }
-[[ -n "$artifact_dir" && "$artifact_dir" = /* ]] || { echo "ERROR: --artifact-dir must be an absolute local directory" >&2; exit 1; }
+if [[ -n "$resume_artifact_dir" ]]; then
+  [[ "$resume_artifact_dir" = /* && -d "$resume_artifact_dir" && ! -L "$resume_artifact_dir" ]] || {
+    echo "ERROR: --resume-published-artifact-dir must be an absolute real directory" >&2
+    exit 1
+  }
+  for value in "$source_revision" "$parent_manifest" "$external_bundle" "$external_bundle_root" "$generated_resources_root" "$artifact_dir"; do
+    [[ -z "$value" ]] || {
+      echo "ERROR: --resume-published-artifact-dir cannot be combined with planning or publication inputs" >&2
+      exit 1
+    }
+  done
+  resuming_published_release=1
+else
+  [[ "$source_revision" =~ ^[a-f0-9]{40}$ ]] || { echo "ERROR: --source-revision must be a full Git SHA" >&2; exit 1; }
+  [[ -n "$artifact_dir" && "$artifact_dir" = /* ]] || { echo "ERROR: --artifact-dir must be an absolute local directory" >&2; exit 1; }
+fi
 [[ "$expected_active_release" == "none" || "$expected_active_release" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo "ERROR: invalid --expected-active-release" >&2; exit 1; }
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid --ram-role" >&2; exit 1; }
 [[ -z "$parent_manifest" || -f "$parent_manifest" ]] || { echo "ERROR: --parent-manifest does not exist" >&2; exit 1; }
@@ -109,48 +126,68 @@ copy_atomic() {
   remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
 }
 
-for variable in \
-  ACT_RUNTIME_LOCAL_PYTHON \
-  ACT_RUNTIME_LOCAL_OSSUTIL \
-  ACT_RUNTIME_LOCAL_OSSUTIL_SHA256 \
-  ACT_RUNTIME_LOCAL_IDENTITY_COMMAND \
-  ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256 \
-  ACT_RUNTIME_OPERATOR_ACCOUNT_ID \
-  ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN \
-  ACT_RUNTIME_PUBLISH_LOCK_DIR \
-  ACT_RUNTIME_PUBLISH_SPOOL_DIR; do
-  [[ -n "${!variable:-}" ]] || { echo "ERROR: local publisher configuration is missing: $variable" >&2; exit 1; }
-done
-
-mkdir -p "$artifact_dir"
-manifest="$artifact_dir/manifest.json"
-release_receipt="$artifact_dir/release-receipt.json"
-source_provenance_proof="$artifact_dir/source-provenance-proof.json"
-verification_receipt="$artifact_dir/publisher-verification.json"
-daily_report="$artifact_dir/daily-publication-report.json"
-build_started_seconds=$SECONDS
-build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
-build_args+=(--daily-report-output "$daily_report")
-if [[ -n "$parent_manifest" ]]; then
-  build_args+=(--parent-manifest "$parent_manifest")
+if [[ "$resuming_published_release" == "1" ]]; then
+  artifact_dir="$resume_artifact_dir"
+  manifest="$artifact_dir/manifest.json"
+  release_receipt="$artifact_dir/release-receipt.json"
+  source_provenance_proof="$artifact_dir/source-provenance-proof.json"
+  verification_receipt="$artifact_dir/publisher-verification.json"
+  for artifact in "$manifest" "$release_receipt" "$source_provenance_proof" "$verification_receipt"; do
+    [[ -f "$artifact" && ! -L "$artifact" ]] || {
+      echo "ERROR: published runtime resume artifact is missing or unsafe: $artifact" >&2
+      exit 1
+    }
+  done
+  build_elapsed_milliseconds=0
+  publish_elapsed_milliseconds=0
+else
+  for variable in \
+    ACT_RUNTIME_LOCAL_PYTHON \
+    ACT_RUNTIME_LOCAL_OSSUTIL \
+    ACT_RUNTIME_LOCAL_OSSUTIL_SHA256 \
+    ACT_RUNTIME_LOCAL_IDENTITY_COMMAND \
+    ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256 \
+    ACT_RUNTIME_OPERATOR_ACCOUNT_ID \
+    ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN \
+    ACT_RUNTIME_PUBLISH_LOCK_DIR \
+    ACT_RUNTIME_PUBLISH_SPOOL_DIR; do
+    [[ -n "${!variable:-}" ]] || { echo "ERROR: local publisher configuration is missing: $variable" >&2; exit 1; }
+  done
+  mkdir -p "$artifact_dir"
+  manifest="$artifact_dir/manifest.json"
+  release_receipt="$artifact_dir/release-receipt.json"
+  source_provenance_proof="$artifact_dir/source-provenance-proof.json"
+  verification_receipt="$artifact_dir/publisher-verification.json"
+  daily_report="$artifact_dir/daily-publication-report.json"
+  build_started_seconds=$SECONDS
+  build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
+  build_args+=(--daily-report-output "$daily_report")
+  if [[ -n "$parent_manifest" ]]; then
+    build_args+=(--parent-manifest "$parent_manifest")
+  fi
+  if [[ -n "$external_bundle" ]]; then
+    build_args+=(--external-bundle "$external_bundle")
+  fi
+  if [[ -n "$external_bundle_root" ]]; then
+    build_args+=(--external-bundle-root "$external_bundle_root")
+  fi
+  if [[ -n "$generated_resources_root" ]]; then
+    build_args+=(--generated-resources-root "$generated_resources_root")
+  fi
+  npx tsx "$CLI" "${build_args[@]}" >/dev/null
+  build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
 fi
-if [[ -n "$external_bundle" ]]; then
-  build_args+=(--external-bundle "$external_bundle")
-fi
-if [[ -n "$external_bundle_root" ]]; then
-  build_args+=(--external-bundle-root "$external_bundle_root")
-fi
-if [[ -n "$generated_resources_root" ]]; then
-  build_args+=(--generated-resources-root "$generated_resources_root")
-fi
-npx tsx "$CLI" "${build_args[@]}" >/dev/null
-build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
 release_id="$(python3 - "$manifest" <<'PY'
 import json
+import re
 import sys
 
 with open(sys.argv[1], encoding='utf-8') as handle:
-    print(json.load(handle)['releaseId'])
+    manifest = json.load(handle)
+release_id = manifest.get('releaseId')
+if manifest.get('schemaVersion') != 'act-runtime-release.v2' or not isinstance(release_id, str) or not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', release_id):
+    raise SystemExit('runtime manifest is not a valid v2 release')
+print(release_id)
 PY
 )"
 lifecycle_identity="$artifact_dir/lifecycle-identity.json"
@@ -180,7 +217,7 @@ print(json.dumps({
 PY
 chmod 0600 "$lifecycle_identity"
 
-if [[ -n "$parent_manifest" ]]; then
+if [[ "$resuming_published_release" != "1" && -n "$parent_manifest" ]]; then
   matching_parent_release_id="$(python3 - "$manifest" "$parent_manifest" <<'PY'
 import json
 import sys
@@ -253,12 +290,18 @@ import sys
 candidate = json.load(open(sys.argv[1], encoding="utf-8"))
 state = json.load(sys.stdin)
 expected_active = sys.argv[2]
+resume = sys.argv[3] == "1"
 if expected_active == "none" or state.get("active", {}).get("releaseId") != expected_active:
     raise SystemExit("v2 lifecycle active release does not match --expected-active-release")
 desired = state.get("desired")
 publishing = state.get("publishing")
 if not isinstance(publishing, list) or not isinstance(state.get("generation"), int):
     raise SystemExit("v2 lifecycle inspection is malformed")
+if resume:
+    if desired != candidate:
+        raise SystemExit("published runtime resume requires the exact candidate to remain desired")
+    print("resume:%d" % state["generation"])
+    raise SystemExit(0)
 if desired is not None and desired != candidate:
     raise SystemExit("v2 lifecycle already records a different desired release")
 if desired == candidate:
@@ -270,7 +313,7 @@ if any(item == candidate for item in publishing):
 if publishing:
     raise SystemExit("v2 lifecycle already records another publishing release")
 print("begin:%d" % state["generation"])
-' "$lifecycle_identity" "$expected_active_release")"
+' "$lifecycle_identity" "$expected_active_release" "$resuming_published_release")"
 if [[ "$pre_publish_action" == begin:* ]]; then
   pre_publish_generation="${pre_publish_action#begin:}"
   [[ "$pre_publish_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation" >&2; exit 1; }
@@ -279,57 +322,64 @@ if [[ "$pre_publish_action" == begin:* ]]; then
   [[ "$publishing_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation after begin-publish; publishing root ownership is uncertain" >&2; exit 1; }
   publishing_identity_started=1
 elif [[ "$pre_publish_action" != protected:* ]]; then
-  echo "ERROR: invalid lifecycle publication state" >&2
+  if [[ "$pre_publish_action" != resume:* ]]; then
+    echo "ERROR: invalid lifecycle publication state" >&2
+    exit 1
+  fi
+fi
+if [[ "$resuming_published_release" == "1" && "$pre_publish_action" != resume:* ]]; then
+  echo "ERROR: published runtime resume did not preserve the desired candidate" >&2
   exit 1
 fi
-publish_started_seconds=$SECONDS
-
-publish_args=(
+if [[ "$resuming_published_release" != "1" ]]; then
+  publish_started_seconds=$SECONDS
+  publish_args=(
   publish-streaming --repo-root "$ROOT_DIR" --source-revision "$source_revision" --release-id "$release_id" --format v2 --manifest "$manifest" --receipt "$release_receipt" --source-provenance-proof "$source_provenance_proof" --bucket "$BUCKET"
   --local-bridge-path "$LOCAL_BRIDGE" --python-binary "$ACT_RUNTIME_LOCAL_PYTHON"
   --ossutil-path "$ACT_RUNTIME_LOCAL_OSSUTIL" --ossutil-sha256 "$ACT_RUNTIME_LOCAL_OSSUTIL_SHA256"
   --identity-command-path "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND" --identity-command-sha256 "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256"
   --operator-account-id "$ACT_RUNTIME_OPERATOR_ACCOUNT_ID" --operator-principal-arn "$ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN"
   --lock-dir "$ACT_RUNTIME_PUBLISH_LOCK_DIR" --spool-dir "$ACT_RUNTIME_PUBLISH_SPOOL_DIR" --daily-report-output "$daily_report" --output "$verification_receipt"
-)
-if [[ -n "$parent_manifest" ]]; then
-  publish_args+=(--parent-manifest "$parent_manifest")
-fi
-if [[ -n "$external_bundle" ]]; then
-  publish_args+=(--external-bundle "$external_bundle")
-fi
-if [[ -n "$external_bundle_root" ]]; then
-  publish_args+=(--external-bundle-root "$external_bundle_root")
-fi
-if [[ -n "$generated_resources_root" ]]; then
-  publish_args+=(--generated-resources-root "$generated_resources_root")
-fi
-if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
-  publish_args+=(--credential-profile "$ACT_RUNTIME_CREDENTIAL_PROFILE")
-fi
-if [[ -n "${ACT_RUNTIME_BLOB_PARENT_RELEASE_ID:-}" ]]; then
-  [[ -n "${ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256:-}" ]] || { echo "ERROR: ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256 is required with ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" >&2; exit 1; }
-  publish_args+=(--blob-parent-release-id "$ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" --blob-parent-manifest-sha256 "$ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256")
-fi
-set +e
-npx tsx "$CLI" "${publish_args[@]}" >/dev/null
-publish_status=$?
-set -e
-if (( publish_status != 0 )); then
-  if [[ "${publishing_identity_started:-0}" == "1" ]]; then
-    cleanup_status=0
-    if cleanup_output="$(remote "python3 '$REMOTE_LIFECYCLE' cancel-publishing --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$publishing_generation' --identity '$remote_lifecycle_identity'")"; then
-      echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cancelled for $release_id" >&2
-    else
-      cleanup_status=$?
-      echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cleanup failed (status=$cleanup_status) and remains protected: $release_id" >&2
-    fi
-  else
-    echo "ERROR: publish-streaming failed (status=$publish_status); no owned publishing root was cancelled" >&2
+  )
+  if [[ -n "$parent_manifest" ]]; then
+    publish_args+=(--parent-manifest "$parent_manifest")
   fi
-  exit "$publish_status"
+  if [[ -n "$external_bundle" ]]; then
+    publish_args+=(--external-bundle "$external_bundle")
+  fi
+  if [[ -n "$external_bundle_root" ]]; then
+    publish_args+=(--external-bundle-root "$external_bundle_root")
+  fi
+  if [[ -n "$generated_resources_root" ]]; then
+    publish_args+=(--generated-resources-root "$generated_resources_root")
+  fi
+  if [[ -n "${ACT_RUNTIME_CREDENTIAL_PROFILE:-}" ]]; then
+    publish_args+=(--credential-profile "$ACT_RUNTIME_CREDENTIAL_PROFILE")
+  fi
+  if [[ -n "${ACT_RUNTIME_BLOB_PARENT_RELEASE_ID:-}" ]]; then
+    [[ -n "${ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256:-}" ]] || { echo "ERROR: ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256 is required with ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" >&2; exit 1; }
+    publish_args+=(--blob-parent-release-id "$ACT_RUNTIME_BLOB_PARENT_RELEASE_ID" --blob-parent-manifest-sha256 "$ACT_RUNTIME_BLOB_PARENT_MANIFEST_SHA256")
+  fi
+  set +e
+  npx tsx "$CLI" "${publish_args[@]}" >/dev/null
+  publish_status=$?
+  set -e
+  if (( publish_status != 0 )); then
+    if [[ "${publishing_identity_started:-0}" == "1" ]]; then
+      cleanup_status=0
+      if cleanup_output="$(remote "python3 '$REMOTE_LIFECYCLE' cancel-publishing --state-dir '$REMOTE_PROJECT_DIR/data/runtime' --expected-generation '$publishing_generation' --identity '$remote_lifecycle_identity'")"; then
+        echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cancelled for $release_id" >&2
+      else
+        cleanup_status=$?
+        echo "ERROR: publish-streaming failed (status=$publish_status); publishing root cleanup failed (status=$cleanup_status) and remains protected: $release_id" >&2
+      fi
+    else
+      echo "ERROR: publish-streaming failed (status=$publish_status); no owned publishing root was cancelled" >&2
+    fi
+    exit "$publish_status"
+  fi
+  publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 fi
-publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 
 remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-release-host-state.py" "$REMOTE_HOST_STATE"
@@ -360,6 +410,10 @@ fi
 activation_started_seconds=$SECONDS
 remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
+if [[ "$resuming_published_release" == "1" ]]; then
+  printf '{"releaseId":"%s","artifactDir":"%s","resumedPublishedRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
+  exit 0
+fi
 python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'
 import json
 import sys

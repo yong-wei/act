@@ -429,6 +429,10 @@ for (const invariant of [
   '--external-bundle',
   '--external-bundle-root',
   '--generated-resources-root',
+  '--resume-published-artifact-dir',
+  'resuming_published_release',
+  'published runtime resume requires the exact candidate to remain desired',
+  'resumedPublishedRelease',
   '--expected-active-release',
   'publisher-verification.json',
   'source-provenance-proof.json',
@@ -455,6 +459,16 @@ assert.match(
   runtimeDeploy,
   /publish-streaming[^\n]*--manifest "\$manifest"/,
   'runtime deploy must publish the already planned manifest without a second Git body-hash pass',
+);
+assert.match(
+  runtimeDeploy,
+  /if resume:[\s\S]*desired != candidate[\s\S]*published runtime resume requires the exact candidate to remain desired/,
+  'published release resume must proceed only when lifecycle still owns that exact desired candidate',
+);
+assert.match(
+  runtimeDeploy,
+  /if \[\[ "\$resuming_published_release" != "1" \]\]; then[\s\S]*publish-streaming/,
+  'published release resume must not invoke the local blob publisher again',
 );
 assert.match(
   runtimeDeploy,
