@@ -261,10 +261,14 @@ function main(): void {
     sourceDatasetHash: release.source_dataset_hash,
   };
   const bundleReceipt: AuthoritativeBundleReceiptRecord = {
-    id: `bundle-receipt:${release.release_hash}`,
+    id: `bundle-receipt:${capture.bundleDigest}`,
     bundleId: capture.bundleId,
     bundleRevision: bundleManifestIdentity.bundle_revision,
-    bundleDigest: release.release_hash,
+    // The Bundle receipt identifies the sealed packaging artifact, not the
+    // canonical release payload nested inside it. Keeping these identities
+    // distinct makes the staged Authority snapshot close over the same
+    // bundleDigest that the execution-time capture verified.
+    bundleDigest: capture.bundleDigest,
     bundleKind: 'composite',
     releaseStage: 'published',
     bundleContractVersion: 'ctkg-release/0.3',
@@ -423,6 +427,12 @@ function main(): void {
     `${AUTHORITY_ROOT}/releases/${staged.snapshotId}/engineering.json`,
   );
   verifyMaterializedSnapshot({ manifest: reopenedManifest, engineering: reopenedEngineering });
+  if (
+    reopenedManifest.bundleDigest !== capture.bundleDigest
+    || reopenedManifest.bundleReceiptId !== `bundle-receipt:${capture.bundleDigest}`
+  ) {
+    throw new Error('staged snapshot does not preserve the sealed Bundle identity');
+  }
 
   console.log(JSON.stringify({
     snapshotId: staged.snapshotId,
