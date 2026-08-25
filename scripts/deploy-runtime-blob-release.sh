@@ -298,10 +298,13 @@ publishing = state.get("publishing")
 if not isinstance(publishing, list) or not isinstance(state.get("generation"), int):
     raise SystemExit("v2 lifecycle inspection is malformed")
 if resume:
-    if desired != candidate:
-        raise SystemExit("published runtime resume requires the exact candidate to remain desired")
-    print("resume:%d" % state["generation"])
-    raise SystemExit(0)
+    if desired == candidate:
+        print("resume:%d" % state["generation"])
+        raise SystemExit(0)
+    if state.get("active") == candidate:
+        print("repair:%d" % state["generation"])
+        raise SystemExit(0)
+    raise SystemExit("published runtime resume requires the exact release to remain desired or active")
 if desired is not None and desired != candidate:
     raise SystemExit("v2 lifecycle already records a different desired release")
 if desired == candidate:
@@ -327,8 +330,8 @@ elif [[ "$pre_publish_action" != protected:* ]]; then
     exit 1
   fi
 fi
-if [[ "$resuming_published_release" == "1" && "$pre_publish_action" != resume:* ]]; then
-  echo "ERROR: published runtime resume did not preserve the desired candidate" >&2
+if [[ "$resuming_published_release" == "1" && "$pre_publish_action" != resume:* && "$pre_publish_action" != repair:* ]]; then
+  echo "ERROR: published runtime resume did not preserve the requested desired candidate or active release" >&2
   exit 1
 fi
 if [[ "$resuming_published_release" != "1" ]]; then
@@ -411,7 +414,11 @@ activation_started_seconds=$SECONDS
 remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
 if [[ "$resuming_published_release" == "1" ]]; then
-  printf '{"releaseId":"%s","artifactDir":"%s","resumedPublishedRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
+  if [[ "$pre_publish_action" == repair:* ]]; then
+    printf '{"releaseId":"%s","artifactDir":"%s","repairedActiveRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
+  else
+    printf '{"releaseId":"%s","artifactDir":"%s","resumedPublishedRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
+  fi
   exit 0
 fi
 python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'

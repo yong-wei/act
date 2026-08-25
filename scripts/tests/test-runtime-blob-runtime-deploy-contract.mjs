@@ -431,8 +431,9 @@ for (const invariant of [
   '--generated-resources-root',
   '--resume-published-artifact-dir',
   'resuming_published_release',
-  'published runtime resume requires the exact candidate to remain desired',
+  'published runtime resume requires the exact release to remain desired or active',
   'resumedPublishedRelease',
+  'repairedActiveRelease',
   '--expected-active-release',
   'publisher-verification.json',
   'source-provenance-proof.json',
@@ -462,8 +463,8 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
-  /if resume:[\s\S]*desired != candidate[\s\S]*published runtime resume requires the exact candidate to remain desired/,
-  'published release resume must proceed only when lifecycle still owns that exact desired candidate',
+  /if resume:[\s\S]*desired == candidate[\s\S]*state\.get\("active"\) == candidate[\s\S]*published runtime resume requires the exact release to remain desired or active/,
+  'published release resume must proceed only when lifecycle still owns that exact desired candidate or active repair release',
 );
 assert.match(
   runtimeDeploy,
