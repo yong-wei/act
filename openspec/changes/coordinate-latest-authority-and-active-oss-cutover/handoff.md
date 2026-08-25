@@ -14,6 +14,12 @@
 - 已发布并物化一个**非可选** Runtime 后继 `runtime-a1a454a7…`：manifest `31565412…`、tree `801e9966…`、materialization receipt `634e2601…`。7277 个逻辑文件全部继承，新增 Blob 为零；该 Release 仅处于 lifecycle `publishing` 根，未写 desired/active，未修改 current view，未重启任何服务。
 - 该 Runtime 后继尚不是 v0.37 coordinated candidate：仍需完成活动资源的逻辑分类/分母、v0.22 前任重绑、v0.37 catalog/shards payload 与 outer transaction，随后才可封存 candidate receipt 和取得 activation 资格。
 
+## 活动资源分母复核（任务 3.2 阻塞，2026-08-25）
+
+- `runtime-bb309e6a…` 的 7277 个 manifest 文件不是 7277 个教学资源。现有 formal-resource 工件有 1058 条 `ACTIVE_BASELINE` 处理记录：838 张卡片、31 份讲义、28 路音频、32 组互动练习、31 个导入视频、85 个数据库 launcher、13 组讲义练习；它们需要与 Runtime 的物理文件和数据库来源分别闭合，不能再把 Blob 文件直接当作教学资源分母。
+- 生产数据库复核显示，带 `registryId` 的 `TeachingResource` 有 105 条，其中既有处理器覆盖的 `ETHICS_SCENARIO`/`INTERACTIVE_COMP`/`SIMULATION_APP` 为 85 条，另有 20 条 `STATIC_MEDIA`；后者有 5 条已经被 `LessonItem` 引用。现有 v0.37 formal-resource 工件没有对这 20 条作资源或显式非资源处置，故 1058 条记录也不能被直接宣布为完整活动基线。
+- 因此此前“7272 个 Blob 全入 baseline、1058 条治理资源全作 NEW delta”的做法已撤销：它混淆物理对象与逻辑资源，并遗漏活动数据库静态媒体。新的 baseline 必须绑定当前 `runtime-bb309e6a…` 的 manifest/active receipt/generation，逐条封存逻辑资源、其来源闭合和剩余 Runtime 文件的明确非资源处置；在 `STATIC_MEDIA` 的课程范围与原子绑定完成前，v0.37 candidate 必须保持不可选，任何 graph 或 Runtime selector 均不得切换。
+
 ## 生产现状（2026-08-25 SSH 核实）
 
 - 宿主 `root@121.40.124.135:/home/projects/act`，公网 `https://act.adapt-learn.online`
@@ -79,8 +85,9 @@ admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无
 
 - **生产 v0.22 前任组合**：authority 唯一 PRESENT（snap-9c4b2c1c，objectCount 7082，activatedAt 2026-08-20）；**六个 runtime 知识指针全部 ABSENT**（v0.22 只激活了 Authority 面）；active Runtime Release v2 = `runtime-89fef308…`（generation 17，7272 文件 / 6.18GB，inventory 已落 `runtime-active-inventory.json`）。
 - **切换形态**：Authority 继任（v0.22→v0.37）+ runtime 知识面（projection/prerequisites/shards/catalog/consumer）首激活的混合事务。v040 first-activation preflight（要求 all-ABSENT 含 authority）不适用。
-- **denominator 语义裁定**：baseline = runtime-89fef308 的 7272 文件级 blob 条目（全部 INCLUDED，不 retire）；delta = remediation 1058 治理资源（全 NEW）——两套身份体系诚实共存，successor runtime release 物化本就包含全部资源 blob。
-- **执行依赖图（钉死顺序）**：① successor 知识面物化（remediation 投影 → `stageTeachingProjection`：`TeachingProjectionAuthoringInput{scopeId, authoringRevision, authorityReleaseId=ctr:release:…v0.37, authoritySnapshotId=snap-e955b1ca…, resources/bindings/prerequisites/coreNodes, authorityNodes=7476 端点索引}`；prerequisites/consumer 面同链）→ ② successor Runtime Release v2 物化（OSS，含新知识面）→ ③ 正式 candidate（predecessor=上述实况，successor expectations 引用①②身份）→ ④ 8 节事务（predecessor 混合形态：authority 匹配 v0.22、六指针 ABSENT→PRESENT）→ ⑤ 镜像/部署/激活。
+- **前述 runtime-89fef308 / generation 17 观察已被当前 `runtime-bb309e6a…` / generation 34 取代**；`runtime-a1a454a7…` 是其已物化但不可选的形式后继，详见“Runtime v2 后继物化”。
+- **旧分母裁定已撤销**：不得把文件级 Blob 全部列为教学资源或把既有 1058 条记录全当 NEW delta；原因与新的阻塞条件见“活动资源分母复核”。
+- **更新后的执行依赖图**：① 完成当前活动 Runtime + 数据库资源的逻辑分类、来源闭合与非资源处置 → ② 对 `STATIC_MEDIA` 完成课程范围、原子绑定或明确的非资源/退休裁定 → ③ 基于该前任重新封存 v0.37 graph 工件与 coordinated candidate（复用已阶段化的 Runtime 后继，但须以正式 envelope 重新绑定）→ ④ 8 节事务 → ⑤ 镜像/部署/停服激活。
 
 ## 知识面物化完成（2026-08-25，8ab84aef6）
 
