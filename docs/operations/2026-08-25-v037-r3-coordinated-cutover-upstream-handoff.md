@@ -14,7 +14,7 @@
 | r3 的源输入 | `control-theory-engineering-v0.37-source-r4`，`3e98864…` | bundle revision 为 r3，源修订为 r4，两者不是冲突。 |
 | r3 release | `ctr:release:control-theory-engineering-v0.37`，`cc73fa15…` | stable，Schema 0.3。 |
 | 当前生产 Authority | v0.22，snapshot `snap-9c4b2c1c…` | 这是接手时服务器的现行选择，不是本次选择的目标版本。 |
-| 当前生产 Runtime v2 | `runtime-bb309e6a…`，manifest `11c8185d…`，tree `801e9966…` | generation 34，7277 个逻辑文件。 |
+| 当前生产 Runtime v2 | `runtime-bb309e6a…`，manifest `11c8185d…`，tree `801e9966…` | generation 35，7277 个逻辑文件。 |
 | 已阶段化 Runtime 后继 | `runtime-a1a454a7…`，manifest `31565412…` | 仅处于 lifecycle `publishing`；未写 desired/active，未改 view 或服务。 |
 
 `build-v037-authority-snapshot.ts` 与 remediation evidence 当前明确引用 r3，因此本次准备没有误用 v0.37-r1。问题在于这些版本常量不能代替执行时的“最新完整发布捕获”；后续应由 capture 层解析远端正式标签和完整组件闭包，再将结果传给构建器。
@@ -75,9 +75,9 @@ v0.37-r3 已产生 candidate-only 的 Authority snapshot、Teaching Projection�
 2. 让 projection、prerequisites、consumer activation、catalog、shards 和 Runtime extension 都绑定同一 allocation record；不得回写或引用尚未生成的 candidate/active receipt hash。
 3. 在 candidate sealing 前重新打开并验证每一份内层工件及其哈希。单独存在的 v0.37 snapshot 或 Runtime candidate 都不能被认定为可选。
 
-## 阻塞三：现有远端切换脚本不能表达 v0.22 的混合前任
+## 阻塞三：现有远端切换脚本不能表达 v0.22 的已激活前任
 
-生产前任不是“全部 selector 缺失”的 first activation：Authority v0.22 已存在，而 projection、prerequisites、catalog、shards、consumer activation 和 transaction receipt 的运行时指针处于缺失状态。旧 first-activation 脚本要求 all-ABSENT，不能安全复用于该组合。
+生产前任不是“全部 selector 缺失”的 first activation：Authority、projection、prerequisites、catalog、shards 与 consumer activation 的六个现行 selector 均已绑定 v0.22；`production-cutover-transactions/current.json` 尚不存在。对这六个 active selector 的实读未发现 v0.9 引用。旧 first-activation 脚本要求 all-ABSENT，不能安全复用于该组合。
 
 上游需要一个版本无关的 outer transaction：
 
@@ -101,7 +101,7 @@ v0.37-r3 已产生 candidate-only 的 Authority snapshot、Teaching Projection�
 2. 删除一条活动逻辑资源、遗漏一条非资源处置、或把活动资源错误标记为 `NEW`，baseline qualification 必须失败。
 3. 增加已被 LessonItem 引用的 `STATIC_MEDIA`，但不提供原子绑定/处置，continuity gate 必须阻断。
 4. 校验同一 Runtime 文件承载多条逻辑资源，以及数据库 launcher 无 blob 路径的合法情形。
-5. 将 v0.22 Authority PRESENT、其余图谱 selectors ABSENT 作为 transaction 前任，验证成功切换和每个 selector/Runtime mutation 点的失败回滚。
+5. 将六个 v0.22 graph selector PRESENT、transaction receipt ABSENT 作为 transaction 前任，验证成功切换和每个 selector/Runtime mutation 点的失败回滚。
 6. 验证 Runtime 与 graph successor 的 Authority、allocation、denominator、resource envelope、projection、shards、prerequisites、consumer activation 或 candidate receipt 任一不一致时，active receipt 不变。
 7. 在 r3 candidate 尚未完成时发布一个后续同 Schema release，确认 r3 候选不被改写；下一次执行才单独捕获新 release。
 

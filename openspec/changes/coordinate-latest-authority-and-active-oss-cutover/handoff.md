@@ -84,9 +84,9 @@ admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无
 
 ## 前任实况与依赖图（2026-08-25 读取，工件 `cutover/predecessor-v022/`）
 
-- **生产 v0.22 前任组合**：authority 唯一 PRESENT（snap-9c4b2c1c，objectCount 7082，activatedAt 2026-08-20）；**六个 runtime 知识指针全部 ABSENT**（v0.22 只激活了 Authority 面）；active Runtime Release v2 = `runtime-89fef308…`（generation 17，7272 文件 / 6.18GB，inventory 已落 `runtime-active-inventory.json`）。
-- **切换形态**：Authority 继任（v0.22→v0.37）+ runtime 知识面（projection/prerequisites/shards/catalog/consumer）首激活的混合事务。v040 first-activation preflight（要求 all-ABSENT 含 authority）不适用。
-- **前述 runtime-89fef308 / generation 17 观察已被当前 `runtime-bb309e6a…` / generation 34 取代**；`runtime-a1a454a7…` 是其已物化但不可选的形式后继，详见“Runtime v2 后继物化”。
+- **生产 v0.22 前任组合（2026-08-25 最后实读）**：authority、projection、prerequisites、catalog、shards、consumer activation 的六个现行 selector 均为 PRESENT，且一致绑定 v0.22 / `snap-9c4b2c1c…`；`production-cutover-transactions/current.json` 为 ABSENT。上述 active selector 未发现 v0.9 引用。active Runtime Release v2 = `runtime-bb309e6a…`（lifecycle generation 35，7277 文件 / 6.18GB）；`runtime-89fef308…` 仅为 rollback identity。
+- **切换形态**：已激活的 v0.22→v0.37 全量 selector 继任，加上 transaction receipt 的首次建立。v040 first-activation preflight（要求 all-ABSENT 含 authority）不适用。
+- **前述 runtime-89fef308 / generation 17 观察已被当前 `runtime-bb309e6a…` / generation 35 取代**；`runtime-a1a454a7…` 是其已物化但不可选的形式后继，详见“Runtime v2 后继物化”。
 - **旧分母裁定已撤销**：不得把文件级 Blob 全部列为教学资源或把既有 1058 条记录全当 NEW delta；原因与新的阻塞条件见“活动资源分母复核”。
 - **更新后的执行依赖图**：① 完成当前活动 Runtime + 数据库资源的逻辑分类、来源闭合与非资源处置 → ② 对 `STATIC_MEDIA` 完成课程范围、原子绑定或明确的非资源/退休裁定 → ③ 基于该前任重新封存 v0.37 graph 工件与 coordinated candidate（复用已阶段化的 Runtime 后继，但须以正式 envelope 重新绑定）→ ④ 8 节事务 → ⑤ 镜像/部署/停服激活。
 
