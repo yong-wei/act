@@ -468,6 +468,11 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
+  /pre_publish_action" != protected:\* && "\$pre_publish_action" != repair:\*/,
+  'active repair must be accepted as a valid protected release action',
+);
+assert.match(
+  runtimeDeploy,
   /if \[\[ "\$resuming_published_release" != "1" \]\]; then[\s\S]*publish-streaming/,
   'published release resume must not invoke the local blob publisher again',
 );
