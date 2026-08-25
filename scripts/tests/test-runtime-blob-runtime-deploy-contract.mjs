@@ -45,6 +45,10 @@ for (const invariant of [
   'lifecycle_generation',
   'restore_runtime_consumers()',
   'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
+  'candidate-readyz-receipt',
+  'write_candidate_readyz_receipt()',
+  'candidate_receipt_path',
+  'candidate_receipt_rebound',
   'run_candidate_consumer_smoke()',
   'run_active_media_resolver_smoke()',
   '/interactive-learning/courses/unit-1-1-see-the-full-picture',
@@ -74,6 +78,14 @@ assert.match(podmanDeploy, /RUNTIME_ACTIVE_RECEIPT_HOST_DIR/, 'deployment must b
 assert.ok(
   activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired lifecycle state must be staged before the legacy selector changes',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" select') < activation.lastIndexOf('write_candidate_readyz_receipt'),
+  'candidate readiness receipt must be derived only after the desired selection is fenced',
+);
+assert.ok(
+  activation.lastIndexOf('write_candidate_readyz_receipt') < activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'candidate readiness receipt must be prepared before its view reaches consumers',
 );
 assert.ok(
   activation.lastIndexOf('trap restore_runtime_consumers ERR') <
@@ -198,6 +210,11 @@ const activationAttemptIndex = activation.lastIndexOf('activation_attempted=1');
 assert.ok(
   activationCommitIndex < activeMediaSmokeIndex,
   'the normal private media resolver must be verified only after the active receipt is committed',
+);
+const canonicalReceiptRebindIndex = activation.lastIndexOf('ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json"');
+assert.ok(
+  activationCommitIndex < canonicalReceiptRebindIndex && canonicalReceiptRebindIndex < activeMediaSmokeIndex,
+  'a successful lifecycle activation must rebind consumers to the canonical receipt before active media smoke',
 );
 assert.ok(
   activationAttemptIndex < activationCommitIndex,

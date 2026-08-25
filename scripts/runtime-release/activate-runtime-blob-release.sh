@@ -48,6 +48,9 @@ candidate_media_runtime_path=""
 activation_attempted=0
 post_activation_media_smoke_passed=0
 activation_generation=""
+candidate_receipt_dir=""
+candidate_receipt_path=""
+candidate_receipt_rebound=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -392,6 +395,25 @@ stage_lifecycle_desired() {
   lifecycle_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$snapshot")"
 }
 
+write_candidate_readyz_receipt() {
+  local manifest_sha tree_sha
+  if [[ "$release_id" == "$old_active" ]]; then
+    candidate_receipt_path="$STATE_DIR/act-runtime-active-receipt.json"
+    return 0
+  fi
+  manifest_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["manifestSha256"])' "$lifecycle_identity")"
+  tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["treeSha256"])' "$lifecycle_identity")"
+  candidate_receipt_dir="$(mktemp -d "$STATE_DIR/.act-runtime-candidate-receipt.XXXXXX")"
+  chmod 0755 "$candidate_receipt_dir"
+  python3 "$HOST_STATE_SCRIPT" candidate-readyz-receipt \
+    --state-dir "$STATE_DIR" \
+    --release-id "$release_id" \
+    --manifest-sha256 "$manifest_sha" \
+    --tree-sha256 "$tree_sha" \
+    --receipt-dir "$candidate_receipt_dir" >/dev/null
+  candidate_receipt_path="$candidate_receipt_dir/act-runtime-active-receipt.json"
+}
+
 restore_rebuild_backup() {
   [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]] || return 0
   local final_view="$VIEW_ROOT/views/$release_id"
@@ -446,6 +468,11 @@ cleanup_lifecycle_identity() {
   if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" && "$post_activation_media_smoke_passed" != "1" ]]; then
     restore_rebuild_backup
   fi
+  if [[ -n "${candidate_receipt_dir:-}" && -d "$candidate_receipt_dir" ]] && \
+    { [[ "$candidate_deploy_attempted" != "1" ]] || [[ "$candidate_receipt_rebound" == "1" ]]; }; then
+    rm -rf -- "$candidate_receipt_dir"
+    candidate_receipt_dir=""
+  fi
 }
 
 trap cleanup_lifecycle_identity EXIT
@@ -454,6 +481,7 @@ restore_runtime_consumers() {
   local status=$?
   set +e
   local restored_rebuild=0
+  local recovery_receipt_rebound=0
   if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
     restore_rebuild_backup
     restored_rebuild=1
@@ -489,14 +517,14 @@ restore_runtime_consumers() {
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
-        APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+      APP_IMAGE="$rollback_app_image" \
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&- && recovery_receipt_rebound=1
     elif [[ "$lifecycle_active_release" != "$release_id" ]]; then
       RUNTIME_DELIVERY_MODE=legacy-rsync \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
         RUNTIME_CONTENT_DIR="$LEGACY_RUNTIME_ROOT" \
-        APP_IMAGE="$rollback_app_image" \
-        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+      APP_IMAGE="$rollback_app_image" \
+        "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&- && recovery_receipt_rebound=1
     elif [[ "$restored_rebuild" == "1" ]]; then
       if RUNTIME_DELIVERY_MODE=ossfs-blob-view \
         ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
@@ -504,9 +532,15 @@ restore_runtime_consumers() {
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
         APP_IMAGE="$rollback_app_image" \
         "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-; then
+        recovery_receipt_rebound=1
         cleanup_rebuild_failed
       fi
     fi
+  fi
+  if [[ "$recovery_receipt_rebound" == "1" ]]; then
+    candidate_receipt_rebound=1
+  elif [[ -n "${candidate_receipt_dir:-}" && -d "$candidate_receipt_dir" ]]; then
+    echo "WARN: candidate readiness receipt is retained because canonical receipt rebind did not complete" >&2
   fi
   cleanup_lifecycle_identity
   exit "$status"
@@ -599,13 +633,14 @@ python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
+write_candidate_readyz_receipt
 trap restore_runtime_consumers ERR
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
 candidate_current_selected=1
 candidate_deploy_attempted=1
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
-  ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+  ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$candidate_receipt_path" \
   RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
   APP_IMAGE="$rollback_app_image" \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
@@ -643,6 +678,17 @@ else
     echo "ERROR: lifecycle activation did not commit the candidate release" >&2
     exit 1
   }
+fi
+if [[ -n "$candidate_receipt_dir" ]]; then
+  RUNTIME_DELIVERY_MODE=ossfs-blob-view \
+    ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
+    ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+    RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
+    APP_IMAGE="$rollback_app_image" \
+    "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
+  source "$ENV_FILE"
+  wait_for_readyz
+  candidate_receipt_rebound=1
 fi
 run_active_media_resolver_smoke
 post_activation_media_smoke_passed=1
