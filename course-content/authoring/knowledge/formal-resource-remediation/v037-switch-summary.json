@@ -1,0 +1,17 @@
+{
+  "contract": "remediation-authority-v037-switch/v1",
+  "sealedAt": "2026-08-24",
+  "newAllocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "compatibilityReceiptHash": "9f6cee60e27e609e",
+  "steps": {
+    "checkout": "19 v0.37 artifacts (47MB) checked out from git tag d377455e into knowledge/releases/control-theory-engineering-v0.37/",
+    "compatibility": "schema sha byte-identical (4850ed2e…), zero member removal, +176 additions, COMPATIBLE_INCREMENT",
+    "allocation": "resealed with v0.37 capture (releaseHash cc73fa15…, sourceDatasetHash 2f7f8245…)",
+    "hotwords": "28 unit manifests resealed under the new allocation",
+    "processingRecords": "28 ASR records allocationHash updated",
+    "crosswalk": "extended to 7,476 members (+176, domain pending review)",
+    "decisions": "846 domain decisions (root-locus 309 + RSA 582 + RSA pending references) migrated with semantics unchanged"
+  },
+  "preservedAssets": ["transcripts 172k chars", "147k word timestamps", "1170 audio segments", "text atoms", "all course-owner rulings"],
+  "pending": ["RSA 14 handout-gap member confirmation (now falls under the new allocation)", "176 new-member domain assignment and incremental review", "remaining 13 domain closures"]
+}

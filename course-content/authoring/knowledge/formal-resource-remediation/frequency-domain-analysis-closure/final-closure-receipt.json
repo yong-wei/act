@@ -1,0 +1,37 @@
+{
+ "contract": "remediation-final-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "domain": "frequency-domain-analysis",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 954,
+ "packRows": 2862,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 93,
+  "NO_RELATION": 2769,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "edgeEndpoints": {
+  "count": 93,
+  "byFamily": {
+   "containment": 31,
+   "prerequisite": 31,
+   "association": 31
+  },
+  "courseRootCount": 0
+ },
+ "newMemberContribution": {
+  "members": 2,
+  "rows": 6,
+  "publishedEdges": 0
+ },
+ "supersedes": {
+  "artifact": "successor-closure-receipt.json",
+  "sha256": "72e0254195b5391ac25218eb885a65a1db3378b52cda345d4a750930df1622ee"
+ },
+ "decisionsProvenanceSha256": "2843a27861530fb0a1ea20c2b07565bc853c530421d5ff255f286d9e183d609e",
+ "newMemberDecisionsProvenanceSha256": "4a135bbbe561722387bc1770ced1903d8a847485fff990faf9387f53f752ec34",
+ "closureComplete": true
+}

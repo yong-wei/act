@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "issue": 1454,
+  "route": "/ai",
+  "routeFile": "src/app/ai/page.tsx",
+  "routeArchetype": "knowledge-data-map",
+  "dockState": "hidden",
+  "captureRevision": "2cbb9573438b87ff29f9d39d73a09bc5635b39ca",
+  "captureTime": "2026-08-24T06:07:52.198Z",
+  "generator": "tests/ai-workshop-evidence-1454.spec.ts",
+  "baseUrl": "http://127.0.0.1:3101",
+  "runtime": {
+    "runtimeRevision": "2cbb9573438b87ff29f9d39d73a09bc5635b39ca",
+    "runtimeRevisionSource": "dedicated local dev server started from a clean capture worktree at captureRevision",
+    "session": "authenticated student fixture: demo",
+    "expectedState": "server-owned learner-state projection; no sample learner data is rendered",
+    "sourceWorktreeCheck": "clean capture worktree verified before capture; no source or user-owned files were dirty"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "ai-workshop-desktop.png",
+      "sha256": "5eeef659f9d3e71bad8ed21a6fd71842809cad1ed594349497bd17791161f21b"
+    },
+    {
+      "name": "desktop-collapsed",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "ai-workshop-desktop-collapsed.png",
+      "sha256": "78573688ae0f30fb7f259e60979669acbb9660708ce58b8204649d0a167b0f7d"
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 900,
+      "screenshot": "ai-workshop-mobile.png",
+      "sha256": "0b3640e7e2bfab208c5ee1b80ccc0f865acb1b71991962cb609d9f4eea17a90a"
+    },
+    {
+      "name": "mobile-drawer",
+      "width": 320,
+      "height": 900,
+      "screenshot": "ai-workshop-mobile-drawer.png",
+      "sha256": "b9516669fa54bd97e15cea2db1e709ee6e2c6afc6e4c5c65489b51c601ffb8f6"
+    }
+  ],
+  "sourceFiles": [
+    { "path": "src/app/ai/page.tsx", "sha256": "7705fe21cc763d55f07ee369e10a8895c8ea11ce150d6f9bb72b173acb0716ac" },
+    { "path": "src/features/ai/ai-workshop-evidence.ts", "sha256": "d666265dffe8da11de792f8682ce49f536a1f0a1e47581c3b604f239cc8d4632" },
+    { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "e6400a5dd45480cdc2cc171c8c018d51ad082153713b430cb6e1f58a48549196" },
+    { "path": "src/features/ai/dashboard/learning-dashboard.tsx", "sha256": "b616b0b96020c236094af17c7d0d3117195b87e9a339524c95a5dc2551f9a588" },
+    { "path": "src/features/ai/compass/learning-compass.tsx", "sha256": "962e9863f3ca50ade016189b82f922fc9d982aa11781fe906ba1c13dbb632a81" },
+    { "path": "src/features/ai/tasks/task-matrix.tsx", "sha256": "a4a733f21eb8848eecef156bcc47d9a8e15b6c5c02dae47990293e81d8cf52d7" },
+    { "path": "src/features/ai/archive/experiment-archive.tsx", "sha256": "89a5281f5e60b28a11718c345fe154e19e433e07237f49aa0786c2d4dcd985c1" },
+    { "path": "src/features/ai/journal/journal-carousel.tsx", "sha256": "bfed92b5a1c8fa2ddc7422a3e28b8536f1e751d7fcaaa80949a7a490bf9dcd29" },
+    { "path": "tests/ai-workshop-evidence-1454.spec.ts", "sha256": "40f6424d46bda4317a10943359ba97484067527323805fff6ba44c6bfec0774d" }
+  ],
+  "assertions": {
+    "httpStatus": 200,
+    "tasksEmptyStateVisible": true,
+    "sample120MinutesAbsent": true,
+    "sample85PercentAbsent": true,
+    "desktopBodyAndDocumentWidthWithinViewport": true,
+    "mobileBodyAndDocumentWidthWithinViewport": true,
+    "playwrightResult": "2 passed",
+    "authenticatedStudentSession": true,
+    "zeroMetricsAbsent": true,
+    "missingEvidenceCacheDoesNotRenderZeroMetrics": true,
+    "sourceCoverageRenderedInStudentLanguage": true,
+    "journalEmptyStateUsesPortfolioReflectionContext": true,
+    "emptyStateActionsReachable": true,
+    "mobileCanvasFirstViewportTaskVisible": true,
+    "mobileDrawerNavigationReachable": true
+  },
+  "commercialRouteEvidence": {
+    "href": "/ai",
+    "viewports": [
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://127.0.0.1:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "desktop-expanded",
+        "horizontalOverflow": false
+      },
+      {
+        "width": 1440,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-desktop-collapsed.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://127.0.0.1:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "desktop-collapsed",
+        "horizontalOverflow": false
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://127.0.0.1:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "mobile-drawer",
+        "drawerOpen": false,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 320,
+        "screenshot": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/ai-workshop-mobile-drawer.png",
+        "artifact": "artifacts/commercial-ui/issue-1454-ai-workshop-evidence/browser-evidence.json",
+        "routeFile": "src/app/ai/page.tsx",
+        "routeArchetype": "knowledge-data-map",
+        "dockState": "hidden",
+        "requestedRoute": "/ai",
+        "finalUrl": "http://127.0.0.1:3101/ai",
+        "role": "student",
+        "authState": "authenticated",
+        "theme": "dark",
+        "navigationState": "mobile-drawer",
+        "drawerOpen": true,
+        "horizontalOverflow": false
+      }
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npx prisma generate",
+      "npm run typecheck",
+      "npx vitest run src/features/ai/__tests__/ai-workshop-evidence.test.ts src/lib/__tests__/adaptive-learning-center-ui.test.ts",
+      "PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 npx playwright test tests/ai-workshop-evidence-1454.spec.ts --workers=1",
+      "openspec validate project-ai-workshop-evidence-backed --type change --strict",
+      "openspec validate --specs --strict",
+      "git diff --check"
+    ],
+    "result": "passed"
+  }
+}

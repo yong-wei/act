@@ -1,0 +1,3519 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "domain": "root-locus",
+ "memberCount": 104,
+ "edgeCount": 45,
+ "bindingCount": 360,
+ "fragmentHash": "5ba052e9e317595fc9359eece8607a1ad2ea81ed4f4155b16712b89c1eeb11f8",
+ "members": [
+  {
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "excluded": false,
+   "label": "根轨迹与虚轴交点处的K值，即系统临界稳定时的开环增益。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "excluded": false,
+   "label": "The value of the nth self-loop transmittance in Mason's signal-flow gain formula.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "excluded": false,
+   "label": "反馈路径根轨迹增益",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "excluded": false,
+   "label": "一型系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "excluded": false,
+   "label": "欠阻尼系统",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "excluded": false,
+   "label": "闭环系统特征方程式的根，即闭环传递函数的极点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "excluded": false,
+   "label": "埃文斯根轨迹构造法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "excluded": false,
+   "label": "稳定时间",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "excluded": false,
+   "label": "出射角",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "excluded": false,
+   "label": "滞后补偿",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "excluded": false,
+   "label": "废气传感器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+   "excluded": false,
+   "label": "虚轴穿越",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "excluded": false,
+   "label": "A measure of the sensitivity of the system performance to specific parameter changes, given by S_K^T(s) = (∂T(s)/T(s)) / (∂K/K), where T(s) is the system transfer function and K is the parameter of interest.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "excluded": false,
+   "label": "首一多项式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "excluded": false,
+   "label": "等效单位反馈系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "excluded": false,
+   "label": "集总参数电路",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "excluded": false,
+   "label": "The slope parameter characterizing the reaction curve, computed as R = M/τ where M is the steady-state magnitude and τ is the time constant.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "excluded": false,
+   "label": "图形增益计算方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "excluded": false,
+   "label": "特征方程",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+   "excluded": false,
+   "label": "根轨迹分支",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "excluded": false,
+   "label": "A network composed of distributed R and C elements, with an attenuation slope of 10n dB/decade, where n is the order of the RC filter.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "excluded": false,
+   "label": "分离点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "excluded": false,
+   "label": "The period of the sustained oscillations, denoted by P_U, used in the closed-loop Ziegler-Nichols tuning method.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "excluded": false,
+   "label": "回路传递函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "excluded": false,
+   "label": "绘制根轨迹的七个步骤",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "excluded": false,
+   "label": "渐近线",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "excluded": false,
+   "label": "A system whose transfer function has a zero in the right half-plane (RHP).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+   "excluded": false,
+   "label": "两步参数设计法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "excluded": false,
+   "label": "根轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "excluded": false,
+   "label": "正反馈系统",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "excluded": false,
+   "label": "过阻尼系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "excluded": false,
+   "label": "闭环传递函数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "excluded": false,
+   "label": "A compensation scheme used to achieve stability for systems with lightly damped flexible modes, particularly with noncollocated actuator and sensor.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "excluded": false,
+   "label": "齐格勒-尼科尔斯PID整定方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "excluded": false,
+   "label": "A method to eliminate oscillation by lowering the loop gain at high frequency to reduce spillover into lightly damped flexible modes.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "excluded": false,
+   "label": "负反馈系统中根轨迹增益 K* 变化时的根轨迹称为常规根轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "excluded": false,
+   "label": "前向通路传递函数中时间常数形式表示的增益，记为K_G。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "excluded": false,
+   "label": "A variable parameter in the characteristic equation 1+KG(s)=0, where 0 ≤ K < ∞.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "excluded": false,
+   "label": "The percentage by which the output response exceeds the final value in response to a step input.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "excluded": false,
+   "label": "A method to select controller parameters by sketching the root locus as a function of a parameter and determining root values for various gains.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "excluded": false,
+   "label": "静态速度误差常数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "excluded": false,
+   "label": "The finite error that remains after the output response follows a ramp input.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "excluded": false,
+   "label": "PID整定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "excluded": false,
+   "label": "开环传递函数的零点，在根轨迹法中为已知量。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "excluded": false,
+   "label": "The measured output from an open-loop step input, assumed to have the general shape of a first-order system with a transport delay, characterized by transport delay ΔT and reaction rate R.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "excluded": false,
+   "label": "到达角",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "excluded": false,
+   "label": "阻尼比",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "excluded": false,
+   "label": "振荡频率",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "excluded": false,
+   "label": "当闭环两个实数极点重合时，系统为临界阻尼系统，单位阶跃响应仍为非周期过程，但响应速度较快。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "excluded": false,
+   "label": "以非开环增益为可变参数绘制的根轨迹称为参数根轨迹，以区别于以开环增益 K 为可变参数的常规根轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "excluded": false,
+   "label": "应答器标签",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "excluded": false,
+   "label": "四分之一幅值衰减",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "excluded": false,
+   "label": "反应曲线参数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "excluded": false,
+   "label": "The roots of b(s)=0, labeled z_i.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "excluded": false,
+   "label": "The condition at which the system is on the verge of instability, characterized by purely imaginary roots.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "excluded": false,
+   "label": "根轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "excluded": false,
+   "label": "The roots of a(s)=0, labeled p_i.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "excluded": false,
+   "label": "广义根轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "excluded": false,
+   "label": "开环增益",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "excluded": false,
+   "label": "反馈通路传递函数H(s)=1的反馈控制系统。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "excluded": false,
+   "label": "积分控制器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "excluded": false,
+   "label": "A trick used to compute angles of arrival and departure from a point of multiple roots by plotting a root locus for an initial range of K and then continuing with a new parameter.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "excluded": false,
+   "label": "时间延迟",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "excluded": false,
+   "label": "A technique used to meet nitrogen oxides (NOx) emissions standards by recirculating exhaust gas.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "excluded": false,
+   "label": "等效开环传递函数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "excluded": false,
+   "label": "在复杂控制系统设计中，由于某种性能指标要求而必须包含的正反馈内回路。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "excluded": false,
+   "label": "The angle φ_A that the asymptote makes with respect to the real axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "excluded": false,
+   "label": "三元催化器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "excluded": false,
+   "label": "零极点偶极子",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "excluded": false,
+   "label": "The sensitivity of the roots as a parameter changes from its normal value.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "excluded": false,
+   "label": "最终增益",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "excluded": false,
+   "label": "渐近线质心",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "excluded": false,
+   "label": "滤波器补偿器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "excluded": false,
+   "label": "前向通路传递函数中分子多项式最高项系数归一化后的增益，记为K_G*。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "excluded": false,
+   "label": "A compensation scheme that approximates PD control, used to speed up response by lowering rise time and decreasing transient overshoot.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "excluded": false,
+   "label": "根轨迹法",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "excluded": false,
+   "label": "The time delay parameter characterizing the reaction curve in the open-loop Ziegler-Nichols tuning method.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "excluded": false,
+   "label": "开环极点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "excluded": false,
+   "label": "The process of determining the PID controller gains by trial-and-error with minimal analytic analysis.",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "excluded": false,
+   "label": "根轨迹增益",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "excluded": false,
+   "label": "主导根",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "excluded": false,
+   "label": "固有频率",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "excluded": false,
+   "label": "实轴根轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "excluded": false,
+   "label": "A point on the root locus where two or more roots come into the real axis.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "excluded": false,
+   "label": "A root locus plotted for negative values of the gain parameter K, also referred to as a 0° root locus.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "excluded": false,
+   "label": "G(s)=M\\left[\\frac{p}{s+p}\\right] e^{-\\Delta T s}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "excluded": false,
+   "label": "b_{M-1}=\\sum_{i=1}^{M} z_{i} \\quad \\text { and } \\quad a_{n-1}=\\sum_{j=1}^{n} p_{j}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "excluded": false,
+   "label": "S_{K}^{T}=-\\sum_{i=1}^{n} S_{K}^{r_{i}} \\cdot \\frac{1}{s+r_{i}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "excluded": false,
+   "label": "S_{K}^{T}=\\frac{\\partial \\ln \\mathrm{K}_{1}}{\\partial \\ln \\mathrm{~K}}-\\sum_{i=1}^{n} \\frac{\\partial r_{i}}{\\partial \\ln \\mathrm{~K}} \\cdot \\frac{1}{s+r_{i}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "excluded": false,
+   "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{p(s)}{q(s)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "excluded": false,
+   "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "excluded": false,
+   "label": "K^{*}=\\frac{\\prod_{i=1}^{n}\\left|s-p_{i}\\right|}{\\prod_{j=1}^{m}\\left|s-z_{j}\\right|}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "excluded": false,
+   "label": "1+\\frac{K}{\\left(s-\\sigma_{A}\\right)^{n-M}}=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "excluded": false,
+   "label": "G(s)=K_{G}^{*} \\frac{\\prod_{i=1}^{f}\\left(s-z_{i}\\right)}{\\prod_{i=1}^{q}\\left(s-p_{i}\\right)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "excluded": false,
+   "label": "b(s) = \\prod_{i=1}^{m}\\left(s-z_{i}\\right), \\quad a(s) = \\prod_{i=1}^{n}\\left(s-p_{i}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "excluded": false,
+   "label": "\\phi_{A}=\\frac{2 k+1}{n-M} 180^{\\circ}, k=0,1,2, \\ldots,(n-M-1)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "excluded": false,
+   "label": "\\begin{aligned}\nG_{c}(s) & =G_{P I}(s) G_{P D}(s) \\\\\n& =\\left(\\hat{K}_{P}+\\frac{\\hat{K}_{I}}{s}\\right)\\left(\\bar{K}_{P}+\\bar{K}_{D} s\\right) \\\\\n& =\\left(\\bar{K}_{P} \\hat{K}_{P}+\\hat{K}_{I} \\bar{K}_{D}\\right)+\\hat{K}_{P} \\bar{K}_{D} s+\\frac{\\hat{K}_{I} \\bar{K}_{D}}{s} \\\\\n& =K_{P}+K_{D} s+\\frac{K_{I}}{s}\n\\end{aligned}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "excluded": false,
+   "label": "G_{P D}(s)=\\bar{K}_{P}+\\bar{K}_{D} s",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "excluded": false,
+   "label": "\\sum_{j=1}^{m} \\angle\\left(s-z_{j}\\right)-\\sum_{i=1}^{n} \\angle\\left(s-p_{i}\\right)=(2 k+1) \\pi",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "excluded": false,
+   "label": "D_{c}(s)=K \\frac{s+z}{s+p}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "excluded": false,
+   "label": "\\prod_{i=1}^{n}\\left(s-p_{i}\\right)+K^{*} \\prod_{j=1}^{m}\\left(s-z_{j}\\right)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "excluded": false,
+   "label": "知识命题：The locus of the roots of the characteristic equation 1+K P(s)=0 begins at the poles of P(s) and ends at the zeros of P(s) as K increases from zero to infinity.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "excluded": false,
+   "label": "根轨迹图",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "excluded": false,
+   "label": "A system possessing the reaction curve can be approximated by a first-order system with a transport delay, with transfer function G(s)=M[p/(s+p)]e^{-ΔT s}.",
+   "zeroResource": true
+  }
+ ],
+ "edges": [
+  {
+   "source": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "association",
+   "target": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "882883023cdf8cc4a517d9ff5624ffe3d11aa2e2bc3d7f9fcb745731b8c9947e",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "containment",
+   "target": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "b2cc68f8df185a65a8a271203de0591140e3e12e9e98dfb7671c1154dce771a9",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "prerequisite",
+   "target": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "3fe9e317da6e05e9a733f2a91261a583e64c44327de379c96453d079485c4f0e",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "association",
+   "target": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "e3962bd3d3da208c73375b28283840380dad81d802d22f7a3e95f83e4c32fe96",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "6a8a07ba82137487a9f6b105173f0f56165410c996446ef2445b6148335e21df",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "prerequisite",
+   "target": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "1078ac5f478d44c84e854de8f89b62311b75060976e6420c9aaac97fbda5241d",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "association",
+   "target": "ctc:v11g-01781c7700bbf33340d39614",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "92a58e0ce021702e6ee20a66860d45f3b6530daa506b5b5dc21756d3e05c5325",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "ed5aa9a4833f0bf5adff6217c0167b09ae4bf10615ef13675a3e5f9e42a0ec8d",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "prerequisite",
+   "target": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "bdfe234e3f92454135a79964ccfedeced82bd1d7e9b9269ead34d7d711e47308",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "association",
+   "target": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "74ee54ad596d427c32debdbe692044955380dcc7167adaf17cfd1984be532963",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "containment",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "0a915814ba216add9275a92408556073c6cef5bbe1f18c3180c1f5ea17eb563a",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "prerequisite",
+   "target": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "086b596af5e1450db6683c7192b1d4f1764865cdb5e8f5eb69ad5fc2062d1b0b",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "association",
+   "target": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "ba73b80fb2b4e2083c82c4dc086e5c08bd73ee51b066c1ab5894f8cf9d0847f0",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "036f702a1fe481c3420a83fa1b98966f0d529c0723a6fef9b76b6bc5dffb0bc0",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "prerequisite",
+   "target": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "86241bafc1ad097f32857db7933c3f71860ea84950491d9394d51da0d2af34c6",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "association",
+   "target": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "1fa2c0627b64a633789dc70e8e23d191ca34eaf74215dd52f2d670021ccda764",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "containment",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "3e1efbe723373c1b53c4a4c2b8faf5baee0954ddb1945073c86d77720c1d3d8b",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "prerequisite",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "2cd405d224b5848a44893a210332fb0ba187c6f24f08346ea37e183ff74f1727",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "association",
+   "target": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "68683fa3ac3e967aea980d67dd65db905e8fb8a5df53a94dff6d68371fa73c55",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "containment",
+   "target": null,
+   "kind": "COURSE_ROOT",
+   "edgeId": null,
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "prerequisite",
+   "target": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "402a6d97facaef4a70e3dde61315475d6379bc3bb1d34582c08b5a5fd93695b7",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "association",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "f904def7121492aed56504a23f717b7e717419b483fc9a5443e7bb331ae859a1",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "containment",
+   "target": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "504c48158b260fe1a11f8adad0e70d196846bfa5511ca248c351827fd0afee45",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "prerequisite",
+   "target": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "851098986b1c9f1b648f1c9f999e181744e7d969c04dd18a558022e452c02763",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "association",
+   "target": "ctc:v11g-1ebbddfa13931f700f437271",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "6cbb17d3b29da3c03acf258724b0b8b6d443f33811f072259cd2e1347aee4378",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "8f25594042749e467a24c64a04b13d6108a9c06693de84d9615362a65172d89e",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "prerequisite",
+   "target": "ctc:v11g-95859dcad651c20058bf8726",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "967d0d8edcb3493386432fb8d038656f830df57a2c2b2858234e77e56cf78027",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "association",
+   "target": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "3c4a301f6236eacba3d28f059e5c5f9774d598b599cb93dea45e9dbb122fc775",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "43c82414954deb285805cbd33fbeead29e6ca4cf428ece9d1a7174299b3d7f59",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "prerequisite",
+   "target": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "27d898f7ed4f9cbb521ea4053f23ce530649d250d993fc4cfc25b47f6aa028a4",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "association",
+   "target": "ctc:v11g-546566f01ae374379ec78c1e",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "08c48da6dd9d4440ce7b2231efabfd2d61bf2771793f59d2149ac798d7fdd0e1",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "containment",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "2e9d9fc29de5badc349bf8d787f7e8cd662fdf4bd571c8c14fe27e3416fa2edc",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "prerequisite",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "422acb843b9f1fa485caa3c431462d9af3b04cc250f4742184e7efb9d47d3e6a",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "association",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "7c2d60e67d7671dde53638cb4a87b5850ffa0472eb5ef25ebcb14b7f710f8043",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "20fcb7ed4e8870849a433de1bd517b389807b573ce123031dccd5326dbb834c3",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "prerequisite",
+   "target": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "a081850eb36d8c1172b2fa40e3c52b1c932f3947dc4991e39d60dd15b2dd2963",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "association",
+   "target": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "230745ce3d246e70ecdb340b61dfba8c2796147f66c71150a173bc0ffe9197e0",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "containment",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "7b2111359d2aa1acba7f45cfc7583db0eba47006c7ec47e6ea5b4d5fc6b280bd",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "prerequisite",
+   "target": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "3f71aed6d01be563f4c86874cc988856276331b5f3d17cdf41952e4253979993",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "association",
+   "target": "ctc:v11g-462227b4794133f894bdd0a8",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "bf930c86962a29df924876f6ec542582d55af0c97c1db76f65ed4b9f445a287d",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "containment",
+   "target": "ctc:v11g-5845390ded447e37f06ea222",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "8a67e9698789df558eff38134b755978f67e2619f6b4b14536884a84dc40961e",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "prerequisite",
+   "target": "ctc:v12g-b6ec19cda5342874277159e7",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "2119d147fe5d670716cc283f2c05f3e9c6bc5fa47da9d74d8c8298663f4fc6a2",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "association",
+   "target": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "98d21243a07eaa200a043ad16258b6af52eded65ab0899aed261bfdf9f8ed3a8",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "containment",
+   "target": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "cc87b93441d10a20c5b1f9d0f2870f50166aac7a547b06a5887b637c5cf8bdd0",
+   "domain": "root-locus"
+  },
+  {
+   "source": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "prerequisite",
+   "target": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "kind": "PUBLISHED_EDGE",
+   "edgeId": "8e332823b99b2a0dcd038bf21e2bf1a084915e0feaa161a5408f81d2346d7fe1",
+   "domain": "root-locus"
+  }
+ ],
+ "bindings": [
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-76a32a4c2bc9a57bc0650b2a",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-c026bd1790395c7714978f6d",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-f05da4e4db373ab5e2d59a53",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-27bd943134fefdcb60611a28",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-bc6dd1a60457c40dfe94308f",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-5ec19e461eb83f0a599e4a03",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-1ff4cb435d176a56d4e18e7e",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-614d9898af4334a1d2c63011",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-7781bb372fcf426e84e53945",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-b3864db07016ab3473a4491f",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-cd6ac29873a1874a17a6b722",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-a80bdaa8efe4e3217aff1874",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-35b4b4188e81f18847468289",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-b65be80f8bfaa768af6e9cb1",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-7978bb19d3c8203d9952e47f",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-af2b409482113a509ef184ed",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-a8becda760444227c2d788c7",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-4e1cfd6b915c56b8a6d41aab",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-广义根轨迹_4_30f5ea13",
+   "anchorId": "atom-c468031cf8d426cdd0d276c8",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_1_3",
+   "anchorId": "atom-1687d09bc0bdf268fae9a113",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_1_3",
+   "anchorId": "atom-b34577bc1a7d4d10d05af707",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_1_3",
+   "anchorId": "atom-05c0a3dab1924e5ec2f14e5a",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_1_3",
+   "anchorId": "atom-bebeb84d60a214dc59d0f850",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-51342fd58e9a21080102eefc",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-4fad13f75f4372f7d845b439",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-cc91ce605d888b847dfa739a",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-18868c4405daec2a82896de3",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-adc4f933078b9f2869f30975",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_3_d73dc120",
+   "anchorId": "atom-adbc79a2918aaf3973745301",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-585d6f06e3d0668f1a512f30",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-56423cbd448863dc2c94844b",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-4a25d6096dcdfb3b656d37f4",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-8cf140fb79a3095557ec8161",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-0507967bb6e0063923aeac87",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开环增益_6_9a930dd7",
+   "anchorId": "atom-1f9a81f0a921ae0729e7dec1",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_1_1",
+   "anchorId": "atom-3b01d7d8c6e0331338a2662e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_1_1",
+   "anchorId": "atom-81bb2d9f49feab4337dbc796",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_1_1",
+   "anchorId": "atom-785bd4f994ee195ba6f9dc2e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_1_1",
+   "anchorId": "atom-8b2eb44663c0de585920afab",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-1688b69ec9b1a15168ae10dd",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-8563144eb67d7335dcde7371",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-985a866de81708852227b88d",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-47c50c35d9e487792ed87b0e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-7d661456d857849ef9efe388",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-a6122ca5f7c812c312f5e18b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-2213cdf28ae57998303e777b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-d527f5bdbcf927402d0cc6fe",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-59ce647b6a6c72ab732e00ef",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-4c1567041f65253f4cce81fa",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-95025e542e98eafbd130224a",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-39c9081f1b66becde9cf6bd1",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-5f1a95b5f9526790c23a1b6f",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-3a1b1dd806c49a43e7705e37",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-b0d3c2d9fdb5b4974e7f2035",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-18d93ad5dff2f006531aa2b0",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-6650924db825312df54008d5",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-a59e46f7d456d13b731050bf",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-285366facf134caf4121fe92",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-7af8f0bc34bc8436c1215ba6",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹_4_c19f8854",
+   "anchorId": "atom-f0cfd657db21a6f2b645ac6f",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-b691586e9333f92abbd29002",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-9e484facba06cbeebad83bc3",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-b8e13ebd3a42e800e89a35c3",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-2ef826417fc11b7bc4586a00",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-585b1b6b3cf346bc3add24c1",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹图_4_290e12b6",
+   "anchorId": "atom-7f40c631b671001b935ab694",
+   "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-5ab76c194ea1c87a341b07a3",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-6a04ba9bf976e3e636a3a90f",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-fac50832469a2a29ca828d89",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-b6dfb372b3a14ec76c7d0342",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-a1f1d1e1bf9b2533a3df7904",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-0cd9a739dcc42384fb3562d8",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-e9cc267de6ccd62d281e1c4e",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-46285c4fad0b642b44960e94",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_2_e3f6c0c1",
+   "anchorId": "atom-8605d905776e8955d517c4c9",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-0dc3b2b4cf83776985b682a8",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-348c6c8f2390a913147388e8",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-32129673cfbfebd46165d78e",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-fe9ef1461dd2d624471cfce3",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-95985bebd07118d21e636dd2",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-3eab6dcf0d8c4a542b133f1a",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-5e1ac18a0758f44a11d8a6d2",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-1f6e4daceb83bb048fd38156",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-316a5843092bb3906b2c94f2",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-根轨迹法_4_4e598387",
+   "anchorId": "atom-e300062788eb81375a282cf2",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-正反馈系统_4_3cfad7f8",
+   "anchorId": "atom-feda407a51d628535383e9ac",
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-正反馈系统_4_3cfad7f8",
+   "anchorId": "atom-6b647135d789e52e31f06295",
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-正反馈系统_4_3cfad7f8",
+   "anchorId": "atom-5cfc08f36c588e168d3ffe0a",
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-正反馈系统_4_3cfad7f8",
+   "anchorId": "atom-a20d30e10f1cdb6441e936d5",
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-特征方程_1_2",
+   "anchorId": "atom-10fbe0c72d05ae993ae8145d",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-特征方程_1_2",
+   "anchorId": "atom-6c05bdfe6e57352059d930d2",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-特征方程_1_2",
+   "anchorId": "atom-c5e39e2ca476f90983005755",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-特征方程_1_2",
+   "anchorId": "atom-f0ffdb36b51db47c703a1606",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-e99b93c051ede0812ce6346d",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-8006db2843e7ca05b0b2ff85",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-dabeb3e66e1963a62f80f366",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-473fc17fbdcc9c397209d56a",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-e6874fb497987acd53c762ad",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效开环传递函数_6_4575b989",
+   "anchorId": "atom-18fdda1be8186adb051aade9",
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-cae920b953d4c72f71c1e189",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-acbb024eb1d4326682897544",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-54b6ee1c078ab10f0868e344",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-bbdba4fdd3fe5b251a5eb265",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-fc69d834fa4ae13b190e1624",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-f91f9154dc5ce3f84c43ada1",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-2c9692c3141c45e04c3bd300",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-3061054e112c97f1c224c3ab",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-c0a1964464570d4bda2ba9f2",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_2_5399c369",
+   "anchorId": "atom-6d5fe3a4aa064d69b2e4af7f",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-9d0d384df897ac86a13987bd",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-ad0123138e6336e5eebceb97",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-b6dc2eac40824b2b9e5c8699",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-e7304dfb8c3578106a6fe7f7",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-878a86978548264ac8717f91",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-闭环传递函数_4_8325ffbe",
+   "anchorId": "atom-519701f4f23ecd38f1b0a14a",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-d97258d86bb7bd9184393f9b",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-5c9440ecfcd229430e5dd685",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-1f7db9fcbc99fd929a4a5ede",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-641be73cbd2b69e1d2eb0861",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-289206f60ca38644f0d37dd3",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-0ee78b72faf3061818cab418",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-380f148590dd4bc6461d6de2",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-2a94c85755b77200a6a7c29a",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-a971336e8b28e4c4cb7c7d20",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_3_b849784e",
+   "anchorId": "atom-f51ef1a87742a87324af1b40",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-a7ca157059d2d190b13ac5a2",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-3a2f26fd32b85286d9a57337",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-3c086862a8bec8eb987dbd5f",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-ac586f9001850c5681529f77",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-049a6e2fa77ca74fdc609815",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-6a49d3559b6b74d031dfdf00",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-阻尼比_4_bf7557b3",
+   "anchorId": "atom-93a75a21b35abd5c6e053413",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-27",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-27",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-28",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-28",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-30",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-1",
+   "anchorId": "1-1-seg-30",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-2",
+   "anchorId": "1-2-seg-45",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-1-2",
+   "anchorId": "1-2-seg-48",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-12",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-14",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-16",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-18",
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-24",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-25",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-2",
+   "anchorId": "2-2-seg-29",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-36",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-37",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-2-4",
+   "anchorId": "2-4-seg-38",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-1",
+   "anchorId": "3-1-seg-5",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-4",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-4",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-4",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-9",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-12",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-31",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-35",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-40",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-2",
+   "anchorId": "3-2-seg-40",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-6",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-6",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-6",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-9",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-9",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-12",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-12",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-18",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-28",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-31",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-31",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-31",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-32",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-32",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-32",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-36",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-38",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-38",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-39",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-39",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-45",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-45",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-45",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-47",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-47",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-48",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-3",
+   "anchorId": "3-3-seg-48",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-3",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-3",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-5",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-5",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-9",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-10",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-10",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-11",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-15",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-15",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-15",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-17",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-17",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-17",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-29",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-30",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-31",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-31",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-32",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-32",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-33",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-33",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-35",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-35",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-37",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-39",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-39",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-39",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-1",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-5",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-5",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-6",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-9",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-9",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-11",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-11",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-12",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-12",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-16",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-18",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-18",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-42",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-42",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-5",
+   "anchorId": "3-5-seg-42",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-7",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-17",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-17",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-19",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-19",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-23",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-23",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-23",
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-31",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-31",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-33",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-8",
+   "anchorId": "3-8-seg-12",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-16",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-16",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-42",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-42",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-46",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-9",
+   "anchorId": "3-9-seg-46",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-1",
+   "anchorId": "4-1-seg-31",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-5",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-41",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-6",
+   "anchorId": "4-6-seg-41",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-21",
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-39",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-39",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-34",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-3",
+   "anchorId": "5-3-seg-3",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-3",
+   "anchorId": "5-3-seg-3",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-366ef96bc591bc21c637dcd9",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-366ef96bc591bc21c637dcd9",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-90109dcd63323be12ebb3026",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-90109dcd63323be12ebb3026",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-cd9dcab91aa7967b8008caad",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-1",
+   "anchorId": "atom-cd9dcab91aa7967b8008caad",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-6af67b22b3e153f7c83a957c",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-2",
+   "anchorId": "atom-ee4c85036bb52304f22b8661",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-e1bd331552f87d0cca5a0b09",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-219fecf681466bda0b26e83d",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-c28bce89ae483c50bfe133fc",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-5469079498053969f4cfac03",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-90e7256b9dda482217346b96",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-90e7256b9dda482217346b96",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-d769333dc8d1a0bf116244ab",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-3",
+   "anchorId": "atom-d769333dc8d1a0bf116244ab",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-4",
+   "anchorId": "atom-7bb972a83002bb8ca48c4bb5",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-ce38020897215c3033237d55",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-1-5",
+   "anchorId": "atom-b6d9c70dd690989c2b099af7",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-1",
+   "anchorId": "atom-0c52f1bce20de13db9944859",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-8a0ff6e97598737de6dcad48",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-08030634e72f7029889c8593",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-bd6c1fef96d052054ca91a2c",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-bd6c1fef96d052054ca91a2c",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-74762e41578c997e7e9502b3",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-3",
+   "anchorId": "atom-0f41563a59b21fed0a28cf37",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-4",
+   "anchorId": "atom-74f1d0970ac9a3db4e06e499",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-4d9795e7e0faae73b6cdc28a",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-cf554fa3009b09b762b1cb2f",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-725f3cfca9d52dc624225b2b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-725f3cfca9d52dc624225b2b",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-fea0f049c652a7a963434229",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-2",
+   "anchorId": "atom-fea0f049c652a7a963434229",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-ebcb8864e666071aa1a0ffba",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-ebcb8864e666071aa1a0ffba",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-684d1db68ba061cb7f19a3fa",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-684d1db68ba061cb7f19a3fa",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-312f84a6416290970517afff",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-795ff40fa4a9989e3419cb43",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-27a04523e7178c74a2e4f98b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-27a04523e7178c74a2e4f98b",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-9173e7183906f4d3fc751b9e",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-6a8e71f51cd3a14b556d2d42",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-e9b4eb2f7860988513b011a5",
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-b5bb9123541a328dd854f278",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-623e7a74d01d55c2ce8c19b3",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-3",
+   "anchorId": "atom-88935bfaa12690bbcd70ffee",
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-73e2cdb59778cc4582f2d78e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-73e2cdb59778cc4582f2d78e",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-e10f4b498baa6b7f2be90a1f",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-e2775589ba24534143064d4b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-e2775589ba24534143064d4b",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-e2775589ba24534143064d4b",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-63c34a7a69c35f8dc0ddf031",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-37f5b3bb1f870225f9725793",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-933007435969a8a7efdbec8b",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-618471abe561e240e891293b",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-618471abe561e240e891293b",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-618471abe561e240e891293b",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-53b85581837065b206e4e6e8",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-53b85581837065b206e4e6e8",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-53b85581837065b206e4e6e8",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-8e561d432f983ea84ae5446f",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-8e561d432f983ea84ae5446f",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-8e561d432f983ea84ae5446f",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-6db369f10fcb28c5d86f1bc1",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-6db369f10fcb28c5d86f1bc1",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-266b180baf9e574e4335ab0d",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-266b180baf9e574e4335ab0d",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-a87444552fc1e1d53d5a612f",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-5",
+   "anchorId": "atom-40f57369422105478c93348c",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-0285d3fe3a97cc3dfbc3ab3d",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-0285d3fe3a97cc3dfbc3ab3d",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-38b19ac86865c71cb06a39a1",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-f525a1da22c35b8693414009",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-f525a1da22c35b8693414009",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-429e58cb23c4a85814cf0865",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-25888e1df3df3de8c5a24985",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-25888e1df3df3de8c5a24985",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-ba9158215ecd12fb0ca98bee",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-ba9158215ecd12fb0ca98bee",
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-6",
+   "anchorId": "atom-ba9158215ecd12fb0ca98bee",
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-a64790cd35c23793811c6cc0",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-95b7c86a205bab8870872cb5",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-e11e7664d86f46d12eea2a9e",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-2",
+   "anchorId": "atom-e727bfb6b9122d6b91c236cd",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-1e0bd924ae075d32c2e783b4",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-5",
+   "anchorId": "atom-e2bc1a787f29f2b00a10ce66",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-4-6",
+   "anchorId": "atom-c8398c29be64bd30b7ee9b64",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-5",
+   "anchorId": "atom-cc8d3e0843bcdcf6c160fae7",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-5",
+   "anchorId": "atom-98c2c61d9b83e7f4e12e8731",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-5",
+   "anchorId": "atom-78dd170a1cddcfe83b7d1882",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-1",
+   "anchorId": "1-1/step-09/step9_q1",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-03/pre-feedback",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-08/meeting-point",
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-10/post-definition",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-3",
+   "anchorId": "1-3/step-10/post-gain",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-1-4",
+   "anchorId": "1-4/step-03/feedback-denominator",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-2-2",
+   "anchorId": "2-2/step-08/step-08:response",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-3-4",
+   "anchorId": "3-4/step-13/step-13:response",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-3-6",
+   "anchorId": "3-6/step-06/step-06-activity",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  }
+ ]
+}

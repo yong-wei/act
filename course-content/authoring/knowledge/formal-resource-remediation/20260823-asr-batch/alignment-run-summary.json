@@ -1,0 +1,7 @@
+{
+ "contract": "remediation-asr-alignment-run/v1",
+ "sealedAt": "2026-08-24",
+ "unitCount": 28,
+ "totalWords": 146785,
+ "aligner": "Qwen3-ForcedAligner-0.6B-hf (cpu, fp32, 55s windows)"
+}

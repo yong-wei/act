@@ -1,0 +1,6461 @@
+{
+ "contract": "remediation-domain-closure-receipt/v1",
+ "sealedAt": "2026-08-25",
+ "domain": "robustness-sensitivity-analysis",
+ "packId": "rp-a53ca33bd0e6e23d4a772789",
+ "packRows": 627,
+ "totalDecisions": 627,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 41,
+  "NO_RELATION": 586,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "memberClasses": {
+  "C-out-of-scope": 9,
+  "A": 186,
+  "C-handout-gap": 14
+ },
+ "droppedInvalidIds": 0,
+ "allocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+ "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles + confirmed codex suggestions)",
+ "closureComplete": true,
+ "outcomes": [
+  {
+   "canonicalId": "ctkg:domainconcept:02015f2f2580a38840cfec63",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L3",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:02015f2f2580a38840cfec63",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L3",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:02015f2f2580a38840cfec63",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L3",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L4",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L4",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L4",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L5",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L5",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L5",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:06e510e5b8555b4f541cdfc6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L7",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:06e510e5b8555b4f541cdfc6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L7",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:06e510e5b8555b4f541cdfc6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L7",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0966916146ae0d7be3728867",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L8",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0966916146ae0d7be3728867",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L8",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0966916146ae0d7be3728867",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L8",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L9",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L401"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L9",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L401"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L9",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L401"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0fda1802f8f2f950a188f4a1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L11"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0fda1802f8f2f950a188f4a1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L11"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:0fda1802f8f2f950a188f4a1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L11"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11f909e91cd0ec78fed08544",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L13",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11f909e91cd0ec78fed08544",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L13",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:11f909e91cd0ec78fed08544",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L13",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L14",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L14",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L14",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L15",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L15",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L15",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:22d52d18fa2362f832542e2d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L16",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:22d52d18fa2362f832542e2d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L16",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:22d52d18fa2362f832542e2d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L16",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L17",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L17",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L17",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:2630562292426845725f1507",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L18",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:2630562292426845725f1507",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L18",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:2630562292426845725f1507",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L18",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L19",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L19",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L19",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L367"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L20",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L20",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L20",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L21",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L21",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L21",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L38"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3c543b41f43c8ad2f2aeb77d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L22"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3c543b41f43c8ad2f2aeb77d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L22"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3c543b41f43c8ad2f2aeb77d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L22"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3d6bc7c8912501619b65df0c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L23",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3d6bc7c8912501619b65df0c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L23",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3d6bc7c8912501619b65df0c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L23",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3dced083486515b875738cae",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L24",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3dced083486515b875738cae",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L24",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:3dced083486515b875738cae",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L24",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:403811219247cb33fb07e873",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L25",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:403811219247cb33fb07e873",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L25",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:403811219247cb33fb07e873",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L25",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L28",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L28",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L28",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4df9dd74e6afd893b38a44eb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4df9dd74e6afd893b38a44eb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4df9dd74e6afd893b38a44eb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L31",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L31",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L31",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5136a9cb0263b94b3f8cd7c6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L32",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5136a9cb0263b94b3f8cd7c6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L32",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5136a9cb0263b94b3f8cd7c6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L32",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L33",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L33",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L33",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5595fefdcc239f5c0844448c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L34",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5595fefdcc239f5c0844448c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L34",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5595fefdcc239f5c0844448c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L34",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:58b32d6f599add0ab7eb86b5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L35",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:58b32d6f599add0ab7eb86b5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L35",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:58b32d6f599add0ab7eb86b5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L35",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5c7d6f5a4ff04bd0326b7e62",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L36"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5c7d6f5a4ff04bd0326b7e62",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L36"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:5c7d6f5a4ff04bd0326b7e62",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L36"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:662d2caa390cab7ff89cb7ed",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L37"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:662d2caa390cab7ff89cb7ed",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L37"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:662d2caa390cab7ff89cb7ed",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L37"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L38",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L38",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L38",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6b32986633be2c4347fa679c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6b32986633be2c4347fa679c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6b32986633be2c4347fa679c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L39"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L40",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L40",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L40",
+     "src:course-content/syllabus-refactor/unit-design-details/module4.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:71944aefb645b35836d384ab",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L41"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:71944aefb645b35836d384ab",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L41"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:71944aefb645b35836d384ab",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L41"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L42"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L42"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L42"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:75bb9455b7033d0d7856decc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L43",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:75bb9455b7033d0d7856decc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L43",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:75bb9455b7033d0d7856decc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L43",
+     "src:course-content/authoring/terminology.md#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:785caa007445e7d5d34dcde5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L44"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:785caa007445e7d5d34dcde5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L44"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:785caa007445e7d5d34dcde5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L44"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7ac1fd3d4d946a6005473483",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L45",
+     "src:course-content/syllabus-refactor/blueprint.md#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7ac1fd3d4d946a6005473483",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L45",
+     "src:course-content/syllabus-refactor/blueprint.md#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7ac1fd3d4d946a6005473483",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L45",
+     "src:course-content/syllabus-refactor/blueprint.md#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7fe6f3265399479fdcf4f742",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7fe6f3265399479fdcf4f742",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:7fe6f3265399479fdcf4f742",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L46"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:839a003f71ed74b5004a97a6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L47"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:839a003f71ed74b5004a97a6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L47"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:839a003f71ed74b5004a97a6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L47"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:90d3e7470077a3db4e292395",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L50",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:90d3e7470077a3db4e292395",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L50",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:90d3e7470077a3db4e292395",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L50",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9157ad36336f3c28e55274a1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L51"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9157ad36336f3c28e55274a1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L51"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9157ad36336f3c28e55274a1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L51"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:96bb25cb179a77a34e6d9918",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L52"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:96bb25cb179a77a34e6d9918",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L52"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:96bb25cb179a77a34e6d9918",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L52"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:98d0b7bb7be104ca36fe3437",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L53"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:98d0b7bb7be104ca36fe3437",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L53"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:98d0b7bb7be104ca36fe3437",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L53"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L54",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L54",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L54",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dcf197f97b02d753e086ce6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L55",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dcf197f97b02d753e086ce6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L55",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dcf197f97b02d753e086ce6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L55",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dd6e45819cbb414472fb7e4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L56"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dd6e45819cbb414472fb7e4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L56"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9dd6e45819cbb414472fb7e4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L56"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L57",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L57",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L57",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a0012962c283b4d51fcf217d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L58"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a0012962c283b4d51fcf217d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L58"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a0012962c283b4d51fcf217d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L58"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a4088ba5c51bbfd2606affeb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L59"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a4088ba5c51bbfd2606affeb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L59"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:a4088ba5c51bbfd2606affeb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L59"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:aed306227c0364d8de049ef8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L60"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:aed306227c0364d8de049ef8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L60"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:aed306227c0364d8de049ef8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L60"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b6a5ab67117745c88183da2f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L63"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b6a5ab67117745c88183da2f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L63"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:b6a5ab67117745c88183da2f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L63"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c01b8b723223b776fb7959f5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L64",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c01b8b723223b776fb7959f5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L64",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c01b8b723223b776fb7959f5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L64",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L65",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L65",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L65",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c4223390d01343ed903a1de4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L66"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c4223390d01343ed903a1de4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L66"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:c4223390d01343ed903a1de4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L66"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L67",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L306"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L67",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L306"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L67",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L306"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d0324f34ffab4881781cb2bf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L68"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d0324f34ffab4881781cb2bf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L68"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d0324f34ffab4881781cb2bf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L68"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d58237fb48dce6cbb860ec06",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d58237fb48dce6cbb860ec06",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d58237fb48dce6cbb860ec06",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L69"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L70",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L70",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L70",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d59701f04ecd244e0d27dc18",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L71"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d59701f04ecd244e0d27dc18",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L71"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d59701f04ecd244e0d27dc18",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L71"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d648aca9705d20330b480898",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L72"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d648aca9705d20330b480898",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L72"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d648aca9705d20330b480898",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L72"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d670229de2b41116e752913e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L73"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d670229de2b41116e752913e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L73"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:d670229de2b41116e752913e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L73"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L74",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L74",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L74",
+     "src:course-content/authoring/terminology.md#L70"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L75"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L75"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L75"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e1ece02aa6e1f0b54de07ff5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L76",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e1ece02aa6e1f0b54de07ff5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L76",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:e1ece02aa6e1f0b54de07ff5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L76",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ef3f532a7566912a4623e253",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L77"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ef3f532a7566912a4623e253",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L77"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:ef3f532a7566912a4623e253",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L77"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f11c9bf6bb230dc4cbcf9702",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L78",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f11c9bf6bb230dc4cbcf9702",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L78",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f11c9bf6bb230dc4cbcf9702",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L78",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fdd93ca8412d5e51d7a201b3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L80"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fdd93ca8412d5e51d7a201b3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L80"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fdd93ca8412d5e51d7a201b3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L80"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L81",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L81",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L81",
+     "src:course-content/authoring/lessons/2-1/design/2-1-handout.md#L618"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:04787d19495f4d566567e1df",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L82",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:04787d19495f4d566567e1df",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L82",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:04787d19495f4d566567e1df",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L82",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0ccc50e8c2404ffe9165c319",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L83"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0ccc50e8c2404ffe9165c319",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L83"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0ccc50e8c2404ffe9165c319",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L83"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0deae4f5961372cd571cf0d7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L84"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0deae4f5961372cd571cf0d7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L84"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:0deae4f5961372cd571cf0d7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L84"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1163b45898f67a8d2d32c7ec",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L85"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1163b45898f67a8d2d32c7ec",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L85"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1163b45898f67a8d2d32c7ec",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L85"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:12a5ab6d1e9c84d591f753ee",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L86"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:12a5ab6d1e9c84d591f753ee",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L86"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:12a5ab6d1e9c84d591f753ee",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L86"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1c903b6a1c64a3c733afaf68",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L87"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1c903b6a1c64a3c733afaf68",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L87"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:1c903b6a1c64a3c733afaf68",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L87"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:225bbb5dbef47c4f06c839ea",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L88"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:225bbb5dbef47c4f06c839ea",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L88"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:225bbb5dbef47c4f06c839ea",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L88"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:25d89dae66684837cebe2580",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L89"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:25d89dae66684837cebe2580",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L89"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:25d89dae66684837cebe2580",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L89"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:28726345827759ca17282f0a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L90"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:28726345827759ca17282f0a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L90"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:28726345827759ca17282f0a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L90"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2a30c68c3c7113138f088283",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2a30c68c3c7113138f088283",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2a30c68c3c7113138f088283",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L91"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2db242d905a32a7778aacc7d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L92"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2db242d905a32a7778aacc7d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L92"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2db242d905a32a7778aacc7d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L92"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2dca53c4c140397fd3f1b6cc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2dca53c4c140397fd3f1b6cc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2dca53c4c140397fd3f1b6cc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2e7bb393204ab49859cf2eda",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L94"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2e7bb393204ab49859cf2eda",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L94"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:2e7bb393204ab49859cf2eda",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L94"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3c45db91c26634cad5189a84",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L95"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3c45db91c26634cad5189a84",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L95"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3c45db91c26634cad5189a84",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L95"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3dced939c3b2dc8728c9a8ae",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L96"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3dced939c3b2dc8728c9a8ae",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L96"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3dced939c3b2dc8728c9a8ae",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L96"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3e108b408bc1c6e760b288e7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L97"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3e108b408bc1c6e760b288e7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L97"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:3e108b408bc1c6e760b288e7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L97"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:40a3881004614f8a6f36b0a7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L98"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:42a68e5917256cfae8b4459f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L99"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:42a68e5917256cfae8b4459f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L99"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:42a68e5917256cfae8b4459f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L99"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4302af826ba025627030a586",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L100"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4302af826ba025627030a586",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L100"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4302af826ba025627030a586",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L100"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44c04a8b5623079c6e158d40",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44c04a8b5623079c6e158d40",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44c04a8b5623079c6e158d40",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L101"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44f136092735cf08a1bd32f6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L102"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44f136092735cf08a1bd32f6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L102"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:44f136092735cf08a1bd32f6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L102"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:488e1a457c5cce4910fa9806",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L103"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:488e1a457c5cce4910fa9806",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L103"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:488e1a457c5cce4910fa9806",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L103"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4d62c78a949859675a5fdb10",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L104"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4d62c78a949859675a5fdb10",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L104"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:4d62c78a949859675a5fdb10",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L104"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5374618e9cbfa71f01675409",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L105"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5374618e9cbfa71f01675409",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L105"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5374618e9cbfa71f01675409",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L105"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:546e8767471d6b01b20da431",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L106"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:546e8767471d6b01b20da431",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L106"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:546e8767471d6b01b20da431",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L106"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:55f9f897588309a58131f832",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L107"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:55f9f897588309a58131f832",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L107"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:55f9f897588309a58131f832",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L107"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5683cc68fcfdd51b1ae3cd41",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L108"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5683cc68fcfdd51b1ae3cd41",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L108"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:5683cc68fcfdd51b1ae3cd41",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L108"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:57fa897ecd8a26ea7ba31050",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L109"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:57fa897ecd8a26ea7ba31050",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L109"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:57fa897ecd8a26ea7ba31050",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L109"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:59b89b78d90da7fab2fc4a52",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L110"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:59b89b78d90da7fab2fc4a52",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L110"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:59b89b78d90da7fab2fc4a52",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L110"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7019b8a549878bd2bdda0652",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7019b8a549878bd2bdda0652",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7019b8a549878bd2bdda0652",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L111"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70d6c774fee35ae061b8da42",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L112"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70d6c774fee35ae061b8da42",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L112"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70d6c774fee35ae061b8da42",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L112"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70e59d314040d2b4e69fdff8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L113"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70e59d314040d2b4e69fdff8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L113"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:70e59d314040d2b4e69fdff8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L113"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7590937a14c2a08740c8bb5f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L114"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7590937a14c2a08740c8bb5f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L114"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7590937a14c2a08740c8bb5f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L114"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d0717eaf461f8e59f8dbdde",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L115"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d0717eaf461f8e59f8dbdde",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L115"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d0717eaf461f8e59f8dbdde",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L115"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d3746290c24b2d29639a5a1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L116"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d3746290c24b2d29639a5a1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L116"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7d3746290c24b2d29639a5a1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L116"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7dbd771ba9e5593b04a9b3b4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L117"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7dbd771ba9e5593b04a9b3b4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L117"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:7dbd771ba9e5593b04a9b3b4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L117"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:825cbddf14ff47ac754f0086",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:825cbddf14ff47ac754f0086",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:825cbddf14ff47ac754f0086",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L118"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:8773547a042857fc1dcf6260",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L119"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:8773547a042857fc1dcf6260",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L119"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:8773547a042857fc1dcf6260",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L119"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:924c833dfbc365196485218f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:924c833dfbc365196485218f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:924c833dfbc365196485218f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L120"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:95ea21b1e4dc307d4bb01ac4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L121"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:95ea21b1e4dc307d4bb01ac4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L121"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:95ea21b1e4dc307d4bb01ac4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L121"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:96df57bb2dbff4d79f34678d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L122"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:96df57bb2dbff4d79f34678d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L122"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:96df57bb2dbff4d79f34678d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L122"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a32ff05616fb7f1561a8af7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L123"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a32ff05616fb7f1561a8af7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L123"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a32ff05616fb7f1561a8af7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L123"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a9dcccdf7138c16988b3b9f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L124"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a9dcccdf7138c16988b3b9f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L124"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9a9dcccdf7138c16988b3b9f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L124"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9d65f6ce1d1f695715505f5f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L125"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9d65f6ce1d1f695715505f5f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L125"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:9d65f6ce1d1f695715505f5f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L125"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a44ab09ec8a9a1bf40267258",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a44ab09ec8a9a1bf40267258",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a44ab09ec8a9a1bf40267258",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a7545c47d3a8b7eb6274aff0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L127"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a7545c47d3a8b7eb6274aff0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L127"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a7545c47d3a8b7eb6274aff0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L127"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a8797fee39fcc81ddd343909",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L128"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a8797fee39fcc81ddd343909",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L128"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a8797fee39fcc81ddd343909",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L128"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a998b40f984e1382f2058b55",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L129"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a998b40f984e1382f2058b55",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L129"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:a998b40f984e1382f2058b55",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L129"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ae1ad7c4b94aa739122ede98",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L130"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ae1ad7c4b94aa739122ede98",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L130"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ae1ad7c4b94aa739122ede98",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L130"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:b13b85c2a6ddc005a93741bc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L131"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:b13b85c2a6ddc005a93741bc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L131"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:b13b85c2a6ddc005a93741bc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L131"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c3debd2580ffb9f23a711c82",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L132"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c3debd2580ffb9f23a711c82",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L132"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c3debd2580ffb9f23a711c82",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L132"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c564facccb4da96fed5ae290",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L133"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c564facccb4da96fed5ae290",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L133"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:c564facccb4da96fed5ae290",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L133"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cad0114cc24c055f1544cbdb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L134"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cad0114cc24c055f1544cbdb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L134"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cad0114cc24c055f1544cbdb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L134"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cb8b5541926af6e28c1ea0e8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L135"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cb8b5541926af6e28c1ea0e8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L135"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:cb8b5541926af6e28c1ea0e8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L135"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ce681ca68ce10a3154659a30",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L136"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ce681ca68ce10a3154659a30",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L136"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ce681ca68ce10a3154659a30",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L136"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:da3892211175c801ac40d9fb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L137"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:da3892211175c801ac40d9fb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L137"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:da3892211175c801ac40d9fb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L137"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:daa2997914f79cb93172e95f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L138",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:daa2997914f79cb93172e95f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L138",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:daa2997914f79cb93172e95f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L138",
+     "src:course-content/authoring/lessons/3-7/design/3-7-handout.md#L49"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dc3df6410969dd6cf1854ffe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L139"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dc3df6410969dd6cf1854ffe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L139"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dc3df6410969dd6cf1854ffe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L139"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:df018a40b79b95855f8f7338",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L140"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:df018a40b79b95855f8f7338",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L140"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:df018a40b79b95855f8f7338",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L140"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dfa8bea055789beccabf23c7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L141"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dfa8bea055789beccabf23c7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L141"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:dfa8bea055789beccabf23c7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L141"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e2f5136fc3d4b6e9ee7379d9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L142"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e2f5136fc3d4b6e9ee7379d9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L142"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e2f5136fc3d4b6e9ee7379d9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L142"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e9d2c81b7d1e9d7112b3c847",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L143"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e9d2c81b7d1e9d7112b3c847",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L143"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:e9d2c81b7d1e9d7112b3c847",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L143"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:eaa320c4eefabddd04624a14",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L144"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:eaa320c4eefabddd04624a14",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L144"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:eaa320c4eefabddd04624a14",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L144"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:efc012b499ae5012fe47291a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L145"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:efc012b499ae5012fe47291a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L145"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:efc012b499ae5012fe47291a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L145"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f59424e65b0e5fb98071417e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L146"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f59424e65b0e5fb98071417e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L146"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f59424e65b0e5fb98071417e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L146"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f7855ef9a1ae591ace10875e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L147"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f7855ef9a1ae591ace10875e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L147"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:f7855ef9a1ae591ace10875e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L147"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:fac5a373bba7ffe3a61c2234",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L148"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:fac5a373bba7ffe3a61c2234",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L148"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:fac5a373bba7ffe3a61c2234",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L148"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ff88b7bc15d50326fea56ed3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L149"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ff88b7bc15d50326fea56ed3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L149"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:formula:ff88b7bc15d50326fea56ed3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L149"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:072661ffd43a07f33f595cbf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L150"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:072661ffd43a07f33f595cbf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L150"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:072661ffd43a07f33f595cbf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L150"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:09f88576763fed614ce5dec9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L151"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:09f88576763fed614ce5dec9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L151"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:09f88576763fed614ce5dec9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L151"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0bb886c87805d241cd0d6d08",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L152",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0bb886c87805d241cd0d6d08",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L152",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0bb886c87805d241cd0d6d08",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L152",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0cc5af830c384103fbcf8ce3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L153"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0cc5af830c384103fbcf8ce3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L153"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0cc5af830c384103fbcf8ce3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L153"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e4fb7c26b958724217e0e58",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L154"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e4fb7c26b958724217e0e58",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L154"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:0e4fb7c26b958724217e0e58",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L154"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:28073cae1e93887ae5c020d6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L156"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:28073cae1e93887ae5c020d6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L156"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:28073cae1e93887ae5c020d6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L156"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2bcea9de1af95a1d125309d4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L157",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2bcea9de1af95a1d125309d4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L157",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2bcea9de1af95a1d125309d4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L157",
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L34"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2d784aa73a131ed9491865ad",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L158"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2d784aa73a131ed9491865ad",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L158"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2d784aa73a131ed9491865ad",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L158"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2f22d34d3f4b9f209cf4e39e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L159"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2f22d34d3f4b9f209cf4e39e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L159"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:2f22d34d3f4b9f209cf4e39e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L159"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3078c0f5b91b6e7303117690",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L160"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3078c0f5b91b6e7303117690",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L160"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3078c0f5b91b6e7303117690",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L160"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3738318f1da6f2fbcd695418",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L161"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3738318f1da6f2fbcd695418",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L161"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3738318f1da6f2fbcd695418",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L161"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3ca3a21608d3f01006a4137a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L162",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3ca3a21608d3f01006a4137a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L162",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:3ca3a21608d3f01006a4137a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L162",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L40"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:427bca8d87f1e2bfcc6429f8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L163",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:427bca8d87f1e2bfcc6429f8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L163",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:427bca8d87f1e2bfcc6429f8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L163",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L126"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:44d2db0186a50374e2afa756",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L164"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:44d2db0186a50374e2afa756",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L164"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:44d2db0186a50374e2afa756",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L164"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4bb5ca53c13a90f2476294e4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L166"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4bb5ca53c13a90f2476294e4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L166"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4bb5ca53c13a90f2476294e4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L166"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4fc9b70be0c41a533f1c5a99",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L167"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4fc9b70be0c41a533f1c5a99",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L167"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:4fc9b70be0c41a533f1c5a99",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L167"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:507b946207d4a8dbbd43c392",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L168"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:507b946207d4a8dbbd43c392",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L168"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:507b946207d4a8dbbd43c392",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L168"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:535da39bced2f934e6691ee4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L170"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:535da39bced2f934e6691ee4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L170"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:535da39bced2f934e6691ee4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L170"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a2be27177d54be7d5845245",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L172"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a2be27177d54be7d5845245",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L172"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a2be27177d54be7d5845245",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L172"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a795567f9d3cbe56d7c0239",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L173"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a795567f9d3cbe56d7c0239",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L173"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a795567f9d3cbe56d7c0239",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L173"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a7a214f144091a45fadb4c9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L174"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a7a214f144091a45fadb4c9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L174"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6a7a214f144091a45fadb4c9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L174"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6d58d4a87e4c48a479491896",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L176"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6d58d4a87e4c48a479491896",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L176"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6d58d4a87e4c48a479491896",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L176"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6f439374d5396922504d14e6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L177"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6f439374d5396922504d14e6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L177"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:6f439374d5396922504d14e6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L177"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:70047bf3b7c7b92db2e9757b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L178",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L64"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:70047bf3b7c7b92db2e9757b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L178",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L64"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:70047bf3b7c7b92db2e9757b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L178",
+     "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L64"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7185f792ea12cf829edbe718",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L179"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7185f792ea12cf829edbe718",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L179"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:7185f792ea12cf829edbe718",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L179"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8a96ed2f8ebfa2af4b1d6d9a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L180",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8a96ed2f8ebfa2af4b1d6d9a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L180",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8a96ed2f8ebfa2af4b1d6d9a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L180",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8bdf3a740add2c9d3b96853b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L181",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8bdf3a740add2c9d3b96853b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L181",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8bdf3a740add2c9d3b96853b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L181",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8c5ab8c546b0982f1b839071",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L182"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8c5ab8c546b0982f1b839071",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L182"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:8c5ab8c546b0982f1b839071",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L182"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:90c02f30817f688609b35ced",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L183"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:90c02f30817f688609b35ced",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L183"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:90c02f30817f688609b35ced",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L183"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:97e1c512fe26064c4a4b11cd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L184"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:97e1c512fe26064c4a4b11cd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L184"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:97e1c512fe26064c4a4b11cd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L184"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a166d67455f9d64b010c4274",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L185"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a166d67455f9d64b010c4274",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L185"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:a166d67455f9d64b010c4274",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L185"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:aa33bc7b05d44d2d908e98e2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L186",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:aa33bc7b05d44d2d908e98e2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L186",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:aa33bc7b05d44d2d908e98e2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L186",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L26"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b98f4a91b744fdd297c437dc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L187"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b98f4a91b744fdd297c437dc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L187"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:b98f4a91b744fdd297c437dc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L187"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c2ab38356a7715a85ff23dc8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L188"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c2ab38356a7715a85ff23dc8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L188"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c2ab38356a7715a85ff23dc8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L188"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c458e846e8ebf3b22e68c7a4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L189"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c458e846e8ebf3b22e68c7a4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L189"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c458e846e8ebf3b22e68c7a4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L189"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c8c00c07877fcbfb582cd7d4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L190"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c8c00c07877fcbfb582cd7d4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L190"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:c8c00c07877fcbfb582cd7d4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L190"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ce72b640392aba1cc5d1be79",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L191"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ce72b640392aba1cc5d1be79",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L191"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ce72b640392aba1cc5d1be79",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L191"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d056410d71056e24a8e3ee7d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L192"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d056410d71056e24a8e3ee7d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L192"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d056410d71056e24a8e3ee7d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L192"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d13ae649a48dd8b9baca8a51",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d13ae649a48dd8b9baca8a51",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d13ae649a48dd8b9baca8a51",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L193"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d804fc6cd68896cc78caf09c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L194"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d804fc6cd68896cc78caf09c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L194"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:d804fc6cd68896cc78caf09c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L194"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e1813326f8427fff6ff0be00",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L195",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L12"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e1813326f8427fff6ff0be00",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L195",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L12"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e1813326f8427fff6ff0be00",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L195",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L12"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e20ee8b02a158d67916e1eec",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L196"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e20ee8b02a158d67916e1eec",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L196"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e20ee8b02a158d67916e1eec",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L196"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e2e2bdc9c2b97bab5c08f871",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L197"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e2e2bdc9c2b97bab5c08f871",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L197"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:e2e2bdc9c2b97bab5c08f871",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L197"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f06831e5aa15c1df45a8d9e9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L198"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f06831e5aa15c1df45a8d9e9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L198"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f06831e5aa15c1df45a8d9e9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L198"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f082b39a3f337c8d548a1de4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L199"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f082b39a3f337c8d548a1de4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L199"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f082b39a3f337c8d548a1de4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L199"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f1504ca60e5a18c724414122",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L200"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f1504ca60e5a18c724414122",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L200"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f1504ca60e5a18c724414122",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L200"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f41b02d8158b67652e020d18",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L201"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f41b02d8158b67652e020d18",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L201"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f41b02d8158b67652e020d18",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L201"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f44d6f0f6f193589e9fdedd1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L202"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f44d6f0f6f193589e9fdedd1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L202"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f44d6f0f6f193589e9fdedd1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L202"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f738ea80afdf3f1e7fddcb15",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L203"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f738ea80afdf3f1e7fddcb15",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L203"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f738ea80afdf3f1e7fddcb15",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L203"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f8c36008b0390cea6989e59c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L204"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f8c36008b0390cea6989e59c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L204"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:f8c36008b0390cea6989e59c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L204"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ff4d3f58873cce5bedc28288",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L205"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ff4d3f58873cce5bedc28288",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L205"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:knowledgestatement:ff4d3f58873cce5bedc28288",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L205"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:15eb09f5651e8de43c09ebbe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L206",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:15eb09f5651e8de43c09ebbe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L206",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:15eb09f5651e8de43c09ebbe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L206",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L93"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:5e76afd7ab1f94cb2b8df1e6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L207"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:5e76afd7ab1f94cb2b8df1e6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L207"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:5e76afd7ab1f94cb2b8df1e6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L207"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:680d23ec58dff7980823182b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L208"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:680d23ec58dff7980823182b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L208"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:680d23ec58dff7980823182b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L208"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:a06ca8dcabff155b3a58ceb2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L209",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:a06ca8dcabff155b3a58ceb2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L209",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:a06ca8dcabff155b3a58ceb2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L209",
+     "src:course-content/authoring/lessons/4-3/design/4-3-handout.md#L79"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:fe456ca299e96b04f5194cff",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L210"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:fe456ca299e96b04f5194cff",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L210"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:modelrepresentation:fe456ca299e96b04f5194cff",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L210"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:statement:m1p-v6r-root-locus-closed-loop-stability-parameter-variation",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L211",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L13"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:statement:m1p-v6r-root-locus-closed-loop-stability-parameter-variation",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L211",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L13"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:statement:m1p-v6r-root-locus-closed-loop-stability-parameter-variation",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:rsa-members.txt#L211",
+     "src:course-content/authoring/lessons/3-3/design/3-3-handout.md#L13"
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "system-modeling",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/system-modeling-review.jsonl",
+ "sourceSha256": "c6decc6370d626efabf3bccf4fce42e53b1f9bd4f428f999f1258bbf5257aaef",
+ "rowCount": 641,
+ "memberCount": 641,
+ "edgeCount": 51,
+ "receiptReconciliation": {
+  "packRows": 1923,
+  "publishedEdgeInReceipt": 51,
+  "jsonlEdgeCount": 51,
+  "match": true
+ }
+}

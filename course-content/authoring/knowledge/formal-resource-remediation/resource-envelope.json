@@ -1,0 +1,209 @@
+{
+ "contract": "remediation-formal-resource-envelope/v1",
+ "builderVersion": "formal-resource-remediation-builder/v1",
+ "sealedAt": "2026-08-24T19:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "resourceCount": 1058,
+ "atomCount": 13522,
+ "bindingCount": 2575,
+ "subtypes": [
+  {
+   "subtype": "audio",
+   "resources": 28,
+   "atoms": 56
+  },
+  {
+   "subtype": "card",
+   "resources": 838,
+   "atoms": 5662
+  },
+  {
+   "subtype": "exercise",
+   "resources": 32,
+   "atoms": 455
+  },
+  {
+   "subtype": "handout",
+   "resources": 31,
+   "atoms": 5394
+  },
+  {
+   "subtype": "handout-exercise",
+   "resources": 13,
+   "atoms": 46
+  },
+  {
+   "subtype": "intro-video",
+   "resources": 31,
+   "atoms": 1880
+  },
+  {
+   "subtype": "simulation-interactive",
+   "resources": 85,
+   "atoms": 85
+  }
+ ],
+ "artifacts": [
+  {
+   "role": "asr-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/asr-processing-records.json",
+   "sha256": "16050630cef13e781057fbf63b3e06939baa6a8f1c072346ba7db45b2500691a"
+  },
+  {
+   "role": "audio-segmentation-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-segmentation-summary.json",
+   "sha256": "4e32441fe5fbc1b18c063c48de2be9f3f326f20176fe79d7e55e592cd6f2b83f"
+  },
+  {
+   "role": "card-name-index",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/card-name-index.json",
+   "sha256": "8906ef04c38731029d10bde9ff9af4d98a21a8279937edb1db461c09f6673530"
+  },
+  {
+   "role": "course-to-authority-map",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/course-to-authority-map.json",
+   "sha256": "1849579b7aa925818ef839b6d1720aee9ae8760f6b172c7201de2bc537b6a033"
+  },
+  {
+   "role": "crosswalk-v037",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/crosswalk-v037.json",
+   "sha256": "c1bdc2fb6e798127e7b22c879322c80f40c939efc46c114f0653cee18f555d35"
+  },
+  {
+   "role": "excluded-domains-decisions",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/excluded-domains-decisions.jsonl",
+   "sha256": "8fd9aed5143bda2b088ccb8de3f5715a00899c36ba5ccdc21aa21d8e141bc2f4"
+  },
+  {
+   "role": "exercise-answer-digests",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-answer-digests.json",
+   "sha256": "f4229bdddb1e8c842646ad392e7eac9c84ca7ddc7c710daa9f6b15c09469bac7"
+  },
+  {
+   "role": "exercise-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-atoms.json",
+   "sha256": "0577501b7750e2e3e0f50369c64bb89b9b07d89809e251bd24f73d189bda4036"
+  },
+  {
+   "role": "exercise-exclusions",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-exclusions.json",
+   "sha256": "7b9fdd9cfa609cbf4f005da58f8f95cf209a4d8de7efe4c86a23198a4339db2b"
+  },
+  {
+   "role": "exercise-node-bindings",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-node-bindings.json",
+   "sha256": "ccda07e75320c98f913ff5dc2192389bd3a16992c384ea53c99fda58329015b8"
+  },
+  {
+   "role": "exercise-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-processing-records.json",
+   "sha256": "92fd1e9018a2a806af82ed60699328a3385ae757383abce6dfbbbf32f809c998"
+  },
+  {
+   "role": "exercise-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/exercises/exercise-run-summary.json",
+   "sha256": "59d389061618bb8607f0dc1eadcd52903372b2d347f941d9947e2766a2e76deb"
+  },
+  {
+   "role": "handout-exercise-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-atoms.json",
+   "sha256": "99a018aa35b8bd344d07b6f514d5a87ebc2381adf3bba55477d23facbbbd5215"
+  },
+  {
+   "role": "handout-exercise-node-bindings",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-node-bindings.json",
+   "sha256": "3cbaec8567a631135ee1ab7ddb5db0576d0b4e25c48aea8a2c52729ed4b9157b"
+  },
+  {
+   "role": "handout-exercise-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-processing-records.json",
+   "sha256": "2e0f63c03d7bfcdc7aaf56b8a9a000b8607595a6b747c37a96a0031353f5ea8f"
+  },
+  {
+   "role": "handout-exercise-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/handout-exercises/handout-exercise-run-summary.json",
+   "sha256": "1b6e160fbbda4799023e37e3aa4e8158e4c344858dd6da17bd4897fce98d1a13"
+  },
+  {
+   "role": "hotword-manifests",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/hotword-manifests.json",
+   "sha256": "a7b31ae3e828f2938b978e8985979c509cb904060de72defb42b865cca30f106"
+  },
+  {
+   "role": "intro-video-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-atoms.json",
+   "sha256": "0813caa4c7e41fbaf0471e9be91a603eb90fde327001622e702905ccbabe9a98"
+  },
+  {
+   "role": "intro-video-inventory",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-inventory.json",
+   "sha256": "6031e06fabff48c484de5dd54a3e613ccac04c6b3e66b759197edf7dc772c290"
+  },
+  {
+   "role": "intro-video-node-bindings",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-node-bindings.json",
+   "sha256": "6754c918d6789d149ab3563e68a1ac700144b991bc143560d485b9256276921f"
+  },
+  {
+   "role": "intro-video-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-processing-records.json",
+   "sha256": "6b57e953f3151e9153d88ea115124c303c8de3c55298b8f5c3dd231414ffc86a"
+  },
+  {
+   "role": "intro-video-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/intro-videos/intro-video-run-summary.json",
+   "sha256": "97959ad4f8608fb7edb148e7428688562072f20564de89ffbea25b66c9029d82"
+  },
+  {
+   "role": "processor-registry",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/processor-registry.json",
+   "sha256": "6bc85ba5a0999cc31f2fa7a1f9cf667645c3cda49a0dbf857830b58c9c39c6ea"
+  },
+  {
+   "role": "qualification-receipt",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/qualification-receipt.json",
+   "sha256": "7992832a72837a6264fd4ab16e236ae94e66b49a495147673c462d17137ef4f1"
+  },
+  {
+   "role": "simulation-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/simulations/simulation-atoms.json",
+   "sha256": "782456893ffe5f8f64e9794061b0d639414ac38989f3c2d1806ef65c6c0433f0"
+  },
+  {
+   "role": "simulation-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/simulations/simulation-processing-records.json",
+   "sha256": "5c77d851d7990d9d3840abcbe7e99f4d634da3aae0c7129dcec7dae4f4d68cf2"
+  },
+  {
+   "role": "simulation-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/simulations/simulation-run-summary.json",
+   "sha256": "904cd378e62294d0019e409b6fd71d968413eb8759c6d1f74eddeae781d10b1d"
+  },
+  {
+   "role": "text-atoms",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-atoms.json",
+   "sha256": "757050d754dfc1b36f62bbb8e8d4fd92753b8c460478f0d06db3b6f005e4aba0"
+  },
+  {
+   "role": "text-processing-records",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-processing-records.json",
+   "sha256": "9487bb62a24a5c9a7965f249a2753ab5660b85e121f2ac1175a1545b60578a3a"
+  },
+  {
+   "role": "text-run-summary",
+   "path": "course-content/authoring/knowledge/formal-resource-remediation/resource-layer/text/text-run-summary.json",
+   "sha256": "4ba02bf5b3286220e77f1e534c55c704cb96735dfe7574668496a2afb423c10d"
+  }
+ ],
+ "limitations": [
+  "layered handout exercises join the exercise binding channel as their own resources (13 units, 46 questions; owner sampling decision 1)",
+  "simulation/interactive launcher atoms (85 DB launchers) bind registry identity and config digest; task/scene semantics and Canonical mapping are pending semantic review",
+  "exercise semantic Canonical mapping review is in flight (455 cards); exercise atoms currently carry no canonical bindings",
+  "intro-video atoms (1880 cues across 31 released videos) use the production caption cues on the narration timeline; the per-unit intro/outro frame offset onto the rendered mp4 timeline stays pending wiring verification; a changed video hash produces a new identity and an incremental rebinding (course-owner ruling 2026-08-24)",
+  "handout atoms carry no canonicalKey yet; they await the semantic Canonical mapping pass",
+  "card bindings use the crosswalk exact-name index (205 of 838 card keys, 1383 atom-level rows); name-variant and graph-missing keys stay unbound (tracked as G9)",
+  "audio/video/exercise bindings are filtered to covered-domain targets in the projection binding layer (audio 586/741 rows kept, intro-video 539/727 kept, exercise 26/33 kept); D1-excluded targets stay bound in the resource-layer binding files as modal facts but do not join the teaching projection"
+ ],
+ "envelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7"
+}

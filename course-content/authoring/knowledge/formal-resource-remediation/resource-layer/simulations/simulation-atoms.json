@@ -1,0 +1,852 @@
+[
+ {
+  "atomId": "atom-5e5a4037bf99263cdafb6c00",
+  "resourceId": "launcher-classroom-ai-report-classroom-ai-report",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-ai-report",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-ai-report",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e7124dc3e029b3c85105ca51",
+  "resourceId": "launcher-classroom-assessment-classroom-assessment",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-assessment",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-assessment",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-f14cc79e72a36a6bb5e68f12",
+  "resourceId": "launcher-classroom-ethical-trigger-classroom-ethical-trigger",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-ethical-trigger",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-ethical-trigger",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-0687c16f9f6b94015656857e",
+  "resourceId": "launcher-classroom-objective-classroom-objective",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-objective",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-objective",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-1675c3a6d321021d0abd84d2",
+  "resourceId": "launcher-classroom-poll-classroom-poll",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-poll",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-poll",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-5b07ac24c2d9d713370eee0b",
+  "resourceId": "launcher-classroom-video-classroom-video",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "classroom-video",
+  "category": "CLASSROOM",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:classroom-video",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-fe288c01d099ba26572f6130",
+  "resourceId": "launcher-sim-pid-v1-cmjrywg360003wi2j68ra9m3l",
+  "subtype": "SIMULATION_APP",
+  "registryId": "sim-pid-v1",
+  "category": null,
+  "configSha256": "316a12610005cf557679facc77a8d9defcc2115ba117ec588f5c0dcd00ee3614",
+  "launchAnchor": "registry:sim-pid-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-25e45803fa4db1c7412b13bb",
+  "resourceId": "launcher-ethics-arctic-v1-cmjrywg370005wi2jmywwv5dh",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "ethics-arctic-v1",
+  "category": null,
+  "configSha256": "826634a6b293508593b13a2ec77eb0cd6b0b154068864d6291cb6ebd286340b3",
+  "launchAnchor": "registry:ethics-arctic-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-56198a90bda69162791f8b33",
+  "resourceId": "launcher-widget-physics-mech-cmjrz8gqh0007eg16h9c8eu4v",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-physics-mech",
+  "category": null,
+  "configSha256": "f6dae80ed93a7c264586f4ec1054812890e905822a5febf0f4aff2e97600fe3f",
+  "launchAnchor": "registry:widget-physics-mech",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-fff7ebfadbf629710d505b9a",
+  "resourceId": "launcher-widget-physics-elec-cmjrz8gqj0009eg16c4p9jopc",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-physics-elec",
+  "category": null,
+  "configSha256": "f82e90aed2e800d8ff4e7f31f73257f46f81c851b65a7f0515df08be71a15a3a",
+  "launchAnchor": "registry:widget-physics-elec",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-1bcecabbe347a90e59e6f000",
+  "resourceId": "launcher-widget-analogy-mapper-cmjrz8gqn000beg16z0dkqafa",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-analogy-mapper",
+  "category": null,
+  "configSha256": "fe09f84bd86d2143ddd944bbf903e3adb31302beb4023aa7b9253b372bc960c3",
+  "launchAnchor": "registry:widget-analogy-mapper",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-247bc19c49c6ba8fa8c55658",
+  "resourceId": "launcher-widget-argument-principle-cmjtc2ur30001d1skr7w074mz",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-argument-principle",
+  "category": null,
+  "configSha256": "2b6d527e9ab5e779848ac762d10ec033f04ea15ed166bf1021fe4137c2ef2af4",
+  "launchAnchor": "registry:widget-argument-principle",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-04396689f8a52354aa653ffe",
+  "resourceId": "launcher-lesson02-bridge-v1-cmjtc2ur60003d1skws86pe40",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-bridge-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-bridge-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e6ce881cf913978cd4a7c1be",
+  "resourceId": "launcher-lesson02-objective-v1-cmjtc2ur70005d1skm8zxkvn6",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-objective-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-objective-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-0aa0687c9173f0aa68608fc7",
+  "resourceId": "launcher-lesson02-pretest-v1-cmjtc2ur80007d1skxombq73l",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-pretest-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-pretest-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-6d3cac0a321a07bbf3215e06",
+  "resourceId": "launcher-lesson02-mechanical-v1-cmjtc2ur90009d1skiejp4v6v",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-mechanical-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-mechanical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-10b2a0ba93ee70a7ad808ea8",
+  "resourceId": "launcher-lesson02-electrical-v1-cmjtc2ura000bd1skzn5d0a2c",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-electrical-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-electrical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-086e18a9588c676f86a41b47",
+  "resourceId": "launcher-lesson02-analogy-v1-cmjtc2ura000dd1skcs7wrseg",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-analogy-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-analogy-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-ead2cb25add343905160ca37",
+  "resourceId": "launcher-lesson02-posttest-v1-cmjtc2urb000fd1skul60l1uo",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-posttest-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-posttest-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-f983f6334bcab558d31b4f89",
+  "resourceId": "launcher-lesson02-summary-v1-cmjtc2urc000hd1ski8hzckek",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-summary-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-summary-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-6c1fbc6c1668a079dfe1f8c1",
+  "resourceId": "launcher-physics-modeling-intro-v1-cmjtc2urd000jd1skeu7cu73d",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-intro-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-intro-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-a23b67b977fb084ff02b5b8e",
+  "resourceId": "launcher-physics-modeling-mechanical-v1-cmjtc2ure000ld1skhtzo3r46",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-mechanical-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-mechanical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-15cf48d7cd791e0d89844969",
+  "resourceId": "launcher-physics-modeling-electrical-v1-cmjtc2ure000nd1skrrhoy4hy",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-electrical-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-electrical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-23e96bfa374284c61347c19d",
+  "resourceId": "launcher-physics-modeling-analogy-v1-cmjtc2urf000pd1skiz2q049m",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-analogy-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-analogy-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-a5cc093bea5c60fd29e53abd",
+  "resourceId": "launcher-physics-modeling-practice-v1-cmjtc2urh000rd1sk4d7ypsdd",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-practice-v1",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-practice-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-77471467eeba04d25034ea89",
+  "resourceId": "launcher-lesson13-cruise-bridge-cmjyh76xp0001yo3k5jne8fre",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson13-cruise-bridge",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson13-cruise-bridge",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e83c13affcbf3bad6ff1f87f",
+  "resourceId": "launcher-lesson06-metric-quick-check-cmkax0s1o0001ence6s08oe1q",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson06-metric-quick-check",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson06-metric-quick-check",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-0a5bd07970b9de1b5e5ee5be",
+  "resourceId": "launcher-lesson06-metric-handbook-cmkax0s1r0003encevi8q40ua",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson06-metric-handbook",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson06-metric-handbook",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-fdafd81a8df8ca26f3458b1b",
+  "resourceId": "launcher-lesson06-judge-bench-cmkax0s1s0005ence448uv49j",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson06-judge-bench",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson06-judge-bench",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-fa97b92356a20d0b98b3a443",
+  "resourceId": "launcher-lesson14-margin-quick-check-cmkcpchyl0001dgrt0ziuxpzc",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-margin-quick-check",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-margin-quick-check",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-668b1bb3cd78c19f5ae5ad91",
+  "resourceId": "launcher-lesson14-margin-knowledge-deck-cmkcpe4d40001uwdmfshievea",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-margin-knowledge-deck",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-margin-knowledge-deck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-abc46e6851355ef3b630ef23",
+  "resourceId": "launcher-lesson14-margin-tradeoff-lab-cmkcpe4d80003uwdm997yq472",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-margin-tradeoff-lab",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-margin-tradeoff-lab",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-822d072bcdad6a430da03d7d",
+  "resourceId": "launcher-lesson14-three-band-studio-cmkcpe4d90005uwdm1f2qwjc3",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-three-band-studio",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-three-band-studio",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-9ec92a9593ccaf23b4b4341e",
+  "resourceId": "launcher-lesson14-margin-exit-quiz-cmkcpe4da0007uwdmyhum0box",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-margin-exit-quiz",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-margin-exit-quiz",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-b9cb601a0d5b2d41a5eb0f32",
+  "resourceId": "launcher-lesson14-summary-card-cmkcpe4db0009uwdmx7rtopau",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson14-summary-card",
+  "category": null,
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson14-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-be4da5fa2b2034ba07cbdce1",
+  "resourceId": "launcher-control-odyssey-v1-control-odyssey-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "control-odyssey-v1",
+  "category": "FUN_EXPLORATION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:control-odyssey-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-74cab813386265ee25169dba",
+  "resourceId": "launcher-ethics-arctic-v1-ethics-arctic-v1",
+  "subtype": "ETHICS_SCENARIO",
+  "registryId": "ethics-arctic-v1",
+  "category": "NONLINEAR",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:ethics-arctic-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-61c1799dfb640e594d5c3b3c",
+  "resourceId": "launcher-lesson02-analogy-v1-lesson02-analogy-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-analogy-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-analogy-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-7ff2aea1091bb041e9238181",
+  "resourceId": "launcher-lesson02-bridge-v1-lesson02-bridge-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-bridge-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-bridge-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-f42709c39d815719bf1d4400",
+  "resourceId": "launcher-lesson02-electrical-v1-lesson02-electrical-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-electrical-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-electrical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e70092da3315434a2b3ff7fc",
+  "resourceId": "launcher-lesson02-mechanical-v1-lesson02-mechanical-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-mechanical-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-mechanical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e9315c2985f91b031d66dd36",
+  "resourceId": "launcher-lesson02-objective-v1-lesson02-objective-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-objective-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-objective-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-13d3cf7af3bab2fd236ebe22",
+  "resourceId": "launcher-lesson02-posttest-v1-lesson02-posttest-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-posttest-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-posttest-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-669751e94a49fc2b01fa30fe",
+  "resourceId": "launcher-lesson02-pretest-v1-lesson02-pretest-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-pretest-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-pretest-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-3bcecde32b75baaf034dce75",
+  "resourceId": "launcher-lesson02-summary-v1-lesson02-summary-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson02-summary-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson02-summary-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-853d2b1b6de0ec6ab9a5653f",
+  "resourceId": "launcher-lesson07-damping-quick-check-lesson07-damping-quick-check",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-damping-quick-check",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-damping-quick-check",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-f5f7f7bc8f46a5719d685abf",
+  "resourceId": "launcher-lesson07-parameter-challenge-lesson07-parameter-challenge",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-parameter-challenge",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-parameter-challenge",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-86cad742403c8d469b8c9e29",
+  "resourceId": "launcher-lesson07-pole-manipulator-lesson07-pole-manipulator",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-pole-manipulator",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-pole-manipulator",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-9bd999f5041e7d0e6e1fe774",
+  "resourceId": "launcher-lesson07-response-explorer-lesson07-response-explorer",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-response-explorer",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-response-explorer",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-c515a636d99a89f5ad824a0f",
+  "resourceId": "launcher-lesson07-second-order-theory-lesson07-second-order-theory",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-second-order-theory",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-second-order-theory",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-bd5a1ab948c6a59dc0acc083",
+  "resourceId": "launcher-lesson07-summary-card-lesson07-summary-card",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson07-summary-card",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson07-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-aa1dec83b72acf3539885de2",
+  "resourceId": "launcher-lesson08-post-quiz-lesson08-post-quiz",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-post-quiz",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-post-quiz",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-a373a072cd459f842f038f17",
+  "resourceId": "launcher-lesson08-routh-guide-lesson08-routh-guide",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-routh-guide",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-routh-guide",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-79371e614891199673a1a48a",
+  "resourceId": "launcher-lesson08-routh-practice-lesson08-routh-practice",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-routh-practice",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-routh-practice",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-9d1852b59807bfeecda53764",
+  "resourceId": "launcher-lesson08-stability-precheck-lesson08-stability-precheck",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-stability-precheck",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-stability-precheck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-e9f169d0000a340ccc95e83b",
+  "resourceId": "launcher-lesson08-steady-error-deck-lesson08-steady-error-deck",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-steady-error-deck",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-steady-error-deck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-cf14acca3a0c0346b3fcb982",
+  "resourceId": "launcher-lesson08-summary-card-lesson08-summary-card",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson08-summary-card",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson08-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-28adfe77fe8b0ee243b4de95",
+  "resourceId": "launcher-lesson09-correction-precheck-lesson09-correction-precheck",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson09-correction-precheck",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson09-correction-precheck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-a325be5071776d19e2f3cc50",
+  "resourceId": "launcher-lesson09-correction-strategy-lesson09-correction-strategy",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson09-correction-strategy",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson09-correction-strategy",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-8a119363d97ba071f93561db",
+  "resourceId": "launcher-lesson09-summary-card-lesson09-summary-card",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson09-summary-card",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson09-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-677559a0dffc090b72ed8210",
+  "resourceId": "launcher-lesson09-time-domain-synthesis-lesson09-time-domain-synthesis",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson09-time-domain-synthesis",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson09-time-domain-synthesis",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-d0f7aa74773f3b4e7b0aaa9c",
+  "resourceId": "launcher-lesson10-root-locus-workshop-lesson10-root-locus-workshop",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson10-root-locus-workshop",
+  "category": "ROOT_LOCUS",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson10-root-locus-workshop",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-7334e4ec094efa1924e6a413",
+  "resourceId": "launcher-lesson11-graphical-thinking-workshop-lesson11-graphical-thinking-workshop",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson11-graphical-thinking-workshop",
+  "category": "ROOT_LOCUS",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson11-graphical-thinking-workshop",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-f9c3ad32dd4e192aa928e387",
+  "resourceId": "launcher-lesson11-parameter-root-locus-deck-lesson11-parameter-root-locus-deck",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson11-parameter-root-locus-deck",
+  "category": "ROOT_LOCUS",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson11-parameter-root-locus-deck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-a2c328d82defcb702667e4d3",
+  "resourceId": "launcher-lesson11-summary-card-lesson11-summary-card",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson11-summary-card",
+  "category": "ROOT_LOCUS",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson11-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-bd6ac6e6b213270becbfc3f6",
+  "resourceId": "launcher-lesson12-bode-plot-recognition-lesson12-bode-plot-recognition",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-bode-plot-recognition",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-bode-plot-recognition",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-eb44b89a3fac439316bee55f",
+  "resourceId": "launcher-lesson12-bode-post-quiz-lesson12-bode-post-quiz",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-bode-post-quiz",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-bode-post-quiz",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-54e0ccad8bf30e52221d3d14",
+  "resourceId": "launcher-lesson12-bode-slope-puzzle-lesson12-bode-slope-puzzle",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-bode-slope-puzzle",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-bode-slope-puzzle",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-77ae7585aab0a3028d61b220",
+  "resourceId": "launcher-lesson12-bode-step-sorter-lesson12-bode-step-sorter",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-bode-step-sorter",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-bode-step-sorter",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-2f8be5376fd9591592e378f5",
+  "resourceId": "launcher-lesson12-frequency-precheck-lesson12-frequency-precheck",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-frequency-precheck",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-frequency-precheck",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-bbebac49cc8f4ab9acaac6b0",
+  "resourceId": "launcher-lesson12-summary-card-lesson12-summary-card",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson12-summary-card",
+  "category": "FREQUENCY_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson12-summary-card",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-8c13bbde3ea82c6543c91387",
+  "resourceId": "launcher-lesson13-cruise-typhoon-sim-lesson13-cruise-typhoon-sim",
+  "subtype": "SIMULATION_APP",
+  "registryId": "lesson13-cruise-typhoon-sim",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson13-cruise-typhoon-sim",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-79ce813cdde6d6b883d7dc41",
+  "resourceId": "launcher-lesson13-iso2631-mapping-lesson13-iso2631-mapping",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson13-iso2631-mapping",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson13-iso2631-mapping",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-b7b40dde1d3fe0e662fd84b4",
+  "resourceId": "launcher-lesson13-physics-builder-simple-lesson13-physics-builder-simple",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "lesson13-physics-builder-simple",
+  "category": "TIME_DOMAIN",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:lesson13-physics-builder-simple",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-1c45fe6112fb7458ec4bb3d2",
+  "resourceId": "launcher-physics-modeling-analogy-v1-physics-modeling-analogy-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-analogy-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-analogy-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-09efaec9da41426bce436f73",
+  "resourceId": "launcher-physics-modeling-electrical-v1-physics-modeling-electrical-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-electrical-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-electrical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-0a67423d1431dcabdae4e2eb",
+  "resourceId": "launcher-physics-modeling-intro-v1-physics-modeling-intro-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-intro-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-intro-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-aacba9b55f9d40c516d98320",
+  "resourceId": "launcher-physics-modeling-mechanical-v1-physics-modeling-mechanical-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-mechanical-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-mechanical-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-aa295eb7ad0c402643b3178b",
+  "resourceId": "launcher-physics-modeling-practice-v1-physics-modeling-practice-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "physics-modeling-practice-v1",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:physics-modeling-practice-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-9e8aa59fd7177c23af687870",
+  "resourceId": "launcher-sim-pid-v1-sim-pid-v1",
+  "subtype": "SIMULATION_APP",
+  "registryId": "sim-pid-v1",
+  "category": "SYSTEM_CORRECTION",
+  "configSha256": "316a12610005cf557679facc77a8d9defcc2115ba117ec588f5c0dcd00ee3614",
+  "launchAnchor": "registry:sim-pid-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-0d54268f1ab472ae02158b95",
+  "resourceId": "launcher-ten-drops-game-v1-ten-drops-game-v1",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "ten-drops-game-v1",
+  "category": "FUN_EXPLORATION",
+  "configSha256": "2d1477776aafd8d71677cf2ae282710c8d6a9541ba880be911de40f8bd6ef4f4",
+  "launchAnchor": "registry:ten-drops-game-v1",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-de996ac85a7d7e2e25ebfdc1",
+  "resourceId": "launcher-widget-analogy-mapper-widget-analogy-mapper",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-analogy-mapper",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:widget-analogy-mapper",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-ac2e3f2faf66458079bc54d2",
+  "resourceId": "launcher-widget-argument-principle-widget-argument-principle",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-argument-principle",
+  "category": "ROOT_LOCUS",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:widget-argument-principle",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-6b72beb75f652cd7ba88c977",
+  "resourceId": "launcher-widget-physics-elec-widget-physics-elec",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-physics-elec",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:widget-physics-elec",
+  "disposition": "BOUND"
+ },
+ {
+  "atomId": "atom-30a29c52f2d7202a117d0fa0",
+  "resourceId": "launcher-widget-physics-mech-widget-physics-mech",
+  "subtype": "INTERACTIVE_COMP",
+  "registryId": "widget-physics-mech",
+  "category": "SYSTEM_MODELING",
+  "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "launchAnchor": "registry:widget-physics-mech",
+  "disposition": "BOUND"
+ }
+]

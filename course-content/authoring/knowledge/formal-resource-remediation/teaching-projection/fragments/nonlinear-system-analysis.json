@@ -1,0 +1,3711 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "domain": "nonlinear-system-analysis",
+ "memberCount": 349,
+ "edgeCount": 0,
+ "bindingCount": 229,
+ "fragmentHash": "142c0f8fd784c93a37e04aeffd5c6439e586bb82b012fcbb09db5c9d73590436",
+ "members": [
+  {
+   "canonicalId": "ctkg:m3-v2p:canonical-object:64f6e66a201f62a98db0ee79",
+   "excluded": false,
+   "label": "相交时自振稳定性判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2p:canonical-object:c036e4246a4032cd20e9decd",
+   "excluded": false,
+   "label": "不相交时非线性系统稳定性判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0079fafb4b8e0579bedea1a6",
+   "excluded": false,
+   "label": "外部稳定性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-011f4f06a713953af0daf122",
+   "excluded": false,
+   "label": "相轨迹在某些特定情况下，也可以通过积分法，直接由微分方程获得ẋ（t）和x（t）的解析关系式。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-014763c51fc76b93d2e36363",
+   "excluded": false,
+   "label": "ddot{theta} + (g/l) sin theta = T_c/(m l^2); state-variable form with x = [theta, dot{theta}]^T.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+   "excluded": false,
+   "label": "稳定焦点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-01c46e7882202bb14342354b",
+   "excluded": false,
+   "label": "加入串联超前校正网络消除自振并提高相角裕度",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+   "excluded": false,
+   "label": "基于根轨迹的等效增益分析",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-02add349d1d8b2f3be79d0a5",
+   "excluded": false,
+   "label": "L=-\\frac{1}{K_{e q}(a)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0336f68bae1eebc5545ee2f8",
+   "excluded": false,
+   "label": "A_{0}=\\frac{1}{2 \\pi} \\int_{0}^{2 \\pi} y(t) \\mathrm{d} \\omega t",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-042ed878bf4005ac55cb96fc",
+   "excluded": false,
+   "label": "相平面法适用于分析常见非线性特性和一阶、二阶线性环节组合而成的非线性系统。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-048b46fc600674ac29b5cc0c",
+   "excluded": false,
+   "label": "First determine equilibrium values of x_o, u_o such that dot{x}_o = 0 = f(x_o, u_o), let x = x_o + delta x and u = u_o + delta u, then expand the nonlinear equation in terms of the perturbations.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-06eff10239586b5ea3a8dbab",
+   "excluded": false,
+   "label": "非线性特性可视为变增益比例环节",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-07fb25cb3dd84ed03a637ba2",
+   "excluded": false,
+   "label": "c(t)=c_{10} \\mathrm{e}^{-s_{1} t}+c_{20} \\mathrm{e}^{-s_{2} t}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-08cd1d12153cadb89717f830",
+   "excluded": false,
+   "label": "由初始点出发，按照该点所处等倾线的短直线方向作一条小线段，并与相邻一条等倾线相交；由该交点起，并按该交点所在等倾线的短直线方向作一条小线段，再与其相邻的一条等倾线相交；循此步骤依次进行，就可以获得一条从初始点出发，由各小线段组成的折线，最后对该折线作光滑处理，即得到所求系统的相轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-093e69f52a564305cb43330f",
+   "excluded": false,
+   "label": "K_{e q}(a)=\\left\\{\\begin{array}{cl}\\frac{2}{\\pi}\\left(k \\sin ^{-1}\\left(\\frac{N}{a k}\\right)+\\frac{N}{a} \\sqrt{1-\\left(\\frac{N}{k a}\\right)^{2}}\\right), & \\frac{k a}{N}>1,  \\\\k, & \\frac{k a}{N} \\leq 1 .\\end{array}\\right.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "excluded": false,
+   "label": "极限环",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-09ba7fa7e4937484ee0ed17c",
+   "excluded": false,
+   "label": "\\alpha=-2 \\zeta \\omega_{n}-\\frac{\\omega_{n}^{2}}{k}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+   "excluded": false,
+   "label": "迟滞非线性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c3ede0472972e1f7447f3f6",
+   "excluded": false,
+   "label": "ζ>1时，系统特征根为两个互异负实根，存在两条特殊的等倾线，相轨迹最终沿斜率较大的等倾线方向收敛至原点（稳定节点）。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0de3835f8e7a0dd3f7265202",
+   "excluded": false,
+   "label": "描述线性一阶系统自由运动的微分方程为Tċ+c=0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "excluded": false,
+   "label": "非线性系统",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-11c92ef871fed8117cb073e2",
+   "excluded": false,
+   "label": "饱和特性使系统开环增益在饱和区下降",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-12a2d825bf2495cb5b66f740",
+   "excluded": false,
+   "label": "Procedure for limit cycle analysis and design using root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-12e3a662d3fc1444343fa005",
+   "excluded": false,
+   "label": "The equilibrium conditions for the nonlinear pendulum correspond to theta_o = 0 (downward) and theta_o = pi (inverted).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-13572d6e4997e4bea3c6a45a",
+   "excluded": false,
+   "label": "Describing Function Assumptions",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-141aa30eb0cfde37ebc72fcd",
+   "excluded": false,
+   "label": "k=\\frac{y}{x}=\\frac{f(x)}{x}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-14b61e56571539bbfb630ae7",
+   "excluded": false,
+   "label": "小偏差线性化法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+   "excluded": false,
+   "label": "施密特触发器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-194320cb8f7321b946f01891",
+   "excluded": false,
+   "label": "线性系统的频率特性是输入正弦信号频率 ω 的函数，与幅值 A 无关；而非线性环节的描述函数是输入正弦信号幅值 A 的函数，表现为关于 A 的复变增益放大器。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ca4635beaad42eaac5ec29e",
+   "excluded": false,
+   "label": "Nonlinear Element with Sinusoidal Input",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e1efb7ae4bf219533f83cb3",
+   "excluded": false,
+   "label": "|G(\\mathrm{j} \\omega)|=\\left|\\frac{1}{N(A)}\\right|, \\quad \\angle[G(\\mathrm{j} \\omega)]=-\\pi-\\angle[N(A)]",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+   "excluded": false,
+   "label": "Consider the feedback system in Fig. 9.14. Determine the amplitude and the frequency of the limit cycle using the Nyquist plot.",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "excluded": false,
+   "label": "相平面图",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "excluded": false,
+   "label": "等倾线法",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-220fcd1bb4ad4dfdcfb9ab69",
+   "excluded": false,
+   "label": "Equilibrium at theta_o = 0, pi; state-space matrices A = [[0,1],[-omega_o^2 cos theta_o, 0]], B = [[0],[1]]; eigenvalues pm j omega_o for theta_o=0, pm omega_o for theta_o=pi.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-22c81cdd772685a93be84656",
+   "excluded": false,
+   "label": "非线性系统闭环特征方程模型",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-236a4059be6d4d9e61809e9e",
+   "excluded": false,
+   "label": "\\dot{c}(t)=-\\frac{b c(t)}{\\alpha+a}=k c(t)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-238f13fe1b16779db3c24826",
+   "excluded": false,
+   "label": "半稳定极限环的周期运动可能稳定或不稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2472530b842ec00599809720",
+   "excluded": false,
+   "label": "继电器非线性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-25e5cfccdeafc21d2ae5d51b",
+   "excluded": false,
+   "label": "非线性系统平衡状态的稳定性不仅与系统的结构和参数有关，而且与系统的初始条件有直接的关系。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-26a342404e73f9b8fdd89bd5",
+   "excluded": false,
+   "label": "已知非线性系统的微分方程为 ẍ + 0.5 ẋ + 2x + x² = 0，试求系统的奇点，并绘制系统的相平面图。求得两个奇点：（0,0）为稳定焦点，（-2,0）为鞍点。相平面图中相交于鞍点的两条相轨迹为奇线，将相平面划分为两个区域，阴影线内区域为系统的稳定区域，阴影线外区域为系统的不稳定区域。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2879ea6855067129d40ada65",
+   "excluded": false,
+   "label": "相平面法由庞加莱1885年首先提出。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-28801db713d68935b5f583f5",
+   "excluded": false,
+   "label": "ζ=0时，系统特征根为一对纯虚根，相轨迹为围绕坐标原点的一簇椭圆，系统自由运动为等幅正弦振荡。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-28a4483d79410aadb04da482",
+   "excluded": false,
+   "label": "系统结构如图8-28所示，系统初始状态为零，输入r(t)=R·1(t)。微分方程为T c̈(t)+ċ(t)=K m(t)，其中m(t)为死区非线性函数。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2931d7152e82f97bf9e2074d",
+   "excluded": false,
+   "label": "\\frac{k_{2}-k_{1}}{2 k_{1} k_{2}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2a4561c6956b09de8b9128d2",
+   "excluded": false,
+   "label": "间隙特性导致能量积累和系统自振",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2ab1cdbf70eb9a0efc39449b",
+   "excluded": false,
+   "label": "系统结构如图8-30所示，图中T=1, K=4, e₀=M₀=0.2，系统初始状态为零。取状态变量为e(t)和ė(t)，按饱和特性可列写三个线性微分方程。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+   "excluded": false,
+   "label": "基于频率响应的稳定性分析",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+   "excluded": false,
+   "label": "等倾线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+   "excluded": false,
+   "label": "带死区增益",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d0d156ee85fa03e07a70698",
+   "excluded": false,
+   "label": "For systems with nonlinearities that have memory, we can also use the Nyquist technique, as illustrated in the next example.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d3e13db4965d78a3919bba8",
+   "excluded": false,
+   "label": "MATLAB绘制相轨迹",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dfba04147dbfb44d217f3d8",
+   "excluded": false,
+   "label": "If a small-signal linear model is valid near an equilibrium and is stable, then there is a region containing the equilibrium within which the nonlinear system is stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2f6c1763ec0a315a31b4c05c",
+   "excluded": false,
+   "label": "T \\dot{c}+c=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2f70eb8ffd0c1d76abf57783",
+   "excluded": false,
+   "label": "k_{1} \\leq \\frac{f(x)}{x} \\leq k_{2}, \\quad x \\neq 0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-30300559e14f3dfa9f909625",
+   "excluded": false,
+   "label": "具有饱和特性的非线性控制系统相平面分析步骤（斜坡输入）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-306d287d31425e1927d6cae9",
+   "excluded": false,
+   "label": "N(A)=\\frac{2 K}{\\pi}\\left[\\arcsin \\frac{a}{A}-\\arcsin \\frac{\\Delta}{A}+\\frac{a}{A} \\sqrt{1-\\left(\\frac{a}{A}\\right)^{2}}-\\frac{\\Delta}{A} \\sqrt{1-\\left(\\frac{\\Delta}{A}\\right)^{2}}\\right], \\quad A \\geqslant a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3081a12432e3350faafb5d15",
+   "excluded": false,
+   "label": "该系统自由运动的相轨迹为以坐标原点为圆心、√（x₀²+ẋ₀²）为半径的圆。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-32f7f45c03eee4f9e77af2da",
+   "excluded": false,
+   "label": "对于A区内任意一条k=kA的等倾线，由于0>kA>s1>s2，故αA>kA，相轨迹趋近于特殊等倾线ċ=s1c；对于B区内任一条k=kB的等倾线，由于s1>kB>s2，故αB<kB，相轨迹亦趋近于特殊等倾线ċ=s1c，偏离特殊等倾线ċ=s2c；而当等倾线位于C区时，kC<s2<s1，则αC>kC，相轨迹偏离ċ=s2c。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-34858238cf62e9a84e3ac4de",
+   "excluded": false,
+   "label": "Consider the system with a hysteresis nonlinearity shown in Fig. 9.34. Determine whether the system is stable and find the amplitude and the frequency of the limit cycle.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-37427c0ceefae90634f93312",
+   "excluded": false,
+   "label": "扇形条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "excluded": false,
+   "label": "极限环",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-37b25c3708b534d2973c18b6",
+   "excluded": false,
+   "label": "非线性系统的工作状态取决于初始条件和扰动",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3920bf6f035d886ec204c28b",
+   "excluded": false,
+   "label": "\\int_{\\dot{x}_{0}}^{x} g(\\dot{x}) \\mathrm{d} \\dot{x}=\\int_{x_{0}}^{x} h(x) \\mathrm{d} x",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-395ec0aaca62e5fb28ef7fb1",
+   "excluded": false,
+   "label": "极限环是非线性系统中的特有现象，它只发生在非守恒系统中，这种周期运动的原因不在于系统无阻尼，而是系统的非线性特性，它导致系统的能量作交替变化，这样就有可能从某种非周期性的能源中获取能量，从而维持周期运动。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-39a19ab34af5f821a8327e42",
+   "excluded": false,
+   "label": "例8-1 弹簧-质量系统微分方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3a25b5df1363f7c7342964d6",
+   "excluded": false,
+   "label": "K_x is the slope of force versus x at constant current i2 (about 14 N/m); K_i is the change of force with current at constant position x1 (about 0.4 N/A).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3a2b2f1b597e48ff7b91da1f",
+   "excluded": false,
+   "label": "\\dot{x}=\\frac{f(x, \\dot{x})}{\\alpha}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3be608f84e3f8fdd94f202e7",
+   "excluded": false,
+   "label": "非线性系统频率响应含有高次谐波分量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "excluded": false,
+   "label": "具有饱和非线性特性的控制系统（k=2, a=1），线性部分G（s）=K/[s（0.1s+1）（0.2s+1）]，K=15。分析结果：Γ_G曲线和-1/N（A）曲线存在交点（-1, j0），且在该交点处-1/N（A）沿A增大方向由不稳定区域进入稳定区域，系统存在稳定的周期运动，振荡频率ω=7.07，振幅A=2.5。",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c900c3488120fca6e4abb06",
+   "excluded": false,
+   "label": "非线性系统的频率响应除了含有与输入同频率的正弦信号分量（基频分量）外，还含有关于ω的高次谐波分量，使输出波形发生非线性畸变。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3d2ccde28da57ac4c9bc2bb0",
+   "excluded": false,
+   "label": "\\operatorname{sgn}(x)=\\left\\{\\begin{array}{cl}\n+1 & \\text { if } x>0, \\\\\n0 & \\text { if } x=0, \\\\\n-1 & \\text { if } x<0 .\n\\end{array}\\right.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3d5a9d8f16d63c0b102f7113",
+   "excluded": false,
+   "label": "\\delta \\dot{\\mathbf{x}}=\\mathbf{A} \\delta \\mathbf{x}+\\mathbf{B} \\delta u",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3d6928886eefeb8d1b5528b4",
+   "excluded": false,
+   "label": "相平面法通过图解法将一阶和二阶系统的运动过程转化为位置和速度平面上的相轨迹，从而比较直观、准确地反映系统的稳定性、平衡状态和稳态精度以及初始条件及参数对系统运动的影响。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "excluded": false,
+   "label": "等效增益",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3df7c1f9c905624ef0ff743d",
+   "excluded": false,
+   "label": "\\frac{\\mathrm{d} \\dot{c}}{\\mathrm{~d} c}=-a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e0ca114a94bf8f96a315fba",
+   "excluded": false,
+   "label": "\\frac{\\mathrm{d} \\dot{x}}{\\mathrm{~d} x}=\\frac{f(x, \\dot{x})}{\\dot{x}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "excluded": false,
+   "label": "等效增益",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e33400583e87ea689ace9ed",
+   "excluded": false,
+   "label": "The sector for the signum function is [0, ∞].",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e6e564c000b7566109d14b3",
+   "excluded": false,
+   "label": "对于非线性系统的各个平衡点，若描述非线性过程的非线性函数解析时，可以通过平衡点处的线性化方程，基于线性系统特征根的分布，确定奇点的类型，进而确定平衡点附近相轨迹的运动形式。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f76c64fbe2e0d908caf7032",
+   "excluded": false,
+   "label": "例8-7中死区继电特性极值点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3fbb617c7eb9f1fefc2fa2c2",
+   "excluded": false,
+   "label": "非线性系统的运动及其稳定性与初始条件有关。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-403b44ee54be823a17c5b607",
+   "excluded": false,
+   "label": "例8-7中死区继电特性描述函数导数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-411b4330ef1d812cf20b125d",
+   "excluded": false,
+   "label": "非线性系统的根轨迹法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-414cc9d925bf44ef8ab90d20",
+   "excluded": false,
+   "label": "\\frac{\\mathrm{d} \\dot{c}}{\\mathrm{~d} c}=\\frac{-a \\dot{c}-b c}{\\dot{c}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4350a1c6843b26cc6bc3b07b",
+   "excluded": false,
+   "label": "Computing Describing Function for Relay Nonlinearity",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-43b492926decd5f93b115536",
+   "excluded": false,
+   "label": "描述函数法稳定性判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44abb05a48944f9fee9a9d01",
+   "excluded": false,
+   "label": "相平面法分析非线性系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+   "excluded": false,
+   "label": "无记忆非线性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-45839ec1c18767c983774a4e",
+   "excluded": false,
+   "label": "K_{e q}(a)=\\frac{4 N}{\\pi a}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-45cafb1eb60b43f0092adf86",
+   "excluded": false,
+   "label": "\\ddot{x}+\\omega_{n}^{2} x=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-45fbb81d4885e8a79394e68b",
+   "excluded": false,
+   "label": "\\dot{c}(t)-\\dot{c}_{0}=-a\\left(c(t)-c_{0}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46e0a585d4faf2a59e4aa6de",
+   "excluded": false,
+   "label": "相轨迹沿ċ=s2c的运动是不稳定的，稍有扰动则偏离该相轨迹，最终沿等倾线ċ=s1c的方向收敛至原点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-473ac37bb9aa1faa9ade8a3d",
+   "excluded": false,
+   "label": "Hysteresis Nonlinearity Has Memory",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4a3a70893b29c697e796c849",
+   "excluded": false,
+   "label": "Analytical equation for limit cycle",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4d68fd87047ddfdc2472cda3",
+   "excluded": false,
+   "label": "Saturation as Most Common Nonlinearity",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4db66480621d9dabdf8a5425",
+   "excluded": false,
+   "label": "A closed-loop dynamic system with saturation, where the plant transfer function is (s+1)/s^2.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "excluded": false,
+   "label": "描述函数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4fa1f586242f7676a1aa3fb4",
+   "excluded": false,
+   "label": "例8-1 相轨迹方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4fca9dc2c7954ccca5ff4157",
+   "excluded": false,
+   "label": "The stability of systems with memoryless nonlinearities can be studied heuristically using the root locus by replacing the nonlinearity with an equivalent gain.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4ffeec5d480f614837d359a8",
+   "excluded": false,
+   "label": "间隙的存在，相当于死区的影响，降低系统的跟踪精度。由于间隙为非单值函数，对于相同的输入值x（t），输出y（t）的取值还取决于ẋ（t）的符号，因而受其影响负载系统的运动变化剧烈。若间隙过大，则蓄能过多，将会造成系统自振。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5095c25482f696997f716c73",
+   "excluded": false,
+   "label": "非线性特性并联等效描述函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-516717bd2d1e3ffcb3cfe29e",
+   "excluded": false,
+   "label": "\\ddot{c}+a \\dot{c}+b c=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-525a26fbaaa5f3382b48fcfe",
+   "excluded": false,
+   "label": "奈氏判据在变增益线性系统中的应用",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-527ca09cb476f0f78424b798",
+   "excluded": false,
+   "label": "\\ddot{x}-2 \\rho\\left(1-x^{2}\\right) \\dot{x}+x=0, \\quad \\rho>0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "excluded": false,
+   "label": "描述函数法",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-540b9f572ebc6d146ff4eb90",
+   "excluded": false,
+   "label": "1. 加入速度反馈控制以后，列写非线性系统在无输入作用下的微分方程。2. 设直线L₁: c+τċ=h, L₂: c+τċ=-h。3. 分析相轨迹点位于第IV象限且位于L₁上方以及L₁上时的运动。4. 分析相轨迹点位于第II象限且位于L₂下方以及L₂上时的运动。5. 确定三条开关线将相平面划分为左右两个区域。6. 绘制相平面图。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "excluded": false,
+   "label": "平衡状态",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-551346c07dd0adc110d95089",
+   "excluded": false,
+   "label": "不稳定节点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+   "excluded": false,
+   "label": "继电特性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5741381ea8f750a69e1afc33",
+   "excluded": false,
+   "label": "k_{1} x^{2} \\leq f(x) x \\leq k_{2} x^{2}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-577cc1115475d5105d222f49",
+   "excluded": false,
+   "label": "非线性系统自激振荡的有条件性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5826bf8651ad6e2bcec108da",
+   "excluded": false,
+   "label": "非线性一阶系统时间响应",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-590eb76093e2b37117147e51",
+   "excluded": false,
+   "label": "线性系统只有一个平衡状态",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+   "excluded": false,
+   "label": "半稳定极限环",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-596c8876e2c73d3fb3686586",
+   "excluded": false,
+   "label": "1+N(A) G(\\mathrm{j} \\omega)=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-598d3c7f304d1f01d5d4d200",
+   "excluded": false,
+   "label": "m ddot{x} = f_m(x, i) - m g, where f_m is the magnetic force.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5a0d45fde6432bdbdaf5b8ef",
+   "excluded": false,
+   "label": "死区饱和非线性描述函数计算步骤",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5a3d7f1bd0734000a5591642",
+   "excluded": false,
+   "label": "N(A)=\\frac{4 M}{\\pi A} \\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}-\\mathrm{j} \\frac{4 M h}{\\pi A^{2}}, \\quad A \\geqslant h",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+   "excluded": false,
+   "label": "小信号分析",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5c98f438e7e0136a710dc9c3",
+   "excluded": false,
+   "label": "α-k关系式（标准形式）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5d6641614a346bd4a4359fe8",
+   "excluded": false,
+   "label": "Larger input signals correspond to smaller effective gain in saturation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5db30b4eb87c9ff87e791d52",
+   "excluded": false,
+   "label": "线性系统周期运动依赖于初始条件且不能维持",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5db9ba87164603465d09ed5d",
+   "excluded": false,
+   "label": "Limit Cycle Determination via Nyquist and Describing Function Intersection",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5e99bf8039857d14ec70c993",
+   "excluded": false,
+   "label": "\\ddot{c}+2 \\zeta \\omega_{n} \\dot{c}+\\omega_{n}^{2} c=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+   "excluded": false,
+   "label": "双极限环",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-603f3f714333b813ef2b10ea",
+   "excluded": false,
+   "label": "减小线性部分增益消除自振会降低响应快速性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-611af84a9d5eef59ec13561f",
+   "excluded": false,
+   "label": "Aizermann's conjecture is false",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6170db07aaa4ca4a8b33bf89",
+   "excluded": false,
+   "label": "坐标轴x和ẋ应选用相同的比例尺；等倾线分布越密，则所作的相轨迹越准确，但绘图工作量增加，同时也使作图产生的积累误差增大。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-619c308c7d2c787ad36d496d",
+   "excluded": false,
+   "label": "线性部分低通滤波要求",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-61b1956caafa4db97c739eab",
+   "excluded": false,
+   "label": "Limit cycling can be beneficial",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-62409518c4dd4def0b0a7a92",
+   "excluded": false,
+   "label": "dot{x} = f(x, u) with x = h, u = w_in, f(x,u) = -1/(R A rho) sqrt(p_1 - p_a) + 1/(A rho) w_in.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-62d6aa2c8f87f857dde6838d",
+   "excluded": false,
+   "label": "Solve two equations for limit-cycle frequency and amplitude",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-62dd15f48555059bdb6534e5",
+   "excluded": false,
+   "label": "描述函数物理意义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-63207226e4b7bbf55850ff1c",
+   "excluded": false,
+   "label": "N(A)=N(u)=\\frac{4 M}{\\pi h} u \\sqrt{1-u^{2}}, \\quad u \\geqslant 1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-635a8d616706a6a719ab2b81",
+   "excluded": false,
+   "label": "The Nyquist theorem can be extended to nonlinear systems with describing functions: the characteristic equation becomes 1 + K_eq(a)L = 0, and stability is determined by the intersection of L with -1/K_eq(a).",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "excluded": false,
+   "label": "饱和非线性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-639b62d2a812cbfa4ce86d6d",
+   "excluded": false,
+   "label": "Nyquist technique applicable to nonlinearities with memory",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-63c4d86ef784bded73af3dd8",
+   "excluded": false,
+   "label": "Describing function can suggest remedies for instability",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-64041b4928258344e65dd87c",
+   "excluded": false,
+   "label": "鞍点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6441d041ca0dc15c704f60d7",
+   "excluded": false,
+   "label": "k=\\frac{-\\omega_{n}^{2}}{\\alpha+2 \\zeta \\omega_{n}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "excluded": false,
+   "label": "非线性系统",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65cddc99938be80d91f87297",
+   "excluded": false,
+   "label": "非线性系统可能存在多个平衡状态",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-66011c5823f5b3d47e60e552",
+   "excluded": false,
+   "label": "\\dot{\\mathbf{x}}=\\mathbf{f}(\\mathbf{x}, u)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6652a24ad0e35d2937e7fe6e",
+   "excluded": false,
+   "label": "当取初始条件使c10=0（或c20=0），则相轨迹为ċ=s2c（或ċ=s1c）；而在其他情况下，由于特征根s2远离虚轴，故c20e^{-s2t}相对于c10e^{-s1t}很快衰减，系统运动过程特别是过渡过程的后期主要取决于c10e^{-s1t}项。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-67dc604f0eae4a32795c33ba",
+   "excluded": false,
+   "label": "极限环是相平面上的分隔线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-68b7f9e57b286b9d0038ad00",
+   "excluded": false,
+   "label": "特征根在s平面上的分布，决定了系统自由运动的形式，因而可由此划分线性二阶系统奇点（0,0）的类型：焦点、节点、鞍点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-693ee2fc9d675a5d5b6a5015",
+   "excluded": false,
+   "label": "Saturation Time Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+   "excluded": false,
+   "label": "死区",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6da02dcf6874483482231162",
+   "excluded": false,
+   "label": "System does not possess asymptotic stability when limit cycling",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6dbce19197eba01bf26331f9",
+   "excluded": false,
+   "label": "A_{n}=\\frac{1}{\\pi} \\int_{0}^{2 \\pi} y(t) \\cos n \\omega t \\mathrm{~d} \\omega t, \\quad B_{n}=\\frac{1}{\\pi} \\int_{0}^{2 \\pi} y(t) \\sin n \\omega t \\mathrm{~d} \\omega t \\quad(n=1,2, \\cdots)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6f3b55b2f8b29a5c75ac62bf",
+   "excluded": false,
+   "label": "特殊的等倾线的斜率等于位于该等倾线上相轨迹任一点的切线斜率，即当相轨迹运动至特殊的等倾线上时，将沿着等倾线收敛或发散，而不可能脱离该等倾线。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6fc815726ab1f310fb4e9176",
+   "excluded": false,
+   "label": "例8-6中饱和非线性描述函数导数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-715ad87e9a671e6554cfd57b",
+   "excluded": false,
+   "label": "对于某些非线性微分方程，为研究各平衡状态附近的运动特性，可在平衡点附近作增量线性化处理，即对非线性微分方程两端的各非线性函数作泰勒级数展开，并取一次项近似，获得平衡点处的增量线性微分方程。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-715d5815a4d2902849d2499a",
+   "excluded": false,
+   "label": "饱和区相轨迹微分方程（导数形式）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-723dc3694060e5582522e6b4",
+   "excluded": false,
+   "label": "摩擦对系统性能的影响最主要的是造成系统低速运动的不平滑性，即当系统的输入轴作低速平稳运转时，输出轴的旋转呈现跳跃式的变化。这种低速爬行现象是由静摩擦到动摩擦的跳变产生的。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-731886d321df870377dcea4c",
+   "excluded": false,
+   "label": "The circle criterion considers energy at the system terminals; if energy always flows into the terminals, the system is assumed stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7626dfd0cea01086a55d51f2",
+   "excluded": false,
+   "label": "描述函数法主要用途",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-76578fcb379234c4b4c23cba",
+   "excluded": false,
+   "label": "1） 非线性系统应简化为一个非线性环节和一个线性部分闭环连接的典型结构；2） 非线性环节的输入输出特性应是 x 的奇函数或正弦输入下的输出为 t 的奇对称函数；3） 系统的线性部分应具有较好的低通滤波性能。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+   "excluded": false,
+   "label": "李雅普诺夫第一方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-76a70a38b4ffa81dbd604c01",
+   "excluded": false,
+   "label": "b<0时，系统特征根一正一负，相平面图中有两条特殊的等倾线作为渐近线，将相平面划分为四个区域，系统运动不稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-76ec808ec89014325ba72d75",
+   "excluded": false,
+   "label": "If the system gain is set such that roots are in the RHP, the response builds up due to instability until the magnitude is sufficiently large that the effective gain is lowered to the point of marginal stability, resulting in a limit cycle.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-779547c4e08e7f7a04c657fe",
+   "excluded": false,
+   "label": "某弹簧－质量运动系统，m为质量，k为弹性系数，初始条件 x（0）=x₀, ẋ（0）=ẋ₀，系统自由运动的相轨迹为以坐标原点为圆心、√（x₀²+ẋ₀²） 为半径的圆。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-77f7f8f0055de752ad8e9928",
+   "excluded": false,
+   "label": "在Γ_G曲线和-1/N（A）曲线的交点处，若-1/N（A）曲线沿着振幅A增加的方向由不稳定区域进入稳定区域时，该交点对应的周期运动是稳定的。反之，若-1/N（A）曲线沿着振幅A增加的方向在交点处由稳定区域进入不稳定区域时，该交点对应的周期运动是不稳定的。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-78aceee1453c8c629dcfdd7e",
+   "excluded": false,
+   "label": "低速爬行现象",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-79911a4ab3fad77e1265aa3f",
+   "excluded": false,
+   "label": "y=N \\text { sat }\\left(\\frac{k}{N} x\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-79daed4058741267fc312c7f",
+   "excluded": false,
+   "label": "线性二阶系统特征根在 s 平面上的分布，决定了系统自由运动的形式，因而可由此划分线性二阶系统奇点 （0,0） 的类型：焦点、节点、鞍点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7ac0d73a5663550b16ee6cca",
+   "excluded": false,
+   "label": "二阶系统的相轨迹可应用MATLAB软件，运行相应的程序，在相平面上精确绘制，并可方便地给出相应的时间响应曲线，便于对比分析。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+   "excluded": false,
+   "label": "描述函数法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7e0980b0eab0790e9a1a0a18",
+   "excluded": false,
+   "label": "X(s)=\\frac{s x_{0}+\\dot{x}_{0}}{s^{2}+\\omega_{n}^{2}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7eaf252eaeee6507a438cdc4",
+   "excluded": false,
+   "label": "\\gamma(A)=180^{\\circ}-\\angle\\left[G_{c}\\left(\\mathrm{j} \\omega_{c}\\right) G\\left(\\mathrm{j} \\omega_{c}\\right)\\right]",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+   "excluded": false,
+   "label": "相轨迹",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-80c7d8f59e1ad1850271350c",
+   "excluded": false,
+   "label": "非线性系统简化步骤",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-80d226d08d089c2c8bbd2219",
+   "excluded": false,
+   "label": "直接积分法求相轨迹",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+   "excluded": false,
+   "label": "稳定极限环",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-82808b8d7e61456ba8f53feb",
+   "excluded": false,
+   "label": "y=\\left\\{\\begin{array}{lll}\nk_{0}(x-b), & \\dot{x}>0, & x>-(a-2 b)  \\\\\nk_{0}(a-b), & \\dot{x}<0, & x>(a-2 b) \\\\\nk_{0}(x+b), & \\dot{x}<0, & x<(a-2 b) \\\\\nk_{0}(-a+b), & \\dot{x}>0, & x<-(a-2 b)\n\\end{array}\\right.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-83105de44e601ff929bac264",
+   "excluded": false,
+   "label": "定积分公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-838eb9b109e57a65240b1858",
+   "excluded": false,
+   "label": "等倾线法的基本思想是，先确定相轨迹的等倾线，进而绘出相轨迹的切线方向场，然后从初始条件出发，沿方向场逐步绘制相轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8650dc013a3cbb85597d2d20",
+   "excluded": false,
+   "label": "K_{e q}(a) =\\frac{2}{\\pi a} \\int_{0}^{\\pi} f(a \\sin (\\omega t)) \\sin (\\omega t) d(\\omega t) \\leq \\frac{2 k_{2}}{\\pi} \\int_{0}^{\\pi} \\sin ^{2}(\\omega t) d(\\omega t)=k_{2}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-868cdcdd22cf6d7b46ac2aa8",
+   "excluded": false,
+   "label": "线性叠加原理",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-87c64ca15a76f20f2a0bc953",
+   "excluded": false,
+   "label": "Steps to compute the describing function for a saturation nonlinearity: define input sinusoid, compute Fourier coefficient b1 by integrating over half-period, split integral into linear and saturation parts, and simplify using trigonometric identities.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-895b8da7bde844a8331ca09e",
+   "excluded": false,
+   "label": "-\\frac{1}{K_{e q}(a)}=-\\frac{1}{\\frac{4 N}{\\pi a}\\left(\\sqrt{1-\\left(\\frac{h}{a}\\right)^{2}}-j \\frac{h}{a}\\right)}=-\\frac{\\pi}{4 N}\\left[\\sqrt{a^{2}-h^{2}}+j h\\right] .",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a3c314c47ad84ae14ce5cb8",
+   "excluded": false,
+   "label": "Phase stabilization via notch compensation",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a85bf9b7674c5f58796f8ed",
+   "excluded": false,
+   "label": "具有滞环继电特性的非线性控制系统相平面分析步骤（单位反馈）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a9cb0b365091f52ead74390",
+   "excluded": false,
+   "label": "N(A)=\\frac{4 M}{\\pi A}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c54ca053a068df5789148df",
+   "excluded": false,
+   "label": "If k1=0, the critical circle degenerates into a half plane defined by Re{G} ≥ -1/k2.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c8382df5b3b82653b7813bb",
+   "excluded": false,
+   "label": "A_{1}=\\frac{2}{\\pi} \\int_{0}^{\\pi} y(t) \\cos \\omega t \\mathrm{~d} \\omega t, \\quad B_{1}=\\frac{2}{\\pi} \\int_{0}^{\\pi} y(t) \\sin \\omega t \\mathrm{~d} \\omega t",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8cc6c072d0b2a494287d66b4",
+   "excluded": false,
+   "label": "x(t)=\\sqrt{x_{0}^{2}+\\left(\\frac{\\dot{x}_{0}}{\\omega_{n}}\\right)^{2}} \\sin \\left(\\omega_{n} t+\\arctan \\frac{\\omega_{n} x_{0}}{\\dot{x}_{0}}\\right)=A \\sin \\left(\\omega_{n} t+\\varphi\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+   "excluded": false,
+   "label": "带死区的继电器",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8f56f1935a8caafd31e8f924",
+   "excluded": false,
+   "label": "死区滞环继电非线性描述函数计算步骤",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8f58c1ded043204fe276845a",
+   "excluded": false,
+   "label": "线性系统是非线性系统的特例，对于许多非线性一阶和二阶系统，常可以分成多个区间进行研究，而在各个区间内，非线性系统的运动特性可用线性微分方程描述。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8fea15ba3f636b101cc1bb93",
+   "excluded": false,
+   "label": "非线性系统周期运动与极限环的关系",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-916a55401c4fcc2dec566e14",
+   "excluded": false,
+   "label": "非线性特性串联简化方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-92cfeac546f130566ac609c4",
+   "excluded": false,
+   "label": "奇点（-2,0）处增量线性化方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-932126f348dddc6ba9a40088",
+   "excluded": false,
+   "label": "An example demonstrating the stability properties of a system with saturation using the root-locus technique.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93c68e9fcd53d79ba1915a63",
+   "excluded": false,
+   "label": "例8-4：多项式非线性描述函数计算",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "excluded": false,
+   "label": "相平面",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9581ae46c5b411c0d37c0d18",
+   "excluded": false,
+   "label": "A control system with an oscillatory mode, including a saturation block, a second-order transfer function 1/(s^2 + 0.2s + 1), and an integrator 1/s.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-95a040599a7ce1d0b97f6eb3",
+   "excluded": false,
+   "label": "y(t)=A_{0}+\\sum_{n=1}^{\\infty}\\left(A_{n} \\cos n \\omega t+B_{n} \\sin n \\omega t\\right)=A_{0}+\\sum_{n=1}^{\\infty} Y_{n} \\sin \\left(n \\omega t+\\varphi_{n}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-960ccdcd8f8c9a108d6134f8",
+   "excluded": false,
+   "label": "\\dot{x} \\frac{\\mathrm{~d} \\dot{x}}{\\mathrm{~d} x}=f(x, \\dot{x})",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-97b3c4b5b8f97a0046579626",
+   "excluded": false,
+   "label": "Equation for K_eq from root locus",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9839bd8d2d36d69d853b1d46",
+   "excluded": false,
+   "label": "1. Replace the memoryless nonlinearity by an equivalent gain K. 2. Plot a root locus versus this gain. 3. For a range of input signal amplitudes, the equivalent gain will take on a range of values. 4. Examine the closed-loop roots in this range as if the gain were fixed.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-986a61e47e9fe354429a34a9",
+   "excluded": false,
+   "label": "1. 整理式（8-43）得式（8-44）。2. 确定饱和区形如Të+ė+A=0的相轨迹。3. 由相轨迹微分方程得等倾线方程。4. 令α=0得特殊的等倾线ė=-A。5. 代入给定参数求得线性区的奇点为原点，且为实奇点，稳定焦点。6. 由零初始条件和输入r（t）=R·1（t）得e（0）=R, ė（0）=0。7. 绘制系统的相轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-991518182b0a97198c736c37",
+   "excluded": false,
+   "label": "非线性系统周期运动稳定性分析前提",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-999eff53984aebc2d647670f",
+   "excluded": false,
+   "label": "The linear system has eigenvalues of ±j omega_o and ±omega_o corresponding to theta_o=0 and pi, respectively, with the latter inverted case being unstable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99e2b54e9474379206799dfa",
+   "excluded": false,
+   "label": "正阻尼",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f4968958785fa4fecdc00f",
+   "excluded": false,
+   "label": "1） 将非线性系统简化为典型结构；2） 计算非线性环节的描述函数 N（A）；3） 绘制线性部分 G（jω） 的奈奎斯特曲线和负倒描述函数 -1/N（A） 曲线；4） 根据两曲线是否包围判断系统稳定性。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9c4c82dd34208ff36ec2a99c",
+   "excluded": false,
+   "label": "DF=K_{eq}(a, \\omega)=\\frac{b_{1}+j a_{1}}{a}=\\frac{Y_{1}(a, \\omega)}{a} e^{j \\theta_{1}}=\\frac{Y_{1}(a, \\omega)}{a} \\angle \\theta_{1}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9c96e0541d2f4e5314646677",
+   "excluded": false,
+   "label": "\\frac{\\dot{c}^{2}}{\\dot{c}_{0}^{2}+\\omega_{n}^{2} c_{0}^{2}}+\\frac{\\omega_{n}^{2} c^{2}}{\\dot{c}_{0}^{2}+\\omega_{n}^{2} c_{0}^{2}}=1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9d922ed54821a30a87cd2f6e",
+   "excluded": false,
+   "label": "稳定焦点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+   "excluded": false,
+   "label": "分隔线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9ec056887d7b9dea4752f86c",
+   "excluded": false,
+   "label": "s_{1,2}=\\frac{-a \\pm \\sqrt{a^{2}-4 b}}{2}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f267f42312998d2909fd492",
+   "excluded": false,
+   "label": "Negative reciprocal of describing function for saturation with k=1, N=0.1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f61785adec23f05043a9077",
+   "excluded": false,
+   "label": "If the linear approximation of a nonlinear system is strictly stable (all roots in LHP), then the nonlinear system has a region of stability around the equilibrium point.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a006a76a7e0bcccabddd6398",
+   "excluded": false,
+   "label": "K_{\\mathrm{eq}}(a)=\\left\\{\\begin{array}{cc}\\frac{4 N}{\\pi a}\\left(\\sqrt{1-\\left(\\frac{h}{a}\\right)^{2}}-j \\frac{h}{a}\\right), & a \\geq h,  \\\\0, & a<h .\\end{array}\\right.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a062413c8aa34b368efdbde4",
+   "excluded": false,
+   "label": "Describing Function for Memoryless Odd Nonlinearities is Real and Frequency-Independent",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "excluded": false,
+   "label": "相平面法",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a1965d8269bf205a2b0bf408",
+   "excluded": false,
+   "label": "在相平面的上半平面，由于ẋ>0，则x随t增大而增加，相轨迹的走向应是由左向右；在相平面的下半平面，由于ẋ<0，则x随t增大而减小，相轨迹的走向应由右向左。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+   "excluded": false,
+   "label": "奇线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a21bf9714ef096463309f7ef",
+   "excluded": false,
+   "label": "N(A)=\\frac{2 K}{\\pi}\\left[\\frac{\\pi}{2}-\\arcsin \\frac{\\Delta}{A}-\\frac{\\Delta}{A} \\sqrt{1-\\left(\\frac{\\Delta}{A}\\right)^{2}}\\right], \\quad A \\geqslant \\Delta",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a241f1b04d77793cee60f9d5",
+   "excluded": false,
+   "label": "无记忆非线性环节",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "excluded": false,
+   "label": "平衡点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a542d2009adb877cbbd19da4",
+   "excluded": false,
+   "label": "相轨迹位于过原点，斜率为-1/T的直线上。当T>0时，相轨迹沿该直线收敛于原点；当T<0时，相轨迹沿该直线发散至无穷。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+   "excluded": false,
+   "label": "For the ball levitator, at equilibrium the magnetic force f_m just cancels the gravity force mg.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a657a8cc6faaf2839d460e8f",
+   "excluded": false,
+   "label": "根据微分方程解的存在与唯一性定理，对于任一给定的初始条件，相平面上有一条相轨迹与之对应。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a83f5e22355c7ab8ab076695",
+   "excluded": false,
+   "label": "非线性系统如图8-50所示，死区继电特性（M=1, h=0.5），线性部分G（s）=10/[s（0.5s+1）（0.125s+1）]，Gc（s）=1。分析结果：Γ_G曲线和-1/N（A）曲线有两个交点，解得（ω1=4, A1=0.556）对应不稳定周期运动，（ω2=4, A2=1.146）对应稳定周期运动。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+   "excluded": false,
+   "label": "摩擦特性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa04cceb2e27ad64469034af",
+   "excluded": false,
+   "label": "-1<ζ<0时，系统特征根为一对具有正实部的共轭复根，相轨迹为离心螺旋线，最终发散至无穷（不稳定焦点）。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "excluded": false,
+   "label": "继电器",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ab7244ddd97e9ff1c9f34ba7",
+   "excluded": false,
+   "label": "ζ<-1时，系统特征根为两个正实根，存在两条特殊的等倾线，相轨迹发散至无穷（不稳定节点）；ζ=-1时，特征根为两个相等的正实根，存在一条特殊的等倾线，相轨迹发散。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "excluded": false,
+   "label": "自激振荡",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "excluded": false,
+   "label": "速度反馈",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "excluded": false,
+   "label": "间隙特性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b14dc4b73279e65d06ea97b7",
+   "excluded": false,
+   "label": "Limit cycle is a periodic solution of fixed amplitude approached as time grows large",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b16306052cbaea0119b5b760",
+   "excluded": false,
+   "label": "We can then solve these two equations for the possible two unknown values of the limit-cycle frequency, ω_l, and the corresponding amplitude, a_l, as illustrated in the ensuing examples.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b18425ae2954535680ce5232",
+   "excluded": false,
+   "label": "Circle criterion is a variation of Aizermann's conjecture",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b33bd1394e22462ecf029b72",
+   "excluded": false,
+   "label": "Computing Describing Function for Relay with Hysteresis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b38d456d3d1c0065290f0c67",
+   "excluded": false,
+   "label": "非线性因素通过开环增益变化改变闭环极点位置",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3caa046cb20ebc66e46717b",
+   "excluded": false,
+   "label": "Conditionally stable systems are stable for large gains but unstable for smaller gains",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b48f83084fa0b8717819e56e",
+   "excluded": false,
+   "label": "例8-5中负倒描述函数",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b77339b103e6bd8652f39b1e",
+   "excluded": false,
+   "label": "速度反馈可改善滞环系统品质",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b7c18607617d83f2e806fce1",
+   "excluded": false,
+   "label": "多个初始条件下的运动对应多条相轨迹，形成相轨迹簇。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b7ef66bd8ca85c7c2eb5af3e",
+   "excluded": false,
+   "label": "非线性系统结构如图8-33所示，H(s)=1+τs (0<τ<T)。加入速度反馈控制以后，非线性系统在无输入作用下的微分方程为式(8-49)。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba4ea5071fc7b2eb5b8267e8",
+   "excluded": false,
+   "label": "\\mathbf{A}=\\left[\\frac{\\partial \\mathbf{f}}{\\partial \\mathbf{x}}\\right]_{x_{o}, u_{o}} \\quad \\text { and } \\quad \\mathbf{B}=\\left[\\frac{\\partial \\mathbf{f}}{\\partial u}\\right]_{x_{o}, u_{o}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "excluded": false,
+   "label": "奇点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bb81c2d9027b6c5b89b3b505",
+   "excluded": false,
+   "label": "\\begin{array}{r}\n\\operatorname{Re}\\{L(j \\omega)\\} \\operatorname{Re}\\left\\{K_{e q}(a)\\right\\}-\\operatorname{Im}\\{L(j \\omega)\\} \\operatorname{Im}\\left\\{K_{e q}(a)\\right\\}+1=0  \\tag{9.37}\\\\\n\\operatorname{Re}\\{L(j \\omega)\\} \\operatorname{Im}\\left\\{K_{e q}(a)\\right\\}+\\operatorname{Im}\\{L(j \\omega)\\} \\operatorname{Re}\\left\\{K_{e q}(a)\\right\\}=0\n\\end{array}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bbd85dc04cc698edfca646ad",
+   "excluded": false,
+   "label": "\\begin{aligned}\n-\\frac{1}{K_{\\mathrm{eq}}(a)} & =-\\frac{1}{\\frac{2}{\\pi}\\left(k \\sin ^{-1}\\left(\\frac{N}{a k}\\right)+\\frac{N}{a} \\sqrt{1-\\left(\\frac{N}{k a}\\right)^{2}}\\right)} \\\\\n& =-\\frac{1}{\\frac{2}{\\pi}\\left(\\sin ^{-1}\\left(\\frac{0.1}{a}\\right)+\\frac{0.1}{a} \\sqrt{1-\\left(\\frac{0.1}{a}\\right)^{2}}\\right)},\n\\end{aligned}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bc31b9635f468f0e5b127a28",
+   "excluded": false,
+   "label": "k_{1} \\leq K_{e q}(a) \\leq k_{2} \\quad \\text { for all } a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bd69eb8f2d6ed12f3f9233d7",
+   "excluded": false,
+   "label": "The circle criterion allows for time-varying nonlinearities, unlike equivalent gain techniques.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bd8dd1acc2c9db2952eabacf",
+   "excluded": false,
+   "label": "摩擦特性造成系统低速运动不平滑",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+   "excluded": false,
+   "label": "自振荡",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bdaac6586945ffbce37eb5a5",
+   "excluded": false,
+   "label": "Equivalent gain analysis and describing functions yield same results",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bde16b66d9aaadb775ae345e",
+   "excluded": false,
+   "label": "G(\\mathrm{j} \\omega)=-\\frac{1}{N(A)}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bdfe45e59aecd79442ff809d",
+   "excluded": false,
+   "label": "当b>0时，线性二阶系统微分方程可表示为č+2ζωₙċ+ωₙ²c=0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-be8cdc80a7bbd0425adc2b5d",
+   "excluded": false,
+   "label": "N(A)=\\frac{2 M}{\\pi A}\\left[\\sqrt{1-\\left(\\frac{m h}{A}\\right)^{2}}+\\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}\\right]+\\mathrm{j} \\frac{2 M h}{\\pi A^{2}}(m-1), \\quad A \\geqslant h",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bf8975dc5e450c29825cca6f",
+   "excluded": false,
+   "label": "k_{1,2}=\\alpha_{1,2}=s_{1,2}=\\frac{-a \\pm \\sqrt{a^{2}-4 b}}{2}=-\\zeta \\omega_{n} \\pm \\omega_{n} \\sqrt{\\zeta^{2}-1}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c34c435419433d52dcca23c1",
+   "excluded": false,
+   "label": "Notch filter compensation attenuates inputs near the plant resonance frequency to prevent instability",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c43cdc29ed0d6e9f578784a0",
+   "excluded": false,
+   "label": "1. 设（x₀,ẋ₀）为非线性系统的某个奇点；2. 将f（x,ẋ）在奇点处展开成泰勒级数；3. 在奇点的小邻域内，略去Δx和Δẋ的高次项，取一次近似；4. 得到奇点附近关于x增量Δx的线性二阶微分方程；5. 基于线性系统特征根的分布，确定奇点的类型。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c50bebfdb738fc6a0f0493c4",
+   "excluded": false,
+   "label": "N(A)=\\frac{2 k}{\\pi}\\left[\\arcsin \\frac{a}{A}+\\frac{a}{A} \\sqrt{1-\\left(\\frac{a}{A}\\right)^{2}}\\right], \\quad A \\geqslant a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c5378b7a079164c556bd7851",
+   "excluded": false,
+   "label": "Notch filter compensation transfer function",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c79b35057db50e65cfbef57a",
+   "excluded": false,
+   "label": "N(A)=\\frac{4 M}{\\pi A} \\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}, \\quad A \\geqslant h",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c7afebd82a4a7968e83b34d7",
+   "excluded": false,
+   "label": "Lur'e problem",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+   "excluded": false,
+   "label": "不稳定极限环",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+   "excluded": false,
+   "label": "圆判据",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cbfe80d3da0902843e4ec358",
+   "excluded": false,
+   "label": "稳定节点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+   "excluded": false,
+   "label": "饱和特性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ce225495deee3bb7b8c4ab9a",
+   "excluded": false,
+   "label": "描述线性二阶系统自由运动的微分方程为č+aċ+bc=0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ce52d38f8573521b966f285e",
+   "excluded": false,
+   "label": "-\\frac{1}{k_{1}} \\leq-\\frac{1}{K_{e q}(a)} \\leq-\\frac{1}{k_{2}}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ce92af1ec69fe484d30a500e",
+   "excluded": false,
+   "label": "速度反馈下相轨迹切换条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cebe12b764cfb463b7e5fac3",
+   "excluded": false,
+   "label": "若Γ_G曲线不包围-1/N（A）曲线，则非线性系统稳定；若Γ_G曲线包围-1/N（A）曲线，则非线性系统不稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf05c0524f87a6ed6fb2e8f9",
+   "excluded": false,
+   "label": "α-k关系式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf43d45a8ccc846db244613a",
+   "excluded": false,
+   "label": "A conditionally stable system with a saturation nonlinearity and a plant transfer function (s+1)^2 / s^3.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf7d024c7b3e0b1588cda992",
+   "excluded": false,
+   "label": "The sector for the saturation nonlinearity is [0, 1].",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f",
+   "excluded": false,
+   "label": "\\Delta \\ddot{x}=\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial x}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta x+\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial \\dot{x}}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta \\dot{x}",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d0377987279a6d02991248c9",
+   "excluded": false,
+   "label": "Gc（s）=（（0.25s+1）/（0.03s+1））*（1/8.3）为无源超前网络，系统线性部分为G（s）Gc（s）。分析结果：Γ_G曲线不包围-1/N（A）曲线，系统稳定，且具有一定的相角裕度。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d0bbd47344ce89d1aa32ba41",
+   "excluded": false,
+   "label": "继电特性常常使系统产生振荡现象。当系统受扰使|x（t）|≠0，从而输出c（t）偏离原平衡状态，随后由于|x（t）|的减小，k随之增大，在力图使输出回到原平衡状态的过程中，因为实际系统中的继电特性具有一定的开关速度，c（t）呈现为零附近的高频小幅度振荡。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d132e697735aa799c1e2761a",
+   "excluded": false,
+   "label": "应用描述函数近似后，非线性系统的闭环特征方程为 1 + N（A） G（jω） = 0，或等价为 G（jω） = -1/N（A）。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d193b6e8d31cd34677110ff5",
+   "excluded": false,
+   "label": "谐波平衡分析",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "excluded": false,
+   "label": "描述函数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d20eefb8386fae314f000491",
+   "excluded": false,
+   "label": "1. 将微分方程ẍ=f（x,ẋ）转化为ẋ dẋ/dx = f（x,ẋ）；2. 若能分解为g（ẋ）dẋ = h（x）dx的形式；3. 两端积分∫g（ẋ）dẋ = ∫h（x）dx；4. 得到ẋ和x的解析关系式。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d2e4a3aea7a4f1c0ed5dd427",
+   "excluded": false,
+   "label": "y(t)=f(A \\sin \\omega t)=-y\\left(t+\\frac{\\pi}{\\omega}\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d36ea274eedf7751b57684e8",
+   "excluded": false,
+   "label": "死区特性导致系统存在稳态误差",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d388b3679e30032b86298735",
+   "excluded": false,
+   "label": "非线性系统微分方程（例8-2）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4284b7d54a7f59beee02111",
+   "excluded": false,
+   "label": "DF=K_{\\mathrm{eq}}(a)=\\frac{b_{1}}{a}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4364a9018078d7c87d9826a",
+   "excluded": false,
+   "label": "稳定极限环对应自振荡",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d465ab41f01196926d0f7673",
+   "excluded": false,
+   "label": "A system with a notch filter compensation, including a saturation block, a plant with transfer functions 1/(s^2 + 0.2s + 1) and 1/s, and a feedback path with a notch filter.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4a444f1c5899124d3e0ffe9",
+   "excluded": false,
+   "label": "不稳定极限环的周期运动不稳定",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4af599e4aad7757db02daec",
+   "excluded": false,
+   "label": "例8-5中线性部分在穿越频率处的幅值公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4e994e83801bfcca363b375",
+   "excluded": false,
+   "label": "不稳定焦点",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5084c6744dd481182fca603",
+   "excluded": false,
+   "label": "除系统的平衡点外，相轨迹与x轴的相交点处切线斜率应为+∞或-∞，即相轨迹与x轴垂直相交。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+   "excluded": false,
+   "label": "实奇点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+   "excluded": false,
+   "label": "库仑加粘性摩擦",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5560da69c46b2ba359ec081",
+   "excluded": false,
+   "label": "例8-3：理想继电特性描述函数计算",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+   "excluded": false,
+   "label": "相变量",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d698303dd83606b4aee11e1f",
+   "excluded": false,
+   "label": "B_{1}=\\frac{4}{\\pi} \\int_{0}^{\\frac{\\pi}{2}} y(t) \\sin \\omega t \\mathrm{~d} \\omega t",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d75b1a0f0201167c18a61432",
+   "excluded": false,
+   "label": "If the linear approximation has at least one root in the RHP, then the nonlinear system cannot have any region of stability near the equilibrium.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d7602be4656a9b53d2576d58",
+   "excluded": false,
+   "label": "只有稳定的极限环才能在实验中观察到，不稳定或半稳定的极限环是无法在实验中观察到的。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d8441c5aaab97cc824227aae",
+   "excluded": false,
+   "label": "已知非线性系统结构如图8-45所示，线性部分传递函数为10/[s（s+1）（4s+1）]，非线性环节为库仑摩擦加黏性摩擦（k=0.5, M=1）。分析结果：Γ_G曲线包围-1/N（A）曲线，系统不稳定。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d85e0a34aa388cff9b7e4f24",
+   "excluded": false,
+   "label": "For the system in Example 9.7, the critical circle degenerates into a half plane Re(G) ≤ -1; since the Nyquist plot lies entirely to the right, the system is stable.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+   "excluded": false,
+   "label": "死区特性",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d979da645af3721fe77267da",
+   "excluded": false,
+   "label": "Specific negative reciprocal for N=1, h=0.1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-da1b3998d61acbcba9214754",
+   "excluded": false,
+   "label": "相轨迹的绘制方法步骤简单、计算量小，用MATLAB软件绘制特别方便。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-db908e825a0ddfc797619c89",
+   "excluded": false,
+   "label": "某弹簧－质量运动系统，图中m为物体的质量，k为弹簧的弹性系数，若初始条件为x(0)=x₀, ẋ(0)=ẋ₀，描述系统自由运动的微分方程式为ẍ+x=0。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-dbc6dadafb7b66d118b6a41d",
+   "excluded": false,
+   "label": "g(\\dot{x}) \\mathrm{d} \\dot{x}=h(x) \\mathrm{d} x",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-dd83c852f8ae95a9d7f5041f",
+   "excluded": false,
+   "label": "艾泽曼猜想",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-df274b62048cb20a7525941a",
+   "excluded": false,
+   "label": "描述函数法基本思想",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-dfb9ca4b74d3ff8a627d8c94",
+   "excluded": false,
+   "label": "f\\left(t, \\frac{\\mathrm{~d}^{n} y}{\\mathrm{~d} t^{n}}, \\cdots, \\frac{\\mathrm{~d} y}{\\mathrm{~d} t}, y\\right)=g\\left(t, \\frac{\\mathrm{~d}^{m} r}{\\mathrm{~d} t^{m}}, \\cdots, \\frac{\\mathrm{~d} r}{\\mathrm{~d} t}, r\\right)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-dfee73650a6774ccc3e07a67",
+   "excluded": false,
+   "label": "滞环特性恶化了系统品质",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e08081995a48d5b69bee5b76",
+   "excluded": false,
+   "label": "K_{e q}(a) =\\frac{2}{\\pi a} \\int_{0}^{\\pi} f(a \\sin (\\omega t)) \\sin (\\omega t) d(\\omega t) \\geq \\frac{2 k_{1}}{\\pi} \\int_{0}^{\\pi} \\sin ^{2}(\\omega t) d(\\omega t)=k_{1}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e1cd9eb3f37d162ab6fcf9a1",
+   "excluded": false,
+   "label": "Negative reciprocal of describing function for hysteresis with N=1, h=0.1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e217821b715bae7f6b352a0f",
+   "excluded": false,
+   "label": "例8-5中线性部分穿越频率公式",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+   "excluded": false,
+   "label": "虚奇点",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e30570498696e63d639864ea",
+   "excluded": false,
+   "label": "不稳定的周期运动在系统中不可能出现",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e514c0dd1b652eef30650072",
+   "excluded": false,
+   "label": "Hysteresis Time Definition",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e527a6afb20bda9b9620c400",
+   "excluded": false,
+   "label": "1）坐标轴 x 和 ẋ 应选用相同的比例尺；2）在相平面的上半平面，相轨迹的走向应是由左向右；在下半平面，应由右向左；3）除系统的平衡点外，相轨迹与 x 轴的相交点处切线斜率应为 +∞ 或 -∞，即相轨迹与 x 轴垂直相交；4）等倾线分布越密，则所作的相轨迹越准确。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e762e5f1e832971b0a911f5b",
+   "excluded": false,
+   "label": "非线性系统简化原则",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e80ecac5690c1d2af5314ea1",
+   "excluded": false,
+   "label": "死区特性最直接的影响是使系统存在稳态误差。当|x（t）|<Δ时，由于k=0，系统处于开环状态，失去调节作用。当系统输入为速度信号时，受死区的影响，在|r-c|<Δ时，系统无调节作用，因此导致系统输出在时间上的滞后，降低了系统的跟踪精度。而在另一方面，当系统输入端存在小扰动信号时，在系统动态过程的稳态值附近，死区的作用可减少扰动信号的影响。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "excluded": false,
+   "label": "负倒描述函数",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e962e99d12023d989fa91600",
+   "excluded": false,
+   "label": "ζ=1时，系统特征根为两个相等的负实根，特殊等倾线蜕化为一条，不同初始条件的相轨迹最终将沿着这条特殊的等倾线趋于原点。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e9c7c6b34e64a774d1d88c0e",
+   "excluded": false,
+   "label": "Circle criterion conditions are sufficient but not necessary",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea23dae902eaaf45e073f1c5",
+   "excluded": false,
+   "label": "小偏差线性化步骤（泰勒展开取一次项）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+   "excluded": false,
+   "label": "量化",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb4c868276634ac3b10584d2",
+   "excluded": false,
+   "label": "\\operatorname{Re}[G(\\mathrm{j} \\omega) N(A)]=-1, \\quad \\operatorname{Im}[G(\\mathrm{j} \\omega) N(A)]=0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb814a59fea170deb5fdf223",
+   "excluded": false,
+   "label": "取ΔH=H-H_0, ΔQ_i=Q_i-Q_{i0}，对√H作泰勒级数展开，取一次项近似，得到小偏差线性方程。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eba96e17fde7800f8f9c04a5",
+   "excluded": false,
+   "label": "Negative reciprocal for hysteresis is a straight line parallel to real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ebae53fe552177ee1b57cd74",
+   "excluded": false,
+   "label": "平衡点附近增量线性化方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ec5c814d08e046bef4d598e8",
+   "excluded": false,
+   "label": "The describing function can be beneficial in determining the conditions under which instability results and can even suggest remedies in eliminating instability, as illustrated in the next example, in which the Nyquist plot of the linear loop gain, L, as well as the negative reciprocal of the describing function, -1/K_eq(a), are superimposed. The point at which they cross corresponds to the limit cycle.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ed1d9acad613123aae662c80",
+   "excluded": false,
+   "label": "描述函数法分析结果的准确性条件",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+   "excluded": false,
+   "label": "谐波线性化",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-edcb21b88a649992cab7aea0",
+   "excluded": false,
+   "label": "\\ddot{x}=f(x, \\dot{x})",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eea2f471c58a3b5707672f25",
+   "excluded": false,
+   "label": "Negative reciprocal of describing function is a straight line on negative real axis",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ef6fc9931fcf63871a394970",
+   "excluded": false,
+   "label": "含非线性的闭环系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-efa6233fdfef7c4cc084a8ec",
+   "excluded": false,
+   "label": "The intersection of this curve with the Nyquist plot yields the frequency and the corresponding amplitude of the stable limit cycle. We can also determine the limit-cycle information analytically:",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f0b749dd3db10071949e5faa",
+   "excluded": false,
+   "label": "N(A)=|N(A)| \\mathrm{e}^{\\mathrm{j} \\angle N(A)}=\\frac{Y_{1}}{A} \\mathrm{e}^{\\mathrm{j} \\varphi_{1}}=\\frac{B_{1}+\\mathrm{j} A_{1}}{A}",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f2eb413c2a6077bcee71a1fd",
+   "excluded": false,
+   "label": "相轨迹微分方程（例8-2）",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+   "excluded": false,
+   "label": "预加载弹簧",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f3e9cb7f00ddadcc827400ed",
+   "excluded": false,
+   "label": "奇点（0,0）处增量线性化方程",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f51f955d452e0b27acb5992f",
+   "excluded": false,
+   "label": "非线性系统周期运动与初始条件的关系",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f6086a3afcc56499faf766ef",
+   "excluded": false,
+   "label": "1. 根据图8-28列写系统的微分方程。2. 取e（t）, ė（t）作为状态变量，并按特性曲线分区域列写微分方程式。3. 根据线性系统相轨迹分析结果，可得各区域奇点类型。4. 由零初始条件和输入r（t）=R·1（t）得e（0）=R, ė（0）=0。5. 根据区域奇点类型及对应的运动形式，作相轨迹。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7101119c556d102280adccf",
+   "excluded": false,
+   "label": "利用非线性系统产生不受扰动影响的自激振荡应选图8-47（a）所示系统",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7f34cb8448dae018bb74aef",
+   "excluded": false,
+   "label": "饱和现象将使系统的开环增益在饱和区时下降。控制系统设计时，为使功能元件得到充分利用，应力求使功放级首先进入饱和；为获得较好的动态性能，应通过选择合适线性区增益和饱和电压，使系统既能获得较小的超调量，又能保证较大的开环增益，减小稳态误差。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f941a94568ade43ca42e8d7e",
+   "excluded": false,
+   "label": "The circle criterion and describing function are related; for time-invariant odd nonlinearities within a sector with real describing functions, the negative reciprocal of the describing function lies inside the critical circle.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fb8dc039e6131487892bc2ba",
+   "excluded": false,
+   "label": "\\operatorname{sat}(x)=\\left\\{\\begin{array}{cc}\n+1, & x>1 \\\\\nx, & |x| \\leq 1 \\\\\n-1, & x<-1\n\\end{array}\\right.",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fc150ca5e1bd5e02becc7024",
+   "excluded": false,
+   "label": "y=f(x)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+   "excluded": false,
+   "label": "开关线",
+   "zeroResource": false
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd8702be24517299dfde6b3b",
+   "excluded": false,
+   "label": "非线性系统结构如图8-33所示，H(s)为反馈网络，r(t)=0。单位反馈H(s)=1。根据滞环继电特性分区间列写微分方程。",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd929ca94776999ceafde35e",
+   "excluded": false,
+   "label": "极限环是相互孤立的封闭曲线",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fde16f4ebcfeb8138598df6c",
+   "excluded": false,
+   "label": "c=\\frac{1}{2}\\left[-\\frac{1}{k_{1}}-\\frac{1}{k_{2}}\\right]=-\\frac{k_{1}+k_{2}}{2 k_{1} k_{2}}",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": [
+  {
+   "modality": "card",
+   "resourceId": "card-半稳定极限环_8_8ed583b7",
+   "anchorId": "atom-3538154f80ce24c05ec7f49f",
+   "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-半稳定极限环_8_8ed583b7",
+   "anchorId": "atom-56966d58ef711e7e558a4910",
+   "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-半稳定极限环_8_8ed583b7",
+   "anchorId": "atom-6adb5b483b7c19977f4c582c",
+   "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-半稳定极限环_8_8ed583b7",
+   "anchorId": "atom-e9414cfb3d1f230ca4c85ec8",
+   "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-9d5fc58eef167202ca190354",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-78b0ebe04668d8bf2024981c",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-be6dd7722742a9bfcc4b0ca5",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-2227e775df7bf65888937185",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-30e1d515ba870a269e84f543",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-5c28a43e26fa5d80852a7e28",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-9c6ee4289dc9e12e1b7be1cc",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-奇点_8_f6da1cbb",
+   "anchorId": "atom-d340cc1d76b0879098d2ba6b",
+   "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-实奇点_8_daa87444",
+   "anchorId": "atom-58bac51edaff7dbf27aaa38d",
+   "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-实奇点_8_daa87444",
+   "anchorId": "atom-778eda90bfd0ec0dde1cfb8e",
+   "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-实奇点_8_daa87444",
+   "anchorId": "atom-fdb2d64d1c9647cae147cf51",
+   "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-实奇点_8_daa87444",
+   "anchorId": "atom-0c922165a4810f1e3a36266d",
+   "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-9d02d56f03554c61fe25b5c4",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-e3183ac0cf5f99643669fae0",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-ac915cc88e828d0c5b0b08f0",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-92182e47c01e63030e113777",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-3c24ef03a6439cc0f8b953c2",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-平衡状态_8_87899074",
+   "anchorId": "atom-95c6c8e9f2a52efcf8002a15",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开关线_8_fff1000a",
+   "anchorId": "atom-289b8bbb2bb617d16e0f9222",
+   "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开关线_8_fff1000a",
+   "anchorId": "atom-427df860af76565dc3ab7b74",
+   "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开关线_8_fff1000a",
+   "anchorId": "atom-58cf68f868f4c2b28ba862e8",
+   "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-开关线_8_fff1000a",
+   "anchorId": "atom-28069c2a6b8964fca6738a9b",
+   "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-2b300a3a7de52b6d2b44fe52",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-0f764fb0292e516fc0ced277",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-d6c99fc0190ac9d9f79ee2a5",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-e3c2ade47a8028e721cd7564",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-2e13a14b20abf52ba0705125",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-febc6df4d26f71ddf916174c",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-描述函数法_8_849fa8a1",
+   "anchorId": "atom-b53f8ede2fcc8a7d47527efc",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-摩擦特性_8_76db8f5b",
+   "anchorId": "atom-fa1310cf26d11127aac96f15",
+   "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-摩擦特性_8_76db8f5b",
+   "anchorId": "atom-5ea9cb9e3cb9e176594e8888",
+   "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-摩擦特性_8_76db8f5b",
+   "anchorId": "atom-d054f0b15ee6425156d0342a",
+   "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-摩擦特性_8_76db8f5b",
+   "anchorId": "atom-78c8edf8ddd89f599619ee45",
+   "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极限环_8_146dec32",
+   "anchorId": "atom-2cf7e4bbd78fef1f46a338c1",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极限环_8_146dec32",
+   "anchorId": "atom-22a673fa807d72d1137ddf48",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极限环_8_146dec32",
+   "anchorId": "atom-ff56366a7b8884121b35974e",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-极限环_8_146dec32",
+   "anchorId": "atom-3d196b1f4e401fe830406065",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-死区特性_8_9ed850fc",
+   "anchorId": "atom-1076dd891d884271a028f145",
+   "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-死区特性_8_9ed850fc",
+   "anchorId": "atom-69c6e13113072567dc9f8366",
+   "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-死区特性_8_9ed850fc",
+   "anchorId": "atom-ebf955c7b45457a2dfb36b09",
+   "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-死区特性_8_9ed850fc",
+   "anchorId": "atom-95f507d88937ba3797fd4fcd",
+   "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-e632d6b490badbd8ead11998",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-b07fe6e3c14fc732a6fc4577",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-e7ad7142c7e1cf1295e36b0c",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-c6d2e742f2b848bcaea9f41d",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-300780f5ddf4f9aeb85d979f",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-795da425208975dd91b5cbc3",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-8f8b62fb6a9ee485d17513b5",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-9715b1da7d9d670b2dd6fd04",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面图_8_bd606f51",
+   "anchorId": "atom-afb9e1a14c6ff620b6faefd8",
+   "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-145e05fb0ba51eb72fbf7807",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-283f1dd181c635b1e14ace7a",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-95f504304650a496560ffe8a",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-79bbfc49410aa90253e8da71",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-d92a0fc1be2172ca3d849d3f",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-49833204265765e477f27390",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相平面法_8_b1b8091e",
+   "anchorId": "atom-e5e8aa2f7e3d0e47d36210f6",
+   "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相轨迹_8_5fb81b03",
+   "anchorId": "atom-4395fb9580cce0b01bd21c41",
+   "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相轨迹_8_5fb81b03",
+   "anchorId": "atom-b6d0be6d631bf2ca237b324d",
+   "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相轨迹_8_5fb81b03",
+   "anchorId": "atom-1887707bba9b47b3dd6f5cc5",
+   "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-相轨迹_8_5fb81b03",
+   "anchorId": "atom-a2f6ea8d179cdca7600e83f1",
+   "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-584391154b4afe45b9a9ec49",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-191ed63d1b1b5979dc6394cf",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-bb9dc0f4b9604c67e5f8c51f",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-25e8195e310d5a0f1191f1e5",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-cc04d13e5b82d4978002b87a",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等倾线法_8_97c16d2e",
+   "anchorId": "atom-74505e2446c2710a4b1b1c83",
+   "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-2c1618e8eae9d28a76d0c224",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-612770ad28ddfe2bbaca2c18",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-15c7ba2f855cebbc5f7ff363",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-eb6348bf55c99e57aabe2ac2",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-a1ce4c935994295c8a8d17c0",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-等效增益_8_7913d7f5",
+   "anchorId": "atom-cbd91ccc80c11300f0072682",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-继电特性_8_0676d186",
+   "anchorId": "atom-e24c268e61e17541c47a1138",
+   "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-继电特性_8_0676d186",
+   "anchorId": "atom-e7a4633df2b5a5480b824c90",
+   "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-继电特性_8_0676d186",
+   "anchorId": "atom-db177df5ec4a66ed9c1695b3",
+   "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-继电特性_8_0676d186",
+   "anchorId": "atom-f3d49f9977cc598ffdaec376",
+   "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自振荡_8_e3ee2aef",
+   "anchorId": "atom-38d5d8b5bd1dfcd4bf8083b8",
+   "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自振荡_8_e3ee2aef",
+   "anchorId": "atom-d59620827dd25b1c96bf8ed0",
+   "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自振荡_8_e3ee2aef",
+   "anchorId": "atom-d98c1efa64126230b4527304",
+   "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自振荡_8_e3ee2aef",
+   "anchorId": "atom-63c275cd400b2ed68d924d9b",
+   "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-087d5211d7bec41a45430fdb",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-3498930874aecaa24490585f",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-5cf6f4393e9452cd3f976175",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-91ac71618aac577a65069882",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-aa2d3b4c0e93c959721feabf",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-自激振荡_8_711ef8ef",
+   "anchorId": "atom-13515706e922d399eb357374",
+   "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-虚奇点_8_e5cac44f",
+   "anchorId": "atom-44d3f228ecfd74fb293b3e02",
+   "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-虚奇点_8_e5cac44f",
+   "anchorId": "atom-177780ff014c1c7613e5a91b",
+   "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-虚奇点_8_e5cac44f",
+   "anchorId": "atom-2805d0a628638e15ee0a5680",
+   "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-虚奇点_8_e5cac44f",
+   "anchorId": "atom-5b7378abbd21f99ee6861576",
+   "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-8d63d9d83e51e39c08da2a9c",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-554bea62cf3e37cd792626aa",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-544b2b61519746aa64bbdee4",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-bebb93533120a02675e61035",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-cc12f8494b5cd3128d5c082a",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-bbd3d787c3c26729dffd1ad8",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-负倒描述函数_8_159ff256",
+   "anchorId": "atom-8f61a8bb69382df23a81b962",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-8a58257fce28c69528babf2e",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-223be2037d573d50fb96fabb",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-5ace8b337590cb4dc4f79cf6",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-d600e6304c748a39333fbc2c",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-d9179ec56def3adcfe69ce91",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_3_2374effc",
+   "anchorId": "atom-a1a1de8ae03c5cc695c76698",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_8_c94fe545",
+   "anchorId": "atom-71cb1599a3b4c0bbdee656db",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_8_c94fe545",
+   "anchorId": "atom-73e3ed6ad295e6e1f975065e",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_8_c94fe545",
+   "anchorId": "atom-1427125b762237b0868f747b",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-速度反馈_8_c94fe545",
+   "anchorId": "atom-c92109313db9a6cccf8817f9",
+   "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-量化_7_6cb6511b",
+   "anchorId": "atom-4a00e7aa4e1f877bb3ebd0f6",
+   "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-量化_7_6cb6511b",
+   "anchorId": "atom-d27c50bfebd1cd801ffa189c",
+   "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-量化_7_6cb6511b",
+   "anchorId": "atom-80b1d688cf6988f5453d64d8",
+   "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-量化_7_6cb6511b",
+   "anchorId": "atom-e4bdf96bcfd2b8c0dbb98db2",
+   "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-c724ff417d94e85934eb58ac",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-70c6c84c7e33a824fe305f95",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-a8f7abe63d4ab6e88496240a",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-0334ef3509f4fe9513c69aa7",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-0bbc687bcb23bfa9e9eccac7",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-间隙特性_8_51523138",
+   "anchorId": "atom-75791730233ec300453e6601",
+   "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-9927c9b6ec114d824cb6c148",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-64f76657ea8a20f68a5ca7ed",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-4d5cbbcef736f797404dbc3a",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-02661ceae7cb1a537946fc5c",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-9d609e3f852e3e6a9255f6fd",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-f0a7088f5fed143c21bb5101",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-非线性系统_8_4ccc0148",
+   "anchorId": "atom-3e5d8282b0c92dff8758b120",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-鞍点_8_292242f6",
+   "anchorId": "atom-00d6fac2b0c33434dabffc59",
+   "canonicalId": "ctkg:v3e-object-64041b4928258344e65dd87c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-鞍点_8_292242f6",
+   "anchorId": "atom-51d1c0fabc26928dbb1b6bd4",
+   "canonicalId": "ctkg:v3e-object-64041b4928258344e65dd87c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-鞍点_8_292242f6",
+   "anchorId": "atom-eb7d569af08399f1f9480101",
+   "canonicalId": "ctkg:v3e-object-64041b4928258344e65dd87c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-鞍点_8_292242f6",
+   "anchorId": "atom-1deb95efcfd1b80684deb1c7",
+   "canonicalId": "ctkg:v3e-object-64041b4928258344e65dd87c",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和特性_8_e55b1fb5",
+   "anchorId": "atom-340bc636f99711cc57316811",
+   "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和特性_8_e55b1fb5",
+   "anchorId": "atom-ceebfdb3391d8a252ccfb278",
+   "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和特性_8_e55b1fb5",
+   "anchorId": "atom-0be8f1cbd5d8af054456dced",
+   "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和特性_8_e55b1fb5",
+   "anchorId": "atom-c7731aafd7db076398109283",
+   "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-5d3b98f3b2a3758b6c7c065a",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-f377d3a327ea2a10367f406b",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-abf3e438ee3d03a33e0fe7f4",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-2afac2fe1a08b26682b42ec4",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-572ef2affac2758ce95798ed",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "card",
+   "resourceId": "card-饱和非线性_8_deec42d7",
+   "anchorId": "atom-ec1fac7260c948217ab0b870",
+   "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+   "evidence": "card-name-index:crosswalk-exact-name"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-4",
+   "anchorId": "3-4-seg-30",
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-3-6",
+   "anchorId": "3-6-seg-20",
+   "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-12",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-4-7",
+   "anchorId": "4-7-seg-12",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-5",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-5",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-13",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-13",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-14",
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-27",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-27",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-28",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-28",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-34",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-34",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-47",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-1",
+   "anchorId": "5-1-seg-47",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-2",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-2",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-5",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-5",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-6",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-6",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-19",
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-20",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-20",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-21",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-21",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-22",
+   "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-22",
+   "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-24",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-24",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-24",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-26",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-26",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-27",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-27",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-28",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-28",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-28",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-31",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-31",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-35",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-35",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-38",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-38",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-41",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-41",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-43",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-43",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-46",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-46",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-48",
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-49",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-49",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-50",
+   "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-50",
+   "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-51",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-2",
+   "anchorId": "5-2-seg-51",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "audio",
+   "resourceId": "audio-5-6",
+   "anchorId": "5-6-seg-34",
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-2-2",
+   "anchorId": "atom-8a0ff6e97598737de6dcad48",
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-1",
+   "anchorId": "atom-4d9795e7e0faae73b6cdc28a",
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-1ed6fdc8d14113db753bd3c2",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-3-4",
+   "anchorId": "atom-1ed6fdc8d14113db753bd3c2",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-1",
+   "anchorId": "atom-a17cb00960fa346e343d5509",
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-9485e21e15da141fd8dee7a2",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-9485e21e15da141fd8dee7a2",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-3b8fa1766d42b29a293521c7",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-6bedec6478d9eef19b49e7c8",
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-4d03463b7be81053415a2629",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-92d9dda279197b71be9ae7ba",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-92d9dda279197b71be9ae7ba",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-2db918e7931bc0058620a3aa",
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-2db918e7931bc0058620a3aa",
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-175407073b3c800d6fb053c4",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "intro-video",
+   "resourceId": "intro-video-5-2",
+   "anchorId": "atom-175407073b3c800d6fb053c4",
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-07/lowpass-why",
+   "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-09/relay-observation-submit",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-10/intersection-next",
+   "canonicalId": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-17/df-condition",
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "exercises-5-2",
+   "anchorId": "5-2/step-17/intersection-check",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "codex-semantic-mapping:round1+round2"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "handout-exercises-5-1",
+   "anchorId": "5-1/layered/2",
+   "canonicalId": "ctkg:v3e-object-a21bf9714ef096463309f7ef",
+   "evidence": "codex-semantic-mapping:round2-layered"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "handout-exercises-5-1",
+   "anchorId": "5-1/layered/3",
+   "canonicalId": "ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f",
+   "evidence": "codex-semantic-mapping:round2-layered"
+  },
+  {
+   "modality": "exercise",
+   "resourceId": "handout-exercises-5-2",
+   "anchorId": "5-2/layered/2",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "evidence": "codex-semantic-mapping:round2-layered"
+  }
+ ]
+}

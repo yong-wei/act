@@ -1,0 +1,78 @@
+{
+ "contract": "remediation-negative-acceptance-report/v1",
+ "sealedAt": "2026-08-25",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "allFailClosed": true,
+ "results": [
+  {
+   "drift": "source-drift",
+   "injection": "text-atoms artifact bytes drift",
+   "expectation": "envelope reopen REOPEN_FAILED on the drifted artifact",
+   "failClosed": true,
+   "detail": "REOPEN_FAILED"
+  },
+  {
+   "drift": "model-drift",
+   "injection": "processor-registry artifact bytes drift",
+   "expectation": "envelope reopen REOPEN_FAILED on the drifted artifact",
+   "failClosed": true,
+   "detail": "REOPEN_FAILED"
+  },
+  {
+   "drift": "hotword-drift",
+   "injection": "hotword-manifests artifact bytes drift",
+   "expectation": "envelope reopen REOPEN_FAILED on the drifted artifact",
+   "failClosed": true,
+   "detail": "REOPEN_FAILED"
+  },
+  {
+   "drift": "atom-drift",
+   "injection": "exercise-atoms artifact bytes drift",
+   "expectation": "envelope reopen REOPEN_FAILED on the drifted artifact",
+   "failClosed": true,
+   "detail": "REOPEN_FAILED"
+  },
+  {
+   "drift": "projection-drift",
+   "injection": "projection.envelopeHash rewritten",
+   "expectation": "projection validation reports findings",
+   "failClosed": true,
+   "detail": "1 findings"
+  },
+  {
+   "drift": "evidence-drift",
+   "injection": "published edge row with evidenceRefs emptied",
+   "expectation": "teaching closure gate throws closure-fabricated-edge",
+   "failClosed": true,
+   "detail": "threw"
+  },
+  {
+   "drift": "ledger-drift",
+   "injection": "one of 22428 ledger rows removed",
+   "expectation": "member×family conservation reports a missing row",
+   "failClosed": true,
+   "detail": "missing 0 -> 1 after dropping one row"
+  },
+  {
+   "drift": "envelope-drift",
+   "injection": "envelope.envelopeHash rewritten",
+   "expectation": "envelope reopen REOPEN_FAILED on the self hash",
+   "failClosed": true,
+   "detail": "REOPEN_FAILED"
+  },
+  {
+   "drift": "fragment-drift",
+   "injection": "a fragment is re-bound to a foreign projection hash",
+   "expectation": "fragment identity check rejects the foreign binding",
+   "failClosed": true,
+   "detail": "15 fragments bind ce38ed51; the drifted binding is rejected"
+  },
+  {
+   "drift": "selector-drift",
+   "injection": "authority pointer releaseId rewritten to the successor release",
+   "expectation": "predecessor check fails and the candidate remains non-selectable",
+   "failClosed": true,
+   "detail": "predecessor check failed as expected; candidate.selectable=false"
+  }
+ ]
+}

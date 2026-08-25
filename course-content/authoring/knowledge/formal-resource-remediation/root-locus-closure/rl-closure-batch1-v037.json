@@ -1,0 +1,4435 @@
+{
+ "contract": "remediation-root-locus-closure-batch1/v1-v037-migration",
+ "migratedFromAllocation": "8d928978b2d7c6acf0646a33077c32831e291f44202ee21764eeb35106e5f112",
+ "allocationHash": "$NEW",
+ "packRows": 309,
+ "decisionsApplied": 264,
+ "unresolvedAfter": 45,
+ "pendingOwnerConfirmation": [
+  {
+   "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "class": "C-handout-gap",
+   "rationale": "反馈通路增益是根轨迹增益分解中的正当概念。",
+   "suggested": {
+    "containment": "ctc:v12g-15b7fb1d68889848e3c50c46",
+    "prerequisite": "ctc:v11g-4aec82cd79a002c70fb185b3",
+    "association": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "class": "C-handout-gap",
+   "rationale": "出射角是复极点附近轨迹方向的经典独立概念。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "association": "ctc:v11g-991f1cc82c973b44856c40f1",
+    "evidenceRefs": [
+     "src:3-3#法则7：复极点出射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+   "class": "C-handout-gap",
+   "rationale": "虚轴穿越连接根轨迹与稳定边界，应独立建模。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "association": "ctc:v11g-01781c7700bbf33340d39614",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点",
+     "src:3-2#两个边界点对应两种不同的临界根结构"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "class": "C-handout-gap",
+   "rationale": "等效单位反馈是参数根轨迹复用普通法则的桥接概念。",
+   "suggested": {
+    "containment": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "prerequisite": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "association": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+   "class": "C-handout-gap",
+   "rationale": "根轨迹分支是描述连续迁移与起止点的基本对象。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "association": "ctc:v11g-4bb347d0f2aa8859a18073de",
+    "evidenceRefs": [
+     "src:3-3#法则2：分支数、连续性与实轴对称"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+   "class": "C-handout-gap",
+   "rationale": "两参数设计是参数根轨迹的合理扩展。",
+   "suggested": {
+    "containment": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "prerequisite": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "association": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "class": "C-handout-gap",
+   "rationale": "正反馈系统是零度根轨迹的系统结构基础。",
+   "suggested": {
+    "containment": "COURSE_ROOT",
+    "prerequisite": "ctc:v11g-c7228e5d5d171b0633b246e3",
+    "association": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "class": "C-handout-gap",
+   "rationale": "利用根轨迹选择控制器参数是经典设计用途。",
+   "suggested": {
+    "containment": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+    "prerequisite": "ctc:v11g-4bb347d0f2aa8859a18073de",
+    "association": "ctc:v11g-5845390ded447e37f06ea222",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "class": "C-handout-gap",
+   "rationale": "到达角是复零点附近轨迹方向的经典概念。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-95859dcad651c20058bf8726",
+    "association": "ctc:v11g-1ebbddfa13931f700f437271",
+    "evidenceRefs": [
+     "src:3-3#法则8：复零点入射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "class": "C-handout-gap",
+   "rationale": "参数根轨迹是普通根轨迹向非增益参数的经典推广。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "association": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "class": "C-handout-gap",
+   "rationale": "两参数根轨迹族是参数根轨迹设计的正当扩展。",
+   "suggested": {
+    "containment": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "prerequisite": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "association": "ctc:v11g-546566f01ae374379ec78c1e",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "class": "C-handout-gap",
+   "rationale": "广义根轨迹是非普通增益参数情形的上位概念。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "association": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "class": "C-handout-gap",
+   "rationale": "等效开环传递函数是构造参数根轨迹的必要对象。",
+   "suggested": {
+    "containment": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "prerequisite": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "association": "ctc:v11g-2d0a8b878047bb6a5effc783",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "class": "C-handout-gap",
+   "rationale": "该项是汇合点，应与分离点保持语义区别。",
+   "suggested": {
+    "containment": "ctc:v11g-5845390ded447e37f06ea222",
+    "prerequisite": "ctc:v12g-b6ec19cda5342874277159e7",
+    "association": "ctc:v11g-462227b4794133f894bdd0a8",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "class": "C-handout-gap",
+   "rationale": "负增益对应的零度根轨迹是正反馈根轨迹的经典表达。",
+   "suggested": {
+    "containment": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "prerequisite": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "association": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  }
+ ],
+ "decisions": [
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-78c41e20a1d9fed88d01ceb4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于虚轴穿越及其临界增益。",
+   "replacementDigest": null,
+   "decisionHash": "d475928ef39de158469f893828cc397348e5741e9e54c7ca3f37eca6cf482442"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-05c59b8d18824c36450a5a04",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于虚轴穿越及其临界增益。",
+   "replacementDigest": null,
+   "decisionHash": "57479da59cc2de8fbde6f9cf541973ab5db28f88d378f8bd0f61d27b5e4fae4c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-50f2fea42d1f49e1759b99d3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于虚轴穿越及其临界增益。",
+   "replacementDigest": null,
+   "decisionHash": "22a58621bef52bc4bd87cac89cca488a7309addfa6b33ff3b61c9c39f89cad6f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a68fe99d50a331543a007876",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 梅森公式的自回路增益不属于根轨迹教学范围。",
+   "replacementDigest": null,
+   "decisionHash": "c1ae47c9f8786b6b6226ac64a1e426ec2694adae54222987d947b89e134a31c6"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-24f221fd50873e6aeb046d63",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 梅森公式的自回路增益不属于根轨迹教学范围。",
+   "replacementDigest": null,
+   "decisionHash": "a15c4ca0e206e94fd7fd816826148c7a6874b9cf873309fc26fe9f276e177737"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-eb880c5608de3e9fb27fb4d1",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 梅森公式的自回路增益不属于根轨迹教学范围。",
+   "replacementDigest": null,
+   "decisionHash": "e82fa712a61c3a0204b5a1968f2ce76381f5b30fa936e6274a1216b7e6baf53b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3ae6b84128516fc32549bfdd",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 一型系统是按原点开环极点数划分的细粒度型别。",
+   "replacementDigest": null,
+   "decisionHash": "6f87d0130c4fa7e1684cc3729327b06c7fee65d7ff5e8c56d7e47ac2685328fe"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-fb5aa68d5422de4c691f3eff",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 一型系统是按原点开环极点数划分的细粒度型别。",
+   "replacementDigest": null,
+   "decisionHash": "94c30c595910279ba4e3854a801dce32761cda2128d8448aaa59d63a7cf8982b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8684cfc5608f8714f2d8b1fb",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 一型系统是按原点开环极点数划分的细粒度型别。",
+   "replacementDigest": null,
+   "decisionHash": "51d9f1affde1620307ed17f1df0b14ecb01b2b4b78f921e22bdab5d8b6e39dbd"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-bcc5c4155417335afb3ee8b5",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于欠阻尼响应及共轭闭环极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "badd637828092bc0c1934b2293dc1b0870f932822b7ed927695ae76a0c2e5fc3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ad0426580d60dce54303a1fa",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于欠阻尼响应及共轭闭环极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "8c3df3d163b141da6de7a0305e6757c62576e1cd5ea109eedd1e8ffe1bab0bc5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a2333e8f8690fdba77b8285f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于欠阻尼响应及共轭闭环极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "c69f22bdbfd117f683b44812d7152d5728260caf783ad7ba8e758e37725af8fc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-394d45b803976362cf34a442",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 该成员就是闭环极点的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "71018aca4ab9188f61462edc1a5d047994a689278488f73df2eef3d43ee10b04"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e63d2cb604ffc110f7b4a260",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 该成员就是闭环极点的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "52f6bd2f86215aa4a9d98186dc00cd81eacd865999ec98a83c4b00c378429ad4"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c7c45ce8bbc3ec71f31c23f3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 该成员就是闭环极点的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "dd20364cd47600ede12e3e75600007186412f8fef3cba4308fc879c8fe702741"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-04de831a9ff8e1574a36d0c6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 埃文斯构造法在讲义中已按完整法则表达。",
+   "replacementDigest": null,
+   "decisionHash": "c0185629a7309fedc12bbd7154587a48e53f2ddf0b814017abe879347e41c1cb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a88cf83c2f4178e4f5bdc453",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 埃文斯构造法在讲义中已按完整法则表达。",
+   "replacementDigest": null,
+   "decisionHash": "a2dcff7940f8638543f1d3d4128a46943b530e717924b3dbf6f87cf31407686d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-72588e748de4c35c5b3dc4cd",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 埃文斯构造法在讲义中已按完整法则表达。",
+   "replacementDigest": null,
+   "decisionHash": "383df49512e296fb12723b5d507902133a60ab31586fc8f480067ac42d4bc4c5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e844d201b43284e355ee4ef3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 稳定时间是调节时间的术语变体。",
+   "replacementDigest": null,
+   "decisionHash": "b26ae1ec5376a98e24302f12577ecbdebf20b6d43475717c7154a56342ea40a3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1508639121f5cd4cca5e9acb",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 稳定时间是调节时间的术语变体。",
+   "replacementDigest": null,
+   "decisionHash": "0c23102560ebc152b0ca401fa283f3566c2a396c581ee7a6a40e1f9134318be9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-afbd496d0bcd8cc099231669",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 稳定时间是调节时间的术语变体。",
+   "replacementDigest": null,
+   "decisionHash": "af942d0ef3cea9e5d92722469139b3b6503fae6f3da2f1bebd9eb07816644db9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-726586a23c2e98d223779670",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滞后补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "c42a14f7b7729a6d36be5783a8c3442b802a3641c40770da137d59b06d9be5cf"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3c5919d7316da1c69408bfec",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滞后补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "ccb1ed1ba4d0e64f40bd594030fdd66c246dd77f9c68ed83360fa513725de745"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f198c0ee8727e607a3495810",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滞后补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "74da1ddacebae2fc076286c22642ea956e5abbba5137ab761cd162e48a5bc3bf"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-91802304ae8c0310442bd47f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气传感器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "277e397a34e28868a595878497e06a610b1e435b970fb003425d695e8a2e4f61"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-37bf7e829c42077d760328f2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气传感器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "8764fd3f8df2474af692acf552b11df1720c26a496ed640da83bc857aef877b6"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-de38f5ffd5a797cb25c473f9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气传感器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "5963ca8b4b0c12550986afcabef3ccd714ab2ac34a73ce9223360727d80f2603"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3a76cef2d9e2af378e1bb1d6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 传递函数参数灵敏度属于鲁棒性分析。",
+   "replacementDigest": null,
+   "decisionHash": "09496c9787084df104e4aef50c40d1cee803e2f6db6fcbc72d6d196cf73ec6df"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d49ed5d121b027dcb40ff010",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 传递函数参数灵敏度属于鲁棒性分析。",
+   "replacementDigest": null,
+   "decisionHash": "dd42bb49b5527ac268a5fed57e71c7a77f444a3c7ae25d625b873fe8e6caf477"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2fd243deb6ebd6d476ccfc47",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 传递函数参数灵敏度属于鲁棒性分析。",
+   "replacementDigest": null,
+   "decisionHash": "20d252a0dfd03cc74475860e86cd67d7833c4ddf2b88cc958008ec1e832515cc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3edb168f3bf59f16a8305d07",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 首一多项式只是特征多项式的规范化形式。",
+   "replacementDigest": null,
+   "decisionHash": "44333c33960bf0b2514312f536307673a80f7114822bf1b771c8625214c6bc44"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ab91bd543dd844904b5fa662",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 首一多项式只是特征多项式的规范化形式。",
+   "replacementDigest": null,
+   "decisionHash": "ae0b611071a6097739a72fa377a10a6a7a4659c6ed3e199bfbfe810b0e5f0366"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-18d158cab95e0491eb190fd8",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 首一多项式只是特征多项式的规范化形式。",
+   "replacementDigest": null,
+   "decisionHash": "7a26c4c301a70e85bfaf31c1f084103433a1e63b4de1ef40156c2a5b5a924825"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-29a294937035646d4718fe7b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 集总参数电路属于电路建模案例。",
+   "replacementDigest": null,
+   "decisionHash": "c49eebcb794b0ced1b4a9d5c0dad79dcad3c9908fe776d94e08116cebdccab7d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2661538d3905a984f9d5eb74",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 集总参数电路属于电路建模案例。",
+   "replacementDigest": null,
+   "decisionHash": "81b3ea035ac1aee6c6ed8830cb67fcf8537e266fb7ac418e9e35600032b06962"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e4a085ae60d82b92bec18a69",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 集总参数电路属于电路建模案例。",
+   "replacementDigest": null,
+   "decisionHash": "e0bba77a3671f020d57d44051b041133718c4da19f193df72991db437ad04212"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-451b8a35bef9b65dbfb2bdb4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线斜率属于过程控制经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "46663b8fc1f9fa6425449b12b2b6adad6a997c69def3053a5724321ae777e002"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7a9d6d8fde9473b91a7a684a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线斜率属于过程控制经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "e3aab6b14a72c70b56492b75c492e7ccb8a7b4bebed73eb2da3e08855f677505"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8cb070b6d6673385827c8bf5",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线斜率属于过程控制经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "c453d8b95149874bf30d5f339e75e625cc009438d5c19bac6d652274deb8253c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-bc97f2da00c2fdc9bdb80642",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 图形增益计算是幅值条件的矢量长度形式。",
+   "replacementDigest": null,
+   "decisionHash": "4bcdc4f1f6425f65198c351c54e9ac1797e336f26c59ff8a2797ef618eb6ba7f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b665308397d06f0a7508b73f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 图形增益计算是幅值条件的矢量长度形式。",
+   "replacementDigest": null,
+   "decisionHash": "80e29eb9947b1f88e614f009db0d288a3e53e077ee40c6e3efeef29042db750c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-48c8f6cad3177ed7580456e9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 图形增益计算是幅值条件的矢量长度形式。",
+   "replacementDigest": null,
+   "decisionHash": "a93251f09ef1348118ecbed6886b88ded681a2e78d5daeb4988cb9acf5e9d607"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-53f2b84bcf9526efddac2e88",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮闭环特征方程。",
+   "replacementDigest": null,
+   "decisionHash": "db57db9ff4ceee7c4f356c8a3ceeca1ceea931022baf2abe4b69e62ee59b4458"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2390c87acf3d194ca951e424",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮闭环特征方程。",
+   "replacementDigest": null,
+   "decisionHash": "e76f1338e14cf2385182f1c1af567bc5283c606b98d169d5de81b25b1bc2ae10"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-4ea028d7c6b0f69e7b7b117a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮闭环特征方程。",
+   "replacementDigest": null,
+   "decisionHash": "990d18cdcb565aca75de77ca7fd59e27cba570de0f94dec103d09f5da6526801"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-375e4d5b8a826fea16fa251f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 分布式RC网络属于电路案例。",
+   "replacementDigest": null,
+   "decisionHash": "4a3edb67409ca1652d7993e9dd3a3b1dea0f248083e82bf0d300407e27f1e971"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-46cedb6fc9118a845731712d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 分布式RC网络属于电路案例。",
+   "replacementDigest": null,
+   "decisionHash": "8720dcaf74675b98e63633f9a11da128a562aefcbfc6e4091eb2b0a46719e8e7"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ecdf652170d1b8c349d324a4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 分布式RC网络属于电路案例。",
+   "replacementDigest": null,
+   "decisionHash": "8d77d235dcd2e2061a33a740c56ae9e8c58d1f41b26d6329f92dbf7f085d7fef"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7278829952ab0f6385c7922d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则5：分离点与汇合点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮分离点。",
+   "replacementDigest": null,
+   "decisionHash": "66581a02fcbd4c2a7913eaca08824bd4b307ca3b0f0d7db521170931ed4b2930"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-655c45badeb0a443f64aab35",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则5：分离点与汇合点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮分离点。",
+   "replacementDigest": null,
+   "decisionHash": "b1ca77ec136b11dda253769361063acb34ab920ecae54654f3c4aeea3a8be18f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3db56a1f7a8cfae32f385b51",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则5：分离点与汇合点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮分离点。",
+   "replacementDigest": null,
+   "decisionHash": "41b6705e4d4cfb6e4e2f259e1b97a0dc5ae3901e09d42983b35a593337f0465a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2b57a76790244fbf770d9024",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终振荡周期是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "b4d2c9ff95618551be971a9a0cb16366b6755564200e00fc7547c7854ca29538"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-287537513cb0b1ad9fa78e54",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终振荡周期是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "0c40b3ee25c5319d5f0d9dc9ecf7864e0dad1bc530739881b7d19aefc155485e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2d8ad7fe6a7d1f7e0a057738",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终振荡周期是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "ad3ea2c5a4a91874dd8f99fceed87609ddc5cbbf269a1cd451f353bdd5b33967"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2ff0c1be5e80235b691ca908",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 回路传递函数与讲义中的开环函数L(s)同义。",
+   "replacementDigest": null,
+   "decisionHash": "fb360407030197bfd4071c14badda0a7be1e184225a788c94fd46eb1adb966ca"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7b6b309934ca891822f3060f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 回路传递函数与讲义中的开环函数L(s)同义。",
+   "replacementDigest": null,
+   "decisionHash": "033403648b242c6edd5905a1ce58e60b2db52c7156226a0e0b194bc731a88dbb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5598dd5e36611c03e212a40f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 回路传递函数与讲义中的开环函数L(s)同义。",
+   "replacementDigest": null,
+   "decisionHash": "f84d6ed90a1e97d8026223531dd042d6a99548cfdedade492c4171ce2f065c55"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ebb39f4db73af7a7b1acef90",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 七步程序是完整法则的教材组织变体。",
+   "replacementDigest": null,
+   "decisionHash": "0e99ced4124e33b951657721d943082d80a03018d03503db2bc9f009a1e46fef"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1feaa5fac0e39c2e0ba5e706",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 七步程序是完整法则的教材组织变体。",
+   "replacementDigest": null,
+   "decisionHash": "e664b8a99cbbc9ccaa9696f985bed0ad8ef8665279f853d066c9f56fbbbe45df"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a5fd83f83e3e9b8b4762a329",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹完整法则"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 七步程序是完整法则的教材组织变体。",
+   "replacementDigest": null,
+   "decisionHash": "22ad2e44466378dd30cd104d41b8a1e524a28e6515a24b51063d2d1027f262a0"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d4ebc1846ae35ff225bfcff2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮渐近线。",
+   "replacementDigest": null,
+   "decisionHash": "150a566a3b656ca4a525323df1f39298680184a445f871bf1a6caa2ff4ac1edd"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6dbf7fa2628cc2776526848c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮渐近线。",
+   "replacementDigest": null,
+   "decisionHash": "8db47bd8a76a5f218655db7aa157277c633cbc164dc30b729e331f3bd8094a3c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-03e56942c9e811991e3b8eef",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮渐近线。",
+   "replacementDigest": null,
+   "decisionHash": "94c0df2ba8001b2d2f92868475a581642ee7627f2bf61530857f775c1d6fd558"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f17ca0b99cc56e6ed2b902e6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 右半平面零点系统属于非最小相位分析。",
+   "replacementDigest": null,
+   "decisionHash": "5dc88622c0c84309828ad85b0104719237b97b77f604ca7ef54d98425dab08c2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-fe40bb26533d7db5eb3dbbde",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 右半平面零点系统属于非最小相位分析。",
+   "replacementDigest": null,
+   "decisionHash": "cb91754b9a2c02e178d68b01ab0b8e55f9c59b637bceab381d90ad76d56fad4f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-075fcabc41c2d97c9ad53d1f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 右半平面零点系统属于非最小相位分析。",
+   "replacementDigest": null,
+   "decisionHash": "1bdb2fbfbc21adde48a6eac14a006bc6c3da5a8b10f72248fac06c87355e5703"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f490e1f26f9560d9aa4fd5bf",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据",
+    "src:terminology#根轨迹与时域（1-3）"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮根轨迹主题。",
+   "replacementDigest": null,
+   "decisionHash": "fd873ac705fae3172794fa7d6b9ed7e0d6093d7c12f0aa17dcdbeec66cbaaf26"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-85efc95583d809fba956a2ee",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据",
+    "src:terminology#根轨迹与时域（1-3）"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮根轨迹主题。",
+   "replacementDigest": null,
+   "decisionHash": "a10a4e162ccfdd8f1db8b3baac1c8bc7c4864d05bc222174dfe0f6777955c5f9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8ef6e23e3d02abb679191c2b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据",
+    "src:terminology#根轨迹与时域（1-3）"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮根轨迹主题。",
+   "replacementDigest": null,
+   "decisionHash": "2168cd5b8121c848d9702b59b7098f6ccdcf88b421065af040b7d6d9aef4f2c8"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-93d52e012d4dcc784c5e564f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于过阻尼响应及两个不同负实极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "1026da2d97c6d34be098c377e05b003bd69786c1800165ebc603067cbc402a20"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9d60144aa2797c4c972318ce",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于过阻尼响应及两个不同负实极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "07f71e77b48eccb15649167e18e04f9b3232b207afd17557baa30bb53f07b70f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e7c368f39fdd4d04b858715e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于过阻尼响应及两个不同负实极点情形。",
+   "replacementDigest": null,
+   "decisionHash": "b4492df38b47a51da564e5c533e59516faf2e244a2e115e0d1f8b0b319b9b39d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9be0064db3640e247ed287fb",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的定义变体。",
+   "replacementDigest": null,
+   "decisionHash": "5d2ee6926fd917db349f00ce01bb849ecafbcb0a9a0a553735575ac839584d4f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-25df88e6e96d30d192d49563",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的定义变体。",
+   "replacementDigest": null,
+   "decisionHash": "c0e0124f829520f0d788a5406b90ecef2bde1c41e898c665bf9f69fae993de37"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3f350d687a46e2817bcfe898",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的定义变体。",
+   "replacementDigest": null,
+   "decisionHash": "e94e3e857ca42ac75239f4e11308de517967a76cfe75d5459b4a2b3d81efa6ae"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9975bab9ab5d06562e4f9299",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 柔性模态及非共置补偿属于专门工程问题。",
+   "replacementDigest": null,
+   "decisionHash": "36c490a6f0dd07d2a38af43868d6c2d9ae57c3955ec6c2a138f617ef92a90b2d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d2811132f1637540f5ef6aa6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 柔性模态及非共置补偿属于专门工程问题。",
+   "replacementDigest": null,
+   "decisionHash": "9aefca2448a5a844015c8e9bec238001373b63a519419d21b9a5f26aa1c7e5f7"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b2520ad456da8a4dc71c2292",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 柔性模态及非共置补偿属于专门工程问题。",
+   "replacementDigest": null,
+   "decisionHash": "2bf2fbca71260bdea8d7b79cc2f5f6d68523905990f47a1f2392083654d52fe3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-997d3301f68332bf92bebedf",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 齐格勒—尼科尔斯PID整定不属于普通根轨迹法则。",
+   "replacementDigest": null,
+   "decisionHash": "a5d26698ddfed86087c1133db872574fd8b10cee2e73dacaba2e3163d09cfd41"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7ee2f77d3e3022e92ea5ed9b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 齐格勒—尼科尔斯PID整定不属于普通根轨迹法则。",
+   "replacementDigest": null,
+   "decisionHash": "6a1c936d59e556f470c57496f1df96e369b937db61fe08457bbac5185fd6cd4f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-4f6398b87ac855c6c6be0c6b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 齐格勒—尼科尔斯PID整定不属于普通根轨迹法则。",
+   "replacementDigest": null,
+   "decisionHash": "60dcb3a2933245e98b092943e9f2453605f84e942a49b9f027bacaa3262eda10"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-81a841c85d03665dea47a99b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 高频降增益抑制柔性模态属于专门工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "fc55a6203f08298d065cdf0bb90889d47f7bc7c94962d97a6250edf1b7576a2d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c8b68675c3163a1a89e95a04",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 高频降增益抑制柔性模态属于专门工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "60a6c70120d810e1511e371d5536b644a40a5a7285648a113ee8d40bfb95e557"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ead0ea2934a1a9fd82e4a047",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 高频降增益抑制柔性模态属于专门工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "02967ecabb247d038a2486aa1b702e0048689d567365f349894ff174cec54933"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ddd6a29614ece2adddeccd2f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹定义同义。",
+   "replacementDigest": null,
+   "decisionHash": "1d1040f3dc2544ce674159f3b315af4368255110a1a66cf1b2cc52e2ff6c56ac"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-62572cc11ba56e8fb3f1a833",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹定义同义。",
+   "replacementDigest": null,
+   "decisionHash": "9c8bdc662b95789148f6ecd8bce1f285a02fa12236eb865a546c84fe09e4377c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-089689083b9844609be2cea7",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹定义同义。",
+   "replacementDigest": null,
+   "decisionHash": "aa5516887c3ac169383ea9b8bf53d2edd822d41d44f569d573aae5ef913cf913"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-61755f569f096dca7f4acd66",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG是时间常数形式下开环增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "a6dc4e9dcb8933d037c7cc181e8ee1c8cd64f495518ab2472625a7cddad25646"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-39068395be5a0a411e940d05",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG是时间常数形式下开环增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "27861795dd22e9ee0683c823a2662970ba6884dc61492c7b5deb058c13fae504"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-003b894a1f88dd3d2bbe6284",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG是时间常数形式下开环增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "f88b1ff0be983c153f1b387665cd622ab82f85891c658ac96eda6efc502d4d19"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-4577e9cde7dc2bafa79463f2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特征方程中非负可变增益K的定义。",
+   "replacementDigest": null,
+   "decisionHash": "a2dbf78af14c1596083987003e4d8d0ecab7fddf2183773e6a18b155dd7f48b5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-465a3fe82936b491a53debb8",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特征方程中非负可变增益K的定义。",
+   "replacementDigest": null,
+   "decisionHash": "80a7d07db825129bac7b790accb0dedb1cca3410b74ddafece1966e4b3071454"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-127ac63138c7c62e653646e4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特征方程中非负可变增益K的定义。",
+   "replacementDigest": null,
+   "decisionHash": "830491704318d388a2d2a2a12f4dbbb7845d36b2b40b81918b5b21f1290973ce"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1b01df8a0871799fc711f27d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有超调量。",
+   "replacementDigest": null,
+   "decisionHash": "7b1bbbe2e08eca8e255cd817aeb96fd9f7231ef62a12416f8fb740b7c9410ca7"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c7034ea89c0646bf85e679f5",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有超调量。",
+   "replacementDigest": null,
+   "decisionHash": "2191ac3c7e0b68b36575a98aa1f9cdadc49c811e1d268211fa85ff9fed90752a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9acab330269d005c605580ca",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#动态性能指标的定义、公式与物理意义"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有超调量。",
+   "replacementDigest": null,
+   "decisionHash": "7922f4b145e7a93106f8637ec908a91437cd29eecbce04d2303ac9cecdb4bf29"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-396c91ad262afc1084f790e2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特定I型系统中的教材级换算结论。",
+   "replacementDigest": null,
+   "decisionHash": "6321b9eef31bab6adac98277ed4abe558db5f4456f22382046fe0f3f94017dbd"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f1285f9b45c41affe5605c80",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特定I型系统中的教材级换算结论。",
+   "replacementDigest": null,
+   "decisionHash": "89a89e1a369ea120b51cd133b2a1f340dc254523ce960c2ab5dfe318f05a4a7b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-dae0d1ff9e0661f54c42f899",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是特定I型系统中的教材级换算结论。",
+   "replacementDigest": null,
+   "decisionHash": "6ebca761ad2c7b7b069caaea827efd0452f3ba0013a1f28a72cc876af0526f8f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-50d8f061de85e72bb17f4528",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#时域分析的研究对象、任务与典型输入"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是斜坡输入稳态误差的定义项。",
+   "replacementDigest": null,
+   "decisionHash": "7f40df8fff717f4ee5735b5c2fc3a240dbd40d7f5fd550a36e6cf6cd536041a8"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c1ab4f3c6fead80b0a82d326",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#时域分析的研究对象、任务与典型输入"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是斜坡输入稳态误差的定义项。",
+   "replacementDigest": null,
+   "decisionHash": "a7c6ac7756f6e193fdd4c5568032294a9ba4de5f66eb191e7bcf4c2170cdf619"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3419e3fa479e882abcdab9ed",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#时域分析的研究对象、任务与典型输入"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是斜坡输入稳态误差的定义项。",
+   "replacementDigest": null,
+   "decisionHash": "1b99f2190dba33f22a92fb16625575e49b9d37991fce4285ba2df76afbb022e2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-33b53af229a6a026e62883ba",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PID整定属于控制器设计主题。",
+   "replacementDigest": null,
+   "decisionHash": "211370e3c4856e94df9189a80e1b9f2ea4f19d9f90cedf7abe7567e0c20a464f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-db42aebb92b6f823e1218e8a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PID整定属于控制器设计主题。",
+   "replacementDigest": null,
+   "decisionHash": "09e2983b91875ff254b8ab3f25b1f036554227af880a6b1c6c81d74ba0dcc572"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7e446e2831c9c7c6f7e402a7",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PID整定属于控制器设计主题。",
+   "replacementDigest": null,
+   "decisionHash": "c7dec9862b1e6604e455b99f9a0c4e621c5100bbb00b324ede6ec7cd3b9d9a8b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a54e1bc579186acd107aaa5b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环零点。",
+   "replacementDigest": null,
+   "decisionHash": "135c5655d3c3b62ee1546ae0402ac0fd9b5a461981a7d76468cf4b2a9a568f17"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-aeb3b40351049721c5940f78",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环零点。",
+   "replacementDigest": null,
+   "decisionHash": "c7d92e8ed13a35501b68d8a6af1aeb31555db892b6c37d3187eecb9dddfdce8a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c8eeb9e70989b7e3e4b3faff",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环零点。",
+   "replacementDigest": null,
+   "decisionHash": "f852e87a14aa20b0d8bb1800d89caa776d8c8572b161d754750b9b892414f3d9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6ec8b1cdedadbe2150e3872e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 开环阶跃反应曲线属于过程控制整定输入。",
+   "replacementDigest": null,
+   "decisionHash": "7eef887e9c3fc958ca5644e57c0d1e6d88c3770def83fcaa6bd509859342bdb2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-424eb2bbfaec8b28636a7bc2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 开环阶跃反应曲线属于过程控制整定输入。",
+   "replacementDigest": null,
+   "decisionHash": "2810aafc074a1cad05a7757b3f8049fc44eee31e9af8cff6e38645720567606e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-faa8984e62f83b8a440eefcc",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 开环阶跃反应曲线属于过程控制整定输入。",
+   "replacementDigest": null,
+   "decisionHash": "e87045fb13ec4c71be6d73f6109f4ca907a8d1584a8b161b9df2d231cc044a37"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e3b61b95e883da5429794a64",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有阻尼比。",
+   "replacementDigest": null,
+   "decisionHash": "9136224e5a70dd65c9863518a44274de111cb95dfea1016fd48c9a7fa628e779"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e5c8ad953cfb256fc7507699",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有阻尼比。",
+   "replacementDigest": null,
+   "decisionHash": "f8b14750237de47659b35a61b390da675aa4ca12c59ba7d010244e83181ed5e9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c9a3a4efea779f3f64234990",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有阻尼比。",
+   "replacementDigest": null,
+   "decisionHash": "01601fd23e7ba2e36cfe20c2d2891924481fad77c025665f7e298711f135fc5c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-69148d58c122bd644aca9e2d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是虚轴交点虚部的细粒度属性。",
+   "replacementDigest": null,
+   "decisionHash": "ae607dd6d021b206b98675339748e2e1524c4ef6a7fb0a84306e12b2082ec515"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f6ed54e76192db44477be8d3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是虚轴交点虚部的细粒度属性。",
+   "replacementDigest": null,
+   "decisionHash": "d5e5c7622bd1d44773a79b192a7a4d4542a271d1e33da06ef32c8a30a8aa536f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-39d7de2b7ee3811b2334f102",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则6：虚轴交点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是虚轴交点虚部的细粒度属性。",
+   "replacementDigest": null,
+   "decisionHash": "d544966f71dd35aaf280f68cd2083b1ef51f2a21b7b4fa2fef2ae41dab4bd45d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9dbb0d03d73236d56a015634",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是临界阻尼及负实重根响应的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "4e78b1d8ee0194f32de6c41c837e1197cecac88b13bb0b3faeb3a0fccd710c79"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9692d22bcc776737e1bfe5f7",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是临界阻尼及负实重根响应的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "6a139824e4682b981754a3709ceef3640b188e7f31742754352e71c0470e7e7b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-944ea4dcf5d58627dc2877bf",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统四种典型响应形态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是临界阻尼及负实重根响应的定义句。",
+   "replacementDigest": null,
+   "decisionHash": "9563751c172d4fae75defddc09686d491c029b3b490429c0dd06a4977e16e11d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-004899946a3e411560b4a006",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 应答器标签属于自动导引车辆工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "a39bc8da4e15d3e01f50c083e88a010aa7d6e64e23e51aa90b5de1002f2bd829"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-792789eff72e6d8e26918598",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 应答器标签属于自动导引车辆工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "cf0009a6ca7a0d2e3f72e60d7fb9080378c7b5956feb189e3eae150819ba9c63"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-693338439b834c0fa2b44151",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 应答器标签属于自动导引车辆工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "0bf3c4e5b8b90b2e3ca199ccd29c3c519aa96c4c2766bc10e0948d6d5c2425cb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f641f5fbf472930fda54f1d9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 四分之一幅值衰减是经验PID整定条件。",
+   "replacementDigest": null,
+   "decisionHash": "c4d9c1ca26334173db53ba5eb41ec7add834e96d4fda18eabb058cf6df354dbc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-bb08b8a57a2dd82b70afbb4c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 四分之一幅值衰减是经验PID整定条件。",
+   "replacementDigest": null,
+   "decisionHash": "005e899d49cefc235e9ceaad9324fc81ebc3fc61c9123b8cabb570b46dbcb0dc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-dd54f5977f4e46063a57c0a4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 四分之一幅值衰减是经验PID整定条件。",
+   "replacementDigest": null,
+   "decisionHash": "732a94dbf70e9fa67d9e0bde12dea25b8aeabaca630530757610eff25ecafbf5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-0c39bc9a9735345c042dc6bb",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线参数属于过程控制整定案例。",
+   "replacementDigest": null,
+   "decisionHash": "e51a300e33b95fb85c30312ec35456150502e400f4b8fce0e01bdc9ef1df6cb1"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-38f8991d5262b567bb018876",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线参数属于过程控制整定案例。",
+   "replacementDigest": null,
+   "decisionHash": "de18e467273701d9a9ff8a054e9c93c6db9fd24837b6be8588a57c875c05bf02"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-be68cf7d281fb338f497eb0b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线参数属于过程控制整定案例。",
+   "replacementDigest": null,
+   "decisionHash": "75d71bd645dd3be0cd3b2afee098c7a7d99db6d8ea7d4c77f6305741cf6ea686"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f5c7abc57239c23ba381d143",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] b(s)=0的根是开环零点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "0bc3b1883b35fc7a33dc15cab46e56175ecb62269ae1b2c2f7080cd7c607178a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d305e7981990c9787e3369f2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] b(s)=0的根是开环零点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "a058c2c8453ceca98a7ad708d27cb51425d2b4befb6febf72331916736bae44e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ba8cea6ca0bb11a071ac5b57",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] b(s)=0的根是开环零点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "376ca6a7eba1f20e41a8e558e313f2549e6f7dfdfc25cf1df7291e2f3ef2e5e3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b3850da3796b19eedbef0316",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 纯虚根对应稳定边界，与临界稳定同义。",
+   "replacementDigest": null,
+   "decisionHash": "4cd345bcbcca2194a4041af3e0e3e180ee627a00e36a5756634b27a96ceb8778"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7961eed816ea44b2d852e781",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 纯虚根对应稳定边界，与临界稳定同义。",
+   "replacementDigest": null,
+   "decisionHash": "2f7da269a5f243d8ac23d8c2a16b41d78661c8cf0914009529f672edd68b31ca"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3acaecdb5305cfc88d0269cd",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 纯虚根对应稳定边界，与临界稳定同义。",
+   "replacementDigest": null,
+   "decisionHash": "fb20f55b54b3e908743ebdb0814b49f75a3f0fa3e00fd72afbac17cd65eac55e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5a795baa8e18f2a64e468d2f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] a(s)=0的根是开环极点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "01c74979af622ca052557fcce362015bd408ad9a669d6d65d2a44d3ac3983d54"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ee96dce64585b4e9fc61d817",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] a(s)=0的根是开环极点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "f00e9021730075ef78d5f8a30ccbbbb766975f03ae75e8d0b8137126816b02c9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6f89edafd77c5f8da3966f9b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] a(s)=0的根是开环极点的因式定义。",
+   "replacementDigest": null,
+   "decisionHash": "cb3c100be5b5a3bdf70709854a18705a7597d9b2c2fbfcf2d65d9eaef8391908"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-08f5ce6232cb803d720d58cd",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环增益，仅补充比例换算。",
+   "replacementDigest": null,
+   "decisionHash": "ccbe317bee5dbe8095becdbe96545c71821d40b8ae326cb9416a21e0922c6ad0"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b3679bace2b46dbe54ae32ea",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环增益，仅补充比例换算。",
+   "replacementDigest": null,
+   "decisionHash": "5fe4d64db45bf85fd6fec83c39bf1c6c94a5eecb809459e5287ea7574695ddde"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-765cd2b2c07ed46cc438ca73",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环增益，仅补充比例换算。",
+   "replacementDigest": null,
+   "decisionHash": "507ab232434f018b9a1dcc375ee864e8a50c22e45ee542da3e857f4fe9636224"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-43ae2a34f70fcddfe8ed3482",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] H(s)=1是单位反馈系统的定义。",
+   "replacementDigest": null,
+   "decisionHash": "fc3a123c830c74fb61f84b91148a2f0516c326a2eb4097993daf3395a037f520"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5687038c5dfc89b5f26ca750",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] H(s)=1是单位反馈系统的定义。",
+   "replacementDigest": null,
+   "decisionHash": "b4e3030cb45c479cf1b196ce5fd41792a81aa1d04c03575febec9af45eead098"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a5770a9d36450f0592b1b721",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] H(s)=1是单位反馈系统的定义。",
+   "replacementDigest": null,
+   "decisionHash": "65466e27088ff74dd07c6daf6c5cc864585f2b651c0fc1b48e5ae0dd0044d8a4"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d80c7eec6b98ca2154a42e8e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 积分控制器属于控制器结构与校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "9b95d3cfa37ce9faa7295e8add2785a306b0ae50b2465376d917f9407a47728f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2a18903b7d4d8e32b0b81c88",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 积分控制器属于控制器结构与校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "b0661af7d2e5c0b3be65fcb8cda2af9c3965befc79d6d645952a3ec74389db93"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-10edae0f54bacb3aebddab56",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 积分控制器属于控制器结构与校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "490f292bbb871143d2ade5f9aa1a75ff7192a9fe279e558b519735da2f0f5bcf"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-fb6b5c9780dc4953f70b430b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 多重根角度的分段参数延拓属于高级数值技巧。",
+   "replacementDigest": null,
+   "decisionHash": "efef5e4f3044d142286a226f81714dee1fbe4a06a15e1936d1d22a3ccbe68dfa"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-498b505106445d35aee993b3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 多重根角度的分段参数延拓属于高级数值技巧。",
+   "replacementDigest": null,
+   "decisionHash": "e9410ff38841a51df23a7fa7bab773d18bc23049ea90b0076ff811bc08c61e1e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9b56c93927579bfc6ded52a2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 多重根角度的分段参数延拓属于高级数值技巧。",
+   "replacementDigest": null,
+   "decisionHash": "06f0306e7de44f96c840851cc90f799498ad1420acdc099f14e0c93802fc74d6"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-35b4469027b33a1742236b6d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 时间延迟系统未进入普通有理根轨迹范围。",
+   "replacementDigest": null,
+   "decisionHash": "e2b0957fcb507a6f07f6e30cd10b0ffa09ae28054a55fa8beb90df0bbf3eab95"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b313b48b6ac246d11d17b25c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 时间延迟系统未进入普通有理根轨迹范围。",
+   "replacementDigest": null,
+   "decisionHash": "d0015a183020125b560862b453cc3a47032a26c2c8b74112c3bca5b7e8719323"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8287cacdb7ad4d92ca9eb11b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 时间延迟系统未进入普通有理根轨迹范围。",
+   "replacementDigest": null,
+   "decisionHash": "9a3c372aaf59ead324583a5719f3008a45c1f600c5abe81f9a742acffe86cff2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-917869f11bfbfb2af47b6628",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气再循环属于汽车排放工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "a491091b4f23b19460c97cc17ae0ef8628bbb308d578e53ed8a2f41f1d90b162"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1eb827d64284730d7d64f8ee",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气再循环属于汽车排放工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "6f71102447d113a78d62fc644f819e2497d62cd7e2be7760222f7188112a3629"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-cb5633756eb66704d303c716",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 废气再循环属于汽车排放工程案例。",
+   "replacementDigest": null,
+   "decisionHash": "7ad8aabcfdd165e84c7a56504eabdb4700ae3edc49bdcfaa4dadbc4511b41f68"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-0170bd2240818ac8332b0d79",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 为性能指标引入正反馈内回路属于复杂系统设计案例。",
+   "replacementDigest": null,
+   "decisionHash": "acb93812d21bb533c972284987e0557c10fd0818c3e9b60dc8dab718ddd6f9a5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3a63b478152186feaf0e3c42",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 为性能指标引入正反馈内回路属于复杂系统设计案例。",
+   "replacementDigest": null,
+   "decisionHash": "eb646125cd369b841d7dc92d3feecc485a0b42afa487a0979104c97bc019bc09"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-be5ed468874e63d6451a3743",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 为性能指标引入正反馈内回路属于复杂系统设计案例。",
+   "replacementDigest": null,
+   "decisionHash": "40db9a57f336570fbe1e08206998e032d82be46184458d9bb6e16382b7ec1264"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-70e7629d8b56686f21b5a4b0",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线方向角的属性定义。",
+   "replacementDigest": null,
+   "decisionHash": "26c5699a1bd5e8b136b25a1f994dd757d1d15c95c563a5122db4fac5d4a89d7c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-70c5c877e9d5f989ff68f629",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线方向角的属性定义。",
+   "replacementDigest": null,
+   "decisionHash": "704573a7730d6e7067db0c90ccbd713ee4569ed033504b6d63ed69d39ea6a34d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-eb7f50ea7adc14883bc97aa9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线方向角的属性定义。",
+   "replacementDigest": null,
+   "decisionHash": "17966251bea6eb75fd39c00b4a23b5a2bd28f6c8859a8ceabd388b8af1f49a9f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ccde513c70c1178cfc6cef4a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 三元催化器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "e543ba749086d9470a60aefa74d7a8e86389719b7776c0d2b45c8c017e82d65d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8eb3b0328ac1c7aa062eb83d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 三元催化器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "f8160b2183ff5a8b4ca1c921621d56ab4f0382677da5005013f5e48314d8acab"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-340f17e8c9ca60ab9c406bd7",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 三元催化器是汽车排放案例对象。",
+   "replacementDigest": null,
+   "decisionHash": "b808bf31b859fa5d29284815292e875c3ac93841c66e26b351ac5e547e81ae06"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e967c09655e6f8855c36a95a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 零极点偶极子属于补偿器近似与模型约简。",
+   "replacementDigest": null,
+   "decisionHash": "f3b9765037bfee99dce35210f51a37df33b818a9aff43a11f87b09ffa0a43474"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8671be913cc64608b832c896",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 零极点偶极子属于补偿器近似与模型约简。",
+   "replacementDigest": null,
+   "decisionHash": "dc78d823d7231ab5ff8f305cf1206c82e8d0af520cd2fea21dbeb9b4c229ab98"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-cf815ed22c467033fae98ed6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 零极点偶极子属于补偿器近似与模型约简。",
+   "replacementDigest": null,
+   "decisionHash": "2c3f26f62131aa2b7a83499262331fac5a9cd80abbeb4681f943e140cffb6d22"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-98b802f8959d11a205b48e79",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 根对参数的灵敏度属于参数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "2490af1354408f31e456aeb289f92eca9153f306bccdfe54476a9618a93b7e8e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-daf2b891094dbe8ec395c850",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 根对参数的灵敏度属于参数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "2eec1921c936a55a5fc73d7155e0c973ae6982b26e94a97b0f0bd9a0b63b26ae"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-49e588cd98c70bf25598f30c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 根对参数的灵敏度属于参数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "6c06093fa0c2bd92dec2f82eb8c598c7d271074db1f2630f6fad322bed882203"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-28ac7e3c04960f4739d8b883",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终增益KU是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "3cf7ae936a1aeb4592fe7b034430cdcb5aab1ec1f3b430d0234ae4b1d32ce1de"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-cd531fec6c2c4b0cc37df026",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终增益KU是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "7d42f9007b31a38859d1b2194f053c45942dde4f78789bff049f3b4f893ce13f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ca1205aca871114608e8c191",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 最终增益KU是齐格勒—尼科尔斯整定参数。",
+   "replacementDigest": null,
+   "decisionHash": "6b9224b8ffd8d04a3703421222bb3f53c311a4bc5a933a1dd965d5d1eeac53d4"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-a05283b58edda2d8e986386f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 渐近线质心与渐近线重心同义。",
+   "replacementDigest": null,
+   "decisionHash": "25d3edee48cb47af9ef17fdad6d5c51d2ed4e763e152a533f724ac389f1776b4"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-de852d60ae539116193266fb",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 渐近线质心与渐近线重心同义。",
+   "replacementDigest": null,
+   "decisionHash": "b7af0c7166cfb53b83fab8b1d6dc365fff02f11bae6bbcb3c9d8fcc215cd09f3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-122e0dd35df9344b4785e09a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 渐近线质心与渐近线重心同义。",
+   "replacementDigest": null,
+   "decisionHash": "8dd865ed155cb967bb3aae537094332da9536320f01a948e250c16ebdf1da275"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e72a47d13f9510a0cc985eb8",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滤波器补偿器属于专门控制器校正结构。",
+   "replacementDigest": null,
+   "decisionHash": "c0d5d580bca89136463d973dba4463ebb757e1caceb57b102b66e91e94c4e668"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2684da276de825936f465491",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滤波器补偿器属于专门控制器校正结构。",
+   "replacementDigest": null,
+   "decisionHash": "df8c28c139e0f61ac0681a23b36febb3869b63ab790a0677c65a506d317bac37"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-50cf3f593c93bd4c09511fda",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 滤波器补偿器属于专门控制器校正结构。",
+   "replacementDigest": null,
+   "decisionHash": "e8c566774aa33684f37856d096b53b02324cc37774699364ac1731bfcf9b8cd2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c45cd9ceb04a07d7b1dd96f1",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG*是前向通路归一化根轨迹增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "8d9b6d6015c5a5510e2cccec053857cc2e4b309ab2806910d1184ea136bf7746"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b23031af46758b21fa8f408d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG*是前向通路归一化根轨迹增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "3152f5b3d4b85719e79c7a4abc2eb8002b8a6b6aa2fc6d1dc89b2da7db8e7815"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7358260ea7da63e24dcf8793",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] KG*是前向通路归一化根轨迹增益的记号变体。",
+   "replacementDigest": null,
+   "decisionHash": "24420231ee51bbb12a9a2eaa67d3277e87042c8dd01c166fb85a41779b641f3d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-37b19138f464fdf0cd1b3ff8",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 超前补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "31ac87c466a951dbf1625578b00f7ed1eac9f306e319b67ac4bd1c8fc1a31e4b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b45d33c0413cc6ca5db064a4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 超前补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "3b13c2f14d2c4bb4460997126a89c910ea79bcba964a7d63909c46047eadacc1"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e968ef17ad88148b8d06f92c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 超前补偿属于控制器校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "bf63818e1621255e55fa6f55a1f62151f40375fa046d6dabc420ba6dc410c5a6"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d023c2880d2a5e546e9c579f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#引入：为什么稳定区间还不够"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有根轨迹法。",
+   "replacementDigest": null,
+   "decisionHash": "fdef10438b297003482a233319cce385a1a3678e30ac4d52b5a7b508253fe629"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d00e645d3ae35e073b209f13",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#引入：为什么稳定区间还不够"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有根轨迹法。",
+   "replacementDigest": null,
+   "decisionHash": "bd66f89192632414d5435b1c8ddb8c1ecd672bb10fff48fe3f3acc474822433e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-38af2b24599b5de90372ddf0",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#引入：为什么稳定区间还不够"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有根轨迹法。",
+   "replacementDigest": null,
+   "decisionHash": "5758c8e0f7e36cd587c9e9dc85b500037887bf063952f9166625af35b3b42cfe"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6a4d5f2b64d8a18cbd2c7ad0",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线纯滞后参数属于开环经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "40005b0dba5a6c3a1736ee8ed93d1bab1d515a1a429492948698fd429a5c4fcf"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f815f56157077c1b0264d768",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线纯滞后参数属于开环经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "6ce408b6775bf868b48d43969c615c756c3cf783bd3c42a18aca2bce93cec6e3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d2b58af08f07bbef8efb231d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 反应曲线纯滞后参数属于开环经验整定。",
+   "replacementDigest": null,
+   "decisionHash": "28a45b172ce628cde19ef9ab179ce64c13e81eedaffb536ea91d0aeff4c0ffc3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f53c2143df65b517a5524f54",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环极点。",
+   "replacementDigest": null,
+   "decisionHash": "e20be7cba3cddb100f259122999cb215577db1d9cbd9a3c185eb5d56d77a0885"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-06998a89fcf7e7551f9fcbe1",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环极点。",
+   "replacementDigest": null,
+   "decisionHash": "b4a20991e2a032dd828192c1308b62b0cc41e9be7e4019eeccc2a7b66d48897a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-537ed643b54eded37d709dec",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮开环极点。",
+   "replacementDigest": null,
+   "decisionHash": "c88ecad26b419f37810fd1f96441db059adbb661aadee131151079af63a816c2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-46f2b3a53f8d4cb3fbd3a617",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 试凑式PID整定属于经验控制器设计。",
+   "replacementDigest": null,
+   "decisionHash": "f31e1306754255f9b8e209b52e05cd1cadc4d7addb9544ab171f1339887e0e34"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e0983734711af56c5bbe985c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 试凑式PID整定属于经验控制器设计。",
+   "replacementDigest": null,
+   "decisionHash": "e2ae5040e4613ef8df8aca191b0c2ecf48178f16350c68e134f946644e8d7c05"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b517955ba1070e2299647f6b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 试凑式PID整定属于经验控制器设计。",
+   "replacementDigest": null,
+   "decisionHash": "9e94300a1a84450dda444e4fe425cfe3fe8b0000f9457d4a331cf982a1d745cc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-82cd3ea40bd72f26f6182f0b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是首轮增益K的根轨迹专用名称。",
+   "replacementDigest": null,
+   "decisionHash": "fdc447115a96951afa8549a4910db2c3e7219afa6ceeacb51fea333cde584161"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2bc151d9e2433f5fc1043314",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是首轮增益K的根轨迹专用名称。",
+   "replacementDigest": null,
+   "decisionHash": "98c11009d4c4065a977cf294b8ee1d73abb68aecd2f9f0f714f8a1d6316ca1be"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3fe386f7474ee9b6c33e4e64",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是首轮增益K的根轨迹专用名称。",
+   "replacementDigest": null,
+   "decisionHash": "0240e23f37b80cbe4d4a7547cd501dc8b42585fa63951749d71dafb24f06f50f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6ee6417d4f6d6c3da94e3707",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#主导极点决定主要动态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 主导根与课程术语主导极点同义。",
+   "replacementDigest": null,
+   "decisionHash": "4a8ae0a32aa4356768720a227f21af6114ec4727e8f9d1d210b185b961db4769"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-01bf7900cf03bea96e20b4d9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#主导极点决定主要动态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 主导根与课程术语主导极点同义。",
+   "replacementDigest": null,
+   "decisionHash": "0778c0566b8d1ce33933e287bee085824439338f049d69475cb710a2f98f479b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-fe178e5e02fdfdb6e9825486",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#主导极点决定主要动态"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 主导根与课程术语主导极点同义。",
+   "replacementDigest": null,
+   "decisionHash": "74ea48859e9e14d4ae22a8bb20f2c7aa9338997dfd71705d566447a559bab625"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-dff8d796d09bb4787c5dfc00",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有自然频率。",
+   "replacementDigest": null,
+   "decisionHash": "1e1e460e0ade9a69c9ba94baa1391d5f5ae40a8aafd4859c3b6e5e06273481a8"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d9fac572bb3f8fffa6f6017d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有自然频率。",
+   "replacementDigest": null,
+   "decisionHash": "8b762b888567c0137a4d9547ef65bddc60dc7901d90f1c8be6d2c83dbcf208b5"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d692ee0e54fac6434c2d1a50",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于课程既有自然频率。",
+   "replacementDigest": null,
+   "decisionHash": "0cc462180fe46e914de6d00c60c7f8c174e2b5a5e7a6061ba671698a2dbae847"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-601b48fb38e0c3b3ffcf131a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则3：实轴区段判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮实轴区段。",
+   "replacementDigest": null,
+   "decisionHash": "dcfc12fd0a0f8e48292a7516c04311ca2d21416b2b25a7d1ed0bbf9aa3b7555d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-49b7fdd9cf70f5f82474d21f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则3：实轴区段判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮实轴区段。",
+   "replacementDigest": null,
+   "decisionHash": "cf2fad53e8a57e3d276808f40318ba2183a7af10b11ff2090aad07ef55cd6b30"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-640f97646c1636ba67dc8bea",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则3：实轴区段判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 同义于首轮实轴区段。",
+   "replacementDigest": null,
+   "decisionHash": "cba143990dd88351940f71d00d66befc50b1d36cdd3161a3163d70656fbaa4ed"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2974a53cb8a48bef0435ec5e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 带纯滞后的反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "fd79d9faf61efb41e95db066e59ab6809433724d314a570278dec9bd9ebbeab2"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9d3171937522492ab394d8d5",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 带纯滞后的反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "f6f8a4b12a619c2a8437bea0ef5d89c32bf99a771dc90f1ca2c6369d74c07d43"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c0024f44544aae18dea1ad66",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 带纯滞后的反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "5601e60c62a33898a3cb77458e49570d208c1e07c238fb342e19af2872844a44"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-41443a1470b7325602799cb3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是极点零点之和的教材推导公式。",
+   "replacementDigest": null,
+   "decisionHash": "7b3c558b30fe1f08b9b4f2b04fac9523e58344b3f2fa08e9a98b98821708bb46"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-656f5d12a3897ad240b40126",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是极点零点之和的教材推导公式。",
+   "replacementDigest": null,
+   "decisionHash": "3769c18eaa5288880c45cd0705cea3ba3c92ac90999f7121a07d8927ed6830c8"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-08103a9044f30e37156479a2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是极点零点之和的教材推导公式。",
+   "replacementDigest": null,
+   "decisionHash": "77b6a5feef6dbd120d971a76e1b6f2230d3cfe81b5a0869ccbc8266a3b3d248a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d8ef0c88c8f0b6e2fb981ef6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式属于对数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "4be75560d15848674ff3d3a1a4b3439e1bada11aae12f48074ac9fd18d5c646c"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-48f2e3a5e8f65c8eb85a937b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式属于对数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "b6d05de32e4748bf47e67da46e06d67f1be8250eb6b40acc258acde277ea5d58"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2ae4b7652f8db8acead3d65a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式属于对数灵敏度分析。",
+   "replacementDigest": null,
+   "decisionHash": "bd8d261a1c9f3f19d716c3a76399180370612cb5b7d3fd5aec165a2954a2d151"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6b4a8cc1515efafa1526749f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式是参数灵敏度分解公式。",
+   "replacementDigest": null,
+   "decisionHash": "71d3f647a18c7ce7e5b01333050714ed7449c25ff2f340179402ee66cfe30a0a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6f2e37d68058f1c49644504c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式是参数灵敏度分解公式。",
+   "replacementDigest": null,
+   "decisionHash": "08c711221b1e14f30bf68698e9724105d275a0a332c71307a5df029d9270ae30"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-4f7229db01b66de1496fe2f4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 该式是参数灵敏度分解公式。",
+   "replacementDigest": null,
+   "decisionHash": "195dab448c961396698d07082acba41e4db5db7e0057936e2c73e30ae96e9f26"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5194183898b9cb02c111bad8",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的一般公式表示。",
+   "replacementDigest": null,
+   "decisionHash": "70dcad4aecbd9e64332b2c42635d4c06a9906b5945b82af8d744a2f3c46225b7"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-56bb6aca400a9a6dc78fc88e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的一般公式表示。",
+   "replacementDigest": null,
+   "decisionHash": "5de8c8c56cdcc69fc9a1aa5f515746338631bbc817b8208f3a3318b22f10229f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c4978a6a9ec10893de43e0ff",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-1#闭环极点先回答稳定性"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是闭环传递函数的一般公式表示。",
+   "replacementDigest": null,
+   "decisionHash": "cf6a45590b1e664b4aff49c4e4a1a5d81a071fa2498b4e40cded1c4b8446ac9e"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-4a19b514c4680f121bc739b7",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是负反馈闭环传递函数的公式变体。",
+   "replacementDigest": null,
+   "decisionHash": "acbb42aaead475bbfb1cd4ef0a319a97f9b4cf138e9ca9c3cb0a649e012d1336"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-274d8a5e6e078e9a9d356e72",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是负反馈闭环传递函数的公式变体。",
+   "replacementDigest": null,
+   "decisionHash": "d7170051f1ac239c3b5342deab57eb29c72466b7220b09fae28f4ae88221a165"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-116458e471fd3404c0900a9d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是负反馈闭环传递函数的公式变体。",
+   "replacementDigest": null,
+   "decisionHash": "600829cf511d1c4e63df4b7b3a2b5db4c6ed5dd583cca3054495ca8159d49f47"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-03aa7deb53356f88f8b191d0",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是幅值条件的极点零点乘积形式。",
+   "replacementDigest": null,
+   "decisionHash": "9b766d31c355922effcf553f386f99b445b9e6e9fef9043ecccea18307d6174f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-dd4f8a6072132a83872d3dbc",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是幅值条件的极点零点乘积形式。",
+   "replacementDigest": null,
+   "decisionHash": "9f9dd42a009b98c9d4be73f81eca02af0ef2b678b5b9ed046743157ac63df3fb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2f1b10967213e1d17ad329a6",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#幅值条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是幅值条件的极点零点乘积形式。",
+   "replacementDigest": null,
+   "decisionHash": "8e3f3692a0fe04c5f7e05ef88c88529144e6b5673d8b4f8a98aa840e09b69856"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-6511d6c838be6ffd39bfbdb5",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线角度推导的局部公式。",
+   "replacementDigest": null,
+   "decisionHash": "943af06d1dddb236390577674a1a28a69d33a8f772996772570e3d04a218a53d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-127b1c6ed875642db612dd73",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线角度推导的局部公式。",
+   "replacementDigest": null,
+   "decisionHash": "f9a531ff2c54c722e90dd7eb7c4e4a0040750e65971a6f3dd52fc7001a534619"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e14a6f9a1360a75d4d0ced27",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是渐近线角度推导的局部公式。",
+   "replacementDigest": null,
+   "decisionHash": "752b02c3451ee8c5b7e963e2914f77ad33723a5fd2b8fa98573ce67605bd098b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-ac65a19bf0c7a941fc018429",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是前向通路传递函数的零极点增益表示。",
+   "replacementDigest": null,
+   "decisionHash": "1b562770836d498437fea99c0fb940afbf78e9c5ce247ff49563c3dccef513ad"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c6df53301ace5fb799195393",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是前向通路传递函数的零极点增益表示。",
+   "replacementDigest": null,
+   "decisionHash": "968d013ce1889b5628d9f24efcbfad9bcec916b37e6aa931d4cf2f3a9787ee70"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d44c98f33d44d179cc63499d",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是前向通路传递函数的零极点增益表示。",
+   "replacementDigest": null,
+   "decisionHash": "56c8979ffd00ff785f9feb8d9fc9a4e2dd9c3c470e4fa3d41b6a407b1335d3f3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f53228d593f006206a6a716e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是分子分母的零极点因式分解。",
+   "replacementDigest": null,
+   "decisionHash": "39b8bf51468dee59f370573686259d95fed8b10282cffe5d450aaf20d54aabe4"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-50c737b921b372ed397d9e95",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是分子分母的零极点因式分解。",
+   "replacementDigest": null,
+   "decisionHash": "41a844a8ff10020d549f1ff1ffe81e182220dacc24c363d4917dbf3c6b2a9873"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5e86e9f7becdb2a6d321ffa9",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是分子分母的零极点因式分解。",
+   "replacementDigest": null,
+   "decisionHash": "60d5358538f1338ed1dd60396c2e63ece72f8c4a5ca998af196269e6b63eecca"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-9df6977b05a3e7c38d6aeadd",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的渐近线角度公式同义。",
+   "replacementDigest": null,
+   "decisionHash": "5fa4d6d469b316f9dc1ec70af052d94b0daf190415650101d92164ccfbaffcc6"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-82cbd2d4dbc313da9ca6024b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的渐近线角度公式同义。",
+   "replacementDigest": null,
+   "decisionHash": "617307f9860d8ef499b1b0abb9599c9497f91be0f1c838eec2e4d28f69462acc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-d93beb0a0ff9e13cd46ecf1b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则4：渐近线条数、交点与角度"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的渐近线角度公式同义。",
+   "replacementDigest": null,
+   "decisionHash": "343b6c4d1bb1f60ca19276c3eef6ffbac701a7de75ebf0fb05b4f3d5894717d9"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1ada621641f21b3fd172ba62",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PI与PD串联得到PID属于控制器结构设计。",
+   "replacementDigest": null,
+   "decisionHash": "8ac451dff9b8114180060c22442b8691603a9afe16cd87c62e00e3283c25099b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5371b83d53675a6a81af522f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PI与PD串联得到PID属于控制器结构设计。",
+   "replacementDigest": null,
+   "decisionHash": "3c4695c93c0750dfda8aab80923d8a2936c011fda9deef0aa09e2cd17878abfb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c7481793014cbde70c9bb17b",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PI与PD串联得到PID属于控制器结构设计。",
+   "replacementDigest": null,
+   "decisionHash": "c091ef8919c013adde8a7d4bd7bd89f91baff893bad5fe72d8d3df7533a3d66b"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-389f044e2935ab17978da3e4",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PD控制器传递函数属于校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "879dd356909f441d1fec15e368da9bc5e1f9b1c7bd64bb1e299214fdecd3b9cc"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-245ba0d23bcc440b25035e7e",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PD控制器传递函数属于校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "7e8c8bc70231a6e112cda18fb95dd20aa24900ca7ddbad720f0d472e5e6b7162"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-fd82f42c079d38b03645da38",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] PD控制器传递函数属于校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "62973f1881253b6b597ea535282d98631724d2bbe145184707fa9e0e340f74d3"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-f5b1c649c9644685118a20b2",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#相角条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹相角条件同义。",
+   "replacementDigest": null,
+   "decisionHash": "952c8903940f77f8b7c48efbea92c78f7b836a6b360cfa5a044f1420b22a0d99"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-b768c35927c7657d63990cef",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#相角条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹相角条件同义。",
+   "replacementDigest": null,
+   "decisionHash": "7270773d6d34d696c9e6a7ceba2cfa55c95a92ad09bee1738e89d7e16685488f"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-416e54754a6bc91586693afe",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#相角条件"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义中的普通根轨迹相角条件同义。",
+   "replacementDigest": null,
+   "decisionHash": "5ad4fe5bb95d77118da632661e5fac21d5707093dedbca2339545b7a3070635a"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-5ce6e1f8356ba79979c5a304",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 单零单极控制器属于超前或滞后校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "e692219a9f99f320911c683b0b439e49ceffa56a24a1221b56e0c1c9aefae994"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-e47fc15187f85f63cc79c67f",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 单零单极控制器属于超前或滞后校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "62a36f63e985137bd0ee879f657d916e8def505687f729d8e0494f49d3549ea0"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-af412f82134a5241b9c9ebee",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 单零单极控制器属于超前或滞后校正设计。",
+   "replacementDigest": null,
+   "decisionHash": "faa9e94a4de73d89edf7bec3de79d8508e7fa6ba699a1c02d5688b1e0a60a621"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-8af24e9cc94ba2abf4298e86",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是D(s)+KN(s)=0的因式展开变体。",
+   "replacementDigest": null,
+   "decisionHash": "4dd42485d5f228e213797156bf6a78dd4ab9a050fb417b6ca789d0270370cc5d"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-2129d4d4f587da48c40713f3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是D(s)+KN(s)=0的因式展开变体。",
+   "replacementDigest": null,
+   "decisionHash": "37e7ad852d65651b289add9988a82a28a267e375c520d0c712072c7188ddba19"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3f56a7c25513d79db991e861",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#普通根轨迹的定义与两大判据"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 这是D(s)+KN(s)=0的因式展开变体。",
+   "replacementDigest": null,
+   "decisionHash": "03b5aafae0266e718f8ee8d2d1a7907cb52a8ca0ac97df1bb169486803f114b1"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-7b7f710431843bb2ab5d32f3",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义的起点和终点法则同义。",
+   "replacementDigest": null,
+   "decisionHash": "1819e20b293bba56b6fce65dffa1c73e34d5f69581302fa109e5135271024874"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-1813587dbdc8366b8666b50a",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义的起点和终点法则同义。",
+   "replacementDigest": null,
+   "decisionHash": "81cf38c80c25d65d6adf8c061c13789dca9b1fdf4702eb19f446d9b118076138"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-3b192bd441433432d80a3337",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#法则1：起点与终点"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [A] 与讲义的起点和终点法则同义。",
+   "replacementDigest": null,
+   "decisionHash": "f0dc20b36a74ff2a9c3cfa768a8a6741900e0ecff2e4720372e8282ae698c356"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-0d3548a97d7da053d2309658",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "containment",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 一阶加纯滞后反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "8dedc2af5184e84778f2ff9d6706ef9e9434679a973514f904b4617b988442fe"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-c998dd0f16e5a69a6a562e8c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "prerequisite",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 一阶加纯滞后反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "f03cdd0860eef441ddbb6e6b4ebe94c5892c794e2afb5a50a1e06dfd2d0a43fb"
+  },
+  {
+   "contract": "remediation-relation-course-owner-decision/v1",
+   "decisionId": "dec-60ba39278ebeb2f59c8c3a0c",
+   "reviewPackId": "rp-fc7ced65674fde5f7a98fa9e",
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "association",
+   "decision": "no-relation",
+   "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+   "decidedAt": "2026-08-24T00:00:00.000Z",
+   "evidenceRefs": [
+    "src:3-3#学习范围"
+   ],
+   "rationale": "[v0.37 migration, semantics unchanged] [C-out-of-scope] 一阶加纯滞后反应曲线模型属于过程控制整定。",
+   "replacementDigest": null,
+   "decisionHash": "3ecc555bd31a0bd9211467676030c06222e1dc051c084db376d2ff2216d04d0a"
+  }
+ ]
+}

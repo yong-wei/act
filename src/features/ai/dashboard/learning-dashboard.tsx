@@ -1,102 +1,131 @@
 'use client';
 
-/**
- * LearningDashboard - 学习仪表盘（顶部统计栏）
- */
+import { AlertTriangle, Database, ShieldCheck, Target } from 'lucide-react';
+import type { AiWorkshopEvidenceProjection } from '../ai-workshop-evidence';
 
-import { Clock, Beaker, Scale, Sparkles, Ship } from 'lucide-react';
-import type { LearningProfileData } from '../personal-learning-center';
+function formatWorkshopMetric(
+  status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
+  value: string,
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty' || readState === 'missing') return '暂无';
+  return value;
+}
 
 interface LearningDashboardProps {
-  profile: LearningProfileData;
+  evidence: AiWorkshopEvidenceProjection;
   userName: string;
 }
 
-export function LearningDashboard({ profile, userName }: LearningDashboardProps) {
-  const learningStyleLabels: Record<LearningProfileData['learningStyle'], string> = {
-    VISUAL: '视觉型',
-    TEXTUAL: '文本型',
-    INTERACTIVE: '互动型',
-    AUDITORY: '听觉型',
-    LOGICAL: '逻辑型',
-  };
+export function LearningDashboard({ evidence, userName }: LearningDashboardProps) {
+  const statusLabel = evidence.status === 'available'
+    ? '已连接受治理学习证据'
+    : evidence.status === 'empty'
+      ? '暂无已验证学习记录'
+      : '学习证据暂不可用';
+  const statusClass = 'bg-muted text-foreground';
 
   return (
-    <div className="border-b border-cyan-500/30 bg-[#0c3654]/80 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* 用户身份标识 */}
+    <div className="border-b border-border bg-card px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xl font-bold">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
             {userName.charAt(0)}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-lg font-medium">{userName}</span>
-              <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs text-cyan-400">
-                {profile.fleetGroup}
-              </span>
-              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-400">
-                L{profile.cognitiveLevel}
-              </span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${statusClass}`}>{statusLabel}</span>
             </div>
-            <div className="text-sm text-slate-400">
-              学习风格：{learningStyleLabels[profile.learningStyle]}
-            </div>
+            <div className="mt-1 text-sm text-muted-foreground">AI 工坊只展示服务端确认的学习证据。</div>
           </div>
         </div>
 
-        {/* 统计数据 */}
-        <div className="flex items-center gap-6">
-          {/* 今日学习时长 */}
-          <div className="flex items-center gap-3 rounded-xl border border-cyan-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Clock className="h-5 w-5 text-cyan-400" />
-            <div>
-              <div className="text-xs text-slate-400">今日学习</div>
-              <div className="text-lg font-medium text-cyan-400">{profile.dailyStudyMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* 实验时长 */}
-          <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Beaker className="h-5 w-5 text-amber-400" />
-            <div>
-              <div className="text-xs text-slate-400">实验时长</div>
-              <div className="text-lg font-medium text-amber-400">{profile.experimentMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* 伦理学习 */}
-          <div className="flex items-center gap-3 rounded-xl border border-green-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Scale className="h-5 w-5 text-green-400" />
-            <div>
-              <div className="text-xs text-slate-400">伦理学习</div>
-              <div className="text-lg font-medium text-green-400">{profile.ethicsMinutes} 分钟</div>
-            </div>
-          </div>
-
-          {/* AI 推荐指数 */}
-          <div className="flex items-center gap-3 rounded-xl border border-purple-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Sparkles className="h-5 w-5 text-purple-400" />
-            <div>
-              <div className="text-xs text-slate-400">AI 推荐指数</div>
-              <div className="text-lg font-medium text-purple-400">
-                {Math.round(profile.aiRecommendIndex * 100)}%
-              </div>
-            </div>
-          </div>
-
-          {/* 解锁进度 */}
-          <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-[#0a2a43]/50 px-4 py-2">
-            <Ship className="h-5 w-5 text-blue-400" />
-            <div>
-              <div className="text-xs text-slate-400">船舶解锁</div>
-              <div className="text-lg font-medium text-blue-400">
-                {profile.unlockedShips}/{profile.totalShips}
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <EvidenceMetric metricKey="evidence-count" icon={Database} label="已验证证据" value={formatWorkshopMetric(evidence.status, evidence.evidence.readState, `${evidence.evidence.count}`)} />
+          <EvidenceMetric metricKey="confidence" icon={ShieldCheck} label="置信度" value={formatConfidenceMetric(evidence.status, evidence.evidence.readState, evidence.evidence.confidence.level)} />
+          <EvidenceMetric metricKey="source-completeness" icon={Target} label="来源完整度" value={formatWorkshopMetric(evidence.status, evidence.evidence.readState, `${Math.round(evidence.evidence.confidence.sourceCompleteness * 100)}%`)} />
+          <EvidenceMetric metricKey="path-count" icon={Target} label="学习路径" value={formatWorkshopMetric(evidence.status, 'ready', `${evidence.path.activeCount} 条`)} />
         </div>
       </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground" data-ai-workshop-source-coverage>
+        <span className="font-medium text-foreground">来源覆盖</span>
+        {Object.entries(evidence.evidence.sourceCoverage).map(([source, coverage]) => (
+          <span key={source} data-ai-workshop-source={source}>
+            {sourceLabel(source)}：{coverageLabel(evidence.status, evidence.evidence.readState, coverage)}
+          </span>
+        ))}
+      </div>
+
+      {evidence.limitations.length > 0 ? (
+        <div className="mt-4 flex items-start gap-2 rounded border border-border bg-muted px-3 py-2 text-sm text-foreground" role="status">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <ul className="space-y-1">
+            {evidence.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function formatConfidenceMetric(
+  status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
+  level: AiWorkshopEvidenceProjection['evidence']['confidence']['level'],
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty' || readState === 'missing') return '暂无';
+  return confidenceLabel(level);
+}
+
+function sourceLabel(source: string): string {
+  const labels: Record<string, string> = {
+    learningActivity: '学习活动',
+    competencySnapshot: '能力快照',
+    portraitSnapshot: '学习画像',
+    profileSummary: '学习档案',
+  };
+  return labels[source] ?? '其他来源';
+}
+
+function coverageLabel(
+  status: AiWorkshopEvidenceProjection['status'],
+  readState: AiWorkshopEvidenceProjection['evidence']['readState'],
+  coverage: 'available' | 'partial' | 'missing',
+): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'empty' || readState === 'missing' || coverage === 'missing') return '暂无';
+  return coverage === 'partial' ? '部分覆盖' : '已覆盖';
+}
+
+function EvidenceMetric({
+  metricKey,
+  icon: Icon,
+  label,
+  value,
+}: {
+  metricKey: string;
+  icon: typeof Database;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-[92px] rounded border border-border bg-background px-3 py-2" data-ai-workshop-metric={metricKey}>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        {label}
+      </div>
+      <div className="mt-1 text-base font-medium text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function confidenceLabel(level: AiWorkshopEvidenceProjection['evidence']['confidence']['level']): string {
+  if (level === 'high') return '高';
+  if (level === 'medium') return '中';
+  if (level === 'low') return '低';
+  return '暂无';
 }
