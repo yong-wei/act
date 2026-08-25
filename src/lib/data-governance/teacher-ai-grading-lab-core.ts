@@ -24,6 +24,7 @@ import {
 import { readTeacherAiGradingLabConfig, type TeacherAiGradingLabConfig } from './teacher-ai-grading-lab-contracts';
 import {
   createFileSystemTeacherAiGradingLabDatasetStore,
+  type LoadedTeacherAiGradingEvaluationDataset,
   type LoadedTeacherAiGradingLabDataset,
   type TeacherAiGradingLabDatasetStore,
 } from './teacher-ai-grading-lab-dataset-store';
@@ -156,7 +157,7 @@ export interface TeacherAiGradingLabPreparedSample {
 
 export interface TeacherAiGradingLabConversionAdapter {
   prepare(input: {
-    dataset: LoadedTeacherAiGradingLabDataset;
+    dataset: LoadedTeacherAiGradingEvaluationDataset;
     sampleId: string;
     batchId: string;
     executionId: string;
@@ -307,7 +308,7 @@ export function createTeacherAiGradingLabCore(dependencies: TeacherAiGradingLabC
 }
 
 async function createSplit(dependencies: TeacherAiGradingLabCoreDependencies, input: CreateTeacherAiGradingLabSplitInput, now: Date): Promise<TeacherAiGradingLabSplitReference> {
-  const dataset = await dependencies.datasetStore.load(input);
+  const dataset = await dependencies.datasetStore.loadEvaluation(input);
   requireEvaluableDataset(dataset);
   const split = await createTeacherAiGradingLabSplit({
     db: dependencies.db, datasetId: dataset.datasetId, datasetVersion: dataset.datasetVersion,
@@ -319,7 +320,7 @@ async function createSplit(dependencies: TeacherAiGradingLabCoreDependencies, in
 }
 
 async function freezeConfiguration(dependencies: TeacherAiGradingLabCoreDependencies, input: FreezeTeacherAiGradingLabConfigurationInput, now: Date): Promise<TeacherAiGradingLabFrozenConfigurationReference> {
-  const dataset = await dependencies.datasetStore.load(input.split);
+  const dataset = await dependencies.datasetStore.loadEvaluation(input.split);
   requireEvaluableDataset(dataset);
   const persistedSplit = await dependencies.db.teacherAiGradingLabSplit.findUnique({ where: { id: input.split.splitId } });
   if (!persistedSplit || persistedSplit.datasetId !== dataset.datasetId || persistedSplit.datasetVersion !== dataset.datasetVersion
@@ -341,7 +342,7 @@ async function freezeControlledVisualExperiment(
   input: FreezeTeacherAiGradingControlledVisualExperimentInput,
   now: Date,
 ): Promise<TeacherAiGradingControlledVisualExperimentReference> {
-  const dataset = await dependencies.datasetStore.load(input.split);
+  const dataset = await dependencies.datasetStore.loadEvaluation(input.split);
   requireEvaluableDataset(dataset);
   const persistedSplit = await dependencies.db.teacherAiGradingLabSplit.findUnique({ where: { id: input.split.splitId } });
   if (!persistedSplit || persistedSplit.datasetId !== dataset.datasetId || persistedSplit.datasetVersion !== dataset.datasetVersion
@@ -353,7 +354,7 @@ async function freezeControlledVisualExperiment(
     where: { splitId: persistedSplit.id, partition: 'TUNING' },
     select: { sampleId: true },
   });
-  controlledExpectedQuestions(dataset, new Set<string>(tuningMembers.map((member: any) => String(member.sampleId))), input.strata);
+  assertControlledStrataComplete(dataset, new Set<string>(tuningMembers.map((member: any) => String(member.sampleId))), input.strata);
   const plan = freezeTeacherAiGradingControlledVisualExperiment({
     experimentId: input.experimentId,
     partition: 'tuning',
@@ -453,7 +454,7 @@ async function runEvaluation(dependencies: TeacherAiGradingLabCoreDependencies, 
     throw new Error('teacher-ai-grading-controlled-experiment-max-attempts-drift');
   }
   const effectiveMaxAttempts = maxAttempts ?? input.maxAttempts;
-  const dataset = await dependencies.datasetStore.load({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
+  const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   if (dataset.manifest.datasetKind === 'preflight' && input.partition !== 'tuning') {
     throw new Error('teacher-ai-grading-preflight-hidden-evaluation-forbidden');
   }
@@ -479,7 +480,7 @@ async function runEvaluation(dependencies: TeacherAiGradingLabCoreDependencies, 
 
 async function resumeEvaluation(dependencies: TeacherAiGradingLabCoreDependencies, input: ResumeTeacherAiGradingLabEvaluationInput, clock: () => Date): Promise<TeacherAiGradingLabEvaluationRunReference> {
   const batch = await loadBatch(dependencies.db, input.run.evaluationRunId);
-  const dataset = await dependencies.datasetStore.load({ datasetId: batch.config.datasetId, datasetVersion: batch.config.datasetVersion });
+  const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: batch.config.datasetId, datasetVersion: batch.config.datasetVersion });
   requireEvaluableDataset(dataset);
   await recover({ db: dependencies.db, now: clock() });
   await drainBatch(dependencies, input.run.evaluationRunId, clock);
@@ -710,7 +711,7 @@ async function recordHumanJudgment(db: CoreDb, input: RecordTeacherAiGradingLabH
 async function buildReport(dependencies: TeacherAiGradingLabCoreDependencies, input: BuildTeacherAiGradingLabReportInput, now: Date): Promise<TeacherAiGradingLabReportReference> {
   if (input.partition !== 'tuning' && input.partition !== 'hidden') throw new Error('teacher-ai-grading-partition-invalid');
   const config = await loadConfigContext(dependencies, input.configuration.configurationVersion);
-  const dataset = await dependencies.datasetStore.load({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
+  const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   if (dataset.manifest.datasetKind === 'preflight') throw new Error('teacher-ai-grading-preflight-report-forbidden');
   const partition = input.partition === 'tuning' ? 'TUNING' : 'HIDDEN';
   const acceptance = input.partition === 'hidden' ? await dependencies.db.teacherAiGradingHiddenAcceptance.findUnique({ where: { splitId: config.splitId } }) : null;
@@ -936,6 +937,20 @@ function controlledExpectedQuestions(
   });
 }
 
+function assertControlledStrataComplete(
+  dataset: LoadedTeacherAiGradingEvaluationDataset,
+  memberIds: ReadonlySet<string>,
+  strata: readonly { sampleId: string; questionId: string }[],
+): void {
+  const expected = new Set([...memberIds].flatMap((sampleId) => (
+    dataset.questions.questions.map((question) => `${sampleId}\u0000${question.questionId}`)
+  )));
+  const actual = new Set(strata.map((stratum) => `${stratum.sampleId}\u0000${stratum.questionId}`));
+  if (actual.size !== strata.length || actual.size !== expected.size || [...expected].some((key) => !actual.has(key))) {
+    throw new Error('teacher-ai-grading-controlled-experiment-strata-incomplete');
+  }
+}
+
 async function controlledReportInput(
   dependencies: TeacherAiGradingLabCoreDependencies,
   config: any,
@@ -1061,7 +1076,7 @@ export function assertFrozenProviderPolicyBinding(input: {
 }
 
 async function buildRunSamples(dependencies: TeacherAiGradingLabCoreDependencies, config: any, partition: 'tuning' | 'hidden') {
-  const dataset = await dependencies.datasetStore.load({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
+  const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   requireEvaluableDataset(dataset);
   if (dataset.contentHash !== config.datasetContentHash) throw new Error('teacher-ai-grading-dataset-drift');
   const members = await dependencies.db.teacherAiGradingLabSplitMember.findMany({ where: { splitId: config.splitId, partition: partition === 'tuning' ? 'TUNING' : 'HIDDEN' }, select: { sampleId: true } });
@@ -1077,24 +1092,24 @@ async function buildRunSamples(dependencies: TeacherAiGradingLabCoreDependencies
 
 async function loadExecutionContext(dependencies: TeacherAiGradingLabCoreDependencies, execution: any) {
   const config = await loadConfigContext(dependencies, execution.configId);
-  const dataset = await dependencies.datasetStore.load({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
+  const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   requireEvaluableDataset(dataset);
   if (dataset.contentHash !== config.datasetContentHash) throw new Error('teacher-ai-grading-dataset-drift');
   return { config, dataset };
 }
 
-function datasetRubric(dataset: LoadedTeacherAiGradingLabDataset): VersionedExperimentComponent {
+function datasetRubric(dataset: LoadedTeacherAiGradingEvaluationDataset): VersionedExperimentComponent {
   const body = { questions: dataset.questions.questions.map((question) => rubricForQuestion(question)) };
   return { id: `dataset-rubric:${dataset.datasetId}`, version: dataset.datasetVersion, contentHash: hashJson(body) };
 }
 
-function requireEvaluableDataset(dataset: LoadedTeacherAiGradingLabDataset): void {
+function requireEvaluableDataset(dataset: LoadedTeacherAiGradingEvaluationDataset): void {
   if (dataset.manifest.datasetKind === 'pilot') {
     throw new Error('teacher-ai-grading-pilot-dataset-evaluation-forbidden');
   }
 }
 
-function questionRunSeed(dataset: LoadedTeacherAiGradingLabDataset, question: any, config: any) {
+function questionRunSeed(dataset: LoadedTeacherAiGradingEvaluationDataset, question: any, config: any) {
   const rubric = rubricForQuestion(question, {
     id: config.rubricId,
     version: config.rubricVersion,

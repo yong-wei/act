@@ -25,9 +25,8 @@ export interface TeacherAiGradingLabDatasetKey {
   datasetVersion: string;
 }
 
-export interface LoadedTeacherAiGradingLabDataset extends TeacherAiGradingLabDatasetKey {
+export interface LoadedTeacherAiGradingEvaluationDataset extends TeacherAiGradingLabDatasetKey {
   manifest: TeacherAiGradingLabManifest;
-  baseline: TeacherAiGradingLabBaseline;
   questions: ParsedGradingQuestionSet;
   contentHash: string;
   readSubmission(sampleId: string, questionId: string): Promise<Buffer>;
@@ -37,6 +36,10 @@ export interface LoadedTeacherAiGradingLabDataset extends TeacherAiGradingLabDat
     document: TeacherAiGradingRedactedDocument;
     review: TeacherAiGradingRedactionReview;
   }): Promise<void>;
+}
+
+export interface LoadedTeacherAiGradingLabDataset extends LoadedTeacherAiGradingEvaluationDataset {
+  baseline: TeacherAiGradingLabBaseline;
 }
 
 export interface TeacherAiGradingLabDatasetStore {
@@ -55,6 +58,7 @@ export interface TeacherAiGradingLabDatasetStore {
     sampleCount: number;
     questionCount: number;
   }>>;
+  loadEvaluation(key: TeacherAiGradingLabDatasetKey): Promise<LoadedTeacherAiGradingEvaluationDataset>;
   load(key: TeacherAiGradingLabDatasetKey): Promise<LoadedTeacherAiGradingLabDataset>;
 }
 
@@ -109,82 +113,92 @@ export function createFileSystemTeacherAiGradingLabDatasetStore(input: {
         left.datasetId.localeCompare(right.datasetId) || left.datasetVersion.localeCompare(right.datasetVersion)
       ));
     },
+    async loadEvaluation(key) {
+      return loadEvaluationDataset(dataRoot, config, key);
+    },
     async load(key) {
-      const datasetId = requireIdentifier(key.datasetId, 'teacher-ai-grading-dataset-id-invalid');
-      const datasetVersion = requireIdentifier(key.datasetVersion, 'teacher-ai-grading-dataset-version-invalid');
+      const evaluation = await loadEvaluationDataset(dataRoot, config, key);
+      const { datasetId, datasetVersion, manifest } = evaluation;
       const datasetRoot = controlledPath(dataRoot, 'datasets', datasetId, datasetVersion);
-      const manifest = parseTeacherAiGradingManifest(JSON.parse(await readUtf8(controlledPath(datasetRoot, 'manifest.json'))));
-      if (manifest.datasetId !== datasetId || manifest.datasetVersion !== datasetVersion) {
-        throw new Error('teacher-ai-grading-dataset-identity-mismatch');
-      }
       const baselineBytes = await readFile(controlledLogicalPath(datasetRoot, manifest.baseline.path));
       assertChecksum(baselineBytes, manifest.baseline.checksum, 'teacher-ai-grading-dataset-baseline-checksum-mismatch');
       const baseline = parseTeacherAiGradingBaseline(JSON.parse(decodeUtf8(baselineBytes)));
-      const questionBytes = await readFile(controlledLogicalPath(datasetRoot, manifest.question.path));
-      assertChecksum(questionBytes, manifest.question.checksum, 'teacher-ai-grading-dataset-question-checksum-mismatch');
-      const availablePaths = new Set([
-        manifest.question.path,
-        manifest.baseline.path,
-        ...manifest.assets.map((asset) => asset.path),
-        ...manifest.samples.flatMap((sample) => sample.submissions.map((submission) => submission.path)),
-      ]);
-      const questions = parseTeacherAiGradingQuestions(decodeUtf8(questionBytes), availablePaths);
-      const contentHash = sha256(Buffer.from(stableStringify({ manifest, baseline, questions })));
-      const ownerTeacherUserId = config.ownerTeacherUserId;
       return {
-        datasetId,
-        datasetVersion,
-        manifest,
+        ...evaluation,
         baseline,
-        questions,
-        contentHash,
-        async readSubmission(sampleId, questionId) {
-          const submission = findSubmission(manifest, sampleId, questionId);
-          const bytes = await readFile(controlledLogicalPath(datasetRoot, submission.path));
-          assertChecksum(bytes, submission.checksum, 'teacher-ai-grading-dataset-submission-checksum-mismatch');
-          return bytes;
-        },
-        async readAsset(logicalPath) {
-          const asset = manifest.assets.find((candidate) => candidate.path === logicalPath);
-          if (!asset) throw new Error('teacher-ai-grading-dataset-asset-not-found');
-          const bytes = await readFile(controlledLogicalPath(datasetRoot, asset.path));
-          assertChecksum(bytes, asset.checksum, 'teacher-ai-grading-dataset-asset-checksum-mismatch');
-          return bytes;
-        },
-        async readModelSubmission(sampleId, questionId) {
-          const submission = findSubmission(manifest, sampleId, questionId);
-          let metadata: Omit<TeacherAiGradingRedactedDocument, 'bytes'>;
-          let review: TeacherAiGradingRedactionReview;
-          let bytes: Buffer;
-          try {
-            metadata = JSON.parse(await readUtf8(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.document.json`)));
-            review = JSON.parse(await readUtf8(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.review.json`)));
-            bytes = await readFile(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.docx`));
-          } catch {
-            throw new TeacherAiGradingRedactionError('LAB_REDACTION_UNRESOLVED');
-          }
-          const document: TeacherAiGradingRedactedDocument = { ...metadata, bytes };
-          if (document.sampleId !== sampleId || document.questionId !== questionId || document.sourceChecksum !== submission.checksum) throw new Error('teacher-ai-grading-redaction-source-mismatch');
-          const projected = projectTeacherAiGradingModelSubmission({ review, redactedDocument: document, ownerTeacherUserId });
-          return { ...projected, checksum: document.redactedChecksum, sourceChecksum: document.sourceChecksum };
-        },
-        async saveRedaction(input) {
-          const submission = findSubmission(manifest, input.document.sampleId, input.document.questionId);
-          if (input.document.sourceChecksum !== submission.checksum
-            || input.review.sampleId !== input.document.sampleId
-            || input.review.questionId !== input.document.questionId) {
-            throw new Error('teacher-ai-grading-redaction-source-mismatch');
-          }
-          const redactedRoot = controlledPath(datasetRoot, 'redacted');
-          await mkdir(redactedRoot, { recursive: true });
-          const { bytes, ...metadata } = input.document;
-          const sampleRedactedRoot = controlledPath(redactedRoot, input.document.sampleId);
-          await mkdir(sampleRedactedRoot, { recursive: true });
-          await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.docx`), bytes);
-          await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.document.json`), JSON.stringify(metadata));
-          await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.review.json`), JSON.stringify(input.review));
-        },
       };
+    },
+  };
+}
+
+async function loadEvaluationDataset(
+  dataRoot: string,
+  config: TeacherAiGradingLabConfig,
+  key: TeacherAiGradingLabDatasetKey,
+): Promise<LoadedTeacherAiGradingEvaluationDataset> {
+  const datasetId = requireIdentifier(key.datasetId, 'teacher-ai-grading-dataset-id-invalid');
+  const datasetVersion = requireIdentifier(key.datasetVersion, 'teacher-ai-grading-dataset-version-invalid');
+  const datasetRoot = controlledPath(dataRoot, 'datasets', datasetId, datasetVersion);
+  const manifest = parseTeacherAiGradingManifest(JSON.parse(await readUtf8(controlledPath(datasetRoot, 'manifest.json'))));
+  if (manifest.datasetId !== datasetId || manifest.datasetVersion !== datasetVersion) throw new Error('teacher-ai-grading-dataset-identity-mismatch');
+  const questionBytes = await readFile(controlledLogicalPath(datasetRoot, manifest.question.path));
+  assertChecksum(questionBytes, manifest.question.checksum, 'teacher-ai-grading-dataset-question-checksum-mismatch');
+  const availablePaths = new Set([
+    manifest.question.path,
+    manifest.baseline.path,
+    ...manifest.assets.map((asset) => asset.path),
+    ...manifest.samples.flatMap((sample) => sample.submissions.map((submission) => submission.path)),
+  ]);
+  const questions = parseTeacherAiGradingQuestions(decodeUtf8(questionBytes), availablePaths);
+  // The manifest commits baseline.json by checksum, so evaluation drift can be
+  // detected without opening or parsing the human scores before AI execution.
+  const contentHash = sha256(Buffer.from(stableStringify({ manifest, questions })));
+  const ownerTeacherUserId = config.ownerTeacherUserId;
+  return {
+    datasetId, datasetVersion, manifest, questions, contentHash,
+    async readSubmission(sampleId, questionId) {
+      const submission = findSubmission(manifest, sampleId, questionId);
+      const bytes = await readFile(controlledLogicalPath(datasetRoot, submission.path));
+      assertChecksum(bytes, submission.checksum, 'teacher-ai-grading-dataset-submission-checksum-mismatch');
+      return bytes;
+    },
+    async readAsset(logicalPath) {
+      const asset = manifest.assets.find((candidate) => candidate.path === logicalPath);
+      if (!asset) throw new Error('teacher-ai-grading-dataset-asset-not-found');
+      const bytes = await readFile(controlledLogicalPath(datasetRoot, asset.path));
+      assertChecksum(bytes, asset.checksum, 'teacher-ai-grading-dataset-asset-checksum-mismatch');
+      return bytes;
+    },
+    async readModelSubmission(sampleId, questionId) {
+      const submission = findSubmission(manifest, sampleId, questionId);
+      let metadata: Omit<TeacherAiGradingRedactedDocument, 'bytes'>;
+      let review: TeacherAiGradingRedactionReview;
+      let bytes: Buffer;
+      try {
+        metadata = JSON.parse(await readUtf8(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.document.json`)));
+        review = JSON.parse(await readUtf8(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.review.json`)));
+        bytes = await readFile(controlledPath(datasetRoot, 'redacted', sampleId, `${questionId}.docx`));
+      } catch {
+        throw new TeacherAiGradingRedactionError('LAB_REDACTION_UNRESOLVED');
+      }
+      const document: TeacherAiGradingRedactedDocument = { ...metadata, bytes };
+      if (document.sampleId !== sampleId || document.questionId !== questionId || document.sourceChecksum !== submission.checksum) throw new Error('teacher-ai-grading-redaction-source-mismatch');
+      const projected = projectTeacherAiGradingModelSubmission({ review, redactedDocument: document, ownerTeacherUserId });
+      return { ...projected, checksum: document.redactedChecksum, sourceChecksum: document.sourceChecksum };
+    },
+    async saveRedaction(input) {
+      const submission = findSubmission(manifest, input.document.sampleId, input.document.questionId);
+      if (input.document.sourceChecksum !== submission.checksum
+        || input.review.sampleId !== input.document.sampleId
+        || input.review.questionId !== input.document.questionId) throw new Error('teacher-ai-grading-redaction-source-mismatch');
+      const redactedRoot = controlledPath(datasetRoot, 'redacted');
+      await mkdir(redactedRoot, { recursive: true });
+      const { bytes, ...metadata } = input.document;
+      const sampleRedactedRoot = controlledPath(redactedRoot, input.document.sampleId);
+      await mkdir(sampleRedactedRoot, { recursive: true });
+      await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.docx`), bytes);
+      await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.document.json`), JSON.stringify(metadata));
+      await writeFile(controlledPath(sampleRedactedRoot, `${input.document.questionId}.review.json`), JSON.stringify(input.review));
     },
   };
 }

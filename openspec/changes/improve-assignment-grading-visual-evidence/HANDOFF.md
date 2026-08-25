@@ -454,3 +454,9 @@
 - 本地正常批处理器执行该批次后，以 `batch-evidence-not-ready` 阻断。转换记录为 `BLOCKED`，受控错误码是 `word-processor-version-unavailable`：该 Word 尚未生成 Markdown 或规范 PDF，故未创建可供人工批改的 `AnswerEvidence`。该 fail-closed 结果正确，不能以空文本或伪造 PDF 替代。
 - `soffice.exe` 已在 `C:\Program Files\LibreOffice\program\soffice.exe` 验证存在，但未进入 PATH 或 `LIBREOFFICE_COMMAND`，导致运行时误判。已仅在本地 `.env` 写入该路径，并将 Next 开发服务重启至 `127.0.0.1:3002`，服务健康检查返回 HTTP 200。待从教师界面重试该题批处理，以验证 Word→Markdown、Word→规范 PDF、人工批注与 `REVIEWED_PDF` 交付。
 - 开发服务重启后，内置浏览器 URL 安全策略拒绝程序化刷新教师页；未使用其他浏览器、CDP、API 或数据库操作绕过该界面动作。需要负责人手动刷新当前教师页并允许继续，或重新打开该作业的截止后批改控制台。`4.3`、`5.3`、`5.4` 仍未完成。
+
+## 52. 统一闭环清单阶段 1 输入边界补强（2026-08-25）
+
+- 视觉与文本评分运行改用不含人工基准的评测数据投影；manifest 中的 baseline 校验和仅用于版本承诺，不会在 AI 执行前触发人工分数读取。
+- 正式 T2 输入已按真实文件签名、校验和和只读属性核验，审查清单不保存源绝对路径。该改动不启动新的调优运行，也不读取隐藏集。
+- 阶段 1 定向测试与 typecheck 通过；G.1 独立审核尚未执行，视觉证据后续阶段保持冻结。

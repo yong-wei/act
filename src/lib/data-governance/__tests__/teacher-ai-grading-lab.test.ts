@@ -1,6 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -27,6 +26,7 @@ import {
   findSensitiveTeacherAiGradingLabPaths,
   findSensitiveTeacherAiGradingLabStagedFiles,
 } from '../teacher-ai-grading-lab-sensitive-files';
+import { createFileSystemTeacherAiGradingLabDatasetStore } from '../teacher-ai-grading-lab-dataset-store';
 
 const tempRoots: string[] = [];
 
@@ -129,6 +129,30 @@ describe('teacher AI grading question parser', () => {
 });
 
 describe('teacher AI grading package validation and import', () => {
+  it('keeps the formal T2 intake fail-closed and path-free', async () => {
+    const source = await readFile(resolve('scripts/data-governance/prepare-t2-formal-experiment.ps1'), 'utf8');
+    expect(source).toContain("'sample-{0:D3}' -f $_");
+    expect(source).toContain("$authoritativeRubric = Join-Path $SourceRoot 'T2S-20.md'");
+    expect(source).toContain('Assert-FileSignature');
+    expect(source).toContain("'[Content_Types].xml' -notin $entryNames");
+    expect(source).toContain("'word/document.xml' -notin $entryNames");
+    expect(source).toContain('sourceReadOnly');
+    expect(source).toContain('must contain exactly the four authoritative answer files');
+    expect(source).not.toMatch(/sourceFile\s*=/u);
+  });
+
+  it('loads AI evaluation inputs without opening the isolated human baseline', async () => {
+    const dataRoot = await mkdtemp(join(tmpdir(), 'grading-lab-baseline-isolation-'));
+    tempRoots.push(dataRoot);
+    const store = createFileSystemTeacherAiGradingLabDatasetStore({ dataRoot });
+    await store.importPackage(await buildSyntheticTeacherAiGradingPackage());
+    await rm(join(dataRoot, 'datasets', 'synthetic-t1', 'v1', 'baseline.json'));
+
+    await expect(store.loadEvaluation({ datasetId: 'synthetic-t1', datasetVersion: 'v1' }))
+      .resolves.toMatchObject({ datasetId: 'synthetic-t1', datasetVersion: 'v1' });
+    await expect(store.load({ datasetId: 'synthetic-t1', datasetVersion: 'v1' })).rejects.toThrow();
+  });
+
   it.each([1, 3])('rejects preflight datasets with %i samples', (sampleCount) => {
     const sample = {
       sampleId: 'sample-abcd',
@@ -155,6 +179,19 @@ describe('teacher AI grading package validation and import', () => {
     };
     expect(() => parseTeacherAiGradingBaseline(baseline)).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
     expect(() => parseTeacherAiGradingBaseline({ ...baseline, samples: [{ ...baseline.samples[0], questions: [{ ...baseline.samples[0].questions[0], teacherScore: 25.5 }] }] })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
+  });
+
+  it('keeps bounded teacher annotations in the isolated baseline and rejects identity fields', () => {
+    const baseline = {
+      schemaVersion: 'teacher-ai-grading-package-baseline.v1', datasetId: 'synthetic-t1', datasetVersion: 'v1',
+      samples: [{ sampleId: 'sample-abcd', cleanupConfirmed: true, baselineConfirmed: true, questions: [{
+        questionId: 'T1-4', maxScore: 25, teacherScore: 20, teacherAnnotations: ['缺少稳定性判断。'], deductions: [],
+      }] }],
+    };
+    expect(parseTeacherAiGradingBaseline(baseline).samples[0].questions[0].teacherAnnotations)
+      .toEqual(['缺少稳定性判断。']);
+    expect(() => parseTeacherAiGradingBaseline({ ...baseline, studentName: 'forbidden' }))
+      .toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
   });
 
   it('accepts exactly two preflight samples', () => {

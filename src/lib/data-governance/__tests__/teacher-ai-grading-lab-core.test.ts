@@ -361,6 +361,14 @@ describe('teacher AI grading lab core', () => {
           sourceChecksum: `sha256:${'1'.repeat(64)}`,
         }),
       }),
+      loadEvaluation: async (key: { datasetId: string; datasetVersion: string }) => ({
+        ...await datasetStore.loadEvaluation(key),
+        readModelSubmission: async (sampleId: string, questionId: string) => ({
+          sampleId, questionId, fileName: `${questionId}.docx`, documentBytes: Buffer.from('redacted-fixture'),
+          checksum: `sha256:${'2'.repeat(64)}`,
+          sourceChecksum: `sha256:${'1'.repeat(64)}`,
+        }),
+      }),
     };
     const split = {
       id: 'split-1', datasetId: 'synthetic-t1', datasetVersion: 'v1', version: 1,

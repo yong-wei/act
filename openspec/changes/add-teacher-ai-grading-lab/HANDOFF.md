@@ -402,3 +402,12 @@
 - 处理成功率：转换 `28/28 = 100%`；AI 题目重复完成 `70/84 = 83.33%`。批次存在 17 个失败实例，统计分母未静默排除失败。
 - 对比产物已写入受控目录 `E:\CODE\脱敏样本\T2(max)-formal-preparation-v1\formal-results-v1`：`question-comparison.json`、`sample-comparison.json`、`failures.json`。答题记录未进入 ZIP、模型上下文或 Git。
 - 当前结论：调优集未达到验收门槛，不得宣称首轮通过；隐藏集保持 `SEALED`，未运行、未揭示，F.16 未完成。T2-3 的人工基准与量规一致性及图形锚点失败仍需人工复核后再决定是否调整量规或处理链。
+
+## 25. 统一闭环清单阶段 1 数据与基准隔离（2026-08-25）
+
+- 正式准备器现强制连续 40 个匿名样本、每样本四份指定答题文件和一份评分记录，并依据文件签名区分 OOXML、OLE 与 Word XML，不再以扩展名代替真实类型。
+- 正式 manifest 只绑定 `T2S-20.md`；人工基准离线提取四题分数、派生总分和受限教师批注。审查清单移除源绝对路径，仅保存逻辑键、校验和、类型与只读状态。
+- 200 个精确源文件已设为只读，设置前后 SHA-256 差异为 0。正式包通过仓库验证器：40 个样本、120 条非空教师批注。
+- 数据集新增 AI 专用 `loadEvaluation()`，创建划分、配置冻结、运行与恢复均不打开 `baseline.json`；物理移除 baseline 的回归测试证明 AI 输入仍可加载，而报告加载会失败。
+- 证据见 `docs/operations/assignment-grading-stage-1-data-isolation.md`。阶段 1 实现与验证完成，G.1 独立审核尚未执行，阶段 2 未放行。
+- 阶段 1 只读审查准备发现仅验证 ZIP 文件头会接受伪造 `.docx`。该 finding 裁定为 `ACCEPT`：现在还验证 `[Content_Types].xml` 与 `word/document.xml`，正式包重建并通过 ZIP 验证器。

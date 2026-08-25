@@ -343,3 +343,9 @@
 - 首次限定复审还发现 `attemptVectorHash` 依赖题目数组顺序。该 P1 裁定为 `ACCEPT`：排序已下沉至 `assignmentSubmissionSnapshotData`，按 `(orderIndex, id)` 规范化后再生成快照与哈希；回归会反转题目顺序，并断言 `operationId`、`idempotencyKey` 与 `dedupeKey` 均保持一致。
 - 用户已授权审核不通过时重新开始审核。独立只读 `gpt-5.6-sol high` 代理 `01a001de-0b47-7e12-9248-76d892f442b0` 复审了上述排序稳定性修复，结论为“无阻塞问题”；精确回归 `1 passed, 10 skipped`。
 - 最终验证：阶段 7 定向测试共 6 个文件、81 项通过；受影响 ESLint、`prisma validate`、OpenSpec strict 与 `git diff --check` 全部通过。阶段 7 审核通过，整个 OpenSpec 变更任务已完成。
+
+## 34. 统一闭环清单阶段 1 基准隔离补强（2026-08-25）
+
+- 评测数据集新增不读取人工基准的 `loadEvaluation()` 投影；作业 AI 运行、恢复与执行上下文仅消费量规、脱敏提交和 manifest 承诺哈希。
+- 人工基准只在独立 AI 结果完成后的报告与对比路径加载，避免业务闭环复用实验基准时形成提前读取通道。
+- 定向实验室测试 176/176 与 typecheck 通过；统一清单阶段 1 实现完成，G.1 独立审核尚未执行。

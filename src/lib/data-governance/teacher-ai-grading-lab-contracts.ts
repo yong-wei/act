@@ -128,6 +128,7 @@ export const teacherAiGradingLabBaselineSchema = z.object({
       questionId: questionIdSchema,
       maxScore: halfPointScoreSchema.refine((value) => value > 0, 'score-must-be-positive'),
       teacherScore: halfPointScoreSchema,
+      teacherAnnotations: z.array(z.string().trim().min(1).max(2_000)).max(16).default([]),
       deductions: z.array(deductionSchema).max(64),
     }).strict()).min(1),
   }).strict()).min(1).max(50),
