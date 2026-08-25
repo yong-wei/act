@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "issue": 1451,
-  "capturedAt": "2026-08-20T12:00:36.695Z",
-  "commitSha": "fa3a98fc9020f71d2c375b5f316ccc8bc49d99d2",
+  "capturedAt": "2026-08-25T05:24:00.495Z",
+  "commitSha": "b940246cbb2d53e8b5034339c6918612bbc28548",
   "generator": "tests/adaptive-path-candidate-batches.spec.ts",
-  "generatorSha256": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75",
+  "generatorSha256": "aa52be6550af37fcd1088bbaf9e375a0c553719ac66c1d0ecd17078e9764f053",
   "representativeRoute": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=path-candidate-batch_issue1327",
   "sourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "fbf45db5770040309c24a15fddaff96976db9983f4ba0a8949c87c92fd085d12",
+    "src/app/assessment/adaptive-practice/page.tsx": "910e60b616c08d2051743cd93106bce400333c267b37baaa08186317d8f6f5d0",
     "src/lib/adaptive-path-candidate-batches.ts": "5548cad62011bd2a3af4a1f0b08b1a867d7009d97ea8303f3d63d04ea816f725",
-    "src/lib/konling-agent-runtime.ts": "2e0920f28818f2bbc1b23206d2eeb0fe73f46f734da57918a2a7ccf47fd7534e",
-    "tests/adaptive-path-candidate-batches.spec.ts": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75"
+    "src/lib/konling-agent-runtime.ts": "4c7f99ded1109c5c856197b29ecb26b6be6553b12be1f9f197bb7a7a4401675e",
+    "tests/adaptive-path-candidate-batches.spec.ts": "aa52be6550af37fcd1088bbaf9e375a0c553719ac66c1d0ecd17078e9764f053"
   },
   "captureWorkingTreeSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "fbf45db5770040309c24a15fddaff96976db9983f4ba0a8949c87c92fd085d12",
+    "src/app/assessment/adaptive-practice/page.tsx": "910e60b616c08d2051743cd93106bce400333c267b37baaa08186317d8f6f5d0",
     "src/lib/adaptive-path-candidate-batches.ts": "5548cad62011bd2a3af4a1f0b08b1a867d7009d97ea8303f3d63d04ea816f725",
-    "src/lib/konling-agent-runtime.ts": "2e0920f28818f2bbc1b23206d2eeb0fe73f46f734da57918a2a7ccf47fd7534e",
-    "tests/adaptive-path-candidate-batches.spec.ts": "da5afb2363ba689187312ee160e7ad878994615e67e339de56da807c1904de75"
+    "src/lib/konling-agent-runtime.ts": "4c7f99ded1109c5c856197b29ecb26b6be6553b12be1f9f197bb7a7a4401675e",
+    "tests/adaptive-path-candidate-batches.spec.ts": "aa52be6550af37fcd1088bbaf9e375a0c553719ac66c1d0ecd17078e9764f053"
   },
   "sourceGitBlobIds": {
-    "src/app/assessment/adaptive-practice/page.tsx": "24dcfb22fc32b212a8d33d0105fc08ff8f105826",
+    "src/app/assessment/adaptive-practice/page.tsx": "8d96ac63579044f07f6aefb39e43f49209dfdfa0",
     "src/lib/adaptive-path-candidate-batches.ts": "2a5ee7cc70aa44b2ed2db3581fc37236ff77cd56",
-    "src/lib/konling-agent-runtime.ts": "fd7e59263981f94cf90e6acbdd1ee2889586230d",
-    "tests/adaptive-path-candidate-batches.spec.ts": "3c28bbb65eba49e2654838ebbf853bccd04b2245"
+    "src/lib/konling-agent-runtime.ts": "67469d3d0ea8c2312364c96592c7d70bf1e36405",
+    "tests/adaptive-path-candidate-batches.spec.ts": "14fc9a4baa8e9ff16d79a324fd1cc95895990fe9"
   },
   "screenshots": [
     {
