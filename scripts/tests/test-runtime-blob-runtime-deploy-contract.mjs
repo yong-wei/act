@@ -522,8 +522,8 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
-  /matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
-  'unchanged runtime may bypass publication only when its parent is the expected active release',
+  /-z "\$formal_resource_envelope_hash" && -n "\$matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
+  'unchanged runtime may bypass publication only when it has no new formal-resource envelope and its parent is the expected active release',
 );
 assert.match(
   runtimeDeploy,

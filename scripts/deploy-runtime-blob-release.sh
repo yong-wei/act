@@ -253,7 +253,7 @@ for field in ("treeSha256", "fileCount", "totalBytes"):
 print(parent["releaseId"])
 PY
   )"
-  if [[ -n "$matching_parent_release_id" && "$matching_parent_release_id" == "$expected_active_release" ]]; then
+  if [[ -z "$formal_resource_envelope_hash" && -n "$matching_parent_release_id" && "$matching_parent_release_id" == "$expected_active_release" ]]; then
     remote_active="$(remote "python3 '$REMOTE_HOST_STATE' active --state-dir '$REMOTE_PROJECT_DIR/data/runtime'")"
     python3 - "$parent_manifest" "$expected_active_release" "$remote_active" <<'PY'
 import json
