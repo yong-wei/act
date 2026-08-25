@@ -457,20 +457,32 @@ test('hides the comparison surface while a candidate batch is loading', async ({
   await expect(page.getByText('Simulation sprint', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });
 
-test('hides candidate comparison when continuing without a new candidate batch', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await installRoutes(page);
+for (const viewport of [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const) {
+  test(`${viewport.name} hides candidate comparison when continuing without a new candidate batch`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    let generationRequests = 0;
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().includes('/api/adaptive/path-advisor-tool')) {
+        generationRequests += 1;
+      }
+    });
+    await installRoutes(page);
 
-  const query = new URLSearchParams({
-    demo: '1',
-    goal: 'control-correction',
-    intent: 'contextual-recommendation',
+    const query = new URLSearchParams({
+      demo: '1',
+      goal: 'control-correction',
+      intent: 'contextual-recommendation',
+    });
+    await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
+    expect(generationRequests).toBe(0);
   });
-  await page.goto(`/assessment/adaptive-practice?${query}`, { waitUntil: 'domcontentloaded' });
-
-  await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
-  await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
-});
+}
 
 test('keeps the active path available while configuring a new path', async ({ context, page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });

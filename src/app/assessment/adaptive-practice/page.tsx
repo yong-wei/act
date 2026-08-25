@@ -811,6 +811,7 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 const DEMO_RECOMMENDATION_PROVENANCE = {
   summary: '依据相位裕度的学习证据安排本路径。',
+  personalizationNotes: ['根据你的学习方式偏好，优先安排视频、讲义和仿真类学习资源。'],
   confidence: 'medium',
   entries: [{
     targetLabel: '相位裕度',
@@ -1833,6 +1834,7 @@ function getPathRecommendationProvenance(
     summary: provenance.summary,
     confidence,
     entries,
+    personalizationNotes: getStringArray(provenance.personalizationNotes),
     evidenceReviewHref: '/profile/evidence',
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,

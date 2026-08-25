@@ -157,6 +157,9 @@ for (const viewport of viewports) {
         } else {
           await expect(provenance).toContainText('中等置信度');
           await expect(provenance).toContainText('受影响的推荐资源');
+          if (fixture === 'sufficient') {
+            await expect(provenance).toContainText('根据你的学习方式偏好，优先安排视频、讲义和仿真类学习资源。');
+          }
         }
       }
 
@@ -179,8 +182,9 @@ for (const viewport of viewports) {
               'evidence link keyboard focus',
               'governed learning-record href',
               fixture === 'low' ? 'mixed evidence downgrades path confidence' : 'affected resources visible',
+              fixture === 'sufficient' ? 'learner modality preference is readable' : null,
               'no horizontal overflow',
-            ],
+            ].filter((item): item is string => Boolean(item)),
       });
     });
   }
