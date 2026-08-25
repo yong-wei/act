@@ -110,7 +110,7 @@ test('evidence manifest fails closed when generator or production source changes
     expect(sourceHashAtCommit('HEAD', file), `${file} changed after the evidence checkpoint`)
       .toBe(expectedHash);
   }
-  expect(manifest.assertions?.length).toBe(6);
+  expect(manifest.assertions?.length).toBe(8);
   expect(manifest.assertions?.every((assertion) => assertion.passed)).toBe(true);
   expect(manifest.screenshots?.map((screenshot) => screenshot.file).sort())
     .toEqual([...expectedScreenshotFiles].sort());
@@ -190,9 +190,37 @@ for (const viewport of viewports) {
   }
 }
 
+for (const viewport of viewports) {
+  test(`${viewport.name} keeps the active path without invoking generation`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    let generationRequests = 0;
+    await page.route('**/api/adaptive/path-advisor-tool', async (route) => {
+      if (route.request().method() === 'POST') generationRequests += 1;
+      await route.continue();
+    });
+    await page.goto(
+      '/assessment/adaptive-practice?demo=1&goal=control-correction&intent=contextual-recommendation',
+      { waitUntil: 'domcontentloaded' },
+    );
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
+    expect(generationRequests).toBe(0);
+    assertions.push({
+      viewport: viewport.name,
+      fixture: 'continue-existing-path',
+      passed: true,
+      checks: [
+        'active path remains visible',
+        'candidate comparison stays hidden',
+        'path generation endpoint is not invoked',
+      ],
+    });
+  });
+}
+
 test.afterAll(() => {
   if (!updateEvidence) return;
-  expect(assertions).toHaveLength(6);
+  expect(assertions).toHaveLength(8);
   expect(screenshots).toHaveLength(6);
   mkdirSync(evidenceDir, { recursive: true });
   const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
