@@ -7,13 +7,13 @@
 
 ## 2. Execution-time Authority capture and compatibility
 
-- [ ] 2.1 Add configuration and validation for the local ActKG checkout and its formal remote without embedding proposal-time release versions or commits.
-- [ ] 2.2 Resolve the latest complete formally published aggregate and its declared Module, Terminology, Integration, Coverage, Overlay, and Registry closure from refreshed tags.
-- [ ] 2.3 Materialize Authority inputs from the sealed ActKG Git tree and reject dirty-worktree, missing-tag, hash, publication, lineage, or component-closure drift.
-- [ ] 2.4 Emit an immutable Authority capture receipt binding the commit, tags, component identities, hashes, publication states, lineage, and public-contract identity.
-- [ ] 2.5 Validate the captured Schema, consumer contract, required members, profiles, and representative payloads through the existing adapter.
-- [ ] 2.6 Return `ADAPTATION_REQUIRED` and emit no selector or coordinated candidate when any public-contract input is incompatible.
-- [ ] 2.7 Add focused tests for compatible capture, dirty-tree rejection, incomplete composite rejection, post-capture upstream release stability, and incompatible-contract fail-closed behavior.
+- [x] 2.1 Add configuration and validation for the local ActKG checkout and its formal remote without embedding proposal-time release versions or commits.
+- [x] 2.2 Resolve the latest complete formally published aggregate and its declared Module, Terminology, Integration, Coverage, Overlay, and Registry closure from refreshed tags.
+- [x] 2.3 Materialize Authority inputs from the sealed ActKG Git tree and reject dirty-worktree, missing-tag, hash, publication, lineage, or component-closure drift.
+- [x] 2.4 Emit an immutable Authority capture receipt binding the commit, tags, component identities, hashes, publication states, lineage, and public-contract identity.
+- [x] 2.5 Validate the captured Schema, consumer contract, required members, profiles, and representative payloads through the existing adapter.
+- [x] 2.6 Return `ADAPTATION_REQUIRED` and emit no selector or coordinated candidate when any public-contract input is incompatible.
+- [x] 2.7 Add focused tests for compatible capture, dirty-tree rejection, incomplete composite rejection, post-capture upstream release stability, and incompatible-contract fail-closed behavior.
 
 ## 3. Active OSS resource continuity denominator
 

@@ -20,7 +20,7 @@
  * independent explicit authorizations (see tasks 10.6/10.7).
  */
 
-import { execFile, execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { readdirSync } from 'node:fs';
@@ -74,6 +74,7 @@ import {
   inspectActkgWorktreeDirty,
   parseSixKindComponentClosure,
   readSealedBundleIdentity,
+  resolveSealedActkgMainCommit,
 } from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
 
 const execFileAsync = promisify(execFile);
@@ -166,9 +167,7 @@ async function runCapture(values: Map<string, string>): Promise<void> {
     ? readSealedBundleIdentity(path.resolve(values.get('--bundle-dir') as string))
     : discoverLatestCompleteAggregate(actkgRoot);
   const bundleDir = sealed.bundleDir;
-  const actkgMainCommit = execFileSync('git', ['-C', actkgRoot, 'rev-parse', `${mainRef}^{commit}`], {
-    encoding: 'utf8',
-  }).trim();
+  const actkgMainCommit = resolveSealedActkgMainCommit(actkgRoot, mainRef);
   const lineagePath = values.get('--lineage')
     ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json');
   const registrySummaryPath = values.get('--registry-summary')
@@ -581,7 +580,17 @@ async function runActivationPlan(values: Map<string, string>): Promise<void> {
 async function main(): Promise<void> {
   const { command, values } = parseArgs(process.argv.slice(2));
   const allowedByCommand: Record<string, readonly string[]> = {
-    capture: ['--actkg-root', '--main-ref', '--out', '--components', '--supported-contract', '--skip-fetch'],
+    capture: [
+      '--actkg-root',
+      '--main-ref',
+      '--out',
+      '--bundle-dir',
+      '--lineage',
+      '--registry-summary',
+      '--components',
+      '--supported-contract',
+      '--skip-fetch',
+    ],
     prepare: ['--capture', '--input', '--out', '--remediation-handoff', '--remediation-allocation'],
     qualify: ['--candidate', '--artifacts', '--remediation-root', '--remediation-allocation'],
     'activation-plan': ['--candidate', '--out'],

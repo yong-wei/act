@@ -142,6 +142,27 @@ export function inspectActkgWorktreeDirty(actkgRoot: string): boolean {
   return output.trim().length > 0;
 }
 
+/**
+ * The bundle bytes must come from the same clean commit recorded as the
+ * formal upstream main reference. Reading a merely clean checkout on another
+ * branch would otherwise seal a false main identity around unrelated files.
+ */
+export function resolveSealedActkgMainCommit(actkgRoot: string, mainRef: string): string {
+  const head = execFileSync('git', ['-C', actkgRoot, 'rev-parse', 'HEAD'], {
+    encoding: 'utf8',
+  }).trim();
+  const main = execFileSync('git', ['-C', actkgRoot, 'rev-parse', `${mainRef}^{commit}`], {
+    encoding: 'utf8',
+  }).trim();
+  if (head !== main) {
+    throw new LatestAuthorityCutoverError(
+      'capture-worktree-ref-drift',
+      `ActKG checkout HEAD ${head} does not equal sealed formal ref ${mainRef} (${main}).`,
+    );
+  }
+  return main;
+}
+
 function requireObject(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new LatestAuthorityCutoverError(

@@ -39,8 +39,10 @@ import { captureActiveLogicalInventory } from '@/lib/latest-authority-oss-cutove
 import {
   adapterSupportsPublicBundle3,
   capturedPublicContractFromBundle,
+  resolveSealedActkgMainCommit,
 } from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -117,6 +119,32 @@ function captureInput(overrides: Partial<AuthorityCaptureInput> = {}): Authority
 }
 
 describe('execution-time Authority capture', () => {
+  it('requires the clean checkout to equal the sealed formal main ref', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-ref-'));
+    const git = (...args: string[]) => execFileSync('git', ['-C', root, ...args], {
+      encoding: 'utf8',
+    }).trim();
+    try {
+      git('init', '--quiet');
+      git('config', 'user.email', 'test@example.invalid');
+      git('config', 'user.name', 'ACT test');
+      git('checkout', '--quiet', '-b', 'main');
+      writeFileSync(path.join(root, 'release.txt'), 'main\n');
+      git('add', 'release.txt');
+      git('commit', '--quiet', '-m', 'main release');
+      const main = git('rev-parse', 'main');
+      expect(resolveSealedActkgMainCommit(root, 'main')).toBe(main);
+
+      git('checkout', '--quiet', '-b', 'other');
+      writeFileSync(path.join(root, 'release.txt'), 'other\n');
+      git('commit', '--quiet', '-am', 'other release');
+      expect(() => resolveSealedActkgMainCommit(root, 'main'))
+        .toThrow(/does not equal sealed formal ref/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('seals a compatible capture and keeps it stable after newer upstream releases', () => {
     const receipt = sealAuthorityCaptureReceipt(captureInput());
     expect(receipt.compatibility.classification).toBe('COMPATIBLE');
@@ -770,4 +798,3 @@ describe('latest-complete public-contract capture', () => {
     expect(validateCapturedPublicContract(captured, adapted).classification).toBe('COMPATIBLE');
   });
 });
-
