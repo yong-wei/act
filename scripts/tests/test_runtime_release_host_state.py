@@ -650,6 +650,15 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             "releaseId": "ctr:release:control-theory-engineering-v0.18",
             "activatedAt": "2026-08-16T00:00:00.000Z",
         }
+        catalog_runtime = {
+            "catalogId": catalog_pointer["catalogId"],
+            "catalogHash": catalog_pointer["catalogHash"],
+            "authorityBinding": {
+                "snapshotId": catalog_pointer["snapshotId"],
+                "snapshotHash": catalog_pointer["snapshotHash"],
+                "releaseId": catalog_pointer["releaseId"],
+            },
+        }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
@@ -664,7 +673,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             catalog = parent["view"] / catalog_path
             catalog.parent.mkdir(parents=True, exist_ok=True)
             catalog.write_text(json.dumps(catalog_pointer) + "\n", encoding="utf-8")
-            (parent["view"] / catalog_payload).write_text('{"catalog":"v0.18"}\n', encoding="utf-8")
+            (parent["view"] / catalog_payload).write_text(json.dumps(catalog_runtime) + "\n", encoding="utf-8")
             restored = self.call(
                 "restore-overlays",
                 "--parent-runtime-root", str(parent["view"]),
@@ -679,7 +688,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(
                 (candidate["view"] / catalog_payload).read_text(encoding="utf-8"),
-                '{"catalog":"v0.18"}\n',
+                json.dumps(catalog_runtime) + "\n",
             )
             self.assertEqual((candidate["view"] / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
             verified = self.call(
@@ -688,6 +697,41 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 "--verification-receipt", str(candidate["verification_receipt"]),
             )
             self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_post_overlay_verification_rejects_authority_catalog_pointer_mismatch(self):
+        catalog_path = "knowledge/authority-domain-catalog/current.json"
+        catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
+        pointer = {
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("c" * 64),
+            "catalogHash": "d" * 64,
+            "snapshotId": "snap-" + ("e" * 64),
+            "snapshotHash": "f" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.18",
+        }
+        stale_runtime = {
+            "catalogId": "adc-" + ("a" * 64),
+            "catalogHash": "b" * 64,
+            "authorityBinding": {
+                "snapshotId": "snap-" + ("1" * 64),
+                "snapshotHash": "2" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.9",
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            current = fixture["view"] / catalog_path
+            current.parent.mkdir(parents=True, exist_ok=True)
+            current.write_text(json.dumps(pointer) + "\n", encoding="utf-8")
+            payload = fixture["view"] / catalog_payload
+            payload.write_text(json.dumps(stale_runtime) + "\n", encoding="utf-8")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("control-plane authority catalog runtime does not match current pointer", rejected.stderr)
 
     def test_restore_overlays_copies_cutover_transaction_closure(self):
         transaction_id = "v018-cutover-aaaaaaaa"

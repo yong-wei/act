@@ -178,6 +178,46 @@ def discover_control_plane_overlay_regular_paths(view: Path) -> Set[str]:
     return extras
 
 
+def require_authority_domain_catalog_overlay_match(view: Path, pointer: Dict[str, Any]) -> None:
+    """Require a host-owned catalog payload to close over its active pointer.
+
+    A regular catalog ``current.json`` is a host control-plane overlay.  Its
+    payload cannot be satisfied by an arbitrary manifest leaf: the runtime
+    loader binds catalog and Authority snapshot/release identities before it
+    serves the active graph.  Validate the same closure before a candidate
+    view is selected so a stale symlinked catalog cannot survive an overlay
+    restore and fail only after consumers switch.
+    """
+    relative = "knowledge/authority-domain-catalog/catalog.json"
+    path = view / relative
+    try:
+        details = os.lstat(path)
+    except OSError as error:
+        fail("control-plane authority catalog payload is unavailable: %s (%s)" % (relative, error))
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+        fail("control-plane authority catalog payload must be a regular non-symlink file: %s" % relative)
+    runtime = read_control_plane_pointer(path)
+    binding = runtime.get("authorityBinding")
+    if not isinstance(binding, dict):
+        fail("control-plane authority catalog payload has no authority binding")
+    expected = {
+        "catalogId": pointer.get("catalogId"),
+        "catalogHash": pointer.get("catalogHash"),
+        "snapshotId": pointer.get("snapshotId"),
+        "snapshotHash": pointer.get("snapshotHash"),
+        "releaseId": pointer.get("releaseId"),
+    }
+    actual = {
+        "catalogId": runtime.get("catalogId"),
+        "catalogHash": runtime.get("catalogHash"),
+        "snapshotId": binding.get("snapshotId"),
+        "snapshotHash": binding.get("snapshotHash"),
+        "releaseId": binding.get("releaseId"),
+    }
+    if actual != expected:
+        fail("control-plane authority catalog runtime does not match current pointer")
+
+
 def require_control_plane_overlay_payloads(view: Path) -> None:
     for pointer_relative in CONTROL_PLANE_OVERLAY_PATHS:
         pointer_path = view / pointer_relative
@@ -188,6 +228,8 @@ def require_control_plane_overlay_payloads(view: Path) -> None:
         if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
             continue
         pointer = read_control_plane_pointer(pointer_path)
+        if pointer_relative == "knowledge/authority-domain-catalog/current.json":
+            require_authority_domain_catalog_overlay_match(view, pointer)
         any_files = []
         for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
             if kind == "optional_file":
