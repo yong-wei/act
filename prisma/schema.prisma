@@ -3304,7 +3304,7 @@ model TeacherAssignmentReview {
   attemptId              String
   questionId             String
   gradingRunId           String                       @unique
-  answerEvidenceId       String
+  answerEvidenceId       String?
   reviewerId             String
   state                  TeacherAssignmentReviewState @default(WORKING)
   version                Int                          @default(1)
@@ -3327,7 +3327,7 @@ model TeacherAssignmentReview {
   attempt            SubmissionAttempt                    @relation(fields: [attemptId], references: [id], onDelete: Restrict)
   question           AssignmentQuestion                   @relation(fields: [questionId], references: [id], onDelete: Restrict)
   gradingRun         GradingRun                           @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
-  answerEvidence     AnswerEvidence                       @relation(fields: [answerEvidenceId], references: [id], onDelete: Restrict)
+  answerEvidence     AnswerEvidence?                      @relation(fields: [answerEvidenceId], references: [id], onDelete: Restrict)
   reviewer           User                                 @relation("TeacherAssignmentReviewReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
   approvalSnapshot   TeacherAssignmentApprovalSnapshot?
   resubmissionGrants TeacherAssignmentResubmissionGrant[]
@@ -3349,7 +3349,7 @@ model TeacherAssignmentApprovalSnapshot {
   attemptId                   String
   questionId                  String
   gradingRunId                String   @unique
-  answerEvidenceId            String
+  answerEvidenceId            String?
   reviewerId                  String
   reviewVersion               Int
   idempotencyKey              String
@@ -3376,7 +3376,7 @@ model TeacherAssignmentApprovalSnapshot {
   attempt             SubmissionAttempt                     @relation(fields: [attemptId], references: [id], onDelete: Restrict)
   question            AssignmentQuestion                    @relation(fields: [questionId], references: [id], onDelete: Restrict)
   gradingRun          GradingRun                            @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
-  answerEvidence      AnswerEvidence                        @relation(fields: [answerEvidenceId], references: [id], onDelete: Restrict)
+  answerEvidence      AnswerEvidence?                       @relation(fields: [answerEvidenceId], references: [id], onDelete: Restrict)
   reviewer            User                                  @relation("TeacherAssignmentApprovalReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
   outboxCommands      TeacherAssignmentReviewOutbox[]
   reviewedDerivatives TeacherAssignmentReviewedDerivative[]

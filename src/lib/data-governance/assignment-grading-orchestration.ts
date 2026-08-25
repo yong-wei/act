@@ -278,9 +278,10 @@ export function submissionRequiresIncrementalGrading(submission: any, questions:
   });
   if (!currentAttemptIds.some(Boolean)) return false;
   return !(submission.gradingSnapshots ?? []).some((snapshot: any) => {
-    if (snapshot.source === 'MANUAL') return false;
     const snapshotAttemptIds = questions.map((question: any) => snapshot.items?.find((item: any) => item.questionId === question.id)?.attemptId ?? null);
-    return snapshotAttemptIds.every((attemptId: string | null, index: number) => attemptId === currentAttemptIds[index]);
+    const matchesCurrentAttemptVector = snapshotAttemptIds.every((attemptId: string | null, index: number) => attemptId === currentAttemptIds[index]);
+    if (!matchesCurrentAttemptVector) return false;
+    return snapshot.source !== 'MANUAL' || ['CONFIRMED', 'RELEASED'].includes(snapshot.grade?.state);
   });
 }
 
@@ -365,13 +366,13 @@ export async function refreshAssignmentAiGradingOperation(input: { db: GradingDb
           : 'PARTIAL';
   if (state === 'RUNNING') {
     await input.db.assignmentGradingOperation.updateMany({
-      where: { id: operationId, state: 'QUEUED' },
-      data: { state, startedAt: now, updatedAt: now },
+      where: { id: operationId, state: { not: 'SUCCEEDED' } },
+      data: { state, completedAt: null, updatedAt: now },
     });
     return;
   }
   await input.db.assignmentGradingOperation.updateMany({
-    where: { id: operationId, state: { in: ['QUEUED', 'RUNNING'] } },
+    where: { id: operationId, state: { not: 'SUCCEEDED' } },
     data: { state, startedAt: now, completedAt: now, updatedAt: now },
   });
 }
@@ -415,7 +416,6 @@ export async function createManualQuestionGradingReview(input: {
     now,
   });
   const evidence = await input.db.answerEvidence.findFirst({ where: { attemptId: attempt.id }, orderBy: { version: 'desc' } });
-  if (!evidence || evidence.readiness !== 'READY') throw new Error('manual-grading-evidence-not-ready');
   await ensureManualAssignmentGradingSnapshot({
     db: input.db,
     assignmentId: input.assignmentId,
@@ -445,7 +445,7 @@ export async function createManualQuestionGradingReview(input: {
       data: {
         id: `manual-grading-run:${sha256(dedupeKey).slice(-32)}`,
         answerAttemptId: attempt.id,
-        answerEvidenceId: evidence.id,
+        ...(evidence?.readiness === 'READY' ? { answerEvidenceId: evidence.id } : {}),
         questionId: question.id,
         idempotencyKey: input.idempotencyKey,
         dedupeKey,

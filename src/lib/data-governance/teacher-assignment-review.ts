@@ -915,7 +915,11 @@ export async function createTeacherAssignmentReview(db: any, input: { actor: Tea
   });
   const submission = run?.answerAttempt?.answer?.submission;
   const assignment = submission?.revision?.assignment;
-  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW' || run.answerEvidence?.readiness !== 'READY') {
+  const manualRunWithoutEvidence = run?.source === 'MANUAL'
+    && run.answerEvidenceId == null
+    && run.answerEvidence == null;
+  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW'
+    || (!manualRunWithoutEvidence && run.answerEvidence?.readiness !== 'READY')) {
     throw new TeacherAssignmentReviewError('teacher-review-run-not-ready', 409);
   }
   const reviewScope = {
@@ -969,7 +973,7 @@ export async function createTeacherAssignmentReview(db: any, input: { actor: Tea
         attemptId: run.answerAttemptId,
         questionId: run.questionId,
         gradingRunId: run.id,
-        answerEvidenceId: run.answerEvidenceId,
+        ...(run.answerEvidenceId ? { answerEvidenceId: run.answerEvidenceId } : {}),
         reviewerId: input.actor.id,
         state: 'WORKING',
         version: 1,
@@ -1136,7 +1140,7 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
       now,
       dueAt: submission.audience?.dueAt,
       submittedRequiredCount: submission.submittedRequiredCount,
-      hasGradingSnapshot: Boolean(gradingSnapshot),
+      hasGradingSnapshot: Boolean(gradingSnapshot && gradingSnapshot.source !== 'MANUAL'),
       status: submission.submittedRequiredCount > 0 ? 'READY' : 'NOT_SUBMITTED',
       failureStage: [...latestRunByQuestion.values()].find((run: any) => run.failureStage)?.failureStage ?? null,
       errorCode: [...latestRunByQuestion.values()].find((run: any) => run.errorCode)?.errorCode ?? [...latestBatchItemByQuestion.values()].find((item: any) => item.failureCode)?.failureCode ?? null,
@@ -1183,6 +1187,7 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
       approvedQuestionCount: runs.filter((run: any) => run.approvalSnapshot).length,
       grading: gradingSnapshot ? {
         snapshotId: gradingSnapshot.id,
+        source: gradingSnapshot.source,
         operationState: gradingSnapshot.operation?.state ?? null,
         state: gradingSnapshot.grade?.state ?? 'PENDING_GRADING',
         confirmationId: gradingSnapshot.grade?.confirmations?.[0]?.id ?? null,
@@ -1281,15 +1286,20 @@ function assertReviewRunLineage(review: any) {
   const answer = attempt?.answer;
   const evidence = run?.answerEvidence;
   const question = run?.question;
-  if (!run || !attempt || !answer || !evidence || !question
+  const manualRunWithoutEvidence = run?.source === 'MANUAL'
+    && run.answerEvidenceId == null
+    && evidence == null
+    && review.answerEvidenceId == null;
+  if (!run || !attempt || !answer || !question
     || review.gradingRunId !== run.id
     || review.attemptId !== run.answerAttemptId
     || review.attemptId !== attempt.id
     || review.answerId !== answer.id
     || answer.submissionId !== review.submissionId
     || review.answerEvidenceId !== run.answerEvidenceId
-    || review.answerEvidenceId !== evidence.id
-    || evidence.attemptId !== review.attemptId
+    || (!manualRunWithoutEvidence && (!evidence
+      || review.answerEvidenceId !== evidence.id
+      || evidence.attemptId !== review.attemptId))
     || review.questionId !== run.questionId
     || review.questionId !== question.id
     || answer.assignmentQuestionId !== review.questionId

@@ -553,6 +553,37 @@ describe('teacher assignment review persistence', () => {
     expect(db.teacherAssignmentReview.create).not.toHaveBeenCalled();
   });
 
+  it('creates a manual review without fabricated answer evidence', async () => {
+    const review = reviewFixture();
+    const run: any = {
+      ...review.gradingRun,
+      source: 'MANUAL',
+      inputHash: 'sha256:manual-input',
+      evaluatorVersion: 'manual.v1',
+      lifecyclePolicyVersion: null,
+      answerEvidenceId: null,
+      answerEvidence: null,
+      annotations: [],
+      answerAttempt: {
+        ...review.gradingRun.answerAttempt,
+        answer: {
+          ...review.gradingRun.answerAttempt.answer,
+          submission: { ...review.submission, revision: { assignment: review.assignment } },
+        },
+      },
+    };
+    const create = vi.fn(async ({ data }: any) => ({ ...data, id: 'manual-review-1', gradingRun: run }));
+    const db: any = {
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(null), create },
+      gradingRun: { findUnique: vi.fn().mockResolvedValue(run) },
+    };
+
+    await expect(createTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId, gradingRunId: run.id, now,
+    })).resolves.toMatchObject({ review: { id: 'manual-review-1' }, replay: false });
+    expect(create.mock.calls[0][0].data).not.toHaveProperty('answerEvidenceId');
+  });
+
   it('atomically freezes approval and appends exactly three deterministic outbox commands', async () => {
     const review = reviewFixture();
     review.gradingRun = {
@@ -567,7 +598,7 @@ describe('teacher assignment review persistence', () => {
       },
     } as any;
     const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-1' }));
-    const auditCreate = vi.fn().mockResolvedValue({});
+    const auditCreate = vi.fn().mockResolvedValue({ id: 'grading-audit-1' });
     const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
     const outboxUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const reviewUpdateMany = vi.fn().mockResolvedValue({ count: 1 });

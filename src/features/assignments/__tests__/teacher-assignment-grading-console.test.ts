@@ -7,7 +7,9 @@ describe('teacher assignment grading console candidates', () => {
   it('includes partially submitted students and excludes empty or already snapshotted submissions', () => {
     expect(isAiGradingCandidate({ state: 'IN_PROGRESS', submittedRequiredCount: 1, grading: null })).toBe(true);
     expect(isAiGradingCandidate({ state: 'IN_PROGRESS', submittedRequiredCount: 0, grading: null })).toBe(false);
-    expect(isAiGradingCandidate({ state: 'SUBMITTED', submittedRequiredCount: 2, grading: { snapshotId: 'snapshot-1', state: 'PENDING_GRADING', operationState: 'RUNNING', confirmationId: null, releaseId: null } })).toBe(false);
+    expect(isAiGradingCandidate({ state: 'SUBMITTED', submittedRequiredCount: 2, grading: { snapshotId: 'snapshot-1', source: 'AI', state: 'PENDING_GRADING', operationState: 'RUNNING', confirmationId: null, releaseId: null } })).toBe(false);
+    expect(isAiGradingCandidate({ state: 'SUBMITTED', submittedRequiredCount: 2, grading: { snapshotId: 'snapshot-2', source: 'MANUAL', state: 'PENDING_GRADING', operationState: 'SUCCEEDED', confirmationId: null, releaseId: null } })).toBe(true);
+    expect(isAiGradingCandidate({ state: 'SUBMITTED', submittedRequiredCount: 2, grading: { snapshotId: 'snapshot-3', source: 'MANUAL', state: 'CONFIRMED', operationState: 'SUCCEEDED', confirmationId: 'confirmation-1', releaseId: null } })).toBe(false);
   });
 
   it('keeps the server diagnostic when normalizing the submissions response', () => {

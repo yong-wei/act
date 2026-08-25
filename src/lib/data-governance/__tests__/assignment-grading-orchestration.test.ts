@@ -86,6 +86,23 @@ describe('assignment grading orchestration', () => {
     expect(submissionRequiresIncrementalGrading(submission, questions)).toBe(true);
   });
 
+  it('does not schedule AI for a confirmed manually graded vector', () => {
+    const questions = revisionFixture().questions;
+    const submission = {
+      answers: [
+        { assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] },
+        { assignmentQuestionId: 'question-2', currentAttemptNumber: 1, attempts: [{ id: 'attempt-2', attemptNumber: 1 }] },
+      ],
+      gradingSnapshots: [{
+        source: 'MANUAL',
+        grade: { state: 'CONFIRMED' },
+        items: [{ questionId: 'question-1', attemptId: 'attempt-1' }, { questionId: 'question-2', attemptId: 'attempt-2' }],
+      }],
+    };
+
+    expect(submissionRequiresIncrementalGrading(submission, questions)).toBe(false);
+  });
+
   it('freezes selected ended submissions and only batches their captured attempts', async () => {
     const revision = revisionFixture();
     createQuestionScopedGradingBatch.mockResolvedValue({ batch: { id: 'batch-1' }, items: [], replay: false });
@@ -334,8 +351,26 @@ describe('assignment grading orchestration', () => {
     await refreshAssignmentAiGradingOperation({ db, batchId: 'batch-1', now });
 
     expect(updates).toEqual([expect.objectContaining({
-      where: { id: 'operation-1', state: { in: ['QUEUED', 'RUNNING'] } },
+      where: { id: 'operation-1', state: { not: 'SUCCEEDED' } },
       data: expect.objectContaining({ state: 'PARTIAL', completedAt: now }),
+    })]);
+  });
+
+  it('returns a partial operation to running while a failed batch is retried', async () => {
+    const updates: any[] = [];
+    const db: any = {
+      gradingBatch: {
+        findUnique: vi.fn().mockResolvedValue({ assignmentGradingOperationId: 'operation-1' }),
+        findMany: vi.fn().mockResolvedValue([{ state: 'SUCCEEDED' }, { state: 'QUEUED' }]),
+      },
+      assignmentGradingOperation: { updateMany: vi.fn(async (input: any) => { updates.push(input); return { count: 1 }; }) },
+    };
+
+    await refreshAssignmentAiGradingOperation({ db, batchId: 'batch-1', now });
+
+    expect(updates).toEqual([expect.objectContaining({
+      where: { id: 'operation-1', state: { not: 'SUCCEEDED' } },
+      data: expect.objectContaining({ state: 'RUNNING', completedAt: null }),
     })]);
   });
 
@@ -396,6 +431,29 @@ describe('assignment grading orchestration', () => {
       }),
     }));
     expect(createTeacherAssignmentReview).toHaveBeenCalledWith(db, expect.objectContaining({ gradingRunId: 'manual-run-1' }));
+  });
+
+  it('allows manual grading when visual evidence is awaiting review', async () => {
+    const runCreate = vi.fn().mockResolvedValue({ id: 'manual-run-1', source: 'MANUAL', state: 'AWAITING_REVIEW' });
+    createTeacherAssignmentReview.mockResolvedValue({ review: { id: 'review-1' }, replay: false });
+    const revision = revisionFixture();
+    const db: any = {
+      assignmentSubmission: { findUnique: vi.fn().mockResolvedValue({
+        id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1',
+        frozenAudienceDueAt: new Date('2026-08-13T12:00:00.000Z'), state: 'IN_PROGRESS',
+        audience: { class: { teacherId: 'teacher-1', isActive: true } }, student: { profile: { classId: 'class-1' } }, revision,
+        answers: [{ id: 'answer-1', assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1, answerVersion: 1 }] }],
+      }) },
+      answerEvidence: { findFirst: vi.fn().mockResolvedValue({ id: 'evidence-1', readiness: 'REVIEW_REQUIRED' }) },
+      gradingRun: { findUnique: vi.fn().mockResolvedValue(null), create: runCreate },
+      assignmentSubmissionSnapshot: { findUnique: vi.fn().mockResolvedValue(null) },
+      assignmentGradingOperation: { create: vi.fn().mockResolvedValue({ snapshots: [{ id: 'snapshot-1' }] }) },
+    };
+
+    await expect(createManualQuestionGradingReview({
+      db, assignmentId: 'assignment-1', submissionId: 'submission-1', questionId: 'question-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'manual-visual-review', now,
+    })).resolves.toMatchObject({ run: { id: 'manual-run-1' } });
+    expect(runCreate.mock.calls[0][0].data).not.toHaveProperty('answerEvidenceId');
   });
 
   it('creates a distinct manual snapshot operation when another question is resubmitted', async () => {
