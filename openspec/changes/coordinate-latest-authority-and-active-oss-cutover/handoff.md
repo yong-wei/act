@@ -70,6 +70,12 @@ admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无
 - **denominator 语义裁定**：baseline = runtime-89fef308 的 7272 文件级 blob 条目（全部 INCLUDED，不 retire）；delta = remediation 1058 治理资源（全 NEW）——两套身份体系诚实共存，successor runtime release 物化本就包含全部资源 blob。
 - **执行依赖图（钉死顺序）**：① successor 知识面物化（remediation 投影 → `stageTeachingProjection`：`TeachingProjectionAuthoringInput{scopeId, authoringRevision, authorityReleaseId=ctr:release:…v0.37, authoritySnapshotId=snap-e955b1ca…, resources/bindings/prerequisites/coreNodes, authorityNodes=7476 端点索引}`；prerequisites/consumer 面同链）→ ② successor Runtime Release v2 物化（OSS，含新知识面）→ ③ 正式 candidate（predecessor=上述实况，successor expectations 引用①②身份）→ ④ 8 节事务（predecessor 混合形态：authority 匹配 v0.22、六指针 ABSENT→PRESENT）→ ⑤ 镜像/部署/激活。
 
+## 知识面物化进度（2026-08-25）
+
+- **Teaching Projection 已 staged**：`proj-7891aed15d9af4e84422fa82a69d41ca8c1cc8a5f3dafcf066282647c08ce189`（`course-content/runtime/knowledge/projection/releases/`，4.7MB 八件工件，绑 snap-e955b1ca；构建器 `scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts`）。1058 资源（remediation id 规范化为 `act:<type>:<slug>`）、891 资源级绑定（原子级 2575 按 resource×concept×role 去重）、141 prerequisite 族发布边、205 卡索引、7476 authority 端点。candidate-only，零指针写入。
+- **剩余两面**：prerequisites publication（`runtime/knowledge/prerequisites/releases/<publicationId>/publication-manifest.json` 形态，staging 链待定位）与 consumer activation（`stageConsumerActivation` + `StagedActivationArtifactSet`——authority/projection 工件 hash+path 集 + captureRevision 一致性，`src/lib/versioned-knowledge-activation/readiness.ts`）。
+- **注意**：本地 `projection/releases/` 另有历史 proj-769b1a83（v022 链本地工件），与本轮产物无关。
+
 ## 切换执行时的硬性前提
 
 - `rtk bash scripts/build.sh` 构建当前 revision 镜像 + provenance；镜像内知识消费实现与 v0.37 工件形态相容（容器内自检在 `verify_staged_application_image` 内置）
