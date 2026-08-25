@@ -82,7 +82,7 @@
 在仓库根目录运行：
 
 - `rtk npm run dev` / `rtk npm run startup` / `rtk npm run shutdown`
-- `rtk npm run typecheck`（当前零 TypeScript 错误基线）
+- `rtk npm run typecheck`（当前零 TypeScript 错误基线；脚本自带 `--max-old-space-size=8192`。全量类型检查实测峰值约 6GB，低于默认 4GB V8 上限，冷 clone、大 merge 或分支切换使增量缓存失效时会回到全量路径，低内存协作机可用 `NODE_MAX_OLD_SPACE_SIZE` 覆盖）
 - `rtk npm run verify:commit` / `rtk npm run verify:push`（Git hook 使用的 TypeScript 门禁）
 - `rtk npm run lint`
 - `rtk npm run test`（smoke + Arena 路由）
