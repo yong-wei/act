@@ -1,0 +1,86 @@
+{
+  "contract": "coordinated-candidate-receipt/v1",
+  "builderVersion": "latest-authority-oss-cutover-builder/v1",
+  "candidateId": "cand-6da583f9-8c47-4aa7-aa08-cb8596a1e01c",
+  "sealedAt": "2026-08-24T23:57:13.575Z",
+  "selectable": false,
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "authorityCaptureHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+  "localeQualificationHash": "e73b45a25799f693c21eb261fc86e2b30a72def215cfc28a15c756567077f377",
+  "teachingProjectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+  "teachingClosureReceiptHash": "367ef927cdb87350c0fbe0538a256753c030da06e315add536c992c8f3b6e279",
+  "formalResourceEnvelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "continuityReceiptHash": "6c9144289e6e4995b29978a69e1d7b13f3bca6630c8f2fc08fab35edc85062e2",
+  "derivationReceiptHash": "10ccf723c4fa464c0fc57c50fb558562d047d45abba914d7a66f0eb612cbc1af",
+  "successorRuntimeManifestHash": "76db73c8205f1507ff86de4169a0ee9f112b53a81292c86b6631622e98663526",
+  "successorRuntimeMaterializationHash": "15288413f31c53fee0648782cd7fcc41c42bed9dbca752cb3b5ba5662b569ebe",
+  "domainShardCatalogHash": "9eaaecf9290ff354251a0f7e4dff9347011529d77c152cccb06fb1661ac0264b",
+  "domainShardSetHash": "bbc2b74d6613cd9850ae413a80206f0af288c98b7be0725cba967e9a71c682aa",
+  "prerequisitePublicationHash": "ca74ccb244ee2c797048b0743cebe22c7d53202fb6673a2bf0d8c62c4603cc56",
+  "consumerActivationHash": "db55870c22061af592cf357cbf1508414e3ff20e110a7906f7423748ff1cafce",
+  "predecessor": [
+    {
+      "selectorId": "course-content/authoring/knowledge/authority/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/projection/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/prerequisites/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/authority-domain-catalog/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/authority-domain-shards/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/consumer-activation/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/production-cutover-transactions/current.json",
+      "identity": "ctr:release:control-theory-engineering-v0.9"
+    }
+  ],
+  "predecessorRuntimeLifecycleGeneration": 1,
+  "successorSelectorExpectations": [
+    {
+      "selectorId": "course-content/authoring/knowledge/authority/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/projection/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/prerequisites/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/authority-domain-catalog/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/authority-domain-shards/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/consumer-activation/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    },
+    {
+      "selectorId": "course-content/runtime/knowledge/production-cutover-transactions/current.json",
+      "expectedSuccessorIdentity": "ctr:release:control-theory-engineering-v0.37"
+    }
+  ],
+  "transactionImplementationIdentity": "746e050c9c31b34633b1af5917e337bb3ec7dabd4f5a4e7f39c5f02ffdf4a0ae",
+  "rollbackPlanHash": "1664f4e89fa6522e3ff8765d46b21e7a9528d68320a48d8d42106d1ba23fa65a",
+  "verificationPolicyHash": "f5a500e19c99b8c6430d5f43ff1eed519930293aaabe79e84d1d78aaa1a8f2e0",
+  "receiptHash": "c68bf208839fdc9b74e7968084158ead0bcf6d1036f8f1d5069b0ef0a829a9ed"
+}

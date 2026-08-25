@@ -10,7 +10,7 @@
 
 ## 2. Source Provenance and Processing Records
 
-- [ ] 2.1 Define immutable external-input/source-provenance manifests that replace ignored paths, dirty workspace state, and local filenames with captured content identities and private execution receipts.
+- [x] 2.1 Define immutable external-input/source-provenance manifests that replace ignored paths, dirty workspace state, and local filenames with captured content identities and private execution receipts.
 - [x] 2.2 Implement artifact discovery and independent reopening so every reported atom, binding, ledger, projection, and hash is recomputed from a declared file rather than accepted as a string.
 - [x] 2.3 Implement resource-level processing records with source, processor, validator, atom, mapping, anchor, launch, disposition, limitation, and output identities.
 - [x] 2.4 Add privacy validation that prevents absolute local paths, raw answer payloads, private repository internals, credentials, signed URLs, and unrestricted transcript bodies from entering public runtime projections.
@@ -107,19 +107,19 @@
 ## 11. End-to-end Candidate Acceptance
 
 - [x] 11.1 Add an end-to-end command that starts from the sealed allocation and actual source manifests and produces the resource envelope, relation closure, Teaching Projection, derivatives, and reports without caller-authored inner hashes.
-- [ ] 11.2 Run the end-to-end command in a clean fixed-revision environment over the complete captured corpus and retain the actual immutable outputs.
+- [x] 11.2 Run the end-to-end command in a clean fixed-revision environment over the complete captured corpus and retain the actual immutable outputs.
 - [x] 11.3 Verify denominator conservation, active-baseline continuity, every new-delta disposition, every included atom/binding/launch, every three-family disposition, zero unresolved relations, and every projection derivative from the materialized files.
-- [ ] 11.4 Run negative acceptance for source, model, hotword, atom, evidence, ledger, envelope, projection, fragment, and selector drift; every case must fail closed or remain non-selectable.
+- [x] 11.4 Run negative acceptance for source, model, hotword, atom, evidence, ledger, envelope, projection, fragment, and selector drift; every case must fail closed or remain non-selectable.
 - [x] 11.5 Run privacy/access, exercise-answer isolation, non-teaching atom, zero-resource node, and no-learning-evidence acceptance checks.
-- [ ] 11.6 Run deterministic clean replay and bounded single-input incremental replay against the final candidate and record timing, reuse, invalidation, and semantic-hash evidence.
-- [ ] 11.7 Conduct final course-owner sampling across textbooks, handouts, cards, infographs, intro videos, ASR media, exercises, simulations, relation families, and graph consumer outputs; apply all accepted corrections and repeat affected validations.
-- [ ] 11.8 Run the affected unit/domain suites, `npm run typecheck`, `npm run verify:commit`, `npm run verify:push`, strict OpenSpec validation, and the final full repository verification required by project policy.
+- [x] 11.6 Run deterministic clean replay and bounded single-input incremental replay against the final candidate and record timing, reuse, invalidation, and semantic-hash evidence.
+- [x] 11.7 Conduct final course-owner sampling across textbooks, handouts, cards, infographs, intro videos, ASR media, exercises, simulations, relation families, and graph consumer outputs; apply all accepted corrections and repeat affected validations.
+- [x] 11.8 Run the affected unit/domain suites, `npm run typecheck`, `npm run verify:commit`, `npm run verify:push`, strict OpenSpec validation, and the final full repository verification required by project policy.
 
 ## 12. Immutable Handoff and Documentation
 
 - [x] 12.1 Generate the non-selectable remediation handoff manifest binding the shared coordination allocation, Authority, denominator, processor qualifications, source receipts, formal resource envelope, three-family closure, complete Teaching Projection, derivatives, audit reports, and exact semantic hashes.
 - [x] 12.2 Verify all production Authority, Teaching Projection, Runtime Release, domain-shard, and consumer selectors remain on their predecessor identities and record the evidence.
-- [ ] 12.3 Update project and operator documentation with the actual source-maintenance, Fun-ASR-Nano/hotword, incremental-processing, human-review, and regeneration commands and artifact locations.
+- [x] 12.3 Update project and operator documentation with the actual source-maintenance, Fun-ASR-Nano/hotword, incremental-processing, human-review, and regeneration commands and artifact locations.
 - [x] 12.4 Audit every checked task against reopenable real-corpus artifacts; leave any framework-only, fixture-only, unprocessed, unreviewed, or unresolved item unchecked.
-- [ ] 12.5 Make the coordinated-cutover implementation consume and reopen the immutable remediation handoff and its exact shared allocation instead of accepting copied inner hash strings or creating a second allocation, while retaining outer candidate, deployment, and production activation as separate authorities.
-- [ ] 12.6 Prove the coordinated-cutover candidate recognizes the exact remediation artifacts and remains non-selectable; do not deploy, publish to OSS, or mutate production selectors under this change.
+- [x] 12.5 Make the coordinated-cutover implementation consume and reopen the immutable remediation handoff and its exact shared allocation instead of accepting copied inner hash strings or creating a second allocation, while retaining outer candidate, deployment, and production activation as separate authorities.
+- [x] 12.6 Prove the coordinated-cutover candidate recognizes the exact remediation artifacts and remains non-selectable; do not deploy, publish to OSS, or mutate production selectors under this change.

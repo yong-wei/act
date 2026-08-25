@@ -1,0 +1,11 @@
+{
+ "contract": "coordinated-cutover-verification-policy/v1",
+ "checks": [
+  "prepare reopens the handoff and the shared allocation",
+  "qualify recomputes remediation artifact identities from files",
+  "candidate.selectable === false",
+  "production selectors unchanged"
+ ],
+ "successorReleaseId": "ctr:release:control-theory-engineering-v0.37",
+ "predecessorReleaseId": "ctr:release:control-theory-engineering-v0.9"
+}

@@ -101,7 +101,6 @@
  "handoff": {
   "handoffId": "handoff-9f3d13c00aae835726613408",
   "handoffHash": "9f3d13c00aae8357266134086994f9abfdd30a468a203dc023fcb240adcf83a9",
-  "selectable": false,
-  "state": "created"
+  "selectable": false
  }
 }

@@ -348,10 +348,13 @@ function main(): void {
       fragments: fragmentFiles.length,
     },
     productionPointers: pointerStates,
-    handoff: { handoffId, handoffHash, selectable: false, state: handoffState },
+    // Runtime write states are deliberately excluded: they differ between the
+    // first seal and a deterministic replay and would make the report itself
+    // non-replayable.
+    handoff: { handoffId, handoffHash, selectable: false },
   };
   const reportState = writeDeterministicJson(REPORT_PATH, report);
-  console.log(JSON.stringify({ state: completeness.state, checks: checks.length, allPassed: checks.every((one) => one.passed), counts: report.counts, handoff: report.handoff, reportState }, null, 2));
+  console.log(JSON.stringify({ state: completeness.state, checks: checks.length, allPassed: checks.every((one) => one.passed), counts: report.counts, handoff: { ...report.handoff, state: handoffState }, reportState }, null, 2));
 }
 
 main();

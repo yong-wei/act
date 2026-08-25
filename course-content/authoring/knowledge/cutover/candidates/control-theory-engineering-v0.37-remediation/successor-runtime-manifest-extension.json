@@ -1,0 +1,16 @@
+{
+  "contract": "coordinated-runtime-manifest-extension/v1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "denominatorHash": "ada369c6e52f1f606becf6c92efcc43993dd327a6079a619b03874dd0e72ccb8",
+  "captureHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+  "teachingProjectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+  "teachingClosureReceiptHash": "367ef927cdb87350c0fbe0538a256753c030da06e315add536c992c8f3b6e279",
+  "formalResourceEnvelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "continuityReceiptHash": "6c9144289e6e4995b29978a69e1d7b13f3bca6630c8f2fc08fab35edc85062e2",
+  "domainShardSetHash": "bbc2b74d6613cd9850ae413a80206f0af288c98b7be0725cba967e9a71c682aa",
+  "prerequisitePublicationHash": "ca74ccb244ee2c797048b0743cebe22c7d53202fb6673a2bf0d8c62c4603cc56",
+  "consumerActivationHash": "db55870c22061af592cf357cbf1508414e3ff20e110a7906f7423748ff1cafce",
+  "predecessorRuntimeReleaseId": "control-theory-engineering-v0-9",
+  "predecessorRuntimeManifestSha256": "f4d745a0b65130b6deecc58eb8a7d1cf5dbbea331e2b77e7846f7a5e9ee06420",
+  "predecessorLifecycleGeneration": 1
+}

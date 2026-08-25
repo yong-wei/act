@@ -1,0 +1,54 @@
+{
+ "contract": "remediation-bound-cutover-evidence/v1",
+ "sealedAt": "2026-08-25",
+ "handoffId": "handoff-9f3d13c00aae835726613408",
+ "sharedAllocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "candidate": {
+  "candidateId": "cand-6da583f9-8c47-4aa7-aa08-cb8596a1e01c",
+  "receiptHash": "c68bf208839fdc9b74e7968084158ead0bcf6d1036f8f1d5069b0ef0a829a9ed",
+  "selectable": false
+ },
+ "innerHashSource": "reopened remediation handoff (no copied hash strings accepted)",
+ "allocationReuse": "candidate binds the ONE shared coordination allocation; no second allocation sealed",
+ "qualify": "remediation artifact identities recomputed from materialized files; outer artifacts recomputed from this run files",
+ "productionSelectors": {
+  "predecessorOk": true,
+  "pointers": [
+   {
+    "path": "course-content/authoring/knowledge/authority/current.json",
+    "exists": true,
+    "releaseId": "ctr:release:control-theory-engineering-v0.9"
+   },
+   {
+    "path": "course-content/runtime/knowledge/projection/current.json",
+    "exists": true,
+    "releaseId": null
+   },
+   {
+    "path": "course-content/runtime/knowledge/prerequisites/current.json",
+    "exists": true,
+    "releaseId": null
+   },
+   {
+    "path": "course-content/runtime/knowledge/authority-domain-catalog/current.json",
+    "exists": true,
+    "releaseId": "ctr:release:control-theory-engineering-v0.9"
+   },
+   {
+    "path": "course-content/runtime/knowledge/authority-domain-shards/current.json",
+    "exists": true,
+    "releaseId": "ctr:release:control-theory-engineering-v0.9"
+   },
+   {
+    "path": "course-content/runtime/knowledge/consumer-activation/current.json",
+    "exists": true,
+    "releaseId": null
+   },
+   {
+    "path": "course-content/runtime/knowledge/production-cutover-transactions/current.json",
+    "exists": false,
+    "releaseId": null
+   }
+  ]
+ }
+}
