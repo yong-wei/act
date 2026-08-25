@@ -12,13 +12,28 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import {
   resolveTeachingProjectionStorePaths,
   stageTeachingProjection,
 } from '@/lib/teaching-projection/store';
+import {
+  resolvePrerequisiteStorePaths,
+  stagePrerequisitePublication,
+} from '@/lib/teaching-projection/prerequisites/store';
+import { createPrerequisiteAuthorDecision } from '@/lib/teaching-projection/prerequisites/publication';
+import {
+  resolveConsumerActivationStorePaths,
+  stageConsumerActivation,
+} from '@/lib/versioned-knowledge-activation/store';
+import type {
+  CoreNodeAuthoringRow,
+  PrerequisiteAuthorDecision,
+  PrerequisiteEdgeAuthoring,
+} from '@/lib/teaching-projection/prerequisites/contracts';
 import type {
   AuthorityNodeIndexEntry,
   TeachingBindingAuthoring,
@@ -31,8 +46,15 @@ import type {
 const ROOT = process.cwd();
 const REMEDIATION_ROOT = 'course-content/authoring/knowledge/formal-resource-remediation';
 const PROJECTION_DIR = `${REMEDIATION_ROOT}/teaching-projection`;
-const SNAPSHOT_DIR = 'course-content/authoring/knowledge/authority/releases/snap-e955b1ca155573fafae21e9fa1ddab397da7462ab9fd66c60c6d97b87a37e520';
+const SNAPSHOT_DIR = 'course-content/authoring/knowledge/authority/releases/snap-3ba36b03e535b4ff4e3ff4edbb6e1a5f0bb1d24903f8fd236a5fc0978aca7dfe';
 const TEACHING_STORE_ROOT = 'course-content/runtime/knowledge/projection';
+const PREREQ_STORE_ROOT = 'course-content/runtime/knowledge/prerequisites';
+const CURATOR_ID = 'course-owner';
+const DECIDED_AT = '2026-08-25T12:00:00.000Z';
+const CONSUMER_STORE_ROOT = 'course-content/runtime/knowledge/consumer-activation';
+// The shared capture identity is the ACT-side build revision that the
+// authority snapshot sealed as its captureRevision (same source as
+// authoringRevision below); the ActKG source commit stays on the bundle only.
 const SCOPE_ID = 'act-control-theory';
 const EXCLUDED_DOMAINS = ['robust-control-analysis-and-design', 'discrete-time-control-analysis', 'discrete-time-control-design', 'optimal-control-foundations-and-linear-quadratic-design', 'lyapunov-stability', 'nonlinear-control-design'] as const;
 const COVERED_DOMAINS = ['root-locus', 'robustness-sensitivity-analysis', 'stability-analysis', 'nonlinear-system-analysis', 'time-domain-analysis', 'system-modeling', 'classical-control-design', 'frequency-domain-analysis', 'state-space-control-analysis-and-design'] as const;
@@ -257,6 +279,83 @@ function main(): void {
   const paths = resolveTeachingProjectionStorePaths(absolute(TEACHING_STORE_ROOT));
   const staged = stageTeachingProjection(paths, input);
 
+  // ---- Prerequisites publication surface ----
+  // Published prerequisite edges come from the prerequisite-family ledger
+  // rows; the #1515 owner rulings provide the author decisions, and the edge
+  // endpoints form the core-node denominator (sourceKind PREREQUISITE_ENDPOINT).
+  const rationaleByMember = new Map<string, string>();
+  for (const domain of ALL_DOMAINS) {
+    const decisionsPath = absolute(`${REMEDIATION_ROOT}/${domain}-closure/decisions.jsonl`);
+    if (!existsSync(decisionsPath)) continue;
+    for (const line of readFileSync(decisionsPath, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      const decision = JSON.parse(line) as { canonicalId: string; rationale?: string };
+      rationaleByMember.set(decision.canonicalId, decision.rationale ?? `domain-closure:${domain}`);
+    }
+  }
+  const prerequisiteEdges: PrerequisiteEdgeAuthoring[] = [];
+  const coreNodeEvidence = new Map<string, Set<string>>();
+  for (const domain of ALL_DOMAINS) {
+    const ledger = readJson<{ rows: { canonicalId: string; family: string; disposition: string; target: string | null; edgeId: string; evidenceRefs: string[] }[] }>(`${REMEDIATION_ROOT}/${domain}-closure/final-ledger.json`);
+    for (const row of ledger.rows) {
+      if (row.family !== 'prerequisite' || row.disposition !== 'PUBLISHED_EDGE' || !row.target) continue;
+      const decisionId = `dec-${row.edgeId.slice(0, 24)}`;
+      prerequisiteEdges.push({
+        edgeId: row.edgeId,
+        sourceNodeId: row.canonicalId,
+        targetNodeId: row.target,
+        strength: 'RECOMMENDED',
+        scopeId: SCOPE_ID,
+        evidenceRefs: row.evidenceRefs,
+        status: 'PUBLISHED',
+        authorDecisionId: decisionId,
+      });
+      for (const endpoint of [row.canonicalId, row.target]) {
+        const evidence = coreNodeEvidence.get(endpoint) ?? new Set<string>();
+        for (const ref of row.evidenceRefs) evidence.add(ref);
+        coreNodeEvidence.set(endpoint, evidence);
+      }
+    }
+  }
+  const publicationDecisions: PrerequisiteAuthorDecision[] = prerequisiteEdges.map((edge) => createPrerequisiteAuthorDecision({
+    sourceNodeId: edge.sourceNodeId,
+    targetNodeId: edge.targetNodeId,
+    strength: edge.strength,
+    scopeId: edge.scopeId,
+    evidenceRefs: edge.evidenceRefs,
+    curatorId: CURATOR_ID,
+    rationale: rationaleByMember.get(edge.sourceNodeId) ?? 'prerequisite-family closure ruling (#1515 domain ledger)',
+    authorityReleaseId: manifest.releaseId,
+    projectionCaptureId: staged.projectionId,
+    authoringRevision,
+    decisionId: edge.authorDecisionId ?? undefined,
+    decidedAt: DECIDED_AT,
+  }));
+  const coreNodeRows: CoreNodeAuthoringRow[] = [...coreNodeEvidence.entries()]
+    .sort((left, right) => left[0].localeCompare(right[0]))
+    .map(([canonicalId, evidence]) => ({
+      canonicalId,
+      scopeId: SCOPE_ID,
+      pathEligible: true,
+      cardPolicy: 'optional',
+      moduleId: null,
+      rationale: rationaleByMember.get(canonicalId) ?? 'prerequisite endpoint of the #1515 three-family closure',
+      sourceKind: 'PREREQUISITE_ENDPOINT',
+      sourceEvidence: [...evidence].sort(),
+    }));
+
+  const prereqStore = resolvePrerequisiteStorePaths(absolute(PREREQ_STORE_ROOT));
+  const publication = stagePrerequisitePublication(prereqStore, {
+    scopeId: SCOPE_ID,
+    authoringRevision,
+    authorityReleaseId: manifest.releaseId,
+    projectionCaptureId: staged.projectionId,
+    authorityNodes,
+    coreNodes: coreNodeRows,
+    edges: prerequisiteEdges,
+    decisions: publicationDecisions,
+  });
+
   console.log(JSON.stringify({
     projectionId: staged.projectionId,
     projectionHash: staged.projectionHash.slice(0, 16),
@@ -268,6 +367,78 @@ function main(): void {
     authorityNodes: authorityNodes.length,
     authoritySnapshotId: manifest.snapshotId,
     pointerWritten: false,
+    prerequisitePublication: {
+      publicationId: publication.publicationId,
+      publicationHash: publication.publicationHash.slice(0, 16),
+      reused: publication.reused,
+      edges: prerequisiteEdges.length,
+      coreNodes: coreNodeRows.length,
+      decisions: publicationDecisions.length,
+      pointerWritten: false,
+    },
+  }, null, 2));
+
+  // ---- Consumer activation surface ----
+  // Stages the shared-consumer activation manifest over the rehashed
+  // authority snapshot and teaching projection artifacts (six consumers).
+  const snapshotDirAbs = absolute(SNAPSHOT_DIR);
+  const projectionDirAbs = absolute(`${TEACHING_STORE_ROOT}/releases/${staged.projectionId}`);
+  const stagedProjectionManifest = readJson<{ gatePassed: boolean; projectionHash: string }>(`${TEACHING_STORE_ROOT}/releases/${staged.projectionId}/projection-manifest.json`);
+  const hashFile = (filePath: string): string => createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
+  const projectionArtifactNames = [
+    'projection-manifest.json',
+    'resources.jsonl',
+    'bindings.jsonl',
+    'cards-index.json',
+    'prerequisites.jsonl',
+    'core-nodes.json',
+    'impact-report.json',
+    'gate.json',
+  ] as const;
+  const consumerStore = resolveConsumerActivationStorePaths(absolute(CONSUMER_STORE_ROOT));
+  const activation = stageConsumerActivation(consumerStore, {
+    artifacts: {
+      captureRevision: authoringRevision,
+      authority: {
+        present: true,
+        releaseId: manifest.releaseId,
+        snapshotId: manifest.snapshotId,
+        snapshotHash: manifest.snapshotHash,
+        captureRevision: authoringRevision,
+        artifactHashes: {
+          'manifest.json': hashFile(`${SNAPSHOT_DIR}/manifest.json`),
+          'engineering.json': hashFile(`${SNAPSHOT_DIR}/engineering.json`),
+        },
+        artifactPaths: {
+          'manifest.json': `${snapshotDirAbs}/manifest.json`,
+          'engineering.json': `${snapshotDirAbs}/engineering.json`,
+        },
+      },
+      projection: {
+        present: true,
+        projectionId: staged.projectionId,
+        projectionHash: stagedProjectionManifest.projectionHash,
+        authorityReleaseId: manifest.releaseId,
+        captureRevision: null,
+        gatePassed: stagedProjectionManifest.gatePassed,
+        artifactHashes: Object.fromEntries(projectionArtifactNames.map((name) => [name, hashFile(`${TEACHING_STORE_ROOT}/releases/${staged.projectionId}/${name}`)])),
+        artifactPaths: Object.fromEntries(projectionArtifactNames.map((name) => [name, `${projectionDirAbs}/${name}`])),
+        hasResources: true,
+        hasCardsIndex: true,
+        hasPrerequisites: true,
+        hasImpactReport: true,
+      },
+    },
+    stagedAt: DECIDED_AT,
+  });
+
+  console.log(JSON.stringify({
+    consumerActivation: {
+      activationId: activation.activationId,
+      activationHash: activation.activationHash.slice(0, 16),
+      consumers: activation.manifest.consumers.map((consumer: { consumerId?: string; id?: string; status?: string }) => ({ id: consumer.consumerId ?? consumer.id ?? 'unknown', status: consumer.status })),
+      pointerWritten: false,
+    },
   }, null, 2));
 }
 

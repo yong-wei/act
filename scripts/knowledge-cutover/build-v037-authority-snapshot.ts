@@ -12,6 +12,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -43,7 +44,11 @@ const RELEASE_ID = 'ctr:release:control-theory-engineering-v0.37';
 const RELEASE_VERSION = 'control-theory-engineering-v0.37';
 const RELEASE_SET_ID = 'actkg-authoritative-candidate-v037-r3';
 const PREDECESSOR_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22';
-const SOURCE_COMMIT = '3e98864deaa18a0635a79188d0f8459e87389351';
+const ACTKG_SOURCE_COMMIT = '3e98864deaa18a0635a79188d0f8459e87389351';
+// The snapshot capture revision is the ACT-side build revision: the same Git
+// HEAD the teaching projection and consumer activation bind as their shared
+// authoring/capture identity (never the upstream ActKG source commit).
+const CAPTURE_REVISION = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
 const SOURCE_TAG = 'control-theory-engineering-v0.37-source-r4';
 const STAGED_AT = '2026-08-25T12:00:00.000Z';
 
@@ -203,7 +208,7 @@ function main(): void {
     schemaRawHash: schemaSha,
     releaseRawHash: releaseRawSha,
     notesRawHash: sumsSha,
-    captureRevision: SOURCE_COMMIT,
+    captureRevision: CAPTURE_REVISION,
     lockRawHash: sumsSha,
     schemaVersion: release.schema_version,
     projectionId: domainProjection.id,
@@ -222,7 +227,7 @@ function main(): void {
     manifestRawSha256: manifestSha,
     normalization: 'canonical-json/rfc8785-subset-v1',
     publicationTag: 'control-theory-engineering-v0.37-r3',
-    sourceCommit: SOURCE_COMMIT,
+    sourceCommit: ACTKG_SOURCE_COMMIT,
     sourceTag: SOURCE_TAG,
     releaseSetId: RELEASE_SET_ID,
     releaseId: RELEASE_ID,
@@ -233,7 +238,7 @@ function main(): void {
     lockVersion: 'control-theory-engineering-v0.37-r3',
     lockPath: `${BUNDLE_DIR}/SHA256SUMS`,
     lockRawSha256: sumsSha,
-    captureRevision: SOURCE_COMMIT,
+    captureRevision: CAPTURE_REVISION,
     candidateState: 'ACCEPTED_CANDIDATE',
     compatibilityCode: 'COMPATIBLE',
     runtimeProjectionId: domainProjection.id,
@@ -359,7 +364,7 @@ function main(): void {
     snapshot,
     predecessorReleaseId: PREDECESSOR_RELEASE_ID,
     stagedAt: STAGED_AT,
-    captureRevision: SOURCE_COMMIT,
+    captureRevision: CAPTURE_REVISION,
   }, {
     stagedAt: STAGED_AT,
     receiptId: `stage-v037r3-${release.release_hash.slice(0, 12)}`,
