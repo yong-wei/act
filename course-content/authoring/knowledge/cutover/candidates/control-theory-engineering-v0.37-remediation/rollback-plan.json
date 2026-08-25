@@ -1,0 +1,35 @@
+{
+ "contract": "cutover-transaction-plan/v1",
+ "candidateScope": "control-theory-engineering-v0.37 remediation handoff",
+ "compensation": [
+  {
+   "selectorId": "course-content/authoring/knowledge/authority/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/projection/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/prerequisites/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/authority-domain-catalog/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/authority-domain-shards/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/consumer-activation/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  },
+  {
+   "selectorId": "course-content/runtime/knowledge/production-cutover-transactions/current.json",
+   "restoreReleaseId": "ctr:release:control-theory-engineering-v0.9"
+  }
+ ],
+ "note": "rollback restores every production selector to the predecessor v0.9 identities"
+}

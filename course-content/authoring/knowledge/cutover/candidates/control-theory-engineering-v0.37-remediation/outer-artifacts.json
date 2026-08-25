@@ -1,0 +1,30 @@
+[
+ {
+  "artifactId": "locale-qualification",
+  "artifactHash": "e73b45a25799f693c21eb261fc86e2b30a72def215cfc28a15c756567077f377"
+ },
+ {
+  "artifactId": "derivation-receipt",
+  "artifactHash": "10ccf723c4fa464c0fc57c50fb558562d047d45abba914d7a66f0eb612cbc1af"
+ },
+ {
+  "artifactId": "continuity-receipt",
+  "artifactHash": "6c9144289e6e4995b29978a69e1d7b13f3bca6630c8f2fc08fab35edc85062e2"
+ },
+ {
+  "artifactId": "teaching-closure-receipt",
+  "artifactHash": "367ef927cdb87350c0fbe0538a256753c030da06e315add536c992c8f3b6e279"
+ },
+ {
+  "artifactId": "successor-runtime-manifest",
+  "artifactHash": "76db73c8205f1507ff86de4169a0ee9f112b53a81292c86b6631622e98663526"
+ },
+ {
+  "artifactId": "successor-runtime-materialization",
+  "artifactHash": "15288413f31c53fee0648782cd7fcc41c42bed9dbca752cb3b5ba5662b569ebe"
+ },
+ {
+  "artifactId": "authority-domain-shard-catalog",
+  "artifactHash": "9eaaecf9290ff354251a0f7e4dff9347011529d77c152cccb06fb1661ac0264b"
+ }
+]

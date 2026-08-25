@@ -1,0 +1,5 @@
+{
+ "contract": "successor-runtime-materialization-status/v1",
+ "status": "NOT_MATERIALIZED",
+ "policy": "issue #1515 forbids OSS publication and selector mutation under this change"
+}

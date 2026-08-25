@@ -1,0 +1,21 @@
+{
+ "contract": "remediation-simulation-run/v1",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "launcherCount": 85,
+ "byType": [
+  {
+   "type": "INTERACTIVE_COMP",
+   "count": 81
+  },
+  {
+   "type": "SIMULATION_APP",
+   "count": 3
+  },
+  {
+   "type": "ETHICS_SCENARIO",
+   "count": 1
+  }
+ ],
+ "atomCount": 85,
+ "runHash": "6c4470ff54303bcd01750cc501d33c2340fd9f690d8a85d288968a1cb5d68532"
+}

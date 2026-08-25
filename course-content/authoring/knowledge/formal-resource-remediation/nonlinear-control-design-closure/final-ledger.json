@@ -1,0 +1,3439 @@
+{
+ "contract": "remediation-three-family-final-ledger/v1",
+ "domain": "nonlinear-control-design",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "rows": [
+  {
+   "canonicalId": "ctkg:m1s-object-01b4067454d6530986b6189f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-01b4067454d6530986b6189f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-01b4067454d6530986b6189f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-044e6154fd37eaf191be4804",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-044e6154fd37eaf191be4804",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-044e6154fd37eaf191be4804",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-04e7640d99664ce73bc11293",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-04e7640d99664ce73bc11293",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-04e7640d99664ce73bc11293",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-05c154887bcb9d03f9ccc826",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-05c154887bcb9d03f9ccc826",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-05c154887bcb9d03f9ccc826",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0813469ffc59ae5114caeb78",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0813469ffc59ae5114caeb78",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0813469ffc59ae5114caeb78",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-085dbcc5040d55942ce777c6",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-085dbcc5040d55942ce777c6",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-085dbcc5040d55942ce777c6",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0a785d3bda3bbd86472fb59f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0a785d3bda3bbd86472fb59f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0a785d3bda3bbd86472fb59f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0d018aa0f3add044f1cb408d",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0d018aa0f3add044f1cb408d",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0d018aa0f3add044f1cb408d",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0f041fb25853885ba12760d3",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0f041fb25853885ba12760d3",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0f041fb25853885ba12760d3",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-11f08e7cd52ace0ac843262f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-11f08e7cd52ace0ac843262f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-11f08e7cd52ace0ac843262f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-160e7683bea6bf613b3c8317",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-160e7683bea6bf613b3c8317",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-160e7683bea6bf613b3c8317",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-199d014e87c30323fdf36140",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-199d014e87c30323fdf36140",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-199d014e87c30323fdf36140",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a66d030893d563a2e3da2a0",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a66d030893d563a2e3da2a0",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a66d030893d563a2e3da2a0",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1c0272693d1de504390e4e29",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1c0272693d1de504390e4e29",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1c0272693d1de504390e4e29",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1ee32fc36d64c3760754149b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1ee32fc36d64c3760754149b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1ee32fc36d64c3760754149b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-20eb0bfefeea84f79471a070",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-20eb0bfefeea84f79471a070",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-20eb0bfefeea84f79471a070",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-23d67924a8a5d8696fdf96eb",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-23d67924a8a5d8696fdf96eb",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-23d67924a8a5d8696fdf96eb",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-24285bff29e105ee6358a074",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-24285bff29e105ee6358a074",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-24285bff29e105ee6358a074",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2637c406e79652b0b926aff1",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2637c406e79652b0b926aff1",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2637c406e79652b0b926aff1",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-267e4b4656d681f1b24f42f5",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-267e4b4656d681f1b24f42f5",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-267e4b4656d681f1b24f42f5",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-26873599f6d7f12c5e952180",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-26873599f6d7f12c5e952180",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-26873599f6d7f12c5e952180",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-275f1811f33e31ca5f4b5b31",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-275f1811f33e31ca5f4b5b31",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-275f1811f33e31ca5f4b5b31",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2cfc4a7fa504452bf1d71a14",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2cfc4a7fa504452bf1d71a14",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2cfc4a7fa504452bf1d71a14",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d3bcb43d93c3e0b974ada8c",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d3bcb43d93c3e0b974ada8c",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d3bcb43d93c3e0b974ada8c",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d5050fb34d2e8dd81da0f4b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d5050fb34d2e8dd81da0f4b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d5050fb34d2e8dd81da0f4b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2e1e94010d3abbe9bc125d24",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2e1e94010d3abbe9bc125d24",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2e1e94010d3abbe9bc125d24",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2fe37f0a92a3aa1a4ebc28d8",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2fe37f0a92a3aa1a4ebc28d8",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2fe37f0a92a3aa1a4ebc28d8",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-30097236b348e7c10fd971c8",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-30097236b348e7c10fd971c8",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-30097236b348e7c10fd971c8",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-35b0cc093c47248615b4c159",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-35b0cc093c47248615b4c159",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-35b0cc093c47248615b4c159",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3a167ce8464af79df24fb1f7",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3a167ce8464af79df24fb1f7",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3a167ce8464af79df24fb1f7",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3b6627a75236540ecca11111",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3b6627a75236540ecca11111",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3b6627a75236540ecca11111",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d141f73abd2ced33c7ad131",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d141f73abd2ced33c7ad131",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d141f73abd2ced33c7ad131",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d521351bf68579eca43f0ed",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d521351bf68579eca43f0ed",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d521351bf68579eca43f0ed",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3e4598e8df86dbc1ddc619ac",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3e4598e8df86dbc1ddc619ac",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3e4598e8df86dbc1ddc619ac",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3f76c77ac15f94e5022ccc83",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3f76c77ac15f94e5022ccc83",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3f76c77ac15f94e5022ccc83",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4b5fc534cd2e28fbb7f03175",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4b5fc534cd2e28fbb7f03175",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4b5fc534cd2e28fbb7f03175",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4bcdc8552600033209642fd3",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4bcdc8552600033209642fd3",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4bcdc8552600033209642fd3",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-50b1c218b49d77df642c3f90",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-50b1c218b49d77df642c3f90",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-50b1c218b49d77df642c3f90",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-53efdaa36719e78773ba815b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-53efdaa36719e78773ba815b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-53efdaa36719e78773ba815b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-561b1215b672a721f11b7a5b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-561b1215b672a721f11b7a5b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-561b1215b672a721f11b7a5b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-572d6b27615fd26898b8c117",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-572d6b27615fd26898b8c117",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-572d6b27615fd26898b8c117",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5807b5650af54368150172ca",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5807b5650af54368150172ca",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5807b5650af54368150172ca",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-583b540b191d9a974e69b40d",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-583b540b191d9a974e69b40d",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-583b540b191d9a974e69b40d",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5b303321c59e600b0f43ad8f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5b303321c59e600b0f43ad8f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5b303321c59e600b0f43ad8f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5c03ff7c01cd30b21185b2be",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5c03ff7c01cd30b21185b2be",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5c03ff7c01cd30b21185b2be",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5ca538da2c65a4bd52a68890",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5ca538da2c65a4bd52a68890",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5ca538da2c65a4bd52a68890",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f32430fb74092334f1a6d6d",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f32430fb74092334f1a6d6d",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f32430fb74092334f1a6d6d",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6218173e8bd1b20cd5adc9bf",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6218173e8bd1b20cd5adc9bf",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6218173e8bd1b20cd5adc9bf",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6ad12498c892f17b6c15d04a",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6ad12498c892f17b6c15d04a",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6ad12498c892f17b6c15d04a",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6fc31530d83e3c8b1d6d4b66",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6fc31530d83e3c8b1d6d4b66",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6fc31530d83e3c8b1d6d4b66",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-755ee8081b176fa893b1b21b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-755ee8081b176fa893b1b21b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-755ee8081b176fa893b1b21b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-767d7949d335ae5194971596",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-767d7949d335ae5194971596",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-767d7949d335ae5194971596",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7aa146717efe6d41c37f718b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7aa146717efe6d41c37f718b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7aa146717efe6d41c37f718b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7e24e2d5780edd1851739567",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7e24e2d5780edd1851739567",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7e24e2d5780edd1851739567",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-834afd6275831838fafa12cf",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-834afd6275831838fafa12cf",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-834afd6275831838fafa12cf",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-85939bd6eccc7014d53707d8",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-85939bd6eccc7014d53707d8",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-85939bd6eccc7014d53707d8",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-931a2aaedeb193ce9eb60d5b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-931a2aaedeb193ce9eb60d5b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-931a2aaedeb193ce9eb60d5b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-93c6d7f7d1b062eb4209ee04",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-93c6d7f7d1b062eb4209ee04",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-93c6d7f7d1b062eb4209ee04",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-97ee5680773daff364fbd9e1",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-97ee5680773daff364fbd9e1",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-97ee5680773daff364fbd9e1",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9a47b36c99c86209e7778b9a",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9a47b36c99c86209e7778b9a",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9a47b36c99c86209e7778b9a",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9b77004ba1748396e37025cb",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9b77004ba1748396e37025cb",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9b77004ba1748396e37025cb",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9dcf989d46c81c1f67a86a32",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9dcf989d46c81c1f67a86a32",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9dcf989d46c81c1f67a86a32",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2822e9af523ea2e6d849e26",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2822e9af523ea2e6d849e26",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2822e9af523ea2e6d849e26",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a512c06312a40a7fbe5fd412",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a512c06312a40a7fbe5fd412",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a512c06312a40a7fbe5fd412",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acad6eaacf29bbde373d1402",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acad6eaacf29bbde373d1402",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acad6eaacf29bbde373d1402",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acb5d0f3253e1ef9ad8b299e",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acb5d0f3253e1ef9ad8b299e",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acb5d0f3253e1ef9ad8b299e",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ad156c223b87700ff66914d8",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ad156c223b87700ff66914d8",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ad156c223b87700ff66914d8",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-adb4524bdc08a2e44c8dd90e",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-adb4524bdc08a2e44c8dd90e",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-adb4524bdc08a2e44c8dd90e",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-af3fb023ac4f2e3d31f98868",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-af3fb023ac4f2e3d31f98868",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-af3fb023ac4f2e3d31f98868",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-afe3179099c086168165d4dd",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-afe3179099c086168165d4dd",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-afe3179099c086168165d4dd",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b0e026888d9d93088c93c85f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b0e026888d9d93088c93c85f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b0e026888d9d93088c93c85f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b111d019de805856d03f309c",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b111d019de805856d03f309c",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b111d019de805856d03f309c",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b2114491ce785b09f623d280",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b2114491ce785b09f623d280",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b2114491ce785b09f623d280",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b3efd8e51fc5b64269d85dba",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b3efd8e51fc5b64269d85dba",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b3efd8e51fc5b64269d85dba",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b61f2c03c9988eff4f451b3a",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b61f2c03c9988eff4f451b3a",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b61f2c03c9988eff4f451b3a",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b68276223a40f4ef9aef8be9",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b68276223a40f4ef9aef8be9",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b68276223a40f4ef9aef8be9",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b686c8977afdf538396e2b64",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b686c8977afdf538396e2b64",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b686c8977afdf538396e2b64",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba6610f841c5eec1936cdb28",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba6610f841c5eec1936cdb28",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba6610f841c5eec1936cdb28",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-baa4d33ddcd1546fa0b7e20e",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-baa4d33ddcd1546fa0b7e20e",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-baa4d33ddcd1546fa0b7e20e",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bca47883b992e6cebad2537b",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bca47883b992e6cebad2537b",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bca47883b992e6cebad2537b",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bd25da31445ef585b118b094",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bd25da31445ef585b118b094",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bd25da31445ef585b118b094",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bf426abcad47b9d4ffa31198",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bf426abcad47b9d4ffa31198",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bf426abcad47b9d4ffa31198",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c083ad87b10599683f059fc3",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c083ad87b10599683f059fc3",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c083ad87b10599683f059fc3",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c5aca478ef60404c2b7b14a4",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c5aca478ef60404c2b7b14a4",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c5aca478ef60404c2b7b14a4",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c65cd4968ac955d4f15939d1",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c65cd4968ac955d4f15939d1",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c65cd4968ac955d4f15939d1",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c6701913b06efd66b3715872",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c6701913b06efd66b3715872",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c6701913b06efd66b3715872",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-cd4708a4c8bd0d1cf90a6e65",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-cd4708a4c8bd0d1cf90a6e65",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-cd4708a4c8bd0d1cf90a6e65",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-dd9eafc96b3082023957be63",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-dd9eafc96b3082023957be63",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-dd9eafc96b3082023957be63",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-e61bb7fdafc62d7093bacffe",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-e61bb7fdafc62d7093bacffe",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-e61bb7fdafc62d7093bacffe",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f0693efbe71af4e363cb16e2",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f0693efbe71af4e363cb16e2",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f0693efbe71af4e363cb16e2",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f12ab09bd05a051dcee2a96f",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f12ab09bd05a051dcee2a96f",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f12ab09bd05a051dcee2a96f",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f328434cad7acdb323014b84",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f328434cad7acdb323014b84",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f328434cad7acdb323014b84",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ff31bab527e338890d7b97f9",
+   "family": "association",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ff31bab527e338890d7b97f9",
+   "family": "containment",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ff31bab527e338890d7b97f9",
+   "family": "prerequisite",
+   "disposition": "NO_RELATION",
+   "target": null,
+   "evidenceRefs": [
+    "src:docs/remediation-1515/handout-coverage-decision.md#裁决一",
+    "src:course-content/syllabus-refactor/blueprint.md"
+   ],
+   "edgeId": null
+  }
+ ]
+}

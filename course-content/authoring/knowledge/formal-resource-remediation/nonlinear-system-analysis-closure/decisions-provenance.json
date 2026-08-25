@@ -1,0 +1,21 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "nonlinear-system-analysis",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/nsa2.jsonl",
+ "sourceSha256": "ff3f9723231fd9a70af264fd4c113452c6f3bc849509f8e7ffdf7b1bc8e6c9e2",
+ "rowCount": 347,
+ "memberCount": 347,
+ "edgeCount": 0,
+ "receiptReconciliation": {
+  "packRows": 1041,
+  "publishedEdgeInReceipt": 0,
+  "jsonlEdgeCount": 0,
+  "match": true
+ },
+ "superseded": {
+  "sourceAbsolutePath": "/tmp/remediation-run/review/nsa-round1.jsonl",
+  "rowCount": 20,
+  "proposedEdgeCount": 7,
+  "reason": "The 20-row truncated fragment proposed seven edges; the complete nsa2 re-review has zero gap and supersedes those proposals."
+ }
+}

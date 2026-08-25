@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "state-space-control-analysis-and-design",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/state-space-control-analysis-and-design-review.jsonl",
+ "sourceSha256": "5fd9ea23a27cccfba07ef12bf411a21e91e70c5293e69bc01cf3befeb60964c5",
+ "rowCount": 1282,
+ "memberCount": 1282,
+ "edgeCount": 13,
+ "receiptReconciliation": {
+  "packRows": 3846,
+  "publishedEdgeInReceipt": 13,
+  "jsonlEdgeCount": 13,
+  "match": true
+ }
+}

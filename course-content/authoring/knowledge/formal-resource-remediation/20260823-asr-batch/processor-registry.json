@@ -1,0 +1,50 @@
+{
+ "contract": "remediation-processor-registry/v1",
+ "sealedAt": "2026-08-23T13:38:23Z",
+ "processors": [
+  {
+   "identity": {
+    "processorKind": "fun-asr-nano",
+    "modelId": "FunAudioLLM/Fun-ASR-Nano-2512",
+    "modelRevision": "local:model.pt",
+    "weightHashes": [
+     "55ae0d2fee369f0f11cce0795f6927934ad17cf11b278a7e56a51272074160bb"
+    ],
+    "quantization": "pytorch-fp32-load",
+    "runtimeVersion": "torch==2.13.0 funasr==1.4.3",
+    "apiVersion": "funasr.AutoModel.generate(hotwords=csv)",
+    "backend": "mps",
+    "timestampMode": "none-external-alignment",
+    "hotwordContract": "comma-separated zh-CN terms via generate(hotwords=...); source-bound per-unit handout",
+    "decodingConfigDigest": null
+   },
+   "notes": "audio: m4a direct; 5x realtime on MPS; transcript-only (no timestamps in public ckpt, CTC head absent - confirmed by funasr loader warning)"
+  },
+  {
+   "identity": {
+    "processorKind": "forced-aligner",
+    "modelId": "Qwen/Qwen3-ForcedAligner-0.6B-hf",
+    "modelRevision": "local:safetensors",
+    "weightHashes": [
+     "00568245ceca5af1991d28562a75fe1ddc9bfeb041c27fda66947ea05c47fb86"
+    ],
+    "quantization": "fp32-cpu",
+    "runtimeVersion": "transformers==5.15.1 accelerate==1.14.0",
+    "apiVersion": "prepare_forced_aligner_inputs + decode_forced_alignment",
+    "backend": "cpu (mps device_map segfaults)",
+    "timestampMode": "word-level",
+    "hotwordContract": null,
+    "decodingConfigDigest": null
+   },
+   "notes": "input: 16kHz mono wav (ffmpeg pre-convert); 1.2s per 15s clip"
+  }
+ ],
+ "audioPreprocess": {
+  "format": "wav",
+  "sampleRate": 16000,
+  "channels": 1,
+  "tool": "ffmpeg"
+ },
+ "hotwordSource": "per-unit student handout markdown (exact source binding)",
+ "registryHash": "61a631d0f11279df9a6a19e861076f38ea8564bd8d997bdb0182d551c884ebfe"
+}

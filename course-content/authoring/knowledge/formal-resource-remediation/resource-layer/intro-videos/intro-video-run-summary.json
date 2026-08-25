@@ -1,0 +1,9 @@
+{
+ "contract": "remediation-intro-video-run/v1",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "unitCount": 31,
+ "includedCount": 31,
+ "excludedCount": 0,
+ "atomCount": 1880,
+ "runHash": "ed162ab0b5394c076e9d48802d7abd874392d51a9c5633e6b68e366fc341a057"
+}
