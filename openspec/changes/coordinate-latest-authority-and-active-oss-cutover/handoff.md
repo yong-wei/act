@@ -70,11 +70,16 @@ admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无
 - **denominator 语义裁定**：baseline = runtime-89fef308 的 7272 文件级 blob 条目（全部 INCLUDED，不 retire）；delta = remediation 1058 治理资源（全 NEW）——两套身份体系诚实共存，successor runtime release 物化本就包含全部资源 blob。
 - **执行依赖图（钉死顺序）**：① successor 知识面物化（remediation 投影 → `stageTeachingProjection`：`TeachingProjectionAuthoringInput{scopeId, authoringRevision, authorityReleaseId=ctr:release:…v0.37, authoritySnapshotId=snap-e955b1ca…, resources/bindings/prerequisites/coreNodes, authorityNodes=7476 端点索引}`；prerequisites/consumer 面同链）→ ② successor Runtime Release v2 物化（OSS，含新知识面）→ ③ 正式 candidate（predecessor=上述实况，successor expectations 引用①②身份）→ ④ 8 节事务（predecessor 混合形态：authority 匹配 v0.22、六指针 ABSENT→PRESENT）→ ⑤ 镜像/部署/激活。
 
-## 知识面物化进度（2026-08-25）
+## 知识面物化完成（2026-08-25，8ab84aef6）
 
-- **Teaching Projection 已 staged**：`proj-7891aed15d9af4e84422fa82a69d41ca8c1cc8a5f3dafcf066282647c08ce189`（`course-content/runtime/knowledge/projection/releases/`，4.7MB 八件工件，绑 snap-e955b1ca；构建器 `scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts`）。1058 资源（remediation id 规范化为 `act:<type>:<slug>`）、891 资源级绑定（原子级 2575 按 resource×concept×role 去重）、141 prerequisite 族发布边、205 卡索引、7476 authority 端点。candidate-only，零指针写入。
-- **剩余两面**：prerequisites publication（`runtime/knowledge/prerequisites/releases/<publicationId>/publication-manifest.json` 形态，staging 链待定位）与 consumer activation（`stageConsumerActivation` + `StagedActivationArtifactSet`——authority/projection 工件 hash+path 集 + captureRevision 一致性，`src/lib/versioned-knowledge-activation/readiness.ts`）。
-- **注意**：本地 `projection/releases/` 另有历史 proj-769b1a83（v022 链本地工件），与本轮产物无关。
+**capture 语义修正**：snapshot 的 captureRevision 必须是 ACT 侧构建修订（与投影 authoringRevision 同源），不是 ActKG source commit——snap-e955b1ca 已被 snap-3ba36b03 取代（重新 staged + reverify；ActKG source 3e98864 仅保留在 bundleReceipt.sourceCommit）。
+
+三面全部 staged（candidate-only，零指针写入），身份链冻结在构建时 HEAD 822372e28（工件随 bundle 上传到目标宿主、按 hash 校验，不在远端重建）：
+- **Teaching Projection** `proj-e49f022280eb8a7a8a42ff9637acc747df2195fadee36877864eae9566867871`（绑 snap-3ba36b03；1058 资源 act:<type>:<slug>、891 资源级绑定、141 边、205 卡、7476 端点）
+- **Prerequisites publication** `proj-b8100a7f322e588a620a2869b5fccafa22d501de9a85bb5882a7c56e9528a21b`（141 条 PUBLISHED 边 + #1515 域裁决作为 author decisions + 162 端点 core-node 分母，gate 通过）
+- **Consumer activation** `activation-e3c8b5856c79c6728bc67710`（authority/projection 工件 rehash 验证；engineering-graph/engineering-rag/course-runtime 就绪，konling/learning-path/teaching-resource-rag BLOCKED_LOCAL_DEPENDENCY——激活时按 PINNED_PREVIOUS 诚实降级）
+
+**剩余依赖图**：② successor runtime release v2 OSS 物化（`deploy-runtime-blob-release.sh`，凭证在本地 credential provider）→ ③ 正式 candidate（引用上述冻结身份 + ② 的物化收据）→ ④ 混合形态事务 → ⑤ 镜像/部署/停服激活。
 
 ## 切换执行时的硬性前提
 
