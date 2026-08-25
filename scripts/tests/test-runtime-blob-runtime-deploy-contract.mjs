@@ -60,6 +60,8 @@ for (const invariant of [
   'ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT',
   'ACT_RUNTIME_CANDIDATE_INDEX_ROOT',
   'candidate media, knowledge, or textbook consumer smoke failed',
+  'smoke_dir="$(mktemp -d /tmp/act-runtime-blob-candidate-smoke.XXXXXX)"',
+  'smoke_file="$smoke_dir/candidate-smoke.ts"',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
   'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
@@ -196,7 +198,7 @@ assert.doesNotMatch(
 );
 assert.match(
   activation,
-  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp -d \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX[\s\S]*candidate-smoke\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
   'candidate consumer smoke must execute a temporary TypeScript file through the deployed application runtime',
 );
 assert.doesNotMatch(

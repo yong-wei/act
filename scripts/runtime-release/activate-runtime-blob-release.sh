@@ -143,8 +143,9 @@ run_candidate_consumer_smoke() {
       return 1
     }
   if ! candidate_result="$(podman exec -i --workdir /app "$APP_CONTAINER" /bin/sh -eu -c '
-    smoke_file="$(mktemp /tmp/act-runtime-blob-candidate-smoke.XXXXXX.ts)"
-    trap "rm -f -- \"$smoke_file\"" EXIT HUP INT TERM
+    smoke_dir="$(mktemp -d /tmp/act-runtime-blob-candidate-smoke.XXXXXX)"
+    smoke_file="$smoke_dir/candidate-smoke.ts"
+    trap "rm -f -- \"$smoke_file\"; rmdir -- \"$smoke_dir\"" EXIT HUP INT TERM
     cat > "$smoke_file"
     ./node_modules/.bin/tsx "$smoke_file"
   ' <<'TS'
