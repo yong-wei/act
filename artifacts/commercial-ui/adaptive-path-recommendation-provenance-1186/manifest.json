@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-08-25T03:40:30.441Z",
-  "commitSha": "3263b02d3a6011c89b473a41a3305d9fc37c2a12",
+  "capturedAt": "2026-08-25T03:47:10.308Z",
+  "commitSha": "d613eb044a6b1b011ab3bff9736058013ca772f8",
   "generator": {
     "file": "tests/adaptive-path-recommendation-provenance-evidence.spec.ts",
-    "sha256": "f5243c1e228d2fdc8358b5ea5497c60912bf85f524c83a9be9aa870b8ec1949c"
+    "sha256": "741d95836ef8dcd452d9c308d76e2b5eb180b70778fd5a77460e866f4fa90117"
   },
   "productionSourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "aecfa537403ab5a5a2aa062cd8ecff63af737efd9057707dd3e89a38770e11a1",
@@ -90,6 +90,26 @@
         "legacy fallback remains usable",
         "no synthesized provenance",
         "no horizontal overflow"
+      ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "fixture": "continue-existing-path",
+      "passed": true,
+      "checks": [
+        "active path remains visible",
+        "candidate comparison stays hidden",
+        "path generation endpoint is not invoked"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "continue-existing-path",
+      "passed": true,
+      "checks": [
+        "active path remains visible",
+        "candidate comparison stays hidden",
+        "path generation endpoint is not invoked"
       ]
     }
   ],
