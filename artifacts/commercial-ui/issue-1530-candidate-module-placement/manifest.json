@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "issue": 1530,
+  "capturedAt": "2026-08-25T06:19:52.414Z",
+  "commitSha": "a1d71550b531a8b1da4d4ed59664be243c1b9e5f",
+  "generator": {
+    "file": "tests/adaptive-path-candidate-comparison-1429.spec.ts",
+    "sha256": "8cd6c6a57843143deffee70b658304bec62d8718c08d8b0064cac9ab7c72471a"
+  },
+  "productionSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "a45bc57295ae9bcd6e83caf6882d7e58a69d33f07693ff6c104e692db7a3c2f7",
+    "tests/adaptive-path-candidate-comparison-1429.spec.ts": "8cd6c6a57843143deffee70b658304bec62d8718c08d8b0064cac9ab7c72471a"
+  },
+  "captureWorkingTreeSourceSha256": {
+    "src/app/assessment/adaptive-practice/page.tsx": "a45bc57295ae9bcd6e83caf6882d7e58a69d33f07693ff6c104e692db7a3c2f7",
+    "tests/adaptive-path-candidate-comparison-1429.spec.ts": "8cd6c6a57843143deffee70b658304bec62d8718c08d8b0064cac9ab7c72471a"
+  },
+  "sourceGitBlobIds": {
+    "src/app/assessment/adaptive-practice/page.tsx": "a8bcdb2c4896cca4d3c9907e5f54fbdf81fa2bd5",
+    "tests/adaptive-path-candidate-comparison-1429.spec.ts": "822df639742b5212ca9264d908fc6e372db65d8c"
+  },
+  "routes": [
+    "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=candidate-comparison-batch-1429"
+  ],
+  "assertions": {
+    "desktop-1440": [
+      "generation < candidate comparison < active route",
+      "candidate select/adjust/compare controls visible"
+    ],
+    "mobile-320": [
+      "generation < candidate comparison < active route",
+      "candidate select/adjust/compare controls visible"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1530-candidate-module-placement/candidate-module-placement-1440.png",
+      "sha256": "11a8bd0a5119f52069a15d88a6acff522994915266a09d92ad3c583fbb136ecc",
+      "width": 1440,
+      "height": 1000,
+      "scenario": "desktop-1440",
+      "noHorizontalOverflow": true,
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=candidate-comparison-batch-1429",
+      "assertions": [
+        "generation settings appear before candidate comparison",
+        "candidate comparison appears before active route",
+        "candidate actions remain visible"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1530-candidate-module-placement/candidate-module-placement-320.png",
+      "sha256": "919dfc114a85ac01982b4486d903e123300d2ffb3637c7f86aa02d25205d5cd5",
+      "width": 320,
+      "height": 900,
+      "scenario": "mobile-320",
+      "noHorizontalOverflow": true,
+      "route": "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation&batch=candidate-comparison-batch-1429",
+      "assertions": [
+        "generation settings appear before candidate comparison",
+        "candidate comparison appears before active route",
+        "candidate actions remain visible"
+      ]
+    }
+  ]
+}
