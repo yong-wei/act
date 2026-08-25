@@ -7,3 +7,5 @@ export * from './teaching-closure';
 export * from './envelope';
 export * from './transaction';
 export * from './runtime-binding';
+export * from './inventory-capture';
+export * from './latest-complete-capture';

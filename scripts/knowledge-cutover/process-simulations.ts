@@ -1,12 +1,10 @@
 #!/usr/bin/env tsx
 /**
- * Task family 6.4–6.5 (#1515): run the simulation/interactive processor
- * over every governed launcher in the production database. Each DB
- * TeachingResource with a registryId (INTERACTIVE_COMP, SIMULATION_APP,
- * ETHICS_SCENARIO) is one launcher resource; the atom binds registry
- * identity, subtype, category, and the versioned config digest with the
- * registryId as the launch anchor. Formal bindings imply nothing about
- * path eligibility, assessment authority, mastery, or learning evidence.
+ * Task family 6.4–6.5 (#1515): process every production TeachingResource
+ * that carries a registryId, including STATIC_MEDIA. Type filters must not
+ * silently drop in-course media; course-scope decisions belong in the
+ * inventory capture. The atom binds registry identity, subtype, category,
+ * and the versioned config digest with the registryId as the launch anchor.
  */
 
 import { createHash } from 'node:crypto';
@@ -20,7 +18,7 @@ import { createPrismaClient } from '@/lib/prisma-client';
 const ROOT = process.cwd();
 const OUT_DIR = 'course-content/authoring/knowledge/formal-resource-remediation/resource-layer/simulations';
 const ALLOCATION_PATH = 'course-content/authoring/knowledge/formal-resource-remediation/allocation-v037-scope.json';
-const LAUNCHER_TYPES = ['INTERACTIVE_COMP', 'SIMULATION_APP', 'ETHICS_SCENARIO'] as const;
+const LAUNCHER_TYPES = ['INTERACTIVE_COMP', 'SIMULATION_APP', 'ETHICS_SCENARIO', 'STATIC_MEDIA'] as const;
 
 interface LauncherRow {
   readonly id: string;
@@ -46,7 +44,7 @@ async function main(): Promise<void> {
   const allocation = JSON.parse(readFileSync(path.join(ROOT, ALLOCATION_PATH), 'utf8')) as { allocationHash: string };
   const prisma = createPrismaClient();
   const rows = await prisma.$queryRawUnsafe(
-    `SELECT id, type::text AS type, "registryId", category, config::text AS "configText" FROM "TeachingResource" WHERE type::text IN ('INTERACTIVE_COMP','SIMULATION_APP','ETHICS_SCENARIO') ORDER BY id`,
+    `SELECT id, type::text AS type, "registryId", category, config::text AS "configText" FROM "TeachingResource" WHERE "registryId" IS NOT NULL ORDER BY id`,
   ) as unknown as LauncherRow[];
   await prisma.$disconnect();
   if (rows.length === 0) throw new Error('no governed launchers found in the production database');

@@ -1,10 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * Build the v0.37 Authority Snapshot for the coordinated cutover (#1509
- * gap C). The v0.18/v0.22 chain produced snapshots from a CTKG 0.2
- * aggregate DB admission; ActKG never published a v0.37 aggregate, so this
- * producer materializes the authority-store snapshot directly from the
- * checked-in v0.37-r3 public bundle (canonical bytes identical to v0.37).
+ * Build a v0.37 Authority Snapshot for the coordinated cutover (#1509
+ * gap C). Bundle identity comes from a sealed latest-complete capture
+ * receipt; this producer never hardcodes a bundle revision.
  *
  * The snapshot is staged candidate-only: no current.json selector is
  * written, and the output reopens cleanly through
@@ -38,19 +36,52 @@ import {
 } from '@/lib/authoritative-knowledge/authority-store';
 
 const ROOT = process.cwd();
-const BUNDLE_DIR = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r3';
 const AUTHORITY_ROOT = 'course-content/authoring/knowledge/authority';
-const RELEASE_ID = 'ctr:release:control-theory-engineering-v0.37';
-const RELEASE_VERSION = 'control-theory-engineering-v0.37';
-const RELEASE_SET_ID = 'actkg-authoritative-candidate-v037-r3';
-const PREDECESSOR_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22';
-const ACTKG_SOURCE_COMMIT = '3e98864deaa18a0635a79188d0f8459e87389351';
-// The snapshot capture revision is the ACT-side build revision: the same Git
-// HEAD the teaching projection and consumer activation bind as their shared
-// authoring/capture identity (never the upstream ActKG source commit).
+const PREDECESSOR_RELEASE_ID_DEFAULT = 'ctr:release:control-theory-engineering-v0.22';
 const CAPTURE_REVISION = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
-const SOURCE_TAG = 'control-theory-engineering-v0.37-source-r4';
-const STAGED_AT = '2026-08-25T12:00:00.000Z';
+const STAGED_AT_DEFAULT = '2026-08-25T12:00:00.000Z';
+
+type CaptureReceiptLite = {
+  readonly bundleId: string;
+  readonly sourceCommit: string;
+  readonly sourceTag: string;
+  readonly stableTag: string;
+  readonly releaseId: string;
+  readonly releaseVersion: string;
+  readonly bundleDigest: string;
+  readonly compatibility: { readonly classification: string };
+};
+
+function parseBuilderArgs(argv: string[]): {
+  capturePath: string;
+  bundleDir?: string;
+  predecessorReleaseId: string;
+  stagedAt: string;
+} {
+  const values = new Map<string, string>();
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = argv[index];
+    const value = argv[index + 1];
+    if (!key?.startsWith('--') || !value) {
+      throw new Error('build-v037-authority-snapshot requires --capture <authority-capture.json>');
+    }
+    values.set(key, value);
+  }
+  const capturePath = values.get('--capture');
+  if (!capturePath) {
+    throw new Error('build-v037-authority-snapshot requires --capture <authority-capture.json> from the latest-complete capture; it does not hardcode a bundle revision.');
+  }
+  return {
+    capturePath,
+    bundleDir: values.get('--bundle-dir'),
+    predecessorReleaseId: values.get('--predecessor-release-id') ?? PREDECESSOR_RELEASE_ID_DEFAULT,
+    stagedAt: values.get('--staged-at') ?? STAGED_AT_DEFAULT,
+  };
+}
+
+function bundleDirFromId(bundleId: string): string {
+  return `course-content/authoring/knowledge/releases/${bundleId.replace(/^ctb:/u, '').replaceAll(':', '-')}`;
+}
 
 type ProjectionNodeRow = {
   readonly id: string;
@@ -124,6 +155,19 @@ function sha256File(filePath: string): string {
 }
 
 function main(): void {
+  const args = parseBuilderArgs(process.argv.slice(2));
+  const capture = readJson<CaptureReceiptLite>(args.capturePath);
+  if (capture.compatibility.classification !== 'COMPATIBLE') {
+    throw new Error('refusing to materialize a snapshot from an ADAPTATION_REQUIRED capture');
+  }
+  const BUNDLE_DIR = args.bundleDir ?? bundleDirFromId(capture.bundleId);
+  const RELEASE_ID = capture.releaseId;
+  const RELEASE_VERSION = capture.releaseVersion;
+  const RELEASE_SET_ID = `actkg-authoritative-candidate-${capture.stableTag}`;
+  const PREDECESSOR_RELEASE_ID = args.predecessorReleaseId;
+  const ACTKG_SOURCE_COMMIT = capture.sourceCommit;
+  const SOURCE_TAG = capture.sourceTag;
+  const STAGED_AT = args.stagedAt;
   const bundleRoot = absolute(BUNDLE_DIR);
 
   // 1. Re-verify the bundle integrity before consuming it.
@@ -172,11 +216,12 @@ function main(): void {
     .filter((line): line is string => line.trim().length > 0)
     .map((line) => JSON.parse(line) as LinkMetadataRow);
 
-  if (release.release_hash !== 'cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39') {
-    throw new Error('r3 bundle release_hash drifted off the sealed v0.37 capture');
+  const bundleManifestIdentity = readJson<{ readonly bundle_id: string; readonly bundle_digest: string; readonly bundle_revision: number }>(`${BUNDLE_DIR}/bundle-manifest.json`);
+  if (bundleManifestIdentity.bundle_id !== capture.bundleId) {
+    throw new Error(`bundle_id ${bundleManifestIdentity.bundle_id} does not match capture ${capture.bundleId}`);
   }
-  if (domainProjection.nodes.length !== 7476) {
-    throw new Error(`expected 7476 projection nodes, got ${domainProjection.nodes.length}`);
+  if (bundleManifestIdentity.bundle_digest !== capture.bundleDigest) {
+    throw new Error('bundle_digest does not match the sealed latest-complete capture');
   }
 
   const schemaSha = sha256File(`${BUNDLE_DIR}/ctkg.schema.json`);
@@ -192,7 +237,7 @@ function main(): void {
   const releaseSet: AuthoritativeReleaseSetRecord = {
     id: RELEASE_SET_ID,
     controlledPath: BUNDLE_DIR,
-    lockVersion: 'control-theory-engineering-v0.37-r3',
+    lockVersion: capture.stableTag,
     candidateState: 'ACCEPTED_CANDIDATE',
   };
   const releaseRecord: AuthoritativeReleaseRecord = {
@@ -217,8 +262,8 @@ function main(): void {
   };
   const bundleReceipt: AuthoritativeBundleReceiptRecord = {
     id: `bundle-receipt:${release.release_hash}`,
-    bundleId: 'ctb:control-theory-engineering-v0.37:r3',
-    bundleRevision: 3,
+    bundleId: capture.bundleId,
+    bundleRevision: bundleManifestIdentity.bundle_revision,
     bundleDigest: release.release_hash,
     bundleKind: 'composite',
     releaseStage: 'published',
@@ -226,7 +271,7 @@ function main(): void {
     controlledPath: BUNDLE_DIR,
     manifestRawSha256: manifestSha,
     normalization: 'canonical-json/rfc8785-subset-v1',
-    publicationTag: 'control-theory-engineering-v0.37-r3',
+    publicationTag: capture.stableTag,
     sourceCommit: ACTKG_SOURCE_COMMIT,
     sourceTag: SOURCE_TAG,
     releaseSetId: RELEASE_SET_ID,
@@ -235,7 +280,7 @@ function main(): void {
     sourceDatasetHash: release.source_dataset_hash,
     schemaVersion: release.schema_version,
     schemaRawSha256: schemaSha,
-    lockVersion: 'control-theory-engineering-v0.37-r3',
+    lockVersion: capture.stableTag,
     lockPath: `${BUNDLE_DIR}/SHA256SUMS`,
     lockRawSha256: sumsSha,
     captureRevision: CAPTURE_REVISION,
@@ -367,7 +412,7 @@ function main(): void {
     captureRevision: CAPTURE_REVISION,
   }, {
     stagedAt: STAGED_AT,
-    receiptId: `stage-v037r3-${release.release_hash.slice(0, 12)}`,
+    receiptId: `stage-${capture.stableTag}-${release.release_hash.slice(0, 12)}`,
   });
 
   // 4. Reopen the staged files and verify them end-to-end.

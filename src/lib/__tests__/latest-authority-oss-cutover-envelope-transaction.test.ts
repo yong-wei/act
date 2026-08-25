@@ -5,6 +5,7 @@ import type {
   CoordinationAllocationRecord,
   JournaledMutationPlan,
 } from '@/lib/latest-authority-oss-cutover/contracts';
+import { SELECTOR_ABSENT } from '@/lib/latest-authority-oss-cutover/contracts';
 import {
   assertAllocationRecordSealed,
   assertCandidateNonSelectable,
@@ -357,6 +358,61 @@ describe('stopped-service coordinated transaction', () => {
       journalStore: new MemoryJournalStore(),
       openedAt: '2026-08-23T00:00:00.000Z',
     })).rejects.toThrow(/drifted from the sealed predecessor/);
+  });
+
+  it('commits a mixed v0.22-present / remaining-ABSENT predecessor and rolls back a failed mutation', async () => {
+    const allocationRecord = allocation();
+    const input = candidateInput(allocationRecord);
+    input.predecessor = [
+      { selectorId: 'authority:current', identity: 'v0.22-auth' },
+      { selectorId: 'projection:active', identity: SELECTOR_ABSENT },
+      { selectorId: 'catalog:active', identity: SELECTOR_ABSENT },
+      { selectorId: 'runtime:desired', identity: 'runtime-bb309e6a' },
+    ];
+    input.successorSelectorExpectations = [
+      { selectorId: 'authority:current', expectedSuccessorIdentity: 'v0.37-auth' },
+      { selectorId: 'projection:active', expectedSuccessorIdentity: 'v0.37-proj' },
+      { selectorId: 'catalog:active', expectedSuccessorIdentity: 'v0.37-catalog' },
+      { selectorId: 'runtime:desired', expectedSuccessorIdentity: 'runtime-successor' },
+    ];
+    const candidate = sealCoordinatedCandidateReceipt(input);
+    const stores = [
+      new MemorySelectorStore('authority:current', 'v0.22-auth'),
+      new MemorySelectorStore('projection:active', SELECTOR_ABSENT),
+      new MemorySelectorStore('catalog:active', SELECTOR_ABSENT),
+      new MemorySelectorStore('runtime:desired', 'runtime-bb309e6a', true),
+    ];
+    const plans: JournaledMutationPlan[] = [
+      { selectorId: 'authority:current', expectedPredecessorIdentity: 'v0.22-auth', successorIdentity: 'v0.37-auth' },
+      { selectorId: 'projection:active', expectedPredecessorIdentity: SELECTOR_ABSENT, successorIdentity: 'v0.37-proj' },
+      { selectorId: 'catalog:active', expectedPredecessorIdentity: SELECTOR_ABSENT, successorIdentity: 'v0.37-catalog' },
+      { selectorId: 'runtime:desired', expectedPredecessorIdentity: 'runtime-bb309e6a', successorIdentity: 'runtime-successor' },
+    ];
+    const opened = await openCutoverTransaction({
+      candidateReceipt: candidate,
+      stores,
+      orderedMutationPlans: plans,
+      journalStore: new MemoryJournalStore(),
+      consumers: [
+        { consumerId: 'graph', stopped: true },
+        { consumerId: 'app', stopped: true },
+        { consumerId: 'worker', stopped: true },
+        { consumerId: 'runtime', stopped: true },
+      ],
+      openedAt: '2026-08-25T00:00:00.000Z',
+    });
+    const receipts = [];
+    receipts.push(await applyJournaledMutation(opened.journal, 0, stores[0]!, '2026-08-25T00:01:00.000Z'));
+    receipts.push(await applyJournaledMutation(opened.journal, 1, stores[1]!, '2026-08-25T00:01:01.000Z'));
+    receipts.push(await applyJournaledMutation(opened.journal, 2, stores[2]!, '2026-08-25T00:01:02.000Z'));
+    await expect(applyJournaledMutation(opened.journal, 3, stores[3]!, '2026-08-25T00:01:03.000Z'))
+      .rejects.toThrow(/simulated write failure/);
+    await compensateTransaction(opened.journal, stores);
+    expect(stores[0]!.identity).toBe('v0.22-auth');
+    expect(stores[1]!.identity).toBe(SELECTOR_ABSENT);
+    expect(stores[2]!.identity).toBe(SELECTOR_ABSENT);
+    expect(stores[3]!.identity).toBe('runtime-bb309e6a');
+    expect(receipts).toHaveLength(3);
   });
 
   it('fails closed when a selector identity does not match the journal state', async () => {

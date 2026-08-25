@@ -35,6 +35,14 @@ import {
   resourceBindingCacheIdentity,
   teachingDecisionCacheIdentity,
 } from '@/lib/latest-authority-oss-cutover/incremental';
+import { captureActiveLogicalInventory } from '@/lib/latest-authority-oss-cutover/inventory-capture';
+import {
+  adapterSupportsPublicBundle3,
+  capturedPublicContractFromBundle,
+} from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   assertContinuityQualified,
   assertDevelopmentOnlyExcludedFromManifest,
@@ -345,6 +353,30 @@ describe('production teaching-resource continuity gate', () => {
     return buildCombinedDenominator(baseline, delta);
   }
 
+  it('blocks LessonItem-referenced STATIC_MEDIA without an atomic binding', () => {
+    const baseline = buildActiveBaseline({
+      activeRelease: activeRelease(),
+      entries: [
+        ...baselineEntries(),
+        {
+          entryId: 'e-media',
+          resourceId: 'res-static-1',
+          classification: 'resource',
+          subtype: 'STATIC_MEDIA',
+        },
+      ],
+    });
+    const denominator = buildCombinedDenominator(baseline, buildExplicitDelta([]));
+    const receipt = evaluateContinuityGate({
+      denominator,
+      baselineReleaseId: activeRelease().releaseId,
+      dispositions: [healthyDisposition('res-video-1'), healthyDisposition('res-card-1')],
+      retirements: [],
+    });
+    expect(receipt.status).not.toBe('QUALIFIED');
+    expect(receipt.blocked.some((row) => row.resourceId === 'res-static-1')).toBe(true);
+  });
+
   it('blocks qualification when a baseline resource has a technical failure', () => {
     const denominator = denominatorWith([{ resourceId: 'res-video-1', origin: 'BASELINE' }]);
     const receipt = evaluateContinuityGate({
@@ -583,3 +615,159 @@ describe('complete Teaching Projection governance', () => {
     )).toThrow(/different scope/);
   });
 });
+
+describe('active logical inventory capture', () => {
+  const release = {
+    releaseId: 'runtime-bb309e6a',
+    manifestSha256: HASH_A,
+    treeSha256: HASH_B,
+    activeReceiptHash: HASH_C,
+    lifecycleGeneration: 34,
+  };
+
+  it('fails closed when a registry TeachingResource or manifest file is omitted', () => {
+    expect(() => captureActiveLogicalInventory({
+      activeRelease: release,
+      manifestFiles: [{ path: 'lessons/card.json', sha256: HASH_D }],
+      teachingResources: [
+        { id: 'db-1', type: 'INTERACTIVE_COMP', registryId: 'reg-1' },
+      ],
+      lessonItemResourceIds: [],
+      classified: [{
+        entryId: 'res-card-1',
+        resourceId: 'res-card-1',
+        classification: 'resource',
+        subtype: 'knowledge-card',
+        runtimePath: 'lessons/card.json',
+        sourceKind: 'runtime-manifest',
+      }],
+    })).toThrow(/TeachingResource db-1/);
+
+    expect(() => captureActiveLogicalInventory({
+      activeRelease: release,
+      manifestFiles: [
+        { path: 'lessons/card.json', sha256: HASH_D },
+        { path: 'lessons/orphan.json', sha256: HASH_A },
+      ],
+      teachingResources: [],
+      lessonItemResourceIds: [],
+      classified: [{
+        entryId: 'res-card-1',
+        resourceId: 'res-card-1',
+        classification: 'resource',
+        subtype: 'knowledge-card',
+        runtimePath: 'lessons/card.json',
+        sourceKind: 'runtime-manifest',
+      }],
+    })).toThrow(/orphan.json/);
+  });
+
+  it('blocks in-course STATIC_MEDIA without an explicit in-course binding', () => {
+    expect(() => captureActiveLogicalInventory({
+      activeRelease: release,
+      manifestFiles: [],
+      teachingResources: [
+        { id: 'media-1', type: 'STATIC_MEDIA', registryId: 'static-1' },
+      ],
+      lessonItemResourceIds: ['media-1'],
+      classified: [{
+        entryId: 'media-1',
+        resourceId: 'res-media-1',
+        classification: 'resource',
+        subtype: 'STATIC_MEDIA',
+        sourceKind: 'db-teaching-resource',
+        dbResourceId: 'media-1',
+        registryId: 'static-1',
+        courseScope: 'out-of-course',
+      }],
+    })).toThrow(/must be classified in-course/);
+  });
+
+  it('accepts one Runtime file carrying two logical resources and a blobless launcher', () => {
+    const baseline = captureActiveLogicalInventory({
+      activeRelease: release,
+      manifestFiles: [{ path: 'lessons/interactive.json', sha256: HASH_D }],
+      teachingResources: [
+        { id: 'db-launch', type: 'INTERACTIVE_COMP', registryId: 'launch-1' },
+      ],
+      lessonItemResourceIds: [],
+      classified: [
+        {
+          entryId: 'exercise-1',
+          resourceId: 'res-ex-1',
+          classification: 'resource',
+          subtype: 'handout-exercise',
+          sourceKind: 'runtime-manifest',
+          runtimePath: 'lessons/interactive.json',
+          carrierEntryId: 'interactive-1',
+        },
+        {
+          entryId: 'interactive-1',
+          resourceId: 'res-int-1',
+          classification: 'resource',
+          subtype: 'interactive',
+          sourceKind: 'runtime-manifest',
+          runtimePath: 'lessons/interactive.json',
+        },
+        {
+          entryId: 'launcher-1',
+          resourceId: 'res-launch-1',
+          classification: 'resource',
+          subtype: 'INTERACTIVE_COMP',
+          sourceKind: 'db-teaching-resource',
+          dbResourceId: 'db-launch',
+          registryId: 'launch-1',
+          runtimePath: null,
+        },
+      ],
+    });
+    expect(baseline.logicalResourceCount).toBe(3);
+  });
+});
+
+describe('latest-complete public-contract capture', () => {
+  it('classifies public-bundle/3 as compatible only after the adapter surface includes it', () => {
+    const captured = {
+      schemaVersion: '0.3.0',
+      schemaSha256: HASH_A,
+      contractVersion: 'actkg-public-bundle/3',
+      requiredMembers: ['release', 'ctkg_schema'],
+      profiles: ['runtime'],
+      representativeParse: 'COMPLETE' as const,
+    };
+    const v2Only = supportedContract();
+    expect(validateCapturedPublicContract(captured, v2Only).classification).toBe('ADAPTATION_REQUIRED');
+    const adapted = adapterSupportsPublicBundle3(v2Only, '0.3.0', HASH_A);
+    expect(validateCapturedPublicContract(captured, adapted).classification).toBe('COMPATIBLE');
+  });
+
+  it('reads contract members from the bundle and maps projection kinds onto adapter profiles', () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-'));
+    writeFileSync(path.join(dir, 'bundle-manifest.json'), `${JSON.stringify({
+      bundle_contract_version: 'actkg-public-bundle/3',
+      schema: { version: '0.3.0', sha256: HASH_A },
+      artifacts: [
+        { role: 'release', required: true },
+        { role: 'ctkg_schema', required: true },
+        { role: 'locale_manifest', required: true },
+      ],
+    })}\n`);
+    writeFileSync(path.join(dir, 'projection-profiles.json'), `${JSON.stringify({
+      profiles: [
+        { projection_kind: 'act_runtime_graph' },
+        { projection_kind: 'domain_graph' },
+        { projection_kind: 'review_graph' },
+      ],
+    })}\n`);
+    const captured = capturedPublicContractFromBundle(dir, 'COMPLETE');
+    expect(captured.contractVersion).toBe('actkg-public-bundle/3');
+    expect(captured.requiredMembers).toEqual(['release', 'ctkg_schema', 'locale_manifest']);
+    expect([...captured.profiles].sort()).toEqual(['domain', 'review', 'runtime']);
+    const adapted = adapterSupportsPublicBundle3({
+      ...supportedContract(),
+      profiles: ['runtime', 'domain', 'review'],
+    }, '0.3.0', HASH_A);
+    expect(validateCapturedPublicContract(captured, adapted).classification).toBe('COMPATIBLE');
+  });
+});
+

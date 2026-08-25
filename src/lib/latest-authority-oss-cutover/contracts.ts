@@ -40,6 +40,8 @@ export const COORDINATED_RUNTIME_MANIFEST_EXTENSION_CONTRACT =
   'coordinated-runtime-manifest-extension/v1' as const;
 export const LATEST_AUTHORITY_CUTOVER_BUILDER_VERSION =
   'latest-authority-oss-cutover-builder/v1' as const;
+/** Opaque predecessor identity for a graph selector that is not yet written. */
+export const SELECTOR_ABSENT = 'ABSENT' as const;
 
 export const AUTHORITY_COMPONENT_KINDS = [
   'module',
@@ -165,12 +167,31 @@ export interface AuthorityCaptureReceipt {
   readonly captureHash: string;
 }
 
+export const BASELINE_SOURCE_KINDS = [
+  'runtime-manifest',
+  'db-teaching-resource',
+] as const;
+export type BaselineSourceKind = (typeof BASELINE_SOURCE_KINDS)[number];
+
+export const BASELINE_COURSE_SCOPES = [
+  'in-course',
+  'out-of-course',
+  'non-resource',
+] as const;
+export type BaselineCourseScope = (typeof BASELINE_COURSE_SCOPES)[number];
+
 /** Logical-resource entry classification reopened from the active release. */
 export interface ActiveBaselineEntry {
   readonly entryId: string;
   readonly resourceId: string | null;
   readonly classification: 'resource' | 'non-resource';
   readonly subtype: string | null;
+  readonly sourceKind?: BaselineSourceKind;
+  readonly runtimePath?: string | null;
+  readonly dbResourceId?: string | null;
+  readonly registryId?: string | null;
+  readonly carrierEntryId?: string | null;
+  readonly courseScope?: BaselineCourseScope;
 }
 
 export interface ActiveRuntimeReleaseIdentity {

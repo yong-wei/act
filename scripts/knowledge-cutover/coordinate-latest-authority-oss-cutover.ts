@@ -20,7 +20,7 @@
  * independent explicit authorizations (see tasks 10.6/10.7).
  */
 
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { readdirSync } from 'node:fs';
@@ -66,8 +66,15 @@ import { reopenRemediationHandoff } from '@/lib/formal-resource-remediation/hand
 import type { RemediationAllocation } from '@/lib/formal-resource-remediation/allocation';
 import type { RemediationHandoffManifest } from '@/lib/formal-resource-remediation/contracts';
 import { projectionDigest } from '@/lib/teaching-projection/hash';
-import { resolveLatestStableAggregate } from '../actkg-release/latest-stable-aggregate';
 import { REVIEWED_V0_18_V2_REGISTRY } from '../actkg-release/bundle-compatibility-registry-v2';
+import {
+  adapterSupportsPublicBundle3,
+  capturedPublicContractFromBundle,
+  discoverLatestCompleteAggregate,
+  inspectActkgWorktreeDirty,
+  parseSixKindComponentClosure,
+  readSealedBundleIdentity,
+} from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
 
 const execFileAsync = promisify(execFile);
 
@@ -154,47 +161,49 @@ async function runCapture(values: Map<string, string>): Promise<void> {
       fail(`git fetch --tags failed in ${actkgRoot}: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
-  const resolution = await resolveLatestStableAggregate({
-    actkgRoot,
-    mainRef,
-  });
-  const binding = resolution.binding;
+  const dirty = inspectActkgWorktreeDirty(actkgRoot);
+  const sealed = values.get('--bundle-dir')
+    ? readSealedBundleIdentity(path.resolve(values.get('--bundle-dir') as string))
+    : discoverLatestCompleteAggregate(actkgRoot);
+  const bundleDir = sealed.bundleDir;
+  const actkgMainCommit = execFileSync('git', ['-C', actkgRoot, 'rev-parse', `${mainRef}^{commit}`], {
+    encoding: 'utf8',
+  }).trim();
+  const lineagePath = values.get('--lineage')
+    ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json');
+  const registrySummaryPath = values.get('--registry-summary')
+    ?? path.join(actkgRoot, 'docs/experiments/control-theory-residual-successor-registry-v14.summary.json');
   const componentsFile = values.get('--components');
   const components: AuthorityComponentIdentity[] = componentsFile
     ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
-    : fail('--components <json> with the six-kind component closure is required');
-  const supported = values.get('--supported-contract')
+    : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
+  const baseSupported = values.get('--supported-contract')
     ? (await readJson(values.get('--supported-contract') as string)) as SupportedPublicContract
     : defaultSupportedContract();
-  const capturedPublicContract: CapturedPublicContract = {
-    schemaVersion: binding.schemaVersion,
-    schemaSha256: binding.schemaSha256,
-    contractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
-    requiredMembers: supported.requiredMembers,
-    profiles: [...new Set(supported.profiles)],
-    // resolveLatestStableAggregate already performs the complete bundle
-    // validation (SHA256SUMS, manifest, validation report, closure), which
-    // is the representative adapter parse for the captured tree.
-    representativeParse: 'COMPLETE',
-  };
+  const capturedPublicContract = capturedPublicContractFromBundle(bundleDir, 'COMPLETE');
+  const supported = adapterSupportsPublicBundle3(
+    baseSupported,
+    capturedPublicContract.schemaVersion,
+    capturedPublicContract.schemaSha256,
+  );
   const input: AuthorityCaptureInput = {
     capturedAt: new Date().toISOString(),
-    actkgMainCommit: binding.actkgMainCommit,
-    sourceCommit: binding.sourceCommit,
-    sourceTag: binding.sourceTag,
-    packagingCommit: binding.packagingCommit,
-    stableTag: binding.stableTag,
-    releaseId: binding.releaseId,
-    releaseVersion: binding.releaseVersion,
-    bundleId: binding.bundleId,
-    bundleDigest: binding.bundleDigest,
-    manifestSha256: binding.manifestSha256,
-    sha256sumsSha256: binding.sha256sumsSha256,
-    validationReportSha256: binding.validationReportSha256,
-    actkgWorktreeDirty: false,
+    actkgMainCommit,
+    sourceCommit: sealed.sourceCommit,
+    sourceTag: sealed.sourceTag,
+    packagingCommit: actkgMainCommit,
+    stableTag: sealed.stableTag,
+    releaseId: sealed.releaseId,
+    releaseVersion: sealed.releaseVersion,
+    bundleId: sealed.bundleId,
+    bundleDigest: sealed.bundleDigest,
+    manifestSha256: sealed.manifestSha256,
+    sha256sumsSha256: sealed.sha256sumsSha256,
+    validationReportSha256: sealed.validationReportSha256,
+    actkgWorktreeDirty: dirty,
     componentIdentities: components,
-    predecessorBundleId: binding.predecessorBundleId,
-    candidateChain: binding.candidateChain,
+    predecessorBundleId: sealed.predecessorBundleId,
+    candidateChain: [sealed.bundleId],
     capturedPublicContract,
     adapterContractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
     supportedPublicContract: supported,
