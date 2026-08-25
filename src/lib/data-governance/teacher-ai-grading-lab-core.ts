@@ -714,6 +714,7 @@ async function buildReport(dependencies: TeacherAiGradingLabCoreDependencies, in
   const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   if (dataset.manifest.datasetKind === 'preflight') throw new Error('teacher-ai-grading-preflight-report-forbidden');
   const partition = input.partition === 'tuning' ? 'TUNING' : 'HIDDEN';
+  await requireTerminalPartitionRun(dependencies, config, partition);
   const acceptance = input.partition === 'hidden' ? await dependencies.db.teacherAiGradingHiddenAcceptance.findUnique({ where: { splitId: config.splitId } }) : null;
   const visibility = input.partition === 'hidden' && acceptance?.state !== 'CONSUMED' ? 'sealed' : 'revealed';
   const projection = await projectReportInput(dependencies, config, partition, visibility);
@@ -734,13 +735,20 @@ async function buildControlledVisualExperimentReport(
   const baselineConfig = await loadConfigContext(dependencies, input.baselineConfiguration.configurationVersion);
   const candidateConfig = await loadConfigContext(dependencies, input.candidateConfiguration.configurationVersion);
   const plan = controlledExperimentPlan(baselineConfig, candidateConfig);
-  const dataset = await dependencies.datasetStore.load({ datasetId: candidateConfig.datasetId, datasetVersion: candidateConfig.datasetVersion });
-  requireEvaluableDataset(dataset);
+  await Promise.all([
+    requireTerminalEvaluationRun(dependencies, baselineConfig, input.baselineRun.evaluationRunId),
+    requireTerminalEvaluationRun(dependencies, candidateConfig, input.candidateRun.evaluationRunId),
+  ]);
+  const evaluation = await dependencies.datasetStore.loadEvaluation({ datasetId: candidateConfig.datasetId, datasetVersion: candidateConfig.datasetVersion });
+  requireEvaluableDataset(evaluation);
   const members = await dependencies.db.teacherAiGradingLabSplitMember.findMany({
     where: { splitId: candidateConfig.splitId, partition: 'TUNING' },
     select: { sampleId: true },
   });
   const memberIds = new Set<string>(members.map((member: any) => String(member.sampleId)));
+  assertControlledStrataComplete(evaluation, memberIds, plan.strata);
+  const dataset = await dependencies.datasetStore.load({ datasetId: candidateConfig.datasetId, datasetVersion: candidateConfig.datasetVersion });
+  requireEvaluableDataset(dataset);
   const expected = controlledExpectedQuestions(dataset, memberIds, plan.strata);
   const baselineInput = await controlledReportInput(dependencies, baselineConfig, input.baselineRun.evaluationRunId, expected, false);
   const candidateInput = await controlledReportInput(dependencies, candidateConfig, input.candidateRun.evaluationRunId, expected, true);
@@ -1536,6 +1544,44 @@ function createProductionConversionAdapter(input: {
       };
     },
   };
+}
+
+const terminalBatchStates = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED']);
+
+async function requireTerminalEvaluationRun(dependencies: TeacherAiGradingLabCoreDependencies, config: any, evaluationRunId: string): Promise<void> {
+  const batch = await dependencies.db.teacherAiGradingExperimentBatch.findUnique({
+    where: { id: evaluationRunId },
+    select: { id: true, configId: true, splitId: true, state: true },
+  });
+  if (!batch || batch.configId !== config.id || batch.splitId !== config.splitId || !terminalBatchStates.has(batch.state)) {
+    throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
+  }
+}
+
+async function requireTerminalPartitionRun(
+  dependencies: TeacherAiGradingLabCoreDependencies,
+  config: any,
+  partition: 'TUNING' | 'HIDDEN',
+): Promise<void> {
+  const members = await dependencies.db.teacherAiGradingLabSplitMember.findMany({
+    where: { splitId: config.splitId, partition },
+    select: { sampleId: true },
+  });
+  const expectedSampleIds = new Set(members.map((member: any) => String(member.sampleId)));
+  const batches = await dependencies.db.teacherAiGradingExperimentBatch.findMany({
+    where: { configId: config.id, splitId: config.splitId, state: { in: [...terminalBatchStates] } },
+    select: { sampleSetSnapshot: true },
+  });
+  const hasMatchingRun = batches.some((batch: any) => {
+    const samples = Array.isArray(batch.sampleSetSnapshot) ? batch.sampleSetSnapshot : [];
+    const sampleIds = new Set(samples.flatMap((sample: unknown) => (
+      sample && typeof sample === 'object' && typeof (sample as { sampleId?: unknown }).sampleId === 'string'
+        ? [(sample as { sampleId: string }).sampleId]
+        : []
+    )));
+    return sampleIds.size === expectedSampleIds.size && [...expectedSampleIds].every((sampleId) => sampleIds.has(sampleId));
+  });
+  if (!hasMatchingRun) throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
 }
 
 type PreparedLabVisualEvidence = {

@@ -411,3 +411,11 @@
 - 数据集新增 AI 专用 `loadEvaluation()`，创建划分、配置冻结、运行与恢复均不打开 `baseline.json`；物理移除 baseline 的回归测试证明 AI 输入仍可加载，而报告加载会失败。
 - 证据见 `docs/operations/assignment-grading-stage-1-data-isolation.md`。阶段 1 实现与验证完成，G.1 独立审核尚未执行，阶段 2 未放行。
 - 阶段 1 只读审查准备发现仅验证 ZIP 文件头会接受伪造 `.docx`。该 finding 裁定为 `ACCEPT`：现在还验证 `[Content_Types].xml` 与 `word/document.xml`，正式包重建并通过 ZIP 验证器。
+
+## 26. 阶段 1 独立审核后的限定修复（2026-08-25）
+
+- 独立只读审核对基线 `c2c5ffb` 判定 `FAIL`，六项 finding 均裁定为 `ACCEPT`。修复范围仅覆盖阶段 1 的人工基准隔离、报告读取顺序、评分/批注输入验证、归档门禁与路径安全输出。
+- AI 评测 manifest 使用固定的非评分来源分层；报告、实验室概览和受控视觉对比报告在终态独立运行持久化前不读取人工基准。
+- 准备器保留受控总分并验证四题一致性；源评分记录未提供独立可用总分字段，故总分由四题有效分数派生。批注在写入 baseline 前经过身份与长度筛除，且只记录抑制数量。
+- 本地正式包已重建并经仓库 ZIP 验证器通过。14 个实验室定向测试文件共 178 项、typecheck 和三条 OpenSpec strict validate 均通过。
+- G.1 仍未放行：修复基线需冻结，并执行一次限定复审后记录 `PASS` 或 `FAIL`。阶段 2 尚未开始。

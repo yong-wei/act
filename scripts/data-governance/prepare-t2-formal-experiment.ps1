@@ -9,6 +9,16 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.IO.Compression
+$preparationPhase = 'initialization'
+trap {
+  $message = $_.Exception.Message
+  if ($message -is [string] -and $message -match '^T2_PREPARATION_[A-Z_]+$') {
+    [Console]::Error.WriteLine("t2-formal-preparation-failed:${preparationPhase}:$message")
+  } else {
+    [Console]::Error.WriteLine("t2-formal-preparation-failed:${preparationPhase}:$($_.Exception.GetType().Name)")
+  }
+  exit 1
+}
 
 $questionIds = @('T2-1', 'T2-2', 'T2-3', 'O2')
 $maxScores = @(20, 20, 20, 40)
@@ -16,6 +26,7 @@ $scoreParagraphs = @(8, 13, 18, 23)
 $annotationParagraphs = @(9, 14, 19, 24)
 $datasetId = 't2-formal-first-round-20260813'
 $datasetVersion = 'v1-half-point-20-20-20-40'
+$utf8NoBom = [Text.UTF8Encoding]::new($false)
 
 function Get-Sha256([string]$Path) {
   $stream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
@@ -27,6 +38,10 @@ function Get-Sha256([string]$Path) {
     $stream.Dispose()
   }
   return "sha256:$(([BitConverter]::ToString($digest) -replace '-', '').ToLowerInvariant())"
+}
+
+function Write-Utf8NoBom([string]$Path, [string]$Content) {
+  [IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
 }
 
 function Assert-FileSignature([string]$Path, [string]$ExpectedKind) {
@@ -42,6 +57,7 @@ function Assert-FileSignature([string]$Path, [string]$ExpectedKind) {
       throw 'Submission content is not an OOXML ZIP document.'
     }
     $zipStream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    $preparationPhase = 'score-record-open'
     try {
       $archive = New-Object IO.Compression.ZipArchive($zipStream, [IO.Compression.ZipArchiveMode]::Read, $false)
       try {
@@ -70,17 +86,55 @@ function Assert-FileSignature([string]$Path, [string]$ExpectedKind) {
   throw 'Score record content is not a recognized Word document representation.'
 }
 
-function Get-ScoreBand([double]$TotalScore) {
-  if ($TotalScore -lt 60) { return 'low' }
-  if ($TotalScore -lt 70) { return 'middle-low' }
-  if ($TotalScore -lt 80) { return 'middle' }
-  if ($TotalScore -lt 90) { return 'middle-high' }
-  return 'high'
+function ConvertTo-Score([string]$Text, [string]$SampleId, [int]$ParagraphIndex) {
+  $normalized = ($Text -replace '[\r\a]+$', '').Trim()
+  if ($normalized -notmatch '^[^0-9-]*(-?(?:0|[1-9][0-9]*)(?:\.5)?)[^0-9]*$') {
+    throw "$SampleId paragraph $ParagraphIndex does not contain one score."
+  }
+  return [double]::Parse($Matches[1], [Globalization.CultureInfo]::InvariantCulture)
+}
+
+function ConvertTo-SafeTeacherAnnotation([string]$Text, [string]$SampleId, [int]$ParagraphIndex) {
+  $script:preparationPhase = 'annotation-normalize'
+  $normalized = ($Text -replace '[\r\a]+$', '').Trim()
+  if ([string]::IsNullOrWhiteSpace($normalized)) { return $null }
+  $script:preparationPhase = 'annotation-length-check'
+  if ($normalized.Length -gt 2000) {
+    $script:preparationPhase = 'annotation-suppress'
+    $script:suppressedTeacherAnnotationCount += 1
+    return $null
+  }
+  $script:preparationPhase = 'annotation-label-check'
+  $lowerAnnotation = $normalized.ToLowerInvariant()
+  $identityLabels = @(
+    [string]::Concat([char]0x59D3, [char]0x540D),
+    [string]::Concat([char]0x5B66, [char]0x53F7),
+    [string]::Concat([char]0x73ED, [char]0x7EA7),
+    [string]::Concat([char]0x8EAB, [char]0x4EFD, [char]0x8BC1),
+    [string]::Concat([char]0x624B, [char]0x673A, [char]0x53F7),
+    [string]::Concat([char]0x90AE, [char]0x7BB1)
+  )
+  $containsIdentityLabel = @($identityLabels | Where-Object { $normalized.Contains($_) })
+  $containsEnglishIdentityLabel = @('student name', 'student number', 'student id', 'email') | Where-Object { $lowerAnnotation.Contains($_) }
+  if ($containsIdentityLabel.Count -gt 0 -or @($containsEnglishIdentityLabel).Count -gt 0) {
+    $script:preparationPhase = 'annotation-suppress'
+    $script:suppressedTeacherAnnotationCount += 1
+    return $null
+  }
+  $script:preparationPhase = 'annotation-number-check'
+  if ($normalized -match '(?<!\d)\d{8,}(?!\d)') {
+    $script:preparationPhase = 'annotation-suppress'
+    $script:suppressedTeacherAnnotationCount += 1
+    return $null
+  }
+  $script:preparationPhase = 'annotation-accept'
+  return $normalized
 }
 
 if (-not (Test-Path -LiteralPath $SourceRoot -PathType Container)) {
-  throw "Source root does not exist: $SourceRoot"
+  throw 'Source root does not exist.'
 }
+$OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 
 $expectedSampleNames = @(1..40 | ForEach-Object { 'sample-{0:D3}' -f $_ })
 $samples = @(Get-ChildItem -LiteralPath $SourceRoot -Directory -Filter 'sample-*' | Sort-Object Name)
@@ -101,6 +155,7 @@ $baselineSamples = @()
 $manifestSamples = @()
 $inventory = @()
 $scoreRecordInventory = @()
+$suppressedTeacherAnnotationCount = 0
 
 try {
   foreach ($sample in $samples) {
@@ -131,26 +186,30 @@ try {
       detectedType = $recordKind
     }
 
-    $document = $word.Documents.Open($recordFiles[0].FullName, $false, $true)
+    try {
+      $preparationPhase = 'score-record-parse'
+      $document = $word.Documents.Open($recordFiles[0].FullName, $false, $true)
+    } catch {
+      throw "$sampleId score record cannot be opened."
+    }
     try {
       if ($document.Paragraphs.Count -ne 26) {
         throw "$sampleId score record has unexpected paragraph count $($document.Paragraphs.Count)."
       }
       $scores = @()
       foreach ($paragraphIndex in $scoreParagraphs) {
-        $value = ($document.Paragraphs.Item($paragraphIndex).Range.Text -replace '[^0-9\.]', '')
-        if ($value -notmatch '^[0-9]+(?:\.5)?$') {
-          throw "$sampleId paragraph $paragraphIndex does not contain one score."
-        }
-        $scores += [double]::Parse($value, [Globalization.CultureInfo]::InvariantCulture)
+        $preparationPhase = 'score-parse-question-score'
+        $scores += ConvertTo-Score $document.Paragraphs.Item($paragraphIndex).Range.Text $sampleId $paragraphIndex
       }
+      $preparationPhase = 'score-parse-annotation'
       $teacherAnnotations = @($annotationParagraphs | ForEach-Object {
-        ($document.Paragraphs.Item($_).Range.Text -replace '[\r\a]+$', '').Trim()
+        ConvertTo-SafeTeacherAnnotation $document.Paragraphs.Item($_).Range.Text $sampleId $_
       })
     } finally {
       $document.Close($false)
     }
 
+    $preparationPhase = 'submission-validate'
     $questions = @()
     $submissions = @()
     for ($index = 0; $index -lt $questionIds.Count; $index++) {
@@ -188,18 +247,19 @@ try {
       }
     }
 
+    $preparationPhase = 'score-total-validate'
     $totalScore = ($scores | Measure-Object -Sum).Sum
     $baselineSamples += [ordered]@{
       sampleId = $sampleId
       cleanupConfirmed = [bool]$OwnerConfirmed
       baselineConfirmed = $true
       questions = $questions
-      totalScore = $totalScore
+      teacherTotalScore = $totalScore
     }
     $manifestSamples += [ordered]@{
       sampleId = $sampleId
       submissions = $submissions
-      scoreBand = Get-ScoreBand $totalScore
+      scoreBand = 'unstratified'
       primaryErrorType = 'unclassified'
     }
   }
@@ -229,10 +289,10 @@ $baselinePath = Join-Path $OutputRoot 'baseline.draft.json'
 $manifestPath = Join-Path $OutputRoot 'manifest.draft.json'
 $inventoryPath = Join-Path $OutputRoot 'redaction-review-inventory.json'
 $scoreRecordInventoryPath = Join-Path $OutputRoot 'score-record-inventory.json'
-$baselineDraft | ConvertTo-Json -Depth 8 | Set-Content -Encoding UTF8 $baselinePath
-$manifestDraft | ConvertTo-Json -Depth 8 | Set-Content -Encoding UTF8 $manifestPath
-$inventory | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 $inventoryPath
-$scoreRecordInventory | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 $scoreRecordInventoryPath
+Write-Utf8NoBom $baselinePath ($baselineDraft | ConvertTo-Json -Depth 8)
+Write-Utf8NoBom $manifestPath ($manifestDraft | ConvertTo-Json -Depth 8)
+Write-Utf8NoBom $inventoryPath ($inventory | ConvertTo-Json -Depth 5)
+Write-Utf8NoBom $scoreRecordInventoryPath ($scoreRecordInventory | ConvertTo-Json -Depth 5)
 $writableSourceCount = @($inventory + $scoreRecordInventory | Where-Object { -not $_.sourceReadOnly }).Count
 
 $packagePath = $null
@@ -259,6 +319,7 @@ if ($OwnerConfirmed) {
     }
   }
 
+  $preparationPhase = 'package-create'
   $baselineFinal = [ordered]@{
     schemaVersion = $baselineDraft.schemaVersion
     datasetId = $datasetId
@@ -274,7 +335,7 @@ if ($OwnerConfirmed) {
     })
   }
   $baselineFinalPath = Join-Path $contentsRoot 'baseline.json'
-  $baselineFinal | ConvertTo-Json -Depth 8 | Set-Content -Encoding UTF8 $baselineFinalPath
+  Write-Utf8NoBom $baselineFinalPath ($baselineFinal | ConvertTo-Json -Depth 8)
 
   $assets = @(Get-ChildItem -LiteralPath (Join-Path $contentsRoot 'assets') -File -Recurse | Sort-Object FullName | ForEach-Object {
     $relative = $_.FullName.Substring($contentsRoot.Length + 1).Replace('\', '/')
@@ -290,7 +351,7 @@ if ($OwnerConfirmed) {
     assets = $assets
     samples = $manifestSamples
   }
-  $manifestFinal | ConvertTo-Json -Depth 8 | Set-Content -Encoding UTF8 (Join-Path $contentsRoot 'manifest.json')
+  Write-Utf8NoBom (Join-Path $contentsRoot 'manifest.json') ($manifestFinal | ConvertTo-Json -Depth 8)
   $packagePath = Join-Path $OutputRoot 't2-formal-first-round-v1.grading-lab.zip'
   if (Test-Path -LiteralPath $packagePath) {
     Remove-Item -LiteralPath $packagePath -Force
@@ -299,6 +360,9 @@ if ($OwnerConfirmed) {
   $stream = [IO.File]::Open($packagePath, [IO.FileMode]::CreateNew)
   $archive = New-Object IO.Compression.ZipArchive($stream, [IO.Compression.ZipArchiveMode]::Create, $false)
   try {
+    foreach ($directoryName in @('assets/', 'submissions/')) {
+      [void]$archive.CreateEntry($directoryName)
+    }
     foreach ($file in Get-ChildItem -LiteralPath $contentsRoot -File -Recurse | Sort-Object FullName) {
       $entryName = $file.FullName.Substring($contentsRoot.Length + 1).Replace('\', '/')
       $entry = $archive.CreateEntry($entryName, [IO.Compression.CompressionLevel]::Optimal)
@@ -322,11 +386,9 @@ if ($OwnerConfirmed) {
   datasetVersion = $datasetVersion
   sampleCount = $samples.Count
   submissionCount = $inventory.Count
-  baselinePath = $baselinePath
-  manifestPath = $manifestPath
-  reviewInventoryPath = $inventoryPath
-  scoreRecordInventoryPath = $scoreRecordInventoryPath
-  packagePath = $packagePath
+  suppressedTeacherAnnotationCount = $suppressedTeacherAnnotationCount
+  artifacts = @('baseline.draft.json', 'manifest.draft.json', 'redaction-review-inventory.json', 'score-record-inventory.json')
+  packageCreated = [bool]$packagePath
   packageReady = [bool]($OwnerConfirmed -and $writableSourceCount -eq 0)
   blockedBy = if ($writableSourceCount -gt 0) {
     "$writableSourceCount source files are writable"

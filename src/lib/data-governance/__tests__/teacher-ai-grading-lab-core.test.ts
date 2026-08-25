@@ -50,6 +50,27 @@ describe('teacher AI grading lab core', () => {
     })).toThrow('teacher-ai-grading-provider-model-identity-mismatch');
   });
 
+  it('does not load the human baseline before a terminal run exists for the requested partition', async () => {
+    const load = vi.fn(async () => { throw new Error('baseline-read'); });
+    const core = createTeacherAiGradingLabCore({
+      datasetStore: {
+        load,
+        loadEvaluation: async () => ({ manifest: { datasetKind: 'first-round' } }),
+      } as any,
+      db: {
+        teacherAiGradingExperimentConfig: { findUnique: async () => ({ id: 'config-1', datasetId: 'dataset-1', datasetVersion: 'v1', splitId: 'split-1' }) },
+        teacherAiGradingLabSplitMember: { findMany: async () => [{ sampleId: 'sample-abcd' }] },
+        teacherAiGradingExperimentBatch: { findMany: async () => [] },
+      } as any,
+    });
+
+    await expect(core.execute({
+      kind: 'build-report',
+      input: { configuration: { configurationVersion: 'config-1' }, partition: 'tuning' },
+    })).rejects.toThrow('teacher-ai-grading-baseline-before-independent-run-complete');
+    expect(load).not.toHaveBeenCalled();
+  });
+
   it('describes the complete PDF page set for current-question visual evidence', async () => {
     const provider = visualDescriptionProvider();
     const renderer = vi.fn(async () => [
@@ -427,8 +448,8 @@ describe('teacher AI grading lab core', () => {
       },
       teacherAiGradingExperimentBatch: {
         findUnique: async ({ where }: any) => {
-          if (where.id === 'baseline-batch') return { id: 'baseline-batch', configId: controlled.baselineConfiguration.configurationVersion, splitId: split.id };
-          if (where.id === 'candidate-batch') return { id: 'candidate-batch', configId: controlled.candidateConfiguration.configurationVersion, splitId: split.id };
+          if (where.id === 'baseline-batch') return { id: 'baseline-batch', configId: controlled.baselineConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED' };
+          if (where.id === 'candidate-batch') return { id: 'candidate-batch', configId: controlled.candidateConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED' };
           return batches.find((row) => row.id === where.id || row.idempotencyKey === where.idempotencyKey) ?? null;
         },
         create: async ({ data }: any) => { batches.push(data); return data; },

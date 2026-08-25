@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { getTeacherAiGradingLabOverview } from '../teacher-ai-grading-lab-overview';
 
@@ -27,10 +27,11 @@ describe('teacher AI grading lab overview', () => {
   });
 
   it('projects an unjudged visual description without model scores or hidden data', async () => {
+    const load = vi.fn(async () => ({ baseline: { samples: [] } }));
     const overview = await getTeacherAiGradingLabOverview({
       datasetStore: {
         list: async () => [],
-        load: async () => ({ baseline: { samples: [] } }),
+        load,
       } as any,
       db: {
         teacherAiGradingExperimentConfig: { findMany: async () => [{ id: 'config-visible', datasetId: 'dataset-t1', datasetVersion: 'v1', splitId: 'split-1', createdAt: new Date('2026-08-21T00:00:00Z') }] },
@@ -65,5 +66,7 @@ describe('teacher AI grading lab overview', () => {
       pageNumber: 1, confidence: 0.92,
     })]);
     expect(JSON.stringify(overview.pendingBlindVisualEvidence)).not.toContain('draftTotalScore');
+    expect(overview.executions[0]?.teacherScore).toBeNull();
+    expect(load).not.toHaveBeenCalled();
   });
 });

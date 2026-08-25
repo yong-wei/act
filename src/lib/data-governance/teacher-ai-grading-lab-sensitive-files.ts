@@ -75,8 +75,19 @@ async function isEvaluationPackageZip(content: Buffer): Promise<boolean> {
     return false;
   }
   const paths = Object.keys(archive.files).map((path) => normalizePath(path).toLowerCase());
-  return ['manifest.json', 't1s.md', 'baseline.json'].every((required) => paths.includes(required))
-    && paths.some((path) => path === 'submissions/' || path.startsWith('submissions/'));
+  const manifestEntry = archive.file('manifest.json');
+  if (!manifestEntry || !paths.includes('baseline.json') || !paths.some((path) => path === 'submissions/' || path.startsWith('submissions/'))) {
+    return false;
+  }
+  try {
+    const manifest = JSON.parse(await manifestEntry.async('text')) as { question?: { path?: unknown }; baseline?: { path?: unknown } };
+    const questionPath = typeof manifest.question?.path === 'string' ? normalizePath(manifest.question.path).toLowerCase() : '';
+    return questionPath.endsWith('.md')
+      && paths.includes(questionPath)
+      && manifest.baseline?.path === 'baseline.json';
+  } catch {
+    return false;
+  }
 }
 
 function containsIdentityMapping(path: string, content: Buffer): boolean {

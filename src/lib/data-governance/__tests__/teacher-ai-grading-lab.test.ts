@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
+import JSZip from 'jszip';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -192,6 +193,16 @@ describe('teacher AI grading package validation and import', () => {
       .toEqual(['缺少稳定性判断。']);
     expect(() => parseTeacherAiGradingBaseline({ ...baseline, studentName: 'forbidden' }))
       .toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
+    expect(() => parseTeacherAiGradingBaseline({
+      ...baseline,
+      samples: [{ ...baseline.samples[0], teacherTotalScore: 19 }],
+    })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
+    expect(() => parseTeacherAiGradingBaseline({
+      ...baseline,
+      samples: [{ ...baseline.samples[0], questions: [{
+        ...baseline.samples[0].questions[0], teacherAnnotations: ['学号：20261234'],
+      }] }],
+    })).toThrowError(expect.objectContaining({ code: 'LAB_PACKAGE_SCHEMA_INVALID' }));
   });
 
   it('accepts exactly two preflight samples', () => {
@@ -344,6 +355,20 @@ describe('teacher AI grading sensitive-file gate', () => {
       { path: 'data/metrics.json', content: Buffer.from(JSON.stringify([{ sampleId: 'sample-abcd', score: 12 }])), trackedBefore: false },
       { path: 'data/metrics.tsv', content: Buffer.from('sampleId\tscore\nsample-abcd\t12\n'), trackedBefore: false },
     ])).toEqual([{ path: 'docs/existing.docx', reason: 'potential student submission' }]);
+  });
+
+  it('detects a renamed package whose authoritative rubric is T2S-20.md', async () => {
+    const archive = await JSZip.loadAsync(await buildSyntheticTeacherAiGradingPackage());
+    const manifest = JSON.parse(await archive.file('manifest.json')!.async('text')) as { question: { path: string } };
+    archive.remove(manifest.question.path);
+    manifest.question.path = 'T2S-20.md';
+    archive.file('T2S-20.md', '# synthetic rubric');
+    archive.file('manifest.json', JSON.stringify(manifest));
+    const t2Package = await archive.generateAsync({ type: 'nodebuffer' });
+
+    await expect(findSensitiveTeacherAiGradingLabStagedFiles([
+      { path: 'evidence/renamed-archive.zip', content: t2Package, trackedBefore: false },
+    ])).resolves.toEqual([{ path: 'evidence/renamed-archive.zip', reason: 'evaluation package archive' }]);
   });
 
   it('explicitly allows source code and only the exact synthetic fixture paths', async () => {

@@ -69,7 +69,11 @@ export async function getTeacherAiGradingLabOverview(input: {
       orderBy: { createdAt: 'desc' }, take: 500,
     }),
   ]);
-  const baselineEntries = await Promise.all(configurations.map(async (row: any) => {
+  const terminalBatchIds = new Set(batches.filter((row: any) => ['SUCCEEDED', 'PARTIAL', 'FAILED'].includes(row.state)).map((row: any) => row.id));
+  const configurationIdsWithTerminalRuns = new Set(batches
+    .filter((row: any) => terminalBatchIds.has(row.id))
+    .map((row: any) => row.configId));
+  const baselineEntries = await Promise.all(configurations.filter((row: any) => configurationIdsWithTerminalRuns.has(row.id)).map(async (row: any) => {
     const dataset = await input.datasetStore.load({ datasetId: row.datasetId, datasetVersion: row.datasetVersion });
     return [row.id, new Map(dataset.baseline.samples.flatMap((sample) => sample.questions.map((question) => [`${sample.sampleId}:${question.questionId}`, question.teacherScore] as const)))] as const;
   }));
@@ -111,7 +115,9 @@ export async function getTeacherAiGradingLabOverview(input: {
     })),
     executions: visibleExecutionRows.map((row: any) => ({
       evaluationRunId: row.batchId, sampleId: row.sampleId, questionId: row.questionId, repetitionOrdinal: row.repetitionOrdinal,
-      state: row.state, aiScore: row.gradingRun?.draftTotalScore ?? null, teacherScore: baselineByConfig.get(row.configId)?.get(`${row.sampleId}:${row.questionId}`) ?? null, failureStage: row.failureStage, errorCode: row.errorCode,
+      state: row.state, aiScore: row.gradingRun?.draftTotalScore ?? null,
+      teacherScore: terminalBatchIds.has(row.batchId) ? baselineByConfig.get(row.configId)?.get(`${row.sampleId}:${row.questionId}`) ?? null : null,
+      failureStage: row.failureStage, errorCode: row.errorCode,
     })),
     pdfVerifications: pdfVerifications.filter((row: any) => row.acceptance.state === 'CONSUMED').map((row: any) => ({
       acceptanceId: row.acceptanceId, sampleId: row.sampleId, derivativeId: row.derivativeId, expectedRevision: row.revision,

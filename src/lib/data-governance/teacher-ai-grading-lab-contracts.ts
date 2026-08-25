@@ -115,6 +115,10 @@ const deductionSchema = z.object({
   reasonCode: identifierSchema,
 }).strict();
 
+const unsafeTeacherAnnotationPattern = /(?:姓名|学号|班级|身份证|手机号|邮箱|student\s*(?:name|number|id)|email|name)\s*[:：]|(?<!\d)\d{8,}(?!\d)/i;
+const teacherAnnotationSchema = z.string().trim().min(1).max(2_000)
+  .refine((value) => !unsafeTeacherAnnotationPattern.test(value), 'teacher-annotation-contains-identity');
+
 export const teacherAiGradingLabBaselineSchema = z.object({
   schemaVersion: z.literal(TEACHER_AI_GRADING_LAB_BASELINE_VERSION),
   datasetId: identifierSchema,
@@ -124,16 +128,25 @@ export const teacherAiGradingLabBaselineSchema = z.object({
     sampleId: z.string().regex(/^sample-[a-z0-9]{4,32}$/),
     cleanupConfirmed: z.literal(true),
     baselineConfirmed: z.literal(true),
+    teacherTotalScore: halfPointScoreSchema.optional(),
     questions: z.array(z.object({
       questionId: questionIdSchema,
       maxScore: halfPointScoreSchema.refine((value) => value > 0, 'score-must-be-positive'),
       teacherScore: halfPointScoreSchema,
-      teacherAnnotations: z.array(z.string().trim().min(1).max(2_000)).max(16).default([]),
+      teacherAnnotations: z.array(teacherAnnotationSchema).max(16).default([]),
       deductions: z.array(deductionSchema).max(64),
     }).strict()).min(1),
   }).strict()).min(1).max(50),
 }).strict().superRefine((baseline, context) => {
   for (const [sampleIndex, sample] of baseline.samples.entries()) {
+    const sum = sample.questions.reduce((total, question) => total + question.teacherScore, 0);
+    if (sample.teacherTotalScore !== undefined && sample.teacherTotalScore !== sum) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['samples', sampleIndex, 'teacherTotalScore'],
+        message: 'teacher total score does not equal question scores',
+      });
+    }
     for (const [questionIndex, question] of sample.questions.entries()) {
       if (question.teacherScore > question.maxScore) {
         context.addIssue({
