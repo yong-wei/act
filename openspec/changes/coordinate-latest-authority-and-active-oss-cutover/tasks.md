@@ -17,7 +17,7 @@
 
 ## 3. Active OSS resource continuity denominator
 
-- [ ] 3.1 Read production readiness once to resolve the exact active Runtime Release v2 and reopen its immutable manifest and active receipt.
+- [x] 3.1 Read production readiness once to resolve the exact active Runtime Release v2 and reopen its immutable manifest and active receipt.
 - [ ] 3.2 Reconstruct and hash the complete active logical-resource inventory together with every explicit non-resource disposition.
 - [ ] 3.3 Accept an ordered, explicit successor delta of new or changed release inputs and reject undeclared workspace or OSS discovery.
 - [ ] 3.4 Emit immutable active-baseline, explicit-delta, and combined-denominator identities with a final disposition for every baseline entry.

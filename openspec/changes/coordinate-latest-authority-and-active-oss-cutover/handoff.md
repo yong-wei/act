@@ -8,6 +8,12 @@
 - `68de3610f` 之后未修改这四个相关主规范：`canonical-knowledge-resource-binding`、`content-addressed-runtime-release-storage`、`act-teaching-projection`、`act-canonical-teaching-relation-governance`。现行 Runtime 规范新增的 coordinated selection 要求与本 change 的 delta 一致，没有兼容性漂移。
 - 实现仍以 `act-runtime-release.ts` 的 source-proof → immutable manifest/receipt 两阶段闭合和 `runtime-blob-release-lifecycle.py` 的生命周期为唯一 Runtime authority；本次只在其上增加候选阶段，不引入旁路 selector。
 
+## Runtime v2 后继物化（任务 3.1，2026-08-25）
+
+- 重新读取生产 lifecycle：活动 Release 为 `runtime-bb309e6a…`，`manifestSha256` 为 `11c8185d…`，`treeSha256` 为 `801e9966…`，generation 为 34；其 manifest、active receipt 与现行 blob view 已重新打开核验。
+- 已发布并物化一个**非可选** Runtime 后继 `runtime-a1a454a7…`：manifest `31565412…`、tree `801e9966…`、materialization receipt `634e2601…`。7277 个逻辑文件全部继承，新增 Blob 为零；该 Release 仅处于 lifecycle `publishing` 根，未写 desired/active，未修改 current view，未重启任何服务。
+- 该 Runtime 后继尚不是 v0.37 coordinated candidate：仍需完成活动资源的逻辑分类/分母、v0.22 前任重绑、v0.37 catalog/shards payload 与 outer transaction，随后才可封存 candidate receipt 和取得 activation 资格。
+
 ## 生产现状（2026-08-25 SSH 核实）
 
 - 宿主 `root@121.40.124.135:/home/projects/act`，公网 `https://act.adapt-learn.online`
