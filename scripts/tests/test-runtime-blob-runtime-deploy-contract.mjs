@@ -30,6 +30,7 @@ for (const invariant of [
   '--verification-receipt',
   '--parent-view',
   '--parent-runtime-root',
+  '--stage-only',
   'verify-mounted --format v2',
   'mount --bind "$BLOB_ROOT" "$helper"',
   'mount -o remount,bind,ro "$helper"',
@@ -113,6 +114,15 @@ assert.ok(
   activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
     activation.lastIndexOf('candidate_deploy_attempted=1'),
   'failed post-overlay verification must not restart runtime consumers',
+);
+assert.match(
+  activation,
+  /--stage-only requires a successor Runtime release/,
+  'staging must refuse to rematerialize the active Runtime release',
+);
+assert.ok(
+  activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),
+  'non-selectable Runtime staging must stop before lifecycle desired state is written',
 );
 assert.match(
   activation,
@@ -432,8 +442,10 @@ for (const invariant of [
   '--external-bundle-root',
   '--generated-resources-root',
   '--resume-published-artifact-dir',
+  '--stage-only',
+  '--formal-resource-envelope-hash',
   'resuming_published_release',
-  'published runtime resume requires the exact release to remain desired or active',
+  'published runtime resume requires the exact release to remain publishing, desired or active',
   'resumedPublishedRelease',
   'repairedActiveRelease',
   '--expected-active-release',
@@ -465,8 +477,18 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
-  /if resume:[\s\S]*desired == candidate[\s\S]*state\.get\("active"\) == candidate[\s\S]*published runtime resume requires the exact release to remain desired or active/,
-  'published release resume must proceed only when lifecycle still owns that exact desired candidate or active repair release',
+  /if resume:[\s\S]*desired == candidate[\s\S]*state\.get\("active"\) == candidate[\s\S]*any\(item == candidate for item in publishing\)[\s\S]*published runtime resume requires the exact release to remain publishing, desired or active/,
+  'published release resume must proceed only when lifecycle still owns that exact publishing, desired, or active release',
+);
+assert.match(
+  runtimeDeploy,
+  /runtimeStage.*NON_SELECTABLE/,
+  'Runtime staging must persist an explicit non-selectable publication state',
+);
+assert.match(
+  runtimeDeploy,
+  /--formal-resource-envelope-hash/,
+  'formal-resource candidates must bind their envelope before runtime publication',
 );
 assert.match(
   runtimeDeploy,

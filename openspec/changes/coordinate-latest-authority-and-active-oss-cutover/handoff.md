@@ -2,6 +2,12 @@
 
 负责人已授权生产切换与部署（2026-08-25）。本文件记录执行前核实的实现面基线、生产现状与执行前提，作为后续实现的单一事实源。
 
+## 主规范复核（任务 1.1/1.2，2026-08-25）
+
+- 已对照归档的 `gate-formal-runtime-resources-on-canonical-bindings` delta 与现行 `canonical-knowledge-resource-binding`、`content-addressed-runtime-release-storage` 主规范；正式资源信封、Git/外部输入来源证明、manifest-last 发布和 v2 生命周期仍在现行规范中。
+- `68de3610f` 之后未修改这四个相关主规范：`canonical-knowledge-resource-binding`、`content-addressed-runtime-release-storage`、`act-teaching-projection`、`act-canonical-teaching-relation-governance`。现行 Runtime 规范新增的 coordinated selection 要求与本 change 的 delta 一致，没有兼容性漂移。
+- 实现仍以 `act-runtime-release.ts` 的 source-proof → immutable manifest/receipt 两阶段闭合和 `runtime-blob-release-lifecycle.py` 的生命周期为唯一 Runtime authority；本次只在其上增加候选阶段，不引入旁路 selector。
+
 ## 生产现状（2026-08-25 SSH 核实）
 
 - 宿主 `root@121.40.124.135:/home/projects/act`，公网 `https://act.adapt-learn.online`

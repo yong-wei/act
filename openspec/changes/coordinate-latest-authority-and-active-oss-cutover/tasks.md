@@ -1,9 +1,9 @@
 ## 1. Dependency and implementation-surface baseline
 
-- [ ] 1.1 Verify that the implementation capture contains the archived formal-resource and Runtime Release v2 main-spec contracts, existing two-phase envelope seal, and no later incompatible drift.
-- [ ] 1.2 Reconcile any compatible post-proposal contract evolution against these delta specs before source edits and stop for a new spec decision on incompatible drift.
-- [ ] 1.3 Map the current Authority selectors, Teaching Projection selectors, Runtime Release lifecycle, resource-binding envelope, domain-shard selectors, prerequisite publication, shared-consumer activation, readiness, and rollback code paths before assigning implementation files.
-- [ ] 1.4 Record the implementation modules, ownership boundaries, existing inner locks, selector write order, and targeted test surfaces in the change handoff without introducing a second plan.
+- [x] 1.1 Verify that the implementation capture contains the archived formal-resource and Runtime Release v2 main-spec contracts, existing two-phase envelope seal, and no later incompatible drift.
+- [x] 1.2 Reconcile any compatible post-proposal contract evolution against these delta specs before source edits and stop for a new spec decision on incompatible drift.
+- [x] 1.3 Map the current Authority selectors, Teaching Projection selectors, Runtime Release lifecycle, resource-binding envelope, domain-shard selectors, prerequisite publication, shared-consumer activation, readiness, and rollback code paths before assigning implementation files.
+- [x] 1.4 Record the implementation modules, ownership boundaries, existing inner locks, selector write order, and targeted test surfaces in the change handoff without introducing a second plan.
 
 ## 2. Execution-time Authority capture and compatibility
 

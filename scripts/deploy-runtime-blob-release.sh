@@ -13,6 +13,7 @@ KNOWN_HOSTS_FILE="${ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE:-}"
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 REMOTE_RUNTIME_RELEASE_DIR="${REMOTE_RUNTIME_RELEASE_DIR:-$REMOTE_PROJECT_DIR/scripts/runtime-release}"
 REMOTE_ARTIFACT_ROOT="${REMOTE_RUNTIME_ARTIFACT_ROOT:-$REMOTE_PROJECT_DIR/data/runtime/releases}"
+REMOTE_RUNTIME_VIEW_ROOT="${REMOTE_RUNTIME_BLOB_VIEW_ROOT:-$REMOTE_PROJECT_DIR/data/runtime/blob-views}"
 REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release-host-state.py}"
 REMOTE_MATERIALIZER="${REMOTE_RUNTIME_BLOB_MATERIALIZER:-$REMOTE_PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
 REMOTE_LIFECYCLE="${REMOTE_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
@@ -34,6 +35,8 @@ ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
 coordinated_cutover_declaration=""
 coordinated_graph_receipt=""
 coordinated_runtime_binding=""
+formal_resource_envelope_hash=""
+stage_only=0
 publishing_identity_started=0
 publishing_generation=""
 resuming_published_release=0
@@ -52,6 +55,8 @@ while [[ $# -gt 0 ]]; do
     --coordinated-cutover-declaration) coordinated_cutover_declaration="$2"; shift 2 ;;
     --coordinated-graph-receipt) coordinated_graph_receipt="$2"; shift 2 ;;
     --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
+    --formal-resource-envelope-hash) formal_resource_envelope_hash="$2"; shift 2 ;;
+    --stage-only) stage_only=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -61,7 +66,7 @@ if [[ -n "$resume_artifact_dir" ]]; then
     echo "ERROR: --resume-published-artifact-dir must be an absolute real directory" >&2
     exit 1
   }
-  for value in "$source_revision" "$parent_manifest" "$external_bundle" "$external_bundle_root" "$generated_resources_root" "$artifact_dir"; do
+  for value in "$source_revision" "$parent_manifest" "$external_bundle" "$external_bundle_root" "$generated_resources_root" "$artifact_dir" "$formal_resource_envelope_hash"; do
     [[ -z "$value" ]] || {
       echo "ERROR: --resume-published-artifact-dir cannot be combined with planning or publication inputs" >&2
       exit 1
@@ -71,6 +76,10 @@ if [[ -n "$resume_artifact_dir" ]]; then
 else
   [[ "$source_revision" =~ ^[a-f0-9]{40}$ ]] || { echo "ERROR: --source-revision must be a full Git SHA" >&2; exit 1; }
   [[ -n "$artifact_dir" && "$artifact_dir" = /* ]] || { echo "ERROR: --artifact-dir must be an absolute local directory" >&2; exit 1; }
+fi
+if [[ "$stage_only" == "1" && "$resuming_published_release" == "1" ]]; then
+  echo "ERROR: --stage-only cannot resume an already published Runtime release" >&2
+  exit 1
 fi
 [[ "$expected_active_release" == "none" || "$expected_active_release" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || { echo "ERROR: invalid --expected-active-release" >&2; exit 1; }
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid --ram-role" >&2; exit 1; }
@@ -91,6 +100,14 @@ if [[ "$coordinated_inputs_provided" -ne 0 && "$coordinated_inputs_provided" -ne
   echo "ERROR: --coordinated-cutover-declaration, --coordinated-graph-receipt, and --coordinated-runtime-binding must be provided together" >&2
   exit 1
 fi
+if [[ "$stage_only" == "1" && "$coordinated_inputs_provided" -ne 0 ]]; then
+  echo "ERROR: --stage-only publishes a non-selectable Runtime candidate and cannot accept committed coordinated activation artifacts" >&2
+  exit 1
+fi
+if [[ -n "$formal_resource_envelope_hash" && ! "$formal_resource_envelope_hash" =~ ^[a-f0-9]{64}$ ]]; then
+  echo "ERROR: --formal-resource-envelope-hash must be a lowercase SHA-256 digest" >&2
+  exit 1
+fi
 for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
   [[ -z "$value" || -f "$value" ]] || { echo "ERROR: coordinated cutover input does not exist: $value" >&2; exit 1; }
 done
@@ -100,6 +117,7 @@ for remote_path in \
   "$REMOTE_PROJECT_DIR" \
   "$REMOTE_RUNTIME_RELEASE_DIR" \
   "$REMOTE_ARTIFACT_ROOT" \
+  "$REMOTE_RUNTIME_VIEW_ROOT" \
   "$REMOTE_HOST_STATE" \
   "$REMOTE_MATERIALIZER" \
   "$REMOTE_LIFECYCLE" \
@@ -173,6 +191,9 @@ else
   fi
   if [[ -n "$generated_resources_root" ]]; then
     build_args+=(--generated-resources-root "$generated_resources_root")
+  fi
+  if [[ -n "$formal_resource_envelope_hash" ]]; then
+    build_args+=(--formal-resource-envelope-hash "$formal_resource_envelope_hash")
   fi
   npx tsx "$CLI" "${build_args[@]}" >/dev/null
   build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
@@ -304,7 +325,10 @@ if resume:
     if state.get("active") == candidate:
         print("repair:%d" % state["generation"])
         raise SystemExit(0)
-    raise SystemExit("published runtime resume requires the exact release to remain desired or active")
+    if any(item == candidate for item in publishing):
+        print("staged:%d" % state["generation"])
+        raise SystemExit(0)
+    raise SystemExit("published runtime resume requires the exact release to remain publishing, desired or active")
 if desired is not None and desired != candidate:
     raise SystemExit("v2 lifecycle already records a different desired release")
 if desired == candidate:
@@ -330,7 +354,7 @@ elif [[ "$pre_publish_action" != protected:* && "$pre_publish_action" != repair:
     exit 1
   fi
 fi
-if [[ "$resuming_published_release" == "1" && "$pre_publish_action" != resume:* && "$pre_publish_action" != repair:* ]]; then
+if [[ "$resuming_published_release" == "1" && "$pre_publish_action" != resume:* && "$pre_publish_action" != repair:* && "$pre_publish_action" != staged:* ]]; then
   echo "ERROR: published runtime resume did not preserve the requested desired candidate or active release" >&2
   exit 1
 fi
@@ -411,8 +435,64 @@ if [[ "$coordinated_inputs_provided" -eq 3 ]]; then
 fi
 
 activation_started_seconds=$SECONDS
-remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'"
+stage_only_arg=""
+if [[ "$stage_only" == "1" ]]; then
+  stage_only_arg=" --stage-only"
+fi
+remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'$stage_only_arg"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
+if [[ "$stage_only" == "1" ]]; then
+  materialization_receipt="$artifact_dir/materialization-receipt.json"
+  scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$SSH_TARGET:$REMOTE_RUNTIME_VIEW_ROOT/views/$release_id/.act-runtime-release-materialization.v1.json" "$materialization_receipt.tmp"
+  mv "$materialization_receipt.tmp" "$materialization_receipt"
+  python3 - "$manifest" "$materialization_receipt" "$artifact_dir/staged-runtime.json" <<'PY'
+import hashlib
+import json
+import sys
+
+manifest_path, receipt_path, output_path = sys.argv[1:]
+manifest = json.load(open(manifest_path, encoding="utf-8"))
+wire = open(receipt_path, "rb").read()
+receipt = json.loads(wire.decode("utf-8"))
+if receipt.get("schemaVersion") not in {"runtime-blob-materialization.v1", "runtime-blob-materialization.v2"}:
+    raise SystemExit("staged Runtime materialization receipt schema is invalid")
+if receipt.get("releaseId") != manifest.get("releaseId"):
+    raise SystemExit("staged Runtime materialization receipt binds a different release")
+result = {
+    "contract": "coordinated-runtime-stage/v1",
+    "runtimeRelease": {
+        "releaseId": manifest["releaseId"],
+        "manifestSha256": manifest["manifestSha256"],
+        "treeSha256": manifest["treeSha256"],
+    },
+    "materializationReceiptSha256": hashlib.sha256(wire).hexdigest(),
+}
+with open(output_path, "w", encoding="utf-8") as handle:
+    json.dump(result, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
+  python3 - "$daily_report" "$build_elapsed_milliseconds" "$publish_elapsed_milliseconds" "$activation_elapsed_milliseconds" <<'PY'
+import json
+import sys
+
+path, build_ms, publish_ms, materialization_ms = sys.argv[1:]
+with open(path, encoding="utf-8") as handle:
+    report = json.load(handle)
+if report.get("phase") != "published" or not isinstance(report.get("transfer"), dict):
+    raise SystemExit("daily publication report is not a completed local publication")
+report["timingMilliseconds"] = {
+    "manifestPlanning": int(build_ms),
+    "publication": int(publish_ms),
+    "materializationAndSmoke": int(materialization_ms),
+}
+report["runtimeStage"] = "NON_SELECTABLE"
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(report, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
+  printf '{"releaseId":"%s","artifactDir":"%s","stagedRuntimeRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"
+  exit 0
+fi
 if [[ "$resuming_published_release" == "1" ]]; then
   if [[ "$pre_publish_action" == repair:* ]]; then
     printf '{"releaseId":"%s","artifactDir":"%s","repairedActiveRelease":true,"runtimeDeliveryMode":"ossfs-blob-view"}\n' "$release_id" "$artifact_dir"

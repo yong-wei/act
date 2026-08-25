@@ -33,6 +33,7 @@ release_receipt=""
 verification_receipt=""
 ram_role=""
 replace_existing=0
+stage_only=0
 old_active="none"
 parent_view=""
 overlay_stash=""
@@ -61,6 +62,7 @@ while [[ $# -gt 0 ]]; do
     --verification-receipt) verification_receipt="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
     --replace-existing) replace_existing=1; shift ;;
+    --stage-only) stage_only=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -564,7 +566,17 @@ if [[ -z "$parent_view" && "$old_active" == "none" && ! -d "$LEGACY_RUNTIME_ROOT
   echo "ERROR: legacy runtime root is required for first activation rollback" >&2
   exit 1
 fi
-capture_rollback_image
+if [[ "$stage_only" == "1" && "$replace_existing" == "1" ]]; then
+  echo "ERROR: --stage-only cannot replace an existing Runtime view" >&2
+  exit 1
+fi
+if [[ "$stage_only" == "1" && "$release_id" == "$old_active" ]]; then
+  echo "ERROR: --stage-only requires a successor Runtime release" >&2
+  exit 1
+fi
+if [[ "$stage_only" != "1" ]]; then
+  capture_rollback_image
+fi
 
 if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
   replace_existing=1
@@ -604,6 +616,31 @@ if [[ -n "$parent_view" && "$parent_view" != "$candidate_view" ]]; then
   verify_args+=(--parent-runtime-root "$parent_view")
 fi
 python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}" >/dev/null
+if [[ "$stage_only" == "1" ]]; then
+  materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"
+  [[ -f "$materialization_receipt" && ! -L "$materialization_receipt" ]] || {
+    echo "ERROR: staged Runtime view has no materialization receipt" >&2
+    exit 1
+  }
+  python3 - "$release_id" "$materialization_receipt" <<'PY'
+import hashlib
+import json
+import sys
+
+release_id, receipt_path = sys.argv[1:]
+wire = open(receipt_path, "rb").read()
+receipt = json.loads(wire.decode("utf-8"))
+if receipt.get("schemaVersion") not in {"runtime-blob-materialization.v1", "runtime-blob-materialization.v2"}:
+    raise SystemExit("ERROR: staged Runtime materialization receipt schema is invalid")
+if receipt.get("releaseId") != release_id:
+    raise SystemExit("ERROR: staged Runtime materialization receipt binds a different release")
+print(json.dumps({
+    "releaseId": release_id,
+    "materializationReceiptSha256": hashlib.sha256(wire).hexdigest(),
+}, separators=(",", ":"), sort_keys=True))
+PY
+  exit 0
+fi
 if [[ -n "$rebuild_staging" ]]; then
   final_view="$VIEW_ROOT/views/$release_id"
   backup_view="$VIEW_ROOT/views/.$release_id.replaced"
