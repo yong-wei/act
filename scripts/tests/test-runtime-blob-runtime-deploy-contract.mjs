@@ -59,6 +59,10 @@ for (const invariant of [
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
   'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
+  'podman container exists "$APP_CONTAINER"',
+  "grep -E '^APP_IMAGE=(sha256:)?[a-f0-9]{64}$' \"$ENV_FILE\"",
+  'persisted runtime environment does not contain a valid app image digest',
+  'podman image exists "$rollback_app_image"',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }

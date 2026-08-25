@@ -270,9 +270,26 @@ run_active_media_resolver_smoke() {
 
 capture_rollback_image() {
   local image
-  image="$(podman inspect --format '{{.Image}}' "$APP_CONTAINER")"
+  if podman container exists "$APP_CONTAINER"; then
+    image="$(podman inspect --format '{{.Image}}' "$APP_CONTAINER")"
+  else
+    [[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || {
+      echo "ERROR: existing app container and persisted runtime environment are both unavailable" >&2
+      exit 1
+    }
+    image="$(grep -E '^APP_IMAGE=(sha256:)?[a-f0-9]{64}$' "$ENV_FILE" | sed -n '$s/^APP_IMAGE=//p')"
+    [[ -n "$image" ]] || {
+      echo "ERROR: persisted runtime environment does not contain a valid app image digest" >&2
+      exit 1
+    }
+    echo "WARN: existing app container is unavailable; using persisted runtime image for recovery" >&2
+  fi
   [[ "$image" =~ ^(sha256:)?([a-f0-9]{64})$ ]] || { echo "ERROR: existing app image digest is invalid" >&2; exit 1; }
   rollback_app_image="sha256:${BASH_REMATCH[2]}"
+  podman image exists "$rollback_app_image" || {
+    echo "ERROR: persisted app image is unavailable on this host" >&2
+    exit 1
+  }
 }
 
 # Host-side knowledge overlays (v0.18 current.json and cutover payloads) live
