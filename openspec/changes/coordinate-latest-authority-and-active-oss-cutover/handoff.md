@@ -59,7 +59,9 @@ v0.37-r3 bundle（`releases/control-theory-engineering-v0.37-r3/`）→ authorit
 | sourceMappings/sourceObjects/evidence/upstreamRagReferences | `rag-crosswalk.jsonl` + node evidence_refs，或受控空集（以 `verifyMaterializedSnapshot` 约束为准，实现时核对） | 待映射 |
 | manifest 字段 | releaseHash `cc73fa15…`、sourceDatasetHash `2f7f8245…`、predecessorReleaseId `ctr:release:control-theory-engineering-v0.22`、v3 bundle 协议 | 直接映射 |
 
-admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无 aggregate 发布（2026-08-25 核实），v0.37 只发布了 public bundle（ctkg-release/0.3）。构建器实现入口建议 `scripts/knowledge-cutover/build-v037-authority-snapshot.ts`，落点 `authority/releases/snap-<snapshotHash>/`，验证以 `verifyMaterializedSnapshot` 通过 + shards/catalog/locale 消费面自检为准。
+admit 链（ctkg-0.2-aggregate 协议）对 v0.37 不可用：ActKG r3 树内无 aggregate 发布（2026-08-25 核实），v0.37 只发布了 public bundle（ctkg-release/0.3）。
+
+**构建器已实现并落盘（2603cd91f，2026-08-25）**：`scripts/knowledge-cutover/build-v037-authority-snapshot.ts` 产出 `snap-e955b1ca155573fafae21e9fa1ddab397da7462ab9fd66c60c6d97b87a37e520`（7476 objects / 3047 relations / 10640 entries / 17 components / 3 profiles / 3047 linkMetadata；两行 m3-v2u source-object 简写已展开并注明），`verifyMaterializedSnapshot` 读回通过，candidate-only（零 selector 写入）。catalog 的 10 个种子成员已确认被新 snapshot 覆盖。**剩余联动**：authoring catalog（catalog.json 的 authorityBinding 仍指 v0.9 snap-7f4cdd10）需在激活流程内重绑 snap-e955b1ca 并 runtime 化；shards 在激活事务内按 activation 身份物化（现有函数链），不属于构建器职责。
 
 ## 切换执行时的硬性前提
 
