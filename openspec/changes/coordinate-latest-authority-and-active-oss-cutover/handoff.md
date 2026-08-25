@@ -16,6 +16,7 @@
 
 ## 活动资源分母复核（任务 3.2 阻塞，2026-08-25）
 
+- 面向上游的完整问题、修复接口和验收测试见 [`docs/operations/2026-08-25-v037-r3-coordinated-cutover-upstream-handoff.md`](../../../docs/operations/2026-08-25-v037-r3-coordinated-cutover-upstream-handoff.md)。
 - `runtime-bb309e6a…` 的 7277 个 manifest 文件不是 7277 个教学资源。现有 formal-resource 工件有 1058 条 `ACTIVE_BASELINE` 处理记录：838 张卡片、31 份讲义、28 路音频、32 组互动练习、31 个导入视频、85 个数据库 launcher、13 组讲义练习；它们需要与 Runtime 的物理文件和数据库来源分别闭合，不能再把 Blob 文件直接当作教学资源分母。
 - 生产数据库复核显示，带 `registryId` 的 `TeachingResource` 有 105 条，其中既有处理器覆盖的 `ETHICS_SCENARIO`/`INTERACTIVE_COMP`/`SIMULATION_APP` 为 85 条，另有 20 条 `STATIC_MEDIA`；后者有 5 条已经被 `LessonItem` 引用。现有 v0.37 formal-resource 工件没有对这 20 条作资源或显式非资源处置，故 1058 条记录也不能被直接宣布为完整活动基线。
 - 因此此前“7272 个 Blob 全入 baseline、1058 条治理资源全作 NEW delta”的做法已撤销：它混淆物理对象与逻辑资源，并遗漏活动数据库静态媒体。新的 baseline 必须绑定当前 `runtime-bb309e6a…` 的 manifest/active receipt/generation，逐条封存逻辑资源、其来源闭合和剩余 Runtime 文件的明确非资源处置；在 `STATIC_MEDIA` 的课程范围与原子绑定完成前，v0.37 candidate 必须保持不可选，任何 graph 或 Runtime selector 均不得切换。
