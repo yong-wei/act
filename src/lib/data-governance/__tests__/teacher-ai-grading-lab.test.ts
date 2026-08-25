@@ -21,6 +21,7 @@ import {
 import {
   importTeacherAiGradingPackageZip,
   TeacherAiGradingZipError,
+  validateFirstRoundQuestionContract,
   validateTeacherAiGradingPackageZip,
 } from '../teacher-ai-grading-lab-import';
 import {
@@ -255,6 +256,22 @@ describe('teacher AI grading package validation and import', () => {
   it('rejects a first-round package that is not a four-question, 100-point contract', async () => {
     await expect(validateTeacherAiGradingPackageZip(await buildSyntheticTeacherAiGradingPackage({ datasetKind: 'first-round', sampleCount: 30 })))
       .rejects.toThrowError(expect.objectContaining({ code: 'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID' }));
+  });
+
+  it('binds first-round packages to the authoritative T2 identifiers and 20/20/20/40 maxima', () => {
+    const manifest = { datasetKind: 'first-round', question: { path: 'T2S-20.md' } } as never;
+    const questions = (entries: Array<[string, number]>) => ({
+      questions: entries.map(([questionId, maxScore]) => ({ questionId, maxScore })),
+    }) as never;
+    expect(() => validateFirstRoundQuestionContract(manifest, questions([
+      ['T2-1', 25], ['T2-2', 25], ['T2-3', 25], ['O2', 25],
+    ]))).toThrowError(expect.objectContaining({ code: 'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID' }));
+    expect(() => validateFirstRoundQuestionContract(manifest, questions([
+      ['Q1', 20], ['Q2', 20], ['Q3', 20], ['Q4', 40],
+    ]))).toThrowError(expect.objectContaining({ code: 'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID' }));
+    expect(() => validateFirstRoundQuestionContract(manifest, questions([
+      ['T2-1', 20], ['T2-2', 20], ['T2-3', 20], ['O2', 40],
+    ]))).not.toThrow();
   });
 
   it('imports through staging but keeps the package blocked until redaction confirmation', async () => {

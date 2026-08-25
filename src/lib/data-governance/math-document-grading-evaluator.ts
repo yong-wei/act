@@ -42,6 +42,7 @@ export interface ProviderCriterionAssessment {
   anchors: GradingAnchor[];
   limitationState: string;
   annotations?: Array<{
+    reason: string;
     comment: string;
     anchor: GradingAnchor;
   }>;
@@ -135,6 +136,7 @@ const providerOutputSchema = z.object({
     }).strict()).min(1).max(20),
     limitationState: z.string().trim().min(1).max(120),
     annotations: z.array(z.object({
+      reason: z.string().trim().min(1).max(4_000),
       comment: z.string().trim().min(1).max(4_000),
       anchor: z.object({
         blockId: z.string().trim().min(1).max(160),
@@ -491,11 +493,12 @@ export function validateGradingOutput(
     if (assessment.score < criterion.maxPoints && annotations.length === 0) reasons.push('deduction-annotation-missing');
     if (assessment.score >= criterion.maxPoints && annotations.length > 0) reasons.push('annotation-without-deduction');
     for (const annotation of annotations) {
+      if (!annotation.reason.trim()) reasons.push('deduction-reason-missing');
       if (!annotation.comment.trim()) reasons.push('annotation-comment-missing');
       reasons.push(...validateOutputAnchor(annotation.anchor, blocks));
     }
     if (!assessment.limitationState.trim()) reasons.push('limitation-state-missing');
-    if (isUnsafeGeneratedText(assessment.rationale) || isUnsafeGeneratedText(assessment.annotations?.map((item) => item.comment).join(' '))) reasons.push('unsafe-generated-text');
+    if (isUnsafeGeneratedText(assessment.rationale) || isUnsafeGeneratedText(assessment.annotations?.map((item) => `${item.reason} ${item.comment}`).join(' '))) reasons.push('unsafe-generated-text');
   }
   for (const criterion of criteria.keys()) if (!seen.has(criterion)) reasons.push('criterion-assessment-missing');
   if (output.overallComment.length < 12) reasons.push('overall-comment-missing');
@@ -548,7 +551,7 @@ export function createDeterministicFixtureEvaluator(input: {
             anchors: anchor ? [anchor] : [],
             limitationState: block ? 'none' : 'missing-evidence',
             annotations: anchor && score < criterion.maxPoints
-              ? [{ comment: `Review the missing support for ${criterion.label}.`, anchor }]
+              ? [{ reason: `Support for ${criterion.label} is incomplete.`, comment: `Review the missing support for ${criterion.label}.`, anchor }]
               : [],
           };
         }),

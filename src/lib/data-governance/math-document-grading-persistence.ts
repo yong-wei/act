@@ -2042,6 +2042,7 @@ async function writeValidatedGradingDraftTransaction(input: {
     evaluatorVersion: input.draft.evaluatorVersion,
     draftTotalScore: input.draft.assessments.reduce((sum, assessment) => sum + assessment.score, 0),
     overallComment: input.draft.overallComment,
+    overallFeedback: input.draft.overallFeedback ?? null,
     limitations: input.draft.limitations,
     blockedReasons: [],
     updatedAt: input.now,
@@ -2064,10 +2065,7 @@ async function writeValidatedGradingDraftTransaction(input: {
         updatedAt: input.now,
       },
     });
-    const annotations = [
-      ...assessment.anchors.map((anchor) => ({ anchor, comment: 'criterion-evidence-anchor' })),
-      ...(assessment.annotations ?? []),
-    ];
+    const annotations = assessment.annotations ?? [];
     for (const annotation of annotations) {
       const block = resolvePersistedEvidenceBlock(input.evidenceBlocks, annotation.anchor.blockId);
       if (!block) throw new Error('frozen-evidence-anchor-unresolved');
@@ -2083,6 +2081,7 @@ async function writeValidatedGradingDraftTransaction(input: {
           bbox: annotation.anchor.bbox ?? undefined,
           precision: annotation.anchor.precision.toUpperCase(),
           excerpt: annotation.anchor.excerpt,
+          reason: annotation.reason,
           comment: annotation.comment,
           authorRole: 'AI_DRAFT',
           createdAt: input.now,
@@ -2559,6 +2558,7 @@ function terminalRunDraft(run: any): ValidatedGradingDraft {
     assessments: [],
     limitations: run.limitations ?? [],
     overallComment: run.overallComment ?? '',
+    overallFeedback: run.overallFeedback ?? undefined,
     inputHash: run.inputHash ?? 'persisted-input',
     dedupeKey: run.dedupeKey ?? `persisted:${run.id}`,
     state: ['BLOCKED', 'FAILED', 'CANCELLED', 'CONTENT_UNAVAILABLE'].includes(run.state) ? 'blocked' : 'awaiting-review',

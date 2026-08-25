@@ -3122,6 +3122,7 @@ model GradingRun {
   state                             GradingRunState @default(QUEUED)
   draftTotalScore                   Float?
   overallComment                    String?         @db.Text
+  overallFeedback                   Json?
   modelInputObjectKey               String?
   modelOutputObjectKey              String?
   teacherReviewedAt                 DateTime?
@@ -3190,6 +3191,7 @@ model GradingAnnotation {
   bbox         Json?
   precision    GradingPrecision
   excerpt      String                      @db.Text
+  reason       String?                     @db.Text
   comment      String                      @db.Text
   authorRole   GradingAnnotationAuthorRole
   createdAt    DateTime                    @default(now())

@@ -1311,14 +1311,16 @@ describe('production math-document grading persistence contracts', () => {
           criterionId: 'criterion-1',
           levelId: 'full',
           score: 2,
+          maxScore: 2,
           rationale: 'The evidence supports the selected criterion.',
           confidence: 0.9,
           anchors: [{ blockId: 'block-1', precision: 'block', excerpt: 'evidence', pageNumber: 2 }],
           limitationState: 'none',
-          annotations: [{ comment: 'Check this step.', anchor: { blockId: 'block-1', precision: 'block', excerpt: 'evidence', pageNumber: 2 } }],
+          annotations: [{ reason: 'The intermediate step is incomplete.', comment: 'Check this step.', anchor: { blockId: 'block-1', precision: 'block', excerpt: 'evidence', pageNumber: 2 } }],
         }],
         limitations: ['evaluation-package-source'],
         overallComment: 'The draft remains subject to teacher review.',
+        overallFeedback: { strengths: ['The conclusion is clear.'], problems: ['The working needs more detail.'], suggestions: ['Show the intermediate calculation.'] },
         inputHash: 'sha256:evaluation-input',
         evaluationIdentity: sha256(`grading:${run.id}:${run.evaluatorVersion}`),
         dedupeKey: 'grading-run:evaluation-draft',
@@ -1342,14 +1344,15 @@ describe('production math-document grading persistence contracts', () => {
 
     expect(result).toEqual(expect.objectContaining({ id: run.id, answerAttemptId: null, state: 'AWAITING_REVIEW' }));
     expect(assessments).toEqual([expect.objectContaining({ gradingRunId: run.id, criterionId: 'criterion-1', score: 2 })]);
-    expect(annotations).toHaveLength(2);
+    expect(annotations).toHaveLength(1);
     expect(annotations).toEqual(expect.arrayContaining([
-      expect.objectContaining({ blockId: 'conversion-1:block-1', authorRole: 'AI_DRAFT' }),
+      expect.objectContaining({ blockId: 'conversion-1:block-1', reason: 'The intermediate step is incomplete.', authorRole: 'AI_DRAFT' }),
     ]));
     expect(runUpdates).toEqual([expect.objectContaining({
       state: 'AWAITING_REVIEW',
       provider: 'configured-openai',
       draftTotalScore: 2,
+      overallFeedback: { strengths: ['The conclusion is clear.'], problems: ['The working needs more detail.'], suggestions: ['Show the intermediate calculation.'] },
       limitations: ['evaluation-package-source'],
       providerInputTokens: 321,
       providerOutputTokens: 123,

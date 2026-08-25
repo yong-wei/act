@@ -102,16 +102,25 @@ export async function validateTeacherAiGradingPackageZip(
   return { manifest, baseline, questions, files };
 }
 
-function validateFirstRoundQuestionContract(
+const FIRST_ROUND_T2_QUESTION_MAXIMA = new Map([
+  ['T2-1', 20],
+  ['T2-2', 20],
+  ['T2-3', 20],
+  ['O2', 40],
+]);
+
+export function validateFirstRoundQuestionContract(
   manifest: TeacherAiGradingLabManifest,
   questions: ParsedGradingQuestionSet,
 ): void {
   if (manifest.datasetKind !== 'first-round') return;
-  const total = questions.questions.reduce((sum, question) => sum + question.maxScore, 0);
-  if (questions.questions.length !== 4 || Math.abs(total - 100) > 1e-9) {
+  const actual = new Map(questions.questions.map((question) => [question.questionId, question.maxScore]));
+  const valid = actual.size === FIRST_ROUND_T2_QUESTION_MAXIMA.size
+    && [...FIRST_ROUND_T2_QUESTION_MAXIMA].every(([questionId, maxScore]) => actual.get(questionId) === maxScore);
+  if (!valid) {
     throw new TeacherAiGradingLabError(
       'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID',
-      'First-round datasets require exactly four questions totaling 100 points.',
+      'First-round datasets require T2-1/T2-2/T2-3/O2 with maxima 20/20/20/40.',
       manifest.question.path,
     );
   }

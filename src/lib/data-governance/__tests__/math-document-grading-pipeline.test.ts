@@ -134,6 +134,7 @@ function deductionAnnotations(evidence: {
 }) {
   const block = evidence.blocks[0];
   return [{
+    reason: 'The supporting reasoning is incomplete.',
     comment: 'Please explain how the cited evidence supports the conclusion.',
     anchor: {
       blockId: block.id,
@@ -639,7 +640,7 @@ describe('production math-document grading contracts', () => {
     const valid = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1',
       evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ comment: 'Please explain how the stability margin supports the conclusion.', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ reason: 'The supporting reasoning is incomplete.', comment: 'Please explain how the stability margin supports the conclusion.', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
       limitations: [],
       overallComment: 'The evidence is grounded in the submitted answer.',
       overallFeedback: overallFeedback(),
@@ -658,6 +659,10 @@ describe('production math-document grading contracts', () => {
       ...valid,
       assessments: valid.assessments.map((assessment) => ({ ...assessment, score: 5, annotations: deductionAnnotations(evidence) })),
     }, question(), evidence)).toContain('annotation-without-deduction');
+    expect(validateGradingOutput({
+      ...valid,
+      assessments: valid.assessments.map((assessment) => ({ ...assessment, annotations: assessment.annotations?.map((annotation) => ({ ...annotation, reason: '' })) })),
+    }, question(), evidence)).toContain('deduction-reason-missing');
     expect(validateGradingOutput({
       ...valid,
       overallFeedback: { ...overallFeedback(), strengths: ['The rubric result is ready.'] },
@@ -888,7 +893,7 @@ describe('production math-document grading contracts', () => {
     expect(prompt.user).toContain('anchors and annotations must be JSON objects, never strings');
     expect(prompt.user).toContain('Produce exactly one assessment for every criterionId');
     expect(prompt.user).toContain('Every assessment must include at least one anchor');
-    expect(prompt.user).toContain('annotations must contain one or more separate student-visible comments');
+    expect(prompt.user).toContain('annotations must contain one or more separate entries');
     expect(prompt.user).toContain('Each assessment limitationState must contain 1 to 120 characters');
     expect(prompt.user).toContain('summarize any longer limitation before returning it');
     expect(prompt.user).toContain('each score-level range');

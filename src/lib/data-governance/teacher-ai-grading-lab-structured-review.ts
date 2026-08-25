@@ -155,7 +155,7 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
               assessments: { select: { id: true, criterionId: true, score: true, rationale: true } },
               annotations: {
                 select: {
-                  id: true, criterionId: true, pageNumber: true, blockId: true, bbox: true,
+                  id: true, criterionId: true, reason: true, pageNumber: true, blockId: true, bbox: true,
                   precision: true, comment: true, block: { select: { coordinateProvenance: true } },
                 },
               },
@@ -198,6 +198,7 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
     const annotations = new Map<string, any>((run.annotations ?? []).map((row: any) => [row.id, {
       id: row.id,
       criterionId: row.criterionId,
+      reason: row.reason ?? row.comment,
       comment: String(row.comment),
       location: {
         pageNumber: row.pageNumber,
@@ -243,8 +244,8 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
         questionId: endpoint.execution.questionId,
         criterionId: annotation.criterionId,
         errorCode: annotation.criterionId,
-        reason: annotation.comment,
-        correction: '',
+        reason: annotation.reason,
+        correction: annotation.comment,
         anchor: annotation.location,
       });
     }
