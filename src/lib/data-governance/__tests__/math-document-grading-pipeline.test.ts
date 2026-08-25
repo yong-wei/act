@@ -122,6 +122,38 @@ function questionV2(detailedRubricEnabled: boolean): FrozenQuestionContract {
   };
 }
 
+function deductionAnnotations(evidence: {
+  blocks: Array<{
+    id: string;
+    precision?: 'span' | 'block' | 'page';
+    text: string;
+    pageNumber?: number | null;
+    spanStart?: number | null;
+    spanEnd?: number | null;
+  }>;
+}) {
+  const block = evidence.blocks[0];
+  return [{
+    comment: 'Please explain how the cited evidence supports the conclusion.',
+    anchor: {
+      blockId: block.id,
+      precision: block.precision ?? 'block',
+      excerpt: block.text.slice(0, 180),
+      pageNumber: block.pageNumber ?? null,
+      spanStart: block.spanStart ?? null,
+      spanEnd: block.spanEnd ?? null,
+    },
+  }];
+}
+
+function overallFeedback() {
+  return {
+    strengths: ['The main conclusion is stated clearly.'],
+    problems: ['Some supporting reasoning needs more detail.'],
+    suggestions: ['Show the key calculation before the conclusion.'],
+  };
+}
+
 function source(overrides: Partial<Parameters<typeof convertProtectedSubmission>[0]['source']> = {}) {
   return {
     assetId: 'asset-1',
@@ -607,12 +639,30 @@ describe('production math-document grading contracts', () => {
     const valid = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1',
       evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ comment: 'Please explain how the stability margin supports the conclusion.', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
       limitations: [],
       overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(valid.state).toBe('awaiting-review');
     expect(valid.blockedReasons).toEqual([]);
+    const missingDeductionAnnotation = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1', assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }], limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+    } });
+    expect(missingDeductionAnnotation.blockedReasons).toContain('deduction-annotation-missing');
+    expect(validateGradingOutput({
+      ...valid,
+      assessments: valid.assessments.map((assessment) => ({ ...assessment, maxScore: 4 })),
+    }, question(), evidence)).toContain('score-max-mismatch');
+    expect(validateGradingOutput({
+      ...valid,
+      assessments: valid.assessments.map((assessment) => ({ ...assessment, score: 5, annotations: deductionAnnotations(evidence) })),
+    }, question(), evidence)).toContain('annotation-without-deduction');
+    expect(validateGradingOutput({
+      ...valid,
+      overallFeedback: { ...overallFeedback(), strengths: ['The rubric result is ready.'] },
+    }, question(), evidence)).toContain('unsafe-overall-feedback');
+    expect(validateGradingOutput({ ...valid, overallFeedback: undefined }, question(), evidence)).toContain('overall-feedback-missing');
     const invalid = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1', assessments: [{ criterionId: 'unknown', levelId: 'excellent', score: 50, rationale: 'This output is intentionally invalid.', confidence: 1.2, anchors: [{ blockId: 'missing', precision: 'span', excerpt: 'missing' }], limitationState: 'none' }], limitations: [], overallComment: 'Invalid output must remain blocked.'
     } });
@@ -621,16 +671,18 @@ describe('production math-document grading contracts', () => {
 
     const verboseLimitationState = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'provider supplied an excessively detailed limitation state '.repeat(4), annotations: [] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'provider supplied an excessively detailed limitation state '.repeat(4), annotations: deductionAnnotations(evidence) }],
       limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(verboseLimitationState.state).toBe('awaiting-review');
     expect(verboseLimitationState.assessments[0]?.limitationState).toBe('provider-limitation-state-truncated');
 
     const verboseLimitation = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: deductionAnnotations(evidence) }],
       limitations: ['provider supplied an excessively detailed overall limitation '.repeat(5)], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(verboseLimitation.state).toBe('awaiting-review');
     expect(verboseLimitation.limitations).toEqual(['provider-limitation-truncated']);
@@ -650,8 +702,9 @@ describe('production math-document grading contracts', () => {
     const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
     const repaired = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'block', excerpt: 'invented evidence' }], limitationState: 'none', annotations: [] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'block', excerpt: 'invented evidence' }], limitationState: 'none', annotations: deductionAnnotations(evidence) }],
       limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(repaired.state).toBe('awaiting-review');
     expect(repaired.assessments[0].anchors[0]).toMatchObject({ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'The stability margin is positive.' });
@@ -660,6 +713,7 @@ describe('production math-document grading contracts', () => {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
       assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: 'unknown-block', precision: 'span', excerpt: 'evidence', spanStart: 0, spanEnd: 8 }], limitationState: 'none', annotations: [] }],
       limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(rejected.state).toBe('blocked');
     expect(rejected.blockedReasons).toContain('unknown-anchor');
@@ -669,8 +723,9 @@ describe('production math-document grading contracts', () => {
     const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
     const repaired = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 3, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 3, maxScore: 5, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: deductionAnnotations(evidence) }],
       limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(repaired.state).toBe('awaiting-review');
     expect(repaired.assessments[0].levelId).toBe('partial');
@@ -678,6 +733,7 @@ describe('production math-document grading contracts', () => {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
       assessments: [{ criterionId: 'criterion-1', levelId: 'unknown', score: 3, rationale: 'The answer cites the supplied stability evidence.', confidence: 0.8, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [] }],
       limitations: [], overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     } });
     expect(ambiguous.state).toBe('blocked');
     expect(ambiguous.blockedReasons).toContain('unknown-level');
@@ -699,14 +755,16 @@ describe('production math-document grading contracts', () => {
           criterionId: 'criterion-1',
           levelId: 'excellent',
           score: 4,
+          maxScore: 5,
           rationale: 'The answer cites the stability margin evidence.',
           confidence: 0.88,
           anchors: [{ blockId: 'page-1', precision: 'page', excerpt: 'The stability margin is positive.', pageNumber: 1 }],
           limitationState: 'none',
-          annotations: [],
+          annotations: deductionAnnotations(evidence),
         }],
         limitations: [],
         overallComment: 'The evidence is grounded in the submitted answer.',
+        overallFeedback: overallFeedback(),
       },
     });
     expect(draft.state).toBe('awaiting-review');
@@ -720,6 +778,7 @@ describe('production math-document grading contracts', () => {
       evaluatorVersion: 'model.v2',
       limitations: [],
       overallComment: 'The evidence is grounded in the submitted answer.',
+      overallFeedback: overallFeedback(),
     };
     const standard = buildValidatedDraft({
       question: questionV2(false),
@@ -729,10 +788,12 @@ describe('production math-document grading contracts', () => {
         assessments: [{
           criterionId: 'criterion-1',
           score: 4.1,
+          maxScore: 10,
           rationale: 'The answer cites the stability margin evidence.',
           confidence: 0.88,
           anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
           limitationState: 'none',
+          annotations: deductionAnnotations(evidence),
         }],
       },
     });
@@ -751,6 +812,7 @@ describe('production math-document grading contracts', () => {
           confidence: 0.88,
           anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
           limitationState: 'none',
+          annotations: deductionAnnotations(evidence),
         }],
       },
     });
@@ -769,6 +831,7 @@ describe('production math-document grading contracts', () => {
           confidence: 0.88,
           anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
           limitationState: 'none',
+          annotations: deductionAnnotations(evidence),
         }],
       },
     });
@@ -783,10 +846,12 @@ describe('production math-document grading contracts', () => {
           criterionId: 'criterion-1',
           levelId: 'partial',
           score: 9,
+          maxScore: 10,
           rationale: 'The answer cites the stability margin evidence.',
           confidence: 0.88,
           anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
           limitationState: 'none',
+          annotations: deductionAnnotations(evidence),
         }],
       },
     });
@@ -817,10 +882,13 @@ describe('production math-document grading contracts', () => {
     expect(prompt.user).toContain('configured-provider');
     expect(prompt.user).toContain('limitationState');
     expect(prompt.user).toContain('annotations');
+    expect(prompt.user).toContain('maxScore');
+    expect(prompt.user).toContain('overallFeedback');
     expect(prompt.user).toContain('anchors');
     expect(prompt.user).toContain('anchors and annotations must be JSON objects, never strings');
     expect(prompt.user).toContain('Produce exactly one assessment for every criterionId');
     expect(prompt.user).toContain('Every assessment must include at least one anchor');
+    expect(prompt.user).toContain('annotations must contain one or more separate student-visible comments');
     expect(prompt.user).toContain('Each assessment limitationState must contain 1 to 120 characters');
     expect(prompt.user).toContain('summarize any longer limitation before returning it');
     expect(prompt.user).toContain('each score-level range');

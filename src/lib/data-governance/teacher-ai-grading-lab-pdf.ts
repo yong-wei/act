@@ -45,6 +45,7 @@ export type TeacherAiGradingLabStructuredResultBody = {
   feedback: Array<{
     id: string;
     questionId: string;
+    criterionId: string;
     errorCode?: string | null;
     reason: string;
     correction: string;
@@ -69,7 +70,7 @@ export type TeacherAiGradingLabPdfPlan = {
   selectedStructuredVersion: { id: string; checksum: string };
   generatorVersion: string;
   anchorVersion: string;
-  annotations: FrozenPdfAnnotationInput[];
+  annotations: Array<FrozenPdfAnnotationInput & { criterionId: string }>;
   summaryLines: string[];
 };
 
@@ -79,7 +80,7 @@ export type TeacherAiGradingLabPdfMetadata = Omit<TeacherAiGradingLabPdfPlan, 'a
   summaryPageNumber: number;
   outputChecksum: string;
   outputSizeBytes: number;
-  annotations: FrozenPdfPlacement[];
+  annotations: Array<FrozenPdfPlacement & { criterionId: string }>;
 };
 
 export function hashTeacherAiGradingLabStructuredResult(value: TeacherAiGradingLabStructuredResultBody): string {
@@ -112,17 +113,23 @@ export function buildTeacherAiGradingLabPdfPlan(input: {
     validateScore(question.score, question.maxScore, 'teacher-ai-grading-lab-pdf-question-score-invalid');
     questionMap.set(question.questionId, question);
   }
+  const questionScoreTotal = structured.questions.reduce((sum, question) => sum + question.score, 0);
+  const questionMaxTotal = structured.questions.reduce((sum, question) => sum + question.maxScore, 0);
+  if (Math.abs(questionScoreTotal - structured.totalScore) > 1e-9) fail('teacher-ai-grading-lab-pdf-total-score-mismatch');
+  if (Math.abs(questionMaxTotal - structured.maxScore) > 1e-9) fail('teacher-ai-grading-lab-pdf-total-max-score-mismatch');
   const feedbackIds = new Set<string>();
-  const annotations = structured.feedback.map((feedback): FrozenPdfAnnotationInput => {
+  const annotations = structured.feedback.map((feedback): FrozenPdfAnnotationInput & { criterionId: string } => {
     if (!token(feedback.id) || feedbackIds.has(feedback.id)) fail('teacher-ai-grading-lab-pdf-feedback-id-invalid');
     feedbackIds.add(feedback.id);
     const question = questionMap.get(feedback.questionId);
     if (!question) fail('teacher-ai-grading-lab-pdf-feedback-question-missing');
+    if (!token(feedback.criterionId)) fail('teacher-ai-grading-lab-pdf-feedback-criterion-missing');
     const pageNumber = feedback.anchor.pageNumber;
     if (!Number.isInteger(pageNumber) || Number(pageNumber) < 1) fail('teacher-ai-grading-lab-pdf-feedback-page-missing');
     const fallbackPrecision = fallbackPrecisionFor(feedback);
     return {
       id: feedback.id,
+      criterionId: feedback.criterionId,
       pageNumber,
       blockId: feedback.anchor.blockId ?? null,
       questionId: feedback.questionId,
@@ -197,7 +204,11 @@ export async function createTeacherAiGradingLabPdf(input: {
       summaryPageNumber: rendered.summaryPageNumber,
       outputChecksum,
       outputSizeBytes: rendered.bytes.byteLength,
-      annotations: rendered.placements,
+      annotations: rendered.placements.map((placement) => {
+        const annotation = plan.annotations.find((candidate) => candidate.id === placement.id);
+        if (!annotation) throw new TeacherAiGradingLabPdfError('teacher-ai-grading-lab-pdf-placement-lineage-missing');
+        return { ...placement, criterionId: annotation.criterionId };
+      }),
     },
   };
 }

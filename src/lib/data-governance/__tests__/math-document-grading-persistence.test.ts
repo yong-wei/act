@@ -1203,9 +1203,10 @@ describe('production math-document grading persistence contracts', () => {
       evaluate: vi.fn(async () => ({
         evaluatorId: 'provider-1',
         evaluatorVersion: 'model.v1',
-        assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The submitted evidence states the stability result.', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
+        assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, maxScore: 5, rationale: 'The submitted evidence states the stability result.', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
         limitations: [],
         overallComment: 'The draft is grounded in the submitted evidence.',
+        overallFeedback: { strengths: ['The main conclusion is clear.'], problems: ['Supporting detail can be expanded.'], suggestions: ['Show the calculation before the conclusion.'] },
       })),
     };
     const result = await processGradingRunJob({
@@ -1543,9 +1544,10 @@ describe('production math-document grading persistence contracts', () => {
           return {
             evaluatorId: 'provider-1',
             evaluatorVersion: 'model.v1',
-            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'Grounded in evidence.', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
+            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, maxScore: 5, rationale: 'Grounded in evidence.', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
             limitations: [],
             overallComment: 'Draft remains pending review.',
+            overallFeedback: { strengths: ['The conclusion is clear.'], problems: ['The reasoning can be expanded.'], suggestions: ['Show the supporting calculation.'] },
           };
         },
       },
@@ -2019,9 +2021,10 @@ describe('production math-document grading persistence contracts', () => {
           return {
             evaluatorId: 'provider-1',
             evaluatorVersion: 'model.v1',
-            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The frozen evidence supports the criterion.', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
+            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, maxScore: 5, rationale: 'The frozen evidence supports the criterion.', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
             limitations: [],
             overallComment: 'The frozen question and evidence were used.',
+            overallFeedback: { strengths: ['The conclusion is clear.'], problems: ['The reasoning can be expanded.'], suggestions: ['Show the supporting calculation.'] },
           };
         },
       },

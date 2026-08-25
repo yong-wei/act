@@ -36,6 +36,7 @@ export interface ProviderCriterionAssessment {
   criterionId: string;
   levelId: string | null;
   score: number;
+  maxScore?: number;
   rationale: string;
   confidence: number;
   anchors: GradingAnchor[];
@@ -46,12 +47,19 @@ export interface ProviderCriterionAssessment {
   }>;
 }
 
+export interface ProviderOverallFeedback {
+  strengths: string[];
+  problems: string[];
+  suggestions: string[];
+}
+
 export interface ProviderGradingOutput {
   evaluatorId: string;
   evaluatorVersion: string;
   assessments: ProviderCriterionAssessment[];
   limitations: string[];
   overallComment: string;
+  overallFeedback?: ProviderOverallFeedback;
 }
 
 export interface ProviderRuntimeResult {
@@ -113,6 +121,7 @@ const providerOutputSchema = z.object({
     criterionId: z.string().trim().min(1).max(100),
     levelId: z.string().trim().min(1).max(100).nullable().optional().default(null),
     score: z.number().finite(),
+    maxScore: z.number().finite().optional(),
     rationale: z.string().trim().min(12).max(4_000),
     confidence: z.number().finite(),
     anchors: z.array(z.object({
@@ -140,6 +149,11 @@ const providerOutputSchema = z.object({
   }).strict()).min(1).max(100),
   limitations: z.array(z.string().trim().min(1).max(240)).max(50),
   overallComment: z.string().trim().min(12).max(4_000),
+  overallFeedback: z.object({
+    strengths: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
+    problems: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
+    suggestions: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
+  }).strict().optional(),
 }).strict();
 
 export async function createProviderRuntimeGradingAdapter(input: {
@@ -461,7 +475,8 @@ export function validateGradingOutput(
       : undefined;
     if (detailedRubricEnabled && !level) reasons.push('unknown-level');
     if (!detailedRubricEnabled && assessment.levelId !== null) reasons.push('standard-only-level-not-allowed');
-    if (assessment.score < 0 || assessment.score > criterion.maxPoints || assessment.score > question.rubric.maxScore) reasons.push('score-overflow');
+    if (assessment.maxScore !== criterion.maxPoints) reasons.push('score-max-mismatch');
+    if (assessment.score < 0 || (assessment.maxScore !== undefined && assessment.score > assessment.maxScore) || assessment.score > criterion.maxPoints || assessment.score > question.rubric.maxScore) reasons.push('score-overflow');
     if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && !usesHalfPointQuantum(assessment.score)) reasons.push('score-must-use-0.5-quantum');
     if (question.rubric.schemaVersion === 'assignment-scoring-rubric.v2' && !hasAtMostOneDecimal(assessment.score)) reasons.push('score-must-use-0.1-quantum');
     if (question.rubric.schemaVersion === 'assignment-analytic-rubric.v1' && level) {
@@ -472,7 +487,10 @@ export function validateGradingOutput(
     if (!Number.isFinite(assessment.confidence) || assessment.confidence < 0 || assessment.confidence > 1) reasons.push('confidence-out-of-range');
     if (assessment.anchors.length === 0) reasons.push('evidence-anchor-missing');
     for (const anchor of assessment.anchors) reasons.push(...validateOutputAnchor(anchor, blocks));
-    for (const annotation of assessment.annotations ?? []) {
+    const annotations = assessment.annotations ?? [];
+    if (assessment.score < criterion.maxPoints && annotations.length === 0) reasons.push('deduction-annotation-missing');
+    if (assessment.score >= criterion.maxPoints && annotations.length > 0) reasons.push('annotation-without-deduction');
+    for (const annotation of annotations) {
       if (!annotation.comment.trim()) reasons.push('annotation-comment-missing');
       reasons.push(...validateOutputAnchor(annotation.anchor, blocks));
     }
@@ -481,7 +499,17 @@ export function validateGradingOutput(
   }
   for (const criterion of criteria.keys()) if (!seen.has(criterion)) reasons.push('criterion-assessment-missing');
   if (output.overallComment.length < 12) reasons.push('overall-comment-missing');
-  if (isUnsafeGeneratedText(output.overallComment)) reasons.push('unsafe-overall-comment');
+  if (isUnsafeGeneratedText(output.overallComment) || containsInternalFeedbackTerm(output.overallComment)) reasons.push('unsafe-overall-comment');
+  if (!output.overallFeedback) {
+    reasons.push('overall-feedback-missing');
+  } else {
+    const overallFeedback = [
+      ...output.overallFeedback.strengths,
+      ...output.overallFeedback.problems,
+      ...output.overallFeedback.suggestions,
+    ];
+    if (overallFeedback.some((item) => isUnsafeGeneratedText(item) || containsInternalFeedbackTerm(item))) reasons.push('unsafe-overall-feedback');
+  }
   return [...new Set(reasons)];
 }
 
@@ -506,19 +534,31 @@ export function createDeterministicFixtureEvaluator(input: {
           const level = detailedRubricEnabled
             ? criterion.levels[criterion.levels.length - 1]
             : null;
+          const score = level?.maxPoints ?? criterion.maxPoints;
+          const anchor = block
+            ? { blockId: block.id, precision: block.precision, excerpt: block.text.slice(0, 180), pageNumber: block.pageNumber ?? null, spanStart: block.spanStart ?? null, spanEnd: block.spanEnd ?? null }
+            : null;
           return {
             criterionId: criterion.id,
             levelId: level?.id ?? null,
-            score: level?.maxPoints ?? criterion.maxPoints,
+            score,
+            maxScore: criterion.maxPoints,
             rationale: `Fixture evaluation for ${criterion.label} cites a supplied evidence block.`,
             confidence: block ? 0.75 : 0,
-            anchors: block ? [{ blockId: block.id, precision: block.precision, excerpt: block.text.slice(0, 180), pageNumber: block.pageNumber ?? null, spanStart: block.spanStart ?? null, spanEnd: block.spanEnd ?? null }] : [],
+            anchors: anchor ? [anchor] : [],
             limitationState: block ? 'none' : 'missing-evidence',
-            annotations: [],
+            annotations: anchor && score < criterion.maxPoints
+              ? [{ comment: `Review the missing support for ${criterion.label}.`, anchor }]
+              : [],
           };
         }),
         limitations: [],
         overallComment: 'Fixture output is available only for tests and explicit deterministic fixtures.',
+        overallFeedback: {
+          strengths: ['The supplied evidence is present.'],
+          problems: ['Review any missing support before final submission.'],
+          suggestions: ['State the supporting evidence directly.'],
+        },
       };
     },
   };
@@ -802,6 +842,10 @@ function evidenceHasPromptInjection(evidence: NormalizedAnswerEvidence): boolean
 
 function isUnsafeGeneratedText(value: string | undefined): boolean {
   return Boolean(value && /(?:sk-[A-Za-z0-9_-]+|Bearer\s+\S+|api[_-]?key\s*[=:])/i.test(value));
+}
+
+function containsInternalFeedbackTerm(value: string): boolean {
+  return /(?:\b(?:criterion|rubric|anchor|evidence block|confidence|model|provider|prompt)\b|评分标准|评分项|锚点|证据块|置信(?:度)?|模型|提供商|提示词|内部术语)/i.test(value);
 }
 
 function parseJsonResponse(value: string): unknown {

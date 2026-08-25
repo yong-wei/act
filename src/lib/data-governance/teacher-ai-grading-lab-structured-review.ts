@@ -37,6 +37,7 @@ export type TeacherAiGradingMaterializedStructuredResult = {
   feedback: Array<{
     id: string;
     questionId: string;
+    criterionId: string;
     errorCode?: string | null;
     reason: string;
     correction: string;
@@ -240,6 +241,7 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
       feedback.push({
         id: `${endpoint.execution.id}:${annotation.id}`,
         questionId: endpoint.execution.questionId,
+        criterionId: annotation.criterionId,
         errorCode: annotation.criterionId,
         reason: annotation.comment,
         correction: '',

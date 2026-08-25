@@ -74,6 +74,7 @@ describe('teacher AI grading lab PDF', () => {
     body.feedback = [{
       id: 'feedback-page',
       questionId: 'T1-2',
+      criterionId: 't1-2-criterion-1',
       errorCode: 'NO_BBOX',
       reason: 'The page is known.',
       correction: 'Review the question block.',
@@ -102,6 +103,7 @@ describe('teacher AI grading lab PDF', () => {
     body.feedback = [{
       id: `feedback-${precision.toLowerCase()}`,
       questionId: 'T1-2',
+      criterionId: 't1-2-criterion-1',
       errorCode: 'NO_EXACT_ANCHOR',
       reason: 'Exact geometry is unavailable.',
       correction: 'Use the declared fallback location.',
@@ -126,6 +128,7 @@ describe('teacher AI grading lab PDF', () => {
     body.feedback = [{
       id: 'feedback-outside',
       questionId: 'T1-1',
+      criterionId: 't1-1-criterion-1',
       errorCode: 'OUTSIDE',
       reason: 'Invalid geometry.',
       correction: 'Use the page marker.',
@@ -159,6 +162,21 @@ describe('teacher AI grading lab PDF', () => {
       code: 'reviewed-derivative-pdf-page-invalid',
       blocked: true,
     });
+  });
+
+  it('rejects total aggregation drift and feedback without a stable rubric-item identity', async () => {
+    const source = await syntheticPdf();
+    const totalMismatch = structuredBody();
+    totalMismatch.totalScore = 31;
+    expect(() => buildTeacherAiGradingLabPdfPlan(inputFor(source, totalMismatch))).toThrowError(expect.objectContaining({
+      code: 'teacher-ai-grading-lab-pdf-total-score-mismatch',
+    }));
+
+    const missingCriterion = structuredBody();
+    missingCriterion.feedback[0].criterionId = '';
+    expect(() => buildTeacherAiGradingLabPdfPlan(inputFor(source, missingCriterion))).toThrowError(expect.objectContaining({
+      code: 'teacher-ai-grading-lab-pdf-feedback-criterion-missing',
+    }));
   });
 
   it.each([
@@ -279,6 +297,7 @@ function structuredBody(): TeacherAiGradingLabStructuredResultBody {
     feedback: questions.map((question, index) => ({
       id: `feedback-${index + 1}`,
       questionId: question.questionId,
+      criterionId: `${question.questionId.toLowerCase()}-criterion-1`,
       errorCode: index === 0 ? 'SIGN' : `E${index + 1}`,
       reason: index === 0 ? 'Sign is incorrect.' : `Reason ${index + 1}`,
       correction: `Correction ${index + 1}`,

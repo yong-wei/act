@@ -252,6 +252,11 @@ describe('teacher AI grading package validation and import', () => {
     expect(result.questions.questions[0].questionId).toBe('T1-4');
   });
 
+  it('rejects a first-round package that is not a four-question, 100-point contract', async () => {
+    await expect(validateTeacherAiGradingPackageZip(await buildSyntheticTeacherAiGradingPackage({ datasetKind: 'first-round', sampleCount: 30 })))
+      .rejects.toThrowError(expect.objectContaining({ code: 'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID' }));
+  });
+
   it('imports through staging but keeps the package blocked until redaction confirmation', async () => {
     const dataRoot = await mkdtemp(join(tmpdir(), 'teacher-ai-grading-lab-'));
     tempRoots.push(dataRoot);

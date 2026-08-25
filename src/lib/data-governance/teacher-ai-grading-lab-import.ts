@@ -97,8 +97,24 @@ export async function validateTeacherAiGradingPackageZip(
   const baseline = parseTeacherAiGradingBaseline(readJson(files, 'baseline.json'));
   validatePackageReferences(manifest, baseline, files);
   const questions = parseTeacherAiGradingQuestions(readUtf8(files, manifest.question.path), new Set(files.keys()));
+  validateFirstRoundQuestionContract(manifest, questions);
   validateBaselineAgainstQuestions(manifest, baseline, questions);
   return { manifest, baseline, questions, files };
+}
+
+function validateFirstRoundQuestionContract(
+  manifest: TeacherAiGradingLabManifest,
+  questions: ParsedGradingQuestionSet,
+): void {
+  if (manifest.datasetKind !== 'first-round') return;
+  const total = questions.questions.reduce((sum, question) => sum + question.maxScore, 0);
+  if (questions.questions.length !== 4 || Math.abs(total - 100) > 1e-9) {
+    throw new TeacherAiGradingLabError(
+      'LAB_RUBRIC_FIRST_ROUND_CONTRACT_INVALID',
+      'First-round datasets require exactly four questions totaling 100 points.',
+      manifest.question.path,
+    );
+  }
 }
 
 export async function importTeacherAiGradingPackageZip(
