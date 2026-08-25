@@ -368,8 +368,10 @@ export async function approveTeacherAssignmentReview(db: any, input: {
       });
     }
     const commands = approvalOutboxRows(snapshot, review, now);
-    const appended = await tx.teacherAssignmentReviewOutbox.createMany({ data: commands, skipDuplicates: true });
-    if (appended?.count !== commands.length) throw new TeacherAssignmentReviewError('teacher-review-outbox-conflict', 409);
+    if (commands.length > 0) {
+      const appended = await tx.teacherAssignmentReviewOutbox.createMany({ data: commands, skipDuplicates: true });
+      if (appended?.count !== commands.length) throw new TeacherAssignmentReviewError('teacher-review-outbox-conflict', 409);
+    }
 
     const aggregate = await loadSubmissionCompleteness(tx, review.submissionId);
     const priorSnapshots = await tx.teacherAssignmentApprovalSnapshot.findMany({ where: { submissionId: review.submissionId } });
@@ -1212,6 +1214,7 @@ function latestCurrentGradingSnapshot(submission: any) {
 }
 
 function approvalOutboxRows(snapshot: any, review: any, now: Date) {
+  if (!snapshot.answerEvidenceId) return [];
   const assignmentResultReleaseGate = review.revision?.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
   const commands = [
     ['GENERATE_DERIVATIVE', 'generate-derivative'],

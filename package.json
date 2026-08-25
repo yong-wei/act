@@ -13,7 +13,7 @@
     "models:produce": "npm --prefix ./tools/glb-model-optimizer ci && npm --prefix ./tools/glb-model-optimizer run produce",
     "models:validate": "node ./scripts/assets/validate-optimized-models.mjs --source-root ./public/assets --optimized-root ./public/assets/models-opt",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
-    "typecheck": "node --max-old-space-size=8192 ./node_modules/typescript/bin/tsc --noEmit --pretty false",
+    "typecheck": "node ./scripts/ops/run-typecheck.mjs",
     "verify:commit": "npm run typecheck && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
     "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
     "lint": "eslint . --max-warnings=0",

@@ -584,6 +584,48 @@ describe('teacher assignment review persistence', () => {
     expect(create.mock.calls[0][0].data).not.toHaveProperty('answerEvidenceId');
   });
 
+  it('approves a manual review without evidence without queuing evidence-dependent feedback work', async () => {
+    const review: any = reviewFixture();
+    review.answerEvidenceId = null;
+    review.gradingRun = {
+      ...review.gradingRun,
+      source: 'MANUAL',
+      answerEvidenceId: null,
+      answerEvidence: null,
+    };
+    const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'manual-snapshot-1' }));
+    const outboxCreateMany = vi.fn();
+    const submissionUpdate = vi.fn().mockResolvedValue({});
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review), updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      teacherAssignmentApprovalSnapshot: { create: snapshotCreate, findMany: vi.fn().mockResolvedValue([]) },
+      teacherAssignmentReviewOutbox: { createMany: outboxCreateMany, updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      gradingRun: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      gradingCriterionAssessment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      gradingAuditEvent: { create: vi.fn().mockResolvedValue({ id: 'grading-audit-manual-1' }) },
+      assignmentSubmission: {
+        findUnique: vi.fn().mockResolvedValue({
+          revision: { questions: [{ id: 'question-1' }] },
+          answers: [{ id: 'answer-1', assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }],
+          resubmissionGrants: [],
+          questionExemptions: [],
+        }),
+        update: submissionUpdate,
+      },
+    };
+
+    await expect(approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: 2, idempotencyKey: 'approve-manual-review-1', now,
+    })).resolves.toMatchObject({ snapshot: { id: 'manual-snapshot-1' }, assignment: { complete: true, total: 9 } });
+
+    expect(outboxCreateMany).not.toHaveBeenCalled();
+    expect(submissionUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ reviewState: 'APPROVED_PENDING_RELEASE', approvedTotal: 9 }),
+    }));
+  });
+
   it('atomically freezes approval and appends exactly three deterministic outbox commands', async () => {
     const review = reviewFixture();
     review.gradingRun = {
