@@ -316,6 +316,8 @@ async function main() {
         sourceQuestionId,
         sourceContentHash,
         registry: validationRegistrySource,
+        optionAttributions: attributionSource,
+        practiceBaseline: baselineSource,
         authorityRows: options.offline
           ? undefined
           : governedRows.validations.map((row) => ({
