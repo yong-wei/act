@@ -126,6 +126,7 @@ export async function persistAdaptivePathCandidateBatch(
           policyFamily: input.plan.policyFamily,
           confidence: input.plan.confidence,
           excludedPolicyFamilies: input.plan.excludedPolicyFamilies,
+          decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,

@@ -30,6 +30,11 @@ import {
   type PathConstraintRepairResult,
 } from './adaptive-planning/path-constraint-repair';
 import {
+  buildPersonalizedPathDecisionEvidence,
+  type PersonalizedPathDecisionEvidence,
+  type PersonalizedPathDecisionPathEvidence,
+} from './adaptive-path-decision-evidence';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -777,7 +782,9 @@ export interface AdaptiveLearningPathPolicyBundle {
     };
     checkpointNodeIds: string[];
     limitations: string[];
+    decisionEvidence?: PersonalizedPathDecisionPathEvidence;
   }>;
+  decisionEvidence?: PersonalizedPathDecisionEvidence;
   diversity: {
     maxResourceOverlap: number;
     minModalityDistance: number;
@@ -2336,7 +2343,7 @@ function buildAdaptiveLearningPathPlanInternal(
     policyBundle: includePolicyBundle ? buildPolicyBundle({
       ...input,
       policyBundle: policyBundleRequest,
-    }, policyFamily) : undefined,
+    }, policyFamily, now) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -4889,6 +4896,7 @@ function differentiablePolicyModalityMix(
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
   primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
+  capturedAt: string,
 ): AdaptiveLearningPathPolicyBundle | undefined {
   const requestedFamilies = input.policyBundle?.families;
   if (!requestedFamilies || requestedFamilies.length === 0) {
@@ -5113,12 +5121,32 @@ function buildPolicyBundle(
       ? 'policy-paths-identical'
       : null,
   ].filter((item): item is string => Boolean(item)));
+  const decisionEvidence = buildPersonalizedPathDecisionEvidence({
+    capturedAt,
+    plannerVersion: 'adaptive-learning-path-planner.v1',
+    learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState),
+    deficits: inferDeficits(input.goal, input.learnerState),
+    paths: paths.map((path, index) => ({
+      optionId: `path-option-${index + 1}`,
+      styleId: path.styleId,
+      policyFamily: path.policyFamily,
+      nodeIds: path.nodeIds,
+      planNodes: path.planNodes,
+      resourceMix: path.resourceMix,
+      recommendationProvenance: path.recommendationProvenance,
+    })),
+  });
+  const pathsWithDecisionEvidence = paths.map((path, index) => ({
+    ...path,
+    decisionEvidence: decisionEvidence.paths[index],
+  }));
 
   return {
     families,
     overlapThreshold,
     status: fallbackReasons.length > 0 ? 'low-resource-fallback' : 'ready',
-    paths,
+    paths: pathsWithDecisionEvidence,
+    decisionEvidence,
     diversity: {
       maxResourceOverlap,
       minModalityDistance,

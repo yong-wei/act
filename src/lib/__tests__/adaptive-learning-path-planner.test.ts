@@ -4431,6 +4431,8 @@ describe('adaptive learning path planner', () => {
     }));
 
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
+    expect(bundle.decisionEvidence?.snapshot.version).toBe('personalized-path-decision-evidence.v1');
+    expect(bundle.paths[0]?.decisionEvidence?.explanations.length).toBeGreaterThan(0);
 
     expect(bundle.status).toBe('low-resource-fallback');
     expect(bundle.fallbackReasons).toContain('policy-option-diversity-unavailable');
