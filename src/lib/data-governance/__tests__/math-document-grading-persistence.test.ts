@@ -2218,10 +2218,12 @@ describe('production math-document grading persistence contracts', () => {
     const bytes = new TextEncoder().encode('word source');
     const checksum = sha256(bytes);
     const image = new Uint8Array([137, 80, 78, 71]);
+    const renderedPdf = Buffer.from('%PDF-1.7\nword-rendered');
     const store = new MemorySubmissionObjectStore();
     store.put({ key: 'quarantine/word-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: bytes.byteLength, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', checksum, scanState: 'CLEAN' });
     store.payloads.set('quarantine/word-source', bytes);
     const visualRows: any[] = [];
+    const conversionUpdates: any[] = [];
     const conversion: any = {
       id: 'conversion-visual-1', assetId: 'asset-1', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
       asset: {
@@ -2236,7 +2238,7 @@ describe('production math-document grading persistence contracts', () => {
         findUnique: async () => ({ id: 'job-visual-1', state: 'QUEUED', cancelRequestedAt: null, conversion }),
         updateMany: async () => ({ count: 1 }),
       },
-      documentConversion: { update: async ({ data }: any) => ({ ...conversion, ...data }) },
+      documentConversion: { update: async ({ data }: any) => { conversionUpdates.push(data); return { ...conversion, ...data }; } },
       documentConversionVisualEvidence: {
         deleteMany: async () => undefined,
         createMany: async ({ data }: any) => { visualRows.push(...data); },
@@ -2262,6 +2264,8 @@ describe('production math-document grading persistence contracts', () => {
         convert: async () => ({
           markdown: '作答文本',
           blocks: [{ id: 'block-1', blockIndex: 0, text: '作答文本', markdown: '作答文本', precision: 'block' as const, confidence: 0.9 }],
+          renderedBytes: renderedPdf,
+          renderedMimeType: 'application/pdf',
           wordRepresentation: {
             schemaVersion: 'math-document-word-representation.v1',
             anchorVersion: 'math-document-word-anchor.v1',
@@ -2295,6 +2299,19 @@ describe('production math-document grading persistence contracts', () => {
       questionId: 'question-1', sourceKind: 'word-embedded-image', mediaType: 'image/png', pageNumber: 1, readiness: 'review-required', sizeBytes: image.byteLength,
     })]);
     expect(visualRows[0].objectKey).not.toContain('student-1');
+    expect(conversionUpdates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        state: 'SUCCEEDED',
+        renderedObjectKey: expect.stringMatching(/^grading-rendered\/conversion-visual-1\/attempt-1\/sha256:[a-f0-9]{25}$/),
+        renderedChecksum: sha256(renderedPdf),
+        renderedPageCount: 1,
+        layoutRepresentation: expect.objectContaining({
+          schemaVersion: 'document-layout-representation.v1',
+          renderedPdfChecksum: checksum,
+          renderedPdfPageCount: 1,
+        }),
+      }),
+    ]));
     expect(result.evidence).toEqual(expect.objectContaining({ readiness: 'BLOCKED', limitationState: 'visual-evidence-incomplete' }));
   });
 
