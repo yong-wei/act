@@ -59,7 +59,10 @@ function main(): void {
       String(item.attributes.to ?? ''),
     ]));
     const files = snapshot.files.filter((file) => frozenPaths.has(file.path));
-    const allowlist = createAllowlist(frozen, charterSha256, files);
+    const allowlist = createAllowlist(frozen, charterSha256, [
+      ...files,
+      ...snapshot.files.filter((file) => file.path.startsWith('src/lib/') && !file.path.startsWith('src/lib/architecture-')),
+    ]);
     const hash = writeAllowlist(repoRoot, allowlist);
     console.log(`wrote allowlist ${allowlist.entries.length} ${hash}`);
     return;
