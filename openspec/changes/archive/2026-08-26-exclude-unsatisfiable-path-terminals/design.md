@@ -2,7 +2,7 @@
 
 ## Approach
 
-Reuse `evaluateNodeReadiness()`. A terminal is **unreachable** when competency or evidence-count gaps remain and there is no remaining path-closable gate (`requiredCompletedNodeIds` / `requiredOutcomeRefs`). Completing preparation nodes may still unlock completion/outcome gates.
+Reuse `evaluateNodeReadiness()`. A terminal stays official when remaining locks include `requiredCompletedNodeIds` or `requiredOutcomeRefs` that later path nodes can close. If the only remaining locks are `minimumCompetency` / `minimumEvidenceCount`, it is not official: those gaps are not produced by completing preparation resources. Locked terminals with path-closable gates remain future work per existing path-option readiness structure.
 
 In `toRepairCandidate()`, mark `terminalValidation: 'official'` only for reachable terminals. Unreachable official terminals become ordinary locked, removable nodes so repair can drop them and insert a reachable official terminal, or fail closed with `terminal-validation-resource-missing`.
 

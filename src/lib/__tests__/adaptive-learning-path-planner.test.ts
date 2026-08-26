@@ -4933,15 +4933,14 @@ describe('adaptive learning path planner', () => {
 
     expect(candidateTerminals).not.toContain('arena-task:task-cruise-roll-blackbox-identification');
     for (const terminalId of candidateTerminals) {
-      if (!terminalId.startsWith('arena-task:') && !terminalId.startsWith('simulation:')) continue;
       const terminalNode = registry.nodes.find((node) => node.id === terminalId);
       const readiness = terminalNode?.planningMetadata.readiness;
       if (!readiness) continue;
-      const onlyCompetencyOrEvidenceLocked =
-        readiness.requiredCompletedNodeIds.length === 0 &&
-        readiness.requiredOutcomeRefs.length === 0 &&
-        (Object.keys(readiness.minimumCompetency).length > 0 || readiness.minimumEvidenceCount > 0);
-      expect(onlyCompetencyOrEvidenceLocked).toBe(false);
+      expect(
+        readiness.requiredCompletedNodeIds.length > 0
+        || readiness.requiredOutcomeRefs.length > 0
+        || (Object.keys(readiness.minimumCompetency).length === 0 && readiness.minimumEvidenceCount === 0),
+      ).toBe(true);
     }
   });
 

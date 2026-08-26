@@ -983,7 +983,7 @@ The adaptive learning path planner SHALL distinguish adjusted candidates using g
 
 ### Requirement: Unsatisfiable terminal validation is not a candidate endpoint
 
-The planner SHALL NOT select a terminal validation node as an executable candidate endpoint when the current learner cannot satisfy that node's `minimumCompetency` or `minimumEvidenceCount`, and those gaps cannot be closed by completing other nodes on the same candidate. Terminals locked only by `requiredCompletedNodeIds` or `requiredOutcomeRefs` that the candidate can satisfy MAY remain. If no reachable official terminal exists, the planner SHALL return fallback or evidence-needed instead of an unexecutable closed path.
+The planner SHALL NOT select a terminal validation node as an official candidate endpoint when the current learner still misses `minimumCompetency` or `minimumEvidenceCount` and the node has no remaining `requiredCompletedNodeIds` or `requiredOutcomeRefs`. Completing other path nodes does not create Portrait V2 competency or evidence. Terminals that still have path-closable completion or outcome gates MAY remain official locked future work. If no official terminal remains, the planner SHALL return fallback or evidence-needed instead of an unexecutable closed path.
 
 #### Scenario: Cold-start learner is not given an unsatisfiable Arena endpoint
 
