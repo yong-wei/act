@@ -6,7 +6,7 @@ The knowledge-workspace product-QA harness SHALL exercise authenticated student,
 #### Scenario: Local product QA runs without credential variables
 - **WHEN** the capture target and configured database are both loopback-local and no `KNOWLEDGE_QA_*` credentials are supplied
 - **THEN** the test harness SHALL provision the canonical student, teacher, and administrator fixtures idempotently and inject them only into its capture child process
-- **AND** it SHALL verify authentication for all three roles before recording product-QA evidence
+- **AND** its capture child SHALL authenticate all three roles before recording product-QA evidence
 
 #### Scenario: Non-local product QA is requested
 - **WHEN** the capture target or database is not loopback-local
