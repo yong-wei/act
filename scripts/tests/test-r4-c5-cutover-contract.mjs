@@ -49,6 +49,29 @@ assert.ok(
   remote.indexOf("'status': status") > remote.indexOf("'journalHash'"),
   'mutable transaction status must not participate in the immutable journal hash',
 );
+assert.ok(
+  remote.includes('journal_path="$journal_dir/${transaction_id}.json"'),
+  'each production invocation must write an immutable journal named by its unique transaction id',
+);
+assert.ok(
+  remote.indexOf('transaction_id="tx-') < remote.indexOf('journal_path="$journal_dir/${transaction_id}.json"'),
+  'the immutable journal path must be allocated only after the transaction id exists',
+);
+assert.ok(
+  remote.includes('status_path="$journal_dir/r4-c5-current.json"')
+    && remote.includes("'journalPath': os.path.basename(output_path)"),
+  'the mutable current status must point to the immutable transaction journal instead of replacing it',
+);
+assert.match(
+  remote,
+  /stop_consumers\(\) \{\n\s+consumers_stop_intent=1\n\s+local name/u,
+  'consumer stop intent must be durable in process state before the first stop can partially succeed',
+);
+assert.match(
+  remote,
+  /if \[\[ "\$recovery_safe" == "1" && "\$consumers_stop_intent" == "1" && -n "\$rollback_image" \]\]; then/u,
+  'partial consumer stop recovery must redeploy the predecessor even when not every stop completed',
+);
 assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapshot"/, 'local wrapper must transfer the immutable Authority snapshot');
 assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and validate the Authority snapshot from the sealed successor');
 assert.doesNotMatch(deploy, /snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/, 'local wrapper must not retain the superseded c4 snapshot');

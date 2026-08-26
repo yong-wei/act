@@ -31,13 +31,14 @@ for file in "$LIFECYCLE" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$STATE_DIR/act-ru
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required regular file is missing: $file" >&2; exit 1; }
 done
 
-mkdir -p "$STATE_DIR/knowledge-cutover-transactions"
-lock_path="$STATE_DIR/knowledge-cutover-transactions/r4-c5.lock"
+journal_dir="$STATE_DIR/knowledge-cutover-transactions"
+mkdir -p "$journal_dir"
+lock_path="$journal_dir/r4-c5.lock"
 exec 9>"$lock_path"
 flock -x 9
 
-journal_path="$STATE_DIR/knowledge-cutover-transactions/r4-c5-current.json"
-status_path="$STATE_DIR/knowledge-cutover-transactions/r4-c5-status.json"
+journal_path=""
+status_path="$journal_dir/r4-c5-current.json"
 previous_pointer="$candidate_dir/previous-authority-current.json"
 final_receipt="$STATE_DIR/coordinated-active-receipt.json"
 previous_final_receipt="$candidate_dir/previous-coordinated-active-receipt.json"
@@ -45,7 +46,7 @@ transaction_id=""
 opened_at=""
 authority_mutated=0
 runtime_activated=0
-consumers_stopped=0
+consumers_stop_intent=0
 completed=0
 rollback_image=""
 previous_final_receipt_present=0
@@ -60,6 +61,7 @@ active_image() {
 }
 
 stop_consumers() {
+  consumers_stop_intent=1
   local name
   for name in act-obe-app act-obe-worker act-obe-submission-scanner act-obe-submission-gc; do
     if podman container exists "$name" && [[ "$(podman inspect --format '{{.State.Running}}' "$name")" == "true" ]]; then
@@ -72,7 +74,6 @@ stop_consumers() {
       return 1
     fi
   done
-  consumers_stopped=1
 }
 
 write_journal() {
@@ -101,7 +102,7 @@ else:
   fd, temp = tempfile.mkstemp(prefix='.r4-c5-', dir=directory)
   with os.fdopen(fd, 'wb') as handle: handle.write(wire); handle.flush(); os.fsync(handle.fileno())
   os.replace(temp, output_path); os.chmod(output_path, 0o600)
-status_record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalHash': journal['journalHash'], 'status': status, 'updatedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+status_record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(output_path), 'journalHash': journal['journalHash'], 'status': status, 'updatedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
 status_wire = json.dumps(status_record, sort_keys=True, separators=(',', ':')).encode() + b'\n'
 fd, temp = tempfile.mkstemp(prefix='.r4-c5-status-', dir=directory)
 with os.fdopen(fd, 'wb') as handle: handle.write(status_wire); handle.flush(); os.fsync(handle.fileno())
@@ -327,7 +328,7 @@ recover() {
   set +e
   local recovery_safe=1
   if [[ "$completed" == "1" ]]; then exit "$status"; fi
-  if [[ "$authority_mutated" == "1" && "$consumers_stopped" == "1" ]]; then
+  if [[ "$authority_mutated" == "1" ]]; then
     restore_runtime_predecessor || recovery_safe=0
   fi
   if [[ "$authority_mutated" == "1" && -f "$previous_pointer" ]]; then
@@ -340,7 +341,7 @@ recover() {
     fi
   fi
   restore_final_receipt || recovery_safe=0
-  if [[ "$recovery_safe" == "1" && "$consumers_stopped" == "1" && -n "$rollback_image" ]]; then
+  if [[ "$recovery_safe" == "1" && "$consumers_stop_intent" == "1" && -n "$rollback_image" ]]; then
     RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED="$([[ "$previous_final_receipt_present" == "1" ]] && printf true || printf false)" \
       ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
       ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
@@ -377,6 +378,7 @@ if [[ -e "$final_receipt" ]]; then
 fi
 cp -- "$AUTHORITY_ROOT/current.json" "$previous_pointer"
 transaction_id="tx-$(python3 -c 'import uuid; print(uuid.uuid4())')"
+journal_path="$journal_dir/${transaction_id}.json"
 opened_at="$(python3 -c 'import datetime; print(datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"))')"
 write_journal PREPARED
 stop_consumers
