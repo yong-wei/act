@@ -194,6 +194,21 @@ function isExternalBundleSource(source: RuntimeBlobReleaseFileMetadata['source']
   return !!source && 'externalInputId' in source && 'externalInputManifestObjectId' in source && 'bundleSemanticSha256' in source && 'bundleWireSha256' in source;
 }
 
+function isExactFrozenExternalBundleSource(
+  source: RuntimeBlobReleaseFileMetadata['source'] | undefined,
+  bundleDeclaration: RuntimeExternalInputBundleDeclaration | undefined,
+) {
+  if (!isExternalBundleSource(source) || !bundleDeclaration) return false;
+  if (source.externalInputManifestObjectId !== bundleDeclaration.declarationObjectId) return false;
+  const declared = bundleDeclaration.declaration.inputs.find((input) => input.externalInputId === source.externalInputId);
+  return Boolean(
+    declared
+    && !('authoringSourceRevision' in declared)
+    && declared.bundleSemanticSha256 === source.bundleSemanticSha256
+    && declared.bundleWireSha256 === source.bundleWireSha256,
+  );
+}
+
 export async function resolveGitCommit(repoRoot: string, revision: string, context = 'Git revision') {
   assertRevisionInput(revision, context);
   const result = await runGit(repoRoot, ['rev-parse', '--verify', '--end-of-options', `${revision}^{commit}`], context);
@@ -411,12 +426,23 @@ function inheritedExternalParentFiles(input: {
   parentManifest: ActRuntimeBlobReleaseManifest | undefined;
   targetEntries: readonly GitRuntimeBlobSnapshotFile[];
   externalInputs: readonly RuntimeExternalInput[];
+  bundleDeclaration?: RuntimeExternalInputBundleDeclaration;
 }) {
   if (!input.parentManifest) return [] as RuntimeBlobReleaseFileMetadata[];
   const targetPaths = new Set(input.targetEntries.map((entry) => entry.path));
   const inherited: RuntimeBlobReleaseFileMetadata[] = [];
   for (const file of input.parentManifest.files) {
-    if (targetPaths.has(file.path) || isGitSource(file.source)) continue;
+    if (targetPaths.has(file.path)) {
+      if (isExactFrozenExternalBundleSource(file.source, input.bundleDeclaration)) {
+        throw gitError('runtime-release-external-source-changed', `Git runtime entry replaces frozen external bundle content: ${file.path}`);
+      }
+      continue;
+    }
+    if (isGitSource(file.source)) continue;
+    if (isExactFrozenExternalBundleSource(file.source, input.bundleDeclaration)) {
+      inherited.push(file);
+      continue;
+    }
     const externalInput = externalInputForPath(input.externalInputs, file.path);
     if (!externalInput) {
       throw gitError('runtime-release-external-source-missing', `Parent runtime entry has no Git source identity or declared external input: ${file.path}`);
@@ -462,9 +488,23 @@ function inheritedExternalParentFilesFromManifest(input: {
       throw gitError('runtime-release-external-source-changed', `External runtime bytes changed without a new source validation: ${parentFile.path}`);
     }
     if (parentFile.source) {
-      if (!isExternalSource(parentFile.source) || !isExternalSource(manifestFile.source)
+      if (isExternalBundleSource(parentFile.source) || isExternalBundleSource(manifestFile.source)) {
+        if (
+          !isExternalBundleSource(parentFile.source)
+          || !isExternalBundleSource(manifestFile.source)
+          || parentFile.source.externalInputId !== manifestFile.source.externalInputId
+          || parentFile.source.externalInputManifestObjectId !== manifestFile.source.externalInputManifestObjectId
+          || parentFile.source.bundleSemanticSha256 !== manifestFile.source.bundleSemanticSha256
+          || parentFile.source.bundleWireSha256 !== manifestFile.source.bundleWireSha256
+        ) {
+          throw gitError('runtime-release-external-source-changed', `External runtime source identity changed without a new source validation: ${parentFile.path}`);
+        }
+      } else if (
+        !isExternalSource(parentFile.source)
+        || !isExternalSource(manifestFile.source)
         || parentFile.source.externalInputId !== manifestFile.source.externalInputId
-        || parentFile.source.externalInputManifestObjectId !== manifestFile.source.externalInputManifestObjectId) {
+        || parentFile.source.externalInputManifestObjectId !== manifestFile.source.externalInputManifestObjectId
+      ) {
         throw gitError('runtime-release-external-source-changed', `External runtime source identity changed without a new source validation: ${parentFile.path}`);
       }
     }
@@ -508,18 +548,37 @@ function inheritedExternalBundleParentFiles(input: {
   parentManifest: ActRuntimeBlobReleaseManifest | undefined;
   targetEntries: readonly GitRuntimeBlobSnapshotFile[];
   bundleFiles: readonly ExternalInputBundleSnapshotFile[];
+  bundleDeclaration?: RuntimeExternalInputBundleDeclaration;
 }) {
   if (!input.parentManifest) return [] as RuntimeBlobReleaseFileMetadata[];
   const targetPaths = new Set(input.targetEntries.map((entry) => entry.path));
   const bundleByPath = new Map(input.bundleFiles.map((file) => [file.path, file] as const));
   const inherited: RuntimeBlobReleaseFileMetadata[] = [];
   for (const file of input.parentManifest.files) {
-    if (targetPaths.has(file.path)) continue;
+    if (targetPaths.has(file.path)) {
+      if (isExactFrozenExternalBundleSource(file.source, input.bundleDeclaration)) {
+        throw gitError('runtime-release-external-source-changed', `Git runtime entry replaces frozen external bundle content: ${file.path}`);
+      }
+      continue;
+    }
     if (!file.source) throw gitError('runtime-release-external-source-missing', `Parent runtime entry has no source identity for the exact external bundle: ${file.path}`);
     const bundleFile = bundleByPath.get(file.path);
     if (bundleFile && isGitSource(file.source)) throw gitError('runtime-release-external-source-conflict', `Parent Git source conflicts with the exact external bundle: ${file.path}`);
     if (isGitSource(file.source)) continue;
-    if (!bundleFile) throw gitError('runtime-release-external-source-missing', `Parent runtime entry is outside the exact external bundle: ${file.path}`);
+    if (!bundleFile) {
+      // Frozen external-bundle inheritance (spec: legacy textbook provenance
+      // stays immutable): a parent entry whose exact bundle identity is still
+      // declared by the tracked declaration carries forward unchanged — its
+      // content-addressed blob is reused from the parent release, so no local
+      // file and no regenerated bundle is required.
+      if (
+        isExactFrozenExternalBundleSource(file.source, input.bundleDeclaration)
+      ) {
+        inherited.push(file);
+        continue;
+      }
+      throw gitError('runtime-release-external-source-missing', `Parent runtime entry is outside the exact external bundle: ${file.path}`);
+    }
     if (file.sizeBytes !== bundleFile.sizeBytes || file.sha256 !== bundleFile.sha256) {
       throw gitError('runtime-release-external-source-changed', `External runtime bytes changed without a new bundle identity: ${file.path}`);
     }
@@ -684,12 +743,13 @@ export async function buildGitRuntimeBlobReleaseSnapshot(input: {
     for (const file of bundleFiles) {
       if (targetPaths.has(file.path)) throw gitError('runtime-release-external-source-conflict', `Git and external bundle both provide ${file.path}.`);
     }
-    inheritedExternalFiles = inheritedExternalBundleParentFiles({ parentManifest: input.parentManifest, targetEntries: entries, bundleFiles });
+    inheritedExternalFiles = inheritedExternalBundleParentFiles({ parentManifest: input.parentManifest, targetEntries: entries, bundleFiles, bundleDeclaration });
   } else {
     inheritedExternalFiles = inheritedExternalParentFiles({
       parentManifest: input.parentManifest,
       targetEntries: entries,
       externalInputs,
+      bundleDeclaration,
     });
   }
   const { metadata, stats } = await buildSnapshotFiles(input.repoRoot, entries, input.parentManifest, inheritedExternalFiles, bundleFiles);
@@ -750,6 +810,7 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
   if (input.externalBundle) {
     const bundleDeclarationObjectId = await readGitExternalInputBundleDeclarationObjectId(input.repoRoot, sourceRevision);
     if (!bundleDeclarationObjectId) throw gitError('runtime-release-external-input-bundle-undeclared', 'External bundle is not bound by a tracked declaration.');
+    const bundleDeclaration = await readGitExternalInputBundleDeclaration(input.repoRoot, sourceRevision);
     try {
       const baseEntries = await listRuntimeTree(input.repoRoot, input.externalBundle.overlay.baseSourceRevision);
       if (runtimeGitTreeDigest(baseEntries) !== input.externalBundle.overlay.baseRuntimeTreeSha256) {
@@ -772,15 +833,17 @@ export async function openGitRuntimeBlobReleaseSnapshot(input: {
     for (const file of bundleFiles) {
       if (targetPaths.has(file.path)) throw gitError('runtime-release-external-source-conflict', `Git and external bundle both provide ${file.path}.`);
     }
-    inheritedExternalFiles = inheritedExternalBundleParentFiles({ parentManifest: input.parentManifest, targetEntries: entries, bundleFiles });
+    inheritedExternalFiles = inheritedExternalBundleParentFiles({ parentManifest: input.parentManifest, targetEntries: entries, bundleFiles, bundleDeclaration });
   } else {
     const externalInputManifestObjectId = await readGitExternalInputManifestObjectId(input.repoRoot, sourceRevision);
+    const bundleDeclaration = await readGitExternalInputBundleDeclaration(input.repoRoot, sourceRevision);
     inheritedExternalFiles = inheritedExternalParentFilesFromManifest({
       parentManifest: input.parentManifest,
       targetEntries: entries,
       manifest: input.manifest,
     });
     for (const file of inheritedExternalFiles) {
+      if (isExactFrozenExternalBundleSource(file.source, bundleDeclaration)) continue;
       if (!isExternalSource(file.source) || !externalInputManifestObjectId || file.source.externalInputManifestObjectId !== externalInputManifestObjectId) {
         throw gitError('runtime-release-external-source-changed', `External runtime declaration identity changed without a new source validation: ${file.path}`);
       }

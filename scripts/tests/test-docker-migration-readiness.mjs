@@ -751,6 +751,16 @@ function main() {
   );
   assert.match(
     deployScript,
+    /if podman run --rm --entrypoint \/bin\/sh "\$APP_IMAGE" -c 'test -x \/app\/scripts\/math-calc\/check-wolfram-ready\.sh'; then/,
+    'deploy.sh 必须先确认镜像包含 Wolfram smoke 脚本',
+  );
+  assert.match(
+    deployScript,
+    /elif \[ "\$RUNTIME_CUTOVER_APP_ONLY" = "1" \]; then/,
+    '仅 runtime cutover 可以兼容既有缺少 Wolfram smoke 的镜像',
+  );
+  assert.match(
+    deployScript,
     /WOLFRAM_CLOUD_MCP_URL="\$WOLFRAM_CLOUD_MCP_URL"/,
     'deploy.sh 必须把 Cloud MCP URL 传入容器',
   );

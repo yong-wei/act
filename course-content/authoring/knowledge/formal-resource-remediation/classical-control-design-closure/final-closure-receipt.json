@@ -1,0 +1,37 @@
+{
+ "contract": "remediation-final-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "domain": "classical-control-design",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 776,
+ "packRows": 2328,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 0,
+  "NO_RELATION": 2328,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "edgeEndpoints": {
+  "count": 0,
+  "byFamily": {
+   "containment": 0,
+   "prerequisite": 0,
+   "association": 0
+  },
+  "courseRootCount": 0
+ },
+ "newMemberContribution": {
+  "members": 32,
+  "rows": 96,
+  "publishedEdges": 0
+ },
+ "supersedes": {
+  "artifact": "successor-closure-receipt.json",
+  "sha256": "2e17ca6a4a55dd52544853cf520f69bc53bbc8f0b691219f08f8c9b9f09b4d2c"
+ },
+ "decisionsProvenanceSha256": "f258c89fe0ad3abe54eea98f1c272c5c60b92e23edc11e6fc3c2a58cced8fc31",
+ "newMemberDecisionsProvenanceSha256": "4a135bbbe561722387bc1770ced1903d8a847485fff990faf9387f53f752ec34",
+ "closureComplete": true
+}

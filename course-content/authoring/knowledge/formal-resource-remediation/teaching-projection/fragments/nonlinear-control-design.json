@@ -1,0 +1,637 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "domain": "nonlinear-control-design",
+ "memberCount": 104,
+ "edgeCount": 0,
+ "bindingCount": 0,
+ "fragmentHash": "2df203ce3312593a6e8f3a71e07e4cb66c23d4e30cc211042d7e209546d36023",
+ "members": [
+  {
+   "canonicalId": "ctkg:m1s-object-01b4067454d6530986b6189f",
+   "excluded": true,
+   "label": "M1S Formula 481b59a7dfa79254",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-044e6154fd37eaf191be4804",
+   "excluded": true,
+   "label": "M1S SystemModel 6241320a57bd2303",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-04e7640d99664ce73bc11293",
+   "excluded": true,
+   "label": "M1S Formula 35d26ec95b217f01",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-05c154887bcb9d03f9ccc826",
+   "excluded": true,
+   "label": "M1S Formula 31fe2f46b6af6c71",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0813469ffc59ae5114caeb78",
+   "excluded": true,
+   "label": "M1S Formula 61f13cd621b845ac",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-085dbcc5040d55942ce777c6",
+   "excluded": true,
+   "label": "M1S SystemModel 71143d84e8898679",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0a785d3bda3bbd86472fb59f",
+   "excluded": true,
+   "label": "M1S Formula e57df854f06c5887",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0d018aa0f3add044f1cb408d",
+   "excluded": true,
+   "label": "M1S Formula eb4ed75fcb014b93",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-0f041fb25853885ba12760d3",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 93ee9c11ed03de1c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-11f08e7cd52ace0ac843262f",
+   "excluded": true,
+   "label": "M1S SystemModel b4f1daa2d47dcfd4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+   "excluded": true,
+   "label": "M1S DomainConcept b5f4014042e4cce9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-160e7683bea6bf613b3c8317",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 0e6da45f7563fa48",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-199d014e87c30323fdf36140",
+   "excluded": true,
+   "label": "M1S Formula e8ff5d1b2dc6eab1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+   "excluded": true,
+   "label": "M1S DomainConcept 658d387b42b72342",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1a66d030893d563a2e3da2a0",
+   "excluded": true,
+   "label": "M1S Formula 7f3d06b3e9882020",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1c0272693d1de504390e4e29",
+   "excluded": true,
+   "label": "M1S Formula e0cbde30c0f42234",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-1ee32fc36d64c3760754149b",
+   "excluded": true,
+   "label": "M1S Formula 85fb23ba250dfbbe",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-20eb0bfefeea84f79471a070",
+   "excluded": true,
+   "label": "M1S Formula 05d0804ffb03ccfd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-23d67924a8a5d8696fdf96eb",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 14f6f2bf173f964b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-24285bff29e105ee6358a074",
+   "excluded": true,
+   "label": "M1S Formula 7885a965a4f1f64e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2637c406e79652b0b926aff1",
+   "excluded": true,
+   "label": "M1S Formula cd501c4aa51c9bf5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-267e4b4656d681f1b24f42f5",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 1a8998693da65d4d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-26873599f6d7f12c5e952180",
+   "excluded": true,
+   "label": "M1S Formula d1c0ad05926734cc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-275f1811f33e31ca5f4b5b31",
+   "excluded": true,
+   "label": "M1S Formula f99d0302d8e85ffc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+   "excluded": true,
+   "label": "M1S DomainConcept d2e3d466aca4d5cf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2cfc4a7fa504452bf1d71a14",
+   "excluded": true,
+   "label": "M1S Formula 94ebdc1920751da8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d3bcb43d93c3e0b974ada8c",
+   "excluded": true,
+   "label": "M1S Formula 67df9c1b2c080189",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2d5050fb34d2e8dd81da0f4b",
+   "excluded": true,
+   "label": "M1S SystemModel 1b1bb0c86b81aa8c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2e1e94010d3abbe9bc125d24",
+   "excluded": true,
+   "label": "M1S Formula 91c5891310bfad05",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-2fe37f0a92a3aa1a4ebc28d8",
+   "excluded": true,
+   "label": "M1S Formula f983e6b09bb5b8dc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-30097236b348e7c10fd971c8",
+   "excluded": true,
+   "label": "M1S SystemModel 6f220abfc055b13c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+   "excluded": true,
+   "label": "M1S DomainConcept a9aa951bb76c5a7e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-35b0cc093c47248615b4c159",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 8f8e92856711d99f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3a167ce8464af79df24fb1f7",
+   "excluded": true,
+   "label": "M1S Formula 3baa03ac91771aee",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3b6627a75236540ecca11111",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 3b63a89e8e467dae",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d141f73abd2ced33c7ad131",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 95c95a5fad47ec84",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3d521351bf68579eca43f0ed",
+   "excluded": true,
+   "label": "M1S Formula bf3247440e6d2454",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3e4598e8df86dbc1ddc619ac",
+   "excluded": true,
+   "label": "M1S Formula 56f173c0d2a47515",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-3f76c77ac15f94e5022ccc83",
+   "excluded": true,
+   "label": "M1S Formula a698181d004fa3e5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4b5fc534cd2e28fbb7f03175",
+   "excluded": true,
+   "label": "M1S SystemModel c059db166c47fba5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-4bcdc8552600033209642fd3",
+   "excluded": true,
+   "label": "M1S Formula f865a7aa199945f5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-50b1c218b49d77df642c3f90",
+   "excluded": true,
+   "label": "M1S Formula 88dd8315f5ac500f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-53efdaa36719e78773ba815b",
+   "excluded": true,
+   "label": "M1S Formula 3cac0d1772c20e4f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-561b1215b672a721f11b7a5b",
+   "excluded": true,
+   "label": "M1S Formula 361ff937971506b1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-572d6b27615fd26898b8c117",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 905b0c6c6771f65c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5807b5650af54368150172ca",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement b51714474dc2c0c9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-583b540b191d9a974e69b40d",
+   "excluded": true,
+   "label": "M1S Formula 76a53a2698e3b8c8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5b303321c59e600b0f43ad8f",
+   "excluded": true,
+   "label": "M1S SystemModel 08a341d1797f342a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5c03ff7c01cd30b21185b2be",
+   "excluded": true,
+   "label": "M1S Formula 9a8a64c93c346269",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5ca538da2c65a4bd52a68890",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 53a642a76d9e83ae",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+   "excluded": true,
+   "label": "M1S DomainConcept 2a91b1c0f10ddc06",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f32430fb74092334f1a6d6d",
+   "excluded": true,
+   "label": "M1S Formula b24092430f30961e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+   "excluded": true,
+   "label": "M1S DomainConcept b08a7e27c52ed993",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6218173e8bd1b20cd5adc9bf",
+   "excluded": true,
+   "label": "M1S Formula 79cc96b14ea3b492",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6ad12498c892f17b6c15d04a",
+   "excluded": true,
+   "label": "M1S Formula 0a3a1873b2fa02cf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-6fc31530d83e3c8b1d6d4b66",
+   "excluded": true,
+   "label": "M1S SystemModel d2967967d33421ad",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-755ee8081b176fa893b1b21b",
+   "excluded": true,
+   "label": "M1S Formula 6056830ac3e8f577",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-767d7949d335ae5194971596",
+   "excluded": true,
+   "label": "M1S Formula b76570ac3d79bf3f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7aa146717efe6d41c37f718b",
+   "excluded": true,
+   "label": "M1S Formula 5fef82b49bcf44e6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+   "excluded": true,
+   "label": "M1S DomainConcept 6399193dcb44f2e4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-7e24e2d5780edd1851739567",
+   "excluded": true,
+   "label": "M1S Formula eddc05bee41dbb68",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-834afd6275831838fafa12cf",
+   "excluded": true,
+   "label": "M1S SystemModel 251bdcaa844a5b1d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+   "excluded": true,
+   "label": "M1S DomainConcept c5723850b05e053d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-85939bd6eccc7014d53707d8",
+   "excluded": true,
+   "label": "M1S Formula 3efed5b5369e8602",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-931a2aaedeb193ce9eb60d5b",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 67090f1339b92bac",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-93c6d7f7d1b062eb4209ee04",
+   "excluded": true,
+   "label": "M1S Formula a3ab0e255bd321f2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-97ee5680773daff364fbd9e1",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement a23ab2740d25559c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9a47b36c99c86209e7778b9a",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 586e86505137edec",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9b77004ba1748396e37025cb",
+   "excluded": true,
+   "label": "M1S SystemModel f71ac22bb8e577aa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-9dcf989d46c81c1f67a86a32",
+   "excluded": true,
+   "label": "M1S Formula 66d7537997b4f8ce",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2822e9af523ea2e6d849e26",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement eb5e2850ee6da30e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement ef83b168cd00ff7c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-a512c06312a40a7fbe5fd412",
+   "excluded": true,
+   "label": "M1S Formula 90174f15a7ac6b31",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acad6eaacf29bbde373d1402",
+   "excluded": true,
+   "label": "M1S Formula 908fd20d11b13d22",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-acb5d0f3253e1ef9ad8b299e",
+   "excluded": true,
+   "label": "M1S Formula 7cda770f049b48df",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ad156c223b87700ff66914d8",
+   "excluded": true,
+   "label": "M1S SystemModel 4c19f1271e502cd6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-adb4524bdc08a2e44c8dd90e",
+   "excluded": true,
+   "label": "M1S SystemModel 067d2c6c1c481271",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-af3fb023ac4f2e3d31f98868",
+   "excluded": true,
+   "label": "M1S Formula 8defd18c3647038d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-afe3179099c086168165d4dd",
+   "excluded": true,
+   "label": "M1S Formula 6e49cf9dd79e243b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b0e026888d9d93088c93c85f",
+   "excluded": true,
+   "label": "M1S Formula 6731420f30120fde",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b111d019de805856d03f309c",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 73bd0f09c1c00293",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b2114491ce785b09f623d280",
+   "excluded": true,
+   "label": "M1S Formula e7298647376efd21",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b3efd8e51fc5b64269d85dba",
+   "excluded": true,
+   "label": "M1S Formula 7cc98d02dd5602f2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b61f2c03c9988eff4f451b3a",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 9bd4f211134e2768",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b68276223a40f4ef9aef8be9",
+   "excluded": true,
+   "label": "M1S Formula e7d41de5e6700e04",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-b686c8977afdf538396e2b64",
+   "excluded": true,
+   "label": "M1S DomainConcept 37098b05c23b9385",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+   "excluded": true,
+   "label": "M1S DomainConcept 57804f43a3ea4ce8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ba6610f841c5eec1936cdb28",
+   "excluded": true,
+   "label": "M1S DomainConcept 03ca2cf53966f376",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-baa4d33ddcd1546fa0b7e20e",
+   "excluded": true,
+   "label": "M1S Formula 11e3ca0d983048b3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bca47883b992e6cebad2537b",
+   "excluded": true,
+   "label": "M1S Formula 24178ea8d3d43402",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bd25da31445ef585b118b094",
+   "excluded": true,
+   "label": "M1S Formula e608eaec44fd69bc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-bf426abcad47b9d4ffa31198",
+   "excluded": true,
+   "label": "M1S Formula ef0336c94b72f548",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c083ad87b10599683f059fc3",
+   "excluded": true,
+   "label": "M1S Formula 4cf7e8c1c12203c6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c5aca478ef60404c2b7b14a4",
+   "excluded": true,
+   "label": "M1S Formula 7f1549e8f2c54650",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c65cd4968ac955d4f15939d1",
+   "excluded": true,
+   "label": "M1S Formula af5a74918fe58ded",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-c6701913b06efd66b3715872",
+   "excluded": true,
+   "label": "M1S Formula 2d9b62fa04d24b03",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-cd4708a4c8bd0d1cf90a6e65",
+   "excluded": true,
+   "label": "M1S Formula bdd1c0d06f6a55e2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+   "excluded": true,
+   "label": "M1S DomainConcept 2c56829c51f01e3c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-dd9eafc96b3082023957be63",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement a0b1c303126834d9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-e61bb7fdafc62d7093bacffe",
+   "excluded": true,
+   "label": "M1S SystemModel 2e8eaa96e38d67b4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f0693efbe71af4e363cb16e2",
+   "excluded": true,
+   "label": "M1S Formula 413bbc90c67ef640",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f12ab09bd05a051dcee2a96f",
+   "excluded": true,
+   "label": "M1S Formula 32b886d987de7378",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-f328434cad7acdb323014b84",
+   "excluded": true,
+   "label": "M1S KnowledgeStatement 1c7588721ba7c276",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m1s-object-ff31bab527e338890d7b97f9",
+   "excluded": true,
+   "label": "M1S SystemModel 143290bb7dabe604",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": []
+}

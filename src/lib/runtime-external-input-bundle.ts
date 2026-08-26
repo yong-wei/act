@@ -296,7 +296,7 @@ export function isTextbookInputProvenanceV2(
   return value.schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V2;
 }
 
-function provenance(value: unknown, captureSourceRevision: string): ExternalInputBundleProvenance {
+function provenance(value: unknown): ExternalInputBundleProvenance {
   const raw = object(value, 'provenance');
   const schemaVersion = string(raw.schemaVersion, 'provenance.schemaVersion');
   if (schemaVersion === TEXTBOOK_INPUT_PROVENANCE_V1) {
@@ -307,8 +307,12 @@ function provenance(value: unknown, captureSourceRevision: string): ExternalInpu
       inputDigest: validateDigest(raw.inputDigest, 'provenance.inputDigest'),
       inputFileCount: integer(raw.inputFileCount, 'provenance.inputFileCount'),
     };
-    if (parsed.sourceRevision !== captureSourceRevision || parsed.inputFileCount < 1) {
-      error('input provenance does not match the bundle source revision');
+    // The v1 sourceRevision is the frozen textbook authoring revision; the
+    // corpus-admission doc forbids requiring it to equal the bundle capture
+    // revision (revision domains stay separate, PR HEAD must not overwrite
+    // the textbook revision).
+    if (parsed.inputFileCount < 1) {
+      error('input provenance file count must be positive');
     }
     return parsed as ExternalInputBundleProvenanceV1;
   }
@@ -412,7 +416,7 @@ export function buildExternalInputBundle(input: {
   const externalInputId = validateInputId(input.externalInputId, 'externalInputId');
   const sourceRevision = validateRevision(input.sourceRevision, 'sourceRevision');
   const prefixes = validatePrefixes(input.prefixes ?? EXTERNAL_INPUT_BUNDLE_PREFIXES);
-  const parsedProvenance = provenance(input.provenance, sourceRevision);
+  const parsedProvenance = provenance(input.provenance);
   const parsedGenerator = generator(input.generator);
   if (
     isTextbookInputProvenanceV2(parsedProvenance)
@@ -486,7 +490,7 @@ export function parseExternalInputBundle(value: unknown, options: { wireBytes?: 
     prefixes,
     baseSourceRevision: validateRevision(raw.baseSourceRevision, 'bundle.baseSourceRevision'),
     overlay,
-    provenance: provenance(raw.provenance, sourceRevision),
+    provenance: provenance(raw.provenance),
     generator: generator(raw.generator),
     files,
   });
@@ -786,6 +790,12 @@ export async function verifyGeneratedTextbookCorpus(repoRoot: string, generatedR
     expectedBookIds: runtime.bookIds,
     runtimeRoot,
   });
+  // A frozen v1 corpus inherits under its legacy identity (spec: legacy
+  // textbook provenance stays immutable); the resource-set-scoped index
+  // structure verification below only applies to a v2 corpus admission.
+  if (runtime.resourceSetId === null) {
+    return runtime;
+  }
   await execFile('python3', [
     path.join(repoRoot, 'course-content/scripts/textbook_hybrid_retrieval.py'),
     'verify-index',

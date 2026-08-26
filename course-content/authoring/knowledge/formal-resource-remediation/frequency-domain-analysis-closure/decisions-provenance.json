@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "frequency-domain-analysis",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/frequency-domain-analysis-review.jsonl",
+ "sourceSha256": "90ed65d107b76e7e80bfad7a61e11c5de7e7102e710af2cd5e122f7b04a5d8b1",
+ "rowCount": 952,
+ "memberCount": 952,
+ "edgeCount": 93,
+ "receiptReconciliation": {
+  "packRows": 2856,
+  "publishedEdgeInReceipt": 93,
+  "jsonlEdgeCount": 93,
+  "match": true
+ }
+}

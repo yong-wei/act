@@ -9,12 +9,21 @@
  *   activation-plan  emit the stopped-service transaction plan for the
  *                    separately authorized activation executor
  *
+ * Remediation-bound mode (#1515, tasks 12.5/12.6): prepare --remediation-handoff
+ * + --remediation-allocation reopens the immutable remediation handoff and its
+ * ONE shared coordination allocation, sources every remediation inner hash
+ * from the handoff (diverging copied hash strings fail closed), and seals no
+ * second allocation. qualify --remediation-root recomputes the remediation
+ * artifact identities from the materialized files themselves.
+ *
  * The CLI never writes a production selector. Deployment and activation are
  * independent explicit authorizations (see tasks 10.6/10.7).
  */
 
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -48,9 +57,15 @@ import { assertTeachingClosureComplete, evaluateTeachingClosure } from '@/lib/la
 import { buildCoordinatedRuntimeManifestExtension } from '@/lib/latest-authority-oss-cutover/runtime-binding';
 import type {
   CoordinatedCandidateReceipt,
+  CoordinationAllocationRecord,
   ResourceSuccessorDisposition,
   RetirementDecision,
 } from '@/lib/latest-authority-oss-cutover/contracts';
+import { reopenRemediationAllocation } from '@/lib/formal-resource-remediation/allocation';
+import { reopenRemediationHandoff } from '@/lib/formal-resource-remediation/handoff';
+import type { RemediationAllocation } from '@/lib/formal-resource-remediation/allocation';
+import type { RemediationHandoffManifest } from '@/lib/formal-resource-remediation/contracts';
+import { projectionDigest } from '@/lib/teaching-projection/hash';
 import { resolveLatestStableAggregate } from '../actkg-release/latest-stable-aggregate';
 import { REVIEWED_V0_18_V2_REGISTRY } from '../actkg-release/bundle-compatibility-registry-v2';
 
@@ -93,6 +108,20 @@ async function writeImmutable(filePath: string, content: string): Promise<void> 
     fail(`refusing to overwrite immutable artifact ${absolute}`);
   }
   if (existing === null) await writeFile(absolute, content);
+}
+
+async function sha256File(filePath: string): Promise<string> {
+  const buffer = await readFile(path.resolve(filePath));
+  return createHash('sha256').update(buffer).digest('hex');
+}
+
+async function sha256JsonField(filePath: string, field: string): Promise<string> {
+  const parsed = (await readJson(filePath)) as Record<string, unknown>;
+  const value = parsed[field];
+  if (typeof value !== 'string' || !/^[a-f0-9]{64}$/u.test(value)) {
+    fail(`${filePath} does not carry a SHA-256 ${field}`);
+  }
+  return value;
 }
 
 function required(values: Map<string, string>, key: string): string {
@@ -219,15 +248,82 @@ interface PrepareInputs {
   readonly verificationPolicyHash: string;
 }
 
+interface RemediationBinding {
+  readonly handoff: RemediationHandoffManifest;
+  readonly allocation: RemediationAllocation;
+}
+
+/** Inner hash fields the remediation handoff owns; copies must never diverge. */
+const REMEDIATION_INNER_FIELDS: readonly {
+  readonly innerKey: 'teachingProjectionHash' | 'formalResourceEnvelopeHash' | 'domainShardSetHash' | 'prerequisitePublicationHash' | 'consumerActivationHash';
+  readonly handoffKey: 'teachingProjectionHash' | 'resourceEnvelopeHash' | 'domainShardsHash' | 'prerequisitePublicationHash' | 'consumerProjectionsHash';
+}[] = [
+  { innerKey: 'teachingProjectionHash', handoffKey: 'teachingProjectionHash' },
+  { innerKey: 'formalResourceEnvelopeHash', handoffKey: 'resourceEnvelopeHash' },
+  { innerKey: 'domainShardSetHash', handoffKey: 'domainShardsHash' },
+  { innerKey: 'prerequisitePublicationHash', handoffKey: 'prerequisitePublicationHash' },
+  { innerKey: 'consumerActivationHash', handoffKey: 'consumerProjectionsHash' },
+];
+
+async function reopenRemediationBinding(
+  handoffPath: string | undefined,
+  allocationPath: string | undefined,
+): Promise<RemediationBinding | null> {
+  if (handoffPath === undefined && allocationPath === undefined) return null;
+  if (handoffPath === undefined || allocationPath === undefined) {
+    fail('--remediation-handoff and --remediation-allocation must be provided together');
+  }
+  const handoff = reopenRemediationHandoff(
+    (await readJson(handoffPath)) as RemediationHandoffManifest,
+  );
+  const allocation = reopenRemediationAllocation(
+    (await readJson(allocationPath)) as RemediationAllocation,
+  );
+  if (allocation.allocationHash !== handoff.allocationHash) {
+    fail('the reopened remediation allocation does not match the handoff allocation hash');
+  }
+  if (allocation.captureHash !== handoff.authorityCaptureHash) {
+    fail('the reopened remediation allocation capture differs from the handoff authority capture');
+  }
+  return { handoff, allocation };
+}
+
 async function runPrepare(values: Map<string, string>): Promise<void> {
-  const capturePath = required(values, '--capture');
   const inputPath = required(values, '--input');
   const outDir = required(values, '--out');
-  const capture = reopenAuthorityCaptureReceipt(
-    (await readJson(capturePath)) as Parameters<typeof reopenAuthorityCaptureReceipt>[0],
+  const remediation = await reopenRemediationBinding(
+    values.get('--remediation-handoff'),
+    values.get('--remediation-allocation'),
   );
-  assertCaptureCompatible(capture);
+  const capturePath = values.get('--capture');
+  if (remediation && capturePath) {
+    fail('a remediation-bound prepare binds the shared allocation capture; an outer capture receipt is a separate authority');
+  }
+  if (!remediation && !capturePath) fail('missing --capture');
+  const capture = capturePath
+    ? reopenAuthorityCaptureReceipt(
+        (await readJson(capturePath)) as Parameters<typeof reopenAuthorityCaptureReceipt>[0],
+      )
+    : null;
+  if (capture) assertCaptureCompatible(capture);
   const input = (await readJson(inputPath)) as PrepareInputs;
+
+  // Remediation-bound inner hashes come from the reopened handoff only; any
+  // copied hash string in the input that diverges fails closed here.
+  const inner: PrepareInputs['inner'] = { ...input.inner };
+  if (remediation) {
+    for (const field of REMEDIATION_INNER_FIELDS) {
+      const handoffValue = remediation.handoff[field.handoffKey];
+      const copied = input.inner[field.innerKey];
+      if (copied !== undefined && copied !== handoffValue) {
+        fail(`input.inner.${field.innerKey} is a diverging copy of the handoff ${field.handoffKey}`);
+      }
+      (inner as Record<string, unknown>)[field.innerKey] = handoffValue;
+    }
+  }
+  const authorityCaptureHash = remediation
+    ? remediation.handoff.authorityCaptureHash
+    : capture!.captureHash;
 
   const baseline = buildActiveBaseline({ activeRelease: input.activeRelease, entries: input.entries });
   const delta = buildExplicitDelta(input.delta ?? []);
@@ -240,48 +336,51 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
   });
   const closure = evaluateTeachingClosure({
     scopeHash: input.scope.scopeHash,
-    authorityCaptureHash: capture.captureHash,
+    authorityCaptureHash,
     members: input.scope.members,
     dispositions: input.teaching.dispositions,
     candidates: input.teaching.candidates,
     decisions: input.teaching.decisions,
   });
-  const allocation = sealCoordinationAllocationRecord({
-    sealedAt: new Date().toISOString(),
-    capture: { captureHash: capture.captureHash, compatibility: capture.compatibility },
-    scopeHash: input.scope.scopeHash,
-    denominatorHash: denominator.denominatorHash,
-    policyVersions: {
-      continuity: 'resource-continuity/v1',
-      teachingClosure: 'coordinated-teaching-closure/v1',
-      rollback: 'coordinated-cutover-rollback/v1',
-    },
-    implementationIdentities: {
-      builder: 'latest-authority-oss-cutover-builder/v1',
-      transaction: input.transactionImplementationIdentity,
-    },
-  });
+  // A remediation-bound run reuses the ONE shared coordination allocation;
+  // only an unbound run seals a fresh allocation record.
+  const allocation: CoordinationAllocationRecord = remediation
+    ? remediation.allocation
+    : sealCoordinationAllocationRecord({
+        sealedAt: new Date().toISOString(),
+        capture: { captureHash: authorityCaptureHash, compatibility: capture!.compatibility },
+        scopeHash: input.scope.scopeHash,
+        denominatorHash: denominator.denominatorHash,
+        policyVersions: {
+          continuity: 'resource-continuity/v1',
+          teachingClosure: 'coordinated-teaching-closure/v1',
+          rollback: 'coordinated-cutover-rollback/v1',
+        },
+        implementationIdentities: {
+          builder: 'latest-authority-oss-cutover-builder/v1',
+          transaction: input.transactionImplementationIdentity,
+        },
+      });
   const { extension: runtimeExtension } = buildCoordinatedRuntimeManifestExtension({
-    successorManifest: input.inner.successorRuntimeManifest,
-    materializationReceiptHash: input.inner.successorRuntimeMaterializationHash,
+    successorManifest: inner.successorRuntimeManifest,
+    materializationReceiptHash: inner.successorRuntimeMaterializationHash,
     denominatorHash: denominator.denominatorHash,
-    captureHash: capture.captureHash,
-    teachingProjectionHash: input.inner.teachingProjectionHash,
+    captureHash: authorityCaptureHash,
+    teachingProjectionHash: inner.teachingProjectionHash,
     teachingClosureReceiptHash: closure.receiptHash,
-    formalResourceEnvelopeHash: input.inner.formalResourceEnvelopeHash,
+    formalResourceEnvelopeHash: inner.formalResourceEnvelopeHash,
     continuityReceiptHash: continuity.receiptHash,
-    domainShardSetHash: input.inner.domainShardSetHash,
-    prerequisitePublicationHash: input.inner.prerequisitePublicationHash,
-    consumerActivationHash: input.inner.consumerActivationHash,
+    domainShardSetHash: inner.domainShardSetHash,
+    prerequisitePublicationHash: inner.prerequisitePublicationHash,
+    consumerActivationHash: inner.consumerActivationHash,
     allocationHash: allocation.allocationHash,
     predecessorRuntimeReleaseId: input.activeRelease.releaseId,
     predecessorRuntimeManifestSha256: input.activeRelease.manifestSha256,
     predecessorLifecycleGeneration: input.activeRelease.lifecycleGeneration,
   });
-  const projectionDigestModule = await import('@/lib/teaching-projection/hash');
-  const runtimeExtensionHash = projectionDigestModule.projectionDigest({
-    successorManifest: input.inner.successorRuntimeManifest,
-    materializationReceiptHash: input.inner.successorRuntimeMaterializationHash,
+  const runtimeExtensionHash = projectionDigest({
+    successorManifest: inner.successorRuntimeManifest,
+    materializationReceiptHash: inner.successorRuntimeMaterializationHash,
     extension: runtimeExtension,
   });
   const innerBindings = [
@@ -290,14 +389,14 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
       artifactId: 'teaching-projection',
       artifactKind: 'teaching-projection',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocation.allocationHash }],
-      artifactHash: input.inner.teachingProjectionHash,
+      artifactHash: inner.teachingProjectionHash,
     }),
     bindInnerArtifact({
       allocation,
       artifactId: 'formal-resource-envelope',
       artifactKind: 'formal-resource-envelope',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocation.allocationHash }],
-      artifactHash: input.inner.formalResourceEnvelopeHash,
+      artifactHash: inner.formalResourceEnvelopeHash,
     }),
     bindInnerArtifact({
       allocation,
@@ -311,39 +410,39 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
       artifactId: 'domain-shard-set',
       artifactKind: 'authority-domain-shard-set',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocation.allocationHash }],
-      artifactHash: input.inner.domainShardSetHash,
+      artifactHash: inner.domainShardSetHash,
     }),
     bindInnerArtifact({
       allocation,
       artifactId: 'prerequisite-publication',
       artifactKind: 'prerequisite-publication',
-      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: input.inner.teachingProjectionHash }],
-      artifactHash: input.inner.prerequisitePublicationHash,
+      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: inner.teachingProjectionHash }],
+      artifactHash: inner.prerequisitePublicationHash,
     }),
     bindInnerArtifact({
       allocation,
       artifactId: 'consumer-activation',
       artifactKind: 'shared-consumer-activation',
-      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: input.inner.teachingProjectionHash }],
-      artifactHash: input.inner.consumerActivationHash,
+      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: inner.teachingProjectionHash }],
+      artifactHash: inner.consumerActivationHash,
     }),
   ];
   const candidateInput: SealCandidateReceiptInput = {
     sealedAt: new Date().toISOString(),
     allocation,
-    authorityCaptureHash: capture.captureHash,
-    localeQualificationHash: input.inner.localeQualificationHash,
-    teachingProjectionHash: input.inner.teachingProjectionHash,
+    authorityCaptureHash,
+    localeQualificationHash: inner.localeQualificationHash,
+    teachingProjectionHash: inner.teachingProjectionHash,
     teachingClosureReceiptHash: closure.receiptHash,
-    formalResourceEnvelopeHash: input.inner.formalResourceEnvelopeHash,
+    formalResourceEnvelopeHash: inner.formalResourceEnvelopeHash,
     continuityReceiptHash: continuity.receiptHash,
-    derivationReceiptHash: input.inner.derivationReceiptHash,
+    derivationReceiptHash: inner.derivationReceiptHash,
     successorRuntimeManifestHash: runtimeExtensionHash,
-    successorRuntimeMaterializationHash: input.inner.successorRuntimeMaterializationHash,
-    domainShardCatalogHash: input.inner.domainShardCatalogHash,
-    domainShardSetHash: input.inner.domainShardSetHash,
-    prerequisitePublicationHash: input.inner.prerequisitePublicationHash,
-    consumerActivationHash: input.inner.consumerActivationHash,
+    successorRuntimeMaterializationHash: inner.successorRuntimeMaterializationHash,
+    domainShardCatalogHash: inner.domainShardCatalogHash,
+    domainShardSetHash: inner.domainShardSetHash,
+    prerequisitePublicationHash: inner.prerequisitePublicationHash,
+    consumerActivationHash: inner.consumerActivationHash,
     predecessor: input.predecessor,
     predecessorRuntimeLifecycleGeneration: input.predecessorRuntimeLifecycleGeneration,
     successorSelectorExpectations: input.successorSelectorExpectations,
@@ -359,12 +458,14 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
   await writeImmutable(path.join(outDir, 'continuity-receipt.json'), `${JSON.stringify(continuity, null, 2)}\n`);
   await writeImmutable(path.join(outDir, 'teaching-closure-receipt.json'), `${JSON.stringify(closure, null, 2)}\n`);
   await writeImmutable(path.join(outDir, 'allocation.json'), `${JSON.stringify(allocation, null, 2)}\n`);
+  await writeImmutable(path.join(outDir, 'successor-runtime-manifest-extension.json'), `${JSON.stringify(runtimeExtension, null, 2)}\n`);
+  await writeImmutable(path.join(outDir, 'successor-manifest.json'), `${JSON.stringify(inner.successorRuntimeManifest, null, 2)}\n`);
   assertContinuityQualified(continuity);
   assertTeachingClosureComplete(closure);
   const candidate = sealCoordinatedCandidateReceipt(candidateInput);
   await writeImmutable(path.join(outDir, 'candidate-receipt.json'), `${JSON.stringify(candidate, null, 2)}\n`);
   process.stdout.write(
-    `candidate=${candidate.candidateId}\nselectable=${candidate.selectable}\ncontinuity=${continuity.status}\nteachingClosure=${closure.status}\n`,
+    `candidate=${candidate.candidateId}\nselectable=${candidate.selectable}\ncontinuity=${continuity.status}\nteachingClosure=${closure.status}\nallocation=${allocation.allocationHash}\n`,
   );
 }
 
@@ -373,6 +474,54 @@ async function runQualify(values: Map<string, string>): Promise<void> {
   const candidate = (await readJson(candidatePath)) as CoordinatedCandidateReceipt;
   assertCandidateReceiptSelfHash(candidate);
   const artifacts = new Map<string, { artifactHash: string; allocationHash?: string }>();
+  const remediationRoot = values.get('--remediation-root');
+  const remediationAllocationPath = values.get('--remediation-allocation');
+  if (remediationRoot !== undefined && remediationAllocationPath === undefined) {
+    fail('--remediation-root requires --remediation-allocation for the shared capture identity');
+  }
+  if (remediationRoot !== undefined && remediationAllocationPath !== undefined) {
+    const allocation = reopenRemediationAllocation(
+      (await readJson(remediationAllocationPath)) as RemediationAllocation,
+    );
+    if (allocation.allocationHash !== candidate.allocationHash) {
+      fail('the remediation allocation and the candidate bind different coordination envelopes');
+    }
+    const optionalAllocationField = async (filePath: string): Promise<string | undefined> => {
+      const parsed = (await readJson(filePath)) as Record<string, unknown>;
+      const value = parsed.allocationHash;
+      return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value) ? value : undefined;
+    };
+    const projectionDir = path.join(remediationRoot, 'teaching-projection');
+    const fragmentFiles = readdirSync(path.resolve(projectionDir, 'fragments'))
+      .filter((name) => name.endsWith('.json'))
+      .sort();
+    const consumerGraphHash = await sha256File(path.join(projectionDir, 'consumers/graph-view.json'));
+    const consumerPrerequisiteHash = await sha256File(path.join(projectionDir, 'consumers/prerequisite-publication.json'));
+    const remediationArtifacts: Record<string, { artifactHash: string; allocationHash?: string }> = {
+      'authority-capture': { artifactHash: allocation.captureHash },
+      'teaching-projection': {
+        artifactHash: await sha256JsonField(path.join(projectionDir, 'projection.json'), 'projectionHash'),
+        allocationHash: await optionalAllocationField(path.join(projectionDir, 'projection.json')),
+      },
+      'formal-resource-envelope': {
+        artifactHash: await sha256JsonField(path.join(remediationRoot, 'resource-envelope.json'), 'envelopeHash'),
+        allocationHash: await optionalAllocationField(path.join(remediationRoot, 'resource-envelope.json')),
+      },
+      // The teaching-closure receipt is a coordinated-closure evaluation over
+      // the remediation ledgers, not the remediation total-closure file; it
+      // is qualified from the prepare output instead.
+      'authority-domain-shard-set': {
+        artifactHash: projectionDigest({
+          files: await Promise.all(
+            fragmentFiles.map(async (name) => [name, await sha256File(path.join(projectionDir, 'fragments', name))] as const),
+          ),
+        }),
+      },
+      'prerequisite-publication': { artifactHash: consumerPrerequisiteHash },
+      'consumer-activation': { artifactHash: projectionDigest({ graph: consumerGraphHash, prerequisite: consumerPrerequisiteHash }) },
+    };
+    for (const [artifactId, row] of Object.entries(remediationArtifacts)) artifacts.set(artifactId, row);
+  }
   const artifactsFile = values.get('--artifacts');
   if (artifactsFile) {
     const rows = (await readJson(artifactsFile)) as {
@@ -424,8 +573,8 @@ async function main(): Promise<void> {
   const { command, values } = parseArgs(process.argv.slice(2));
   const allowedByCommand: Record<string, readonly string[]> = {
     capture: ['--actkg-root', '--main-ref', '--out', '--components', '--supported-contract', '--skip-fetch'],
-    prepare: ['--capture', '--input', '--out'],
-    qualify: ['--candidate', '--artifacts'],
+    prepare: ['--capture', '--input', '--out', '--remediation-handoff', '--remediation-allocation'],
+    qualify: ['--candidate', '--artifacts', '--remediation-root', '--remediation-allocation'],
     'activation-plan': ['--candidate', '--out'],
   };
   const allowed = allowedByCommand[command];

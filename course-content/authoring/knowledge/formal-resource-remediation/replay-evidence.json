@@ -1,0 +1,43 @@
+{
+ "contract": "remediation-replay-evidence/v1",
+ "sealedAt": "2026-08-25",
+ "cleanReplay": {
+  "command": "tsx scripts/knowledge-cutover/seal-remediation-handoff.ts",
+  "durationMs": 281,
+  "writes": "skipped (handoff and report byte-identical to the sealed artifacts)",
+  "derivedState": "COMPLETE"
+ },
+ "incrementalReplay": {
+  "scenario": "single-input allocation rebind over the real ASR corpus",
+  "inputs": {
+   "asrRecords": 28,
+   "hotwordManifests": 28
+  },
+  "durationMs": 1,
+  "invalidation": {
+   "changedFields": {
+    "records": [
+     "allocationHash"
+    ],
+    "manifests": [
+     "allocationHash",
+     "manifestHash",
+     "manifestId"
+    ]
+   },
+   "recordContentStable": true,
+   "manifestContentStable": true
+  },
+  "reuse": {
+   "recordIdsReused": true,
+   "allRecordsReused": true
+  }
+ },
+ "semanticHashes": {
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "handoffHash": "9f3d13c00aae8357266134086994f9abfdd30a468a203dc023fcb240adcf83a9",
+  "envelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+  "totalClosureReceiptSha256": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258"
+ }
+}

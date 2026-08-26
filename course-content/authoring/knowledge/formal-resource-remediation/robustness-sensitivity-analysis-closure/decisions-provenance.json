@@ -1,0 +1,16 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "robustness-sensitivity-analysis",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/rsa-round1.jsonl",
+ "sourceSha256": "047c850e188c2f59d76edcd546e0bed88d06faef9718caeaf86e607cddd9de6d",
+ "rowCount": 209,
+ "memberCount": 209,
+ "edgeCount": 40,
+ "receiptReconciliation": {
+  "packRows": 627,
+  "publishedEdgeInReceipt": 41,
+  "jsonlEdgeCount": 40,
+  "match": true,
+  "courseRootCount": 1
+ }
+}

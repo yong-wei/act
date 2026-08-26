@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-resource-node-mapping-stats/v1",
+ "sealedAt": "2026-08-24",
+ "cardAtoms": 5662,
+ "cardAtomsWithCanonicalKey": 5662,
+ "handoutAtoms": 5394,
+ "courseNodes": 220,
+ "courseNodesWithUniqueAuthorityId": 31,
+ "mappingPath": "card frontmatter node_id -> course canonical node -> authority member via crosswalk exact-name match",
+ "gaps": [
+  "0 card atoms lack frontmatter keys",
+  "handout atoms carry no canonicalKey; node binding awaits the audio-anchor ruling and semantic mapping pass",
+  "only 31 course nodes resolve to a unique authority member"
+ ]
+}

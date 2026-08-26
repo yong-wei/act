@@ -1,0 +1,34 @@
+{
+ "contract": "coordination-allocation-record/v1",
+ "coordinationRunId": "coord-d4612b85-62ee-4879-a2b0-471430f40766",
+ "sealedAt": "2026-08-24T16:00:00.000Z",
+ "captureHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+ "compatibilityClassification": "COMPATIBLE",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "denominatorHash": "d0f5fed29f1145c06633ecce83e7316c34efdabab42bcaddbaaecc1230c9bac7",
+ "policyVersions": {
+  "continuity": "resource-continuity/v1",
+  "teachingClosure": "coordinated-teaching-closure/v1",
+  "remediation.terminologyRegistryId": "terminology-zh-cn/v1",
+  "remediation.localeIdentity": "zh-CN",
+  "remediation.sourceRegistryIds": "b0f618deb0c595737a8f6590e8f1a2780ea2f23354a10b98f7f1c35496f05b31",
+  "remediation.processorRegistryHash": "1007e7ac099f57e0487a9ce93866fa364ecfd4c01d295b4ae5cb2d4190d128a4",
+  "remediation.courseOwnerId": "course-owner-yongwei"
+ },
+ "implementationIdentities": {
+  "shared": "latest-authority-oss-cutover-builder/v1",
+  "remediation.builder": "formal-resource-remediation-builder/v1"
+ },
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "remediation": {
+  "terminologyRegistryId": "terminology-zh-cn/v1",
+  "localeIdentity": "zh-CN",
+  "sourceRegistryIds": [
+   "act-authoring@e88f64b08",
+   "videos@b3ef241",
+   "actkg@d377455e"
+  ],
+  "processorRegistryHash": "1007e7ac099f57e0487a9ce93866fa364ecfd4c01d295b4ae5cb2d4190d128a4",
+  "courseOwnerId": "course-owner-yongwei"
+ }
+}

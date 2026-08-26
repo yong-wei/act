@@ -1014,7 +1014,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
-    expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain('openPathAdjustment(optionForWrite)');
+    expect(pageSource).toContain("submitPathGeneration('revise', adjustmentSourceOption)");
+    expect(pageSource).toContain('data-adaptive-path-adjustment-source="selected"');
     expect(pageSource).toContain("payload.result?.generationStatus === 'blocked'");
     expect(pageSource).toContain('setPathChoiceMessage(blockedMessage)');
     expect(pageSource).toContain('selectedOptionId');

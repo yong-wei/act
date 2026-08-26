@@ -1,0 +1,174 @@
+{
+  "capabilities": {
+    "bilingual_ready": false,
+    "default_locale": "zh-CN",
+    "en_ready": false,
+    "fallback_policy": "forbidden",
+    "formula_ready": false,
+    "production_ready": false,
+    "supported_locales": [
+      "zh-CN",
+      "en"
+    ],
+    "zh_cn_ready": false
+  },
+  "component_manifest_hash": "5b4219d82c1d5d73798da7f7054cca69478e2dc42b6d2635ca7158a4a6996c40",
+  "contract": "ctkg-locale-manifest/1",
+  "formula": {
+    "component_hash": "590b52013088242b9e202403b620d792fd370bd59c7b3b5dae235417adcafacd",
+    "component_id": "ctr:release:control-theory-formula-render-v0.1",
+    "content_digest": "3b9ebb8282f744ca1a8bad9fef5d0aba6a74ef66a67842c2ddb52cbe6556f56e",
+    "denominator_digest": "56d62848da247cc717665e77722f4a161bebe25fcde0f1cde9fc5e78debda956",
+    "formula_count": 1991,
+    "language_neutral_count": 1386,
+    "locale_bound_count": 9,
+    "status": "FAIL",
+    "strict_render_pass_count": 1386,
+    "unresolved_count": 605
+  },
+  "locale_components": {
+    "en": {
+      "content_digest": "fce50b69557c615b2d4e44e071ff420825679ecafee9ec4eb2d4d8b9bd673a65",
+      "hash": "fce50b69557c615b2d4e44e071ff420825679ecafee9ec4eb2d4d8b9bd673a65",
+      "id": "ctr:release:control-theory-bilingual-presentation-en-v0.1",
+      "version": "control-theory-bilingual-presentation-en-v0.1"
+    },
+    "zh-CN": {
+      "content_digest": "61f2f96f6986101c9cc48b2732d8bfa44ae42450bffe5ce06a154133bc0d19aa",
+      "hash": "61f2f96f6986101c9cc48b2732d8bfa44ae42450bffe5ce06a154133bc0d19aa",
+      "id": "ctr:release:control-theory-bilingual-presentation-zh-cn-v0.1",
+      "version": "control-theory-bilingual-presentation-zh-cn-v0.1"
+    }
+  },
+  "locales": {
+    "en": {
+      "categories": {
+        "entity_type_terms": {
+          "covered_count": 7,
+          "covered_digest": "e2a8520e31502622f6a537ad81a055c297ba355fb30a2a6870690d92419fc16e",
+          "cross_release_count": 0,
+          "denominator_count": 7,
+          "denominator_digest": "e2a8520e31502622f6a537ad81a055c297ba355fb30a2a6870690d92419fc16e",
+          "duplicate_count": 0,
+          "status": "PASS",
+          "unsafe_count": 0
+        },
+        "node_meanings": {
+          "covered_count": 2544,
+          "covered_digest": "c6b1d4347448da9fee5795c7d2eb5bf12332ef6b5191e632b929deb90a46909d",
+          "cross_release_count": 0,
+          "denominator_count": 2547,
+          "denominator_digest": "578944654fb9e84bf69d250d6ca8919ff088e7b1e5f3a1f74e681cb2b24390bc",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        },
+        "node_names": {
+          "covered_count": 7237,
+          "covered_digest": "b8e21e4a8e2739a9aca944c67a826137e51bdd4f69c43afd49806d6614b788a4",
+          "cross_release_count": 0,
+          "denominator_count": 7250,
+          "denominator_digest": "9aee94cf0ebc97e19a5a804c75c0f00c7533caf37af954683cfb909f92642299",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        },
+        "relation_forward_labels": {
+          "covered_count": 9,
+          "covered_digest": "e2041c9abd9228f6e625d300a3be378a3012819cef09ce68735c745e7057da58",
+          "cross_release_count": 0,
+          "denominator_count": 9,
+          "denominator_digest": "e2041c9abd9228f6e625d300a3be378a3012819cef09ce68735c745e7057da58",
+          "duplicate_count": 0,
+          "status": "PASS",
+          "unsafe_count": 0
+        },
+        "statement_texts": {
+          "covered_count": 3071,
+          "covered_digest": "ad97084c3b692f4ecd69df8711a025a74ba0f8824de3474c56a68662987942a5",
+          "cross_release_count": 0,
+          "denominator_count": 3075,
+          "denominator_digest": "98a1c57501edb6d59b83649f305be1d00caa0b25331872892a753fe5c04c24ec",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        }
+      },
+      "content_digest": "cb1ba602754ab99d98f37b92a1d6e0cc45fa8afdfa128ece3c49092724d913f1",
+      "denominator_digest": "095d144d0aa0bf91f1babdd065bdc929bdfe45d5bdef07aa860fb621f64c4ce7",
+      "status": "FAIL"
+    },
+    "zh-CN": {
+      "categories": {
+        "entity_type_terms": {
+          "covered_count": 7,
+          "covered_digest": "e2a8520e31502622f6a537ad81a055c297ba355fb30a2a6870690d92419fc16e",
+          "cross_release_count": 0,
+          "denominator_count": 7,
+          "denominator_digest": "e2a8520e31502622f6a537ad81a055c297ba355fb30a2a6870690d92419fc16e",
+          "duplicate_count": 0,
+          "status": "PASS",
+          "unsafe_count": 0
+        },
+        "node_meanings": {
+          "covered_count": 2542,
+          "covered_digest": "6f9fb48f2e54fc29543e9821de4c3ef5cd120d3f7cf5c1b0efc95b8709314834",
+          "cross_release_count": 0,
+          "denominator_count": 2547,
+          "denominator_digest": "578944654fb9e84bf69d250d6ca8919ff088e7b1e5f3a1f74e681cb2b24390bc",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        },
+        "node_names": {
+          "covered_count": 6330,
+          "covered_digest": "82ea7ed37a1f1628dff17de153d883001d142959f04376264a5f562694536403",
+          "cross_release_count": 0,
+          "denominator_count": 7250,
+          "denominator_digest": "9aee94cf0ebc97e19a5a804c75c0f00c7533caf37af954683cfb909f92642299",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        },
+        "relation_forward_labels": {
+          "covered_count": 9,
+          "covered_digest": "e2041c9abd9228f6e625d300a3be378a3012819cef09ce68735c745e7057da58",
+          "cross_release_count": 0,
+          "denominator_count": 9,
+          "denominator_digest": "e2041c9abd9228f6e625d300a3be378a3012819cef09ce68735c745e7057da58",
+          "duplicate_count": 0,
+          "status": "PASS",
+          "unsafe_count": 0
+        },
+        "statement_texts": {
+          "covered_count": 3066,
+          "covered_digest": "a58f47c9048f0834eaf981badb53e66474b68064cc68ad40153c5fe91c16ecd7",
+          "cross_release_count": 0,
+          "denominator_count": 3075,
+          "denominator_digest": "98a1c57501edb6d59b83649f305be1d00caa0b25331872892a753fe5c04c24ec",
+          "duplicate_count": 0,
+          "status": "FAIL",
+          "unsafe_count": 0
+        }
+      },
+      "content_digest": "f1231880f6f339b6af31e3acd86421b639ff14358c14e3faa21518879cb2fca8",
+      "denominator_digest": "095d144d0aa0bf91f1babdd065bdc929bdfe45d5bdef07aa860fb621f64c4ce7",
+      "status": "FAIL"
+    }
+  },
+  "manifest_hash": "eb11c846f290eee86fa60a0c16f8feaab60d599caead1a204ef19390ee4cb594",
+  "projection_profile": {
+    "hash": "833c35a9d9c2015a96b5891f43b94004be8c86b4b95a9f16657d3500bd8dcfc3",
+    "id": "ctr:profile:control-theory-engineering-v0.35:runtime-v3",
+    "version": "3.0.0"
+  },
+  "release": {
+    "hash": "37dabf357132d587b9db5f5725fb0e629f6c3145b2ca79658cc686146e0a7fa5",
+    "id": "ctr:release:control-theory-engineering-v0.35",
+    "source_commit": "ec468ba67292b6e7bbd9d20cb16057c6dd24ac46",
+    "source_tag": "control-theory-engineering-v0.35-source-r3",
+    "version": "control-theory-engineering-v0.35-r2"
+  },
+  "schema_hash": "4850ed2e4887f7b6a4f2a08f3eb786f82ef757170befef0f3f2dbf6dc9f6cb28",
+  "topology_digest": "52abacfccadb3a0bc784e3d8272e3f39e6723a758df68537ebb1eeafc31cf241"
+}

@@ -109,6 +109,16 @@ def read_json(path: Path, validator):
         return validator(json.load(handle))
 
 
+def require_real_directory(path: Path, label: str) -> Path:
+    try:
+        details = os.lstat(path)
+    except OSError as error:
+        fail(f"{label} is unavailable: {error}")
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        fail(f"{label} must be a real directory")
+    return path.resolve()
+
+
 def write_atomic(path: Path, value: Any) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     payload = (json.dumps(value, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
@@ -574,6 +584,43 @@ def mark_active_v2(args: argparse.Namespace):
     return receipt
 
 
+def write_candidate_readyz_receipt(args: argparse.Namespace):
+    """Write a container-scoped readiness receipt for the selected candidate.
+
+    This deliberately does not update the canonical active receipt.  Runtime
+    activation needs the candidate container to validate its own immutable
+    manifest before the lifecycle transaction can truthfully project that
+    candidate as globally active.  The caller mounts this file only into the
+    candidate container, then must rebind it to the canonical receipt after
+    activation commits.
+    """
+    state_dir = require_real_directory(Path(args.state_dir), "state directory")
+    selection = read_json(state_dir / SELECTION_FILE, require_selection)
+    if selection is None:
+        fail("desired runtime selection is absent")
+    expected = {
+        "releaseId": require_release_id(args.release_id),
+        "manifestSha256": require_digest(args.manifest_sha256, "manifestSha256"),
+        "treeSha256": require_digest(args.tree_sha256, "treeSha256"),
+    }
+    if {key: selection[key] for key in expected} != expected:
+        fail("desired runtime selection does not match candidate identity")
+    receipt_dir = require_real_directory(Path(args.receipt_dir), "candidate receipt directory")
+    receipt_path = receipt_dir / ACTIVE_RECEIPT_FILE
+    if receipt_path.is_symlink():
+        fail("candidate receipt path must not be a symlink")
+    receipt = {
+        "schemaVersion": "runtime-release-active-receipt.v1",
+        "selection": selection,
+        "healthCheck": "readyz",
+    }
+    write_atomic(receipt_path, receipt)
+    persisted = read_json(receipt_path, require_active_receipt)
+    if persisted != receipt:
+        fail("candidate readiness receipt does not match selected identity")
+    return receipt
+
+
 def active(args: argparse.Namespace):
     receipt = read_json(Path(args.state_dir) / ACTIVE_RECEIPT_FILE, require_active_receipt)
     return {
@@ -710,6 +757,12 @@ def main() -> None:
     marker_v2.add_argument("--release-id", required=True)
     marker_v2.add_argument("--manifest-sha256", required=True)
     marker_v2.add_argument("--tree-sha256", required=True)
+    candidate_receipt = subcommands.add_parser("candidate-readyz-receipt")
+    candidate_receipt.add_argument("--state-dir", required=True)
+    candidate_receipt.add_argument("--release-id", required=True)
+    candidate_receipt.add_argument("--manifest-sha256", required=True)
+    candidate_receipt.add_argument("--tree-sha256", required=True)
+    candidate_receipt.add_argument("--receipt-dir", required=True)
     active_parser = subcommands.add_parser("active")
     active_parser.add_argument("--state-dir", required=True)
     mounted = subcommands.add_parser("verify-mounted")
@@ -729,6 +782,7 @@ def main() -> None:
         "select": select,
         "mark-active": mark_active,
         "mark-active-v2": mark_active_v2,
+        "candidate-readyz-receipt": write_candidate_readyz_receipt,
         "active": active,
         "verify-mounted": verify_mounted,
         "restore-overlays": restore_overlays,

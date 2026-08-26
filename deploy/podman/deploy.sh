@@ -1246,11 +1246,18 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
-echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
-podman run --rm \
-  --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
-  "${WOLFRAM_ENV_ARGS[@]}" \
-  "$APP_IMAGE"
+if podman run --rm --entrypoint /bin/sh "$APP_IMAGE" -c 'test -x /app/scripts/math-calc/check-wolfram-ready.sh'; then
+  echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
+  podman run --rm \
+    --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
+    "${WOLFRAM_ENV_ARGS[@]}" \
+    "$APP_IMAGE"
+elif [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "WARN: runtime cutover 使用不含 Wolfram smoke 的既有镜像，跳过该兼容性检查" >&2
+else
+  echo "ERROR: production image is missing Wolfram Cloud MCP smoke script" >&2
+  exit 1
+fi
 
 if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
   echo "- runtime cutover 跳过 Prisma 迁移、策略物化和作业存储健康检查"
