@@ -1796,6 +1796,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain("state.name === 'active-mobile'");
     expect(captureSource).toContain('titleControlsOverlap');
     expect(captureSource).toContain('nodeGeometryWithinViewportCount');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT');
+    expect(captureSource).toContain('rendererViewportVisibleHeight');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
     expect(captureSource).toContain('firstViewport: {');
@@ -1804,6 +1806,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
+    const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
+    expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
+    expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
   });
 
   it('fails closed before slicing unrelated Knowledge API paths', () => {

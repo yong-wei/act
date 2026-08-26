@@ -40,6 +40,7 @@ const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
 const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 const threeDimensionalFitSafetyMargin = 8;
+const MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT = 160;
 const captureOutputPrefixes = [
   'artifacts/knowledge-workspace-product-qa-489/',
   'artifacts/knowledge-workspace-tools-inspector-487/',
@@ -2083,6 +2084,10 @@ async function captureMarkers(page: Page, stateName: string) {
        && rect.top < viewportRect.bottom
        && rect.bottom > viewportRect.top,
      );
+     const viewportVisibleHeight = (rect) => {
+       if (!rect) return 0;
+       return Math.max(0, Math.min(rect.bottom, viewportRect.bottom) - Math.max(rect.top, viewportRect.top));
+     };
      const expandedDock = document.querySelector('[data-platform-floating-dock-expanded-panel]');
      const desktopToolsRect = rectFor(desktopTools);
      const mobileToolsRect = rectFor(mobileTools);
@@ -2198,6 +2203,9 @@ async function captureMarkers(page: Page, stateName: string) {
      const rendererVisibleInViewport = activeForceRuntime
        ? intersectsViewport(activeForceCanvasRect)
        : intersectsViewport(activeSvgRect);
+     const rendererViewportVisibleHeight = activeForceRuntime
+       ? viewportVisibleHeight(activeForceCanvasRect)
+       : viewportVisibleHeight(activeSvgRect);
      const renderedRelationCount = activeForceRuntime
        ? (activeForceCanvasGeometryRectValid && rendererVisibleInViewport ? activeForceEdgeLaneCount : 0)
        : visibleSvgGeometryCount;
@@ -2250,6 +2258,7 @@ async function captureMarkers(page: Page, stateName: string) {
           titleControlsOverlap: rectanglesOverlap(activeTitleRect, knowledgeModeControlsRect),
           svgVisibleInViewport: intersectsViewport(activeSvgRect),
           rendererVisibleInViewport,
+          rendererViewportVisibleHeight,
           nodeGeometryWithinViewportCount,
           relationGeometryWithinViewportCount,
         },
@@ -2777,6 +2786,9 @@ async function captureActiveAuthorityVisualMatrix(
       const activeMarkers = objectRecord(markers.activeAuthority);
       const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
       const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+      const rendererViewportVisibleHeight = typeof activeFirstViewport.rendererViewportVisibleHeight === 'number'
+        ? activeFirstViewport.rendererViewportVisibleHeight
+        : 0;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
       const forceGraphReady = activeMarkers.renderer === 'force-graph'
@@ -2798,6 +2810,7 @@ async function captureActiveAuthorityVisualMatrix(
           activeMarkers.viewport !== 'compact'
           || activeFirstViewport.titleControlsOverlap === true
           || !rendererVisibleInViewport
+          || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
         ))
         || surfaceScan.passed !== true
       ) {
@@ -2805,10 +2818,12 @@ async function captureActiveAuthorityVisualMatrix(
           state.name === 'active-mobile' && (
               activeFirstViewport.titleControlsOverlap === true
               || !rendererVisibleInViewport
+              || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
                 rendererVisibleInViewport,
+                rendererViewportVisibleHeight,
               })}`
             : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
               knowledgeGraphMode: markers.knowledgeGraphMode ?? null,

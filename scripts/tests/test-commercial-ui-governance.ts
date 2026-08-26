@@ -2591,6 +2591,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewport = objectRecord(state?.viewport);
     const markers = objectRecord(state?.markers);
     const activeMarkers = objectRecord(markers.activeAuthority);
+    const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
@@ -2637,6 +2638,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? null
         : `${name}:renderer-edge-geometry-missing`,
       forceGraphReady ? null : `${name}:force-graph-renderer-not-ready`,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererViewportVisibleHeight)! < 160
+        ? `${name}:initial-canvas-visible-height`
+        : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'

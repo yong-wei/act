@@ -1346,6 +1346,7 @@ export function ActiveAuthorityGraph({
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
@@ -1362,6 +1363,10 @@ export function ActiveAuthorityGraph({
     window.addEventListener('resize', updateViewportWidth);
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
+
+  useEffect(() => {
+    setBoundaryDirectoryExpanded(false);
+  }, [workspace.activeDomainId]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1649,15 +1654,15 @@ export function ActiveAuthorityGraph({
         className="border-b border-platform-border bg-platform-surface/95 px-4 py-3 max-[639px]:pt-14 max-[639px]:pb-2"
         data-active-authority-header="true"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-3 max-[639px]:flex-nowrap max-[639px]:gap-2">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">{graphCopy(locale, 'badge.engineering')}</span>
+              <h2 className="text-base font-semibold max-[639px]:whitespace-nowrap" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100 max-[639px]:sr-only">{graphCopy(locale, 'badge.engineering')}</span>
             </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary">{graphCopy(locale, 'subtitle.graph')}</p>
+            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-2">{graphCopy(locale, 'subtitle.graph')}</p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-2 max-[639px]:shrink-0 max-[639px]:gap-0">
             <div
               role="group"
               aria-label={graphCopy(locale, 'language.group')}
@@ -1687,12 +1692,12 @@ export function ActiveAuthorityGraph({
               </button>
             </div>
             {languageState.englishAvailable ? null : (
-              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted">
+              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted max-[639px]:sr-only">
                 {languageState.englishUnavailableReason}
               </p>
             )}
           {workspace.root ? (
-            <div className="text-right text-xs text-platform-fg-secondary">
+            <div className="text-right text-xs text-platform-fg-secondary max-[639px]:sr-only">
               <div>{reviewedDomainHeaderCopy(locale, workspace.root.domains.length)}</div>
               <div className="mt-1 text-emerald-200">
                 {teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnpublished')}
@@ -1732,7 +1737,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4 max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             <div className="mb-3 flex flex-wrap items-end justify-between gap-3" data-active-authority-toolbar="true">
               <div className="min-w-[15rem] flex-1">
                 <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
@@ -1821,8 +1826,22 @@ export function ActiveAuthorityGraph({
             </div>
             {boundaryCues.length > 0 ? (
               <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
-                <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary">{graphCopy(locale, 'boundary.title')}</h3>
-                <div className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary max-[639px]:sr-only">{graphCopy(locale, 'boundary.title')}</h3>
+                  <button
+                    type="button"
+                    data-active-authority-boundary-toggle="true"
+                    aria-expanded={boundaryDirectoryExpanded}
+                    aria-controls="active-authority-boundary-directory"
+                    onClick={() => setBoundaryDirectoryExpanded((expanded) => !expanded)}
+                    className="hidden items-center gap-1 text-xs font-semibold text-platform-fg-primary max-[639px]:inline-flex"
+                  >
+                    {graphCopy(locale, 'boundary.title')} ({boundaryCues.length})
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${boundaryDirectoryExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                </div>
+                {(!isCompactViewport || boundaryDirectoryExpanded) ? (
+                <div id="active-authority-boundary-directory" className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                   {boundaryCues.map((cue) => (
                     <button
                       key={cue.key}
@@ -1835,6 +1854,7 @@ export function ActiveAuthorityGraph({
                     </button>
                   ))}
                 </div>
+                ) : null}
               </section>
             ) : null}
 
