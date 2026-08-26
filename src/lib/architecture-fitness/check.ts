@@ -28,8 +28,18 @@ export function checkFitness(
   }
   const current = collectViolations(core, files);
   const allowed = new Set(allowlist.entries.map((item) => item.id));
-  const newViolations = current.filter((item) => !allowed.has(item.id));
-  const remaining = current.filter((item) => allowed.has(item.id));
+  const allowlistedSccs = allowlist.entries
+    .filter((item) => item.kind === 'scc')
+    .map((item) => item.identity.replace(/^scc:/u, '').split('|'));
+  const isExistingScc = (identity: string): boolean => {
+    const members = identity.replace(/^scc:/u, '').split('|');
+    return allowlistedSccs.some((allowedMembers) => allowedMembers.every((member) => members.includes(member)));
+  };
+  const newViolations = current.filter((item) => (
+    !allowed.has(item.id)
+    && !(item.kind === 'scc' && isExistingScc(item.identity))
+  ));
+  const remaining = current.filter((item) => !newViolations.some((violation) => violation.id === item.id));
   return {
     ok: newViolations.length === 0,
     allowlistCount: allowlist.entries.length,

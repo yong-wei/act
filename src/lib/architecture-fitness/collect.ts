@@ -30,6 +30,16 @@ function isDomainCore(path: string): boolean {
   );
 }
 
+function isFrozenLibFile(path: string): boolean {
+  return (
+    path.startsWith('src/lib/')
+    && !path.includes('->')
+    && !path.includes('<-')
+    && !path.startsWith('src/lib/architecture-')
+    && /\.(?:ts|tsx|js|mjs)$/u.test(path)
+  );
+}
+
 function isInfrastructureSpecifier(specifier: string): boolean {
   return (
     specifier === 'react'
@@ -106,20 +116,13 @@ export function collectViolations(core: CensusCore, files: readonly CensusSource
     if (files.length === 0) {
       const paths = [observation.identity, ...observation.evidence, String(observation.attributes.from ?? ''), String(observation.attributes.to ?? '')];
       for (const path of paths) {
-        if (
-          path.startsWith('src/lib/')
-          && !path.includes('->')
-          && !path.includes('<-')
-          && /\.(?:ts|tsx|js|mjs)$/u.test(path)
-        ) {
-          libFiles.add(path);
-        }
+        if (isFrozenLibFile(path)) libFiles.add(path);
       }
     }
   }
   if (files.length > 0) {
     for (const file of files) {
-      if (file.path.startsWith('src/lib/') && /\.(?:ts|tsx|js|mjs)$/u.test(file.path)) libFiles.add(file.path);
+      if (isFrozenLibFile(file.path)) libFiles.add(file.path);
     }
   }
 

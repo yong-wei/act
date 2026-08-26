@@ -9,17 +9,6 @@ import { REQUIRED_BASELINE } from '../src/lib/architecture-charter';
 import { assertFitness, checkFitness, createAllowlist } from '../src/lib/architecture-fitness';
 import type { FitnessAllowlist } from '../src/lib/architecture-fitness';
 
-function currentCore(repoRoot: string) {
-  const snapshot = loadGitSourceSnapshot(repoRoot);
-  const { core } = generateCensusCore({
-    ...snapshot,
-    dirty: false,
-    mixedWorktree: false,
-    detachedUnresolved: false,
-  });
-  return { core, files: snapshot.files };
-}
-
 function writeAllowlist(repoRoot: string, allowlist: FitnessAllowlist): string {
   const serialized = serializeDeterministic(allowlist);
   writeFileSync(join(repoRoot, 'docs/architecture/dependency-allowlist.json'), serialized);
@@ -62,15 +51,25 @@ function main(): void {
     if (frozen.captureIdentity.sourceCommit !== REQUIRED_BASELINE.sourceCommit) {
       throw new Error('baseline-commit-drift');
     }
-    const { core, files } = currentCore(repoRoot);
-    const allowlist = createAllowlist(core, charterSha256, files);
+    const snapshot = loadGitSourceSnapshot(repoRoot);
+    const frozenPaths = new Set(frozen.observations.flatMap((item) => [
+      item.identity,
+      ...item.evidence,
+      String(item.attributes.from ?? ''),
+      String(item.attributes.to ?? ''),
+    ]));
+    const files = snapshot.files.filter((file) => frozenPaths.has(file.path));
+    const allowlist = createAllowlist(frozen, charterSha256, files);
     const hash = writeAllowlist(repoRoot, allowlist);
     console.log(`wrote allowlist ${allowlist.entries.length} ${hash}`);
     return;
   }
+  const snapshot = loadGitSourceSnapshot(repoRoot);
+  if (snapshot.dirty) throw new Error('dirty-worktree');
+  if (snapshot.mixedWorktree) throw new Error('mixed-worktree');
+  const { core } = generateCensusCore(snapshot);
   const allowlist = JSON.parse(readFileSync(join(repoRoot, 'docs/architecture/dependency-allowlist.json'), 'utf8')) as FitnessAllowlist;
-  const { core, files } = currentCore(repoRoot);
-  const report = checkFitness(core, allowlist, files);
+  const report = checkFitness(core, allowlist, snapshot.files);
   assertFitness(report);
   console.log(`fitness ok remaining=${report.remaining.length} current=${report.currentCount}`);
 }
