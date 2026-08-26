@@ -1,22 +1,21 @@
-import type { DiagnosisReportReadModel } from '@/lib/diagnosis-persistence';
+import type { DiagnosisReportBody, DiagnosisRiskSummary } from '@/lib/diagnosis-persistence';
 
-export type DiagnosisReportApiItem = Omit<
-  DiagnosisReportReadModel,
-  | 'evidenceCutoff'
-  | 'generatedAt'
-  | 'inputSummary'
-  | 'ruleVersion'
-  | 'generationReason'
-  | 'forceReason'
-  | 'previousReportId'
-> & {
+export interface DiagnosisReportApiItem {
+  id: string;
+  scopeType: 'class' | 'student';
+  scopeId: string;
+  classId: string;
+  targetUserId: string | null;
+  reportBody: DiagnosisReportBody;
+  riskSummary: DiagnosisRiskSummary;
   evidenceCutoff: string;
   generatedAt: string;
+  generatorVersion: string;
   ruleVersion?: string | null;
   generationReason?: string | null;
   forceReason?: string | null;
   previousReportId?: string | null;
-};
+}
 
 export interface DiagnosisReportsPayload {
   reports: DiagnosisReportApiItem[];

@@ -11,10 +11,22 @@ export function createDiagnosisReportReader(): TeacherDiagnosisReportReader {
         targetStudentId: input.targetStudentId,
         limit: input.limit,
       });
-      return reports.map((report) => {
-        const { inputSummary: _inputSummary, ...safeReport } = report;
-        return safeReport;
-      });
+      return reports.map((report) => ({
+        id: report.id,
+        scopeType: report.scopeType,
+        scopeId: report.scopeId,
+        classId: report.classId,
+        targetUserId: report.targetUserId,
+        reportBody: report.reportBody,
+        riskSummary: report.riskSummary,
+        evidenceCutoff: report.evidenceCutoff,
+        generatedAt: report.generatedAt,
+        generatorVersion: report.generatorVersion,
+        ruleVersion: report.ruleVersion,
+        generationReason: report.generationReason,
+        forceReason: report.forceReason,
+        previousReportId: report.previousReportId,
+      }));
     },
   };
 }

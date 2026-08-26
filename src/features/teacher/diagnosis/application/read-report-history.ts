@@ -12,9 +12,20 @@ export async function readTeacherDiagnosisReportHistory(input: {
   });
   return {
     reports: reports.map((report) => ({
-      ...report,
+      id: report.id,
+      scopeType: report.scopeType,
+      scopeId: report.scopeId,
+      classId: report.classId,
+      targetUserId: report.targetUserId,
+      reportBody: report.reportBody,
+      riskSummary: report.riskSummary,
       evidenceCutoff: report.evidenceCutoff.toISOString(),
       generatedAt: report.generatedAt.toISOString(),
+      generatorVersion: report.generatorVersion,
+      ruleVersion: report.ruleVersion,
+      generationReason: report.generationReason,
+      forceReason: report.forceReason,
+      previousReportId: report.previousReportId,
     })),
   };
 }
