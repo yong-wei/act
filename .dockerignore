@@ -71,6 +71,9 @@ course-content/runtime/knowledge/*
 !course-content/runtime/knowledge/infographs/authority/**
 !course-content/runtime/knowledge/projection
 !course-content/runtime/knowledge/projection/**
+# Offline ActKG formula disposition/review packages must not enter runtime images.
+course-content/authoring/knowledge/governance/governed-math
+course-content/authoring/knowledge/governance/governed-math/**
 # Authoring authority store is under authoring/knowledge (not fully ignored by default)
 scripts/
 !scripts/

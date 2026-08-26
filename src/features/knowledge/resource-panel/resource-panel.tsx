@@ -4,8 +4,12 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon, ListPlus, Target } from 'lucide-react';
-import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { GovernedBlockMath } from '@/components/shared/governed-rich-text';
+import {
+  GOVERNED_KATEX_MACRO_PROFILE_HASH,
+  GOVERNED_KATEX_MACRO_PROFILE_ID,
+} from '@/lib/governed-math';
 
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
 import { extractInfographResource, extractMdxPaths, KnowledgeCardDialog } from '../knowledge-card';
@@ -779,10 +783,12 @@ function ResourcePanelContent({
                     key={`formula-${index}`}
                     className="overflow-x-auto rounded-md border border-platform-border bg-platform-surface px-2 py-1"
                   >
-                    <BlockMath
-                      math={formula}
-                      errorColor="hsl(var(--platform-evidence-unsupported))"
-                      renderError={() => <code className={panelTheme.text}>{formula}</code>}
+                    <GovernedBlockMath
+                      latex={formula}
+                      macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                      macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                      accessibleLabel={formula}
+                      copyLatex={formula}
                     />
                   </div>
                 ))}

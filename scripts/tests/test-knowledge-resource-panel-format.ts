@@ -39,9 +39,9 @@ assert.equal(
 );
 
 assert.equal(
-  content.includes('BlockMath'),
+  content.includes('GovernedBlockMath'),
   true,
-  'resource panel should use react-katex BlockMath for formulas'
+  'resource panel should use shared governed KaTeX for formulas'
 );
 
 assert.equal(

@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import { createGovernedRehypeKatexOptions } from '@/lib/governed-math';
 
 import { TEXTBOOK_READER_MARKDOWN_ANCHOR_PREFIX } from '@/lib/textbook-reader-markdown';
 
@@ -186,7 +187,7 @@ export function RuntimeMarkdownContent({
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeKatex]}
+      rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
       components={createRuntimeMarkdownComponents(resolveAssetHref, mode)}
     >
       {markdown}
