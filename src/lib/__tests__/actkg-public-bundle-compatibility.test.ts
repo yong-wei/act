@@ -130,6 +130,25 @@ async function copyTree(sourceRelative: string, destinationRoot: string, destina
   await cp(path.join(root, sourceRelative), path.join(destinationRoot, destinationRelative), { recursive: true });
 }
 
+async function removeTempTree(dir: string): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await rm(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') return;
+      if (code !== 'ENOTEMPTY' && code !== 'EBUSY' && code !== 'EPERM' && code !== 'EACCES') {
+        throw error;
+      }
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 async function v4FixtureRoot(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'actkg-public-bundle-v4-'));
   await copyTree(V4_PATH, dir, V4_PATH);
@@ -798,7 +817,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
         },
       ]);
     } finally {
-      await rm(fixture, { recursive: true, force: true });
+      await removeTempTree(fixture);
     }
   });
 
@@ -826,7 +845,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       expect(validated.selectedRuntimeProjection.identity.profile).toBe('runtime');
       expect(Object.keys(validated)).not.toContain('selector');
     } finally {
-      await rm(fixture, { recursive: true, force: true });
+      await removeTempTree(fixture);
     }
   });
 
@@ -845,7 +864,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
         /graph_rag_runtime_intake must remain fail-closed/u,
       );
     } finally {
-      await rm(fixture, { recursive: true, force: true });
+      await removeTempTree(fixture);
     }
   });
 
@@ -861,7 +880,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       });
       expect(validated.graphRagRuntimeIntakeBlocked).toBe(true);
     } finally {
-      await rm(fixture, { recursive: true, force: true });
+      await removeTempTree(fixture);
     }
   });
 
@@ -1206,7 +1225,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       'course-content/authoring/knowledge/releases/aliased-complete-r2-bundle',
     );
     await cp(controlledAbs, aliasAbs, { recursive: true });
-    await rm(controlledAbs, { recursive: true, force: true });
+    await removeTempTree(controlledAbs);
     await symlink(aliasAbs, controlledAbs);
 
     await expectRejection(
@@ -1219,7 +1238,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
     const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'actkg-bundle-root-escape-'));
     const outsideBundle = path.join(outsideRoot, 'complete-r2');
     await cp(aliasAbs, outsideBundle, { recursive: true });
-    await rm(controlledAbs, { recursive: true, force: true });
+    await removeTempTree(controlledAbs);
     await symlink(outsideBundle, controlledAbs);
     await expectRejection(
       () => loadAndValidatePublicBundleV1(fixtureLoadOptions(fixture)),
@@ -2895,7 +2914,7 @@ describe('ActKG public bundle compatibility (actkg-public-bundle/1)', () => {
       'course-content/authoring/knowledge/releases/synthetic-standard-bundle-alias',
     );
     await cp(controlledAbs, aliasAbs, { recursive: true });
-    await rm(controlledAbs, { recursive: true, force: true });
+    await removeTempTree(controlledAbs);
     await symlink(aliasAbs, controlledAbs);
     await expectRejection(
       () => loadAndValidatePublicBundleV1(fixtureLoadOptions(rootLink.fixture)),

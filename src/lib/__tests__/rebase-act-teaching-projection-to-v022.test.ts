@@ -5,10 +5,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import {
-  assertV022AdmittedAuthorityCandidate,
-  prepareActKgV022TeachingProjection,
-} from '../../../scripts/knowledge-cutover/prepare-actkg-v022-teaching-projection';
+import { assertV022AdmittedAuthorityCandidate } from '../../../scripts/knowledge-cutover/prepare-actkg-v022-teaching-projection';
 import { buildTeachingProjection } from '../teaching-projection/builder';
 import type { TeachingProjectionAuthoringInput } from '../teaching-projection/contracts';
 import { projectionDigest } from '../teaching-projection/hash';
@@ -45,12 +42,8 @@ import type {
   V022AuthorityBinding,
   V022AuthorityNodeRecord,
   V022CaptureManifest,
-  V022RebaseReceipt,
 } from '../teaching-projection/rebase/v022-contracts';
-import {
-  ACT_V022_AUTHORITY_RELEASE_ID,
-  V022_CURRENT_POINTER_PATHS,
-} from '../teaching-projection/rebase/v022-contracts';
+import { ACT_V022_AUTHORITY_RELEASE_ID } from '../teaching-projection/rebase/v022-contracts';
 
 const roots: string[] = [];
 
@@ -581,11 +574,6 @@ describe('v0.22 candidate safety and deterministic evidence', () => {
   });
 });
 
-const REPO_ROOT = path.resolve(__dirname, '../../..');
-const V022_CANDIDATE_RECEIPT = path.join(
-  REPO_ROOT,
-  'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.22/candidate-receipt.json',
-);
 const COMMIT = 'a'.repeat(40);
 const SNAPSHOT_HASH = '1'.repeat(64);
 const SCOPE = 'fixture-v022-rebase';
@@ -926,71 +914,5 @@ describe('v0.22 shipped identity rebase', () => {
     expect(receipt.nonActivation).toBe(true);
     expect(receipt.selectorConsumption).toBe(false);
     expect(JSON.parse(after[0]!.content).releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-  });
-});
-
-describe('v0.22 shipped prepare entry', () => {
-  it.skipIf(!existsSync(path.join(
-    path.resolve(__dirname, '../../..'),
-    'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.22/database-observation.json',
-  )))('replays a sealed observation through the exported CLI without moving selectors', async () => {
-    const outputRoot = path.join(tempRoot(), 'v022-candidate');
-    const observation = path.join(
-      REPO_ROOT,
-      'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.22/database-observation.json',
-    );
-    const result = await prepareActKgV022TeachingProjection([
-      '--repo-root',
-      REPO_ROOT,
-      '--output-root',
-      outputRoot,
-      '--database-observation',
-      observation,
-    ]);
-    expect(result.status).toBe('READY');
-    expect(result.blockers).toEqual([]);
-    const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'candidate-receipt.json'), 'utf8')) as V022RebaseReceipt;
-    expect(receipt.unqualified).toBe(true);
-    expect(receipt.nonActivation).toBe(true);
-    expect(receipt.selectorConsumption).toBe(false);
-    expect(receipt.pointerBytesUnchanged).toBe(true);
-    expect(receipt.dualBuild?.byteEquivalent).toBe(true);
-    const live = readV022PointerSnapshots(REPO_ROOT, V022_CURRENT_POINTER_PATHS);
-    assertV022PointerBytesUnchanged(receipt.pointersAfter, live);
-    const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    const projection = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/projection/current.json'), 'utf8')) as { authorityReleaseId: string };
-    const prerequisites = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/prerequisites/current.json'), 'utf8')) as { authorityReleaseId: string };
-    const shards = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/authority-domain-shards/current.json'), 'utf8')) as { releaseId: string };
-    const activation = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/consumer-activation/current.json'), 'utf8')) as { activationId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(activation.activationId).toBe('first-cutover-7f4cdd1084af-769b1a832622');
-  }, 180_000);
-});
-
-describe('v0.22 captured candidate remains inactive against live v0.9 pointers', () => {
-  it.skipIf(!existsSync(path.join(
-    path.resolve(__dirname, '../../..'),
-    'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.22/candidate-receipt.json',
-  )))('proves the generated receipt did not move the five current selectors', () => {
-    expect(existsSync(V022_CANDIDATE_RECEIPT)).toBe(true);
-    const receipt = JSON.parse(readFileSync(V022_CANDIDATE_RECEIPT, 'utf8')) as V022RebaseReceipt;
-    const live = readV022PointerSnapshots(REPO_ROOT, V022_CURRENT_POINTER_PATHS);
-    assertV022PointerBytesUnchanged(receipt.pointersBefore, receipt.pointersAfter);
-    assertV022PointerBytesUnchanged(receipt.pointersAfter, live);
-    expect(receipt.nonActivation).toBe(true);
-    expect(receipt.selectorConsumption).toBe(false);
-    expect(receipt.mapping.reviewRequiredCount).toBe(0);
-    expect(receipt.dualBuild?.byteEquivalent).toBe(true);
-    const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    const projection = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/projection/current.json'), 'utf8')) as { authorityReleaseId: string };
-    const prerequisites = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/prerequisites/current.json'), 'utf8')) as { authorityReleaseId: string };
-    const shards = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/runtime/knowledge/authority-domain-shards/current.json'), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
   });
 });

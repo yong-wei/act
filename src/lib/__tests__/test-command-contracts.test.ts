@@ -16,6 +16,7 @@ import {
   matchesGlob,
   parseVitestJson,
   qualifyDiscovery,
+  releaseCommandFailures,
   validateReleaseManifest,
 } from '@/lib/architecture-test-commands';
 import { RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION } from '@/lib/architecture-test-commands';
@@ -285,6 +286,18 @@ describe('test command contracts', () => {
     });
     expect(mismatchedScope.some((item) => item.code === 'release-artifact-scope')).toBe(true);
     expect(commandContract('test').requiredInputs).not.toContain('qualification-manifest');
+    expect(commandContract('test:release').requiredInputs).toContain('qualification-manifest');
+  });
+
+  it('fails closed when test:release has no qualification manifest', () => {
+    expect(releaseCommandFailures('/repo', null, COMMIT, TREE)).toEqual([{
+      code: 'release-manifest-missing',
+      identity: 'qualification-manifest',
+    }]);
+    expect(releaseCommandFailures('/repo', 'artifacts/release/qualification-manifest.json', COMMIT, TREE)).toEqual([{
+      code: 'release-manifest-missing',
+      identity: 'artifacts/release/qualification-manifest.json',
+    }]);
     expect(commandContract('test:release').requiredInputs).toContain('qualification-manifest');
   });
 

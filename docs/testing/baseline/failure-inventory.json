@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "act-test-failure-inventory/v1",
+  "observedAt": "2026-08-27T04:01:00+08:00",
+  "sourceCommit": "5ee65d52343029756a09a2ad0ba50504fb4f9557",
+  "sourceTree": "03f832624c9ec800ff76702cdd4af1927946f895",
+  "worktree": {
+    "dirty": true,
+    "mixed": false
+  },
+  "command": {
+    "id": "test:unit",
+    "invocation": "rtk npx vitest run --config vitest.config.ts",
+    "mode": "direct-vitest",
+    "exitStatus": 0,
+    "testFiles": {
+      "passed": 805,
+      "failed": 0,
+      "skipped": 0,
+      "total": 805
+    },
+    "tests": {
+      "passed": 9753,
+      "failed": 0,
+      "skipped": 0,
+      "total": 9753
+    },
+    "assertionFailures": 0,
+    "unhandledErrors": 0,
+    "unregisteredSkips": 0,
+    "acceptedFailures": 0,
+    "qualified": false,
+    "qualificationBlockers": [
+      "dirty-worktree"
+    ]
+  },
+  "failures": [],
+  "unhandledErrors": [],
+  "closedFixes": [
+    {
+      "fingerprint": "vitest:konling-agent-runtime:derived-revision-persist",
+      "identity": "src/lib/__tests__/konling-agent-runtime.test.ts::persists adaptive path revision as a derived batch without switch evidence",
+      "disposition": "fix",
+      "owner": "adaptive-path",
+      "actionEvidence": "supplied a destination-legal planner registry only in the regression fixture"
+    },
+    {
+      "fingerprint": "vitest:assessment-remediation-route:unavailable-attribution",
+      "identity": "src/app/api/assessment/remediation/__tests__/route.test.ts::returns a controlled unavailable result when answer attribution cannot be read safely",
+      "disposition": "fix",
+      "owner": "assessment",
+      "actionEvidence": "exported REMEDIATION_MANUAL_PRACTICE_PATH from the remediation orchestration mock"
+    },
+    {
+      "fingerprint": "vitest:actkg-public-bundle-m1k-cleanup",
+      "identity": "src/lib/__tests__/actkg-public-bundle-compatibility.test.ts::accepts the M1K UNCHANGED_BLOCKED Graph-RAG runtime disposition",
+      "disposition": "fix",
+      "owner": "knowledge",
+      "actionEvidence": "retried recursive fixture removal on ENOTEMPTY from Git object directories"
+    }
+  ],
+  "migrations": [
+    {
+      "fingerprint": "vitest:textbook-v2-canonical-index-smoke",
+      "identity": "src/lib/__tests__/textbook-v2-canonical-index.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly or release qualification consumes the canonical index evidence without a unit-lane skip"
+    },
+    {
+      "fingerprint": "vitest:v018-shipped-prepare-entry",
+      "identity": "src/lib/__tests__/rebase-act-teaching-projection-to-v018.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "test:release or nightly replay of the sealed v0.18 observation with a capture-bound authoring set"
+    },
+    {
+      "fingerprint": "vitest:v022-shipped-prepare-entry",
+      "identity": "src/lib/__tests__/rebase-act-teaching-projection-to-v022.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "test:release or nightly replay of the sealed v0.22 observation with a capture-bound authoring set"
+    },
+    {
+      "fingerprint": "vitest:actkg-public-bundle-v2-upstream",
+      "identity": "src/lib/__tests__/actkg-public-bundle-v2-compatibility.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly consumes the upstream ActKG repository without a unit-lane skipIf"
+    },
+    {
+      "fingerprint": "vitest:knowledge-db-fallback-production",
+      "identity": "src/lib/__tests__/knowledge-db-fallback-production.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly or integration with a permitted production-like database fallback environment"
+    }
+  ]
+}
