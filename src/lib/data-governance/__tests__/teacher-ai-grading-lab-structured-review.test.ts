@@ -272,6 +272,22 @@ describe('teacher AI grading structured review versions', () => {
     })).rejects.toThrow('teacher-ai-grading-review-deduction-reason-missing');
   });
 
+  it('requires a physical page for added annotations', async () => {
+    const db = createMemoryDb();
+    await expect(appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [],
+      annotationCorrections: [{
+        action: 'add', annotationKey: 'added-without-page', criterionId: 'criterion-a',
+        reason: 'A deduction requires a physical placement.', comment: 'Show the missing step.', location: { blockId: 'block-a' },
+      }],
+      operatorUserId: 'teacher-a',
+    })).rejects.toThrow('teacher-ai-grading-review-location-page-missing');
+  });
+
   it('requires score and annotation corrections to form a consistent review state', async () => {
     const db = createMemoryDb();
     await expect(appendTeacherAiGradingStructuredReviewVersion({

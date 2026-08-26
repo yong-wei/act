@@ -453,7 +453,7 @@ function normalizeAnnotationCorrections(input: readonly TeacherAiGradingAnnotati
       criterionId: requireToken(row.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
       reason: requireToken(row.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
       comment: requireToken(row.comment, 'teacher-ai-grading-review-comment-missing'),
-      location: normalizeObject(row.location, 'teacher-ai-grading-review-location-invalid'),
+      location: normalizeAnnotationLocation(row.location),
     };
     const sourceAnnotationId = requireToken(row.sourceAnnotationId, 'teacher-ai-grading-review-source-annotation-missing');
     if (row.action === 'delete') return { action: row.action, sourceAnnotationId };
@@ -462,7 +462,7 @@ function normalizeAnnotationCorrections(input: readonly TeacherAiGradingAnnotati
       sourceAnnotationId,
       comment: requireToken(row.comment, 'teacher-ai-grading-review-comment-missing'),
     };
-    return { action: row.action, sourceAnnotationId, location: normalizeObject(row.location, 'teacher-ai-grading-review-location-invalid') };
+    return { action: row.action, sourceAnnotationId, location: normalizeAnnotationLocation(row.location) };
   });
 }
 
@@ -524,7 +524,7 @@ function applyReviewCorrections(state: ReviewState, versions: readonly any[]): v
           criterionId: requireToken(correction.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
           reason: requireToken(correction.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
           comment: requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing'),
-          location: normalizeObject(correction.location, 'teacher-ai-grading-review-location-invalid'),
+          location: normalizeAnnotationLocation(correction.location),
         });
         continue;
       }
@@ -532,7 +532,7 @@ function applyReviewCorrections(state: ReviewState, versions: readonly any[]): v
       if (!source) throw new Error('teacher-ai-grading-review-annotation-chain-invalid');
       if (correction.action === 'delete') state.annotations.delete(correction.sourceAnnotationId);
       else if (correction.action === 'revise-text') source.comment = requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing');
-      else source.location = normalizeObject(correction.location, 'teacher-ai-grading-review-location-invalid');
+      else source.location = normalizeAnnotationLocation(correction.location);
     }
   }
 }
@@ -656,8 +656,13 @@ function allChecksPass(row: any): boolean {
     && row.positioningCorrect && row.summaryPageCorrect;
 }
 
-function normalizeObject(value: Readonly<Record<string, unknown>>, code: string): Readonly<Record<string, unknown>> {
-  if (!value || Array.isArray(value) || typeof value !== 'object' || Object.keys(value).length === 0) throw new Error(code);
+function normalizeAnnotationLocation(value: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  if (!value || Array.isArray(value) || typeof value !== 'object' || Object.keys(value).length === 0) {
+    throw new Error('teacher-ai-grading-review-location-invalid');
+  }
+  if (!Number.isInteger(value.pageNumber) || Number(value.pageNumber) < 1) {
+    throw new Error('teacher-ai-grading-review-location-page-missing');
+  }
   return value;
 }
 

@@ -158,6 +158,19 @@ describe('POST /api/teacher/ai-grading-lab/operations', () => {
     expect(rejected.status).toBe(400);
     expect(core.execute).not.toHaveBeenCalled();
 
+    const rejectedLocation = await post(handler, {
+      operation: 'record-human-judgment',
+      input: {
+        ...baseInput,
+        annotationCorrections: [{
+          ...baseInput.annotationCorrections[0],
+          reason: 'The stated deduction has a missing intermediate step.', location: { blockId: 'block-1' },
+        }],
+      },
+    });
+    expect(rejectedLocation.status).toBe(400);
+    expect(core.execute).not.toHaveBeenCalled();
+
     const reason = 'The stated deduction has a missing intermediate step.';
     const accepted = await post(handler, {
       operation: 'record-human-judgment',
