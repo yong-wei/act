@@ -46,6 +46,12 @@ import {
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
+import {
+  studentMicroTutoringStageLabel,
+  studentMicroTutoringUnavailableCopy,
+  type StudentMicroTutoringEligibility,
+  type StudentMicroTutoringStage,
+} from '@/features/assessment/student-micro-tutoring-eligibility-contract';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
@@ -177,6 +183,7 @@ interface NextQuestionResponse {
   question: PracticeQuestion;
   estimatedAbility: number;
   confidenceInterval: [number, number];
+  assessmentStage?: StudentMicroTutoringStage;
 }
 
 interface SubmitAnswerResponse {
@@ -189,10 +196,7 @@ interface SubmitAnswerResponse {
   durableSessionId?: string;
   algorithmVersion?: string;
   adaptiveAssessmentRef?: Record<string, unknown>;
-}
-
-function isMicroTutoringEligible(ref: Record<string, unknown> | undefined): boolean {
-  return typeof ref?.catalogItemId === 'string' && ref.reviewState === 'reviewed';
+  microTutoring?: StudentMicroTutoringEligibility;
 }
 
 interface PathAdvisorContextResponse {
@@ -553,6 +557,7 @@ const DEMO_SCENES: Record<DemoScene, {
     questionState: {
       estimatedAbility: 0.54,
       confidenceInterval: [0.31, 0.77],
+      assessmentStage: 'practice',
       question: {
         id: 'demo-classic-stable',
         stem: '某系统相位裕度从 45° 降至 20°，且交叉频率上升。以下哪项最符合“频域→时域”映射规律？',
@@ -588,6 +593,7 @@ const DEMO_SCENES: Record<DemoScene, {
     questionState: {
       estimatedAbility: 0.89,
       confidenceInterval: [0.65, 1.12],
+      assessmentStage: 'practice',
       question: {
         id: 'demo-generated-live',
         stem: '【AI现场生成】邮轮横摇舒适度未达标（MSI 偏高），请在保持稳定裕度 > 30° 约束下，给出可执行调参策略。',
@@ -3027,6 +3033,8 @@ export default function AdaptivePracticePage() {
     ? `adaptive-path:${activePathId}:${activeNodeId}`
     : null;
   const sessionId = pathAssessmentSessionId ?? practiceSessionId;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
@@ -3699,11 +3707,12 @@ export default function AdaptivePracticePage() {
       return;
     }
 
+    const requestedSessionId = sessionId;
     const response = await fetch('/api/assessment/next-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId,
+        sessionId: requestedSessionId,
         goalId: activeGoal,
         routeIntent: activeGoal ? routeIntent : null,
         pathId: activePathId,
@@ -3712,10 +3721,12 @@ export default function AdaptivePracticePage() {
     });
 
     if (!response.ok) {
+      if (sessionIdRef.current !== requestedSessionId) return;
       throw new Error('下一题加载失败');
     }
 
     const data = (await response.json()) as NextQuestionResponse;
+    if (sessionIdRef.current !== requestedSessionId) return;
     setQuestionState(data);
     setSelectedOption('');
     setFeedback(null);
@@ -4900,6 +4911,13 @@ export default function AdaptivePracticePage() {
   }, [attemptDiagnosisState, feedback?.durableAnswerId, startAssistantConversation]);
 
   useEffect(() => {
+    setQuestionState(null);
+    setSelectedOption('');
+    setFeedback(null);
+    setAttemptDiagnosisState('idle');
+  }, [sessionId]);
+
+  useEffect(() => {
     if (isDemoMode) {
       applyDemoScene(demoScene);
       return;
@@ -4943,13 +4961,14 @@ export default function AdaptivePracticePage() {
 
     setLoading(true);
     setError(null);
+    const requestedSessionId = sessionId;
 
     try {
       const response = await fetch('/api/assessment/submit-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          sessionId: requestedSessionId,
           questionId: questionState.question.id,
           selectedOption,
           timeSpent: Math.max(1, Math.round((Date.now() - questionStartAt) / 1000)),
@@ -4961,10 +4980,12 @@ export default function AdaptivePracticePage() {
       });
 
       if (!response.ok) {
+        if (sessionIdRef.current !== requestedSessionId) return;
         throw new Error('提交失败');
       }
 
       const data = (await response.json()) as SubmitAnswerResponse;
+      if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
       await syncAdaptiveAssessmentPathResult(data);
@@ -5040,6 +5061,19 @@ export default function AdaptivePracticePage() {
           diagnostic.knowledgeDimensions.design
         ) / 3)))
       : 18;
+    const practiceStage = questionState?.assessmentStage ?? feedback?.microTutoring?.stage ?? 'practice';
+    const practiceStageLabel = studentMicroTutoringStageLabel(practiceStage);
+    const microTutoringEligibility = feedback?.microTutoring;
+    const canStartMicroTutoring = Boolean(
+      feedback
+      && !feedback.isCorrect
+      && feedback.durableAnswerId
+      && microTutoringEligibility?.qualified,
+    );
+    const microTutoringUnavailableReason = !feedback?.isCorrect
+      && !microTutoringEligibility?.qualified
+      ? microTutoringEligibility?.unavailableReason ?? null
+      : null;
 
     return (
       <AppShell
@@ -6818,9 +6852,13 @@ export default function AdaptivePracticePage() {
                   </div>
 
                   {questionState && practiceQuestionExpanded ? (
-                    <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-practice-question="active">
+                    <div
+                      className="rounded-lg border border-border bg-background/55 p-4"
+                      data-adaptive-practice-question="active"
+                      data-adaptive-practice-stage={practiceStage}
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold text-foreground">检查节点练习</p>
+                        <p className="text-sm font-semibold text-foreground">{practiceStageLabel}</p>
                         <span className="rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-subtle">
                           能力估计 {questionState.estimatedAbility.toFixed(2)}
                         </span>
@@ -6863,6 +6901,18 @@ export default function AdaptivePracticePage() {
                           <RefreshCw className="size-4" aria-hidden="true" />
                           换一题
                         </button>
+                        {microTutoringEligibility?.retryAttribution ? (
+                          <button
+                            type="button"
+                            onClick={retryNextQuestion}
+                            disabled={loading}
+                            data-micro-tutoring-retry-attribution="true"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground disabled:opacity-60"
+                          >
+                            <RefreshCw className="size-4" aria-hidden="true" />
+                            重新作答
+                          </button>
+                        ) : null}
                       </div>
                       {feedback ? (
                         <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
@@ -6893,12 +6943,19 @@ export default function AdaptivePracticePage() {
                               ) : null}
                             </div>
                           ) : null}
-                          {!feedback.isCorrect && feedback.durableAnswerId &&
-                          isMicroTutoringEligible(feedback.adaptiveAssessmentRef) ? (
+                          {canStartMicroTutoring && feedback.durableAnswerId ? (
                             <StudentMicroTutoringPanel
                               answerId={feedback.durableAnswerId}
                               onRequestHint={requestAttemptDiagnosis}
                             />
+                          ) : null}
+                          {microTutoringUnavailableReason ? (
+                            <p
+                              className="mt-3 text-xs leading-5 text-subtle"
+                              data-micro-tutoring-unavailable={microTutoringUnavailableReason}
+                            >
+                              {studentMicroTutoringUnavailableCopy(microTutoringUnavailableReason)}
+                            </p>
                           ) : null}
                         </div>
                       ) : null}
@@ -6910,9 +6967,14 @@ export default function AdaptivePracticePage() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold text-foreground">检查节点练习已准备</p>
+                          <p
+                            className="text-sm font-semibold text-foreground"
+                            data-adaptive-practice-stage={practiceStage}
+                          >
+                            {practiceStageLabel}已准备
+                          </p>
                           <p className="mt-1 text-sm leading-6 text-subtle">
-                            题面会在选择路径或进入检查节点后展开，避免干扰路径生成与比较。
+                            题面会在选择路径或进入当前阶段后展开，避免干扰路径生成与比较。
                           </p>
                         </div>
                         <button

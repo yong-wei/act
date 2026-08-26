@@ -8,10 +8,16 @@ const domainGoals = [
   'transfer-function-modeling-foundations',
 ] as const;
 
+type MicroTutoringProjection = {
+  stage: string;
+  qualified: boolean;
+  unavailableReason: string | null;
+  retryAttribution: boolean;
+};
 type AnswerFixture = {
-  question: { question: { id: string; options: Array<{ label: string }> } };
-  correct: { isCorrect: boolean; correctOption: string };
-  incorrect: { isCorrect: boolean; correctOption: string };
+  question: { question: { id: string; options: Array<{ label: string }> }; assessmentStage?: string };
+  correct: { isCorrect: boolean; correctOption: string; microTutoring?: MicroTutoringProjection };
+  incorrect: { isCorrect: boolean; correctOption: string; microTutoring?: MicroTutoringProjection };
 };
 
 const STARTED = {
@@ -64,7 +70,31 @@ async function persistWrongAnswer(
   expect(incorrectOption).toBeTruthy();
   const correct = first.isCorrect ? first : await submit(`correct-${key}`, first.correctOption);
   const incorrect = first.isCorrect ? await submit(`incorrect-${key}`, incorrectOption!) : first;
-  return { question, correct, incorrect };
+  const questionWithStage = {
+    ...question,
+    assessmentStage: 'practice' as const,
+  };
+  return {
+    question: questionWithStage,
+    correct: {
+      ...correct,
+      microTutoring: {
+        stage: 'practice',
+        qualified: false,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    },
+    incorrect: {
+      ...incorrect,
+      microTutoring: {
+        stage: 'practice',
+        qualified: true,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    },
+  };
 }
 
 async function installRoutes(page: Page, fixture: AnswerFixture, mode: 'success' | 'failure' | 'unavailable' | 'drift') {

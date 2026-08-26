@@ -36,10 +36,25 @@ const sourceFiles = [
 
 type Theme = typeof themes[number];
 type SourceSnapshot = { revision: string; hashes: Record<string, string> };
+type MicroTutoringProjection = {
+  stage: string;
+  qualified: boolean;
+  unavailableReason: string | null;
+  retryAttribution: boolean;
+};
 type PersistedAnswerFixture = {
-  question: { question: { id: string; options: Array<{ label: string }> } };
-  correct: { correctOption: string; durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
-  incorrect: { durableAnswerId: string; adaptiveAssessmentRef: Record<string, string> };
+  question: { question: { id: string; options: Array<{ label: string }> }; assessmentStage?: string };
+  correct: {
+    correctOption: string;
+    durableAnswerId: string;
+    adaptiveAssessmentRef: Record<string, string>;
+    microTutoring?: MicroTutoringProjection;
+  };
+  incorrect: {
+    durableAnswerId: string;
+    adaptiveAssessmentRef: Record<string, string>;
+    microTutoring?: MicroTutoringProjection;
+  };
 };
 type CapturedEvidence = {
   file: string;
@@ -186,10 +201,32 @@ async function createPersistedAnswerFixture(context: BrowserContext): Promise<Pe
     catalogItemId: 'adaptive-assessment-item:fixture:governed-wrong-answer',
     reviewState: 'reviewed',
   };
+  const questionWithStage = {
+    ...question,
+    assessmentStage: 'practice' as const,
+  };
   return {
-    question,
-    correct: { ...correct, adaptiveAssessmentRef },
-    incorrect: { ...incorrect, adaptiveAssessmentRef },
+    question: questionWithStage,
+    correct: {
+      ...correct,
+      adaptiveAssessmentRef,
+      microTutoring: {
+        stage: 'practice',
+        qualified: false,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    },
+    incorrect: {
+      ...incorrect,
+      adaptiveAssessmentRef,
+      microTutoring: {
+        stage: 'practice',
+        qualified: true,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    },
   };
 }
 

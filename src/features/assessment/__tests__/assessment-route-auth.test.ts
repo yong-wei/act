@@ -142,6 +142,14 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      microTutoring: {
+        stage: 'readiness',
+        qualified: false,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    });
     expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
@@ -357,6 +365,9 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      assessmentStage: 'practice',
+    });
     expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'session-1',
