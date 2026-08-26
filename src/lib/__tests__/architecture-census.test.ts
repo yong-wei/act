@@ -216,6 +216,31 @@ describe('architecture census', () => {
     expect(manifest?.totals.discovered).toBe(manifest?.totals.represented);
   });
 
+  it('resolves dotted basenames that are not source extensions', () => {
+    const snapshot = fixture([
+      file('src/lib/pid-evidence-runtime-manifest.generated.ts', 'export const generated = 1;\n'),
+      file('src/lib/actkg-projection.fixture.ts', 'export const fixture = 1;\n'),
+      file('src/lib/route.test.ts', 'export const routeTest = 1;\n'),
+      file('src/features/teacher/load.ts', [
+        'import { generated } from "@/lib/pid-evidence-runtime-manifest.generated";',
+        'import { fixture } from "@/lib/actkg-projection.fixture";',
+        'import { routeTest } from "@/lib/route.test";',
+        '',
+      ].join('\n')),
+    ]);
+    const { core, failures } = generateCensusCore(snapshot);
+    qualifyCensusCore(core, failures);
+    const targets = core.observations
+      .filter((row) => row.kind === 'dependency-edge' && String(row.attributes.from).endsWith('teacher/load.ts'))
+      .map((row) => String(row.attributes.to))
+      .sort();
+    expect(targets).toEqual([
+      'src/lib/actkg-projection.fixture.ts',
+      'src/lib/pid-evidence-runtime-manifest.generated.ts',
+      'src/lib/route.test.ts',
+    ]);
+  });
+
   it('ignores import-like strings and records side-effect imports', () => {
     const snapshot = fixture([
       file('src/features/teacher/strings.ts', 'export const example = "from \\"./public\\"";\n'),

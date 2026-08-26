@@ -14,9 +14,12 @@ function normalize(path: string): string {
   return path.replaceAll('\\', '/');
 }
 
+const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx?)$/iu;
+
 function candidates(resolved: string): string[] {
-  if (/\.[a-z]+$/iu.test(resolved)) return [resolved];
+  if (SOURCE_EXTENSION.test(resolved)) return [resolved];
   return [
+    resolved,
     `${resolved}.ts`,
     `${resolved}.tsx`,
     `${resolved}.js`,
