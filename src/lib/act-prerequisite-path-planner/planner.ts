@@ -449,6 +449,13 @@ export function applyLearningPathConsumerActivation(
   activationMode: ConsumerProductionSelection['mode'];
   reasons: string[];
 } {
+  if (!options.activationSelection && typeof options.repoRoot !== 'string') {
+    return {
+      projection,
+      activationMode: 'absent',
+      reasons: [],
+    };
+  }
   const selection =
     options.activationSelection
     ?? resolveLearningPathProductionSelection({ repoRoot: options.repoRoot });

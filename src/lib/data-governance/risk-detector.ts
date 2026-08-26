@@ -8,6 +8,7 @@ import type { LearningFact } from '@prisma/client';
 // portrait-v2-legacy-compatibility-adapter: old six-dimension input is non-authoritative.
 import type { CompetencyVector } from './competency-model';
 import { calculateOverallScore } from './competency-model';
+import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
 import type { PortraitV2PayloadShape } from './portrait-v2-model';
 
 export type RiskType =
@@ -43,6 +44,7 @@ export interface CumulativeRiskFact {
   startedAt: Date;
   outcome: string;
   competencyContribution: unknown;
+  contextJson?: unknown;
 }
 
 export interface CumulativePortraitRiskDetectionContext {
@@ -286,7 +288,8 @@ function latestPortraitEvidenceAt(payload: PortraitV2PayloadShape): string | und
 
 function factsWithProfileContribution(facts: CumulativeRiskFact[]): CumulativeRiskFact[] {
   return facts.filter((fact) =>
-    Object.values(asRecord(fact.competencyContribution))
+    isLearningFactEligibleForPersonalization(fact.contextJson)
+    && Object.values(asRecord(fact.competencyContribution))
       .some((value) => typeof value === 'number' && Number.isFinite(value) && value !== 0));
 }
 

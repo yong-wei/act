@@ -18,7 +18,7 @@ import {
 } from '@/lib/knowledge-graph-source';
 import { assertRuntimeKnowledgeRelationCoverage } from '@/lib/knowledge-graph-relation-runtime';
 
-describe.runIf(process.env.KNOWLEDGE_DB_FALLBACK_PROBE === '1')('production DB fallback ownership boundary', () => {
+describe('production DB fallback ownership real smoke', () => {
   it('uses only canonical runtime-owned relations across loader and real routes', async () => {
     resetKnowledgeGraphSourceCacheForTests();
     const auditScaffold = process.env.KNOWLEDGE_DB_FALLBACK_AUDIT_SCAFFOLD === '1';
@@ -107,36 +107,33 @@ describe.runIf(process.env.KNOWLEDGE_DB_FALLBACK_PROBE === '1')('production DB f
     expect(JSON.stringify(nodesBody)).not.toMatch(/external-a|external-b|metadata|content|resources/);
   });
 
-  it.runIf(process.env.KNOWLEDGE_DB_CONCURRENCY_PROBE === '1')(
-    'keeps payload and digest on one repeatable-read snapshot during a concurrent same-count update',
-    async () => {
-      const before = await loadKnowledgeGraphFromDatabase();
-      const during = await loadKnowledgeGraphFromDatabase({
-        afterNodesRead: async () => {
-          const writer = new Client({ connectionString: process.env.DATABASE_URL });
-          await writer.connect();
-          try {
-            await writer.query('BEGIN');
-            await writer.query(`UPDATE "KnowledgeNode" SET "name" = 'Node A concurrent' WHERE "id" = 'node-a'`);
-            await writer.query(`UPDATE "KnowledgeLink" SET "relation" = 'enables' WHERE "id" = 'relation-supports'`);
-            await writer.query('COMMIT');
-          } catch (error) {
-            await writer.query('ROLLBACK').catch(() => {});
-            throw error;
-          } finally {
-            await writer.end();
-          }
-        },
-      });
-      const after = await loadKnowledgeGraphFromDatabase();
+  it('keeps payload and digest on one repeatable-read snapshot during a concurrent same-count update', async () => {
+    const before = await loadKnowledgeGraphFromDatabase();
+    const during = await loadKnowledgeGraphFromDatabase({
+      afterNodesRead: async () => {
+        const writer = new Client({ connectionString: process.env.DATABASE_URL });
+        await writer.connect();
+        try {
+          await writer.query('BEGIN');
+          await writer.query(`UPDATE "KnowledgeNode" SET "name" = 'Node A concurrent' WHERE "id" = 'node-a'`);
+          await writer.query(`UPDATE "KnowledgeLink" SET "relation" = 'enables' WHERE "id" = 'relation-supports'`);
+          await writer.query('COMMIT');
+        } catch (error) {
+          await writer.query('ROLLBACK').catch(() => {});
+          throw error;
+        } finally {
+          await writer.end();
+        }
+      },
+    });
+    const after = await loadKnowledgeGraphFromDatabase();
 
-      expect(during).toEqual(before);
-      expect(after.versionLinkCount).toBe(before.versionLinkCount);
-      expect(after.versionDigest).not.toBe(before.versionDigest);
-      expect(after.nodes.find((node) => node.id === 'node-a')?.name).toBe('Node A concurrent');
-      expect(after.inspectionLinks?.find((link) => link.id === 'relation-supports')?.relation).toBe('enables');
-      expect(buildKnowledgeGraphRemainingPayload(after).graphVersion)
-        .not.toBe(buildKnowledgeGraphRemainingPayload(before).graphVersion);
-    },
-  );
+    expect(during).toEqual(before);
+    expect(after.versionLinkCount).toBe(before.versionLinkCount);
+    expect(after.versionDigest).not.toBe(before.versionDigest);
+    expect(after.nodes.find((node) => node.id === 'node-a')?.name).toBe('Node A concurrent');
+    expect(after.inspectionLinks?.find((link) => link.id === 'relation-supports')?.relation).toBe('enables');
+    expect(buildKnowledgeGraphRemainingPayload(after).graphVersion)
+      .not.toBe(buildKnowledgeGraphRemainingPayload(before).graphVersion);
+  });
 });

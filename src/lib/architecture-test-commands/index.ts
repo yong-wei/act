@@ -30,6 +30,19 @@ export {
 export { parseReleaseManifest, RELEASE_SCHEMA_REGISTRY, validateReleaseManifest } from './release';
 export { parseUnhandledSidecar, parseVitestJson } from './results';
 export {
+  assertFailureClosureReceipt,
+  assertFailureDisposition,
+  createFailureClosureReceipt,
+  createFailureDisposition,
+  FAILURE_CLOSURE_RECEIPT_SCHEMA_VERSION,
+  FAILURE_DISPOSITIONS,
+  FAILURE_DISPOSITION_SCHEMA_VERSION,
+  FORBIDDEN_FAILURE_DISPOSITIONS,
+  validateClosureReceipt,
+  validateFailureClosureReceipt,
+  validateFailureDisposition,
+} from './disposition';
+export {
   projectCiMappingDoc,
   projectCommandContractsDoc,
   projectHandoffDoc,
@@ -52,3 +65,17 @@ export type {
   TestMeasurementReceipt,
 } from './types';
 export type { VitestExecutionSummary } from './results';
+export type {
+  ExternalBlockerEvidence,
+  FailureClass,
+  FailureClosureProof,
+  FailureClosureReceipt,
+  FailureCommandResult,
+  FailureDisposition,
+  FailureDispositionRecord,
+  FailureDispositionStatus,
+  FailureDispositionValidationFailure,
+  FailureEvidence,
+  ForbiddenFailureDisposition,
+  ReleaseInputEvidence,
+} from './disposition';

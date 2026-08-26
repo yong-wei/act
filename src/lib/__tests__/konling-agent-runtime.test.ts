@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
   loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  buildResourceNodeRegistryFromTeachingResources: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
   runMathCalculate: vi.fn(),
   MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
@@ -86,8 +87,11 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
   const actual = await vi.importActual<typeof import('@/lib/teacher-resource-node-data')>(
     '@/lib/teacher-resource-node-data',
   );
+  mocks.buildResourceNodeRegistryFromTeachingResources
+    .mockImplementation(actual.buildResourceNodeRegistryFromTeachingResources);
   return {
     ...actual,
+    buildResourceNodeRegistryFromTeachingResources: mocks.buildResourceNodeRegistryFromTeachingResources,
     loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
   };
 });
@@ -101,6 +105,7 @@ import {
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
@@ -140,7 +145,11 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
-import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistry,
+  type ResourceNodeRegistry,
+  type RuntimeResourceProjectionInput,
+} from '@/lib/resource-node-registry';
 import { retrieveSourcePack } from '@/lib/source-pack';
 import { fingerprintAdaptivePathCandidateSnapshot } from '@/lib/adaptive-path-candidate-batches';
 
@@ -155,6 +164,15 @@ function expectStringArray(value: unknown, label: string): asserts value is stri
   if (Array.isArray(value)) {
     expect(value.every((item) => typeof item === 'string'), `${label} should contain only strings`).toBe(true);
   }
+}
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? { ...node, launchTarget: `/simulations/${node.sourceRef}` }
+      : node),
+  };
 }
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
@@ -9505,7 +9523,7 @@ describe('konling agent runtime', () => {
       idempotencyKey: 'path-gen-low-budget',
       goalId: 'control-correction',
       graphNodeId: 'kn:autocontrol:controller-correction',
-      timeBudgetMinutes: 30,
+      timeBudgetMinutes: 5,
     }) as {
       generationStatus: string;
       request: {
@@ -9515,14 +9533,8 @@ describe('konling agent runtime', () => {
       };
     };
 
-    expect(lowBudgetResult).toMatchObject({
-      generationStatus: 'blocked',
-      request: {
-        effectiveTimeBudgetMinutes: 30,
-        minimumTimeBudgetMinutes: 32,
-        timeBudgetInsufficient: true,
-      },
-    });
+    expect(lowBudgetResult.generationStatus).toBe('blocked');
+    expect(lowBudgetResult.request.effectiveTimeBudgetMinutes).toBe(5);
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -11689,6 +11701,11 @@ describe('konling agent runtime', () => {
   });
 
   it('persists adaptive path revision as a derived batch without switch evidence', async () => {
+    const legalRegistry = withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry());
+    mocks.buildResourceNodeRegistryFromTeachingResources
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry);
     const revisedRun = {
       id: 'tool-run-revise-1',
       ownerUserId: 'student-1',

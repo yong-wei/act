@@ -225,14 +225,15 @@ function buildLessonRuntimeLegacyProjection(input: {
   lessonRuntime: RuntimeLessonEntryBundle;
   scope: LayeredGraphScope;
 }): NonNullable<CourseLayeredGraphConsumerInput['legacyProjection']> {
+  const overlay = input.lessonRuntime.graphOverlay;
   const lessonId =
-    input.lessonRuntime.graphOverlay.lesson_id
-    || input.lessonRuntime.lesson.lesson_id
+    overlay?.lesson_id
+    || input.lessonRuntime.lesson?.lesson_id
     || input.scope.lessonKey
     || 'lesson';
   const projectionId = `legacy-runtime-graph-overlay:${lessonId}`;
   const coreNodes: TeachingCoreNodeRuntime[] =
-    input.lessonRuntime.graphOverlay.nodes.map((node) => ({
+    (overlay?.nodes ?? []).map((node) => ({
       canonicalId: node.id,
       pathEligible: true,
       cardPolicy: 'optional' as const,

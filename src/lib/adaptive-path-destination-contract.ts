@@ -187,7 +187,8 @@ function hasIntegratedJourneyDestination(
     return pathname.startsWith('/interactive-learning/courses/');
   }
   if (['lesson_step', 'video', 'audio', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
-    return pathname.startsWith('/interactive-learning/resources/');
+    return pathname.startsWith('/interactive-learning/resources/')
+      || (resourceType === 'quiz' && pathname === '/assessment/adaptive-practice');
   }
   if (['adaptive_quiz', 'checkpoint', 'reflection', 'konling', 'ai_intervention', 'intervention'].includes(resourceType)) {
     return pathname === '/assessment/adaptive-practice';

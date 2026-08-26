@@ -67,7 +67,7 @@ describe('Konling conversation library UI contracts', () => {
     expect(sidebarSource).toContain('conversationId: activeConversationId ?? undefined');
     expect(sidebarSource).toContain('{ ...chatBody, conversationId: conversation.id }');
     expect(sidebarSource).toContain('agentSessionId: agentSessionId ?? undefined');
-    expect(sidebarSource).toContain('modeClientContextHints: activeAssistantBinding?.modeClientContextHints');
+    expect(sidebarSource).toContain('modeClientContextHints: sendAssistantBinding?.modeClientContextHints');
     expect(sidebarSource).toContain('refreshActiveConversation(),');
     expect(legacyChatSource).toContain('{ body: { ...bodyRef.current, ...requestBody } }');
   });
@@ -114,7 +114,7 @@ describe('Konling conversation library UI contracts', () => {
         modeClientContextHints: { graphNodeId: 'node-1' },
       });
       expect(readKonlingConversationAssistantBinding('ordinary')).toBeNull();
-      expect(sidebarSource).toContain('teachingAssistantModeId: activeAssistantBinding?.teachingAssistantModeId');
+      expect(sidebarSource).toContain('teachingAssistantModeId: sendAssistantBinding?.teachingAssistantModeId');
       expect(sidebarSource).not.toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
     } finally {
       Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });

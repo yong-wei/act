@@ -505,9 +505,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
       ? { ...payload, score }
       : payload;
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
-  const suppressCompetencyContribution =
-    !authorizedCompetencyContributionEvents.has(event) ||
-    readRecord(evidenceGovernance)?.skipProfileContribution === true;
+  const suppressCompetencyContribution = !authorizedCompetencyContributionEvents.has(event);
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),

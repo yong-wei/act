@@ -3,16 +3,24 @@
 Observation counts are revision-bound. Read `docs/testing/baseline/discovery-core.json` for the current denominator.
 
 - schemaVersion: `act-test-command-contracts/v1`
-- sourceCommit: `1f265fc97f7d3aa13a23009fe52a68d40e39917f`
-- sourceTree: `4b9e41513f7fd719dd6ee38f66ed2222dadfad2a`
+- sourceCommit: `49117482cdda904ac0fde0ba33c93c82fe45d48d`
+- sourceTree: `2614e8ae6eb6c84f08f156d8f90f69c5a105a4f3`
 - baseline census: `40549dcad9b03da31abc6ef05c5ede5bff4e04b47268f86450831aa39788c52a`
 - charter: `76850de671d65e821dd2acebe070ab23d6a3f26a3a7d9f9527e32af75c957396`
-- discovered: 1229
-- classified: 1226
+- discovered: 1233
+- classified: 1230
 - excluded: 3
 - unresolved: 0
+- discoveryCoreHash: `5531b98699f0dafb75aae48ad49ad6216a3bebf99de43e3f1a011c76e0dc4137`
+- `test:unit` receipt: `5ac6378629e30a988645f601727f19b74c5cf4b7bb8384aefa3e14ceb96e56f1`
+- `npm test` receipt: `7533baefc0ad4729d7a682a1ea8b20dfd7d505d58b92caeb10ebc83e217812c3`
 
-Current red executions are not accepted failures. They remain blockers for `eliminate-accepted-red-test-baseline`.
+The denominator above is the current discovery output for the clean `HEAD`
+identity. Execution fingerprints are in
+`docs/testing/baseline/failure-inventory.json`.
+
+`test:unit` and `npm test` have zero accepted failures on this revision.
+`test:release` remains fail-closed without `qualification-manifest`.
 
 ## `test`
 
@@ -81,6 +89,11 @@ Current red executions are not accepted failures. They remain blockers for `elim
 - retained components:
   - `test:commercial-ui-governance` (platform: release-evidence-validator)
 
+Missing `qualification-manifest` is a fail-closed
+`release-manifest-missing:qualification-manifest` result. The contract is
+covered by `test-command-contracts.test.ts`; no default product command reads
+this evidence.
+
 ## `test:nightly`
 
 - command id: `test:nightly`
@@ -104,3 +117,7 @@ Exclude:
 - fixtures
 - artifacts-evidence
 - agent-skill-tests
+
+Environment-sensitive capture tests use `*.real-smoke.test.*`. Vitest excludes
+that suffix from `test:unit`, while discovery classifies it as `nightly` so the
+coverage remains explicit rather than silently skipped.

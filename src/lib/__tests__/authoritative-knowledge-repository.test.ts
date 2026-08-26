@@ -279,7 +279,9 @@ describe('AuthoritativeKnowledgeRepository', () => {
 
   it('never queries candidate tables for active or legacy selectors', async () => {
     const { database, transaction } = mockDatabase(fixture());
-    const repository = new AuthoritativeKnowledgeRepository(database);
+    const repository = new AuthoritativeKnowledgeRepository(database, {
+      authorityRoot: path.join(process.cwd(), '.tmp-missing-authority-store'),
+    });
 
     await expect(repository.read({ authorityState: 'active' })).resolves.toMatchObject({
       status: 'unavailable',
@@ -1635,7 +1637,9 @@ describe('AuthoritativeKnowledgeRepository standard public Bundle candidates', (
 
   it('rejects active and legacy selectors without reading standard candidate rows', async () => {
     const { database, transaction } = mockDatabase(standardFixture());
-    const repository = new AuthoritativeKnowledgeRepository(database);
+    const repository = new AuthoritativeKnowledgeRepository(database, {
+      authorityRoot: path.join(process.cwd(), '.tmp-missing-authority-store'),
+    });
     await expect(repository.read({ authorityState: 'active' })).resolves.toMatchObject({
       status: 'unavailable',
       reason: 'active-pointer-unavailable',

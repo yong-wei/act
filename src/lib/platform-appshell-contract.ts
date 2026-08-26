@@ -130,6 +130,7 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER = [
   '竞技场',
   '虚拟仿真',
   '控制工作台',
+  '提示词复盘',
   '个人中心',
 ] as const;
 
@@ -141,6 +142,7 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS = [
   '/arena',
   '/simulations',
   '/interactive-learning/control-workbench',
+  '/evaluation/prompt-assessment',
   '/profile',
 ] as const;
 
@@ -181,6 +183,12 @@ export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX = [
     href: '/interactive-learning/control-workbench',
     label: '控制工作台',
     localCommandZone: 'control-workbench-context-strip',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/evaluation/prompt-assessment',
+    label: '提示词复盘',
+    localCommandZone: 'prompt-assessment-local-toolbar',
     requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
   },
   {
@@ -657,6 +665,15 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     reason: 'Review pages are isolated visual QA surfaces and must not inherit the product shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'Review surfaces move to a report-ledger workspace or are retired after QA capture.',
+  },
+  {
+    routePattern: '/evidence/issue-979',
+    category: 'visual-review-surface',
+    type: 'visual-review-only',
+    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    reason: 'Issue 979 media exclusivity evidence is a non-production visual capture surface.',
+    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+    removalCondition: 'The evidence route is retired after QA capture or moved under /review.',
   },
   {
     routePattern: '/interactive-learning/lessons/*/handout-print',

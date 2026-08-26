@@ -266,39 +266,53 @@ function scopedSimulationArenaFact(
   overrides: Record<string, unknown> = {},
 ) {
   const id = typeof overrides.id === 'string' ? overrides.id : `sim-fact-${userId}`;
+  const overrideContext = overrides.contextJson && typeof overrides.contextJson === 'object' && !Array.isArray(overrides.contextJson)
+    ? overrides.contextJson as Record<string, unknown>
+    : {};
+  const overrideGovernance = overrideContext.evidenceGovernance && typeof overrideContext.evidenceGovernance === 'object'
+    && !Array.isArray(overrideContext.evidenceGovernance)
+    ? overrideContext.evidenceGovernance as Record<string, unknown>
+    : {};
+  const { contextJson: _ignoredContextJson, ...rest } = overrides;
   return {
     id,
     userId,
-    factType: overrides.factType ?? 'simulation',
-    moduleId: overrides.moduleId ?? 'unit-5-2-nonlinear-analysis-entry',
-    sessionId: overrides.sessionId ?? 'session-current',
-    startedAt: overrides.startedAt ?? new Date('2026-05-20T08:00:00.000Z'),
-    finishedAt: overrides.finishedAt ?? new Date('2026-05-20T08:10:00.000Z'),
-    outcome: overrides.outcome ?? 'partial',
-    score: overrides.score ?? 62,
-    timeSpent: overrides.timeSpent ?? 600,
-    competencyContribution: overrides.competencyContribution ?? {},
-    sourceEventId: overrides.sourceEventId ?? `${id}:event`,
-    sourceLogId: overrides.sourceLogId ?? `${id}:log`,
-    courseId: overrides.courseId ?? 'course-1',
-    lessonId: overrides.lessonId ?? 'unit-5-2-nonlinear-analysis-entry',
-    contextJson: overrides.contextJson ?? {
-      arena: {
-        classId: 'class-1',
-        taskId: 'task-cruise-roll',
-        official: true,
-        valid: false,
-        traceReference: `ArenaEvaluationRun:${id}`,
-        replayConfidence: 0.86,
-        satisfaction: {
-          trackingError: 0.42,
+    factType: rest.factType ?? 'simulation',
+    moduleId: rest.moduleId ?? 'unit-5-2-nonlinear-analysis-entry',
+    sessionId: rest.sessionId ?? 'session-current',
+    startedAt: rest.startedAt ?? new Date('2026-05-20T08:00:00.000Z'),
+    finishedAt: rest.finishedAt ?? new Date('2026-05-20T08:10:00.000Z'),
+    outcome: rest.outcome ?? 'partial',
+    score: rest.score ?? 62,
+    timeSpent: rest.timeSpent ?? 600,
+    competencyContribution: rest.competencyContribution ?? {},
+    sourceEventId: rest.sourceEventId ?? `${id}:event`,
+    sourceLogId: rest.sourceLogId ?? `${id}:log`,
+    courseId: rest.courseId ?? 'course-1',
+    lessonId: rest.lessonId ?? 'unit-5-2-nonlinear-analysis-entry',
+    contextJson: {
+      ...(Object.keys(overrideContext).length > 0 ? {} : {
+        arena: {
+          classId: 'class-1',
+          taskId: 'task-cruise-roll',
+          official: true,
+          valid: false,
+          traceReference: `ArenaEvaluationRun:${id}`,
+          replayConfidence: 0.86,
+          satisfaction: {
+            trackingError: 0.42,
+          },
         },
-      },
+      }),
+      ...overrideContext,
       evidenceGovernance: {
+        profileWeight: 1,
+        skipProfileContribution: false,
         policyReason: 'official_arena_evaluation',
+        ...overrideGovernance,
       },
     },
-    createdAt: overrides.createdAt ?? new Date('2026-05-20T08:10:00.000Z'),
+    createdAt: rest.createdAt ?? new Date('2026-05-20T08:10:00.000Z'),
   };
 }
 
