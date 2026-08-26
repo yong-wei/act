@@ -129,6 +129,21 @@ describe('failure disposition contracts', () => {
     expect(failures.some((item) => item.code === 'failure-disposition-workaround')).toBe(true);
   });
 
+  it('rejects a closed passing receipt that still carries failures, unhandled errors, or unregistered skips', () => {
+    const withAssertions = validateFailureDisposition(disposition({
+      afterCommandResult: commandResult({ assertionFailures: 1 }),
+    }));
+    const withUnhandled = validateFailureDisposition(disposition({
+      afterCommandResult: commandResult({ unhandledErrors: 1 }),
+    }));
+    const withSkips = validateFailureDisposition(disposition({
+      afterCommandResult: commandResult({ unregisteredSkips: 1 }),
+    }));
+    expect(withAssertions.some((item) => item.code === 'failure-closure-passed-with-assertions')).toBe(true);
+    expect(withUnhandled.some((item) => item.code === 'failure-closure-passed-with-unhandled')).toBe(true);
+    expect(withSkips.some((item) => item.code === 'failure-closure-passed-with-skips')).toBe(true);
+  });
+
   it('rejects an unknown failure class', () => {
     const failures = validateFailureDisposition(disposition({ failureClass: 'historical-debt' }));
     expect(failures.some((item) => item.code === 'failure-disposition-failure-class')).toBe(true);

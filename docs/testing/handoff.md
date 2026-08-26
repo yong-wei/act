@@ -38,6 +38,9 @@ counts describe only this command and revision.
 - `test:unit` and `npm test` wrappers passed on this clean HEAD.
 - `test:release` failed closed with `release-manifest-missing`. That is a
   release blocker, not a product-test skip.
+- `*.real-smoke.test.ts` files are classified nightly. `test:nightly` still
+  fail-closes as `nightly-execution-not-run`; executing those files is a
+  follow-up for `enforce-pr-integration-quality-gates`, not a product-test skip.
 - No production selector, destination contract, or release activation was
   changed.
 

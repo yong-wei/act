@@ -313,6 +313,34 @@ function validateCommandResult(
   if (input.fingerprints !== undefined && !isStringArray(input.fingerprints)) {
     failures.push(failure('failure-closure-fingerprints', 'afterCommandResult.fingerprints'));
   }
+  if (input.assertionFailures !== undefined && (!Number.isInteger(input.assertionFailures) || (input.assertionFailures as number) < 0)) {
+    failures.push(failure('failure-closure-assertion-failures', 'afterCommandResult.assertionFailures'));
+  }
+  if (input.unhandledErrors !== undefined && (!Number.isInteger(input.unhandledErrors) || (input.unhandledErrors as number) < 0)) {
+    failures.push(failure('failure-closure-unhandled-errors', 'afterCommandResult.unhandledErrors'));
+  }
+  if (input.unregisteredSkips !== undefined && !(
+    (Number.isInteger(input.unregisteredSkips) && (input.unregisteredSkips as number) >= 0)
+    || isStringArray(input.unregisteredSkips)
+  )) {
+    failures.push(failure('failure-closure-unregistered-skips', 'afterCommandResult.unregisteredSkips'));
+  }
+  if (input.result !== 'passed') return;
+  if ((input.assertionFailures as number | undefined) !== undefined && (input.assertionFailures as number) > 0) {
+    failures.push(failure('failure-closure-passed-with-assertions', 'afterCommandResult.assertionFailures'));
+  }
+  if ((input.unhandledErrors as number | undefined) !== undefined && (input.unhandledErrors as number) > 0) {
+    failures.push(failure('failure-closure-passed-with-unhandled', 'afterCommandResult.unhandledErrors'));
+  }
+  if (skipCount(input.unregisteredSkips) > 0) {
+    failures.push(failure('failure-closure-passed-with-skips', 'afterCommandResult.unregisteredSkips'));
+  }
+}
+
+function skipCount(value: unknown): number {
+  if (typeof value === 'number') return value;
+  if (isStringArray(value)) return value.length;
+  return 0;
 }
 
 function expectedProofKind(disposition: unknown): FailureClosureProof['kind'] | null {
