@@ -4147,7 +4147,12 @@ function toRepairCandidate(
 ): PathConstraintRepairCandidate {
   const planningUnit = requirePlanningUnit(entry.node);
   const readiness = evaluateNodeReadiness(entry.node, learnerState, constraints, completedNodeIds);
-  const officialTerminalValidation = isTerminalValidationNode(entry.node);
+  const officialTerminalValidation = officialTerminalValidationReachable(
+    entry.node,
+    learnerState,
+    constraints,
+    completedNodeIds,
+  );
   const previewTerminalValidation = !officialTerminalValidation &&
     entry.node.planningMetadata.terminalConstraints.includes('terminal-validation');
   const completed = completedNodeIds.includes(entry.node.id);
@@ -4744,6 +4749,20 @@ function requiresTerminalValidation(goal: AdaptiveLearningPathGoal): boolean {
 function isTerminalValidationNode(node: ResourceNode): boolean {
   return (node.type === 'simulation' || node.type === 'arena_task') &&
     node.planningMetadata.terminalConstraints.includes('terminal-validation');
+}
+
+function officialTerminalValidationReachable(
+  node: ResourceNode,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  constraints: AdaptiveLearningPathConstraints,
+  completedNodeIds: string[],
+): boolean {
+  if (!isTerminalValidationNode(node)) return false;
+  const readiness = evaluateNodeReadiness(node, learnerState, constraints, completedNodeIds);
+  const pathCanCloseRemainingGates =
+    readiness.missingCompletedNodeIds.length > 0 || readiness.missingOutcomeRefs.length > 0;
+  if (pathCanCloseRemainingGates) return true;
+  return readiness.missingCompetencies.length === 0 && readiness.missingEvidenceCount === 0;
 }
 
 function endsWithTerminalValidationNode(entries: ScoredNode[]): boolean {
