@@ -347,6 +347,7 @@ export interface AdaptiveLearningPathLearnerState {
   primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
+    confidence?: 'none' | 'low' | 'medium';
   };
   evidence?: {
     evidenceWindow?: StudentEvidenceWindow;
@@ -386,6 +387,7 @@ export interface AdaptiveLearningPathLearnerStateSnapshot {
   };
   missingEvidence: string[];
   preferredModalities: string[];
+  preferredModalityConfidence: 'none' | 'low' | 'medium';
 }
 
 export function buildAdaptiveLearningPathLearnerStateSnapshot(
@@ -424,7 +426,15 @@ export function buildAdaptiveLearningPathLearnerStateSnapshot(
     },
     missingEvidence: [...(learnerState.missingEvidence ?? [])],
     preferredModalities: [...(learnerState.resourcePreference?.preferredModalities ?? [])],
+    preferredModalityConfidence: learnerState.resourcePreference?.confidence
+      ?? preferredModalityConfidenceFromCount(learnerState.resourcePreference?.preferredModalities?.length ?? 0),
   };
+}
+
+function preferredModalityConfidenceFromCount(count: number): 'none' | 'low' | 'medium' {
+  if (count >= 5) return 'medium';
+  if (count > 0) return 'low';
+  return 'none';
 }
 
 export function hasTrustedPortraitForPersonalization(
@@ -5485,6 +5495,8 @@ function isTrustedPersonalizationSnapshot(
     snapshot
       && snapshot.confidence.level !== 'none'
       && snapshot.confidence.level !== 'low'
+      && snapshot.preferredModalityConfidence !== 'none'
+      && snapshot.preferredModalityConfidence !== 'low'
       && snapshot.freshness !== 'stale'
   );
 }
