@@ -53,7 +53,7 @@ function main(): void {
   const receiptIds = receipts.map((item) => item.receiptId).sort();
   const projections = projectAll(core, censusCoreHash, receiptIds);
   for (const [name, content] of Object.entries(projections)) {
-    writeFileSync(join(outDir, name), content);
+    writeFileSync(join(outDir, name), content.replace(/\n+$/u, '\n'));
   }
 
   const written = [

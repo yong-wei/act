@@ -112,8 +112,7 @@ export function projectDependency(core: CensusCore): string {
         deep.slice(0, 200).map((item) => [item.identity, String(item.attributes.from), String(item.attributes.to)]),
       ),
     deep.length > 200 ? `\n_Truncated to 200 of ${deep.length} deep-import observations. Complete set is in census-core.json._\n` : '',
-    '',
-  ].join('\n');
+  ].join('\n').replace(/\n+$/u, '\n');
 }
 
 export function projectCycles(core: CensusCore): string {

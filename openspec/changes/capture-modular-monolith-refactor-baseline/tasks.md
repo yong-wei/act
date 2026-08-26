@@ -30,8 +30,8 @@
 
 ## 5. Capture and publish the baseline
 
-- [ ] 5.1 Create a clean implementation checkpoint containing the census schema, generator, tests, and documentation of its command contract before generating committed evidence.
-- [ ] 5.2 Run the census from that exact clean checkpoint, capture each declared environment-sensitive command once as an immutable receipt, inspect every unresolved or excluded record, and generate the normalized machine-readable baseline plus human-readable summary and ownership, dependency, cycle, gate, compatibility, and metric projections from the frozen input set.
-- [ ] 5.3 Verify entrypoint, Prisma, event, worker, script, test, registry, OpenSpec, dependency-edge, reverse-edge, deep-import, SCC, compatibility, gate, and change-center denominators reconcile and that the census core and same-input projections regenerate byte-identically.
-- [ ] 5.4 Confirm committed artifacts contain only repository-relative, privacy-minimized evidence and record the source commit/tree, frozen receipt identities, environment-sensitive limitations, commands, exit results, and current unresolved totals.
-- [ ] 5.5 Document that the baseline does not activate architecture rules or modify product, test selection, TypeScript, CI, database, runtime, OSS, GitHub, or production state, and hand its exact identity to the dependent modular-monolith charter change.
+- [x] 5.1 Create a clean implementation checkpoint containing the census schema, generator, tests, and documentation of its command contract before generating committed evidence.
+- [x] 5.2 Run the census from that exact clean checkpoint, capture each declared environment-sensitive command once as an immutable receipt, inspect every unresolved or excluded record, and generate the normalized machine-readable baseline plus human-readable summary and ownership, dependency, cycle, gate, compatibility, and metric projections from the frozen input set.
+- [x] 5.3 Verify entrypoint, Prisma, event, worker, script, test, registry, OpenSpec, dependency-edge, reverse-edge, deep-import, SCC, compatibility, gate, and change-center denominators reconcile and that the census core and same-input projections regenerate byte-identically.
+- [x] 5.4 Confirm committed artifacts contain only repository-relative, privacy-minimized evidence and record the source commit/tree, frozen receipt identities, environment-sensitive limitations, commands, exit results, and current unresolved totals.
+- [x] 5.5 Document that the baseline does not activate architecture rules or modify product, test selection, TypeScript, CI, database, runtime, OSS, GitHub, or production state, and hand its exact identity to the dependent modular-monolith charter change.
