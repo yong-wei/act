@@ -1409,6 +1409,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     recommendationProvenance: path.recommendationProvenance,
+    decisionEvidence: path.decisionEvidence,
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
     overlap: path.overlap,

@@ -30,6 +30,12 @@ import {
   type PathConstraintRepairResult,
 } from './adaptive-planning/path-constraint-repair';
 import {
+  buildPersonalizedPathDecisionEvidence,
+  listPersonalizedPathDegradationReasons,
+  type PersonalizedPathDecisionEvidence,
+  type PersonalizedPathDecisionPathEvidence,
+} from './adaptive-path-decision-evidence';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -777,7 +783,9 @@ export interface AdaptiveLearningPathPolicyBundle {
     };
     checkpointNodeIds: string[];
     limitations: string[];
+    decisionEvidence?: PersonalizedPathDecisionPathEvidence;
   }>;
+  decisionEvidence?: PersonalizedPathDecisionEvidence;
   diversity: {
     maxResourceOverlap: number;
     minModalityDistance: number;
@@ -2336,7 +2344,7 @@ function buildAdaptiveLearningPathPlanInternal(
     policyBundle: includePolicyBundle ? buildPolicyBundle({
       ...input,
       policyBundle: policyBundleRequest,
-    }, policyFamily) : undefined,
+    }, policyFamily, now) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -4889,6 +4897,7 @@ function differentiablePolicyModalityMix(
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
   primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
+  capturedAt: string,
 ): AdaptiveLearningPathPolicyBundle | undefined {
   const requestedFamilies = input.policyBundle?.families;
   if (!requestedFamilies || requestedFamilies.length === 0) {
@@ -5113,12 +5122,32 @@ function buildPolicyBundle(
       ? 'policy-paths-identical'
       : null,
   ].filter((item): item is string => Boolean(item)));
+  const decisionEvidence = buildPersonalizedPathDecisionEvidence({
+    capturedAt,
+    plannerVersion: 'adaptive-learning-path-planner.v1',
+    learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState),
+    deficits: inferDeficits(input.goal, input.learnerState),
+    paths: paths.map((path, index) => ({
+      optionId: `path-option-${index + 1}`,
+      styleId: path.styleId,
+      policyFamily: path.policyFamily,
+      nodeIds: path.nodeIds,
+      planNodes: path.planNodes,
+      resourceMix: path.resourceMix,
+      recommendationProvenance: path.recommendationProvenance,
+    })),
+  });
+  const pathsWithDecisionEvidence = paths.map((path, index) => ({
+    ...path,
+    decisionEvidence: decisionEvidence.paths[index],
+  }));
 
   return {
     families,
     overlapThreshold,
     status: fallbackReasons.length > 0 ? 'low-resource-fallback' : 'ready',
-    paths,
+    paths: pathsWithDecisionEvidence,
+    decisionEvidence,
     diversity: {
       maxResourceOverlap,
       minModalityDistance,
@@ -5442,15 +5471,19 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   confidence: AdaptiveLearningPathPlan['confidence']['level'];
   learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
 }): AdaptiveLearningPathRecommendationProvenance {
+  const snapshotDegraded = Boolean(input.learnerStateSnapshot)
+    && listPersonalizedPathDegradationReasons(input.learnerStateSnapshot).length > 0;
   const entries = input.deficits.slice(0, 3).map((deficit) => {
-    const confidence = recommendationEntryConfidence(deficit);
+    const confidence = snapshotDegraded ? 'low' : recommendationEntryConfidence(deficit);
     const affectedNodes = confidence === 'low'
       ? []
       : input.path.filter((node) => nodeMatchesRecommendationTarget(node, deficit));
     const targetLabel = recommendationTargetLabel(deficit.targetId);
-    const evidenceSummary = deficit.evidenceCount > 0
-      ? `${deficit.kind === 'knowledge' ? '掌握状态' : '能力状态'} ${Math.round(deficit.value * 100)}%，来自 ${deficit.evidenceCount} 条有效证据，置信度 ${Math.round(deficit.confidence * 100)}%。`
-      : '当前没有足够的有效学习证据支持个性化判断。';
+    const evidenceSummary = snapshotDegraded
+      ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。'
+      : deficit.evidenceCount > 0
+        ? `${deficit.kind === 'knowledge' ? '掌握状态' : '能力状态'} ${Math.round(deficit.value * 100)}%，来自 ${deficit.evidenceCount} 条有效证据，置信度 ${Math.round(deficit.confidence * 100)}%。`
+        : '当前没有足够的有效学习证据支持个性化判断。';
     const judgment = confidence === 'low'
       ? '暂不能确认该项为稳定薄弱点，本路径主要依据课程结构、先修规则和可用资源安排。'
       : affectedNodes.length > 0
@@ -5474,15 +5507,18 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     entry.confidence !== 'low' && entry.affectedResourceTitles.length === 0
   );
   const hasMissingEventReferences = entries.some((entry) => entry.eventReferences?.length === 0);
-  const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
+  const confidence = snapshotDegraded || input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
     ? 'low'
     : input.confidence;
-  const appliedPreferredModalities = trustedPreferredModalitiesOnPath(
-    input.path,
-    input.learnerStateSnapshot,
-  );
+  const appliedPreferredModalities = snapshotDegraded
+    ? []
+    : trustedPreferredModalitiesOnPath(
+      input.path,
+      input.learnerStateSnapshot,
+    );
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
+    snapshotDegraded ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
@@ -5526,6 +5562,7 @@ function isTrustedPersonalizationSnapshot(
       && snapshot.preferredModalityConfidence !== 'none'
       && snapshot.preferredModalityConfidence !== 'low'
       && snapshot.freshness !== 'stale'
+      && snapshot.freshness !== 'partial'
   );
 }
 

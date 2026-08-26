@@ -1318,7 +1318,8 @@ function StudentEvidenceEventList({
 
 function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
   const provenance = option.recommendationProvenance;
-  if (!option.isGenerated || !provenance) return null;
+  const decisionExplanations = option.decisionEvidence?.explanations ?? [];
+  if (!option.isGenerated || (!provenance && decisionExplanations.length === 0)) return null;
 
   return (
     <section
@@ -1327,16 +1328,30 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold text-foreground">推荐依据</p>
-        <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
-          {recommendationConfidenceLabel(provenance.confidence)}
-        </span>
+        {provenance ? (
+          <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+            {recommendationConfidenceLabel(provenance.confidence)}
+          </span>
+        ) : null}
       </div>
-      <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
-      {provenance.personalizationNotes?.map((note) => (
+      {provenance ? (
+        <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      ) : null}
+      {provenance?.personalizationNotes?.map((note) => (
         <p key={note} className="mt-2 break-words text-xs leading-5 text-subtle">
           {note}
         </p>
       ))}
+      {decisionExplanations.map((explanation) => (
+        <p
+          key={explanation.code + explanation.studentText}
+          className="mt-2 break-words text-xs leading-5 text-subtle"
+          data-path-decision-explanation={explanation.code}
+        >
+          {explanation.studentText}
+        </p>
+      ))}
+      {provenance ? (
       <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
         <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
         <div className="mt-3 grid min-w-0 gap-3">
@@ -1396,6 +1411,7 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
           ) : null}
         </div>
       </details>
+      ) : null}
     </section>
   );
 }
@@ -1847,6 +1863,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
       recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
+      decisionEvidence: getPathDecisionEvidence(option.decisionEvidence),
       summaryFactAvailability: {
         nodeIds: Array.isArray(option.nodeIds),
         resourceMix: hasResourceMix,
@@ -1893,6 +1910,43 @@ function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | nu
         }]
       : [];
   });
+}
+
+function getPathDecisionEvidence(
+  value: unknown,
+): AdaptivePathOptionWriteOption['decisionEvidence'] {
+  const evidence = getRecord(value);
+  const optionId = typeof evidence.optionId === 'string' ? evidence.optionId : '';
+  const styleId = typeof evidence.styleId === 'string' ? evidence.styleId : '';
+  const explanations = (Array.isArray(evidence.explanations) ? evidence.explanations : [])
+    .map(getRecord)
+    .flatMap((explanation) => (
+      typeof explanation.code === 'string' && typeof explanation.studentText === 'string'
+        ? [{ code: explanation.code, studentText: explanation.studentText }]
+        : []
+    ));
+  const impacts = (Array.isArray(evidence.impacts) ? evidence.impacts : [])
+    .map(getRecord)
+    .flatMap((impact) => {
+      const kind = impact.kind;
+      const source = impact.source;
+      if (
+        (kind !== 'added' && kind !== 'removed' && kind !== 'advanced' && kind !== 'resource-type')
+        || (source !== 'profile' && source !== 'rule' && source !== 'constraint' && source !== 'degraded')
+        || typeof impact.reasonCode !== 'string'
+      ) {
+        return [];
+      }
+      return [{
+        kind: kind as 'added' | 'removed' | 'advanced' | 'resource-type',
+        source: source as 'profile' | 'rule' | 'constraint' | 'degraded',
+        reasonCode: impact.reasonCode,
+        nodeId: typeof impact.nodeId === 'string' ? impact.nodeId : undefined,
+        resourceType: typeof impact.resourceType === 'string' ? impact.resourceType : undefined,
+      }];
+    });
+  if (!optionId || !styleId) return undefined;
+  return { optionId, styleId, impacts, explanations };
 }
 
 function getPathRecommendationProvenance(

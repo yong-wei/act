@@ -4,6 +4,7 @@ import {
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearningPathRecommendationProvenance } from './adaptive-learning-path-planner';
+import type { PersonalizedPathDecisionPathEvidence } from './adaptive-path-decision-evidence';
 
 export type AdaptivePathResourceKind =
   | 'interactive_lesson'
@@ -55,6 +56,7 @@ export interface AdaptivePathOptionWriteOption {
   expectedTargetLift?: number;
   limitations: string[];
   recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+  decisionEvidence?: PersonalizedPathDecisionPathEvidence;
 }
 
 export interface AdaptivePathOptionPreviewNode {
@@ -84,6 +86,7 @@ export interface AdaptivePathOptionDisplay {
   expectedAbilityImprovement?: string;
   riskNote: string;
   recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+  decisionEvidence?: PersonalizedPathDecisionPathEvidence;
   diversityLimited?: boolean;
   writeOption?: AdaptivePathOptionWriteOption;
 }
@@ -186,6 +189,7 @@ export function buildAdaptivePathOptionDisplays(
     expectedAbilityImprovement: formatExpectedAbilityImprovement(option.expectedTargetLift),
     riskNote: option.limitations[0] ?? '当前没有明显风险提示。',
     recommendationProvenance: option.recommendationProvenance,
+    decisionEvidence: option.decisionEvidence,
     diversityLimited: context.diversityLimited,
     writeOption: option,
   }));
