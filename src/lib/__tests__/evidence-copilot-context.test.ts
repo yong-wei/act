@@ -139,6 +139,24 @@ describe('evidence copilot context', () => {
     expect(stale.weakTargets).toEqual([]);
     expect(stale.limitations.join(' ')).toContain('过期');
 
+    const staleReadState = projectEvidenceCopilotState(learnerState({
+      evidence: {
+        readState: 'stale',
+        evidenceWindow: { firstStartedAt: null, lastStartedAt: null, daysCovered: 0 },
+        sourceCounts: {},
+        sourceCoverage: { LearningFact: 'available' },
+        confidence: { level: 'medium', score: 0.7, evidenceCount: 4, sourceCompleteness: 0.7 },
+        statusMarkers: [],
+      },
+      knowledgeMastery: {
+        coverage: 'available',
+        tags: { '频域分析': { posteriorMastery: 0.2, confidence: 0.8, evidenceCount: 4, source: 'adaptive-assessment', algorithmVersion: 'v1', lastUpdatedAt: '2026-08-01T00:00:00.000Z' } },
+      },
+    }));
+    expect(staleReadState.status).toBe('stale');
+    expect(staleReadState.weakTargets).toEqual([]);
+    expect(staleReadState.limitations.join(' ')).toContain('过期');
+
     const partial = projectEvidenceCopilotState(learnerState({
       missingEvidence: ['QuizAttempt'],
     }));
