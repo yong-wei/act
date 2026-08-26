@@ -107,6 +107,22 @@ function isTrustedPreference(snapshot: AdaptiveLearningPathLearnerStateSnapshot 
   );
 }
 
+function nodeCoversDeficit(
+  node: AdaptiveLearningPathPlanNode | undefined,
+  deficit: AdaptiveLearningPathDeficit,
+): boolean {
+  if (!node) return false;
+  return deficit.kind === 'knowledge'
+    ? node.knowledgeCoverage.includes(deficit.targetId)
+    : Boolean(node.capabilityTargets?.includes(deficit.targetId));
+}
+
+function degradationStudentText(reason: string): string {
+  if (reason === 'stale-evidence') return '部分学习证据已经过期，暂时不能据此给出个性化判断。';
+  if (reason === 'missing-evidence') return '部分学习证据仍然缺失，暂时不能据此给出个性化判断。';
+  return '目前学习记录不足，暂时无法判断你的资源偏好。';
+}
+
 export function buildPersonalizedPathDecisionSnapshot(input: {
   capturedAt: string;
   plannerVersion: string;
@@ -164,27 +180,27 @@ export function buildPersonalizedPathDecisionEvidence(input: {
   paths: PersonalizedPathDecisionPathInput[];
 }): PersonalizedPathDecisionEvidence {
   const snapshot = buildPersonalizedPathDecisionSnapshot(input);
-  const trustedPreference = isTrustedPreference(input.learnerStateSnapshot);
+  const suppressPersonalizedConclusions = snapshot.degradationReasons.length > 0;
+  const trustedPreference = isTrustedPreference(input.learnerStateSnapshot) && !suppressPersonalizedConclusions;
   const allNodeIds = input.paths.map((path) => path.nodeIds);
   const sharedNodeIds = new Set(
     allNodeIds[0]?.filter((nodeId) => allNodeIds.every((ids) => ids.includes(nodeId))) ?? [],
   );
   const evidencedTargets = input.deficits.filter((deficit) => deficit.evidenceCount >= 2 && deficit.confidence >= 0.5);
+  const profileSource: PersonalizedPathDecisionSource = suppressPersonalizedConclusions ? 'degraded' : 'profile';
 
   const paths = input.paths.map((path) => {
     const impacts: PersonalizedPathDecisionImpact[] = [];
     const uniqueNodeIds = path.nodeIds.filter((nodeId) => !sharedNodeIds.has(nodeId));
     for (const nodeId of uniqueNodeIds) {
       const node = path.planNodes?.find((item) => item.nodeId === nodeId);
-      const matchesProfile = evidencedTargets.some((deficit) =>
-        deficit.kind === 'knowledge'
-          ? node?.knowledgeCoverage.includes(deficit.targetId)
-          : node?.capabilityTargets?.includes(deficit.targetId),
-      );
+      const matchesProfile = evidencedTargets.some((deficit) => nodeCoversDeficit(node, deficit));
       impacts.push({
         kind: 'added',
-        source: matchesProfile ? 'profile' : 'rule',
-        reasonCode: matchesProfile ? 'weak-target' : 'policy-family-difference',
+        source: matchesProfile ? profileSource : 'rule',
+        reasonCode: matchesProfile
+          ? (suppressPersonalizedConclusions ? 'evidence-degraded' : 'weak-target')
+          : 'policy-family-difference',
         nodeId,
       });
     }
@@ -196,8 +212,8 @@ export function buildPersonalizedPathDecisionEvidence(input: {
         if (thisIndex >= 0 && otherIndex >= 0 && thisIndex < otherIndex) {
           impacts.push({
             kind: 'advanced',
-            source: 'profile',
-            reasonCode: 'earlier-than-sibling',
+            source: profileSource,
+            reasonCode: suppressPersonalizedConclusions ? 'evidence-degraded' : 'earlier-than-sibling',
             nodeId,
           });
         }
@@ -224,40 +240,37 @@ export function buildPersonalizedPathDecisionEvidence(input: {
       });
     }
 
-    const explanations: PersonalizedPathDecisionExplanation[] = [];
-    if (snapshot.degradationReasons.includes('insufficient-evidence')
-      || snapshot.degradationReasons.includes('preference-untrusted')) {
-      explanations.push({
-        code: 'insufficient-evidence',
-        studentText: '目前学习记录不足，暂时无法判断你的资源偏好。',
-      });
-    }
-    for (const deficit of evidencedTargets) {
-      const affected = path.planNodes?.some((node) =>
-        deficit.kind === 'knowledge'
-          ? node.knowledgeCoverage.includes(deficit.targetId)
-          : node.capabilityTargets?.includes(deficit.targetId),
-      );
-      if (!affected) continue;
-      explanations.push({
-        code: 'weak-target',
-        studentText: `你在${targetLabel(deficit.targetId)}相关学习中的掌握度仍有提升空间，因此增加了相关讲解和练习。`,
-      });
-    }
-    for (const modality of appliedModalities) {
-      explanations.push({
-        code: 'preferred-modality-applied',
-        studentText: `根据你的学习方式偏好，优先安排了${resourceTypeLabel(modality)}类学习资源。`,
-      });
-    }
-    for (const modality of snapshot.preferredModalities) {
-      if (appliedModalities.includes(modality)) continue;
-      explanations.push({
-        code: trustedPreference ? 'preferred-modality-unavailable' : 'preference-untrusted',
-        studentText: trustedPreference
-          ? `当前可用资源未能落实你的${resourceTypeLabel(modality)}偏好。`
-          : '目前学习记录不足，暂时无法判断你的资源偏好。',
-      });
+    const explanations: PersonalizedPathDecisionExplanation[] = snapshot.degradationReasons.map((reason) => ({
+      code: reason,
+      studentText: degradationStudentText(reason),
+    }));
+    if (!suppressPersonalizedConclusions) {
+      for (const deficit of evidencedTargets) {
+        const affected = impacts.some((impact) =>
+          impact.kind === 'added'
+          && impact.source === 'profile'
+          && impact.reasonCode === 'weak-target'
+          && nodeCoversDeficit(path.planNodes?.find((item) => item.nodeId === impact.nodeId), deficit),
+        );
+        if (!affected) continue;
+        explanations.push({
+          code: 'weak-target',
+          studentText: `你在${targetLabel(deficit.targetId)}相关学习中的掌握度仍有提升空间，因此增加了相关讲解和练习。`,
+        });
+      }
+      for (const modality of appliedModalities) {
+        explanations.push({
+          code: 'preferred-modality-applied',
+          studentText: `根据你的学习方式偏好，优先安排了${resourceTypeLabel(modality)}类学习资源。`,
+        });
+      }
+      for (const modality of snapshot.preferredModalities) {
+        if (appliedModalities.includes(modality)) continue;
+        explanations.push({
+          code: 'preferred-modality-unavailable',
+          studentText: `当前可用资源未能落实你的${resourceTypeLabel(modality)}偏好。`,
+        });
+      }
     }
     const uniqueExplanations = explanations.filter((explanation, index) =>
       explanations.findIndex((candidate) => candidate.studentText === explanation.studentText) === index);
