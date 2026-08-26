@@ -1381,8 +1381,15 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
       terminalValidationStrategy: {
         nodeIds: terminalValidationNodeIds,
         summary: terminalValidationNodeIds.length > 0
-          ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-          : '阶段检查点用于学习反馈',
+          && pathPlan.mainPath
+            .filter((node) => terminalValidationNodeIds.includes(node.nodeId))
+            .every((node) => node.status === 'locked'
+              || node.status === 'blocked'
+              || (node.readiness?.state ?? 'ready') !== 'ready')
+          ? '终点已纳入但当前不可验证'
+          : terminalValidationNodeIds.length > 0
+            ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+            : '阶段检查点用于学习反馈',
       },
       limitations: pathPlan.status === 'fallback'
         ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
@@ -1603,6 +1610,7 @@ function toStudentPathReason(reason: string): string {
     'terminal-validation-missing': '需要完成终点检验',
     'some-targets-have-no-direct-evidence': '部分目标还缺少直接证据',
     'low-learner-state-confidence': '当前证据较少',
+    '终点已纳入但当前不可验证': '终点已纳入但当前不可验证',
   };
   return reasons[reason] ?? '路径状态待确认';
 }
