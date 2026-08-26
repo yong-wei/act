@@ -82,7 +82,7 @@ const sourceFiles = [
   'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
   'scripts/tests/knowledge-workspace-product-qa-accounts.ts',
-  'scripts/tests/run-knowledge-workspace-product-qa.ts',
+  'scripts/tests/run-knowledge-workspace-product-qa.mjs',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
 
@@ -460,7 +460,7 @@ async function resolveRoleCredentials() {
 
   const environment = roleEnvironment.student;
   throw new Error(
-    `missing credentials for student; run run-knowledge-workspace-product-qa.ts for managed local fixtures or set ${environment.email} and ${environment.password}`,
+    `missing credentials for student; run run-knowledge-workspace-product-qa.mjs for managed local fixtures or set ${environment.email} and ${environment.password}`,
   );
 }
 

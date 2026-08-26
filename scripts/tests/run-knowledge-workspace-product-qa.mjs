@@ -1,17 +1,9 @@
 import { spawn } from 'node:child_process';
 
-import {
-  KNOWLEDGE_WORKSPACE_QA_ROLES,
-  provisionLocalKnowledgeWorkspaceQaAccounts,
-  type KnowledgeWorkspaceQaCredentials,
-} from './knowledge-workspace-product-qa-accounts';
-
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
+const roles = ['student', 'teacher', 'admin'];
 
-const roleEnvironment: Record<(typeof KNOWLEDGE_WORKSPACE_QA_ROLES)[number], {
-  email: string;
-  password: string;
-}> = {
+const roleEnvironment = {
   student: {
     email: 'KNOWLEDGE_QA_STUDENT_EMAIL',
     password: 'KNOWLEDGE_QA_STUDENT_PASSWORD',
@@ -27,66 +19,59 @@ const roleEnvironment: Record<(typeof KNOWLEDGE_WORKSPACE_QA_ROLES)[number], {
 };
 
 function configuredRoleCredentials() {
-  const credentials = Object.fromEntries(KNOWLEDGE_WORKSPACE_QA_ROLES.map((role) => {
+  const credentials = Object.fromEntries(roles.map((role) => {
     const environment = roleEnvironment[role];
     return [role, {
       email: process.env[environment.email]?.trim() ?? '',
       password: process.env[environment.password] ?? '',
     }];
-  })) as Record<(typeof KNOWLEDGE_WORKSPACE_QA_ROLES)[number], Pick<KnowledgeWorkspaceQaCredentials, 'email' | 'password'>>;
-  const complete = (role: (typeof KNOWLEDGE_WORKSPACE_QA_ROLES)[number]) => (
-    Boolean(credentials[role].email && credentials[role].password)
-  );
+  }));
+  const complete = (role) => Boolean(credentials[role].email && credentials[role].password);
 
-  if (KNOWLEDGE_WORKSPACE_QA_ROLES.some((role) => Boolean(
-    credentials[role].email || credentials[role].password,
-  )) && !KNOWLEDGE_WORKSPACE_QA_ROLES.every(complete)) {
+  if (roles.some((role) => Boolean(credentials[role].email || credentials[role].password)) && !roles.every(complete)) {
     throw new Error('knowledge workspace QA credentials must be configured for all three roles');
   }
-  return KNOWLEDGE_WORKSPACE_QA_ROLES.every(complete) ? credentials : null;
+  return roles.every(complete) ? credentials : null;
 }
 
-async function runChild(
-  command: string,
-  args: string[],
-  environment: NodeJS.ProcessEnv,
-  stdio: 'inherit' | 'ignore',
-  label: string,
-) {
-  const child = spawn(command, args, {
+async function runCapture(environment) {
+  const child = spawn('npx', ['--yes', 'tsx', 'scripts/tests/capture-knowledge-workspace-product-qa.ts'], {
     env: environment,
-    stdio,
+    stdio: 'inherit',
   });
-  await new Promise<void>((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     child.once('error', reject);
     child.once('exit', (code, signal) => {
       if (code === 0) return resolve();
-      reject(new Error(`${label} exited ${signal ? `from ${signal}` : `with ${code ?? 1}`}`));
+      reject(new Error(`knowledge workspace QA capture exited ${signal ? `from ${signal}` : `with ${code ?? 1}`}`));
     });
   });
 }
 
 async function main() {
   const configured = configuredRoleCredentials();
+  const [{ provisionLocalKnowledgeWorkspaceQaAccounts }, { accountByKey }] = await Promise.all([
+    import('./knowledge-workspace-product-qa-accounts.ts'),
+    import('../db/verified-test-accounts.mjs'),
+  ]);
   const managed = configured ? null : await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
-  const credentials = configured ?? managed;
+  const credentials = configured ?? (managed
+    ? Object.fromEntries(roles.map((role) => {
+      const account = accountByKey(role);
+      return [role, { email: account.loginId, password: account.password }];
+    }))
+    : null);
   if (!credentials) {
     throw new Error('non-local knowledge workspace QA requires explicit credentials for student, teacher, and admin');
   }
 
   const childEnvironment = { ...process.env, KNOWLEDGE_QA_BASE_URL: baseUrl };
-  for (const role of KNOWLEDGE_WORKSPACE_QA_ROLES) {
+  for (const role of roles) {
     const environment = roleEnvironment[role];
     childEnvironment[environment.email] = credentials[role].email;
     childEnvironment[environment.password] = credentials[role].password;
   }
-  await runChild(
-    'npx',
-    ['--yes', 'tsx', 'scripts/tests/capture-knowledge-workspace-product-qa.ts'],
-    childEnvironment,
-    'inherit',
-    'knowledge workspace QA capture',
-  );
+  await runCapture(childEnvironment);
 }
 
 main().catch((error) => {
