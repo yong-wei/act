@@ -2592,23 +2592,30 @@ async function captureActiveAuthorityVisualMatrix(
         ? activeFirstViewport.nodeGeometryWithinViewportCount
         : 0;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+      const teachingSvgGeometryRequired = !teachingRelationsUnavailable;
       if (
         markers.knowledgeGraphMode !== 'active'
         || activeMarkers.visibleNodeCount <= 0
         || (!teachingRelationsUnavailable && activeMarkers.relationCount <= 0)
         || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
         || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
-        || activeMarkers.activeSvgGeometryRectValid !== true
-        || activeMarkers.nodeGeometryWithinSvgCount !== activeMarkers.visibleNodeCount
-        || activeMarkers.relationGeometryWithinSvgCount !== activeMarkers.relationCount
+        || (teachingSvgGeometryRequired && (
+          activeMarkers.activeSvgGeometryRectValid !== true
+          || activeMarkers.nodeGeometryWithinSvgCount !== activeMarkers.visibleNodeCount
+          || activeMarkers.relationGeometryWithinSvgCount !== activeMarkers.relationCount
+        ))
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
-          activeMarkers.viewport !== 'compact'
-          || activeMarkers.viewBox !== '0 0 320 520'
-          || activeNodeLabelReadability.readable !== true
+          (teachingSvgGeometryRequired && (
+            activeMarkers.viewport !== 'compact'
+            || activeMarkers.viewBox !== '0 0 320 520'
+            || activeNodeLabelReadability.readable !== true
+          ))
           || activeFirstViewport.titleControlsOverlap === true
-          || activeFirstViewport.svgVisibleInViewport !== true
-          || nodeGeometryWithinViewportCount <= 0
+          || (teachingSvgGeometryRequired && (
+            activeFirstViewport.svgVisibleInViewport !== true
+            || nodeGeometryWithinViewportCount <= 0
+          ))
         ))
         || surfaceScan.passed !== true
       ) {
