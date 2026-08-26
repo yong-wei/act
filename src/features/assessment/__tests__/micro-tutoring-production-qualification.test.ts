@@ -4,6 +4,7 @@ import type { MicroTutoringCoverageAuditReport } from '../micro-tutoring-coverag
 import {
   MICRO_TUTORING_PRODUCTION_FEATURE_FLAG,
   MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS,
+  MICRO_TUTORING_REQUIRED_V2_QUALIFICATION_TESTS,
   buildMicroTutoringProductionQualificationReceipt,
   evaluateMicroTutoringProductionActivation,
 } from '../micro-tutoring-production-qualification';
@@ -36,8 +37,10 @@ function completeReport(overrides: Partial<MicroTutoringCoverageAuditReport> = {
   }));
   const report = {
     artifactVersion: 'micro-tutoring-coverage-audit.v1' as const,
+    coverageProfile: 'v1' as const,
     baselineItemCount: 54,
     qualifiedPracticeItemCount: 54,
+    qualifiedItemCount: 54,
     errorOptionCount: 108,
     completeOptionCount: 108,
     gapOptionCount: 0,
@@ -193,5 +196,68 @@ describe('micro tutoring production qualification', () => {
       authorized: true,
       metrics: { unavailableRate: 0.2, errorRate: 0, funnelDropRate: 0 },
     })).toMatchObject({ status: 'rollback-required', productionUnchanged: true });
+  });
+
+  it('emits a v2 candidate receipt without activating production and keeps rollback evidence', () => {
+    const rows = Array.from({ length: 272 }, (_, index) => ({
+      catalogItemId: `item-${String(index).padStart(3, '0')}`,
+      contentHash: 'a'.repeat(64),
+      errorOptionRef: `hmac-sha256:${String(index).padStart(3, '0')}${'b'.repeat(61)}`,
+      learningGoalId: 'control-correction',
+      misconceptionTag: 'misconception:control-correction:sample',
+      knowledgeNodeId: 'kn:autocontrol:controller-correction',
+      attributionVersion: 'micro-tutoring-option-attribution.v3',
+      resources: [{ id: 'resource-1', version: 'v1', estimatedMinutes: 6, actionPath: '/r' }],
+      validationItems: [{
+        id: 'validation-1',
+        questionId: 'q-1',
+        contentHash: 'c'.repeat(64),
+        version: 'adaptive-assessment-item-ref.v1',
+        estimatedMinutes: 2,
+        actionPath: '/assessment/adaptive-practice',
+      }],
+      status: 'COMPLETE' as const,
+      reasons: [],
+    }));
+    const report = completeReport({
+      artifactVersion: 'micro-tutoring-coverage-audit.v2',
+      coverageProfile: 'v2',
+      baselineItemCount: 135,
+      qualifiedPracticeItemCount: 54,
+      qualifiedItemCount: 135,
+      errorOptionCount: 272,
+      completeOptionCount: 272,
+      gapOptionCount: 0,
+      stageCounts: {
+        practice: 54,
+        checkpoint: 27,
+        remediation: 27,
+        readiness: 2,
+        'readiness-gate': 25,
+      },
+      rows,
+    });
+    const tests = MICRO_TUTORING_REQUIRED_V2_QUALIFICATION_TESTS.map((name) => ({
+      name,
+      status: 'passed' as const,
+      scope: name,
+      sourceRevision: SOURCE_REVISION,
+    }));
+    const built = buildMicroTutoringProductionQualificationReceipt(boundReceiptInput(report, { tests }));
+    expect(built.issues).toEqual([]);
+    expect(built.receipt?.version).toBe('micro-tutoring-production-qualification.v2');
+    expect(built.receipt?.qualifiedItemCount).toBe(135);
+    expect(built.receipt?.errorOptionCount).toBe(272);
+    expect(evaluateMicroTutoringProductionActivation({
+      receipt: built.receipt!,
+      authorized: false,
+    })).toMatchObject({ status: 'candidate-only', productionUnchanged: true });
+    expect(evaluateMicroTutoringProductionActivation({
+      receipt: built.receipt!,
+      authorized: true,
+      metrics: { unavailableRate: 0.2, errorRate: 0, funnelDropRate: 0 },
+    })).toMatchObject({ status: 'rollback-required', productionUnchanged: true });
+    expect(buildMicroTutoringProductionQualificationReceipt(boundReceiptInput()).receipt?.version)
+      .toBe('micro-tutoring-production-qualification.v1');
   });
 });
