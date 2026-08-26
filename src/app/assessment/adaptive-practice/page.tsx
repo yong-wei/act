@@ -904,6 +904,7 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 const DEMO_RECOMMENDATION_PROVENANCE = {
   summary: '依据相位裕度的学习证据安排本路径。',
+  personalizationNotes: ['根据你的学习方式偏好，优先安排视频、讲义和仿真类学习资源。'],
   confidence: 'medium',
   entries: [{
     targetLabel: '相位裕度',
@@ -1325,6 +1326,11 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
         </span>
       </div>
       <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      {provenance.personalizationNotes?.map((note) => (
+        <p key={note} className="mt-2 break-words text-xs leading-5 text-subtle">
+          {note}
+        </p>
+      ))}
       <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
         <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
         <div className="mt-3 grid min-w-0 gap-3">
@@ -1921,6 +1927,7 @@ function getPathRecommendationProvenance(
     summary: provenance.summary,
     confidence,
     entries,
+    personalizationNotes: getStringArray(provenance.personalizationNotes),
     evidenceReviewHref: '/profile/evidence',
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,

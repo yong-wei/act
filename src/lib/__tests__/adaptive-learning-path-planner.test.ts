@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
   buildAdaptivePathRecommendationProvenance,
   buildControlCorrectionThreeStylePathBundle,
   getLearningGoal,
@@ -46,6 +47,133 @@ import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resou
 import type { SourcePackItem } from '../source-pack';
 
 describe('adaptive path recommendation provenance', () => {
+  it('retains the authoritative learner-state snapshot and explains modality personalization', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const snapshot = buildAdaptiveLearningPathLearnerStateSnapshot({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-08-25T00:00:00.000Z',
+      authority: 'server-owned',
+      evidence: {
+        evidenceWindow: {
+          firstStartedAt: '2026-08-01T00:00:00.000Z',
+          lastStartedAt: '2026-08-24T00:00:00.000Z',
+          daysCovered: 23,
+        },
+      },
+      knowledgeMastery: {
+        tags: {
+          'kn-bode': { freshness: 'partial' },
+        },
+      },
+      resourcePreference: { preferredModalities: ['simulation', 'video'] },
+    });
+
+    expect(snapshot).toMatchObject({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-08-25T00:00:00.000Z',
+      authority: 'server-owned',
+      evidenceWindow: {
+        firstStartedAt: '2026-08-01T00:00:00.000Z',
+        lastStartedAt: '2026-08-24T00:00:00.000Z',
+        daysCovered: 23,
+      },
+      freshness: 'partial',
+      preferredModalities: ['simulation', 'video'],
+      preferredModalityConfidence: 'low',
+    });
+    const persisted = serializeLearningPathPlan(plan);
+    const notes = persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ') ?? '';
+    expect(notes).toContain('仿真');
+    expect(notes).not.toContain('视频');
+  });
+
+  it('does not claim preferred modalities that were not applied to the path', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+      }],
+      confidence: 'medium',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: {},
+        evidenceWindow: null,
+        freshness: 'current',
+        confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.7, evidenceCount: 6 },
+        missingEvidence: [],
+        preferredModalities: ['video'],
+        preferredModalityConfidence: 'medium',
+      },
+    });
+
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.limitations.join(' ')).toContain('当前学习方式偏好未能落实到本路径的可用资源');
+  });
+
+  it('does not present low-confidence preferences as applied personalization', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [],
+      confidence: 'low',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: {},
+        evidenceWindow: null,
+        freshness: 'stale',
+        confidence: { level: 'low', score: 0.2, sourceCompleteness: 0.1, evidenceCount: 1 },
+        missingEvidence: ['resource-preference'],
+        preferredModalities: ['video', 'simulation'],
+        preferredModalityConfidence: 'low',
+      },
+    });
+
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.limitations.join(' ')).toContain('学习方式偏好证据不足或已过期');
+    expect(provenance.summary).toContain('当前证据较少');
+  });
+
+  it('does not treat overall medium evidence as trusted when preference confidence is low', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+      }],
+      confidence: 'medium',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: { LearningFact: 'available' },
+        evidenceWindow: null,
+        freshness: 'current',
+        confidence: { level: 'medium', score: 0.72, sourceCompleteness: 0.7, evidenceCount: 8 },
+        missingEvidence: [],
+        preferredModalities: ['simulation'],
+        preferredModalityConfidence: 'low',
+      },
+    });
+
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.limitations.join(' ')).toContain('学习方式偏好证据不足或已过期');
+  });
+
   it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
@@ -873,6 +1001,7 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     },
     resourcePreference: {
       preferredModalities: ['simulation', 'video'],
+      confidence: 'medium',
     },
     evidence: {
       confidence: {
