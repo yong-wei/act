@@ -184,7 +184,7 @@ export function ActiveAuthorityForceCanvas({
               selectedNodeId === edge.sourceId || selectedNodeId === edge.targetId ? 'true' : 'false'
             }
           >
-            {edge.predicate}
+            {edge.presentation.semantic.label}
           </li>
         ))}
       </ul>
