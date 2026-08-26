@@ -7,6 +7,7 @@ import {
   createGraphMeasurementReceipt,
   graphDefinition,
   graphManifestHash,
+  parseTscFilePaths,
   validateDependencyCycles,
   validateEntrypointClassification,
   validateGraphConfig,
@@ -87,6 +88,19 @@ describe('TypeScript graph contracts', () => {
     };
     expect(validateEntrypointClassification([unknown])).toEqual([
       expect.objectContaining({ code: 'unclassified-entrypoint', identity: unknown.identity }),
+    ]);
+  });
+
+  it('keeps JSON program inputs in graph file identities', () => {
+    expect(parseTscFilePaths([
+      `${repoRoot}/src/app/page.tsx`,
+      `${repoRoot}/artifacts/example.json`,
+      `${repoRoot}/course-content/runtime/example.json`,
+      '/usr/lib/node_modules/typescript/lib/lib.es2022.d.ts',
+    ].join('\n'), repoRoot)).toEqual([
+      'artifacts/example.json',
+      'course-content/runtime/example.json',
+      'src/app/page.tsx',
     ]);
   });
 

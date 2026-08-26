@@ -89,4 +89,6 @@ probe 按预期以非零 tsc 退出；test probe 使用临时 8 GiB 环境仅为
 
 将 `typecheck:web`、`typecheck:worker` 作为 production aggregate，将 `typecheck:tools`、`typecheck:test` 作为 PR/integration mandatory inputs。main/release 消费前必须校验四图 source identity、manifest hash、`dirty=false`、`status=passed` 和 `exitStatus=0`；缺失、stale 或 failed 的 tools/test receipt 必须 fail closed。nightly 不得补替这两个输入。
 
+当前 `npm run typecheck` 的进程退出码只反映 tsc 结果，以便保持仓库零 TypeScript 错误基线。Web graph 仍有历史 production-to-tooling 边，receipt `status=blocked`。#1554 必须按 receipt 状态门禁，不能只看 typecheck exit 0。真实共享合同的唯一 owner / project-reference 收敛由 #1553 fitness 继续收缩，本 change 用 fixture 证明合同。
+
 后续迁移应逐条处理 production-to-tooling 边和未决入口，并以 owner registry/声明输出维持共享合同的单一编译权威；不要在本 change 中改变生产选择器、运行时行为或发布状态。

@@ -617,7 +617,7 @@ export function parseTscFilePaths(output: string, repoRoot: string): string[] {
   const paths: string[] = [];
   for (const line of output.split(/\r?\n/u)) {
     const trimmed = line.trim().replace(/^['"]|['"]$/gu, '');
-    if (!/\.(?:d\.)?(?:ts|tsx|mts|cts)$/u.test(trimmed)) continue;
+    if (!/\.(?:d\.)?(?:ts|tsx|mts|cts|json)$/u.test(trimmed)) continue;
     const normalized = normalizeRepoPath(repoRoot, trimmed);
     if (isRepoRelativePath(normalized) && !normalized.startsWith('node_modules/')) paths.push(normalized);
   }
