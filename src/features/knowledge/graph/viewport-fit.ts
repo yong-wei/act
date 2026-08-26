@@ -293,7 +293,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       : collisionFree.find((rect) => (!input.enforceViewport
       || (rect.left >= safeInsets.left && rect.right <= input.width - safeInsets.right
         && rect.top >= safeInsets.top && rect.bottom <= input.height - safeInsets.bottom)));
-    if (!candidate && input.enforceViewport && priority(node) <= 1) {
+    if (!candidate && input.enforceViewport && (priority(node) <= 1 || node.isKeyNode)) {
       const point = center(node);
       const safeLeft = safeInsets.left;
       const safeRight = input.width - safeInsets.right;
