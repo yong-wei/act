@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-08-26T04:41:56.909Z",
-  "commitSha": "225dc2f01acd48b85633e632900b4b945e706b97",
+  "capturedAt": "2026-08-26T05:00:39.398Z",
+  "commitSha": "69efeadb422253b0623ebe8535d0d678be6d7d0b",
   "generator": {
     "file": "tests/adaptive-path-recommendation-provenance-evidence.spec.ts",
     "sha256": "982282cc12b5597246f16021ff333284f39b5eaea459e15e1a354872316ddb6d"
@@ -8,7 +8,7 @@
   "productionSourceSha256": {
     "src/app/assessment/adaptive-practice/page.tsx": "4a056f5fc66d98b3d6ef2bec7ee7a9bc7671533ffd8aa996dc3add69f4ac3f20",
     "src/features/adaptive/adaptive-learning-center-contracts.ts": "770d11d9bf70d819dab6c31f785e071baa79cd75919afe8f47dd84f4c0bd6682",
-    "src/lib/adaptive-learning-path-planner.ts": "7e2cfa3cc219e80775821da8b55b378aceeab79b77fffb0dff19dae6d6a4af70",
+    "src/lib/adaptive-learning-path-planner.ts": "f31ad5357cdf89915557d71b0f0c94d82d0110940e9f3c9c8b494b0439b941f5",
     "src/lib/adaptive-path-round-restore.ts": "fa0982dd2bc939351246d18b6ec3d9f8d5e651b755cd2902c1d73567c2e225e8",
     "src/lib/adaptive-path-option-display.ts": "e474d3f29e3f0fb4e793f2db2a9b6582c796d76ad36223619bf2e7bfb938e97d"
   },
@@ -123,7 +123,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-sufficient.png",
-      "sha256": "3fc0250b9d8a05788ef1e580c7c9e41f3750ec6ad8f5ace5771e9f6fe55e9269",
+      "sha256": "c19bea7634b7a8590ba582dd1fd9a3fd3acd32e6c1f04e6f2de5fee1ed348520",
       "noHorizontalOverflow": true
     },
     {
@@ -141,7 +141,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-legacy.png",
-      "sha256": "fdf11758673556fabd51a5cd2dde6921ea33ca37e6510b6dbea01a62b7e6f48e",
+      "sha256": "da9f318d6b9af94e32f0972f980f92136c395cb76d02a90722ecbdba8c33a882",
       "noHorizontalOverflow": true
     },
     {
@@ -150,7 +150,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-sufficient.png",
-      "sha256": "514408f5276d701f0ca8443e1e88f10949570bb7858e36256ee992bb18237886",
+      "sha256": "e4f3c53f29627ee7dad928d5ddd08d8aa36288bf1be7029465e21b8ca030f01e",
       "noHorizontalOverflow": true
     },
     {
@@ -168,7 +168,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-legacy.png",
-      "sha256": "b8e5f91d4de2428ad0548a27e32f8785571bcdf6f82ee53918d158381f36d70a",
+      "sha256": "1d95927070936338c9a809957da875b6f6cf7b1fe9cc84c7a418bde26e0e719d",
       "noHorizontalOverflow": true
     },
     {
@@ -177,7 +177,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-continue-existing-path.png",
-      "sha256": "01729a613815ff6cc6638fce5befb8295db01fad49b9fc575c47441af2098ffe",
+      "sha256": "bdb6073ace5b2a03e991f623a089f8392386a9a8a58cf512fb80280c044fb900",
       "noHorizontalOverflow": true
     },
     {
@@ -186,7 +186,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-continue-existing-path.png",
-      "sha256": "d07d86630c5f655dfb163b8a15d7585b05031f4702f1fce2df61ee1b1cc84e05",
+      "sha256": "399d2611f308b47cfd537327e197a3465f7e9918802217dee315ef53ebcb5ec4",
       "noHorizontalOverflow": true
     }
   ]
