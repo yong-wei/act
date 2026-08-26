@@ -75,6 +75,7 @@ export function ActiveAuthorityForceCanvas({
   const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const [layoutState] = useState(getEmptyKnowledgeGraphLayoutState);
   const fitViewRequest = useMemo(() => ({ id: 1, target: 'current' as const }), []);
+  const showNodeDirectory = view.edges.length === 0;
 
   const handleNodeEvent = (node: KnowledgeNodeData | null, kind: 'click' | 'hover') => {
     if (kind === 'hover') {
@@ -88,58 +89,71 @@ export function ActiveAuthorityForceCanvas({
 
   return (
     <div
-      className="relative h-full min-h-[23rem] w-full overflow-hidden rounded-xl border border-platform-border bg-[#07111f]"
+      className="relative flex h-full min-h-[23rem] w-full flex-col overflow-hidden rounded-xl border border-platform-border bg-[#07111f]"
       data-active-authority-runtime="force-graph"
       data-active-authority-dimension={dimension}
       data-active-graph-stage="authority"
       role="application"
       aria-label={canvasAriaLabel}
     >
-      {liveEngine && dimension === '3d' ? (
-        <KnowledgeGraphCanvas
-          nodes={nodes}
-          links={links}
-          selectedNode={selectedNode}
-          hoveredNode={null}
-          onNodeClick={(node) => handleNodeEvent(node, 'click')}
-          onNodeHover={(node) => handleNodeEvent(node, 'hover')}
-          onNodeDragEnd={() => undefined}
-          labelMode="all"
-          layoutState={layoutState}
-          fitViewRequest={fitViewRequest}
-          relayoutVersion={0}
-          expandedNodeIds={[]}
-          expandedDirectLinks={[]}
-          activationSequenceByCenterId={{}}
-          materializedNodeIds={nodes.map((row) => row.id)}
-          graphVersion="active-authority"
-        />
-      ) : liveEngine ? (
-        <KnowledgeGraph2D
-          nodes={nodes}
-          links={links}
-          selectedNode={selectedNode}
-          hoveredNode={null}
-          onNodeClick={(node) => handleNodeEvent(node, 'click')}
-          onNodeHover={(node) => handleNodeEvent(node, 'hover')}
-          onNodeDragEnd={() => undefined}
-          labelMode="all"
-          layoutState={layoutState}
-          fitViewRequest={fitViewRequest}
-          relayoutVersion={0}
-          expandedNodeIds={[]}
-          expandedDirectLinks={[]}
-          activationSequenceByCenterId={{}}
-          materializedNodeIds={nodes.map((row) => row.id)}
-          graphVersion="active-authority"
-        />
-      ) : null}
-      <ul className="sr-only" data-active-authority-semantic-nodes>
+      <div className="relative min-h-0 flex-1">
+        {liveEngine && dimension === '3d' ? (
+          <KnowledgeGraphCanvas
+            nodes={nodes}
+            links={links}
+            selectedNode={selectedNode}
+            hoveredNode={null}
+            onNodeClick={(node) => handleNodeEvent(node, 'click')}
+            onNodeHover={(node) => handleNodeEvent(node, 'hover')}
+            onNodeDragEnd={() => undefined}
+            labelMode="all"
+            layoutState={layoutState}
+            fitViewRequest={fitViewRequest}
+            relayoutVersion={0}
+            expandedNodeIds={[]}
+            expandedDirectLinks={[]}
+            activationSequenceByCenterId={{}}
+            materializedNodeIds={nodes.map((row) => row.id)}
+            graphVersion="active-authority"
+          />
+        ) : liveEngine ? (
+          <KnowledgeGraph2D
+            nodes={nodes}
+            links={links}
+            selectedNode={selectedNode}
+            hoveredNode={null}
+            onNodeClick={(node) => handleNodeEvent(node, 'click')}
+            onNodeHover={(node) => handleNodeEvent(node, 'hover')}
+            onNodeDragEnd={() => undefined}
+            labelMode="all"
+            layoutState={layoutState}
+            fitViewRequest={fitViewRequest}
+            relayoutVersion={0}
+            expandedNodeIds={[]}
+            expandedDirectLinks={[]}
+            activationSequenceByCenterId={{}}
+            materializedNodeIds={nodes.map((row) => row.id)}
+            graphVersion="active-authority"
+          />
+        ) : null}
+      </div>
+      <ul
+        className={showNodeDirectory
+          ? 'grid max-h-40 shrink-0 grid-cols-1 gap-1 overflow-y-auto border-t border-platform-border bg-platform-surface/95 p-2 sm:grid-cols-2 lg:grid-cols-3'
+          : 'sr-only'}
+        data-active-authority-semantic-nodes
+        data-active-authority-node-directory={showNodeDirectory ? 'visible' : 'semantic'}
+        aria-label={showNodeDirectory ? '可浏览的知识对象' : undefined}
+      >
         {view.nodes.map((node) => (
           <li key={node.canonicalId}>
             <button
               type="button"
+              className={showNodeDirectory
+                ? 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-platform-fg-primary transition-colors hover:bg-platform-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-primary'
+                : undefined}
               data-active-authority-node={node.canonicalId}
+              data-active-authority-visible-node={showNodeDirectory ? 'true' : undefined}
               data-active-authority-node-shape={node.presentation.type.shape}
               data-active-authority-node-selected={selectedNodeId === node.canonicalId ? 'true' : 'false'}
               aria-pressed={selectedNodeId === node.canonicalId}
@@ -150,6 +164,7 @@ export function ActiveAuthorityForceCanvas({
                 onSelect(node.canonicalId);
               }}
             >
+              {showNodeDirectory ? <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-platform-primary" /> : null}
               <span data-active-authority-node-label="true" data-active-authority-node-label-placement="below">{node.label}</span>
             </button>
           </li>

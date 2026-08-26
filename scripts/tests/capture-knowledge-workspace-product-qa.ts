@@ -1218,7 +1218,20 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   if (preSelectionDetailRequests > 0 || preSelectionMediaRequests > 0) {
     throw new Error('active Authority detail or media was requested before a visible node selection');
   }
-  const node = page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
+  const teachingRelationsUnavailable = await page.locator('[data-authority-teaching-coverage="true"]')
+    .filter({ hasText: '教学关系暂不可用' })
+    .count() > 0;
+  const visibleNode = page.locator('[data-active-graph-stage="authority"] [data-active-authority-visible-node="true"]').first();
+  if (teachingRelationsUnavailable && await visibleNode.count() !== 1) {
+    throw new Error('active Authority unavailable Teaching state is missing a visible node directory');
+  }
+  const node = teachingRelationsUnavailable
+    ? visibleNode
+    : page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
+  const visibleNodeControl = await node.isVisible();
+  if (teachingRelationsUnavailable && !visibleNodeControl) {
+    throw new Error('active Authority unavailable Teaching node directory is not visible');
+  }
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) {
     throw new Error('current Authority domain has no visible node for detail interaction');
@@ -1260,6 +1273,8 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   return {
     detailRequestBeforeSelection: preSelectionDetailRequests > 0,
     mediaRequestBeforeSelection: preSelectionMediaRequests > 0,
+    teachingRelationsUnavailable,
+    visibleNodeControl,
     detailRequestObservedAfterSelection: detailRequests > preSelectionDetailRequests,
     mediaRequestObservedAfterSelection: mediaRequests > preSelectionMediaRequests,
     semanticNodeFocusedBeforeClick,
@@ -2434,6 +2449,7 @@ async function captureAuthenticatedRoleEvidence(
           || activeInteractionEvidence.detailRequestObservedAfterSelection !== true
           || activeInteractionEvidence.optionalLearningContentOmitted !== true
           || activeInteractionEvidence.mediaRequestObservedAfterSelection !== false
+          || (teachingRelationsUnavailable && activeInteractionEvidence.visibleNodeControl !== true)
           || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
           || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
           || activeMarkers.visibleNodeCount <= 0

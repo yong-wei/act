@@ -2635,7 +2635,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
           && interactionEvidence.detailPanelFocusedAfterOpen === true
           && interactionEvidence.semanticDetailVisible === true
           && (teachingRelationsUnavailable
-            ? interactionEvidence.adjacencyInteraction === false && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
+            ? interactionEvidence.visibleNodeControl === true
+              && interactionEvidence.adjacencyInteraction === false
+              && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
             : interactionEvidence.adjacencyInteraction === true)
           && (interactionEvidence.focusReturnedToOriginNode === true
             || interactionEvidence.focusReturnedToSemanticCanvas === true)
@@ -2710,7 +2712,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? null
         : `${role}:active-detail-evidence-missing`,
       (teachingRelationsUnavailable
-        ? defaultInteraction.adjacencyInteraction === false && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
+        ? defaultInteraction.visibleNodeControl === true
+          && defaultInteraction.adjacencyInteraction === false
+          && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
         : defaultInteraction.adjacencyInteraction === true)
         ? null
         : `${role}:active-adjacency-evidence-missing`,

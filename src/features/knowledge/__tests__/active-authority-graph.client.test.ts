@@ -1199,6 +1199,30 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('公式');
   });
 
+  it('keeps a visible, focusable node directory when relations are unavailable', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+
+    const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="visible"]');
+    const node = container.querySelector<HTMLButtonElement>('[data-active-authority-visible-node="true"][data-active-authority-node="node-concept"]');
+    expect(directory).not.toBeNull();
+    expect(node).not.toBeNull();
+    expect(node?.textContent).toContain('稳定性');
+
+    await act(async () => node!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(node?.dataset.activeAuthorityNodeSelected).toBe('true');
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await new Promise((resolve) => window.setTimeout(resolve, 5));
+    });
+    expect(document.activeElement).toBe(node);
+  });
+
   it('enters a boundary node owning domain before selecting it and loading its neighborhood', async () => {
     const crossRelation = {
       ...canvas.relations[0],
