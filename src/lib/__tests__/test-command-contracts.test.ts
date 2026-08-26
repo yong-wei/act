@@ -207,7 +207,7 @@ describe('test command contracts', () => {
       artifacts: [{
         path: 'artifacts/commercial-ui/proof.json',
         sha256: 'dead',
-        schema: 'example/v1',
+        schema: 'act-commercial-ui-evidence/v1',
         scope: 'commercial-ui',
         sourceCommit: COMMIT,
         sourceTree: TREE,
@@ -242,7 +242,48 @@ describe('test command contracts', () => {
       fileContents: { 'artifacts/commercial-ui/proof.json': '' },
     });
     expect(missingShape.some((item) => item.code === 'release-artifact-schema')).toBe(true);
-    expect(missingShape.some((item) => item.code === 'release-artifact-scope')).toBe(true);
+    const unknownSchema = validateReleaseManifest({
+      schemaVersion: RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION,
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      artifacts: [{
+        path: 'package.json',
+        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        schema: 'garbage/v999',
+        scope: 'runtime',
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        capturedAt: '2026-08-27T00:00:00.000Z',
+      }],
+    }, {
+      repoRoot: '/repo',
+      expectedCommit: COMMIT,
+      expectedTree: TREE,
+      now: new Date('2026-08-27T00:00:00.000Z'),
+      fileContents: { 'package.json': '{}' },
+    });
+    expect(unknownSchema.some((item) => item.code === 'release-artifact-schema')).toBe(true);
+    const mismatchedScope = validateReleaseManifest({
+      schemaVersion: RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION,
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      artifacts: [{
+        path: 'package.json',
+        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        schema: 'act-runtime-release-evidence/v1',
+        scope: 'commercial-ui',
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        capturedAt: '2026-08-27T00:00:00.000Z',
+      }],
+    }, {
+      repoRoot: '/repo',
+      expectedCommit: COMMIT,
+      expectedTree: TREE,
+      now: new Date('2026-08-27T00:00:00.000Z'),
+      fileContents: { 'package.json': '{}' },
+    });
+    expect(mismatchedScope.some((item) => item.code === 'release-artifact-scope')).toBe(true);
     expect(commandContract('test').requiredInputs).not.toContain('qualification-manifest');
     expect(commandContract('test:release').requiredInputs).toContain('qualification-manifest');
   });

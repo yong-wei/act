@@ -27,7 +27,7 @@ export {
   qualifyLiveDiscovery,
   releaseCommandFailures,
 } from './generate';
-export { parseReleaseManifest, validateReleaseManifest } from './release';
+export { parseReleaseManifest, RELEASE_SCHEMA_REGISTRY, validateReleaseManifest } from './release';
 export { parseUnhandledSidecar, parseVitestJson } from './results';
 export {
   projectCiMappingDoc,

@@ -202,7 +202,7 @@ function main(): void {
     discoveryCoreHash: discoveryCoreHash(generated.core),
   }).trim());
 
-  if (!discoveryClosed.ok && commandId !== 'test:release') {
+  if (!discoveryClosed.ok) {
     console.error(generated.core.unresolved.slice(0, 20));
     console.error(generated.failures.slice(0, 20));
     process.exitCode = 1;
