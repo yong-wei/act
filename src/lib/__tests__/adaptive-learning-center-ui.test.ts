@@ -1096,6 +1096,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
   });
 
+  it('places candidate comparison before the active route module', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('className="order-[15]"');
+    expect(pageSource).toContain('data-adaptive-path-module-order="candidate-comparison-before-active-route"');
+    expect(pageSource).toContain('className="order-20 grid min-w-0 w-full gap-4" data-adaptive-path-module-order="active-route-after-candidate-comparison"');
+  });
+
   it('preserves empty path generation resource preference through goal-change URLs', () => {
     const panel = {
       ...defaultPathGenerationPanel,
