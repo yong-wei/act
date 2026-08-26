@@ -1,0 +1,363 @@
+{
+ "contract": "remediation-domain-replay-summary/v1",
+ "allocation": {
+  "oldAllocationHash": "343025dacc8148a6ae50dd3eb1c156978eaa2b81bd9a93d3decc6fc52ad15f45",
+  "newAllocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "allocationArtifactSha256": "9d9bed3b5531d0a1924f24b3f40a7c1c76defca945b2e880e1fd550b345d8b64"
+ },
+ "scope": {
+  "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+  "memberCount": 7476,
+  "scopeArtifactSha256": "7daec1d87fcc206e81eab189f35d561aedc5cfad3e29e12386b14e3bd13198c6",
+  "pendingRowCount": 22428,
+  "pendingArtifactSha256": "b17934b82ab83693c37cc12d8e0cd4428101e5d5d92f7c299a9f6ce0c071d249"
+ },
+ "domains": [
+  {
+   "domain": "root-locus",
+   "memberCount": 103,
+   "packRows": 309,
+   "rowCount": 309,
+   "edgeCount": 44,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 45,
+    "NO_RELATION": 264,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 45,
+    "NO_RELATION": 264,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "d97ca24516b6870e3289fcb3bba98003c5191def3930a690d3ae52865812230e",
+   "decisionsProvenanceSha256": "0af88db7ec0838e9b60f68a6a25f711585d22e7208a628ae7588399cad97e11e",
+   "successorReceiptSha256": "33d4f6c69447f98a4741b2135a2a4c919da0dcb7613e09222133c1f73e612fbd",
+   "finalLedgerSha256": "67b62945563f7582376cae2409ee08b15f90dc3f8c88b1a9a597198c9e4f268d",
+   "oldReceiptSha256": "0471a226af75ba776d4c13dc16a37edb6bb3ccf3afe8d6ead65b907ecef4af14",
+   "edgeEndpoints": {
+    "count": 44,
+    "byFamily": {
+     "containment": 14,
+     "prerequisite": 15,
+     "association": 15
+    },
+    "courseRootCount": 1
+   }
+  },
+  {
+   "domain": "robustness-sensitivity-analysis",
+   "memberCount": 209,
+   "packRows": 627,
+   "rowCount": 627,
+   "edgeCount": 40,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 41,
+    "NO_RELATION": 586,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 41,
+    "NO_RELATION": 586,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "047c850e188c2f59d76edcd546e0bed88d06faef9718caeaf86e607cddd9de6d",
+   "decisionsProvenanceSha256": "7c0ade710f9521f6105c99df815f86670f78d5ad8967c1304db7b03fae19aa25",
+   "successorReceiptSha256": "8e3d540ab9ddceb1fee03ad78a2fe3806ac56062759a825a4e37f883c73b3e2f",
+   "finalLedgerSha256": "ea9836491f4cdd121590f8457c915a980d603233afe447e3d2f11a72b99a2b7b",
+   "oldReceiptSha256": "5d8bfe21334ba92dc5bbc9d2039ed1b76fc8e2889224351b9fd2f5bddc6a83ea",
+   "edgeEndpoints": {
+    "count": 40,
+    "byFamily": {
+     "containment": 13,
+     "prerequisite": 14,
+     "association": 13
+    },
+    "courseRootCount": 1
+   }
+  },
+  {
+   "domain": "stability-analysis",
+   "memberCount": 243,
+   "packRows": 729,
+   "rowCount": 729,
+   "edgeCount": 0,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 729,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 729,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "dc01bdf5e8068345ef08a116439cab18782d6539a828c1b4f91027465c9b46b0",
+   "decisionsProvenanceSha256": "474043dc904141dc65b63c3ab8c8e678051b2487f8e86801818e1e43288aa91d",
+   "successorReceiptSha256": "06213c547fae3030df9682e7af30b5b6f20a007f57e38c016bf973237fe8e993",
+   "finalLedgerSha256": "7b579160078cfff34b532e40af9d6060ef908ae3e32ae429bf1833f84f24ec17",
+   "oldReceiptSha256": "ee2b23903f5dc2f8a96ff483e48729d1fe9cd7e35d4c4a4da2f6241d24a7541a",
+   "edgeEndpoints": {
+    "count": 0,
+    "byFamily": {
+     "containment": 0,
+     "prerequisite": 0,
+     "association": 0
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "nonlinear-system-analysis",
+   "memberCount": 347,
+   "packRows": 1041,
+   "rowCount": 1041,
+   "edgeCount": 0,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 1041,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 1041,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "ff3f9723231fd9a70af264fd4c113452c6f3bc849509f8e7ffdf7b1bc8e6c9e2",
+   "decisionsProvenanceSha256": "9bd640cd106f6d75bd7a559f7be27ac6ad3bc12115f4aaa1adc2a75d4402a0ed",
+   "successorReceiptSha256": "49897194c6d842f9a7c4dafbcf9b478657b0782e4eb20c488ee24ddbf9ab3958",
+   "finalLedgerSha256": "26000b00b97443f99438a8b14afecf0cd97f5dbadca79a6fe2bf4702ab460e28",
+   "oldReceiptSha256": "c8ce08e429fbc3c2c56be70f75c555b7d01708a451f4d9e82dfdae21d6edd693",
+   "edgeEndpoints": {
+    "count": 0,
+    "byFamily": {
+     "containment": 0,
+     "prerequisite": 0,
+     "association": 0
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "time-domain-analysis",
+   "memberCount": 572,
+   "packRows": 1716,
+   "rowCount": 1716,
+   "edgeCount": 165,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 165,
+    "NO_RELATION": 1551,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 165,
+    "NO_RELATION": 1551,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "323b3529e039b04af2236e85a0c3812d111f2792347080bea6e7298d96d71c2c",
+   "decisionsProvenanceSha256": "7a9c25b863e4c5263dc2c874160484efe7137edc3d4fd4a7f3716bd35e0770df",
+   "successorReceiptSha256": "ad22b6e077231335357d8d209a3b0e7d90ef7a0ba37fb5a7c3b06ce7a5fcd3da",
+   "finalLedgerSha256": "661e45b743a5fe132709dc3bf219c82a829914edaccd820b25b639d839a2d80a",
+   "oldReceiptSha256": "300e363fd8d43d91d30a071b05b8fb90d2009aa7f392086bd2854a3976e936f6",
+   "edgeEndpoints": {
+    "count": 165,
+    "byFamily": {
+     "containment": 55,
+     "prerequisite": 55,
+     "association": 55
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "system-modeling",
+   "memberCount": 641,
+   "packRows": 1923,
+   "rowCount": 1923,
+   "edgeCount": 51,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 51,
+    "NO_RELATION": 1872,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 51,
+    "NO_RELATION": 1872,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "c6decc6370d626efabf3bccf4fce42e53b1f9bd4f428f999f1258bbf5257aaef",
+   "decisionsProvenanceSha256": "e1e9041d06509da4b74de6e8294dc85a2d4460d69c543978da9cc351a347ee87",
+   "successorReceiptSha256": "f6a7a9f5e901b160490037ced0105ffd8dbfb23695b90043a4f1a12da948c2cb",
+   "finalLedgerSha256": "02f144f9f974d373fc0a542ce2cfb64f44310ca68b73d2c71239b7908b1cee9d",
+   "oldReceiptSha256": "4f412b1fbf31e0b959b72b8641bd4184e2f29c348c501b25fd59a5b6a5208b22",
+   "edgeEndpoints": {
+    "count": 51,
+    "byFamily": {
+     "containment": 17,
+     "prerequisite": 17,
+     "association": 17
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "classical-control-design",
+   "memberCount": 744,
+   "packRows": 2232,
+   "rowCount": 2232,
+   "edgeCount": 0,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 2232,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 0,
+    "NO_RELATION": 2232,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "5230130f4b736e66b15fb5b6ce44da515e10b43c2a478d7ced7f56b238be2155",
+   "decisionsProvenanceSha256": "f258c89fe0ad3abe54eea98f1c272c5c60b92e23edc11e6fc3c2a58cced8fc31",
+   "successorReceiptSha256": "2e17ca6a4a55dd52544853cf520f69bc53bbc8f0b691219f08f8c9b9f09b4d2c",
+   "finalLedgerSha256": "65e356f595ffe373b74b9135e5c8e6f7c820050ee0ed8d180f1194fb5397b022",
+   "oldReceiptSha256": "15b08590eabcb8fa4e7d4f2fb0b6d962e3402de1a8b9d39da4af7800c056ee00",
+   "edgeEndpoints": {
+    "count": 0,
+    "byFamily": {
+     "containment": 0,
+     "prerequisite": 0,
+     "association": 0
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "frequency-domain-analysis",
+   "memberCount": 952,
+   "packRows": 2856,
+   "rowCount": 2856,
+   "edgeCount": 93,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 93,
+    "NO_RELATION": 2763,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 93,
+    "NO_RELATION": 2763,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "90ed65d107b76e7e80bfad7a61e11c5de7e7102e710af2cd5e122f7b04a5d8b1",
+   "decisionsProvenanceSha256": "2843a27861530fb0a1ea20c2b07565bc853c530421d5ff255f286d9e183d609e",
+   "successorReceiptSha256": "72e0254195b5391ac25218eb885a65a1db3378b52cda345d4a750930df1622ee",
+   "finalLedgerSha256": "920a21660b525b03ae14258d3775ad504deea2382c55fcce3b955e23d2bb268d",
+   "oldReceiptSha256": "93d1ab6482698064cfc307fd0a4c23cfc0a46dd6a413e2d22817de9a04f2fa0e",
+   "edgeEndpoints": {
+    "count": 93,
+    "byFamily": {
+     "containment": 31,
+     "prerequisite": 31,
+     "association": 31
+    },
+    "courseRootCount": 0
+   }
+  },
+  {
+   "domain": "state-space-control-analysis-and-design",
+   "memberCount": 1282,
+   "packRows": 3846,
+   "rowCount": 3846,
+   "edgeCount": 13,
+   "outcomeCounts": {
+    "PUBLISHED_EDGE": 13,
+    "NO_RELATION": 3833,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "oldOutcomeCounts": {
+    "PUBLISHED_EDGE": 13,
+    "NO_RELATION": 3833,
+    "COURSE_ROOT": 0,
+    "REJECTED": 0
+   },
+   "outcomeCountsMatch": true,
+   "unresolvedAfter": 0,
+   "closureComplete": true,
+   "droppedInvalidIds": 0,
+   "decisionsSha256": "5fd9ea23a27cccfba07ef12bf411a21e91e70c5293e69bc01cf3befeb60964c5",
+   "decisionsProvenanceSha256": "dee10e0a892bb4e423bc10b0aa4b893d7878475624d748865cbab02253245e91",
+   "successorReceiptSha256": "bc7bef2ec5aecf7b36e9450b71775806e0fdb1d43c2d11cdf308f8fde83c1511",
+   "finalLedgerSha256": "be0cbd1d4ad1f3ccada20305882ac1fd927e09094a22c8b24e80b1a6c3efd086",
+   "oldReceiptSha256": "b8a9964c5606f16934fb29ab559a48048b1e8ece0f9f6cc95e0c2da72b2d6a1b",
+   "edgeEndpoints": {
+    "count": 13,
+    "byFamily": {
+     "containment": 4,
+     "prerequisite": 5,
+     "association": 4
+    },
+    "courseRootCount": 0
+   }
+  }
+ ],
+ "consistency": {
+  "domainCount": 9,
+  "replayedMemberCount": 5093,
+  "replayedRowCount": 15279,
+  "deferredNewMemberCount": 176,
+  "allUnresolvedZero": true,
+  "allClosureComplete": true,
+  "allDroppedInvalidIdsZero": true,
+  "allOutcomeCountsMatch": true,
+  "allNonNsaOutcomeCountsMatch": true,
+  "nsaPublishedEdgeCount": 0,
+  "nonSelectable": true
+ }
+}

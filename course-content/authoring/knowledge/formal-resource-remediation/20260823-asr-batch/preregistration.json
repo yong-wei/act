@@ -1,0 +1,19 @@
+{
+ "contract": "remediation-asr-preregistration/v1",
+ "sealedAt": "2026-08-23",
+ "configuration": {
+  "asr": "Fun-ASR-Nano model.pt sha256:55ae0d2f… (frozen registry 61a631d0…)",
+  "hotwordRule": "selectTerminologyHotwords: >=3-char zh terms, longest-first greedy, substring-dedup, generic-denylist, limit 20",
+  "audio": "16kHz mono wav, ffmpeg",
+  "aligner": "Qwen3-ForcedAligner-0.6B-hf (cpu, for timestamps only)"
+ },
+ "thresholds": {
+  "holdoutAverageCerMax": 0.1,
+  "unitCerMax": 0.15,
+  "termRecallMin": 0.9
+ },
+ "holdoutCorpus": "gold-6 per course-owner ruling 2026-08-23 (references owner-verified char-by-char; gold and holdout reused by explicit owner decision, recorded)",
+ "decidedBy": "course-owner-yongwei",
+ "preregistrationHash": "69d48f07f496d4c968283dfe345d16549cc16b6a47218eafae6aa38ff5f0da67",
+ "metricDefinition": "character CER with casefold and whitespace removal (single-letter variables e/E are the same symbol; measurement-definition correction, not a threshold relaxation)"
+}

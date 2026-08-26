@@ -432,7 +432,7 @@ describe('Git-backed runtime release snapshots', () => {
       baseSourceRevision: baseRevision,
       provenance: {
         schemaVersion: 'act.textbook-runtime-input-provenance.v1',
-        sourceRevision: baseRevision,
+        sourceRevision: 'a'.repeat(40),
         inputDigest: 'b'.repeat(64),
         inputFileCount: 1,
       },
@@ -461,6 +461,13 @@ describe('Git-backed runtime release snapshots', () => {
     );
     await git(root, 'add', 'course-content/authoring/runtime-external-input-bundles.v1.json');
     await git(root, 'commit', '-m', 'bind frozen v1 bundle');
+    const parentRevision = await git(root, 'rev-parse', 'HEAD');
+    const parent = await buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: parentRevision,
+      integrationRef: 'integration',
+      externalBundle: bundle,
+    });
     await writeFile(path.join(runtimeRoot, 'lessons', 'other.json'), '{"id":"unrelated-runtime"}\n');
     await git(root, 'add', 'course-content/runtime/lessons/other.json');
     await git(root, 'commit', '-m', 'unrelated runtime change');
@@ -470,17 +477,43 @@ describe('Git-backed runtime release snapshots', () => {
       repoRoot: root,
       sourceRevision: targetRevision,
       integrationRef: 'integration',
-      externalBundle: bundle,
+      parentManifest: parent.manifest,
     });
     expect(snapshot.manifest.sourceRevision).toBe(targetRevision);
-    expect(snapshot.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg')?.source).toMatchObject({
-      bundleSemanticSha256: bundle.manifestSha256,
-    });
+    const inherited = snapshot.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg');
+    const parentExternal = parent.manifest.files.find((file) => file.path === 'knowledge/infographs/authority/a.svg');
+    expect(inherited?.source).toEqual(parentExternal?.source);
     expect(snapshot.manifest.files.map((file) => file.path)).toEqual(expect.arrayContaining([
       'lessons/lesson.json',
       'lessons/other.json',
       'knowledge/infographs/authority/a.svg',
     ]));
+    const reopened = await openGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: targetRevision,
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+      manifest: snapshot.manifest,
+    });
+    expect(reopened.manifest).toEqual(snapshot.manifest);
+
+    const changedDeclaration = declarationInputFromBundle(bundle);
+    changedDeclaration.inputFileCount = 2;
+    await writeFile(
+      path.join(root, 'course-content', 'authoring', 'runtime-external-input-bundles.v1.json'),
+      serializeExternalInputBundleDeclaration({
+        schemaVersion: 'act-runtime-external-input-bundles.v1',
+        inputs: [changedDeclaration],
+      }),
+    );
+    await git(root, 'add', 'course-content/authoring/runtime-external-input-bundles.v1.json');
+    await git(root, 'commit', '-m', 'change frozen v1 declaration');
+    await expect(buildGitRuntimeBlobReleaseSnapshot({
+      repoRoot: root,
+      sourceRevision: await git(root, 'rev-parse', 'HEAD'),
+      integrationRef: 'integration',
+      parentManifest: parent.manifest,
+    })).rejects.toMatchObject({ code: 'runtime-release-external-source-missing' });
   });
 
   it('publishes a v2 corpus whose authoring revision differs from the Release HEAD', async () => {

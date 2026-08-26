@@ -422,13 +422,18 @@ export function inspectTextbookRetrievalIndex(
   ) {
     throw new Error('textbook-retrieval-manifest-schema-invalid');
   }
-  if (typeof manifest.resourceSetId !== 'string' || !manifest.resourceSetId) {
-    throw new Error(`textbook-retrieval-resource-set-mismatch:expected= actual=${String(manifest.resourceSetId)}`);
-  }
-  if (expectedResourceSetId !== undefined && manifest.resourceSetId !== expectedResourceSetId) {
-    throw new Error(
-      `textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`,
-    );
+  // A frozen v1 corpus inherits without a resource set (spec: legacy textbook
+  // provenance stays immutable and is identified as legacy); only a v2
+  // expectation demands and compares the resourceSetId.
+  if (expectedResourceSetId !== undefined) {
+    if (typeof manifest.resourceSetId !== 'string' || !manifest.resourceSetId) {
+      throw new Error(`textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`);
+    }
+    if (manifest.resourceSetId !== expectedResourceSetId) {
+      throw new Error(
+        `textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`,
+      );
+    }
   }
   assertRevision(manifest.sourceRevision, 'index-source-revision');
   if (

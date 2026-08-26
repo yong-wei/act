@@ -1,0 +1,22 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "stability-analysis",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/stability-analysis-review.log",
+ "sourceSha256": "b40db5acdd35aa210eb64bc91d98b607abe53da7d750d292da38f446e97fc491",
+ "rowCount": 243,
+ "memberCount": 243,
+ "edgeCount": 0,
+ "receiptReconciliation": {
+  "packRows": 729,
+  "publishedEdgeInReceipt": 0,
+  "jsonlEdgeCount": 0,
+  "match": true
+ },
+ "recovery": {
+  "sourceFormat": "use-codex-wrapper-json-with-markdown-jsonl-fence",
+  "resultFieldPresent": true,
+  "jsonlFenceCount": 1,
+  "extractedRowCount": 243,
+  "extractedSha256": "dc01bdf5e8068345ef08a116439cab18782d6539a828c1b4f91027465c9b46b0"
+ }
+}

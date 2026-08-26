@@ -1,0 +1,106 @@
+{
+ "contract": "remediation-end-to-end-verification-report/v1",
+ "sealedAt": "2026-08-24T20:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "checks": [
+  {
+   "name": "scope-reopen",
+   "passed": true,
+   "detail": "scope ae9b6c6e / 7476 members matches the allocation"
+  },
+  {
+   "name": "envelope-reopen",
+   "passed": true,
+   "detail": "envelope a6425000 reopens over 1058 records and 30 artifacts"
+  },
+  {
+   "name": "closure-reopen",
+   "passed": true,
+   "detail": "15 ledgers 22428 rows reconcile with the total receipt; duplicates 0, missing 0"
+  },
+  {
+   "name": "projection-validate",
+   "passed": true,
+   "detail": "materialized projection passes validation with zero findings (420 edges, 2575 bindings reopened)"
+  },
+  {
+   "name": "projection-complete",
+   "passed": true,
+   "detail": "derived projection state recomputes to COMPLETE"
+  },
+  {
+   "name": "fragments-identity",
+   "passed": true,
+   "detail": "15 fragments all bind projection ce38ed51"
+  },
+  {
+   "name": "consumers-identity",
+   "passed": true,
+   "detail": "graph and prerequisite consumers bind the same projection identity"
+  },
+  {
+   "name": "production-predecessor",
+   "passed": true,
+   "detail": "all existing production pointers reference ctr:release:control-theory-engineering-v0.9; remediation candidate is non-selectable"
+  }
+ ],
+ "derivedProjectionState": "COMPLETE",
+ "counts": {
+  "members": 7476,
+  "closureRows": 22428,
+  "publishedEdges": 420,
+  "resources": 1058,
+  "atoms": 13522,
+  "fragments": 15
+ },
+ "productionPointers": [
+  {
+   "path": "course-content/authoring/knowledge/authority/current.json",
+   "exists": true,
+   "releaseId": "ctr:release:control-theory-engineering-v0.9",
+   "sha256": "086f14793fbf2aa3afc8fba471503042242645122425c3018b6526e8ab2835f2"
+  },
+  {
+   "path": "course-content/runtime/knowledge/projection/current.json",
+   "exists": true,
+   "releaseId": null,
+   "sha256": "cf553630400a297d678a2927940e011e300e756aa59cd46bccac8489dd6ac703"
+  },
+  {
+   "path": "course-content/runtime/knowledge/prerequisites/current.json",
+   "exists": true,
+   "releaseId": null,
+   "sha256": "a040258e8efef848de45b7b933e0231519d416bd0d9b7c8a3ebb433abb1e6e0e"
+  },
+  {
+   "path": "course-content/runtime/knowledge/authority-domain-catalog/current.json",
+   "exists": true,
+   "releaseId": "ctr:release:control-theory-engineering-v0.9",
+   "sha256": "0b7646e9ec919a23e19fee44762ed1f45b563f5d061548e1e277d0dc91a0634a"
+  },
+  {
+   "path": "course-content/runtime/knowledge/authority-domain-shards/current.json",
+   "exists": true,
+   "releaseId": "ctr:release:control-theory-engineering-v0.9",
+   "sha256": "9613304cbaee9c3e41908f1a73a0a76b886608638ec992c7ad074e656711783c"
+  },
+  {
+   "path": "course-content/runtime/knowledge/consumer-activation/current.json",
+   "exists": true,
+   "releaseId": null,
+   "sha256": "e73ac1abd0d691c615308b215f1941ca5bea9b125cb98b844a0b5d969c6fbc0b"
+  },
+  {
+   "path": "course-content/runtime/knowledge/production-cutover-transactions/current.json",
+   "exists": false,
+   "releaseId": null,
+   "sha256": null
+  }
+ ],
+ "handoff": {
+  "handoffId": "handoff-9f3d13c00aae835726613408",
+  "handoffHash": "9f3d13c00aae8357266134086994f9abfdd30a468a203dc023fcb240adcf83a9",
+  "selectable": false
+ }
+}

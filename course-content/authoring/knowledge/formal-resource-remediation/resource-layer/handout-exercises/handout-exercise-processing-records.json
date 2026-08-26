@@ -1,0 +1,465 @@
+[
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-0ef923f5b67e2b6faad01d21",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-1-2",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-25e0d2dee962b2e0f3a9f898",
+   "atom-20ef620d9a9b4c097c84fede",
+   "atom-c40b972a77c933509a2c9deb"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-2/design/1-2-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "fefdbde56568c0f9588fe53b9242d6dd6000f8a09724737e4a0230b87a8a183b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-69196268ef9d01b3a9c8a105",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-1-3",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:a27916309d1a067c395c375ac316314611569438799c351914d71dd3456f61a5",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-dd4374efe2a0a8322af08755",
+   "atom-2696e3261ad39d96a5644a82",
+   "atom-1c4b765a99b2aa7c7bf71f0a"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-3/design/1-3-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "cdccb98aaa1cff287de37e92d1073c72ef034c28eed82075a1f76c82bcc241f3"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-54af9965e192b3538076d902",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-1-4",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:349c39a37e78b706fb00d1de36ab1acfad3c678697e64af05f67e7aba6cd41de",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-5ed730e0254546efc434461e",
+   "atom-4681b4b7c900bdd38e9ea665",
+   "atom-6a18f2522d6bc48a1f7f51e9"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-4/design/1-4-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "9aafe1bd35c21355cda7a7045603226683e1d107f1a13811bb74d419e07f4898"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-102bf98bcb789bb15e1744aa",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-1-5",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:b3022ae16f1a9cc6342cc53630eb357b47ea4e3662ce9ae392e9b52583acfae8",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a11fa17d6421c47d620cfbfa",
+   "atom-ff2a9a3309aa6dd974ae4f80",
+   "atom-b0c90bb198427aaabeafee1e"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-1",
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-2",
+   "course-content/authoring/lessons/1-5/design/1-5-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "bf0caed26d739dbd36ba8a137f647b3ede2b49d804222a702a02f8df672c920b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-0ff4b34e388c2e07ac41864a",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-4-2",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:ace17df82980ca8cddf047f3c37b50c9207719e23eeb402113b0ec9c0f1e4151",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-df689fa69b3879f35e359cb1",
+   "atom-45ab2d656ecbe7bbee5f4cd0",
+   "atom-00ffb968a12f86be28286034",
+   "atom-6b834a50f5ed7db930c8acff"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-4"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-2/design/4-2-handout.md#分层练习-4"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "07541f2f6662761d9635876631624146af5b0a9b9ce41b16d8a874a16c5b7489"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ca9dbf61d8a32c7a9eb753bd",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-4-3",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:445a8f2488bc11514539236a4c36e687bcc89bfdb291a9e97efadf13f2ef887a",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-412b2de622743ac93826a1f5",
+   "atom-00b31f222e0c36857d406f6b",
+   "atom-ba92d3de536e1d20e61ad888",
+   "atom-25c92eb72eac559a45b31b83",
+   "atom-0c4b46e892918fa20e5c7e60"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-4",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-5"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-4",
+   "course-content/authoring/lessons/4-3/design/4-3-handout.md#分层练习-5"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "7c3b5457b02857bfe45606add5e9e12cb7c288bb0ee275788bb9ec8b39eab71f"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-e8f18ceceded75b48a43ba72",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-4-4",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:c13870f4b23eaeb32ca37f3724d977287102963293b68d18acb37c72181df7f3",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-43516ca2c607042add82af20",
+   "atom-1258c31d641ba5aa2e1c8f51",
+   "atom-67c2260cd5f6b5eca9d3e50f"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-4/design/4-4-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "3c429bda2e65aa97bed244679fc8b920051d5513659c24ef045a6094d71219e8"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-003b184735bb5f3a2522d26f",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-4-5",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:cbb8c45dc2f97ef07be354f5dd8fafd1ed5ee10385591eb59976d8a57e0ee394",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a13a7387bc2d9a10b5782645",
+   "atom-1706b5dfae787fdd5c42e138",
+   "atom-e333ea39177fd7bbd448a619"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-5/design/4-5-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "bcec455c67c38de0538151d7ee601aae1365d622695326f0a6bae313aed97242"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-1636314db4e3c733512f6b8c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-4-6",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:521db7f080e960bbbb6d6cca8a1a21d51573897192fc0084a66e01a3814feb21",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-1be9128e2b0d611b45a7b83d",
+   "atom-60d0f5b755494b091aec5218",
+   "atom-33f485ca50a59c79e2b5c9f9",
+   "atom-81f13fadac4d14c21a886882"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-4"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-1",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-2",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-3",
+   "course-content/authoring/lessons/4-6/design/4-6-handout.md#分层练习-4"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "8b8aa4113d5b34575075c1f1383f60ce0e028f1fe482fefea6cc913e5916ac80"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-398aa158302452c0a92dbbdf",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-5-1",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:ec7d26d2ee55a84cb138cfbc7a8e45e19c3679232a0eab7f02d299ecb2f9f61a",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-24d1ce763056983aacb12d2f",
+   "atom-2af190d9dfe59f546416c1a1",
+   "atom-1b4619a99b20bcc3364c53f2",
+   "atom-9e29c029478b685b0ccbdb22"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-4"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-1/design/5-1-handout.md#分层练习-4"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "28845e15cf671bad047068730476db3fb6672bda0af416496f08ca74f351f09e"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ebd3a9b22829499d961fc509",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-5-2",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:f5d12423f063d99bfb701a7af5f0b16710605548a3949a4dd70ad15d751898b2",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-13d092d33f88aee73d97c1ac",
+   "atom-883c2fa1bb27c1de6898ef92",
+   "atom-e9477dbc59871627d9d1e69a",
+   "atom-c334c948ae8d28912f95c486"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-4"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-2/design/5-2-handout.md#分层练习-4"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "e0dc518b5258fd3c697e3e39003f3148188965f686e0620f30c22dd05bc71ba2"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-25a693b8570df9c5cf2db49e",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-5-3",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:777f2e57834d2cc3b68ae12677144447a5d67deec9374d08b91aa5fac3d5dc9a",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-fdc81a3ee201dcdc21f96036",
+   "atom-74e62325f84455f53fe6d17f",
+   "atom-87979d10b44d884ab8180ad3"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-3"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-3/design/5-3-handout.md#分层练习-3"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "f8e36db8c20b48d67db87df43dd728551053fd014f73dcfd42c1be6289179942"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-bda3588c66fe11bd8dd5e940",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "handout-exercises-5-4",
+  "resourceSubtype": "handout-exercise",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "content:0933d68288be81f9b8c9f822d57cc8ac09b7dadce6a0c669516e6071610c22fd",
+  "externalInputId": null,
+  "processorIdentity": "handout-exercise-processor/v1",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a6ff80036185eda57db7050e",
+   "atom-be7ade1911701b6d2aa5500b",
+   "atom-1a389359465a73ab04ef5b53",
+   "atom-d433494fc8ea507f34c99302"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-4"
+  ],
+  "launchOutputIds": [
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-1",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-2",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-3",
+   "course-content/authoring/lessons/5-4/design/5-4-handout.md#分层练习-4"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "layered exercises are excluded from teaching atoms by owner decision 1 but join the exercise binding channel"
+  ],
+  "outputManifestHash": "a1b03e5b8ba5999362ed75dfae428c2e76e18368e10f50dbb19a8de20deb9d95"
+ }
+]

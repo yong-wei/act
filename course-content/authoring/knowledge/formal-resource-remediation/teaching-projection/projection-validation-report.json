@@ -1,0 +1,79 @@
+{
+ "contract": "remediation-teaching-projection-validation-report/v1",
+ "sealedAt": "2026-08-24T19:30:00.000Z",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "derivedState": "COMPLETE",
+ "completenessChecks": [
+  {
+   "name": "scope-identity",
+   "passed": true,
+   "detail": "reopened scope ae9b6c6e/7476 matches the projection"
+  },
+  {
+   "name": "envelope-reopened",
+   "passed": true,
+   "detail": "envelope a6425000 reopens SEALED"
+  },
+  {
+   "name": "allocation-identity",
+   "passed": true,
+   "detail": "projection, envelope, and closure share one allocation identity"
+  },
+  {
+   "name": "closure-complete",
+   "passed": true,
+   "detail": "closure 15 receipts, unresolved 0"
+  },
+  {
+   "name": "conservation",
+   "passed": true,
+   "detail": "ledgers 22428 rows, duplicates 0, missing 0"
+  },
+  {
+   "name": "membership-conserved",
+   "passed": true,
+   "detail": "membership 7476 = covered 5255 + excluded 2221"
+  },
+  {
+   "name": "limitations-declared",
+   "passed": true,
+   "detail": "the projection declares its explicit limitations"
+  }
+ ],
+ "validationFindings": [],
+ "audioSegmentCount": 1170,
+ "counts": {
+  "members": 7476,
+  "covered": 5255,
+  "excluded": 2221,
+  "edges": 418,
+  "courseRoots": 2,
+  "bindings": 2575,
+  "cardBindings": 1383,
+  "audioBindings": 586,
+  "zeroResourceNodes": 4955
+ },
+ "artifactStates": {
+  "envelopeState": "created",
+  "projectionState": "created",
+  "graphViewState": "created",
+  "prerequisiteState": "created",
+  "fragments": {
+   "root-locus": "created",
+   "robustness-sensitivity-analysis": "created",
+   "stability-analysis": "created",
+   "nonlinear-system-analysis": "created",
+   "time-domain-analysis": "created",
+   "system-modeling": "created",
+   "classical-control-design": "created",
+   "frequency-domain-analysis": "created",
+   "state-space-control-analysis-and-design": "created",
+   "robust-control-analysis-and-design": "created",
+   "discrete-time-control-analysis": "created",
+   "discrete-time-control-design": "created",
+   "optimal-control-foundations-and-linear-quadratic-design": "created",
+   "lyapunov-stability": "created",
+   "nonlinear-control-design": "created"
+  }
+ }
+}

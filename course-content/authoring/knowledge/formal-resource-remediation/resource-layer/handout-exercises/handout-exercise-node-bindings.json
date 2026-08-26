@@ -1,0 +1,58 @@
+{
+ "contract": "remediation-handout-exercise-node-bindings/v1",
+ "bindingModel": "codex semantic mapping round 2 (act:issue-1515:exercise-remap-review, gpt-5.6-sol medium)",
+ "totalQuestions": 46,
+ "keptBindings": 10,
+ "rows": [
+  {
+   "questionId": "1-3/layered/2",
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "rationale": "题目围绕临界阻尼是否仍是约束下最优选择展开，核心对应“临界阻尼”节点。"
+  },
+  {
+   "questionId": "1-5/layered/3",
+   "canonicalId": "ctkg:v3e-object-374a42c24f7d69fe919a28e2",
+   "rationale": "题目以根轨迹或增益裕度求临界增益并验证，候选根轨迹设计节点与核心一致。"
+  },
+  {
+   "questionId": "4-2/layered/1",
+   "canonicalId": "ctkg:v3e-object-39cec11d51f4f6dc38b41282",
+   "rationale": "题目以超调量和相角裕度关系选择首轮校正结构，候选公式直接表达该关系。"
+  },
+  {
+   "questionId": "4-3/layered/1",
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "rationale": "题目要求形成包含反馈、前馈、滤波与抗饱和的复合控制方案，核心对应“复合控制”节点。"
+  },
+  {
+   "questionId": "4-3/layered/2",
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "rationale": "题目直接辨析狭义、广义及复杂工程复合结构，核心对应“复合控制”节点。"
+  },
+  {
+   "questionId": "4-3/layered/5",
+   "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "rationale": "题目要求把复合控制方案参数化为优化向量，核心对应“复合控制”节点。"
+  },
+  {
+   "questionId": "4-4/layered/3",
+   "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+   "rationale": "题目围绕海浪扰动下的目标函数重写，核心对应“扰动抑制”节点。"
+  },
+  {
+   "questionId": "5-1/layered/2",
+   "canonicalId": "ctkg:v3e-object-a21bf9714ef096463309f7ef",
+   "rationale": "题目核心是死区造成的小信号失效，候选描述函数公式直接对应带死区非线性。"
+  },
+  {
+   "questionId": "5-1/layered/3",
+   "canonicalId": "ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f",
+   "rationale": "题目直接比较可微与不可微环节的局部线性化，候选雅可比线性化公式与核心一致。"
+  },
+  {
+   "questionId": "5-2/layered/2",
+   "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+   "rationale": "题目明确要求写出并解释负倒描述函数，核心对应“负倒描述函数”节点。"
+  }
+ ]
+}

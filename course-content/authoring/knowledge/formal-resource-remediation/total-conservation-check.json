@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-total-conservation-check/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeMemberCount": 7476,
+ "ledgerRowCount": 22428,
+ "expectedRowCount": 22428,
+ "duplicates": 0,
+ "missingRowCount": 0,
+ "targetsOutsideScopeCount": 0,
+ "publishedEdges": 420,
+ "expectedPublishedEdges": 420,
+ "unresolved": 0,
+ "conserved": true
+}

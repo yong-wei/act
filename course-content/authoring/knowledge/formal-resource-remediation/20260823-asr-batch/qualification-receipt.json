@@ -1,0 +1,46 @@
+{
+ "contract": "remediation-asr-qualification-receipt/v1",
+ "preregistrationHash": "69d48f07f496d4c968283dfe345d16549cc16b6a47218eafae6aa38ff5f0da67",
+ "rows": [
+  {
+   "unit": "1-1",
+   "terms": 20,
+   "cer": 0.0304,
+   "termRecall": null
+  },
+  {
+   "unit": "2-1",
+   "terms": 9,
+   "cer": 0.0149,
+   "termRecall": null
+  },
+  {
+   "unit": "3-4",
+   "terms": 7,
+   "cer": 0.0236,
+   "termRecall": null
+  },
+  {
+   "unit": "4-3",
+   "terms": 9,
+   "cer": 0.0414,
+   "termRecall": null
+  },
+  {
+   "unit": "4-4",
+   "terms": 5,
+   "cer": 0.0215,
+   "termRecall": null
+  },
+  {
+   "unit": "5-4",
+   "terms": 5,
+   "cer": 0.0976,
+   "termRecall": null
+  }
+ ],
+ "averageCer": 0.0382,
+ "averageTermRecall": null,
+ "passed": true,
+ "receiptHash": "7a1a851953601e5a68d5ac00f520cb37f36e37c2d056095735b459bcecedee6e"
+}

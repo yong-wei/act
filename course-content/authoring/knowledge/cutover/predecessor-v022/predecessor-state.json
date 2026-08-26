@@ -1,0 +1,52 @@
+{
+ "contract": "cutover-predecessor-state/v1",
+ "readAt": "2026-08-25",
+ "host": "root@121.40.124.135:/home/projects/act",
+ "authority": {
+  "present": true,
+  "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+  "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+  "releaseId": "ctr:release:control-theory-engineering-v0.22",
+  "releaseSetId": "actkg-authority-candidate-v018-98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854",
+  "activationReceiptId": "v022-cutover-authority",
+  "activatedAt": "2026-08-20T00:00:00.000Z",
+  "manifest": {
+   "releaseHash": "3b858d5a36c3d3c1f2d073d63cfd815da8eea77c574b2523a4ac487bd916ad89",
+   "protocol": "actkg-public-bundle/2",
+   "objectCount": 7082,
+   "relationCount": 2932,
+   "predecessorReleaseId": null,
+   "bundleReceiptId": "bundle-receipt:v2:98f2d5b183f9c0e632e3e020fe45111140f00b9354"
+  }
+ },
+ "runtimeKnowledgePointers": {
+  "projection": "ABSENT",
+  "prerequisites": "ABSENT",
+  "authorityDomainShards": "ABSENT",
+  "authorityDomainCatalog": "ABSENT",
+  "consumerActivation": "ABSENT",
+  "productionCutoverTransactions": "ABSENT"
+ },
+ "activeRuntimeRelease": {
+  "releaseId": "runtime-89fef308a69fc468c1df353bd39f65b75b0faf8770eeeb41e99a328",
+  "lifecycleGeneration": 17,
+  "manifestSha256": "fe3782505674cc10b8da46a35d775dbbbf504e738c633823defa37c46ea11e7b",
+  "treeSha256": "67ce9c766780d51ffd7bcaf6fa8f5f68409d2192397a017b85535af5a263ed7d",
+  "manifestFileSha256": "07517cce723c3c3b71502b8ddcdc3ae95cb17b1fa038622ac8065b010d224357",
+  "activeReceiptSha256": "c410fa8d01ef96beb0b1aa8d252c54a7cd6874be1b04d2cac962e9076596ddf8",
+  "sourceRevision": "d67527450b514f693bf2ac7732c3390e3ba8ea6c",
+  "fileCount": 7272,
+  "totalBytes": 6181441171,
+  "inventoryFile": "runtime-active-inventory.json"
+ },
+ "stagedAuthoritySnapshotsOnHost": [
+  "snap-1b64a853dda5668d83d0d2f09cadf72937330ced6aa49611f8027a9d5ec008ed (v0.18)",
+  "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7 (v0.9)",
+  "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151 (v0.22)"
+ ],
+ "notes": [
+  "v0.22 activated the Authority surface only; the six runtime knowledge pointers have never existed on this host",
+  "this cutover is therefore an Authority successor switch (v0.22 -> v0.37) combined with a first activation of the runtime knowledge surfaces",
+  "the v040 first-activation preflight (all-ABSENT incl. authority) does not apply: authority/current.json is PRESENT"
+ ]
+}
