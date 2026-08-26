@@ -518,6 +518,11 @@ function fact(id: string, factType: string, score: number, context: Record<strin
     courseId: '3-6',
     contextJson: {
       goalId: CONTROL_CORRECTION_GOAL_ID,
+      evidenceGovernance: {
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'unit-test-complete-governance',
+      },
       ...context,
     },
   };
