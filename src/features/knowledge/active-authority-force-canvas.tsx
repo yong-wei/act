@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 
 import type { KnowledgeLinkData, KnowledgeNodeData } from './knowledge-graph-system';
 import { getEmptyKnowledgeGraphLayoutState } from './graph/layout-state';
@@ -76,8 +76,29 @@ export function ActiveAuthorityForceCanvas({
   const links = useMemo(() => toRuntimeLinks(view), [view]);
   const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const [layoutState] = useState(getEmptyKnowledgeGraphLayoutState);
+  const rendererHostRef = useRef<HTMLDivElement | null>(null);
+  const [rendererSize, setRendererSize] = useState<{ width: number; height: number } | null>(null);
   const fitViewRequest = useMemo(() => ({ id: 1, target: 'current' as const }), []);
   const showNodeDirectory = view.edges.length === 0 || showUnavailableTeachingDirectory;
+
+  useEffect(() => {
+    const host = rendererHostRef.current;
+    if (!host) return;
+    const updateRendererSize = () => {
+      const width = Math.floor(host.clientWidth);
+      const height = Math.floor(host.clientHeight);
+      if (width <= 0 || height <= 0) return;
+      setRendererSize((current) => current?.width === width && current.height === height
+        ? current
+        : { width, height });
+    };
+    updateRendererSize();
+    const observer = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(updateRendererSize);
+    observer?.observe(host);
+    return () => observer?.disconnect();
+  }, []);
 
   const handleNodeEvent = (node: KnowledgeNodeData | null, kind: 'click' | 'hover') => {
     if (kind === 'hover') {
@@ -98,7 +119,7 @@ export function ActiveAuthorityForceCanvas({
       role="application"
       aria-label={canvasAriaLabel}
     >
-      <div className="relative min-h-0 flex-1">
+      <div ref={rendererHostRef} className="relative min-h-0 flex-1">
         {liveEngine && dimension === '3d' ? (
           <KnowledgeGraphCanvas
             nodes={nodes}
@@ -117,6 +138,8 @@ export function ActiveAuthorityForceCanvas({
             activationSequenceByCenterId={{}}
             materializedNodeIds={nodes.map((row) => row.id)}
             graphVersion="active-authority"
+            width={rendererSize?.width}
+            height={rendererSize?.height}
           />
         ) : liveEngine ? (
           <KnowledgeGraph2D
@@ -136,6 +159,8 @@ export function ActiveAuthorityForceCanvas({
             activationSequenceByCenterId={{}}
             materializedNodeIds={nodes.map((row) => row.id)}
             graphVersion="active-authority"
+            width={rendererSize?.width}
+            height={rendererSize?.height}
           />
         ) : null}
       </div>

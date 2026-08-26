@@ -41,6 +41,7 @@ const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 const threeDimensionalFitSafetyMargin = 8;
 const MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT = 160;
+const MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS = 30;
 const captureOutputPrefixes = [
   'artifacts/knowledge-workspace-product-qa-489/',
   'artifacts/knowledge-workspace-tools-inspector-487/',
@@ -2116,6 +2117,32 @@ async function captureMarkers(page: Page, stateName: string) {
        && activeForceCanvasRect.width > 0
        && activeForceCanvasRect.height > 0,
      );
+     const activeForceVisiblePaintPixelCount = (() => {
+       if (!(activeForceCanvas instanceof HTMLCanvasElement) || !activeForceCanvasRect) return 0;
+       const visibleLeft = Math.max(activeForceCanvasRect.left, viewportRect.left);
+       const visibleTop = Math.max(activeForceCanvasRect.top, viewportRect.top);
+       const visibleRight = Math.min(activeForceCanvasRect.right, viewportRect.right);
+       const visibleBottom = Math.min(activeForceCanvasRect.bottom, viewportRect.bottom);
+       if (visibleRight <= visibleLeft || visibleBottom <= visibleTop) return 0;
+       const scaleX = activeForceCanvas.width / activeForceCanvasRect.width;
+       const scaleY = activeForceCanvas.height / activeForceCanvasRect.height;
+       const left = Math.max(0, Math.floor((visibleLeft - activeForceCanvasRect.left) * scaleX));
+       const top = Math.max(0, Math.floor((visibleTop - activeForceCanvasRect.top) * scaleY));
+       const right = Math.min(activeForceCanvas.width, Math.ceil((visibleRight - activeForceCanvasRect.left) * scaleX));
+       const bottom = Math.min(activeForceCanvas.height, Math.ceil((visibleBottom - activeForceCanvasRect.top) * scaleY));
+       if (right <= left || bottom <= top) return 0;
+       try {
+         const pixels = activeForceCanvas.getContext('2d')?.getImageData(left, top, right - left, bottom - top).data;
+         if (!pixels) return 0;
+         let count = 0;
+         for (let index = 0; index < pixels.length; index += 4) {
+           if (pixels[index + 3] > 16 && pixels[index] + pixels[index + 1] + pixels[index + 2] > 16) count += 1;
+         }
+         return count;
+       } catch {
+         return 0;
+       }
+     })();
      const activeForceEdgeLaneCount = (() => {
        const value = activeForceRenderer?.getAttribute('data-knowledge-edge-lanes');
        if (!value) return -1;
@@ -2259,6 +2286,7 @@ async function captureMarkers(page: Page, stateName: string) {
           svgVisibleInViewport: intersectsViewport(activeSvgRect),
           rendererVisibleInViewport,
           rendererViewportVisibleHeight,
+          rendererVisiblePaintPixelCount: activeForceVisiblePaintPixelCount,
           nodeGeometryWithinViewportCount,
           relationGeometryWithinViewportCount,
         },
@@ -2789,6 +2817,9 @@ async function captureActiveAuthorityVisualMatrix(
       const rendererViewportVisibleHeight = typeof activeFirstViewport.rendererViewportVisibleHeight === 'number'
         ? activeFirstViewport.rendererViewportVisibleHeight
         : 0;
+      const rendererVisiblePaintPixelCount = typeof activeFirstViewport.rendererVisiblePaintPixelCount === 'number'
+        ? activeFirstViewport.rendererVisiblePaintPixelCount
+        : 0;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
       const forceGraphReady = activeMarkers.renderer === 'force-graph'
@@ -2811,6 +2842,7 @@ async function captureActiveAuthorityVisualMatrix(
           || activeFirstViewport.titleControlsOverlap === true
           || !rendererVisibleInViewport
           || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
+          || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
         ))
         || surfaceScan.passed !== true
       ) {
@@ -2819,11 +2851,13 @@ async function captureActiveAuthorityVisualMatrix(
               activeFirstViewport.titleControlsOverlap === true
               || !rendererVisibleInViewport
               || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
+              || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
                 rendererVisibleInViewport,
                 rendererViewportVisibleHeight,
+                rendererVisiblePaintPixelCount,
               })}`
             : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
               knowledgeGraphMode: markers.knowledgeGraphMode ?? null,

@@ -2642,6 +2642,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         && numberFromEvidence(activeFirstViewport.rendererViewportVisibleHeight)! < 160
         ? `${name}:initial-canvas-visible-height`
         : null,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
+        ? `${name}:initial-canvas-content-missing`
+        : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'

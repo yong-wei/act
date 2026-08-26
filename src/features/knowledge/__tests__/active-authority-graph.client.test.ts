@@ -1797,7 +1797,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('titleControlsOverlap');
     expect(captureSource).toContain('nodeGeometryWithinViewportCount');
     expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS');
     expect(captureSource).toContain('rendererViewportVisibleHeight');
+    expect(captureSource).toContain('rendererVisiblePaintPixelCount');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
     expect(captureSource).toContain('firstViewport: {');
