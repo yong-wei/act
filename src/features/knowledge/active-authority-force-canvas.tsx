@@ -131,6 +131,7 @@ export function ActiveAuthorityForceCanvas({
       className="relative flex h-full min-h-[23rem] w-full flex-col overflow-hidden rounded-xl border border-platform-border bg-platform-canvas"
       data-active-authority-runtime="force-graph"
       data-active-authority-dimension={dimension}
+      data-active-authority-label-priority={compactLabelPriority ? 'true' : 'false'}
       data-active-graph-stage="authority"
       role="application"
       aria-label={canvasAriaLabel}

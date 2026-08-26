@@ -1382,7 +1382,7 @@ export function KnowledgeGraph2D({
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
   }, [graphData.nodes]);
 
-  const handleEngineTick = useCallback(() => {
+  const syncRichLabelLayer = useCallback(() => {
     labelProjectionRevisionRef.current += 1;
     const layer = rootRef.current?.querySelector('[data-knowledge-2d-dom-label-layer="true"]');
     const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
@@ -1408,6 +1408,10 @@ export function KnowledgeGraph2D({
       element.style.fontSize = `${placement.fontSize}px`;
     }
   }, [getFrameLabelPlacements, graphData.nodes]);
+
+  const handleEngineTick = useCallback(() => {
+    syncRichLabelLayer();
+  }, [syncRichLabelLayer]);
 
   const handleCanvasPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
@@ -1857,6 +1861,7 @@ export function KnowledgeGraph2D({
         onBackgroundClick={handleBackgroundClick}
         onEngineStop={handleEngineStop}
         onEngineTick={handleEngineTick}
+        onZoomEnd={syncRichLabelLayer}
         enableNodeDrag={true}
 
         // 物理引擎配置
