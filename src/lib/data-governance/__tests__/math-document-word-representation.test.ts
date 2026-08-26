@@ -131,6 +131,79 @@ describe('Word dual representation', () => {
     expect(result.integrity.verdict).toBe('scorable');
   });
 
+  it('maps a formula-only continuation into Markdown and a physical PDF region', async () => {
+    const docx = await buildDocx({
+      paragraphs: [
+        '<w:p><w:r><w:t>T1-1 计算：</w:t></w:r></w:p>',
+        '<w:p><m:oMath><m:r><m:t>x=1</m:t></m:r></m:oMath></w:p>',
+      ],
+    });
+    const result = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'formula-only.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1'],
+      adapter: adapter({ pages: [page(1, 'T1-1 计算： x=1', [
+        { text: 'T1-1 计算：', bbox: [20, 700, 130, 716] },
+        { text: 'x=1', bbox: [20, 670, 52, 686] },
+      ])] }),
+    });
+
+    expect(result.markdown).toContain('x=1');
+    expect(result.blocks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ text: 'x=1', questionId: 'T1-1', pageNumber: 1, bbox: [20, 670, 52, 686] }),
+    ]));
+  });
+
+  it('maps an unambiguous numbered question label and does not carry a prior question across an ambiguous label', async () => {
+    const docx = await buildDocx({ paragraphs: [
+      '<w:p><w:r><w:t>T1-1 第一问作答。</w:t></w:r></w:p>',
+      '<w:p><w:r><w:t>2. 第二问作答。</w:t></w:r></w:p>',
+    ] });
+    const result = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'numbered.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1', 'T1-2'],
+      adapter: adapter({ pages: [page(1, 'T1-1 第一问作答。 2. 第二问作答。', [
+        { text: 'T1-1 第一问作答。', bbox: [20, 700, 170, 716] },
+        { text: '2. 第二问作答。', bbox: [20, 660, 150, 676] },
+      ])] }),
+    });
+
+    expect(result.blocks.map((block) => block.questionId)).toEqual(['T1-1', 'T1-2']);
+    expect(result.questionStates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ questionId: 'T1-2', selectedBlockIds: ['word-block-2'] }),
+    ]));
+
+    const ambiguous = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'ambiguous-numbered.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1', 'T1-2', 'O2-2'],
+      adapter: adapter({ pages: [page(1, 'T1-1 第一问作答。 2. 第二问作答。', [
+        { text: 'T1-1 第一问作答。', bbox: [20, 700, 170, 716] },
+        { text: '2. 第二问作答。', bbox: [20, 660, 150, 676] },
+      ])] }),
+    });
+    expect(ambiguous.blocks.map((block) => block.questionId)).toEqual(['T1-1', null]);
+  });
+
+  it('selects a paragraph-order fallback region for a low-confidence question', async () => {
+    const docx = await buildDocx({ paragraphs: ['<w:p><w:r><w:t>T1-1 答案未能逐字匹配。</w:t></w:r></w:p>'] });
+    const result = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'fallback.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1'],
+      adapter: adapter({ pages: [page(1, '版面文本已损坏', [])] }),
+    });
+
+    expect(result.questionStates).toContainEqual(expect.objectContaining({
+      questionId: 'T1-1', selectedBlockIds: ['word-block-1'], mappingDecision: 'paragraph-order-fallback', mappingConfidence: 0.68,
+    }));
+  });
+
   it('preserves conflicting text and image signals and routes the affected question to review', async () => {
     const docx = await buildDocx({
       paragraphs: ['<w:p><w:r><w:t>T1-1 文本结论稳定。</w:t></w:r></w:p>'],

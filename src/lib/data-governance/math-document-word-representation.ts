@@ -322,8 +322,13 @@ function readParagraphs(document: XmlDocument, expectedQuestionIds: readonly str
       .map((candidate) => candidate.textContent ?? '')
       .join(''));
     const detectedQuestionId = text.match(/^\s*([A-Za-z]\d+(?:-\d+)+)(?:\s|[:：.、)）-]|$)/u)?.[1] ?? null;
+    const questionOrdinal = text.match(/^\s*(?:[\(（]\s*)?(\d+)\s*(?:[\)）]|[.、:：-])(?:\s|$)/u)?.[1] ?? null;
+    const ordinalCandidates = questionOrdinal
+      ? expectedQuestionIds.filter((questionId) => questionId.split('-').at(-1) === questionOrdinal)
+      : [];
     const explicitQuestionId = detectedQuestionId && (expectedQuestionIds.length === 0 || expectedQuestionIds.includes(detectedQuestionId))
       ? detectedQuestionId
+      : ordinalCandidates.length === 1 ? ordinalCandidates[0]!
       : null;
     const formulaElements = allElements(element).filter((candidate) => localName(candidate) === 'oMath');
     const formulas = formulaElements.map((formula) => ({
@@ -334,12 +339,13 @@ function readParagraphs(document: XmlDocument, expectedQuestionIds: readonly str
       .filter((candidate) => localName(candidate) === 'blip')
       .map((candidate) => attributeByLocalName(candidate, 'embed'))
       .filter((value): value is string => Boolean(value));
-    return { paragraphIndex, text, explicitQuestionId, formulas, imageRelationshipIds };
+    return { paragraphIndex, text, explicitQuestionId, hasQuestionMarker: Boolean(detectedQuestionId || questionOrdinal), formulas, imageRelationshipIds };
   });
   const explicitIds = raw.flatMap((paragraph) => paragraph.explicitQuestionId ? [paragraph.explicitQuestionId] : []);
   let currentQuestionId: string | null = expectedQuestionIds.length === 1 ? expectedQuestionIds[0] : null;
   return raw.map((entry) => {
     if (entry.explicitQuestionId) currentQuestionId = entry.explicitQuestionId;
+    else if (entry.hasQuestionMarker && expectedQuestionIds.length > 1) currentQuestionId = null;
     return {
       paragraph: {
         id: `word-paragraph-${entry.paragraphIndex + 1}`,
@@ -513,13 +519,16 @@ function buildQuestionStates(
     const reasons = uniqueIssues(issues.filter((entry) => entry.questionId === questionId)).map((entry) => entry.code);
     const blocked = globalBlocked || issues.some((entry) => entry.questionId === questionId && entry.severity === 'blocked');
     const candidates = blocks.filter((block) => block.questionId === questionId);
-    const selected = candidates.filter((block) => block.pageNumber != null).sort((left, right) => (right.confidence ?? 0) - (left.confidence ?? 0)).slice(0, 1);
+    const selected = candidates
+      .slice()
+      .sort((left, right) => (right.confidence ?? 0) - (left.confidence ?? 0) || (left.blockIndex ?? 0) - (right.blockIndex ?? 0))
+      .slice(0, 1);
     const mappingConfidence = selected.length > 0
       ? selected.reduce((total, block) => total + (block.confidence ?? 0), 0) / selected.length
       : candidates.length > 0 ? Math.max(...candidates.map((block) => block.confidence ?? 0)) : 0;
     const mappingDecision = selected.some((block) => block.bbox != null)
       ? 'pdf-text-region-match' as const
-      : selected.length > 0 ? 'pdf-page-match' as const
+      : selected.some((block) => block.pageNumber != null) ? 'pdf-page-match' as const
       : candidates.length > 0 ? 'paragraph-order-fallback' as const : 'unmapped' as const;
     return {
       questionId,
