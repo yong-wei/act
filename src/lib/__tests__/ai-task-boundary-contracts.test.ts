@@ -269,6 +269,10 @@ describe('ai task boundary contracts', () => {
       outputTarget: 'portfolio-draft',
       writebackBehavior: 'draft',
     });
+    expect(getAiAuditTaskContract('evidence-copilot')).toMatchObject({
+      outputTarget: 'answer',
+      writebackBehavior: 'none',
+    });
   });
 
   it('normalizes a portfolio reflection descriptor with server-owned output rules', () => {

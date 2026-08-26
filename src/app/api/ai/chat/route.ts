@@ -23,6 +23,13 @@ import {
   buildAiAuditTaskPrompt,
   resolveAiAuditTaskContext,
 } from '@/lib/ai-task-boundary-contracts';
+import {
+  buildEvidenceCopilotPrompt,
+  mapEvidenceCopilotRole,
+  parseEvidenceCopilotRequest,
+  resolveEvidenceCopilotContext,
+  type EvidenceCopilotProjection,
+} from '@/lib/evidence-copilot-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -287,7 +294,16 @@ export async function POST(request: Request) {
       });
     }
 
-    const taskContextResolution = resolveAiAuditTaskContext(auditTaskContext);
+    const evidenceTaskResolution = parseEvidenceCopilotRequest(auditTaskContext);
+    if (evidenceTaskResolution.status === 'invalid') {
+      return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const taskContextResolution = evidenceTaskResolution.status === 'valid'
+      ? { status: 'absent' as const, context: null }
+      : resolveAiAuditTaskContext(auditTaskContext);
     if (taskContextResolution.status === 'invalid') {
       return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
         status: 400,
@@ -298,6 +314,21 @@ export async function POST(request: Request) {
       ? taskContextResolution.context
       : null;
     const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+    let evidenceCopilotProjection: EvidenceCopilotProjection | null = null;
+    if (evidenceTaskResolution.status === 'valid') {
+      if (!session?.user?.id) {
+        return new Response(JSON.stringify({ error: '未授权' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      evidenceCopilotProjection = await resolveEvidenceCopilotContext({
+        userId: session.user.id,
+        role: mapEvidenceCopilotRole(session.user.role),
+        hints: evidenceTaskResolution.hints,
+        db: prisma,
+      });
+    }
 
     if (serverTaskContext) {
       console.info('[ai.task-context]', JSON.stringify(buildAiAuditTaskLogEntry(serverTaskContext, requestId)));
@@ -775,6 +806,9 @@ export async function POST(request: Request) {
 
     if (serverTaskContext) {
       systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
+    }
+    if (evidenceCopilotProjection) {
+      systemPrompt = `${systemPrompt}\n\n${buildEvidenceCopilotPrompt(evidenceCopilotProjection)}`;
     }
 
     tools = withoutCalculateTool(tools);
@@ -1287,9 +1321,18 @@ export async function POST(request: Request) {
         : buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
+    const responseHeaders = new Headers(agentSessionResponseHeaders);
+    if (evidenceCopilotProjection) {
+      responseHeaders.set('X-Evidence-Copilot-Status', evidenceCopilotProjection.status);
+      responseHeaders.set(
+        'X-Evidence-Copilot-Limitations',
+        encodeURIComponent(evidenceCopilotProjection.limitations.join('|')),
+      );
+    }
+
     // 返回流式响应
     return createUIMessageStreamResponse({
-      headers: agentSessionResponseHeaders,
+      headers: responseHeaders,
       stream: guardedUiMessageStream,
       consumeSseStream: consumeStream,
     });
