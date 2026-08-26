@@ -3033,6 +3033,8 @@ export default function AdaptivePracticePage() {
     ? `adaptive-path:${activePathId}:${activeNodeId}`
     : null;
   const sessionId = pathAssessmentSessionId ?? practiceSessionId;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
@@ -3705,11 +3707,12 @@ export default function AdaptivePracticePage() {
       return;
     }
 
+    const requestedSessionId = sessionId;
     const response = await fetch('/api/assessment/next-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId,
+        sessionId: requestedSessionId,
         goalId: activeGoal,
         routeIntent: activeGoal ? routeIntent : null,
         pathId: activePathId,
@@ -3718,10 +3721,12 @@ export default function AdaptivePracticePage() {
     });
 
     if (!response.ok) {
+      if (sessionIdRef.current !== requestedSessionId) return;
       throw new Error('下一题加载失败');
     }
 
     const data = (await response.json()) as NextQuestionResponse;
+    if (sessionIdRef.current !== requestedSessionId) return;
     setQuestionState(data);
     setSelectedOption('');
     setFeedback(null);
@@ -4956,13 +4961,14 @@ export default function AdaptivePracticePage() {
 
     setLoading(true);
     setError(null);
+    const requestedSessionId = sessionId;
 
     try {
       const response = await fetch('/api/assessment/submit-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          sessionId: requestedSessionId,
           questionId: questionState.question.id,
           selectedOption,
           timeSpent: Math.max(1, Math.round((Date.now() - questionStartAt) / 1000)),
@@ -4974,10 +4980,12 @@ export default function AdaptivePracticePage() {
       });
 
       if (!response.ok) {
+        if (sessionIdRef.current !== requestedSessionId) return;
         throw new Error('提交失败');
       }
 
       const data = (await response.json()) as SubmitAnswerResponse;
+      if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
       await syncAdaptiveAssessmentPathResult(data);

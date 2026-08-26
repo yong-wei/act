@@ -48,6 +48,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('data-micro-tutoring-unavailable={microTutoringUnavailableReason}');
     expect(source).toContain('data-micro-tutoring-retry-attribution="true"');
     expect(source).toContain("}, [sessionId]);");
+    expect(source).toContain('sessionIdRef.current = sessionId');
+    expect(source).toContain('if (sessionIdRef.current !== requestedSessionId) return;');
     expect(source).toContain('<StudentMicroTutoringPanel');
     expect(source).toContain('onRequestHint={requestAttemptDiagnosis}');
   });
