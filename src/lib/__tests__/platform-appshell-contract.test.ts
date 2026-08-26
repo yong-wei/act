@@ -402,6 +402,7 @@ describe('universal AppShell frame contract', () => {
       '/arena',
       '/simulations',
       '/interactive-learning/control-workbench',
+      '/evaluation/prompt-assessment',
       '/profile',
     ]);
 

@@ -1177,7 +1177,7 @@ describe('platform UI contracts', () => {
       ...listSourceFiles('src/components/platform'),
     ];
     const invalidLiteralBusinessRole =
-      /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
+      /(?<![\w-])role\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
     const businessRoleForwardedToDom =
       /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
 
@@ -1364,7 +1364,7 @@ describe('platform UI contracts', () => {
   });
 
   it('keeps student primary navigation in canonical order across AppShell states', () => {
-    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '个人中心'];
+    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '提示词复盘', '个人中心'];
     const representativeRoutes = [
       '/knowledge',
       '/interactive-learning',

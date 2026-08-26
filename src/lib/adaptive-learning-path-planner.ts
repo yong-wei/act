@@ -2438,6 +2438,7 @@ export function recordLearningPathFeedback(
       timeline: buildTimelinePayload(mainPath, visualization.timeline.generatedAt),
       evidence: {
         ...visualization.evidence,
+        learnerStateDeficits: visualization.evidence?.learnerStateDeficits ?? [],
         prerequisiteReasons: mainPath
           .filter((node) => node.prerequisiteNodeIds.length > 0)
           .map((node) => ({ nodeId: node.nodeId, prerequisiteNodeIds: node.prerequisiteNodeIds })),
@@ -2555,7 +2556,7 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
   const resourceMix = buildModalityMix(plan.mainPath);
   const targetDeficits = deficitsForPath(
     plan.mainPath,
-    plan.visualization.evidence.learnerStateDeficits,
+    plan.visualization?.evidence?.learnerStateDeficits ?? [],
   );
   return [{
     optionId: 'path-option-1',
@@ -2574,7 +2575,7 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
       path: plan.mainPath,
       deficits: targetDeficits,
       confidence: plan.confidence.level,
-      learnerStateSnapshot: plan.visualization.evidence.learnerStateSnapshot,
+      learnerStateSnapshot: plan.visualization?.evidence?.learnerStateSnapshot,
     }),
     evidenceBasis: plan.confidence.level === 'low'
       ? ['learner-evidence-low-confidence']
@@ -5046,7 +5047,7 @@ function buildPolicyBundle(
           path: mainPath,
           deficits: targetDeficits,
           confidence: plan.confidence.level,
-          learnerStateSnapshot: plan.visualization.evidence.learnerStateSnapshot,
+          learnerStateSnapshot: plan.visualization?.evidence?.learnerStateSnapshot,
         }),
         evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
         estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
@@ -5635,7 +5636,7 @@ function buildPathEvidenceBasis(
     ...Object.entries(sourceCoverage)
       .filter(([, state]) => state === 'available' || state === 'partial')
       .map(([source]) => source),
-    plan.visualization.evidence.evidenceBasis,
+    ...(plan.visualization?.evidence?.evidenceBasis ?? []),
   ]);
 }
 
