@@ -8,6 +8,8 @@ import type { QualificationFailure, ReleaseQualificationManifest } from './types
 import { RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION } from './types';
 
 const FRESHNESS_MS = 14 * 24 * 60 * 60 * 1000;
+const RELEASE_SCOPES = new Set(['commercial-ui', 'runtime', 'knowledge', 'oss', 'deployment']);
+const RELEASE_SCHEMA = /^[A-Za-z0-9][A-Za-z0-9._-]*\/v\d+$/u;
 
 export function parseReleaseManifest(text: string): ReleaseQualificationManifest {
   const parsed = JSON.parse(text) as ReleaseQualificationManifest;
@@ -43,6 +45,12 @@ export function validateReleaseManifest(
     }
     const privacy = privacyViolation(JSON.stringify(artifact));
     if (privacy) failures.push({ code: `release-privacy-${privacy}`, identity: artifact.path });
+    if (!artifact.schema || !RELEASE_SCHEMA.test(artifact.schema)) {
+      failures.push({ code: 'release-artifact-schema', identity: artifact.path });
+    }
+    if (!artifact.scope || !RELEASE_SCOPES.has(artifact.scope)) {
+      failures.push({ code: 'release-artifact-scope', identity: artifact.path });
+    }
     if (artifact.sourceCommit !== manifest.sourceCommit || artifact.sourceTree !== manifest.sourceTree) {
       failures.push({ code: 'release-artifact-revision-drift', identity: artifact.path });
     }

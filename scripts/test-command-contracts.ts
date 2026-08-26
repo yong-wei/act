@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
@@ -13,12 +14,15 @@ import {
   discoveryCoreHash,
   evaluateFailClosed,
   generateLiveDiscovery,
+  parseUnhandledSidecar,
+  parseVitestJson,
   projectCiMappingDoc,
   projectCommandContractsDoc,
   projectHandoffDoc,
   projectReceiptsDoc,
   releaseCommandFailures,
   type GovernedCommandId,
+  type VitestExecutionSummary,
 } from '../src/lib/architecture-test-commands';
 
 const GOVERNED = new Set<GovernedCommandId>([
@@ -58,47 +62,77 @@ function vitestEnv(): NodeJS.ProcessEnv {
   return { ...process.env, NODE_OPTIONS: nodeOptions };
 }
 
-function executeCommand(commandId: GovernedCommandId, manifest: string | null): number {
+function emptySummary(status: number): VitestExecutionSummary & { status: number } {
+  return { status, passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0 };
+}
+
+function runVitest(extraArgs: readonly string[]): VitestExecutionSummary & { status: number } {
+  const dir = mkdtempSync(join(tmpdir(), 'test-command-contracts-'));
+  const outputFile = join(dir, 'vitest.json');
+  const sidecarFile = join(dir, 'unhandled.json');
+  try {
+    const status = run('npx', [
+      'vitest',
+      'run',
+      ...extraArgs,
+      '--reporter=json',
+      `--outputFile=${outputFile}`,
+      '--reporter=./src/lib/architecture-census/vitest-unhandled-reporter.ts',
+    ], {
+      ...vitestEnv(),
+      ARCHITECTURE_CENSUS_VITEST_SIDECAR: sidecarFile,
+    });
+    let summary: VitestExecutionSummary = { passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0 };
+    try {
+      summary = parseVitestJson(readFileSync(outputFile, 'utf8'), process.cwd());
+    } catch {
+      summary = { ...summary, failed: Math.max(summary.failed, 1) };
+    }
+    try {
+      summary = { ...summary, unhandledErrors: parseUnhandledSidecar(readFileSync(sidecarFile, 'utf8')) };
+    } catch {
+      // Sidecar is absent when the reporter did not start; keep fail-visible via status.
+    }
+    return { ...summary, status };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function executeCommand(commandId: GovernedCommandId, manifest: string | null): VitestExecutionSummary & { status: number } {
   if (commandId === 'test') {
-    const steps: Array<[string, string[]]> = [
+    const prelude: Array<[string, string[]]> = [
       ['npm', ['run', 'test:smart-courseware']],
       ['node', ['./scripts/tests/smoke-test.mjs']],
       ['node', ['./scripts/tests/test-arena-home-entry.mjs']],
       ['node', ['./scripts/tests/test-arena-routes.mjs']],
-      ['npx', ['vitest', 'run', 'src/lib/__tests__/test-command-contracts.test.ts']],
     ];
-    for (const [bin, args] of steps) {
-      const status = run(bin, args, bin === 'npx' ? vitestEnv() : process.env);
-      if (status !== 0) return status;
+    for (const [bin, args] of prelude) {
+      const status = run(bin, args);
+      if (status !== 0) return emptySummary(status);
     }
-    return 0;
+    return runVitest(['src/lib/__tests__/test-command-contracts.test.ts']);
   }
-  if (commandId === 'test:unit') {
-    return run('npx', ['vitest', 'run'], vitestEnv());
-  }
-  if (commandId === 'test:contract') {
-    return run('npx', ['vitest', 'run', '--config', 'vitest.contract.config.ts'], vitestEnv());
-  }
-  if (commandId === 'test:integration') {
-    return run('npx', ['vitest', 'run', '--config', 'vitest.integration.config.ts'], vitestEnv());
-  }
+  if (commandId === 'test:unit') return runVitest([]);
+  if (commandId === 'test:contract') return runVitest(['--config', 'vitest.contract.config.ts']);
+  if (commandId === 'test:integration') return runVitest(['--config', 'vitest.integration.config.ts']);
   if (commandId === 'test:e2e:critical') {
     const files = [...commandContract('test:e2e:critical').executionIdentities];
-    return run('npx', ['playwright', 'test', ...files], process.env);
+    return emptySummary(run('npx', ['playwright', 'test', ...files]));
   }
   if (commandId === 'test:release') {
     const failures = releaseCommandFailures(process.cwd(), manifest);
     if (failures.length > 0) {
       console.error(failures);
-      return 1;
+      return emptySummary(1);
     }
-    return 0;
+    return emptySummary(0);
   }
   if (commandId === 'test:nightly') {
-    console.log('nightly remainder is inventoried; full execution is owner-scheduled and is not an accepted skip');
-    return 0;
+    console.error('nightly-execution-not-run');
+    return emptySummary(1);
   }
-  return 1;
+  return emptySummary(1);
 }
 
 function writeDocs(outDir: string, coreText: string, docs: Record<string, string>): void {
@@ -126,7 +160,8 @@ function main(): void {
   }
 
   const generated = generateLiveDiscovery({ repoRoot, writeQualified: write });
-  const failClosed = evaluateFailClosed({
+  let execution: VitestExecutionSummary & { status: number } = emptySummary(0);
+  const discoveryClosed = evaluateFailClosed({
     assertionFailures: 0,
     unhandledErrors: 0,
     unregisteredSkips: [],
@@ -135,6 +170,8 @@ function main(): void {
     evidenceDrift: 0,
     acceptedFailures: 0,
     receiptDrift: 0,
+    dirtyWorktree: generated.dirty ? 1 : 0,
+    mixedWorktree: generated.mixedWorktree ? 1 : 0,
   });
   const coreText = deterministicDiscoveryText(generated.core);
   const privacy = privacyViolation(coreText);
@@ -159,28 +196,44 @@ function main(): void {
     sourceTree: generated.core.sourceTree,
     totals: generated.core.totals,
     failures: generated.failures.map((item) => item.code),
-    failClosed: failClosed.reasons,
+    failClosed: discoveryClosed.reasons,
     dirty: generated.dirty,
     mixedWorktree: generated.mixedWorktree,
     discoveryCoreHash: discoveryCoreHash(generated.core),
   }).trim());
 
-  if (!failClosed.ok && commandId !== 'test:release') {
+  if (!discoveryClosed.ok && commandId !== 'test:release') {
     console.error(generated.core.unresolved.slice(0, 20));
+    console.error(generated.failures.slice(0, 20));
     process.exitCode = 1;
     return;
   }
 
-  let exitStatus = failClosed.ok ? 0 : 1;
-  if (execute && commandId) {
-    exitStatus = executeCommand(commandId, manifest);
+  let exitStatus = discoveryClosed.ok ? 0 : 1;
+  if (commandId === 'test:nightly') {
+    execution = executeCommand(commandId, manifest);
+    exitStatus = 1;
+  } else if (execute && commandId) {
+    execution = executeCommand(commandId, manifest);
+    exitStatus = execution.status;
   } else if (commandId === 'test:release') {
-    const failures = releaseCommandFailures(repoRoot, manifest);
-    if (failures.length > 0) {
-      console.error(failures);
-      exitStatus = 1;
-    }
+    execution = executeCommand(commandId, manifest);
+    exitStatus = execution.status;
   }
+
+  const failClosed = evaluateFailClosed({
+    assertionFailures: execution.failed,
+    unhandledErrors: execution.unhandledErrors,
+    unregisteredSkips: execution.skipped,
+    unresolved: generated.core.totals.unresolved,
+    denominatorGaps: generated.failures.some((item) => item.code === 'discovery-denominator-gap') ? 1 : 0,
+    evidenceDrift: commandId === 'test:release' && exitStatus !== 0 ? 1 : 0,
+    acceptedFailures: 0,
+    receiptDrift: 0,
+    dirtyWorktree: generated.dirty ? 1 : 0,
+    mixedWorktree: generated.mixedWorktree ? 1 : 0,
+  });
+  if (!failClosed.ok) exitStatus = 1;
 
   const receipt = createTestMeasurementReceipt({
     sourceCommit: generated.core.sourceCommit,
@@ -197,8 +250,17 @@ function main(): void {
       classified: generated.core.totals.classified,
       excluded: generated.core.totals.excluded,
       unresolved: generated.core.totals.unresolved,
+      passed: execution.passed,
+      failed: execution.failed,
+      skipped: execution.skipped.length,
+      unhandledErrors: execution.unhandledErrors,
+      qualified: failClosed.ok && !generated.dirty && !generated.mixedWorktree ? 1 : 0,
     },
-    fingerprints: generated.core.unresolved.slice(0, 20).map((item) => `${item.code}:${item.identity}`),
+    fingerprints: [
+      ...generated.core.unresolved.slice(0, 10).map((item) => `${item.code}:${item.identity}`),
+      ...execution.skipped.slice(0, 10),
+      ...failClosed.reasons,
+    ],
   });
   console.log(`receipt ${receipt.receiptId} exit ${exitStatus}`);
   process.exitCode = exitStatus;

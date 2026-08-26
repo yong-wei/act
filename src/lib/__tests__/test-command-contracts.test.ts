@@ -14,10 +14,27 @@ import {
   discoverTests,
   evaluateFailClosed,
   matchesGlob,
+  parseVitestJson,
   qualifyDiscovery,
   validateReleaseManifest,
 } from '@/lib/architecture-test-commands';
 import { RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION } from '@/lib/architecture-test-commands';
+
+function closed(partial: Partial<Parameters<typeof evaluateFailClosed>[0]> = {}) {
+  return evaluateFailClosed({
+    assertionFailures: 0,
+    unhandledErrors: 0,
+    unregisteredSkips: [],
+    unresolved: 0,
+    denominatorGaps: 0,
+    evidenceDrift: 0,
+    acceptedFailures: 0,
+    receiptDrift: 0,
+    dirtyWorktree: 0,
+    mixedWorktree: 0,
+    ...partial,
+  });
+}
 
 const COMMIT = 'c'.repeat(40);
 const TREE = 'd'.repeat(40);
@@ -133,86 +150,40 @@ describe('test command contracts', () => {
   });
 
   it('fails closed for assertion failure, unhandled error, unregistered skip, discovery gap, evidence drift, and accepted failure', () => {
-    expect(evaluateFailClosed({
-      assertionFailures: 1,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).ok).toBe(false);
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 1,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).reasons).toContain('unhandled-error');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: ['src/lib/__tests__/hidden.test.ts'],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).reasons).toContain('unregistered-skip');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 1,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).reasons).toContain('unresolved-discovery');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 1,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).reasons).toContain('denominator-gap');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 1,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).reasons).toContain('evidence-drift');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 1,
-      receiptDrift: 0,
-    }).reasons).toContain('accepted-failure');
-    expect(evaluateFailClosed({
-      assertionFailures: 0,
-      unhandledErrors: 0,
-      unregisteredSkips: [],
-      unresolved: 0,
-      denominatorGaps: 0,
-      evidenceDrift: 0,
-      acceptedFailures: 0,
-      receiptDrift: 0,
-    }).ok).toBe(true);
+    expect(closed({ assertionFailures: 1 }).ok).toBe(false);
+    expect(closed({ unhandledErrors: 1 }).reasons).toContain('unhandled-error');
+    expect(closed({ unregisteredSkips: ['src/lib/__tests__/hidden.test.ts'] }).reasons).toContain('unregistered-skip');
+    expect(closed({ unresolved: 1 }).reasons).toContain('unresolved-discovery');
+    expect(closed({ denominatorGaps: 1 }).reasons).toContain('denominator-gap');
+    expect(closed({ evidenceDrift: 1 }).reasons).toContain('evidence-drift');
+    expect(closed({ acceptedFailures: 1 }).reasons).toContain('accepted-failure');
+    expect(closed({ dirtyWorktree: 1 }).reasons).toContain('dirty-worktree');
+    expect(closed({ mixedWorktree: 1 }).reasons).toContain('mixed-worktree');
+    expect(closed().ok).toBe(true);
+  });
+
+  it('treats vitest skipped assertions as unregistered skips unless the command records them', () => {
+    const summary = parseVitestJson(JSON.stringify({
+      numPassedTests: 1,
+      numFailedTests: 0,
+      testResults: [{
+        name: 'src/lib/__tests__/hidden.test.ts',
+        assertionResults: [
+          { status: 'passed', fullName: 'keeps passing' },
+          { status: 'skipped', fullName: 'hidden skip' },
+        ],
+      }],
+    }));
+    expect(summary.skipped).toEqual(['src/lib/__tests__/hidden.test.ts::hidden skip']);
+    expect(closed({ unregisteredSkips: summary.skipped }).ok).toBe(false);
+  });
+
+  it('does not allow integration remainder to hide uncovered members, and nightly is not a successful no-op', () => {
+    expect(commandContract('test:integration').remainderExecution).toBe(false);
+    expect(commandContract('test:nightly').remainderExecution).toBe(true);
+    const core = discover([...ROOTS, 'scripts/tests/test-teacher-default-class-postgres.ts']);
+    expect(core.members.find((item) => item.identity.endsWith('test-teacher-default-class-postgres.ts'))?.layer).toBe('nightly');
+    expect(core.unresolved.some((item) => item.code === 'execution-gap' && item.identity.endsWith('db.integration.test.ts'))).toBe(false);
   });
 
   it('blocks qualification when the charter is missing even if the baseline identity is present', () => {
@@ -220,6 +191,12 @@ describe('test command contracts', () => {
     expect(core.baseline.censusCoreSha256).toBe(REQUIRED_BASELINE.censusCoreSha256);
     const failures = qualifyDiscovery(core, { charterPresent: false, charterSha256: null });
     expect(failures.some((item) => item.code === 'charter-missing-or-unqualified')).toBe(true);
+  });
+
+  it('blocks qualification on a dirty or mixed worktree instead of minting a HEAD-bound receipt', () => {
+    const core = discover(ROOTS);
+    expect(qualifyDiscovery(core, { charterSha256: REQUIRED_CHARTER.sha256, charterPresent: true, dirty: true }).some((item) => item.code === 'dirty-worktree')).toBe(true);
+    expect(qualifyDiscovery(core, { charterSha256: REQUIRED_CHARTER.sha256, charterPresent: true, mixedWorktree: true }).some((item) => item.code === 'mixed-worktree')).toBe(true);
   });
 
   it('rejects release manifests that are missing, drifted, or stale, and keeps product commands independent of them', () => {
@@ -244,6 +221,28 @@ describe('test command contracts', () => {
       fileContents: { 'artifacts/commercial-ui/proof.json': '{"ok":true}\n' },
     });
     expect(failures.some((item) => item.code === 'release-artifact-hash-drift' || item.code === 'release-artifact-stale')).toBe(true);
+    const missingShape = validateReleaseManifest({
+      schemaVersion: RELEASE_QUALIFICATION_MANIFEST_SCHEMA_VERSION,
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      artifacts: [{
+        path: 'artifacts/commercial-ui/proof.json',
+        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        schema: '',
+        scope: '',
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        capturedAt: '2026-08-27T00:00:00.000Z',
+      }],
+    }, {
+      repoRoot: '/repo',
+      expectedCommit: COMMIT,
+      expectedTree: TREE,
+      now: new Date('2026-08-27T00:00:00.000Z'),
+      fileContents: { 'artifacts/commercial-ui/proof.json': '' },
+    });
+    expect(missingShape.some((item) => item.code === 'release-artifact-schema')).toBe(true);
+    expect(missingShape.some((item) => item.code === 'release-artifact-scope')).toBe(true);
     expect(commandContract('test').requiredInputs).not.toContain('qualification-manifest');
     expect(commandContract('test:release').requiredInputs).toContain('qualification-manifest');
   });

@@ -28,6 +28,7 @@ export {
   releaseCommandFailures,
 } from './generate';
 export { parseReleaseManifest, validateReleaseManifest } from './release';
+export { parseUnhandledSidecar, parseVitestJson } from './results';
 export {
   projectCiMappingDoc,
   projectCommandContractsDoc,
@@ -50,3 +51,4 @@ export type {
   ReleaseQualificationManifest,
   TestMeasurementReceipt,
 } from './types';
+export type { VitestExecutionSummary } from './results';

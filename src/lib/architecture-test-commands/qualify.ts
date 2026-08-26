@@ -20,6 +20,8 @@ export function evaluateFailClosed(input: FailClosedInput): FailClosedResult {
   if (input.evidenceDrift > 0) reasons.push('evidence-drift');
   if (input.acceptedFailures > 0) reasons.push('accepted-failure');
   if (input.receiptDrift > 0) reasons.push('receipt-drift');
+  if (input.dirtyWorktree > 0) reasons.push('dirty-worktree');
+  if (input.mixedWorktree > 0) reasons.push('mixed-worktree');
   return { ok: reasons.length === 0, reasons };
 }
 
@@ -54,8 +56,8 @@ export function qualifyDiscovery(
   if (core.totals.discovered !== core.totals.classified + core.totals.excluded + core.unresolved.filter((item) => item.code === 'missing-root' || item.code === 'missing-classification').length) {
     failures.push({ code: 'discovery-denominator-gap', identity: 'universe-not-closed' });
   }
-  if (options.writeQualified && options.dirty) failures.push({ code: 'dirty-worktree', identity: core.sourceCommit });
-  if (options.writeQualified && options.mixedWorktree) failures.push({ code: 'mixed-worktree', identity: core.sourceTree });
+  if (options.dirty) failures.push({ code: 'dirty-worktree', identity: core.sourceCommit });
+  if (options.mixedWorktree) failures.push({ code: 'mixed-worktree', identity: core.sourceTree });
   return uniqueFailures(failures);
 }
 

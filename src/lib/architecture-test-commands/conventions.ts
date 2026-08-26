@@ -105,8 +105,8 @@ export function classifyLayer(path: string): { layer: TestLayer; rule: string; o
   if (RELEASE_IDENTITIES.has(path)) {
     return { layer: 'release', rule: 'release-evidence-consumer', owner };
   }
-  if (/\.(?:integration|real-db)(?:\.|test)/u.test(path) || /(?:postgres|redis|pglite)/iu.test(path)) {
-    return { layer: 'integration', rule: 'integration-name-or-datastore', owner };
+  if (/\.(?:integration|real-db)(?:\.|test)/u.test(path)) {
+    return { layer: 'integration', rule: 'integration-vitest-name', owner };
   }
   if (/\.real-smoke\.test\./u.test(path) || /(?:real-e2e|real-provider|wolfram|visual-acceptance|performance\.spec)/iu.test(path)) {
     return { layer: 'nightly', rule: 'environment-sensitive-or-visual', owner };
@@ -243,12 +243,12 @@ export const COMMAND_CONTRACTS: readonly CommandContract[] = [
     requiredInputs: [],
     executionGlobs: [...INTEGRATION_GLOBS],
     executionIdentities: [],
-    remainderExecution: true,
+    remainderExecution: false,
     ciWorkflow: null,
     ciJob: null,
     historicalComponents: [
       { npmScript: 'test:e2e:playwright', owner: 'platform', role: 'former-test-integration-playwright-bundle' },
-      { npmScript: 'test:data-governance', owner: 'learning-record', role: 'postgres-integration-component' },
+      { npmScript: 'test:data-governance', owner: 'learning-record', role: 'postgres-scripts-remain-nightly-until-executed' },
     ],
   }),
   contract({

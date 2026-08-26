@@ -158,6 +158,8 @@ export interface FailClosedInput {
   readonly evidenceDrift: number;
   readonly acceptedFailures: number;
   readonly receiptDrift: number;
+  readonly dirtyWorktree: number;
+  readonly mixedWorktree: number;
 }
 
 export interface FailClosedResult {
