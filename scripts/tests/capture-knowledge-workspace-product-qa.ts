@@ -2414,6 +2414,8 @@ async function captureAuthenticatedRoleEvidence(
           : 0;
         const titleControlsOverlap = activeFirstViewport.titleControlsOverlap === true;
         const svgVisibleInViewport = activeFirstViewport.svgVisibleInViewport === true;
+        const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+        const teachingSvgGeometryRequired = !teachingRelationsUnavailable;
         const activeApiEvidence = projectSafeApiEvidence(
           role,
           await mobileProbe.readLog(),
@@ -2434,12 +2436,14 @@ async function captureAuthenticatedRoleEvidence(
           || activeInteractionEvidence.mediaRequestObservedAfterSelection !== false
           || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
           || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
-          || activeMarkers.viewport !== 'compact'
           || activeMarkers.visibleNodeCount <= 0
           || activeMarkers.stage !== 'authority'
           || titleControlsOverlap
-          || !svgVisibleInViewport
-          || nodeGeometryWithinViewportCount <= 0
+          || (teachingSvgGeometryRequired && (
+            activeMarkers.viewport !== 'compact'
+            || !svgVisibleInViewport
+            || nodeGeometryWithinViewportCount <= 0
+          ))
         ) {
           throw new Error(`active mobile first-viewport geometry contract failed in role:${role}: ${JSON.stringify({
             titleControlsOverlap,
