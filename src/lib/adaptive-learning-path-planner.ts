@@ -5439,14 +5439,19 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
     ? 'low'
     : input.confidence;
+  const appliedPreferredModalities = trustedPreferredModalitiesOnPath(
+    input.path,
+    input.learnerStateSnapshot,
+  );
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
+    unmatchedPreferredModalityLimitation(input.learnerStateSnapshot, appliedPreferredModalities),
   ]);
-  const personalizationNotes = input.learnerStateSnapshot?.preferredModalities.length
-    ? [`根据你的学习方式偏好，优先安排${input.learnerStateSnapshot.preferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
+  const personalizationNotes = appliedPreferredModalities.length
+    ? [`根据你的学习方式偏好，优先安排${appliedPreferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
     : [];
   return {
     summary: confidence === 'low'
@@ -5471,6 +5476,43 @@ function recommendationEntryConfidence(
   if (deficit.evidenceCount < 2 || deficit.confidence < 0.5) return 'low';
   if (deficit.evidenceCount < 5 || deficit.confidence < 0.75) return 'medium';
   return 'high';
+}
+
+function isTrustedPersonalizationSnapshot(
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+): snapshot is AdaptiveLearningPathLearnerStateSnapshot {
+  return Boolean(
+    snapshot
+      && snapshot.confidence.level !== 'none'
+      && snapshot.confidence.level !== 'low'
+      && snapshot.freshness !== 'stale'
+  );
+}
+
+function pathResourceTypes(path: AdaptiveLearningPathPlanNode[]): Set<string> {
+  return new Set(
+    path.flatMap((node) => [node.type, node.pathNodeType].filter(Boolean)),
+  );
+}
+
+function trustedPreferredModalitiesOnPath(
+  path: AdaptiveLearningPathPlanNode[],
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+): string[] {
+  if (!isTrustedPersonalizationSnapshot(snapshot)) return [];
+  const present = pathResourceTypes(path);
+  return snapshot.preferredModalities.filter((modality) => present.has(modality));
+}
+
+function unmatchedPreferredModalityLimitation(
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+  appliedPreferredModalities: string[],
+): string | null {
+  if (!snapshot?.preferredModalities.length || appliedPreferredModalities.length > 0) return null;
+  if (!isTrustedPersonalizationSnapshot(snapshot)) {
+    return '学习方式偏好证据不足或已过期，本路径未据此调整资源组合。';
+  }
+  return '当前学习方式偏好未能落实到本路径的可用资源。';
 }
 
 function resourceTypeLabel(resourceType: string): string {

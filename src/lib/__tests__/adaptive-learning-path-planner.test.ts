@@ -81,7 +81,63 @@ describe('adaptive path recommendation provenance', () => {
       preferredModalities: ['simulation', 'video'],
     });
     const persisted = serializeLearningPathPlan(plan);
-    expect(persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ')).toContain('视频');
+    const notes = persisted.payload.pathOptions?.[0]?.recommendationProvenance?.personalizationNotes?.join(' ') ?? '';
+    expect(notes).toContain('仿真');
+    expect(notes).not.toContain('视频');
+  });
+
+  it('does not claim preferred modalities that were not applied to the path', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+      }],
+      confidence: 'medium',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: {},
+        evidenceWindow: null,
+        freshness: 'current',
+        confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.7, evidenceCount: 6 },
+        missingEvidence: [],
+        preferredModalities: ['video'],
+      },
+    });
+
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.limitations.join(' ')).toContain('当前学习方式偏好未能落实到本路径的可用资源');
+  });
+
+  it('does not present low-confidence preferences as applied personalization', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [],
+      confidence: 'low',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: {},
+        evidenceWindow: null,
+        freshness: 'stale',
+        confidence: { level: 'low', score: 0.2, sourceCompleteness: 0.1, evidenceCount: 1 },
+        missingEvidence: ['resource-preference'],
+        preferredModalities: ['video', 'simulation'],
+      },
+    });
+
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.limitations.join(' ')).toContain('学习方式偏好证据不足或已过期');
+    expect(provenance.summary).toContain('当前证据较少');
   });
 
   it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
