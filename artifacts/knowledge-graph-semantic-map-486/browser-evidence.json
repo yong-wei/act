@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-08-26T09:07:24.696Z",
-  "headCommit": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
+  "capturedAt": "2026-08-26T09:11:53.443Z",
+  "headCommit": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
   "captureRevision": {
-    "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-    "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1"
+    "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+    "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e"
   },
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",

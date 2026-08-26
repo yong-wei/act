@@ -1,21 +1,21 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-26T09:07:24.687Z",
-  "headCommit": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
+  "capturedAt": "2026-08-26T09:11:53.430Z",
+  "headCommit": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
   "captureRevision": {
-    "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-    "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1"
+    "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+    "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e"
   },
   "captureGuard": {
     "before": {
-      "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-      "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1",
+      "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+      "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e",
       "dirty": false
     },
     "afterBrowserCapture": {
-      "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-      "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1",
+      "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+      "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e",
       "dirty": true
     },
     "allowedOutputPrefixes": [
@@ -30,20 +30,20 @@
   "runtimeRevisionProof": {
     "endpoint": "http://localhost:3210/api/internal/local-qa/revision",
     "expected": {
-      "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-      "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1",
+      "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+      "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "beforeCapture": {
-      "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-      "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1",
+      "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+      "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "afterCapture": {
-      "commitSha": "aa141dd9a8a851ef33be2376df85f7b2eae79254",
-      "treeSha": "95e0c5f6cc1bddc377b5e8c830e5161b3645aac1",
+      "commitSha": "894cb64ba88e7ad96020c9bd4e767092ee7340fa",
+      "treeSha": "2d7371195e1c94719d5c92aeadfb50cfa1cca55e",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     }
@@ -113,10 +113,10 @@
     "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
     "src/lib/konling-agent-runtime.ts": "d0211ef4e133029de75f717bebb6d101840e04df9076220473e7cb56453a039d",
     "src/lib/evidence-capture-guard.ts": "7abfa901a1456bb77a7e46b89169ad4d8624f3a0f89d28cb5e650a8e52ce1b50",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "2de28add181e9104a9932f42d8612ced811aa90fc5d8f527c05742cd0627f81f",
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "feae635ab50666dafeb2aa5af1b31dfc055fee31e8ed8b8ce1afde93621952fb",
     "scripts/tests/knowledge-workspace-product-qa-accounts.ts": "db41a610b02df85ea71099347027c6c68f2b9393f72e95eb8f02fa2155a34f75",
-    "scripts/tests/run-knowledge-workspace-product-qa.ts": "6a2ed52ebeb48f5fd814a90b071d7c23f41925294ddfac34d9b715837929077a",
-    "scripts/tests/test-commercial-ui-governance.ts": "1df86ef432b758d8d2d69d2d23bb70ed6e45283ad95259d3828dbd9cc80c4ca9"
+    "scripts/tests/run-knowledge-workspace-product-qa.mjs": "a2883f335727610df403122f16a5020b8850a10232a2ed5bd79794c1e462ebd3",
+    "scripts/tests/test-commercial-ui-governance.ts": "b0888e5b3c43e33eff81853871ff897d3d2f5b2301c114d9f31d1e238ef4300a"
   },
   "stateMatrix": [
     {
@@ -1734,7 +1734,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "f550bd79377c5aa1e58d16c8036eb06e9804a966f9bed1ebada77d34119d832d",
+      "screenshotSha256": "a19dda2e88785b10b49998f2690d232ade74ab31c1e516c9c88b0a8b7ac19466",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1940,11 +1940,11 @@
           "method": "pointer-drag",
           "dragFrom": {
             "x": 873.8525757585921,
-            "y": 489.46926907126056
+            "y": 489.4692690712606
           },
           "dragTo": {
             "x": 953.8525757585921,
-            "y": 525.4692690712606
+            "y": 525.4692690712607
           },
           "pinned": true,
           "selectedNodeId": "z反变换_7_7959c077"
@@ -1997,7 +1997,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "adb08d8243fb3076e7e53170c84572cb22148e0b8f97e4431583e9f0cbdc9370",
+      "screenshotSha256": "c7a36e8ebf919d305a4bc4d9b902270fad4cbc51ab0e25bd41b900b0db461301",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -4711,7 +4711,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "169586a4d5da56119f4ad80a1e65dfb75519518512c8278b1f483db50f3b4796",
+      "screenshotSha256": "888a6fbddbdb17cebc31541bfaf1d70d46177c4f4d879633fb8399f1ba45db04",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5918,7 +5918,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "4acee31720f6e1e1c4296484d5536c8d377dc3ca726b6728589e20be101c696c",
+      "screenshotSha256": "774a2c2c348d47d8566df7d5d4b8a1de8d335950ea8c06abe55e02de7d57bf1d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6117,7 +6117,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "cc06378012e2626c2d3100f11cfbdc9a0f6c901aa38be08f86732d2e1b9d7214",
+      "screenshotSha256": "f39ab6d3cf0fb7a2971e9fca9e2c2e78b4deddc7f0654a68de68732bf48397b2",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6323,7 +6323,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "40d19799034163fe491e3259f3734bb35bf7c7e81497f04d5073470c7e558484",
+      "screenshotSha256": "89dea75b24232610ec052851aeeedc3f5363f7f5596529e431243a82ec6d0683",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -7903,7 +7903,7 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-light.png",
-      "screenshotSha256": "6889d66518cb0ef2e378d1722f3cff87e891840166461648a20a9cf2d124a232"
+      "screenshotSha256": "4d85e25b22dc713acef4989f794b790df6b7cb35480d0d0d2ff4417a27cbe581"
     },
     {
       "name": "active-tablet",
@@ -8379,7 +8379,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "01a73a3aaf177d5f579ba56f8361904912ba8e230ac313608c94c983469432f5"
+        "screenshotSha256": "b0adc05ed302c94d4bef51ed47297130f5815529128cec03075b269a14d947cf"
       },
       "mobile": {
         "mode": "active",
@@ -8508,7 +8508,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "c8d0102633ed19b1c8fd855d2a9b5985b54b2e853880965dc60c2ddeb2a68964"
+        "screenshotSha256": "d257309d224e7bbe2c258ec2f23db2665433f98b7c77f1320671c9e39dd80509"
       },
       "candidate": null
     },
@@ -8610,7 +8610,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "d1f30bc6c90bea2bb7c84691c2aff5fec63977f16a6a6c174cd13692b79656b9"
+        "screenshotSha256": "41daa74244d58529d12f15df2bfa4d072f30599bc8e676e00be5c79a058572e9"
       },
       "mobile": {
         "mode": "active",
@@ -8702,7 +8702,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-active-mobile.png",
-        "screenshotSha256": "11ae20a4aec269b2d4ad2aa25faa7f2b06c2cfc46b08342a16c939d0245762b4"
+        "screenshotSha256": "fa617b1c077d21ebe66dc7f6668ca3d3588ac50d8e6af146ccf4c3806f95f2de"
       },
       "legacy": {
         "mode": "legacy",
@@ -8739,7 +8739,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "2685c26579fe37bbcdfc9f68ebc5c1f43540f3b17d5ba90aa039bbfd16c6f74c"
+        "screenshotSha256": "b84b2c2388e8e99518a1ffafdb0997150492d64528c42e5e2e3665502d6c28f8"
       },
       "candidate": null
     },
@@ -8841,7 +8841,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "4bea34d3e63434d5e40475b2da09f1751924d24dd4feeb68793588320ca73624"
+        "screenshotSha256": "7b58164b50f722309acd25b2281e518714c934cbbedd6b95514c12f38ddf04a0"
       },
       "mobile": {
         "mode": "active",
@@ -8933,7 +8933,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-active-mobile.png",
-        "screenshotSha256": "f966b2d2bec0639a559cd2eea906c1925c4558e31cd1904a470c52fea04c240f"
+        "screenshotSha256": "787752857bfd99a844a0b36ee92d9c5705c6ced2c3c1dda5bda8b6223ab283fa"
       },
       "legacy": {
         "mode": "legacy",
@@ -8970,7 +8970,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "c1669b2db82fbff13f3f6fa99f71984199a5c674691df3b2d1cd2095e05dd277"
+        "screenshotSha256": "adfcb5539da62428a0531fa02e7e01df3a1e777dc3f02472517ef0db01ce0fe2"
       },
       "candidate": {
         "mode": "candidate",
