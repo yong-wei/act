@@ -9,8 +9,13 @@ import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog
 import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export const MICRO_TUTORING_VALIDATION_REGISTRY_VERSION = 'micro-tutoring-validation-registry.v1';
-export const MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE =
+export const MICRO_TUTORING_VALIDATION_REGISTRY_V2_VERSION = 'micro-tutoring-validation-registry.v2';
+export const MICRO_TUTORING_VALIDATION_REGISTRY_V1_SOURCE =
   'micro-tutoring-practice-baseline.v1+micro-tutoring-option-attributions.v2';
+export const MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE =
+  'micro-tutoring-assessment-baseline.v2+micro-tutoring-option-attributions.v3';
+export const MICRO_TUTORING_VALIDATION_REGISTRY_V1_FILE = 'micro-tutoring-validation-registry.json';
+export const MICRO_TUTORING_VALIDATION_REGISTRY_V2_FILE = 'micro-tutoring-validation-registry-v2.json';
 export const MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES = 2;
 export const MICRO_TUTORING_VALIDATION_ACTION_PATH = '/assessment/adaptive-practice';
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
@@ -137,9 +142,10 @@ export function microTutoringValidationQuestionIds(sourceId: string): string[] {
 export function microTutoringValidationRelationSourceRef(input: {
   knowledgeNodeId: string;
   misconceptionTag: string;
+  source?: string;
 }): string {
   const digest = sha256Hex(`${input.knowledgeNodeId}\0${input.misconceptionTag}`);
-  return `micro-tutoring-option-attributions.v2#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
+  return `${input.source ?? 'micro-tutoring-option-attributions.v3'}#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
 }
 
 export function microTutoringValidationItemRevision(input: {
@@ -278,10 +284,26 @@ function parseStudentQuestionRef(
   return [];
 }
 
+function validationRegistryContract(version: string): { source: string; relationSource: string } | null {
+  if (version === MICRO_TUTORING_VALIDATION_REGISTRY_VERSION) {
+    return {
+      source: MICRO_TUTORING_VALIDATION_REGISTRY_V1_SOURCE,
+      relationSource: 'micro-tutoring-option-attributions.v2',
+    };
+  }
+  if (version === MICRO_TUTORING_VALIDATION_REGISTRY_V2_VERSION) {
+    return {
+      source: MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
+      relationSource: 'micro-tutoring-option-attributions.v3',
+    };
+  }
+  return null;
+}
+
 export function loadMicroTutoringValidationRegistry(
-  source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-validation-registry.json'),
-  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
-  practiceBaseline: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-practice-baseline.json'),
+  source: unknown = loadMicroTutoringRuntimeSource(MICRO_TUTORING_VALIDATION_REGISTRY_V2_FILE),
+  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions-v2.json'),
+  practiceBaseline: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-assessment-baseline-v2.json'),
 ): LoadedMicroTutoringValidationRegistry {
   const value = record(source);
   const issues: MicroTutoringValidationRegistryIssue[] = [];
@@ -294,10 +316,10 @@ export function loadMicroTutoringValidationRegistry(
   ) {
     return { registry: null, issues: [{ code: 'REGISTRY_MALFORMED', ref: 'registry' }] };
   }
-  if (value.version !== MICRO_TUTORING_VALIDATION_REGISTRY_VERSION) {
+  const contract = validationRegistryContract(value.version);
+  if (!contract) {
     issues.push({ code: 'VERSION_DRIFT', ref: 'registry-version' });
-  }
-  if (value.source !== MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE) {
+  } else if (value.source !== contract.source) {
     issues.push({ code: 'SOURCE_DRIFT', ref: 'registry-source' });
   }
   if (!GIT_REVISION.test(value.sourceRevision)) {
@@ -406,6 +428,7 @@ export function loadMicroTutoringValidationRegistry(
       parsedRelations.relations.map((relation) => microTutoringValidationRelationSourceRef({
         knowledgeNodeId,
         misconceptionTag: relation.misconceptionTag,
+        source: contract?.relationSource,
       })),
     );
     const declaredRefs = Array.isArray(row.sourceRefs) && row.sourceRefs.every(nonEmptyString)
@@ -488,8 +511,8 @@ export function loadMicroTutoringValidationRegistry(
   }
   return {
     registry: {
-      version: MICRO_TUTORING_VALIDATION_REGISTRY_VERSION,
-      source: MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
+      version: value.version.trim(),
+      source: value.source.trim(),
       sourceRevision: value.sourceRevision.trim(),
       entries,
     },

@@ -8,7 +8,9 @@ const FILE_NAMES = new Set([
   'micro-tutoring-assessment-baseline-v2.json',
   'micro-tutoring-practice-baseline.json',
   'micro-tutoring-resource-projection.json',
+  'micro-tutoring-resource-projection-v2.json',
   'micro-tutoring-validation-registry.json',
+  'micro-tutoring-validation-registry-v2.json',
 ]);
 
 const sourceCache = new Map<string, unknown>();
