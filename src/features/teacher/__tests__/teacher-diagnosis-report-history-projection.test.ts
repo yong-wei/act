@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DiagnosisReportApiItem } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
 import {
   compareAdjacentReports,
   projectReportHistoryCard,

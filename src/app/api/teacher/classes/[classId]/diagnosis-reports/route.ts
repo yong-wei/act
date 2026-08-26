@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
+import { createDiagnosisReportReader } from '@/features/teacher/diagnosis/adapters/diagnosis-report-reader';
+import { readTeacherDiagnosisReportHistory } from '@/features/teacher/diagnosis/application/read-report-history';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   DiagnosisReportScopeError,
-  readDiagnosisReports,
-  type DiagnosisReportReadModel,
 } from '@/lib/diagnosis-persistence';
 import {
   diagnosisGenerationErrorResponse,
@@ -18,28 +18,6 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-
-export type DiagnosisReportApiItem = Omit<
-  DiagnosisReportReadModel,
-  | 'evidenceCutoff'
-  | 'generatedAt'
-  | 'inputSummary'
-  | 'ruleVersion'
-  | 'generationReason'
-  | 'forceReason'
-  | 'previousReportId'
-> & {
-  evidenceCutoff: string;
-  generatedAt: string;
-  ruleVersion?: string | null;
-  generationReason?: string | null;
-  forceReason?: string | null;
-  previousReportId?: string | null;
-};
-
-export interface DiagnosisReportsPayload {
-  reports: DiagnosisReportApiItem[];
-}
 
 function scopeErrorResponse(error: unknown) {
   if (error instanceof DiagnosisReportScopeError) {
@@ -73,23 +51,13 @@ export async function GET(
       return NextResponse.json({ error: 'limit 必须为正整数' }, { status: 400 });
     }
 
-    const reports = await readDiagnosisReports({
+    const payload = await readTeacherDiagnosisReportHistory({
+      reader: createDiagnosisReportReader(),
       teacherId: session.user.id,
       classId,
       targetStudentId,
       limit,
     });
-    const payload: DiagnosisReportsPayload = {
-      reports: reports.map((report) => {
-        const { inputSummary, ...publicReport } = report;
-        void inputSummary;
-        return {
-          ...publicReport,
-          evidenceCutoff: report.evidenceCutoff.toISOString(),
-          generatedAt: report.generatedAt.toISOString(),
-        };
-      }),
-    };
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);

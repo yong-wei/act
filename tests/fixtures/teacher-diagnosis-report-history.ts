@@ -1,4 +1,4 @@
-import type { DiagnosisReportsPayload } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisReportsPayload } from '@/features/teacher/diagnosis/public-api';
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 
 export const EVIDENCE_CLASS_ID = 'class-evidence';

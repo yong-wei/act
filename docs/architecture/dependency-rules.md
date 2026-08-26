@@ -22,4 +22,4 @@ Owned records feeding these rules: 4178.
 
 The first deletion slice is `decouple-teacher-diagnosis-route-contract`. Remaining edges are staged by `enforce-modular-domain-dependency-contracts`.
 
-Fitness allowlist identity: `d4080dc0b6fba7986842def25517cd3e4bc9e02e6f11539ef5829547d45a9d12`. Remaining staged entries: 1124.
+Fitness allowlist identity: `0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608`. Remaining staged entries: 1122.

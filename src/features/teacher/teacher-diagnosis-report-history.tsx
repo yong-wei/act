@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   DiagnosisReportApiItem,
   DiagnosisReportsPayload,
-} from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+} from '@/features/teacher/diagnosis/public-api';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
 import {
