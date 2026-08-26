@@ -136,4 +136,16 @@ describe('architecture fitness', () => {
     ]);
     expect(checkFitness(mutated, allowlist).newViolations.some((item) => item.identity.endsWith('new-business.ts'))).toBe(true);
   });
+
+  it('does not freeze architecture quality-control modules under src/lib/architecture-*', () => {
+    const baseline = core([
+      observation({ id: 'script:src/lib/existing.ts', kind: 'script', identity: 'src/lib/existing.ts' }),
+    ]);
+    const allowlist = createAllowlist(baseline, 'charterhash');
+    const mutated = core([
+      observation({ id: 'script:src/lib/existing.ts', kind: 'script', identity: 'src/lib/existing.ts' }),
+      observation({ id: 'script:src/lib/architecture-test-commands/discover.ts', kind: 'script', identity: 'src/lib/architecture-test-commands/discover.ts' }),
+    ]);
+    expect(checkFitness(mutated, allowlist).newViolations.some((item) => item.identity.includes('architecture-test-commands'))).toBe(false);
+  });
 });

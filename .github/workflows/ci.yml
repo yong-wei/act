@@ -86,7 +86,7 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Smoke test
+      - name: PR test contract
         run: npm run test
 
       - name: Build
