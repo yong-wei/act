@@ -1,0 +1,25 @@
+{
+  "contract": "r4-coordinated-production-predecessor-activation-restage/v2",
+  "stagedAt": "2026-08-26T07:18:00.000Z",
+  "predecessor": {
+    "activationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+    "activationHash": "63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129",
+    "sourceSha256": "165282eb2aae8468c5c09a97f59b4d8373803c44ff6ad93dd0106e4396c207c3"
+  },
+  "successor": {
+    "activationId": "activation-0b72f577a3d58647e6b67246",
+    "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "readyConsumerIds": [
+      "course-runtime",
+      "engineering-graph",
+      "engineering-rag",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "priorActivationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+    "priorActivationHash": "63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129"
+  },
+  "receiptHash": "f9a12cd977f955fe9f1c324b99f38cdacfdd7dd7703f0c9f6eaaeaef6b12588e"
+}

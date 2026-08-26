@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-36abd67796cacfed0e201268",
+    "canonicalType": "KnowledgeStatement",
+    "label": "从式(8.2)和式(8.4)可以看出，傅里叶变换与拉普拉斯变换密切相关。当函数f(t)仅在t ≥ 0时有定义（通常如此）时，积分下限相同。此时我们注意到这两个方程仅在复变量上有所不同。因此，若已知函数f1(t)的拉普拉斯变换为F1(s)，则只需在F1(s)中令s=jω，即可得到该时间函数的傅里叶变换。",
+    "aliases": [],
+    "description": "The Fourier and Laplace transforms are closely related, as we can see by examining Equations (8.2) and (8.4). When the function f(t) is defined only for t ≥ 0, as is often the case, the lower limits on the integrals are the same. Then we note that the two equations differ only in the complex variable. Thus, if the Laplace transform of a function f1(t) is known to be F1(s), we can obtain the Fourier transform of this same time function by setting s=jω in F1(s).",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}
