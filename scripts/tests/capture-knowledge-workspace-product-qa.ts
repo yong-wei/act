@@ -1157,7 +1157,9 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   const log = await probe.readLog();
   const active = latestApiSummary(log, '/api/knowledge/shards/active');
   assertActiveApiSummary(active, context);
-  if (log.some((entry) => (
+  await enablePublishedActiveRelationFamily(page, probe, context);
+  const completedLog = await probe.readLog();
+  if (completedLog.some((entry) => (
     entry.path === '/api/knowledge/graph/active'
     || entry.path === '/api/knowledge/graph'
     || entry.path === '/api/knowledge/graph/v2'
@@ -1165,6 +1167,41 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
   }
   return active;
+}
+
+async function enablePublishedActiveRelationFamily(
+  page: Page,
+  probe: KnowledgeApiProbe,
+  context: string,
+) {
+  const enabledControl = page.locator(
+    'button[data-authority-relation-family][data-authority-family-enabled="true"]',
+  ).first();
+  if (await enabledControl.count() === 0) {
+    const control = page.locator(
+      'button[data-authority-relation-family][data-authority-family-enabled="false"]',
+    ).first();
+    if (await control.count() !== 1 || !(await control.isVisible())) {
+      throw new Error(`active Authority relation-family control is unavailable in ${context}`);
+    }
+    await control.click({ timeout: 10000 });
+    await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
+  }
+  await page.waitForFunction(() => {
+    const enabled = document.querySelector(
+      'button[data-authority-relation-family][data-authority-family-enabled="true"]',
+    );
+    const nodes = new Set(
+      Array.from(document.querySelectorAll('[data-active-authority-node]'))
+        .map((node) => node.getAttribute('data-active-authority-node'))
+        .filter((value): value is string => Boolean(value)),
+    );
+    return Boolean(enabled)
+      && Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
+        nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
+        && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
+      ));
+  }, undefined, { timeout: 30000 });
 }
 
 async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
