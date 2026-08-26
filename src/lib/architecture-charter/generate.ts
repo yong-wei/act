@@ -24,6 +24,30 @@ function followUpFor(identity: string): string {
   return 'enforce-modular-domain-dependency-contracts';
 }
 
+function recomputeReceiptId(receipt: MeasurementReceipt): string {
+  const { receiptId: _ignored, ...draft } = receipt;
+  return sha256Text(serializeDeterministic(draft));
+}
+
+function consumersByTarget(core: CensusCore): Map<string, string[]> {
+  const collected = new Map<string, Set<string>>();
+  const add = (target: string, consumer: string): void => {
+    if (!target || !consumer || target === consumer) return;
+    const bucket = collected.get(target) ?? new Set<string>();
+    bucket.add(consumer);
+    collected.set(target, bucket);
+  };
+  for (const observation of core.observations) {
+    if (observation.kind !== 'dependency-edge') continue;
+    add(String(observation.attributes.to ?? ''), String(observation.attributes.from ?? ''));
+  }
+  return new Map([...collected.entries()].map(([target, consumers]) => [target, [...consumers].sort()]));
+}
+
+function consumersFor(identity: string, index: Map<string, string[]>): readonly string[] {
+  return index.get(identity) ?? ['none-discovered'];
+}
+
 export interface CharterGenerationOptions {
   readonly censusCoreText?: string;
   readonly requireFrozenArtifacts?: boolean;
@@ -46,11 +70,12 @@ export function generateArchitectureCharter(
     else if (sha256Text(options.censusCoreText) !== REQUIRED_BASELINE.censusCoreSha256) {
       failures.push('baseline-artifact-hash-drift');
     }
-    const receiptIds = receipts.map((item) => item.receiptId).sort();
-    if (receiptIds.join(',') !== [...REQUIRED_BASELINE.receiptIds].sort().join(',')) {
+    const recomputedIds = receipts.map(recomputeReceiptId).sort();
+    if (recomputedIds.join(',') !== [...REQUIRED_BASELINE.receiptIds].sort().join(',')) {
       failures.push('baseline-receipt-id-drift');
     }
     for (const receipt of receipts) {
+      if (recomputeReceiptId(receipt) !== receipt.receiptId) failures.push('baseline-receipt-hash-mismatch');
       if (receipt.schemaVersion !== REQUIRED_BASELINE.receiptSchemaVersion) failures.push('baseline-receipt-schema-drift');
       if (receipt.sourceCommit !== REQUIRED_BASELINE.sourceCommit || receipt.sourceTree !== REQUIRED_BASELINE.sourceTree) {
         failures.push('baseline-receipt-revision-drift');
@@ -62,6 +87,7 @@ export function generateArchitectureCharter(
   const blocking: CharterBlockingRecord[] = [];
   const gates: CharterGateRecord[] = [];
   const compatibility: CharterCompatibilityRecord[] = [];
+  const consumerIndex = consumersByTarget(core);
 
   for (const observation of core.observations) {
     if (observation.ownership.state === 'ambiguous') {
@@ -99,7 +125,7 @@ export function generateArchitectureCharter(
         protectedFact: threat.fact,
         threat: threat.threat,
         failureConsequence: threat.consequence,
-        consumers: ['local-verify', 'future-fitness-check'],
+        consumers: consumersFor(observation.identity, consumerIndex),
         evidence: observation.evidence,
       });
     }
@@ -112,7 +138,9 @@ export function generateArchitectureCharter(
         id: `compat:${observation.id}`,
         identity: observation.identity,
         owner: assignOwner(observation),
-        consumers: observation.evidence,
+        consumers: observation.kind === 'dependency-edge'
+          ? [String(observation.attributes.from ?? observation.identity)]
+          : consumersFor(observation.identity, consumerIndex),
         replacement: 'domain-public-api-or-application-use-case',
         deletionCondition: 'callers-import-canonical-public-api-and-old-path-is-absent',
         followUpChange: followUpFor(observation.identity),

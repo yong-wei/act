@@ -149,6 +149,17 @@ describe('architecture charter', () => {
       requireFrozenArtifacts: true,
     });
     expect(hashFailures).toContain('baseline-artifact-hash-drift');
+    const tamperedReceipts = receipts.map((receipt, index) => (
+      index === 0 ? { ...receipt, fingerprints: ['tampered'] } : receipt
+    ));
+    const { failures: receiptFailures } = generateArchitectureCharter(snapshot, tamperedReceipts, {
+      censusCoreText,
+      requireFrozenArtifacts: true,
+    });
+    expect(receiptFailures.some((item) => item.startsWith('baseline-receipt'))).toBe(true);
+    expect(charter.gates.every((item) => !item.consumers.includes('future-fitness-check'))).toBe(true);
+    const selfConsumers = charter.compatibility.filter((item) => item.consumers.includes(item.identity));
+    expect(selfConsumers).toHaveLength(0);
   });
 
   it('does not classify authoring paths as authentication hard gates', () => {
