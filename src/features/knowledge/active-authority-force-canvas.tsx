@@ -95,7 +95,7 @@ export function ActiveAuthorityForceCanvas({
   const links = useMemo(() => toRuntimeLinks(view), [view]);
   const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const fitScopeSignature = useMemo(
-    () => nodes.map((node) => `${node.id}:${node.name}:${node.positionX}:${node.positionY}`).join('|'),
+    () => nodes.map((node) => `${node.id}:${node.name}:${node.positionX}:${node.positionY}:${node.labelPriority ? 1 : 0}`).join('|'),
     [nodes],
   );
   const fitScopeVersionRef = useRef({ signature: '', id: 0 });

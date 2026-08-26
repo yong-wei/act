@@ -1404,7 +1404,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   await page.keyboard.press('Escape');
   await page.waitForTimeout(150);
   if (await page.evaluate(() => window.innerWidth < 640)) {
-    await page.waitForFunction(() => {
+    const labelsReady = () => {
       const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
       const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
         '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
@@ -1422,7 +1422,26 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
             && rect.left < window.innerWidth
             && rect.top < window.innerHeight;
         });
-    }, undefined, { timeout: 5000 });
+    };
+    try {
+      await page.waitForFunction(labelsReady, undefined, { timeout: 5000 });
+    } catch {
+      const diagnostics = await page.evaluate(() => {
+        const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
+        const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
+          '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+        ) ?? []);
+        return {
+          expectedNodeCount: runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0,
+          labelPriority: runtime?.dataset.activeAuthorityLabelPriority ?? null,
+          labels: labels.map((label) => {
+            const rect = label.getBoundingClientRect();
+            return { hidden: label.hidden, width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+          }),
+        };
+      });
+      throw new Error(`compact active label readiness failed: ${JSON.stringify(diagnostics)}`);
+    }
   }
   const focusReturnedToOriginNode = originKey
     ? await page.locator('[data-active-authority-node]').evaluateAll(
