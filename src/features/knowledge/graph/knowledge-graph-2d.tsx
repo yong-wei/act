@@ -460,6 +460,8 @@ export function KnowledgeGraph2D({
   }, [graphVersion]);
 
   useEffect(() => () => {
+    if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
+    if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
     presentationGateRef.current.dispose();
     cameraTransitionRef.current.dispose();
     motionFrameLoopRef.current?.dispose();
@@ -1596,9 +1598,7 @@ export function KnowledgeGraph2D({
     }, 0);
     return () => {
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
-      if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
       fitTimerRef.current = null;
-      labelProjectionTimerRef.current = null;
     };
   }, [compactRootView, fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
