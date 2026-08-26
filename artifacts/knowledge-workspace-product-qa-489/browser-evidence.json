@@ -1,21 +1,21 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-26T10:31:59.036Z",
-  "headCommit": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+  "capturedAt": "2026-08-26T11:24:22.246Z",
+  "headCommit": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
   "captureRevision": {
-    "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-    "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5"
+    "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+    "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa"
   },
   "captureGuard": {
     "before": {
-      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
+      "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+      "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa",
       "dirty": false
     },
     "afterBrowserCapture": {
-      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
+      "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+      "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa",
       "dirty": true
     },
     "allowedOutputPrefixes": [
@@ -26,24 +26,24 @@
       "artifacts/commercial-ui/evidence.json"
     ]
   },
-  "baseUrl": "http://127.0.0.1:3210",
+  "baseUrl": "http://localhost:3210",
   "runtimeRevisionProof": {
-    "endpoint": "http://127.0.0.1:3210/api/internal/local-qa/revision",
+    "endpoint": "http://localhost:3210/api/internal/local-qa/revision",
     "expected": {
-      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
+      "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+      "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "beforeCapture": {
-      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
+      "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+      "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "afterCapture": {
-      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
-      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
+      "commitSha": "9d874737eb6561525ce92e4fac5297ce0a6b440c",
+      "treeSha": "fdc2a923ab5aadecdb4fb8d839c06a3fe5a54eaa",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     }
@@ -79,8 +79,8 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "52537468a75d2fa27218154922df67baab8c53fea48edf76b4dd727db97d6cec",
-    "src/features/knowledge/active-authority-graph.tsx": "23b08a6623b3d28fa0dea40b2e0fd160ed9e43d8bb2f85cb7e9cdf7094bb5122",
-    "src/features/knowledge/active-authority-force-canvas.tsx": "3eeaad0c14683ecc5af4cc47c11ee4776ae80e555274d06888926c7948ad7b9a",
+    "src/features/knowledge/active-authority-graph.tsx": "e3dd003b5488cca55e6b66ca775f709704c084b3e8f8bddc135636112e3b002f",
+    "src/features/knowledge/active-authority-force-canvas.tsx": "0bc40f96e1112d021784e0e7fbbe72d71f19efd3ef2d913e8723a41a7b6461ff",
     "src/features/knowledge/active-authority-root-canvas.tsx": "afcedee9c23a4e87f3f484f9f9edc020d2db90ad7f479f7c0943105d0f5b70c6",
     "src/features/knowledge/active-authority-shard-store.ts": "db20cf1f7129a31c5ed3593ca5bc1dc77e70b5c9a9802fb9768de910f0659d14",
     "src/features/knowledge/active-authority-presentation.ts": "92911ca0de2400f7b755a83fb59cc393901c032466635e107f24901d02980a5a",
@@ -113,16 +113,16 @@
     "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
     "src/lib/konling-agent-runtime.ts": "d0211ef4e133029de75f717bebb6d101840e04df9076220473e7cb56453a039d",
     "src/lib/evidence-capture-guard.ts": "7abfa901a1456bb77a7e46b89169ad4d8624f3a0f89d28cb5e650a8e52ce1b50",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "a754307171d95c90f473e3207ff392b2fc1668832ba8e978c878d2680c5770eb",
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "406d1039915093c7189dcacbf76fbc05d9bec885dae04a317842acb358b558f8",
     "scripts/tests/knowledge-workspace-product-qa-accounts.mjs": "963dfba6d422ba9ec9ca493cc5bf15ae0cae9642177cb1ed46b3d60e63de5c40",
     "scripts/tests/run-knowledge-workspace-product-qa.mjs": "6053c466cd379dcdd0164fc99633201b9251021c6b803a02a2762e5d486d2fbc",
-    "scripts/tests/test-commercial-ui-governance.ts": "acdfbcf144f5d2defb5fe10465d03f24d82f696ea17a3bf1501a320fb9f81faf"
+    "scripts/tests/test-commercial-ui-governance.ts": "b86950598b72bad0f85224df08f1c4b191ff5c9e5e13a99ea3fc4a8caf9a16a1"
   },
   "stateMatrix": [
     {
       "name": "desktop-default-collapsed-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -197,8 +197,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -317,7 +320,7 @@
     {
       "name": "desktop-expanded-persisted-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -392,8 +395,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -512,7 +518,7 @@
     {
       "name": "desktop-local-tools-directory-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -587,8 +593,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -714,7 +723,7 @@
     {
       "name": "desktop-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -789,8 +798,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -916,7 +928,7 @@
     {
       "name": "desktop-local-tools-view-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -991,8 +1003,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1124,7 +1139,7 @@
     {
       "name": "desktop-selected-focus-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1199,8 +1214,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1351,7 +1369,7 @@
     {
       "name": "desktop-all-relation-families-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1426,8 +1444,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1546,7 +1567,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -1621,8 +1642,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1760,7 +1784,7 @@
     {
       "name": "desktop-hover-click-drag-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1798,7 +1822,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "7903e7fa318f273fd3d711c6f7b3cc56ed24a7f562ca7337edd48e4118104cc8",
+      "screenshotSha256": "eafb504ff1d34bc54d71654546dee32eef7be154f8cbd8d5f33f25443c1da3e0",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1835,8 +1859,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -2011,11 +2038,11 @@
         "drag": {
           "method": "pointer-drag",
           "dragFrom": {
-            "x": 873.8525757585921,
+            "x": 873.8525757585923,
             "y": 489.46926907126056
           },
           "dragTo": {
-            "x": 953.8525757585921,
+            "x": 953.8525757585923,
             "y": 525.4692690712606
           },
           "pinned": true,
@@ -2042,7 +2069,7 @@
     {
       "name": "desktop-selected-page-tools-menu-dark",
       "route": "/assessment/adaptive-practice",
-      "url": "http://127.0.0.1:3210/assessment/adaptive-practice?qa=knowledge-product",
+      "url": "http://localhost:3210/assessment/adaptive-practice?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -2157,7 +2184,7 @@
     {
       "name": "desktop-explicit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -2232,8 +2259,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -2384,7 +2414,7 @@
     {
       "name": "desktop-3d-fit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -2459,8 +2489,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4179,7 +4212,7 @@
     {
       "name": "desktop-konling-selected-expanded-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4254,8 +4287,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4381,7 +4417,7 @@
     {
       "name": "desktop-konling-no-selection-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4456,8 +4492,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4583,7 +4622,7 @@
     {
       "name": "desktop-konling-degraded-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=missing-node&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=missing-node&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4658,8 +4697,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4785,7 +4827,7 @@
     {
       "name": "desktop-stress-expanded-tool-inspector-konling-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4823,7 +4865,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "c3e0fdcaa975bc810bc376e62b0417f21b440870f459ebef08b8849896104e7d",
+      "screenshotSha256": "b5e68921e6df81d4ad7de46210d6b502a0c63aff2622ed461572c0e473a3da01",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4860,8 +4902,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5013,7 +5058,7 @@
     {
       "name": "desktop-wide-default-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -5088,8 +5133,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5208,7 +5256,7 @@
     {
       "name": "desktop-wide-inspector-tools-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -5283,8 +5331,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5429,7 +5480,7 @@
     {
       "name": "tablet-1100-default-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5504,8 +5555,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5624,7 +5678,7 @@
     {
       "name": "tablet-1100-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5699,8 +5753,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5826,7 +5883,7 @@
     {
       "name": "tablet-1100-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5901,8 +5958,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6040,7 +6100,7 @@
     {
       "name": "tablet-1024-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -6078,7 +6138,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "c193b4bd206ebabcc53de952434ee7544bfab640e0efd6ac585e93874949a960",
+      "screenshotSha256": "6f023379e7a0c56a2c4707631aa3a7270c314b4f0b648f43779ca4a6bbd1bd04",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6115,8 +6175,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6247,7 +6310,7 @@
     {
       "name": "tablet-1100-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -6285,7 +6348,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "3cd8a34bd72cf44127db75a787f586ec2c9f8fd90c6daab10d561ffd02a6d58c",
+      "screenshotSha256": "cafd453318dfbcd5a7008c33311e6e47d8299cd2edafcb7ba7371342cc4f2da2",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6322,8 +6385,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6461,7 +6527,7 @@
     {
       "name": "tablet-1279-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1279,
@@ -6499,7 +6565,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "991d11b31f3341c628028a89107f3ec7350ffe7319c3329cfa5278510acbc078",
+      "screenshotSha256": "08225744b39e6393876b68eb7af21e6029bed6d590d87ffb941899e6b978455a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6536,8 +6602,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6675,7 +6744,7 @@
     {
       "name": "mobile-320-local-tools-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6750,8 +6819,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6763,7 +6835,7 @@
             "viewBoxHeight": null,
             "readable": false
           },
-          "teachingCoverageNote": "教学关系暂不可用",
+          "teachingCoverageNote": null,
           "stage": "authority"
         },
         "candidateAuthority": null,
@@ -6876,7 +6948,7 @@
     {
       "name": "mobile-320-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6951,8 +7023,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6964,7 +7039,7 @@
             "viewBoxHeight": null,
             "readable": false
           },
-          "teachingCoverageNote": "教学关系暂不可用",
+          "teachingCoverageNote": null,
           "stage": "authority"
         },
         "candidateAuthority": null,
@@ -7090,7 +7165,7 @@
     {
       "name": "mobile-320-konling-expanded-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -7165,8 +7240,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7178,7 +7256,7 @@
             "viewBoxHeight": null,
             "readable": false
           },
-          "teachingCoverageNote": "教学关系暂不可用",
+          "teachingCoverageNote": null,
           "stage": "authority"
         },
         "candidateAuthority": null,
@@ -7278,7 +7356,7 @@
     {
       "name": "mobile-320-inspector-konling-stress-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -7353,8 +7431,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7366,7 +7447,7 @@
             "viewBoxHeight": null,
             "readable": false
           },
-          "teachingCoverageNote": "教学关系暂不可用",
+          "teachingCoverageNote": null,
           "stage": "authority"
         },
         "candidateAuthority": null,
@@ -7466,7 +7547,7 @@
     {
       "name": "light-theme-default",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -7541,8 +7622,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": false,
+            "rendererViewportVisibleHeight": 0,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7707,7 +7791,7 @@
     {
       "name": "active-desktop-dark",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -7808,8 +7892,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
+            "rendererViewportVisibleHeight": 478,
+            "rendererVisiblePaintPixelCount": 7591,
             "nodeGeometryWithinViewportCount": 15,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7896,7 +7983,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 115,
+        "scannedSurfaceCount": 118,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -7922,7 +8009,7 @@
         "renderedEdgeCount": 29,
         "detailSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 129,
+          "scannedSurfaceCount": 132,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7933,7 +8020,7 @@
         },
         "overviewSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 115,
+          "scannedSurfaceCount": 118,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7948,12 +8035,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-dark.png",
-      "screenshotSha256": "1b0ac8b182fc47f7d586a2a42305dafa5e01e7fda0056f62d57cf82e15cab20f"
+      "screenshotSha256": "79bc232fc67b01de37f99fd1f5dcfd260c54ff89b7ddede0357a21253abe3f76"
     },
     {
       "name": "active-desktop-light",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -8029,9 +8116,9 @@
             },
             "toolbarRect": {
               "left": 112,
-              "top": 265,
+              "top": 273,
               "right": 1400,
-              "bottom": 303,
+              "bottom": 311,
               "width": 1288,
               "height": 38
             },
@@ -8044,8 +8131,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
+            "rendererViewportVisibleHeight": 340,
+            "rendererVisiblePaintPixelCount": 4464,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -8132,7 +8222,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 169,
+        "scannedSurfaceCount": 172,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -8143,12 +8233,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-light.png",
-      "screenshotSha256": "e590c4b1f5deb75a99347e74a8598014c7e87313c4e620686e8a6fdb55289419"
+      "screenshotSha256": "3835e9db3ce744e8b84c09590732eff0d15c843da68dc5be0d9ec98677fc0b3e"
     },
     {
       "name": "active-tablet",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -8224,9 +8314,9 @@
             },
             "toolbarRect": {
               "left": 40,
-              "top": 322,
+              "top": 330,
               "right": 984,
-              "bottom": 406,
+              "bottom": 414,
               "width": 944,
               "height": 84
             },
@@ -8239,8 +8329,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
+            "rendererViewportVisibleHeight": 139,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -8327,7 +8420,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 169,
+        "scannedSurfaceCount": 172,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -8338,12 +8431,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-tablet.png",
-      "screenshotSha256": "8f8b28b117d97e20a208fdb91a484994fc129f188b61f5a9d8007b0a4a65dd22"
+      "screenshotSha256": "62ad42a1b6cb161cdabe613e41a0f7b07a9cde0ed5f3cb87a157b245354c13da"
     },
     {
       "name": "active-mobile",
       "route": "/knowledge",
-      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -8405,9 +8498,9 @@
               "left": 16,
               "top": 166,
               "right": 304,
-              "bottom": 418,
+              "bottom": 291,
               "width": 288,
-              "height": 252
+              "height": 125
             },
             "titleRect": {
               "left": 32,
@@ -8418,12 +8511,12 @@
               "height": 24
             },
             "toolbarRect": {
-              "left": 32,
-              "top": 434,
-              "right": 288,
-              "bottom": 522,
-              "width": 256,
-              "height": 88
+              "left": 24,
+              "top": 299,
+              "right": 296,
+              "bottom": 337,
+              "width": 272,
+              "height": 38
             },
             "modeControlsRect": {
               "left": 33,
@@ -8434,8 +8527,11 @@
               "height": 28
             },
             "titleControlsOverlap": false,
+            "mobileToolsExpanded": "false",
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
+            "rendererViewportVisibleHeight": 360,
+            "rendererVisiblePaintPixelCount": 2034,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -8447,7 +8543,7 @@
             "viewBoxHeight": null,
             "readable": false
           },
-          "teachingCoverageNote": "教学关系暂不可用",
+          "teachingCoverageNote": null,
           "stage": "authority"
         },
         "candidateAuthority": null,
@@ -8522,7 +8618,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 169,
+        "scannedSurfaceCount": 149,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -8531,9 +8627,9 @@
         "copyEntryPresent": false,
         "passed": true
       },
-      "teachingRelationsUnavailable": true,
+      "teachingRelationsUnavailable": false,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-mobile.png",
-      "screenshotSha256": "fa8cdc538adc3216693fd28dede528892918a6b83bf0d4cfbfd052b57a612f4c"
+      "screenshotSha256": "55cd972d667c0d9bf2f959e2fc174f92e034d39376b673e413ed712fee9ad1d4"
     }
   ],
   "authenticatedRoleEvidence": [
@@ -8567,7 +8663,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 169,
+          "scannedSurfaceCount": 172,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8593,7 +8689,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 129,
+            "scannedSurfaceCount": 132,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8604,7 +8700,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 115,
+            "scannedSurfaceCount": 118,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8635,7 +8731,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "ca9cf1fc79419734f3d402e3bcfdeca007c255f278649c5cb4d40d6b72e2ba1b"
+        "screenshotSha256": "a884083d14f2c799a0a66a096c996b780ec13f5512ad4e101abbb3f1835b3ca5"
       },
       "mobile": {
         "mode": "active",
@@ -8669,7 +8765,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 169,
+          "scannedSurfaceCount": 149,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8681,7 +8777,7 @@
         "activeInteractionEvidence": {
           "detailRequestBeforeSelection": false,
           "mediaRequestBeforeSelection": false,
-          "teachingRelationsUnavailable": true,
+          "teachingRelationsUnavailable": false,
           "visibleNodeControl": true,
           "detailRequestObservedAfterSelection": true,
           "mediaRequestObservedAfterSelection": false,
@@ -8695,7 +8791,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 116,
+            "scannedSurfaceCount": 97,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8706,7 +8802,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 102,
+            "scannedSurfaceCount": 82,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8726,7 +8822,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-active-mobile.png",
-        "screenshotSha256": "c5d1ef9e2577391fdba89ebd31950d83eaf9563865bb6cf77bcf47bb6930a5a3"
+        "screenshotSha256": "6ebbe31db709438baa880bb4495242f1b1b924549a9301917cf74b19a94f972f"
       },
       "legacy": {
         "mode": "legacy",
@@ -8763,7 +8859,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "252a6b3b0366ba37155e8350270ab3dbdbb4cf900f3c3a6f76dfa9908ca84a9f"
+        "screenshotSha256": "ce3460e51d408866b962b26c93901697716e5d27ed307dc390ef3261b09e6c18"
       },
       "candidate": null
     },
@@ -8797,7 +8893,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 165,
+          "scannedSurfaceCount": 168,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8823,7 +8919,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 125,
+            "scannedSurfaceCount": 128,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8834,7 +8930,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 111,
+            "scannedSurfaceCount": 114,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8865,7 +8961,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "abc3fc68fe0df5dc83e6acac8adbc8300f1191d99b7513768270775b251ccc17"
+        "screenshotSha256": "0b105082ae6f385262cebdf5e9278f49294ab62c8fe67585f354f6e641d585a3"
       },
       "mobile": {
         "mode": "active",
@@ -8899,7 +8995,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 165,
+          "scannedSurfaceCount": 145,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8911,7 +9007,7 @@
         "activeInteractionEvidence": {
           "detailRequestBeforeSelection": false,
           "mediaRequestBeforeSelection": false,
-          "teachingRelationsUnavailable": true,
+          "teachingRelationsUnavailable": false,
           "visibleNodeControl": true,
           "detailRequestObservedAfterSelection": true,
           "mediaRequestObservedAfterSelection": false,
@@ -8925,7 +9021,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 112,
+            "scannedSurfaceCount": 93,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8936,7 +9032,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 98,
+            "scannedSurfaceCount": 78,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8956,7 +9052,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-active-mobile.png",
-        "screenshotSha256": "9f044697c6c9f43897e50e21a49c4bbc14b439f4f5b6111c7252a7718bdf1324"
+        "screenshotSha256": "32477b5f3bb5bbf86f73cf84936a1bd1f1cf017d396995ebd3fd1b218f576ad0"
       },
       "legacy": {
         "mode": "legacy",
@@ -8993,7 +9089,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "472989c6e8a93ac57ecd008960edc4d9942b3f130287b70b07406de83276208a"
+        "screenshotSha256": "b74478cecf543804738d9dc4845e0831e54c7788d8a51941ccd3202e4e7fcb98"
       },
       "candidate": null
     },
@@ -9027,7 +9123,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 165,
+          "scannedSurfaceCount": 168,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -9053,7 +9149,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 125,
+            "scannedSurfaceCount": 128,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -9064,7 +9160,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 111,
+            "scannedSurfaceCount": 114,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -9095,7 +9191,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "5884a3236b91a003e03bc14dbca822ba7693a79214d3b58052f587c568d5ef12"
+        "screenshotSha256": "5cc4f59970086979493052d065a0f3eb241b8aed14b59b512f99be96d6a7693f"
       },
       "mobile": {
         "mode": "active",
@@ -9129,7 +9225,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 165,
+          "scannedSurfaceCount": 145,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -9141,7 +9237,7 @@
         "activeInteractionEvidence": {
           "detailRequestBeforeSelection": false,
           "mediaRequestBeforeSelection": false,
-          "teachingRelationsUnavailable": true,
+          "teachingRelationsUnavailable": false,
           "visibleNodeControl": true,
           "detailRequestObservedAfterSelection": true,
           "mediaRequestObservedAfterSelection": false,
@@ -9155,7 +9251,7 @@
           "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 112,
+            "scannedSurfaceCount": 93,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -9166,7 +9262,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 98,
+            "scannedSurfaceCount": 78,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -9186,7 +9282,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-active-mobile.png",
-        "screenshotSha256": "168bfac87ea1343a0a9e9901da9fa8697812441e82bfa94f07c617b7c4924eca"
+        "screenshotSha256": "57c196bd40e486899177c501b340d676675eadef24dddc44dd5fbd94fad91336"
       },
       "legacy": {
         "mode": "legacy",
@@ -9223,7 +9319,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "c81d7858c9cdaede3ddd44c59fac531f207ee1b09d6ca4b1050c0bbe11a00290"
+        "screenshotSha256": "f8a3ae8d4b9a0dc1cd16070c5ec116e6c7a9f770ea60a1f2de8e8c84525a68d4"
       },
       "candidate": {
         "mode": "candidate",
