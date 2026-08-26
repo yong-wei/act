@@ -1,5 +1,5 @@
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
-import path from 'path';
 
 export default defineConfig({
   oxc: {
@@ -12,10 +12,10 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 30000,
     include: [
-      'src/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+      'src/app/api/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+      'scripts/knowledge-governance/input-inventory/__tests__/**/*.test.ts',
     ],
     exclude: [
-      'src/app/api/**',
       '**/*.integration.test.*',
       '**/*.real-db.*',
       '**/*.real-smoke.test.*',

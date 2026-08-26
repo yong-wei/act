@@ -26,8 +26,9 @@ scripts/
 | `npm run dev` | 前台启动 Next.js 开发服务器 |
 | `npm run build` | 构建生产版本，包含 WASM 与 Prisma 生成 |
 | `npm run lint` | 代码检查 |
-| `npm test` | 冒烟测试 |
-| `npm run test:integration` | Playwright 集成测试 |
+| `npm test` | PR 默认测试合同（发现 + 快速确定性集合） |
+| `npm run test:integration` | PostgreSQL/Redis/worker 等适配层测试 |
+| `npm run test:e2e:playwright` | 历史 Playwright 全量，现由 nightly/E2E 组件保留 |
 | `npm run db:sync-remote` | 用远端数据库替换本地开发库，脚本会先备份本地库 |
 
 ## 本地启停
