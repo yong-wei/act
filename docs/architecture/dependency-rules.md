@@ -21,3 +21,5 @@ Later enforcement consumes this charter and the predecessor baseline graph. This
 Owned records feeding these rules: 4178.
 
 The first deletion slice is `decouple-teacher-diagnosis-route-contract`. Remaining edges are staged by `enforce-modular-domain-dependency-contracts`.
+
+Fitness allowlist identity: `d4080dc0b6fba7986842def25517cd3e4bc9e02e6f11539ef5829547d45a9d12`. Remaining staged entries: 1124.
