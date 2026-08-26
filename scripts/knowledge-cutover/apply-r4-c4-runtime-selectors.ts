@@ -104,6 +104,16 @@ function main(): void {
   const catalog = readJson<AuthorityDomainCatalogRuntime>(`${args.candidateRoot}/domain-catalog/catalog.json`);
   const catalogPointer = readJson<AuthorityDomainCatalogCurrentPointer>(`${args.candidateRoot}/domain-catalog/current.json`);
   const shardPointer = readJson<AuthorityShardCurrentPointer>(`${args.domainShardRoot}/current.json`);
+  const scope = readJson<{
+    courseId: string;
+    scopeHash: string;
+    authority: {
+      snapshotId: string;
+      snapshotHash: string;
+      releaseId: string;
+      releaseSetId: string;
+    };
+  }>(`${args.candidateRoot}/domain-catalog/scope.json`);
   if (
     catalogPointer.catalogId !== catalog.catalogId
     || catalogPointer.catalogHash !== catalog.catalogHash
@@ -123,9 +133,31 @@ function main(): void {
     || projection.artifacts.manifest.gatePassed === false
     || projection.artifacts.manifest.authoritySnapshotId !== catalog.authorityBinding.snapshotId
     || projection.artifacts.manifest.authoritySnapshotHash !== catalog.authorityBinding.snapshotHash
+    || projection.artifacts.manifest.scopeId !== scope.courseId
+    || projection.artifacts.manifest.authoritySnapshotId !== scope.authority.snapshotId
+    || projection.artifacts.manifest.authoritySnapshotHash !== scope.authority.snapshotHash
   ) {
-    throw new Error('r4 coordinated Teaching Projection does not close over the selected Authority snapshot');
+    throw new Error('r4 coordinated Teaching Projection does not close over the selected course scope and Authority snapshot');
   }
+  const projectionManifestPath = `course-content/runtime/knowledge/projection/releases/${projection.projectionId}/projection-manifest.json`;
+  const projectionScopeBindingInput = {
+    contract: 'r4-coordinated-teaching-projection-scope-binding/v1',
+    courseId: scope.courseId,
+    scopeHash: scope.scopeHash,
+    projectionId: projection.projectionId,
+    projectionHash: projection.projectionHash,
+    projectionManifestSha256: sha256File(projectionManifestPath),
+    authority: {
+      snapshotId: projection.artifacts.manifest.authoritySnapshotId,
+      snapshotHash: projection.artifacts.manifest.authoritySnapshotHash,
+      releaseId: projection.artifacts.manifest.authorityReleaseId,
+      releaseSetId: projection.artifacts.manifest.authorityReleaseSetId,
+    },
+  };
+  const projectionScopeBinding = {
+    ...projectionScopeBindingInput,
+    bindingHash: projectionDigest(projectionScopeBindingInput),
+  };
   const projectionPointer: TeachingProjectionCurrentPointer = {
     contract: 'act-teaching-projection-current/v1',
     projectionId: projection.projectionId,
@@ -181,6 +213,11 @@ function main(): void {
     activatedAt: args.activatedAt,
     selectors: {
       projection: projectionPointer,
+      projectionScopeBinding: {
+        projectionHash: projectionScopeBinding.projectionHash,
+        scopeHash: projectionScopeBinding.scopeHash,
+        bindingHash: projectionScopeBinding.bindingHash,
+      },
       prerequisite: prerequisitePointer,
       catalog: catalogPointer,
       shards: shardPointer,
@@ -232,6 +269,7 @@ function main(): void {
   writeJsonAtomic('course-content/runtime/knowledge/authority-domain-catalog/current.json', catalogPointer);
   writeJsonAtomic('course-content/runtime/knowledge/authority-domain-shards/current.json', shardPointer);
   writeJsonAtomic('course-content/runtime/knowledge/consumer-activation/current.json', consumerPointer);
+  writeJsonAtomic(`${args.candidateRoot}/projection-scope-binding.json`, projectionScopeBinding);
   writeJsonAtomic(
     `course-content/runtime/knowledge/consumer-activation/activations/${args.activationReceiptId}.json`,
     consumerReceipt,

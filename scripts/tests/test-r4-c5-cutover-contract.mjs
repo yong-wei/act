@@ -23,6 +23,9 @@ for (const invariant of [
   'ACT_COORDINATED_CUTOVER_REQUIRED=true',
   'BLOCKED_RECOVERY',
   'Authority successor snapshot is not installed as a regular manifest',
+  'Teaching Projection scope binding does not select the candidate Projection',
+  'Runtime manifest extension does not match the sealed candidate',
+  'candidate rollback plan does not bind the observed Runtime and Authority identities',
 ]) {
   assert.ok(remote.includes(invariant), `coordinated remote transaction must include ${invariant}`);
 }
@@ -90,11 +93,14 @@ try {
   assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
   const labels = JSON.parse(fs.readFileSync(path.join(out, 'presentation-label-qualification.json'), 'utf8'));
   const adjustments = JSON.parse(fs.readFileSync(path.join(out, 'projection-adjustments.json'), 'utf8'));
+  const scopeBinding = JSON.parse(fs.readFileSync(path.join(out, 'projection-scope-binding.json'), 'utf8'));
   const reclosure = JSON.parse(fs.readFileSync(path.join(out, 'teaching-reclosure-receipt.json'), 'utf8'));
   const policy = JSON.parse(fs.readFileSync(path.join(out, 'verification-policy.json'), 'utf8'));
   assert.equal(labels.status, 'PASS', 'candidate must carry the automated presentation-label qualification');
   assert.match(adjustments.scopeHash, /^[a-f0-9]{64}$/, 'candidate must carry the Teaching Projection scope binding');
   assert.equal(policy.projectionScopeHash, adjustments.scopeHash, 'candidate must bind the Teaching Projection scope');
+  assert.equal(scopeBinding.projectionHash, input.inner.teachingProjectionHash, 'scope binding must select the exact Teaching Projection');
+  assert.equal(policy.projectionScopeBindingHash, scopeBinding.bindingHash, 'candidate must bind the exact Teaching Projection scope receipt');
   assert.equal(reclosure.status, 'COMPLETE', 'candidate must carry the completed teaching-governance reclosure');
   assert.equal(policy.teachingGovernanceReclosureHash, reclosure.receiptHash, 'candidate must bind the teaching-governance reclosure');
   assert.equal(policy.verificationPolicyHash, input.verificationPolicyHash, 'candidate must bind the presentation-label verification policy');

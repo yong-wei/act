@@ -153,6 +153,7 @@ function main(): void {
     receiptHash: string;
   }>(`${governanceRoot}/teaching-reclosure-receipt.json`);
   const scope = readJson<{
+    courseId: string;
     scopeHash: string;
     members: { canonicalId: string }[];
     authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
@@ -165,6 +166,7 @@ function main(): void {
     selectorHash: string;
     selectors: {
       projection: { projectionHash: string };
+      projectionScopeBinding: { projectionHash: string; scopeHash: string; bindingHash: string };
       prerequisite: { publicationHash: string };
       catalog: { catalogHash: string; snapshotId: string; snapshotHash: string; releaseId: string };
       shards: { shardSetHash: string; snapshotId: string; snapshotHash: string; releaseId: string; catalogHash: string };
@@ -188,6 +190,17 @@ function main(): void {
     scopeHash: string;
     authoritySnapshotHash: string;
   }>(projectionAdjustmentPath);
+  const projectionScopeBindingPath = `${selectorRoot}/projection-scope-binding.json`;
+  const projectionScopeBinding = readJson<{
+    contract: string;
+    courseId: string;
+    scopeHash: string;
+    projectionId: string;
+    projectionHash: string;
+    projectionManifestSha256: string;
+    authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+    bindingHash: string;
+  }>(projectionScopeBindingPath);
   const selectedCatalog = readJson<{
     catalogId: string;
     catalogHash: string;
@@ -221,6 +234,27 @@ function main(): void {
     || projectionAdjustment.authoritySnapshotHash !== successorManifest.snapshotHash
   ) {
     fail('r4 Teaching Projection does not close over the selected scope and Authority snapshot');
+  }
+  const { bindingHash: ignoredProjectionScopeBindingHash, ...projectionScopeBindingInput } = projectionScopeBinding;
+  void ignoredProjectionScopeBindingHash;
+  const projectionManifestPath = `course-content/runtime/knowledge/projection/releases/${projectionScopeBinding.projectionId}/projection-manifest.json`;
+  if (
+    projectionScopeBinding.contract !== 'r4-coordinated-teaching-projection-scope-binding/v1'
+    || projectionScopeBinding.courseId !== scope.courseId
+    || projectionScopeBinding.scopeHash !== scope.scopeHash
+    || projectionScopeBinding.projectionHash !== selectors.selectors.projection.projectionHash
+    || projectionScopeBinding.projectionId !== `proj-${projectionScopeBinding.projectionHash}`
+    || projectionScopeBinding.projectionManifestSha256 !== sha256File(projectionManifestPath)
+    || projectionScopeBinding.authority.snapshotId !== successorManifest.snapshotId
+    || projectionScopeBinding.authority.snapshotHash !== successorManifest.snapshotHash
+    || projectionScopeBinding.authority.releaseId !== successorManifest.releaseId
+    || projectionScopeBinding.authority.releaseSetId !== successorManifest.releaseSetId
+    || projectionScopeBinding.bindingHash !== projectionDigest(projectionScopeBindingInput)
+    || selectors.selectors.projectionScopeBinding.projectionHash !== projectionScopeBinding.projectionHash
+    || selectors.selectors.projectionScopeBinding.scopeHash !== projectionScopeBinding.scopeHash
+    || selectors.selectors.projectionScopeBinding.bindingHash !== projectionScopeBinding.bindingHash
+  ) {
+    fail('r4 Teaching Projection scope binding does not close over the selected projection, scope, and Authority');
   }
   const { qualificationHash: ignoredPresentationQualificationHash, ...presentationQualificationInput } = presentationLabels;
   void ignoredPresentationQualificationHash;
@@ -432,6 +466,8 @@ function main(): void {
     presentationLabelQualificationSha256: sha256File(`${selectorRoot}/presentation-label-qualification.json`),
     projectionScopeHash: projectionAdjustment.scopeHash,
     projectionScopeAdjustmentSha256: sha256File(projectionAdjustmentPath),
+    projectionScopeBindingHash: projectionScopeBinding.bindingHash,
+    projectionScopeBindingSha256: sha256File(projectionScopeBindingPath),
     teachingGovernanceReclosureHash: teachingReclosure.receiptHash,
     teachingGovernanceReclosureSha256: sha256File(`${governanceRoot}/teaching-reclosure-receipt.json`),
     requireFinalReceiptBeforeConsumerRestart: true,
@@ -477,6 +513,7 @@ function main(): void {
   immutableWrite(path.join(out, 'runtime-stage.json'), runtimeStage);
   immutableWrite(path.join(out, 'presentation-label-qualification.json'), presentationLabels);
   immutableWrite(path.join(out, 'projection-adjustments.json'), projectionAdjustment);
+  immutableWrite(path.join(out, 'projection-scope-binding.json'), projectionScopeBinding);
   immutableWrite(path.join(out, 'teaching-reclosure-receipt.json'), teachingReclosure);
   immutableWrite(path.join(out, 'verification-policy.json'), sealedVerificationPolicy);
   immutableWrite(path.join(out, 'reuse-receipt.json'), {

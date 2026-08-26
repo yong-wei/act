@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ "$candidate_dir" = /* && -d "$candidate_dir" && ! -L "$candidate_dir" ]] || { echo "ERROR: --candidate-dir must be an absolute real directory" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
-for file in "$LIFECYCLE" "$ACTIVATION" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/verification-policy.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json"; do
+for file in "$LIFECYCLE" "$ACTIVATION" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$STATE_DIR/act-runtime-active-receipt.json" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json" "$candidate_dir/materialization-receipt.json"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required regular file is missing: $file" >&2; exit 1; }
 done
 
@@ -110,9 +110,9 @@ PY
 }
 
 preflight_and_prepare() {
-  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/verification-policy.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
+  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/manifest.json" "$candidate_dir/materialization-receipt.json" "$STATE_DIR/act-runtime-active-receipt.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
 import hashlib, json, os, re, subprocess, sys
-candidate_path, successor_path, stage_path, observed_path, artifacts_path, labels_path, teaching_reclosure_path, projection_adjustment_path, policy_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
+candidate_path, successor_path, stage_path, observed_path, artifacts_path, labels_path, teaching_reclosure_path, projection_adjustment_path, projection_scope_binding_path, policy_path, extension_path, successor_runtime_path, runtime_manifest_path, materialization_receipt_path, active_receipt_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
 sha = lambda value: hashlib.sha256(value).hexdigest()
 canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
 candidate = json.load(open(candidate_path, encoding='utf-8'))
@@ -140,7 +140,7 @@ for row in artifacts:
   if artifact_id in seen or expected_artifacts.get(artifact_id) != artifact_hash: raise SystemExit('candidate artifact closure differs from receipt')
   seen[artifact_id]=artifact_hash
 if set(seen) != set(expected_artifacts): raise SystemExit('candidate artifact closure is incomplete')
-labels=json.load(open(labels_path, encoding='utf-8')); teaching_reclosure=json.load(open(teaching_reclosure_path, encoding='utf-8')); projection_adjustment=json.load(open(projection_adjustment_path, encoding='utf-8')); policy=json.load(open(policy_path, encoding='utf-8'))
+labels=json.load(open(labels_path, encoding='utf-8')); teaching_reclosure=json.load(open(teaching_reclosure_path, encoding='utf-8')); projection_adjustment=json.load(open(projection_adjustment_path, encoding='utf-8')); projection_scope_binding=json.load(open(projection_scope_binding_path, encoding='utf-8')); policy=json.load(open(policy_path, encoding='utf-8'))
 if labels.get('contract') != 'r4-presentation-label-qualification/v1' or labels.get('status') != 'PASS' or labels.get('reviewRequired') != 0:
   raise SystemExit('presentation label qualification is not production ready')
 if policy.get('contract') != 'r4-c5-coordinated-production-verification/v1': raise SystemExit('presentation label verification policy is invalid')
@@ -154,6 +154,14 @@ if policy.get('teachingGovernanceReclosureHash') != reclosure_hash or policy.get
   raise SystemExit('teaching governance reclosure is not sealed by the verification policy')
 if projection_adjustment.get('contract') != 'act-coordinated-projection-adjustments/v1' or projection_adjustment.get('scopeHash') != policy.get('projectionScopeHash') or policy.get('projectionScopeAdjustmentSha256') != sha(open(projection_adjustment_path,'rb').read()):
   raise SystemExit('Teaching Projection scope binding is not sealed by the verification policy')
+projection_scope_binding_hash=projection_scope_binding.get('bindingHash')
+projection_scope_binding_input={key:value for key,value in projection_scope_binding.items() if key != 'bindingHash'}
+if projection_scope_binding.get('contract') != 'r4-coordinated-teaching-projection-scope-binding/v1' or not isinstance(projection_scope_binding_hash,str) or sha(canonical(projection_scope_binding_input)) != projection_scope_binding_hash:
+  raise SystemExit('Teaching Projection scope binding receipt is invalid')
+if projection_scope_binding.get('projectionHash') != candidate.get('teachingProjectionHash') or projection_scope_binding.get('projectionId') != 'proj-' + candidate.get('teachingProjectionHash',''):
+  raise SystemExit('Teaching Projection scope binding does not select the candidate Projection')
+if projection_scope_binding.get('scopeHash') != policy.get('projectionScopeHash') or policy.get('projectionScopeBindingHash') != projection_scope_binding_hash or policy.get('projectionScopeBindingSha256') != sha(open(projection_scope_binding_path,'rb').read()):
+  raise SystemExit('Teaching Projection scope binding is not sealed by the verification policy')
 policy_input={key:value for key,value in policy.items() if key != 'verificationPolicyHash'}
 if sha(canonical(policy_input)) != policy_hash: raise SystemExit('presentation label verification policy hash is invalid')
 if policy.get('presentationLabelQualificationHash') != labels.get('qualificationHash') or policy.get('presentationLabelQualificationSha256') != sha(open(labels_path,'rb').read()):
@@ -162,6 +170,21 @@ stage = json.load(open(stage_path, encoding='utf-8'))
 observed = json.load(open(observed_path, encoding='utf-8'))
 if stage.get('contract') != 'coordinated-runtime-stage/v1' or observed.get('contract') != 'r4-production-predecessor-observation/v1':
   raise SystemExit('runtime stage or predecessor observation is invalid')
+runtime_stage=stage.get('runtimeRelease')
+successor_runtime=json.load(open(successor_runtime_path, encoding='utf-8'))
+runtime_manifest=json.load(open(runtime_manifest_path, encoding='utf-8'))
+materialization_receipt_wire=open(materialization_receipt_path,'rb').read()
+extension=json.load(open(extension_path, encoding='utf-8'))
+if not isinstance(runtime_stage,dict) or runtime_stage != successor_runtime or any(runtime_manifest.get(key) != runtime_stage.get(key) for key in ('releaseId','manifestSha256','treeSha256')):
+  raise SystemExit('Runtime stage does not match the sealed successor Runtime manifest')
+runtime_manifest_input={key:value for key,value in runtime_manifest.items() if key != 'manifestSha256'}
+if sha(canonical(runtime_manifest_input)) != runtime_stage.get('manifestSha256'):
+  raise SystemExit('Runtime manifest semantic identity is invalid')
+if sha(materialization_receipt_wire) != stage.get('materializationReceiptSha256') or candidate.get('successorRuntimeMaterializationHash') != stage.get('materializationReceiptSha256'):
+  raise SystemExit('Runtime materialization receipt does not match the sealed candidate')
+runtime_extension_hash=sha(canonical({'successorManifest':runtime_stage,'materializationReceiptHash':stage.get('materializationReceiptSha256'),'extension':extension}))
+if candidate.get('successorRuntimeManifestHash') != runtime_extension_hash:
+  raise SystemExit('Runtime manifest extension does not match the sealed candidate')
 before = open(authority_path, 'rb').read()
 if candidate['predecessor'] != [{'selectorId':'authority:current','identity':sha(before)}]:
   raise SystemExit('Authority predecessor drifted from candidate')
@@ -169,11 +192,20 @@ live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--s
 runtime = observed['runtime']
 if live['desired'] is None or live['active'] != {key: runtime[key] for key in ('releaseId','manifestSha256','treeSha256')} or live['generation'] != runtime['lifecycleGeneration']:
   raise SystemExit('Runtime predecessor or staged desired state drifted')
+if sha(open(active_receipt_path,'rb').read()) != runtime.get('activeReceiptHash'):
+  raise SystemExit('Runtime active receipt differs from the observed predecessor')
 if live['desired'] != stage['runtimeRelease']:
   raise SystemExit('staged Runtime desired identity does not match c5 stage')
+if candidate.get('predecessorRuntimeLifecycleGeneration') != runtime.get('lifecycleGeneration'):
+  raise SystemExit('candidate Runtime predecessor lifecycle generation drifted')
+if extension.get('predecessorRuntimeReleaseId') != runtime.get('releaseId') or extension.get('predecessorRuntimeManifestSha256') != runtime.get('manifestSha256') or extension.get('predecessorLifecycleGeneration') != runtime.get('lifecycleGeneration'):
+  raise SystemExit('Runtime manifest extension predecessor differs from the observed Runtime')
 after = open(successor_path, 'rb').read()
 if candidate['successorSelectorExpectations'] != [{'selectorId':'authority:current','expectedSuccessorIdentity':sha(after)}]:
   raise SystemExit('Authority successor does not match candidate')
+rollback_hash=sha(canonical({'authorityBefore':sha(before),'authorityAfter':sha(after),'runtimeBefore':runtime,'runtimeAfter':runtime_stage}))
+if candidate.get('rollbackPlanHash') != rollback_hash:
+  raise SystemExit('candidate rollback plan does not bind the observed Runtime and Authority identities')
 successor=json.loads(after)
 snapshot=successor.get('snapshotId')
 if not isinstance(snapshot, str) or not re.fullmatch(r'snap-[0-9a-f]{64}', snapshot): raise SystemExit('Authority successor snapshot identity is invalid')
@@ -188,6 +220,9 @@ if any(installed_manifest.get(key) != successor.get(key) for key in ('snapshotId
 if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') != ['scopeHash']:
   raise SystemExit('teaching governance reclosure does not bind the successor Authority')
 if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshotHash'):
+  raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
+binding_authority=projection_scope_binding.get('authority')
+if not isinstance(binding_authority,dict) or any(binding_authority.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
 declaration = {'contract':'runtime-blob-coordinated-cutover.v1', **stage['runtimeRelease'], 'candidateReceiptHash':candidate['receiptHash']}
 with open(declaration_path, 'w', encoding='utf-8') as handle:

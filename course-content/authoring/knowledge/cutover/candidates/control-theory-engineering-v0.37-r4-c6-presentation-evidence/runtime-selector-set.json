@@ -9,6 +9,11 @@
       "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
       "activatedAt": "2026-08-26T07:21:00.000Z"
     },
+    "projectionScopeBinding": {
+      "projectionHash": "c9a6f33eb88fff28f8934a25a627e38deffcbf331ee7f34bb4e9ff65b0d02c2e",
+      "scopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+      "bindingHash": "78141419feb1daaa46f947d98a6e6aaf824631096a98c6df434cc501ec927cbd"
+    },
     "prerequisite": {
       "contract": "act-teaching-prerequisite-current/v1",
       "publicationId": "proj-d55c3ac4097729bc7e016ecdd810c8153a490166e3283c580897b0b7268845c8",
@@ -44,7 +49,7 @@
       "activationReceiptId": "coordinated-r4-c6-presentation-evidence-v022"
     }
   },
-  "selectorHash": "d8b577da98035f9a41834d4a9f5d0e449a74a07b313c19167a283c1084172e76",
+  "selectorHash": "9bbf67e317a29a718f42ccb6db731179a96a585a87789950bfd73a997077c733",
   "appliedToSourceTree": true,
   "sourceSelectorHashes": {
     "projection": "11ab4d4e9a03f1e077933be325d47217c40b32895da5593e53de0b75748c4286",

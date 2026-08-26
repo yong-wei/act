@@ -83,13 +83,14 @@ function main(): void {
   const selectors = readJson<{
     selectors: {
       projection: { projectionHash: string };
+      projectionScopeBinding: { projectionHash: string; scopeHash: string; bindingHash: string };
       prerequisite: { publicationHash: string };
       catalog: { catalogHash: string };
       shards: { shardSetHash: string };
       consumerActivation: { activationHash: string };
     };
   }>(`${selectorRoot}/runtime-selector-set.json`);
-  const scope = readJson<{ scopeHash: string }>(`${governanceRoot}/domain-catalog/scope.json`);
+  const scope = readJson<{ courseId: string; scopeHash: string }>(`${governanceRoot}/domain-catalog/scope.json`);
   const presentationLabelsPath = path.join(candidateDir, 'presentation-label-qualification.json');
   const presentationLabels = readJson<{
     contract: string;
@@ -107,6 +108,8 @@ function main(): void {
     presentationLabelQualificationSha256: string;
     projectionScopeHash: string;
     projectionScopeAdjustmentSha256: string;
+    projectionScopeBindingHash: string;
+    projectionScopeBindingSha256: string;
     teachingGovernanceReclosureHash: string;
     teachingGovernanceReclosureSha256: string;
     requireFinalReceiptBeforeConsumerRestart: boolean;
@@ -150,6 +153,8 @@ function main(): void {
     verificationPolicy.presentationLabelQualificationSha256,
     verificationPolicy.projectionScopeHash,
     verificationPolicy.projectionScopeAdjustmentSha256,
+    verificationPolicy.projectionScopeBindingHash,
+    verificationPolicy.projectionScopeBindingSha256,
     verificationPolicy.teachingGovernanceReclosureHash,
     verificationPolicy.teachingGovernanceReclosureSha256,
     verificationPolicy.verificationPolicyHash,
@@ -183,6 +188,24 @@ function main(): void {
     scopeHash: string;
     authoritySnapshotHash: string;
   }>(projectionAdjustmentPath);
+  const projectionScopeBindingPath = path.join(candidateDir, 'projection-scope-binding.json');
+  const projectionScopeBinding = readJson<{
+    contract: string;
+    courseId: string;
+    scopeHash: string;
+    projectionId: string;
+    projectionHash: string;
+    projectionManifestSha256: string;
+    authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+    bindingHash: string;
+  }>(projectionScopeBindingPath);
+  const { bindingHash: ignoredProjectionScopeBindingHash, ...projectionScopeBindingInput } = projectionScopeBinding;
+  void ignoredProjectionScopeBindingHash;
+  const projectionManifestPath = path.join(
+    'course-content/runtime/knowledge/projection/releases',
+    projectionScopeBinding.projectionId,
+    'projection-manifest.json',
+  );
   if (
     governance.contract !== 'coordinated-teaching-disposition-scope-reclosure/v1'
     || governance.scopeHash !== scope.scopeHash
@@ -200,6 +223,22 @@ function main(): void {
     || projectionAdjustment.authoritySnapshotHash !== successorAuthority.snapshotHash
     || verificationPolicy.projectionScopeHash !== projectionAdjustment.scopeHash
     || verificationPolicy.projectionScopeAdjustmentSha256 !== sha256File(projectionAdjustmentPath)
+    || projectionScopeBinding.contract !== 'r4-coordinated-teaching-projection-scope-binding/v1'
+    || projectionScopeBinding.courseId !== scope.courseId
+    || projectionScopeBinding.scopeHash !== scope.scopeHash
+    || projectionScopeBinding.projectionHash !== selectors.selectors.projection.projectionHash
+    || projectionScopeBinding.projectionId !== `proj-${projectionScopeBinding.projectionHash}`
+    || projectionScopeBinding.projectionManifestSha256 !== sha256File(projectionManifestPath)
+    || projectionScopeBinding.authority.snapshotId !== successorAuthority.snapshotId
+    || projectionScopeBinding.authority.snapshotHash !== successorAuthority.snapshotHash
+    || projectionScopeBinding.authority.releaseId !== successorAuthority.releaseId
+    || projectionScopeBinding.authority.releaseSetId !== successorAuthority.releaseSetId
+    || projectionScopeBinding.bindingHash !== projectionDigest(projectionScopeBindingInput)
+    || verificationPolicy.projectionScopeBindingHash !== projectionScopeBinding.bindingHash
+    || verificationPolicy.projectionScopeBindingSha256 !== sha256File(projectionScopeBindingPath)
+    || selectors.selectors.projectionScopeBinding.projectionHash !== projectionScopeBinding.projectionHash
+    || selectors.selectors.projectionScopeBinding.scopeHash !== projectionScopeBinding.scopeHash
+    || selectors.selectors.projectionScopeBinding.bindingHash !== projectionScopeBinding.bindingHash
   ) {
     throw new Error('reopened teaching governance does not close over the C6 successor');
   }
