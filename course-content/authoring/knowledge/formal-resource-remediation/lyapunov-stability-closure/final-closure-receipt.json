@@ -1,0 +1,32 @@
+{
+ "contract": "remediation-final-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "domain": "lyapunov-stability",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 141,
+ "packRows": 423,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 0,
+  "NO_RELATION": 423,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "edgeEndpoints": {
+  "count": 0,
+  "byFamily": {
+   "containment": 0,
+   "prerequisite": 0,
+   "association": 0
+  },
+  "courseRootCount": 0
+ },
+ "domainRuling": {
+  "decisionDoc": "docs/remediation-1515/handout-coverage-decision.md#裁决一",
+  "decidedAt": "2026-08-23T00:00:00.000Z",
+  "decidedBy": "course-owner-yongwei",
+  "excludedDomainsLedgerSha256": "95fbaafd900c55fe57c2df20f7e5cf804b8bb085f1970e44aa379395a116f587"
+ },
+ "closureComplete": true
+}

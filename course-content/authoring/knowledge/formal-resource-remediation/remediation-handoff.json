@@ -1,0 +1,24 @@
+{
+ "contract": "remediation-handoff-manifest/v1",
+ "builderVersion": "formal-resource-remediation-builder/v1",
+ "handoffId": "handoff-9f3d13c00aae835726613408",
+ "sealedAt": "2026-08-24T20:30:00.000Z",
+ "selectable": false,
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "authorityCaptureHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+ "denominatorHash": "2346e28b927272b90f04da781adf8750f0b3eb196684b838995ce19dcebafbc9",
+ "resourceEnvelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+ "closureReceiptHash": "4bd82671b31879cd2f408e4faca89f84cea2fc9f755ef72a16556e83b7bcc258",
+ "teachingProjectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "prerequisitePublicationHash": "ca74ccb244ee2c797048b0743cebe22c7d53202fb6673a2bf0d8c62c4603cc56",
+ "domainFragmentsHash": "bbc2b74d6613cd9850ae413a80206f0af288c98b7be0725cba967e9a71c682aa",
+ "domainShardsHash": "bbc2b74d6613cd9850ae413a80206f0af288c98b7be0725cba967e9a71c682aa",
+ "consumerProjectionsHash": "db55870c22061af592cf357cbf1508414e3ff20e110a7906f7423748ff1cafce",
+ "processorRegistryHash": "6bc85ba5a0999cc31f2fa7a1f9cf667645c3cda49a0dbf857830b58c9c39c6ea",
+ "reportsHash": "7b9c60e0d12da377fddf45b25367a018bdfb47e5fab3f8792ca857aa1fe06983",
+ "notes": [
+  "domain fragments currently also serve the shard/overlay role: excluded members carry in-fragment excluded flags and zero-resource markers",
+  "exercise and intro-video subtypes remain explicitly limited in the envelope; see resource-envelope.json limitations"
+ ],
+ "handoffHash": "9f3d13c00aae8357266134086994f9abfdd30a468a203dc023fcb240adcf83a9"
+}

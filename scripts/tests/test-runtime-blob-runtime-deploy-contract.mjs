@@ -30,6 +30,7 @@ for (const invariant of [
   '--verification-receipt',
   '--parent-view',
   '--parent-runtime-root',
+  '--stage-only',
   'verify-mounted --format v2',
   'mount --bind "$BLOB_ROOT" "$helper"',
   'mount -o remount,bind,ro "$helper"',
@@ -45,6 +46,10 @@ for (const invariant of [
   'lifecycle_generation',
   'restore_runtime_consumers()',
   'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
+  'candidate-readyz-receipt',
+  'write_candidate_readyz_receipt()',
+  'candidate_receipt_path',
+  'candidate_receipt_rebound',
   'run_candidate_consumer_smoke()',
   'run_active_media_resolver_smoke()',
   '/interactive-learning/courses/unit-1-1-see-the-full-picture',
@@ -56,9 +61,15 @@ for (const invariant of [
   'ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT',
   'ACT_RUNTIME_CANDIDATE_INDEX_ROOT',
   'candidate media, knowledge, or textbook consumer smoke failed',
+  'smoke_dir="$(mktemp -d /tmp/act-runtime-blob-candidate-smoke.XXXXXX)"',
+  'smoke_file="$smoke_dir/candidate-smoke.ts"',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
   'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
+  'podman container exists "$APP_CONTAINER"',
+  "grep -E '^APP_IMAGE=(sha256:)?[a-f0-9]{64}$' \"$ENV_FILE\"",
+  'persisted runtime environment does not contain a valid app image digest',
+  'podman image exists "$rollback_app_image"',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
@@ -70,6 +81,14 @@ assert.match(podmanDeploy, /RUNTIME_ACTIVE_RECEIPT_HOST_DIR/, 'deployment must b
 assert.ok(
   activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired lifecycle state must be staged before the legacy selector changes',
+);
+assert.ok(
+  activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" select') < activation.lastIndexOf('write_candidate_readyz_receipt'),
+  'candidate readiness receipt must be derived only after the desired selection is fenced',
+);
+assert.ok(
+  activation.lastIndexOf('write_candidate_readyz_receipt') < activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'candidate readiness receipt must be prepared before its view reaches consumers',
 );
 assert.ok(
   activation.lastIndexOf('trap restore_runtime_consumers ERR') <
@@ -95,6 +114,15 @@ assert.ok(
   activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
     activation.lastIndexOf('candidate_deploy_attempted=1'),
   'failed post-overlay verification must not restart runtime consumers',
+);
+assert.match(
+  activation,
+  /--stage-only requires a successor Runtime release/,
+  'staging must refuse to rematerialize the active Runtime release',
+);
+assert.ok(
+  activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),
+  'non-selectable Runtime staging must stop before lifecycle desired state is written',
 );
 assert.match(
   activation,
@@ -180,7 +208,7 @@ assert.doesNotMatch(
 );
 assert.match(
   activation,
-  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp -d \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX[\s\S]*candidate-smoke\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
   'candidate consumer smoke must execute a temporary TypeScript file through the deployed application runtime',
 );
 assert.doesNotMatch(
@@ -194,6 +222,11 @@ const activationAttemptIndex = activation.lastIndexOf('activation_attempted=1');
 assert.ok(
   activationCommitIndex < activeMediaSmokeIndex,
   'the normal private media resolver must be verified only after the active receipt is committed',
+);
+const canonicalReceiptRebindIndex = activation.lastIndexOf('ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json"');
+assert.ok(
+  activationCommitIndex < canonicalReceiptRebindIndex && canonicalReceiptRebindIndex < activeMediaSmokeIndex,
+  'a successful lifecycle activation must rebind consumers to the canonical receipt before active media smoke',
 );
 assert.ok(
   activationAttemptIndex < activationCommitIndex,
@@ -408,6 +441,13 @@ for (const invariant of [
   '--external-bundle',
   '--external-bundle-root',
   '--generated-resources-root',
+  '--resume-published-artifact-dir',
+  '--stage-only',
+  '--formal-resource-envelope-hash',
+  'resuming_published_release',
+  'published runtime resume requires the exact release to remain publishing, desired or active',
+  'resumedPublishedRelease',
+  'repairedActiveRelease',
   '--expected-active-release',
   'publisher-verification.json',
   'source-provenance-proof.json',
@@ -437,6 +477,31 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
+  /if resume:[\s\S]*desired == candidate[\s\S]*state\.get\("active"\) == candidate[\s\S]*any\(item == candidate for item in publishing\)[\s\S]*published runtime resume requires the exact release to remain publishing, desired or active/,
+  'published release resume must proceed only when lifecycle still owns that exact publishing, desired, or active release',
+);
+assert.match(
+  runtimeDeploy,
+  /runtimeStage.*NON_SELECTABLE/,
+  'Runtime staging must persist an explicit non-selectable publication state',
+);
+assert.match(
+  runtimeDeploy,
+  /--formal-resource-envelope-hash/,
+  'formal-resource candidates must bind their envelope before runtime publication',
+);
+assert.match(
+  runtimeDeploy,
+  /pre_publish_action" != protected:\* && "\$pre_publish_action" != repair:\*/,
+  'active repair must be accepted as a valid protected release action',
+);
+assert.match(
+  runtimeDeploy,
+  /if \[\[ "\$resuming_published_release" != "1" \]\]; then[\s\S]*publish-streaming/,
+  'published release resume must not invoke the local blob publisher again',
+);
+assert.match(
+  runtimeDeploy,
   /publish_args\+=\(--parent-manifest "\$parent_manifest"\)/,
   'runtime deploy must pass the parent manifest to publish-streaming so inherited Git blobs remain body-read and HEAD free',
 );
@@ -457,8 +522,8 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
-  /matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
-  'unchanged runtime may bypass publication only when its parent is the expected active release',
+  /-z "\$formal_resource_envelope_hash" && -n "\$matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
+  'unchanged runtime may bypass publication only when it has no new formal-resource envelope and its parent is the expected active release',
 );
 assert.match(
   runtimeDeploy,

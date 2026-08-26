@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "time-domain-analysis",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/time-domain-analysis-review.jsonl",
+ "sourceSha256": "323b3529e039b04af2236e85a0c3812d111f2792347080bea6e7298d96d71c2c",
+ "rowCount": 572,
+ "memberCount": 572,
+ "edgeCount": 165,
+ "receiptReconciliation": {
+  "packRows": 1716,
+  "publishedEdgeInReceipt": 165,
+  "jsonlEdgeCount": 165,
+  "match": true
+ }
+}

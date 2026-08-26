@@ -1,0 +1,4255 @@
+{
+ "contract": "remediation-teaching-projection-domain-fragment/v1",
+ "projectionHash": "ce38ed510d7eebe9681574bf8bdfadcaf6a843fe8940c3983078f8388102531b",
+ "domain": "robust-control-analysis-and-design",
+ "memberCount": 707,
+ "edgeCount": 0,
+ "bindingCount": 0,
+ "fragmentHash": "d36c74193571d9b793927abde714bc0ef7ad8746b19f204397cc707de9e5b689",
+ "members": [
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:1595539e1ec89f14892903c7",
+   "excluded": true,
+   "label": "伪QFT方法",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:199cf0226e1862004d8334da",
+   "excluded": true,
+   "label": "闭环传递函数T(s)",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:4022fed074c5a7364eacdce9",
+   "excluded": true,
+   "label": "伪QFT极点-零点近似",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:5b9db9f6bfeb1491df0d9414",
+   "excluded": true,
+   "label": "定量反馈理论",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "ctkg:m3-v2j:source-object:aded750d4dd3e632229f2953",
+   "excluded": true,
+   "label": "伪QFT鲁棒性能",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:concept:0a3e1fd1b6a15049b4f7846f",
+   "excluded": true,
+   "label": "M1R DomainConcept 7356737f0bdceae6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:concept:98c63b050a9e5228c4c87f54",
+   "excluded": true,
+   "label": "M1R DomainConcept 689410551b1dfd7e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:02bdaf6c39315b38327b7294",
+   "excluded": true,
+   "label": "M1R Formula ed1c1f2d6d17c746",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:02f69f0592786679f91ebd97",
+   "excluded": true,
+   "label": "M1R Formula 5e25651426b26a31",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:05654efa014a0fedab42eeb4",
+   "excluded": true,
+   "label": "M1R Formula d1971eee055af70b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0681a1d762b48ba458e1ba1a",
+   "excluded": true,
+   "label": "M1R Formula 2b6b2e16f4f7a670",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:06be040925f90b642b4d8f7c",
+   "excluded": true,
+   "label": "M1R Formula c81c50d42657545c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:06c8c8d6e3ae3a36db1ec17c",
+   "excluded": true,
+   "label": "M1R Formula ccc1f7b05b6649b9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0ba76f4c5d60d076fb012cc0",
+   "excluded": true,
+   "label": "M1R Formula c8f28ac47f98f603",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0c22c6630a527c2384716192",
+   "excluded": true,
+   "label": "M1R Formula e400daaf8cae6598",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0ca902078c4aa6bfd5bd8939",
+   "excluded": true,
+   "label": "M1R Formula 53cf01841cb17cf6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0d8d331a8ae30c804b5d0750",
+   "excluded": true,
+   "label": "M1R Formula ede9d6641fa89a89",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0e137758e5cf4303f8e53e97",
+   "excluded": true,
+   "label": "M1R Formula 9687301a95c1cbc6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:0f3b1c69dac489db51205295",
+   "excluded": true,
+   "label": "M1R Formula 15a20599bc5810ac",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:1072b75e7cd47bb4888173e6",
+   "excluded": true,
+   "label": "M1R Formula 58fd34b98c5cb2c6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:143cee15452344788dd01747",
+   "excluded": true,
+   "label": "M1R Formula 4d82635bd91deab5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:15bfbe07a404f1592b84b3df",
+   "excluded": true,
+   "label": "M1R Formula cedbed810ceb3a13",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:163f283afc3e41fd057d2f3e",
+   "excluded": true,
+   "label": "M1R Formula 8d4a4edc6d989f71",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:17e7e2de47c550446fdad28c",
+   "excluded": true,
+   "label": "M1R Formula 02f5481f364b61ba",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:182fbb90a4853c9aae85e7f3",
+   "excluded": true,
+   "label": "M1R Formula c0f1a644c9bb91d5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:19e6171f09090a55efc2cd1f",
+   "excluded": true,
+   "label": "M1R Formula e33b42cdbd77380f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:1d7ca6df0667ee0fc76a56d7",
+   "excluded": true,
+   "label": "M1R Formula f11a8d64c7554635",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:1de39c18aff8be1fdc9eb28d",
+   "excluded": true,
+   "label": "M1R Formula 1c03f426c46afce0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:1df49f7e329b579209bf9dfc",
+   "excluded": true,
+   "label": "M1R Formula 8030195bb7a01ad6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:1f2a48a685020b2d41bc1cd2",
+   "excluded": true,
+   "label": "M1R Formula 630ea2b4157c4db0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:21b85826deb876b256a031df",
+   "excluded": true,
+   "label": "M1R Formula 6b63acdfb61d3fd7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:23e035bfe059f2d0afb038be",
+   "excluded": true,
+   "label": "M1R Formula 48a1ab1101036d66",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:252139c300ac5ca118345da5",
+   "excluded": true,
+   "label": "M1R Formula 174da448e7e9135f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:2823256cafdf44866c7d35ff",
+   "excluded": true,
+   "label": "M1R Formula 7d5a0326dcc26cf7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:2c9c5cf7bb1e0ece72243fd7",
+   "excluded": true,
+   "label": "M1R Formula cbba824faad3ee50",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:2d4f9f95342877bfa9c23dd6",
+   "excluded": true,
+   "label": "M1R Formula 3b198a68c0688a20",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3048c1262de928c561955e58",
+   "excluded": true,
+   "label": "M1R Formula a270dc98e769676a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:31a68c4ed9add1461f3e1ce6",
+   "excluded": true,
+   "label": "M1R Formula 9e70a0671f710915",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:33bea1c393df3a5854874d6f",
+   "excluded": true,
+   "label": "M1R Formula f0c0e56989655721",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:37909a58e7cd3b31acdcc9c7",
+   "excluded": true,
+   "label": "M1R Formula 4ec440a609b99e7f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3b079708d2326945cf3abc22",
+   "excluded": true,
+   "label": "M1R Formula 0dd7c0f114664cbd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3b73a90f7c10891f392f2cdf",
+   "excluded": true,
+   "label": "M1R Formula 0467b1a27f49e23d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3d5edb032f4a66dcecdfd683",
+   "excluded": true,
+   "label": "M1R Formula e13774e0ae314210",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3e559fed9683486e59fe1c2d",
+   "excluded": true,
+   "label": "M1R Formula c1e748715f60a41d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3f15a65e450020d46036d0d4",
+   "excluded": true,
+   "label": "M1R Formula 25d2f945bc97bc48",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:3fc060e5d55c0d53ae89019b",
+   "excluded": true,
+   "label": "M1R Formula 2bf77b7e78aab09a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:422148db643461c68f132a87",
+   "excluded": true,
+   "label": "M1R Formula 2fc12d24d003d566",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:4578b49446af19a98ef25344",
+   "excluded": true,
+   "label": "M1R Formula eb5ff235e3439574",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:48d302d70c1886cd7d49db4c",
+   "excluded": true,
+   "label": "M1R Formula 4d766f391255049b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:494b4bf315ae8a689affdd27",
+   "excluded": true,
+   "label": "M1R Formula 5da40d1ae655111e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:49ba6c6d88d00cd092094e81",
+   "excluded": true,
+   "label": "M1R Formula a4f31590d6bd22ad",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:4af6b7a2628a7b9cec8587a8",
+   "excluded": true,
+   "label": "M1R Formula 1274a3a6cc3f3636",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:501d0f571f46db9f7207e4d2",
+   "excluded": true,
+   "label": "M1R Formula 78dcef0f6985cd6e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:502bdffb568ce55d68b05cf5",
+   "excluded": true,
+   "label": "M1R Formula 7d443ad851a458d5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:53460a2be4f1321a959b6527",
+   "excluded": true,
+   "label": "M1R Formula f7951dbada9da29a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:53baf7025f3b73e38947afb6",
+   "excluded": true,
+   "label": "M1R Formula d39681f291a281fa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:547a0c8d9326d5d1b7bd6c2a",
+   "excluded": true,
+   "label": "M1R Formula ce0d8babfd379f00",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:586e797116ca9e316729fffc",
+   "excluded": true,
+   "label": "M1R Formula 9d9ed32d30f1d634",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:596173412cd03373df169c2e",
+   "excluded": true,
+   "label": "M1R Formula 63480789faf03d9d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:5a4f35f0a919b4492d245f18",
+   "excluded": true,
+   "label": "M1R Formula 1e40faad1e4a8153",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:5be0d3101933ef05075fcd54",
+   "excluded": true,
+   "label": "M1R Formula 2e1ff91e9a1d1d04",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:5d0bf81f946ec0c3e2f7dd52",
+   "excluded": true,
+   "label": "M1R Formula a1c5d8ccaa4bec67",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:5e15fabce389c2ddbe1d236b",
+   "excluded": true,
+   "label": "M1R Formula e3cd705db5f12ddc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:5e79eb8160d446b20fb9d1cf",
+   "excluded": true,
+   "label": "M1R Formula 50cf86874a7b6a4c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6083be8bad019f4bc182a69a",
+   "excluded": true,
+   "label": "M1R Formula 799cd3f89e12e5b5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:649022524d48cc1a7b52779b",
+   "excluded": true,
+   "label": "M1R Formula 0ebfd6b1a6bb3d0e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6536e4cac282f75da2136415",
+   "excluded": true,
+   "label": "M1R Formula 3feaca194289c73f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6877739a790a6e6ccea40908",
+   "excluded": true,
+   "label": "M1R Formula 7019b3bcb0618101",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6a26ad3866b578bcb87fcc9d",
+   "excluded": true,
+   "label": "M1R Formula 2809126724051bcf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6bdb43c4170f8c8aa8debf6f",
+   "excluded": true,
+   "label": "M1R Formula e9caac0c87a414a6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6d05703f0903cfd17b8f6b73",
+   "excluded": true,
+   "label": "M1R Formula 2710ebf4f6e383c9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6dfd26a1079131c8961bd6a8",
+   "excluded": true,
+   "label": "M1R Formula b069042b7016250f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6e7bfcf7d89ab1638fac9942",
+   "excluded": true,
+   "label": "M1R Formula 39fea74b0059c357",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:6f84b5459c6cf3dd66b6ba8c",
+   "excluded": true,
+   "label": "M1R Formula 99f547d789eca79a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:71cd7f7af7cf156d98cb2a04",
+   "excluded": true,
+   "label": "M1R Formula 08b305a2dceb9f0c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:745dddceb1392beca16008da",
+   "excluded": true,
+   "label": "M1R Formula 73e373cd37c1ee9d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:7b12c7b123c9323dedc50436",
+   "excluded": true,
+   "label": "M1R Formula aa494bb6067db5df",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:7fbc9b56891f1185f8f3d3a0",
+   "excluded": true,
+   "label": "M1R Formula f8c066a80cf9ebf9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:7fe9f5b80d329b39c70e3ce7",
+   "excluded": true,
+   "label": "M1R Formula 916d6e17c5f596fc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:85567d383be879bcb862674b",
+   "excluded": true,
+   "label": "M1R Formula d03ad34c393f43f4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:88994ead66a6c24f589031c3",
+   "excluded": true,
+   "label": "M1R Formula 9c24b173b32922b3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:8a91f1e0979766e28c9906b7",
+   "excluded": true,
+   "label": "M1R Formula 6d2286a768441c8c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:8b412f1a04a45d88337b1fab",
+   "excluded": true,
+   "label": "M1R Formula 151a5515fd8044b5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:8da21d98b3fb54969a99b858",
+   "excluded": true,
+   "label": "M1R Formula 5ee4257200e6214e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:8e8189139e9798e56e6b0d99",
+   "excluded": true,
+   "label": "M1R Formula aaae2f563cc6548d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:8e94d775c700c4bff9b67822",
+   "excluded": true,
+   "label": "M1R Formula 327a628121b2c65d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:90f9ffdd8ea8a8c583cbf897",
+   "excluded": true,
+   "label": "M1R Formula 51d858a9f192d6fb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:941cb13706848a15f4b7a41b",
+   "excluded": true,
+   "label": "M1R Formula dc3e2b0fd19a0d86",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:954684a8181f44fbf55e193c",
+   "excluded": true,
+   "label": "M1R Formula da6456162086c1ee",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:98d3c413df037974bad253d8",
+   "excluded": true,
+   "label": "M1R Formula aa1bea9336a45144",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:9944e576b3763c52c271b32d",
+   "excluded": true,
+   "label": "M1R Formula cd6fbbaa795df395",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:99a29801791e926848df04cd",
+   "excluded": true,
+   "label": "M1R Formula 46437ae770e00643",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:99dc510d783325ce2236b399",
+   "excluded": true,
+   "label": "M1R Formula eedb7d19d591500d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a3503803f2153fe88e899271",
+   "excluded": true,
+   "label": "M1R Formula 591138b963c59040",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a3e7019447dbbe64c658aaad",
+   "excluded": true,
+   "label": "M1R Formula ea203d81d9731f3b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a40e3ce7305617f2eb8decf6",
+   "excluded": true,
+   "label": "M1R Formula 83afb709fb3d9cfa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a60adbd9a0deeaec9f39908f",
+   "excluded": true,
+   "label": "M1R Formula f1bb62677601c01b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a744c38f74925b459962c4f1",
+   "excluded": true,
+   "label": "M1R Formula 638af6b485910e1c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a7dbd73b8a9d29f7261ee90c",
+   "excluded": true,
+   "label": "M1R Formula 8361ee254f20df1e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:a91cb7f30b23105afb29823d",
+   "excluded": true,
+   "label": "M1R Formula 926989d8b27caadf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:aa28be7014167349219d6893",
+   "excluded": true,
+   "label": "M1R Formula 8eddcf143a923219",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:aa432e6bf833efdc8116fda9",
+   "excluded": true,
+   "label": "M1R Formula 56b13e6c8a100503",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:abba8afb13de37d881302b7d",
+   "excluded": true,
+   "label": "M1R Formula aa5bc33f28479128",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:aec637318e63cca6bba261d0",
+   "excluded": true,
+   "label": "M1R Formula 5f1f4bc856244470",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:af76ee93c9d57ec19dd63670",
+   "excluded": true,
+   "label": "M1R Formula e2d831d690a60f2d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b015e2870074e7caf7df4b71",
+   "excluded": true,
+   "label": "M1R Formula b9093ad49ad4e3a3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b0a5f092e31de59f76121d57",
+   "excluded": true,
+   "label": "M1R Formula 0ccf355c6dadfb1d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b14aab0f92f3da7c37b469b8",
+   "excluded": true,
+   "label": "M1R Formula 7b40e894394e3247",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b167da514d9a8cc7989fb023",
+   "excluded": true,
+   "label": "M1R Formula e4876732f8a934ad",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b17852cfb0df6eb9a9f6dd2f",
+   "excluded": true,
+   "label": "M1R Formula 75ccc154c3a0d049",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b27ef56449d86d61438b51d6",
+   "excluded": true,
+   "label": "M1R Formula 4e7e12c274708856",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b2b96cd60f11bb5c1f4fc550",
+   "excluded": true,
+   "label": "M1R Formula 17b2513a1a852f5c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b2f8dbfcae67150a97a94b3e",
+   "excluded": true,
+   "label": "M1R Formula 8e3fef2228bf9888",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b5d67b730d0a4bbb1fcf51aa",
+   "excluded": true,
+   "label": "M1R Formula 8b580dfee149705b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b879ff664e3d239f05d4d044",
+   "excluded": true,
+   "label": "M1R Formula d5ab3b9de1d5ee03",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:b917d7ddad71892716587600",
+   "excluded": true,
+   "label": "M1R Formula 3784e472edb6c571",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ba0861b90cefb28ece1a3b73",
+   "excluded": true,
+   "label": "M1R Formula 842b5325cc690868",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ba3e6dc025489c1995274491",
+   "excluded": true,
+   "label": "M1R Formula 02d28e596bc16cc4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:bba292c02fa10222f63f950b",
+   "excluded": true,
+   "label": "M1R Formula db3f78c52050f5fb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:bcdd1755efea0f64818d7a1d",
+   "excluded": true,
+   "label": "M1R Formula d1289a87208ff74d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:bf8801616208a54be8ab177a",
+   "excluded": true,
+   "label": "M1R Formula 57dc54f249930a7c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:bfd23466ca8179471aa81c09",
+   "excluded": true,
+   "label": "M1R Formula 8ad7231d1a6706aa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c06d7d78be3fba90ea95a5b8",
+   "excluded": true,
+   "label": "M1R Formula 7e31defb4c92db86",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c071affc8d16f78ab2aecdc9",
+   "excluded": true,
+   "label": "M1R Formula 4096a56633216eee",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c23497b7883edbe1905a38e2",
+   "excluded": true,
+   "label": "M1R Formula 593f119546189417",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c2b955df6aebf8ca92865e7b",
+   "excluded": true,
+   "label": "M1R Formula b4c4747516a9a4b4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c3ecee819f273530dd49ba06",
+   "excluded": true,
+   "label": "M1R Formula 88877f68d113bb5f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c489574060abcf4768a31ee0",
+   "excluded": true,
+   "label": "M1R Formula 5cb54c9414415d01",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:c595057b5b5acf2c478bb6b1",
+   "excluded": true,
+   "label": "M1R Formula a4f34c2688a7e1d6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:cae6dc606c6cac833e2d79bc",
+   "excluded": true,
+   "label": "M1R Formula 3a96c7de0ab9dbce",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:cb0a18ed649707bc70dad34c",
+   "excluded": true,
+   "label": "M1R Formula 16a0b67874c477a0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:cca6227b83107073661d2808",
+   "excluded": true,
+   "label": "M1R Formula cc888934e5ac6b9f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:cfd554db75577f1c68831e03",
+   "excluded": true,
+   "label": "M1R Formula 2d6beb212143a965",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d045c9c49256b2d26ec506cc",
+   "excluded": true,
+   "label": "M1R Formula 53cb2dbce87a54f9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d1a6ee4941f1edac23b9ff00",
+   "excluded": true,
+   "label": "M1R Formula c1bc79a9e9910aff",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d28392852ffad503cdc76a66",
+   "excluded": true,
+   "label": "M1R Formula ed35477d8a013efb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d3bed31464d50a73372e26df",
+   "excluded": true,
+   "label": "M1R Formula 5a935dfe583fc612",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d4de97800579fea44f5008f3",
+   "excluded": true,
+   "label": "M1R Formula 37eac0c934b1d61b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d50451f835b87a94450017fa",
+   "excluded": true,
+   "label": "M1R Formula 32d1fd01bb282bdf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d6030b3aeb8c1c4086c08935",
+   "excluded": true,
+   "label": "M1R Formula 64b0b9bd89789e1e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:d8ef511e009fbdfd9eb6c7dc",
+   "excluded": true,
+   "label": "M1R Formula 209c54eec3172263",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:db60081f7e8e79a43ac8c28d",
+   "excluded": true,
+   "label": "M1R Formula fcd87801813995b2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:dd448217c9fdb1be459ed0d1",
+   "excluded": true,
+   "label": "M1R Formula dd2212df76611f5f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:e01564b17821d643ec271463",
+   "excluded": true,
+   "label": "M1R Formula 79a8493b59d0b7ce",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:e1253ecf449ba13b7037f357",
+   "excluded": true,
+   "label": "M1R Formula 99abe04e3a988dd0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:e213e346b20de2dd871221bd",
+   "excluded": true,
+   "label": "M1R Formula d6423211d62ead63",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:e5d4f6ba72f8e13a9817382b",
+   "excluded": true,
+   "label": "M1R Formula 49c8cad1d86a796d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:e63d40248fe62026c5ba47ea",
+   "excluded": true,
+   "label": "M1R Formula 09c5b7aeefebeef6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:eb25498b2cf5d19feea57363",
+   "excluded": true,
+   "label": "M1R Formula fb538d88ce321c17",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ebac733d07dd5b9e1754d22c",
+   "excluded": true,
+   "label": "M1R Formula ebeeb89f7fe3569a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ed8d96175f1f4c504a9dfa90",
+   "excluded": true,
+   "label": "M1R Formula 3489193dda808b45",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ee85ba55d9066b5775cfcf5a",
+   "excluded": true,
+   "label": "M1R Formula c1fa21027b309373",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f138b369d8a59f0ddaa0febb",
+   "excluded": true,
+   "label": "M1R Formula 88732fd1ba94a9a0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f27d7744ed057c8c21854c8d",
+   "excluded": true,
+   "label": "M1R Formula 1c8db92938b4a76d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f310c678e4ac6a7c2d61a7f7",
+   "excluded": true,
+   "label": "M1R Formula c6467aa2c6465866",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f338f65e86b688a0801e7759",
+   "excluded": true,
+   "label": "M1R Formula 326f74f2cc031914",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f51433e5d9c1ea7fae008bba",
+   "excluded": true,
+   "label": "M1R Formula 1dabdbdd374ae21f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f7504ee4de13bee9aedcf3f5",
+   "excluded": true,
+   "label": "M1R Formula 238e49b714815650",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:f83158f9d16e1ba0039d1246",
+   "excluded": true,
+   "label": "M1R Formula 3375eb3206ac6cc3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:fab09d9e256c00b132417eb6",
+   "excluded": true,
+   "label": "M1R Formula eb5d1a6e934fd1a0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:fe713ba3c82c39162a20e606",
+   "excluded": true,
+   "label": "M1R Formula 77853636d1620f17",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:formula:ff750960ecabe34be6bb51b2",
+   "excluded": true,
+   "label": "M1R Formula 398996c8b4cb56fe",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:001870bb37564e3a68520e67",
+   "excluded": true,
+   "label": "M1R DomainConcept d03489f772c6e0e7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:004552c7e44a22b48360c188",
+   "excluded": true,
+   "label": "M1R DomainConcept bdbdfbdbd8b95b24",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:00e7023cbdc12f2cfa6cc857",
+   "excluded": true,
+   "label": "M1R SystemModel fe6c247fd0d1fa03",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:02301053cf1598e0cc65c9ae",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 18ad49762e4d9127",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:03c67ae15dc48e6073951f9f",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 1b5627331961c248",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:04af1733bf5f64ceace42d53",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 8b28e51cfc4b09bb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:05929319b2c3bdf4e9c4a113",
+   "excluded": true,
+   "label": "M1R Formula 8c3157c4294359fb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0638a516c8f70b2497e72e3f",
+   "excluded": true,
+   "label": "M1R Formula 0cf153566d01b180",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:068f2f0cb9fbe9af3f577352",
+   "excluded": true,
+   "label": "M1R Formula 06ca0d9518138421",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0791ee66a4c04d54183c7062",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 2aa18376476a797a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:08099d76af2a775ca14b739c",
+   "excluded": true,
+   "label": "M1R Formula 033781c50ae8ab3d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:081adbb724308a7147428310",
+   "excluded": true,
+   "label": "M1R Formula c6c9d9113b20bb8e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:085b608017b522938b3bc9d4",
+   "excluded": true,
+   "label": "M1R DomainConcept f068de2489d5d792",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:09ba0cfa080002e116ba2291",
+   "excluded": true,
+   "label": "M1R Formula 30e8c010866f63c5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:09dd26b657d4f6daba6de3c9",
+   "excluded": true,
+   "label": "M1R Formula d2c45887681bf124",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0a43147d8bf50e8ee5d0313a",
+   "excluded": true,
+   "label": "M1R DomainConcept 7d6fbebe15f7f9d8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0a452effa85aa716905783a0",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 6043c8b00d8aa3d6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0a825499dcd93d073d03b7cc",
+   "excluded": true,
+   "label": "M1R Formula 865afaf3c759fe27",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0a8369ba3f96c40329be0b79",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 49236b4cf4d4c370",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0d4f8552c54ce518bc841b4d",
+   "excluded": true,
+   "label": "M1R Formula 21f824b48036a216",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0e2c6b548b7cf128654624a3",
+   "excluded": true,
+   "label": "M1R Formula 50884c8e86636c4f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:0fbe152d36ac90f823e89131",
+   "excluded": true,
+   "label": "M1R SystemModel 5073e7bfc63cc284",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1093ec3d1e4f81fc435d1086",
+   "excluded": true,
+   "label": "M1R DomainConcept 8ac31e49e7b8ca8b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:10fc1ef168c5d8e5b31dee0e",
+   "excluded": true,
+   "label": "M1R Formula 183b4df2bb267c59",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:116aef8662bda4c451fa2cac",
+   "excluded": true,
+   "label": "M1R Formula 17412f9f03a2342e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:12ae1db4429a1ec4c6bdaf13",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f6857aa9b771ce37",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:12bc2d4eb34968abdb8b7f4b",
+   "excluded": true,
+   "label": "M1R Formula 4d50e9d39c744be8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:12c045018c6a280233a0d455",
+   "excluded": true,
+   "label": "M1R Formula 771ad022676ebf42",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:142ec6737ccd7385205d8628",
+   "excluded": true,
+   "label": "M1R DomainConcept f05e079fff85cfc6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1443e16a3ad3d3fa39313def",
+   "excluded": true,
+   "label": "M1R DomainConcept a561e8b68ce78736",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:14b0950cd99aaf1af37e5a74",
+   "excluded": true,
+   "label": "M1R Formula 7a693794711042ea",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:15072032a1d0d0345d0fb04c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement bbd8f7ba6cbfbce0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1527cda45f634faf4e83b851",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement c8a7308767de7b38",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:16746f7f78f1c3fa09461157",
+   "excluded": true,
+   "label": "M1R SystemModel 6b30028686b1da66",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:17a1394c133f23c8ccdf4207",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a04b2a77f7c6e7d8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:18183e77caeb249a7c0226fd",
+   "excluded": true,
+   "label": "M1R SystemModel d9c00510eaa2625e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1901d0a4afd55e016ac93343",
+   "excluded": true,
+   "label": "M1R SystemModel 45c161cbd322d953",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:19b303eb7d57bb95efadf51d",
+   "excluded": true,
+   "label": "M1R Formula fcd17adf71708f48",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1a6122dc6266290b6f03ced0",
+   "excluded": true,
+   "label": "M1R Formula 318593f966afe518",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1a9a3773352b845a57d5367e",
+   "excluded": true,
+   "label": "M1R Formula e14fdf6d4e53fbd8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1b5c6dd9f8df72da88fb5f5f",
+   "excluded": true,
+   "label": "M1R Formula 84fea652f5d2ae1b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1c9174f013ab32aee058ae7f",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a09ecea547a7689a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1d553f205cb3498431ac6a73",
+   "excluded": true,
+   "label": "M1R Formula 9cd1a0fa6ea5ee74",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1d65ec3700363770ba934eb6",
+   "excluded": true,
+   "label": "M1R DomainConcept 71b7a575a898d128",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1ea01c56917c044b0a8243e7",
+   "excluded": true,
+   "label": "M1R Formula 7949f18e29dd8d65",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:1fb05436baba8f98b17b1717",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 36f182294874e08b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2033ba4f6993c05a8c7e07e9",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a3f2bceca87a9454",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:20410d80c723c41533823914",
+   "excluded": true,
+   "label": "M1R Formula e14d99e34681ea01",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:208f7c478bb48de4601ca376",
+   "excluded": true,
+   "label": "M1R Formula 2b09529e78e14fe3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:20e52aa3340deb1a892c53dc",
+   "excluded": true,
+   "label": "M1R Formula d3e8eba0769b45f3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2142df88fece5f03d2dab9f1",
+   "excluded": true,
+   "label": "M1R DomainConcept 84080d094c0cdd44",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:218b60316d531af06b3759fe",
+   "excluded": true,
+   "label": "M1R Formula 6c8640cb0663cae8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:219b9b9d0b83f174d2a8fd18",
+   "excluded": true,
+   "label": "M1R Formula cf290db9659d5c60",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:21e362ea1a8baab7004d35c5",
+   "excluded": true,
+   "label": "M1R Formula 1a64929ac9349818",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:23eed46c13bc2a524812521d",
+   "excluded": true,
+   "label": "M1R DomainConcept 7cc08b4fc16f83b7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:24b6f2c4ce1df12c303c4023",
+   "excluded": true,
+   "label": "M1R DomainConcept 8d6ea20c862fcda7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:24fa321ec98b2e7516887b05",
+   "excluded": true,
+   "label": "M1R DomainConcept ad0850331590282a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:25813d8c571cb458d4de6d5a",
+   "excluded": true,
+   "label": "M1R DomainConcept 8119702c006172db",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:26b925d7ed17f2a884beb57b",
+   "excluded": true,
+   "label": "M1R ModelRepresentation bf619959a130717d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:26dacc0f120d384b7a7ae01a",
+   "excluded": true,
+   "label": "M1R DomainConcept add952f6e62daff2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:295a10cd5e6d2648baabdb2d",
+   "excluded": true,
+   "label": "M1R DomainConcept 29d5057590efc9f3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:29fb5fee929f0a0da23c579d",
+   "excluded": true,
+   "label": "M1R SystemModel 6d636f856a176a2d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2ae9325b70bca5dcc150b1ff",
+   "excluded": true,
+   "label": "M1R Formula f37b651113a2edf2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2afb8a911714d535922cdc26",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement b7c735d6b2633554",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2ce6926341eaa67b5dbf4331",
+   "excluded": true,
+   "label": "M1R Formula 1d1951426040eea5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2d0e91e4c2d0ddbb2bdb0b82",
+   "excluded": true,
+   "label": "M1R Formula f63d0d8519cbb3ef",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2d89b72c9adbc0c26d298709",
+   "excluded": true,
+   "label": "M1R SystemModel 109320e5d8798d6e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2e5671ec0b4a0b1f2a83e350",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement b1377148992b00c1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2e6913ee5b76a98869b54820",
+   "excluded": true,
+   "label": "M1R DomainConcept d90ba06d0126e06d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+   "excluded": true,
+   "label": "M1R DomainConcept 7d92450ce70c6047",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2f36f825e6da65caac211f37",
+   "excluded": true,
+   "label": "M1R Formula 2d3fe624fae3410e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2fdd91bb5d00351295d506ad",
+   "excluded": true,
+   "label": "M1R Formula 302d8ab4f4e2419d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:2fe779e81fb5ad148f6cb855",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a14691555cb6d356",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:306f5b5ce589c2bd904fed8a",
+   "excluded": true,
+   "label": "M1R DomainConcept 26afb47fc38a3ce8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:310ca39e9b3dd3d6e2773eb1",
+   "excluded": true,
+   "label": "M1R Formula e9f0d72a2d7544af",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:31cb5a043d7228e8b1f7b420",
+   "excluded": true,
+   "label": "M1R DomainConcept 39c3996f47bbd6f0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:330b922fcced20e2b7da643b",
+   "excluded": true,
+   "label": "M1R Formula 42ed6106596c1789",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:33aec8a5c8c30c7792ac3f8b",
+   "excluded": true,
+   "label": "M1R Formula 353e60f2b7febcaf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:33b66589ffdad9c0517ef2ec",
+   "excluded": true,
+   "label": "M1R DomainConcept 473f3cbfecb0f0fd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:35fc1c3bf6b72cd9e628b668",
+   "excluded": true,
+   "label": "M1R SystemModel 22204b7e61de2054",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3649c4cafd2b20403826095c",
+   "excluded": true,
+   "label": "M1R ModelRepresentation fdd3b09ba9a74f18",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:375b94026d35cdb1d1c479b8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement e18be083b80cedb0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:379f64a7a8e312f209cc2be3",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ab8f952f92a2d403",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3835aa57a27c000ad19abc4b",
+   "excluded": true,
+   "label": "M1R SystemModel ea100ab7c620508c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:38d3ddb1b9354a0f411a5af6",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement aa44ae552a8df250",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:396b95e725b379a13d5022f6",
+   "excluded": true,
+   "label": "M1R Formula 427bf91a8a4e5e7e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:396dc03430029c2c0d9701f9",
+   "excluded": true,
+   "label": "M1R DomainConcept 852dc64004df9ac8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3a1d86f29b48c99fb1359a3e",
+   "excluded": true,
+   "label": "M1R Formula af8a1a4219699bd8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3be144bbc8694c0dd84d0aa4",
+   "excluded": true,
+   "label": "M1R SystemModel b22b3614e921b258",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3c6e6afa6e4e3c1aa0a65a5e",
+   "excluded": true,
+   "label": "M1R DomainConcept 5ac912928bf376e2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3f19d3e63a1b7307c5e73602",
+   "excluded": true,
+   "label": "M1R Formula 2bd5c3c965fa6fd2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3f3cc3150db61a94045611e8",
+   "excluded": true,
+   "label": "M1R DomainConcept 3e057b9e48768eba",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3f6f28ebf183a54e35b12ddf",
+   "excluded": true,
+   "label": "M1R Formula 7f90ba5b0f0c781b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3fd94c5940c20119c937718f",
+   "excluded": true,
+   "label": "M1R SystemModel b5387539c0d46dca",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3ff46e5fa39973bb7c1a6c60",
+   "excluded": true,
+   "label": "M1R Formula e79021c538aa1aa0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:3ffd45d081181336ef36f63b",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 7e25b3168876c78b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4100e2f800ecced646a80775",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 08900d074b42c535",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4155115a0fd5f6c6f267d4f8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 5ce2e597c989ba91",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:41a149518b01743ebb6a2a61",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 3f572903bd56c3c7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:41e2c827dc086542a4b1d592",
+   "excluded": true,
+   "label": "M1R Formula 9db32359a2656d3e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:42407edf920402ba9348d14d",
+   "excluded": true,
+   "label": "M1R Formula 66c911211a9ebb08",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:42e82dbaf924c8de513235d3",
+   "excluded": true,
+   "label": "M1R DomainConcept fb06b1fd0af1258a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:42ef75daf2290d8bb5033749",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement c5373f3a95cce22b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:43869f3253622ebf4b3bcaba",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 5d16b2c24b4dd7fe",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4392b3cdc7dee8995fa6c07e",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 207c094209d42619",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4570d92b2dcab639007f8dff",
+   "excluded": true,
+   "label": "M1R Formula 671761ee7405c113",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:45b2dd117606e1ca658ef8f9",
+   "excluded": true,
+   "label": "M1R DomainConcept edb5636bda36b590",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:476c05450518203fc514c5f2",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 0bebd83d14ebc7d9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4773e526a840638ccb57b4a1",
+   "excluded": true,
+   "label": "M1R Formula a70ae1d99bec3f30",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:491deea61414df86b2d4f610",
+   "excluded": true,
+   "label": "M1R Formula dc1c26a38c86f411",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:49b605dd1e421b3011ab8c45",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 32ec293a416f9381",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:49c45de5aca85f11ca452b2d",
+   "excluded": true,
+   "label": "M1R SystemModel 59cd23ae37d95880",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4aee1ad3fc8e0658b2f24e23",
+   "excluded": true,
+   "label": "M1R Formula 4528b6b9116b1cf4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4c34c383572fbd7e1659ad23",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f2407049f222bf82",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4cbe3529a90f4667b325b689",
+   "excluded": true,
+   "label": "M1R ModelRepresentation ab650e307eba1787",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4d2d52aaa65d6b4521c80e74",
+   "excluded": true,
+   "label": "M1R Formula 7ddc382359e4f45f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4d5e01fabfcf3fec563fc9ab",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ff85a4db8f6a3728",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:4dd56f110d52e7fc0908bcb1",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 882b523999c40ded",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:50140bd4897b2671654ca50e",
+   "excluded": true,
+   "label": "M1R DomainConcept b6e83dd083e2b497",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:50a6501353b23144b284f6dc",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement b2a8980e7e528330",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:517d061618ccf3d644199826",
+   "excluded": true,
+   "label": "M1R DomainConcept 7b52bf22bfcc0ad7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:51b92a840bebc655e0ff6cee",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement e8ded7a986dec894",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:524d8c4010b0756fe8f5644b",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 765877280fa85962",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:53d844984006ef8b9477a68b",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f0336ccd02bad7c0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:55935b73a5eee453058daa99",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ecfe50b809b01d01",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5600164cccdcda3e0b30a3dd",
+   "excluded": true,
+   "label": "M1R DomainConcept 54492a5b95ba71b2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5696597098070f7884d7c493",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 66eb4bae9eb81d48",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:57826e44349fe366ab4e272e",
+   "excluded": true,
+   "label": "M1R Formula 73aa503430d1b791",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:57d80bc928363a370c3b5e7d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 2af5543608bab445",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5888b20cb405b5329a43211e",
+   "excluded": true,
+   "label": "M1R Formula 868c5b1e128c54b4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:59ee4919eebdaf649f4f3da8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 8be5f3c295285bfa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5a43958f12006a64699470ce",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 8794a3ad863658d5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5a5e0f635dd49ccfb01663cb",
+   "excluded": true,
+   "label": "M1R Formula 78dcc3a4bc355e43",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5adb3b593461a1fa701e8132",
+   "excluded": true,
+   "label": "M1R Formula 29a7c85beb6949a2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5b0ce2dfb9f8ebaf4fb13080",
+   "excluded": true,
+   "label": "M1R Formula fba68caf6f147259",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5b3ad7a1347bdeaeba041693",
+   "excluded": true,
+   "label": "M1R Formula 992c42cc21382d7a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5b8548ecc2cc8e9d345d8fc6",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ea37d455b610fe1f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5b9f41927a1c8d33f06ac6a8",
+   "excluded": true,
+   "label": "M1R DomainConcept 0ee3521240d2c822",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5c389a13ef9f188d9be8a34e",
+   "excluded": true,
+   "label": "M1R SystemModel e84bc6203a520e1b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5caf1f8e41ca3a1d76c017b4",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement cf03fd3d228ef42f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5cbb0c5cd1a513b2ca7f9767",
+   "excluded": true,
+   "label": "M1R Formula b34e29ff01b4a5bf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5ce362f171802f8a41c30f76",
+   "excluded": true,
+   "label": "M1R SystemModel 56d44ce90c0e2521",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5d1101f8898c6b487f78e743",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 6efb715149384198",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5d5ac9afe1669bd73833ec68",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ec80f6698ae51098",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e",
+   "excluded": true,
+   "label": "M1R DomainConcept dcec403bd6145ff3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5dff4caf525e4bd874467c87",
+   "excluded": true,
+   "label": "M1R Formula 41a59706b87a3a62",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5e06d3608372c4db95fbed92",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 414618c85e7b1e44",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5e3ef792d63447a1d760089f",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 28713a4233f69b54",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5e42025792b68316a6c93159",
+   "excluded": true,
+   "label": "M1R Formula 9a86d7ef2971f8e7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5e5abe801416dec734582c73",
+   "excluded": true,
+   "label": "M1R Formula efa22f29ebbd8540",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5e7c46bea018afa07796ef9b",
+   "excluded": true,
+   "label": "M1R DomainConcept a49db22fa1041096",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5ebc826ccb449c9dd98f59c7",
+   "excluded": true,
+   "label": "M1R Formula 20fac6e35ebd4a33",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5ed978c47a8030b0331d9297",
+   "excluded": true,
+   "label": "M1R Formula 3a80bcaba5fcac8b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5f8d01f1c7b1640567d6b19e",
+   "excluded": true,
+   "label": "M1R DomainConcept 89eb281f856d352d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:5fbfae40409b643817aa044d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 44e2208c5dd4cecd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+   "excluded": true,
+   "label": "M1R DomainConcept 5a9ee598dbbec769",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:608e9464695ef61bad978714",
+   "excluded": true,
+   "label": "M1R Formula a2d862541ba74fb2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6155b878b1ec70551616b111",
+   "excluded": true,
+   "label": "M1R DomainConcept 8db83efa6929993a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:61c4dc72e073639746d94a17",
+   "excluded": true,
+   "label": "M1R Formula ba3b0b0f97c6e514",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:625ea37a1358697f4fd0e2a2",
+   "excluded": true,
+   "label": "M1R Formula 061283646419ded3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:64ff40dd8305afbba1178dbe",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 0809fac378d8bf1a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6567c0a866f6d685449478f3",
+   "excluded": true,
+   "label": "M1R DomainConcept 0b76578ab49137a4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:66aa4e4d32f9e213c5330c17",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement cf639fa6b3f4068b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:66c282514dc3a716fc3423db",
+   "excluded": true,
+   "label": "M1R Formula d4e30e1590029e9c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:66d234422f521059d1d2beb6",
+   "excluded": true,
+   "label": "M1R Formula 4be463ccbc71f73a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:67673f8121329ec930f99121",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 56b8a631afe22fd7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:678421e747fc325575f462d7",
+   "excluded": true,
+   "label": "M1R Formula 7f2c8b674f510f5d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:681cf6ab76c82935dbf9ab11",
+   "excluded": true,
+   "label": "M1R Formula 747ec1789b468cc1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6850a35fcfb454e97b01e98e",
+   "excluded": true,
+   "label": "M1R Formula d739e1490a100acc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6a3decd9120ddef9c6cad0fd",
+   "excluded": true,
+   "label": "M1R SystemModel e477ca4e5ecfa689",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6a803f8752ffe09bca8f5e15",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 87e0d796a77d6a79",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6a8da7ec908f951eacc06b1f",
+   "excluded": true,
+   "label": "M1R Formula 859674e18500caaa",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6afc901840127a733bf6fce6",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 615608bbd8ba9906",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6d15f32e0e591cc1113137d2",
+   "excluded": true,
+   "label": "M1R DomainConcept dbbbeb423ce8c97b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6d7bf0f4216365dcaa4e6f93",
+   "excluded": true,
+   "label": "M1R SystemModel 3bde428c65c9b578",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6db8082ca2444772daba6f94",
+   "excluded": true,
+   "label": "M1R DomainConcept 1f9a8fee9f243792",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6e2d9ad4fe428d8b3bd452fd",
+   "excluded": true,
+   "label": "M1R Formula e97e0154112f42c6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6e2f2280a916c6b3d8c74731",
+   "excluded": true,
+   "label": "M1R Formula dbdbee309b708dd6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6ec26e49fa0de4450fce3588",
+   "excluded": true,
+   "label": "M1R DomainConcept 662f474fc2da2a42",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6f317c2942ede37508bc6697",
+   "excluded": true,
+   "label": "M1R Formula c5b827e76a268fdd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6f4157cdab4084ff7f2ed982",
+   "excluded": true,
+   "label": "M1R Formula f7aaab09b505c740",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:6ff37b3f4399c5658e762ca5",
+   "excluded": true,
+   "label": "M1R Formula 9f672abddec7d631",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:71bbde854dea8dcd61137339",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 888930fa63af7499",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:71f2d0810daace51c4bc74bf",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 79dfcbe8b76a4240",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:720daab363af4c314731c3e5",
+   "excluded": true,
+   "label": "M1R Formula 35b8deec45d2768e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7215f06691dbdb20fa86b13f",
+   "excluded": true,
+   "label": "M1R Formula f4bec8cb5697164c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:723eb855ab618eb5a1c8a4e6",
+   "excluded": true,
+   "label": "M1R Formula 0c628e9ffec62da2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:748eb54e4506aac97ff6ea28",
+   "excluded": true,
+   "label": "M1R Formula 918aa8a210aaa9d0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:74fdaac2c48ad74c777df6e0",
+   "excluded": true,
+   "label": "M1R DomainConcept 36dc43958eb4538e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7503cea2e7aa39084147256a",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 5684fffb78ef427a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7523b6b72a42df094b083b19",
+   "excluded": true,
+   "label": "M1R DomainConcept b68803cd612de4ea",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:75a0ee558eed7d134d4e635b",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 731536e92277f2f5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:75ad3fa511a5b305e1228c12",
+   "excluded": true,
+   "label": "M1R Formula 3af3014de7cf8219",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:761f2ae292130b1f6cfb71bd",
+   "excluded": true,
+   "label": "M1R SystemModel 109269da71b55859",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:770423371513414736ff0d47",
+   "excluded": true,
+   "label": "M1R Formula 0bd6fc9f8c7a191e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:772765c8aea5eaa7c769616a",
+   "excluded": true,
+   "label": "M1R Formula 716f0dfd7fc7b382",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:77d0ee35048e71d7f647ebac",
+   "excluded": true,
+   "label": "M1R Formula 14069e9080accbd9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:77eab358e2033b3265f1c126",
+   "excluded": true,
+   "label": "M1R Formula e8dd50a0822c2486",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:784caee3fa09012960e96808",
+   "excluded": true,
+   "label": "M1R Formula 4c65f270df90a591",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:78d44eba1573f2afccc17d48",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 77981235eeb33906",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:78f1fe87e55c4fc8e314b4e2",
+   "excluded": true,
+   "label": "M1R DomainConcept 7c5b6a05da348c28",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7a8ead4658c72590f0170369",
+   "excluded": true,
+   "label": "M1R Formula 31f728f180ab7596",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7acfee3186ead948f45680a1",
+   "excluded": true,
+   "label": "M1R Formula ea2d975284fa94f9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7adc6479526e2048cf5e908b",
+   "excluded": true,
+   "label": "M1R Formula 65d92c8314cf460a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7b6703d79bef3f72b98b1d21",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement aa586ce8e64a27b8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7be0905b27d67ad4a2529dba",
+   "excluded": true,
+   "label": "M1R Formula 8afd4553c12945b9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7d2c0a210caea8afb9b94355",
+   "excluded": true,
+   "label": "M1R SystemModel ae8868e2ad970dc1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7d3d219e134c6ee0bb39be9f",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 1cfad31e65106938",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7d6ac04d6d50da30c511f6ba",
+   "excluded": true,
+   "label": "M1R Formula 75c874d98c4eca82",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7ee72c7bf5f96640dc56d470",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement bf72e9605415497c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7f0307828cc070dfadef1fb3",
+   "excluded": true,
+   "label": "M1R DomainConcept 38fdc8b36bd0fd66",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7f14515ccbe58503a224d6ab",
+   "excluded": true,
+   "label": "M1R DomainConcept bfeaec4f3c9f1ef9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:7faa7a2cd7bb22483b22d72c",
+   "excluded": true,
+   "label": "M1R DomainConcept 767caec3fbcf5d76",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:805798df74d4394fd0a479ad",
+   "excluded": true,
+   "label": "M1R DomainConcept aef361cba91c44de",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:80d27d402a0c44c5bf4d35b8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 0b43bd8fcad068f6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:81df05eade2aa093ba35ccb4",
+   "excluded": true,
+   "label": "M1R Formula 922a74c278832653",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:81ea655811866439d3a3c9f2",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 504a1af97f06e2f9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:82789a48311969005660d9e7",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 80288723f2825209",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:835a6f1ae0960310c4542be5",
+   "excluded": true,
+   "label": "M1R DomainConcept 15701c4e670c26d0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:84368301347e3b7818f3bed0",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement de3738ed350524c3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8454025dfbeff3cfa3ae7af2",
+   "excluded": true,
+   "label": "M1R DomainConcept 355fe46d2ef991db",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8469c12b59a5e51357208537",
+   "excluded": true,
+   "label": "M1R Formula 24781ac2cdc55fcf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:84f8c0ae440c857460a505b3",
+   "excluded": true,
+   "label": "M1R DomainConcept a90b826107691359",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8705256e70eec134b200b61e",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement d686c0bc05bcaa5e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:870898c4e1b9a8d4c340c221",
+   "excluded": true,
+   "label": "M1R DomainConcept 1348e581fa6bd51e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8717c02c707951a1d49f9e61",
+   "excluded": true,
+   "label": "M1R ModelRepresentation e1cf4db38f0496c3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:87568cd99367bc2db29d77f2",
+   "excluded": true,
+   "label": "M1R ModelRepresentation eb0b2f1bb386153b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8795f10ae88df461bad0bf5d",
+   "excluded": true,
+   "label": "M1R DomainConcept daa4f3a12d48c34f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:897442ea2d12a1665c4d894f",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 57fde9df4afcdbed",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8a1259469ed526f592c79e96",
+   "excluded": true,
+   "label": "M1R DomainConcept 39863713cbdf039f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8b5134e51fba8055ec122a9c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 4a498f5199c94b14",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8b8becee7bf5c50f47602d49",
+   "excluded": true,
+   "label": "M1R ModelRepresentation c601d9cb4201a068",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8c052e241ee765f5c04ff96b",
+   "excluded": true,
+   "label": "M1R SystemModel 9c67f345013f4932",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8ca02b876417f6dcc4988e5a",
+   "excluded": true,
+   "label": "M1R DomainConcept cfa395c79e9e829e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8cb4e9b8564da1eab3e23da2",
+   "excluded": true,
+   "label": "M1R DomainConcept 69c0c87564366f6e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8f2bac90326190686226cb4f",
+   "excluded": true,
+   "label": "M1R DomainConcept c66d731c607ac06a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:8f76ff4f433654af849f5c05",
+   "excluded": true,
+   "label": "M1R Formula fd26205b60814c9a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9028e0ee8f3a05e46b9acfdf",
+   "excluded": true,
+   "label": "M1R DomainConcept 88615cd8664a754f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:90fe4acf83cd9d00597692c7",
+   "excluded": true,
+   "label": "M1R Formula aa1d89a22dfa0125",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9136d23be80f6049b9a83f90",
+   "excluded": true,
+   "label": "M1R Formula 9174ad99497ed45d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:91fccd08d9364ca78221e3ae",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 64dc877b4a056dae",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:931a2a4202864619ab0ad010",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 82ad7ae9e07b73ce",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9329097505616acd8adafa68",
+   "excluded": true,
+   "label": "M1R DomainConcept 63191cb98b81a181",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:94d5e496674e7ac0de1b5fc8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 333f185544bff1dc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:964bcce258da57b1bfdf7456",
+   "excluded": true,
+   "label": "M1R Formula 0eff07e55b7a11ca",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:965103db57410523eea16a64",
+   "excluded": true,
+   "label": "M1R SystemModel ad6cafd80f949ee7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9662683b01ccd56f6564e13c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement e28e935e77f115c0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:96b09f3908dff2a62bd86555",
+   "excluded": true,
+   "label": "M1R Formula 6c52ce57662d5b50",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:96f3b9776de898a912110464",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 219576a59c844b05",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9733a176973adf1663c24394",
+   "excluded": true,
+   "label": "M1R Formula 1c45d809a2efb0ea",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:97a8157ec47a33bb5dd7c877",
+   "excluded": true,
+   "label": "M1R Formula 428c2b466c4ad3eb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:983e4e46ebcad45b1863b83b",
+   "excluded": true,
+   "label": "M1R DomainConcept 1b800da11782c883",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:98752269bfb0342d773435f5",
+   "excluded": true,
+   "label": "M1R Formula 8d052d44b5cbca3b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:98a67c41f449f0bc35b78e63",
+   "excluded": true,
+   "label": "M1R DomainConcept f7b65d9e614c8640",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:98ac27991498dcee7c3b5e8e",
+   "excluded": true,
+   "label": "M1R Formula 70e9b6537e0fc347",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:98c4a680c31c8fc47fd276ea",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f87b3cd2c5584ca8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:98c54dd0661f8f8846e24dbf",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 9dcf793fe87debf4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:99f6a89e871f3bfd623ca5cb",
+   "excluded": true,
+   "label": "M1R DomainConcept 3b3fe5d62664476d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9a4c3f45f65c958ddd9485dd",
+   "excluded": true,
+   "label": "M1R DomainConcept 3698856ec1f4a6b8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9a7ba30ffe86df13fbd10106",
+   "excluded": true,
+   "label": "M1R Formula 72e5efbdaecfbb6a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9b4c18969302a97f0420d3d8",
+   "excluded": true,
+   "label": "M1R Formula 1d81d01456c1fc50",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9bbc1f494d0b58b4a8cf73ce",
+   "excluded": true,
+   "label": "M1R Formula 4557978d91996d61",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9bf1449606afad0f309b4c37",
+   "excluded": true,
+   "label": "M1R Formula c0ed77b864fa1c04",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9c2791667b42f81207f44787",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 187e36bcbf43ce67",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9c6b8926423e6123a598cbbf",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 6accc0d613b01bb2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9e108272696cc789a762f03f",
+   "excluded": true,
+   "label": "M1R SystemModel b8e18c60e419c581",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9e568a94cac30c64d0d3382c",
+   "excluded": true,
+   "label": "M1R DomainConcept 31029dd9c1bd52f3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9f5ad046cbf551d29f68cd99",
+   "excluded": true,
+   "label": "M1R DomainConcept 6cea0b9ad9e96585",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:9ffe23da35a0acbcf2e4f584",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 20c0401f4040330c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a0b6c259bc802d72b6cc6e94",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f6a60ceb925f3274",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a14f667eabea2ee74a8e7bcd",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 9c5a8c7d10eb7cf6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a16f989d9bec70b28d9b6589",
+   "excluded": true,
+   "label": "M1R Formula 1b1ca15da33f409e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a238ede3fc225d7a393a3383",
+   "excluded": true,
+   "label": "M1R DomainConcept cf7ec82d873c6cf0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a29796272ad267a6643fd428",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 45e9a20f0cf5f50d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a31556cda50294da93e233be",
+   "excluded": true,
+   "label": "M1R DomainConcept 0fbebd559d1b77a9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a32452791c1d6a4eaef0982a",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 4a46453954be0eb8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a3469c17e09118224bb642be",
+   "excluded": true,
+   "label": "M1R Formula 6943ecd8ef3269d5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a37c34f6fe422be9f6db0570",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement aef93b6c266dafca",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a37c44d7c61c9f28e32491ae",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ebf828dee651ba61",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a49cf86191bb4c964206a571",
+   "excluded": true,
+   "label": "M1R DomainConcept 57e74eb78eeae2ec",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a4dff07597fe07bc9bd95583",
+   "excluded": true,
+   "label": "M1R DomainConcept 91037805dd9c3c98",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a5709e39b26905ba263a2bfc",
+   "excluded": true,
+   "label": "M1R Formula c43b91fa51d59c9e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a67b5936c706799503686a86",
+   "excluded": true,
+   "label": "M1R Formula 598426d4660549b0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a68e0968b9d3875fe3188d87",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 5e55a2e9998d8ad7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a70185225e5d6684a1bf4a88",
+   "excluded": true,
+   "label": "M1R Formula cd26743d9e46b886",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a8a8e25aa8d9e0323b259932",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 7cb67442eb76ece3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:a8e306255c766c84c81a0d6a",
+   "excluded": true,
+   "label": "M1R DomainConcept fb23ac75ad47b193",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:aa8ae205a38e3698addb8fde",
+   "excluded": true,
+   "label": "M1R DomainConcept 8332621f348dd4a3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:abeaa2a971bdba14d0e26541",
+   "excluded": true,
+   "label": "M1R DomainConcept b244ba6e5ac36409",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ac06ce04282d3caa9243cad3",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 50b6ba0f623a09b1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ac553df3369185ea74fff8e5",
+   "excluded": true,
+   "label": "M1R DomainConcept 914b3ba8fc9ce82c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:acc239b38c05b5f377fe9828",
+   "excluded": true,
+   "label": "M1R SystemModel 2dde820c8774fc28",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ad32880ab38a83c3a6830605",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 34637e847e32086f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ad3bee7b0c944b3c051d3a3c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 053fa97db6834dad",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ad6d0ae07ab416779d478b6d",
+   "excluded": true,
+   "label": "M1R Formula a9285512b9b8a842",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ad7198ed3a866b288c9bdec2",
+   "excluded": true,
+   "label": "M1R DomainConcept f92e9dfde8a247a8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:afb4a5afcb5215ec74beb004",
+   "excluded": true,
+   "label": "M1R Formula 80765ec592b83e2d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b081e4d0179aef7aa4d44b38",
+   "excluded": true,
+   "label": "M1R Formula 57ac5e86fc4aa163",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b1328d6ac03faf48078e0fad",
+   "excluded": true,
+   "label": "M1R SystemModel d4a675a76ee3cb8d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b2617551f500e977696b54ec",
+   "excluded": true,
+   "label": "M1R DomainConcept 5a11d3d018bcac42",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b273839837288b69feb25afc",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement fcdbb739c5d94030",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b3063b12004e111b887d51b2",
+   "excluded": true,
+   "label": "M1R DomainConcept d21852fe547fb213",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b31611f788fa831ff4685e14",
+   "excluded": true,
+   "label": "M1R DomainConcept ee4a0861306222a3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b36a15d6ae795f0d4aaf7b0d",
+   "excluded": true,
+   "label": "M1R Formula b4111251c4b9034e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b4cb5e69761b0992e65f3ff0",
+   "excluded": true,
+   "label": "M1R DomainConcept 96fe43d237eb1ad2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b5ffcd9546e50c4664923c1a",
+   "excluded": true,
+   "label": "M1R DomainConcept bccfb34ef96c74de",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b637ea0030b61b337f76bea3",
+   "excluded": true,
+   "label": "M1R Formula 6a734b03119fe803",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b6f5bbea86b616f6ee25fa4a",
+   "excluded": true,
+   "label": "M1R Formula 660af3875b9c7c0f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b7683278b3a32ad48550c733",
+   "excluded": true,
+   "label": "M1R DomainConcept 3d5f9b6ee8e42d63",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b7a7ff1967b11b8b23e40eca",
+   "excluded": true,
+   "label": "M1R Formula 623fba574ca64cdb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b8cf5b2f8edd6da63d492ce8",
+   "excluded": true,
+   "label": "M1R Formula ca95f59ddcf856f1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:b93da8bdc6edcdc71254d243",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 5e456e7ae6af77e8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ba25d95e19d2a7010f5fdd74",
+   "excluded": true,
+   "label": "M1R Formula 8a1aa63552fa5942",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bab148e536d8a7cd78b99367",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement e4261865941ef6b9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bae9853215135e736ef774e1",
+   "excluded": true,
+   "label": "M1R Formula 739d34de3fc840d7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bc646709a987a7d38f359c3f",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 442b313bcea9ce56",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bcacbd6aabe2fdbfdb356c95",
+   "excluded": true,
+   "label": "M1R DomainConcept 0e430162547f9e65",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bcd4372189617963af1f6b6c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a7b62da4774bb0b3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bced2eed9804c5430295d95f",
+   "excluded": true,
+   "label": "M1R DomainConcept ae68405425cd4010",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bdb7c5477864c763f1fca713",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement cf153eeece4f3b2c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bddf030d79ea63ffaad15dbf",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 11cdb8c4eea6314d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bf06001397982d990c151138",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 9e328d551b1f836a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bf2dceba499da0e2937b1a2e",
+   "excluded": true,
+   "label": "M1R Formula fbd82d88af30aeca",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:bf4bbe1d65da092e65e06de7",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 737b30c6db280a14",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c0634f528a32fe93c886b999",
+   "excluded": true,
+   "label": "M1R Formula 141bfa931fdbcbb7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c0e5e0d8a5d4490a6aceee4e",
+   "excluded": true,
+   "label": "M1R Formula 66673ca70d622d23",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c0ef6f01d5e8db7aec97dc89",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement aa31db46711c5836",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c1dcc9cf643b854218f0a831",
+   "excluded": true,
+   "label": "M1R DomainConcept f537508b742fb484",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c3943a1a2aa9c8a4682e6083",
+   "excluded": true,
+   "label": "M1R DomainConcept addfb3ab6c5bfdad",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c3ff1aadbf42c34a6cc5ffa7",
+   "excluded": true,
+   "label": "M1R Formula 4b06ef0360d697be",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c50ca766a0d989e7393dae53",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 9bd73d59fcb42667",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c6a20552e87534bf79be87ec",
+   "excluded": true,
+   "label": "M1R DomainConcept 548b985b47d95f57",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c737d473ec4983fe9335fdb4",
+   "excluded": true,
+   "label": "M1R DomainConcept 188197a61e2021b5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c7f079aea5842ebfee47e731",
+   "excluded": true,
+   "label": "M1R Formula 4171856b3f7264ba",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:c8caf49bf904a7a23f328a23",
+   "excluded": true,
+   "label": "M1R DomainConcept 064d484358bd5042",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ca33bb65a08c3751baf26f28",
+   "excluded": true,
+   "label": "M1R SystemModel 736d10d1613389cc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:caa819fa375a415f66a12eb2",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 1dfbec547da9f29a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cafd25ea0f70f952a6ed930d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement b27d2e3d8f298885",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cb0ccb3f3e851b78321094f2",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 94c996a8d800ae78",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cc0a6ba1c0e8b9ae59bd22cd",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 3cfac517d96a7baf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cc9b5f06db0c98ffe53ce52d",
+   "excluded": true,
+   "label": "M1R Formula c67181dba87a59b9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cd163383fc5ec49202536e65",
+   "excluded": true,
+   "label": "M1R DomainConcept 8a1f7f7cee550d9f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cd3e84b518961d8ddb0de528",
+   "excluded": true,
+   "label": "M1R DomainConcept 18bdb80f4df7301b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cd60ddc13bb38a495b4f32f0",
+   "excluded": true,
+   "label": "M1R ModelRepresentation b029130e4d32d54f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ce4151af92fc1dfb1a982426",
+   "excluded": true,
+   "label": "M1R SystemModel 886be962c53e2b16",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:cf5a1c7dbd64f09d524e4ae7",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 6302fb202d8def65",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d005b1d37456c7675cc30990",
+   "excluded": true,
+   "label": "M1R DomainConcept ceb4ecf07d08c6f7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d08542c5bf1f99b8e3c143f7",
+   "excluded": true,
+   "label": "M1R Formula 517eacfce03dd843",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d151c300a749754adcf7f3bd",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 4f25e7435d1bc9f6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d196c5e1b825da8d0771f4df",
+   "excluded": true,
+   "label": "M1R Formula 84ca4081deff26a8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d38c1ee55129b663180cc584",
+   "excluded": true,
+   "label": "M1R Formula c21df14457821472",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d51e57873bf0ccc036a402b5",
+   "excluded": true,
+   "label": "M1R SystemModel d6031f527dfaf69f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d525f7f7c9a02025fb2ae074",
+   "excluded": true,
+   "label": "M1R DomainConcept 5e5037c75cdab47e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d546d062570eeb84eae1910f",
+   "excluded": true,
+   "label": "M1R SystemModel f9dd31504ca32f1d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d5966a712a3aeda2bdb28766",
+   "excluded": true,
+   "label": "M1R Formula bd728410f103a777",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d5b2a0f4cbcf5805ffe6792e",
+   "excluded": true,
+   "label": "M1R Formula 408be908f8aafe43",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d66784ec685478f5caf87fd1",
+   "excluded": true,
+   "label": "M1R Formula 9048f04ddb4ca4c4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d75a6eb6185f561b7386a8c8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement ffc45b4b0b1c0ec8",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d7bc328df282d0091aadbbfd",
+   "excluded": true,
+   "label": "M1R Formula 358838d65e8b4b46",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d834c59c5eb615e739201148",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 66575fe043a6a92a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d8363335ae3fac2799b6119b",
+   "excluded": true,
+   "label": "M1R Formula 5ea326a6874d7c9e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:d93f88aae5072c4ed29f5ff0",
+   "excluded": true,
+   "label": "M1R Formula 2f88b3e4f924d18c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:da3c02d92224e250800f2944",
+   "excluded": true,
+   "label": "M1R Formula 2013615c36d8930b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:da5655976360bbedce3139b7",
+   "excluded": true,
+   "label": "M1R Formula 1455500420c9fcfe",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:db17c4bcc497c6bde01810c3",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 169454957eb3d1c5",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:db200a32b2ab35069c8fc697",
+   "excluded": true,
+   "label": "M1R Formula db56b80426df9e1f",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:db5dc5da32894354534fe36f",
+   "excluded": true,
+   "label": "M1R DomainConcept 03a64412650dbaeb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:dbe782acba6958e473ff5647",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 74c87088026ad3ec",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:dccb4b147bc5ecc158de2ebc",
+   "excluded": true,
+   "label": "M1R DomainConcept c0c207a7c3dcc252",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:dde4ee059d93daa42aefbfbc",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 39ad39ffe6aec9a3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e05894cb3fe06aa776a62079",
+   "excluded": true,
+   "label": "M1R Formula 0d4ed642566c837a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e20819f0dfc01fe399d5872b",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 0187b1ea8509890c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e20a510c7119672b32ecfda9",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement beb0c36351ff00c1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e21e8d4531220f43baa80d08",
+   "excluded": true,
+   "label": "M1R Formula f2981edd51635caf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e2514ed3552f9ad82e5378e7",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 9d87d353d4732d26",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e339150d543f7aeeda47468c",
+   "excluded": true,
+   "label": "M1R Formula d4bf65485b9949e0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e5873e8311f641636dcc9cb0",
+   "excluded": true,
+   "label": "M1R Formula fefd9e6d04e7740b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e6e531618b3d904aba62c10f",
+   "excluded": true,
+   "label": "M1R DomainConcept 0d03cec82979305a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e6fac5526b648a46dfe00eae",
+   "excluded": true,
+   "label": "M1R Formula 4ad56bcbbe6f35a4",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e6fe5a593135433f26236892",
+   "excluded": true,
+   "label": "M1R Formula f32e68931aeb7965",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e771db9ea3be0f6a4a84d276",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 8b4232e85e17e8f2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e810f5382d094c3c9a2a3272",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f99e3958cb44470c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e83dc31c12a839e8473e209a",
+   "excluded": true,
+   "label": "M1R Formula e32a16cfc14addcc",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:e9ae22c66aa4cd359e7da2ba",
+   "excluded": true,
+   "label": "M1R DomainConcept 051d399ba4f52459",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ea04f28d7f8d9c8a9bab1ba4",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 1629411cea9f5932",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:eb3b93dd6c694cb647313516",
+   "excluded": true,
+   "label": "M1R Formula f3dbd12cec70b070",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:eb982b0047c4976ebfd3b4d8",
+   "excluded": true,
+   "label": "M1R Formula 2f5acf5a339f5c2e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ebbaaea3bd22775528c5fa7d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 38f51c4594f80d88",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ec1e503b3a0907bd7a52d280",
+   "excluded": true,
+   "label": "M1R SystemModel f48a51ffc0636d3e",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ecedbb5505e0aaf8f7f41494",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement a4ed373d135b3294",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:edb734ca5bbbec44a785b64d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement eab0848544fcc8e2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ede21ff14796bbbf1a21b671",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 9828c4d0765d8ca3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ee41d12da18d07a4e40f56b2",
+   "excluded": true,
+   "label": "M1R SystemModel 7b46c614ab9cf450",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ee5a95ab7e5046fb70e14a98",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement f92545418b24a6d7",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ef63eab82eb0aba94b247bd8",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 997ec41ab534cec2",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:eff9f7b236e993a3602a3d4c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 4a93d31975cbac18",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f011fb62a3fe55aa6c945f4d",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 907ce7ff8bfd72d3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f019e5d0d5d1972e8f979432",
+   "excluded": true,
+   "label": "M1R Formula a3773094d86138eb",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f119afbe43baa7a2556ed296",
+   "excluded": true,
+   "label": "M1R ModelRepresentation ad0ff912daac51a0",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f2802c6ccf70426c42294be0",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 903c7c619a4d76e3",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f2df332d7a7394e653d61d1e",
+   "excluded": true,
+   "label": "M1R DomainConcept b5ec947b14836e0c",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f43f29bd8db3c57b0f0ecb89",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 3a42d5374585a314",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f441724c4da40be192e066c5",
+   "excluded": true,
+   "label": "M1R DomainConcept 94d0de89b1348377",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f44c7f22df567f8d23930799",
+   "excluded": true,
+   "label": "M1R Formula f9d22724cd3ffc0a",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f49e4a02de6b2ef1c7db4481",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 65efcb215815d335",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f4f639f824d0dc43d1dc542b",
+   "excluded": true,
+   "label": "M1R Formula cdb33f6c25494c10",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f54a04d432c64462138e687d",
+   "excluded": true,
+   "label": "M1R Formula 004ed6f321022ddf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f54f7d4decbfb06ab34716e6",
+   "excluded": true,
+   "label": "M1R Formula ea720e18411e9220",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f58c513ebc3eb197bf55bf34",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement bb039dda2cf15330",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f60436474f1cef6f34c27837",
+   "excluded": true,
+   "label": "M1R Formula d7434967c1125a3d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f6a3241debfdce3e7730ebd4",
+   "excluded": true,
+   "label": "M1R Formula 3cf3117e4d80552b",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:f8a59a10db6e28c81bbab2fc",
+   "excluded": true,
+   "label": "M1R DomainConcept 778a57ae0dec84cf",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fa22b2a2917637b5d40e8c4c",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 7cb6ed31fb9290b1",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fc6e4b67ea320fbd532fa96d",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement dfe681ccee1351d6",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fcd394b00197f949e15aa5e5",
+   "excluded": true,
+   "label": "M1R DomainConcept 0a63e19a75586f47",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdb21b9412e5bdafb5570276",
+   "excluded": true,
+   "label": "M1R Formula ce8a4bbbe7bcb5fd",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdc3f58d9c1055b75b293927",
+   "excluded": true,
+   "label": "M1R ModelRepresentation e50b86a82ea61655",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdd0cfebb6beaff06155103a",
+   "excluded": true,
+   "label": "M1R KnowledgeStatement 18582d8094608e78",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdd2d84445c8dd297e1a2346",
+   "excluded": true,
+   "label": "M1R ModelRepresentation a08372da09dc9724",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdee148f557215fe3315b6dc",
+   "excluded": true,
+   "label": "M1R Formula b180cdb484f42ce9",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fdf895700a67157c4fe8f4f1",
+   "excluded": true,
+   "label": "M1R Formula 3c8cb83fdbd3d539",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fe72eda5372f4032ad891eb5",
+   "excluded": true,
+   "label": "M1R ModelRepresentation 2aae207c2983f39d",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:fe99969e299f3f605c49b1f7",
+   "excluded": true,
+   "label": "M1R DomainConcept 2318fbaa76838001",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ff005a8911df14f27aa9f95d",
+   "excluded": true,
+   "label": "M1R DomainConcept 83056b2bf8c21110",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ff82114aae823da86404d354",
+   "excluded": true,
+   "label": "M1R Formula a6af1b0a01c22050",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:object:ff83f79880523fdbc66c2ee9",
+   "excluded": true,
+   "label": "M1R DomainConcept 95f4c3dfffe91c72",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:007bb8d89e550421c95ae24f",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:00b012e4209a91dffa717a65",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0146f80ba85edf5764c5868a",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:01ac9cea43a3026686881cc9",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:01d374679a80cb893c57bc38",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0341d87f6382c105351b7f28",
+   "excluded": true,
+   "label": "定义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:051f0854909f39e5a190a0fc",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0638def4ddf451007dcb994c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:099e988172de62dfb9ea1eff",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0cc5a76626d3911bcc464c86",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0d4254858dba6b3932a2e703",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:0e5d2d3ab67fbb894682fc4c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:13c59b11a0b39fb545b17aa5",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:157f792d1cdf5fea2cce7cf6",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:1b5796e30107eb96b6301e7d",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:1c8ebfbe7750f8480fa423e3",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:21b4120a51f682725c033f09",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:230271478064dcffd00844c0",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:258ee3d8851528138af761fc",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:258f31e67d357edb17637059",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:25cccd5adf6665735c5c5e68",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:262e44ef89358a3e4eb124a8",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:2851409d5b0715e4ed0b3ded",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:29951c28dfcb3d064375c9e4",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:29d6986fbd1bab0d6c1cbe98",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:2a07379a59a7f361267eff27",
+   "excluded": true,
+   "label": "定义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:2aee7a5fda1b00f1e8f18a2e",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:2cb63a8ee6fb44b0f59d5786",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:305a7250c41ba0b9a91997e7",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:37c4e444bb4eef78ef6dbe20",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:394eba2541474aa9c231f98f",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:39c40883d9e26cd5082fd47a",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:3a1013e6282155af9d6c4dec",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:3b9d581c477572c7f6a4095a",
+   "excluded": true,
+   "label": "适用性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:3bc989009bec5952f0809b79",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:3c93e1274a4a661d08023bc9",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:3d12869f7c795a7eb9be9ceb",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:402e9febac8ebd71853f7c88",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:40c3d88eeeb1a925898f6c37",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:42094e330bad23533fb1698f",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4415632d0831cccc91e2f2c4",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:44542a8bb923a5ccd7aee6c4",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:45a785849acb9739ff3dbb98",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:45cb692251f939942c3fd8dc",
+   "excluded": true,
+   "label": "定义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:49aff3813e097ff818a7f9d2",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4ba2eb7db13d051473e41d8c",
+   "excluded": true,
+   "label": "定义",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4bee67efe54e97ff72f5d04e",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4c659abb36df701377122d34",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4e57474a57c8a9f2e6e34fe6",
+   "excluded": true,
+   "label": "适用性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:4efeec7832d0daf5cc2272d5",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:54c617c809f72438ab415df9",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:55dc443e637435b0ed160240",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:5b0182b32aad7deacd031da9",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:6059f2256543ad044ec7fb57",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:619c817fdf8325cd44695e22",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:61aef975f21badf98f9a182a",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:700d16b439bd42f52f12a0b0",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:7032642254585f0464ff5ba4",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:70e5ca6d7c5148ce0ec5d628",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:71d204c143f07fad49cc8a4e",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:765d949305edc36dc3606372",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:78d1e6546e6178ad37f768a7",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:7d549cf437eafafaa7998d6e",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:7fddb618c2c39b44be47b3e8",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:822e3930f7ec4513fcf0f531",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:835393544c55f17438a3d44d",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:839e5707b7e306c630c84912",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:83bdcb42b5ff3bd5a0175cd3",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:8440dc945dde201a6cb1e657",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:84b0726432119ce54df3888e",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:851ee958d562264935d8b2f0",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:856d6cf54e5e90415f20e6f9",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:857106f46796c7004de436b5",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:89e29187ad2d333755085f50",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:8e6d15076f9f21e0162f49b9",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:8eb30243dbee82e569d012ee",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:93c007b27fd8595dc2802899",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:945466b308bca9b2e608f8eb",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:964bf3a8d9fb5f54fb3225e2",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:97e48f4e69d2a67c77f56255",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:9dae4ffb7c4d31acbe111885",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:a4e36a4588cdcee6d712caff",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:a96c7a557521e3ff4e83211b",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ac172caae56a7f2c353c3156",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ad9b9544e6eae2e65783ab3d",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b026fde47a64af4ec67a7a6f",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b082accbafa05139afa5d708",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b42113a7a8a20bf14e942d29",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b5b6ab906f50d783116476bf",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b64892d5a9ebc14ec2621992",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b699d33241322b1b86dc5c65",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b69b165db6aa009972e7f736",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b72f3127626801e27221613c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:b8c2daa0566bb288adde59d5",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ba16bca142285a0ebc06d2ee",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ba2819efebe429ff8aa4c3ce",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:bd3f21ff03c8fc84cb21722c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:bea7e7d701a017db89274692",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ca43fbff6fd7f156d5ea8cac",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:d0c33a59ccfc5ed75523e131",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:d1479de3079478f22efc320d",
+   "excluded": true,
+   "label": "属性断言",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:dc4d08d1957524157823b974",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ddf4f144b93b12006ee5d54c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:df06718f3f1e6ebaa4268368",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:df1c49b27a51de079752e481",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:dfd1abc198206d53f15e357e",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:e3f3dfba9dcd2407ff573b32",
+   "excluded": true,
+   "label": "适用性",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:e77136e08a85bb621f7d593b",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:e7a299272a28ae8e5831408f",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:e8121cab7a49097eaffe436d",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:e9b391117aa881fd13fe2614",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ea249c26b8301f082de04147",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:ede1fc26e0933e56e849c23c",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:efc279ea9df318990e9a6b90",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:f28dd947dc90b03eedd46686",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:f4aed93cea29c174b633184f",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:f7075059e948cc70059fd2ea",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:f7b21101b980457fb44be5b9",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  },
+  {
+   "canonicalId": "m1r-v1d:statement:fb13026c47b9300bee0859f0",
+   "excluded": true,
+   "label": "知识命题",
+   "zeroResource": true
+  }
+ ],
+ "edges": [],
+ "bindings": []
+}

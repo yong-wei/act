@@ -1,0 +1,5826 @@
+{
+ "contract": "remediation-intro-video-node-bindings/v1",
+ "bindingModel": "modality-independent: cue-to-node term overlap, no handout intermediary (same model as spoken audio)",
+ "totalCues": 1880,
+ "boundCues": 343,
+ "bindingRowCount": 727,
+ "bindingsHash": "8f1dd27a02f59207fdef4f5cd2135fb46fdd6b59eec3bffe90eaee522c255a2b",
+ "rows": [
+  {
+   "atomId": "atom-dc3a9e76a99760d7ce027669",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:m3-v1l:canonical-object:66b3015c18e264d2ef3efdcd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dc3a9e76a99760d7ce027669",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-object-c0902bd5a29a103c46ea58ce",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dc3a9e76a99760d7ce027669",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-366ef96bc591bc21c637dcd9",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 11,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-366ef96bc591bc21c637dcd9",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 11,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-366ef96bc591bc21c637dcd9",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73e152d3d8bc26ccf60b296e",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 14,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9a3b00e687d5b8ba05c0d4df",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 23,
+   "canonicalId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9a3b00e687d5b8ba05c0d4df",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 23,
+   "canonicalId": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9a3b00e687d5b8ba05c0d4df",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 23,
+   "canonicalId": "ctkg:v3e-object-c0902bd5a29a103c46ea58ce",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90109dcd63323be12ebb3026",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 25,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90109dcd63323be12ebb3026",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 25,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90109dcd63323be12ebb3026",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1130aa03214c5725f19e384a",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1130aa03214c5725f19e384a",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c86c63685dba733788377a4",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c86c63685dba733788377a4",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c86c63685dba733788377a4",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4aa97d43a74d59e23bbaf797",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4aa97d43a74d59e23bbaf797",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cd9dcab91aa7967b8008caad",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 41,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cd9dcab91aa7967b8008caad",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 41,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cd9dcab91aa7967b8008caad",
+   "resourceId": "intro-video-1-1",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7e9edc768d951b71f13d4cb0",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 40,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cf73f05ba09b98ae1bb6f7bb",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 41,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a3b8a843ff5980e9c2e80865",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 52,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a3b8a843ff5980e9c2e80865",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 52,
+   "canonicalId": "ctkg:v3e-canonical-6937fab45e8397ec30a8a06d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-417df0cb3ed4b797affd10df",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 55,
+   "canonicalId": "ctkg:v3e-canonical-6937fab45e8397ec30a8a06d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ee53105d0645663031eaa3e0",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 56,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-488f16c5bf40808887c0d0c8",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 64,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-700426025fd1f856cb308d43",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 67,
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-700426025fd1f856cb308d43",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 67,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-fe06dda9c41597dc01e62b99",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 70,
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4146e37baf69b9eaeca2cb3c",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 73,
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6af67b22b3e153f7c83a957c",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 76,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6af67b22b3e153f7c83a957c",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 76,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6af67b22b3e153f7c83a957c",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 76,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ee4c85036bb52304f22b8661",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 77,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ee4c85036bb52304f22b8661",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 77,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ee4c85036bb52304f22b8661",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 77,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ab148b86b89daf01e08cdc22",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 86,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ab148b86b89daf01e08cdc22",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 86,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ab148b86b89daf01e08cdc22",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 86,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-55d4c86493f48d31e395c42b",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 91,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-55d4c86493f48d31e395c42b",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 91,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-99007d38a0320d8340a11414",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 108,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2d113bbb635bbd78439562fd",
+   "resourceId": "intro-video-1-2",
+   "cueIndex": 109,
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e1bd331552f87d0cca5a0b09",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 8,
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-219fecf681466bda0b26e83d",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 11,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-219fecf681466bda0b26e83d",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 11,
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-219fecf681466bda0b26e83d",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:m3-v1l:source-object:87cc9c0cb52ffed33c9b29b5",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c28bce89ae483c50bfe133fc",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 14,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c28bce89ae483c50bfe133fc",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c28bce89ae483c50bfe133fc",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5469079498053969f4cfac03",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 16,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5469079498053969f4cfac03",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5469079498053969f4cfac03",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a2cd2e0eb0b7cf6414975f9d",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d290a4d2af41568ee4615a4",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d290a4d2af41568ee4615a4",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d290a4d2af41568ee4615a4",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90e7256b9dda482217346b96",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 32,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90e7256b9dda482217346b96",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 32,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-90e7256b9dda482217346b96",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ca96bfd572c4ef29d5df21e1",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d769333dc8d1a0bf116244ab",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 44,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d769333dc8d1a0bf116244ab",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 44,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d769333dc8d1a0bf116244ab",
+   "resourceId": "intro-video-1-3",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4a884fbbb814d76223212e47",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1e70dc9c9c2d1b5a776375f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1e70dc9c9c2d1b5a776375f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1e70dc9c9c2d1b5a776375f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7bb972a83002bb8ca48c4bb5",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 24,
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7bb972a83002bb8ca48c4bb5",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7bb972a83002bb8ca48c4bb5",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4fc5323c205d7e898adaca9e",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4fc5323c205d7e898adaca9e",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-object-10bd34edcc1c62d24aa97876",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4fc5323c205d7e898adaca9e",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-object-155898e6d01cfc8250f3da59",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0fc082c2a4666b138d3e1ea2",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0fc082c2a4666b138d3e1ea2",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-32571876de9212bd610cc262",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-32571876de9212bd610cc262",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-object-10bd34edcc1c62d24aa97876",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-32571876de9212bd610cc262",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-object-155898e6d01cfc8250f3da59",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3f41fb5ec761650b3eb4f055",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3f41fb5ec761650b3eb4f055",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3f41fb5ec761650b3eb4f055",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-object-2b5f4f871c7c21633232f228",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-664e37666d4fec6bcb3cd39a",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-664e37666d4fec6bcb3cd39a",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:v3e-object-10bd34edcc1c62d24aa97876",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-664e37666d4fec6bcb3cd39a",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:v3e-object-155898e6d01cfc8250f3da59",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7fd70c751742fd25f0b6aede",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-05223b57a189d6b3d20c7afc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7fd70c751742fd25f0b6aede",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7fd70c751742fd25f0b6aede",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-0e6d07cc58af6a4af000cfcd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64e91bfc851a73efa1512320",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64e91bfc851a73efa1512320",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:v3e-object-10bd34edcc1c62d24aa97876",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64e91bfc851a73efa1512320",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:v3e-object-155898e6d01cfc8250f3da59",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b76a8255a4a45a8ff3eecb46",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b76a8255a4a45a8ff3eecb46",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-object-10bd34edcc1c62d24aa97876",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b76a8255a4a45a8ff3eecb46",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-object-155898e6d01cfc8250f3da59",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b306c4226f8d00d1239ded2f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-05223b57a189d6b3d20c7afc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b306c4226f8d00d1239ded2f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b306c4226f8d00d1239ded2f",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-0e6d07cc58af6a4af000cfcd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d0ca231fc2c7e5213deab934",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 52,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-61c1a825339b0742baaa3ce2",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 67,
+   "canonicalId": "ctkg:v3e-object-75133150a7d64f1f5bdbf1f2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1810df6816153bd48f87093",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 68,
+   "canonicalId": "ctkg:v3e-object-057b42b4483a6495ba42f8c3",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1810df6816153bd48f87093",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 68,
+   "canonicalId": "ctkg:v3e-object-244df46f50daf2201da416d2",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a1810df6816153bd48f87093",
+   "resourceId": "intro-video-1-4",
+   "cueIndex": 68,
+   "canonicalId": "ctkg:v3e-object-6eff98d7f9cff8739eb4e048",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38d0144074653e3ecc0593f9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38d0144074653e3ecc0593f9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38d0144074653e3ecc0593f9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cebac95761efe8e7c3b759d0",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 6,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cebac95761efe8e7c3b759d0",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 6,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b2acb595d0f861757c2d1d92",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:statement-argument:3efe58f0e77de816394ee3bd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b2acb595d0f861757c2d1d92",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce38020897215c3033237d55",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 10,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce38020897215c3033237d55",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce38020897215c3033237d55",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6e2ef089c1f2ce3cf8bc2004",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6e2ef089c1f2ce3cf8bc2004",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-570413899877f1fc886b7042",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-570413899877f1fc886b7042",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-570413899877f1fc886b7042",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-69c5f7e0df0af8c478c0df9e",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-69c5f7e0df0af8c478c0df9e",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-69c5f7e0df0af8c478c0df9e",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d01834a04524ba312cfc056c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d01834a04524ba312cfc056c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d01834a04524ba312cfc056c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3b313fe6f7281626cd973391",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3b313fe6f7281626cd973391",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3b313fe6f7281626cd973391",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1bb77c79e5102ff631a5abc1",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1bb77c79e5102ff631a5abc1",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1bb77c79e5102ff631a5abc1",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b8a7777062b238ad36e92fcf",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b8a7777062b238ad36e92fcf",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b8a7777062b238ad36e92fcf",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a37a4d404585a893e354954c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a37a4d404585a893e354954c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a37a4d404585a893e354954c",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-76ae5c92c26dcde80194a0d9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-76ae5c92c26dcde80194a0d9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-76ae5c92c26dcde80194a0d9",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d03aa9e9035d7346d8fe88dd",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d03aa9e9035d7346d8fe88dd",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d03aa9e9035d7346d8fe88dd",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-49745fb260407d8ef82f5113",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-49745fb260407d8ef82f5113",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-49745fb260407d8ef82f5113",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b6d9c70dd690989c2b099af7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 42,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b6d9c70dd690989c2b099af7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b6d9c70dd690989c2b099af7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e7c481c0265100633c85e557",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9038280021ba6ba06035a2b7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9038280021ba6ba06035a2b7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9038280021ba6ba06035a2b7",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f71313fbc641de88b3db64e5",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f71313fbc641de88b3db64e5",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f71313fbc641de88b3db64e5",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-2b5f4f871c7c21633232f228",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-87729d314b54bffb0ceac9a5",
+   "resourceId": "intro-video-1-5",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a7029bb045719955166fefe6",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 5,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-85591271dbce4e5239d85d18",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 7,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-07f4a5812c54059311f89f1b",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 13,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-41975096c93f25ad496b602d",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 17,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d155a422d3ab12d21bf10c9a",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 18,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-01d9ae4e313fd1a71c24867d",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-054210f8332c82eb878c135c",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e9ffa749977361948c32ac15",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 27,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0c52f1bce20de13db9944859",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 33,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0c52f1bce20de13db9944859",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 33,
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0c52f1bce20de13db9944859",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:m3-v1l:source-object:87cc9c0cb52ffed33c9b29b5",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-52379f94ea9d5e6448e8ce50",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3da22212284409fcbe69d42f",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 35,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-526bb33abb9f17bd9cfecd56",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 36,
+   "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-87c5c20680bd3f855155806f",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 37,
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-35bd176fe8ac99a58c10613f",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 39,
+   "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8e8ace032a86221a7e89af43",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f5b62abed59087e6ed67a1b7",
+   "resourceId": "intro-video-2-1",
+   "cueIndex": 52,
+   "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f6a1301944e534a14de6dabe",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 9,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3d7f94fadfb39af0b0a33ebb",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3d7f94fadfb39af0b0a33ebb",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3d7f94fadfb39af0b0a33ebb",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-439ceb30a8bc781f9e1c4037",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-439ceb30a8bc781f9e1c4037",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-439ceb30a8bc781f9e1c4037",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5ca551e1ceea57262c953ae4",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5ca551e1ceea57262c953ae4",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5ca551e1ceea57262c953ae4",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43c0045c0ad83a77d1bb76be",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43c0045c0ad83a77d1bb76be",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43c0045c0ad83a77d1bb76be",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-14c6284c175f7d8a7aa5ffb1",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-389c03b24eea4452f84e28d3",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-389c03b24eea4452f84e28d3",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-389c03b24eea4452f84e28d3",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cdd09bebdd3f24a7c3850a66",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-canonical-0a18e453c2564ee86fe37718",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cdd09bebdd3f24a7c3850a66",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cdd09bebdd3f24a7c3850a66",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7b5c4e7c55c2709cd9ca4d9f",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7b5c4e7c55c2709cd9ca4d9f",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7b5c4e7c55c2709cd9ca4d9f",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 36,
+   "canonicalId": "ctkg:v3e-object-6bf117c0f2dae6dc7780d72d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8a0ff6e97598737de6dcad48",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 37,
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8a0ff6e97598737de6dcad48",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a9e349e5edb9a0a6c51457a2",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a9e349e5edb9a0a6c51457a2",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a9e349e5edb9a0a6c51457a2",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-15796f4be27841712d67b612",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-15796f4be27841712d67b612",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-15796f4be27841712d67b612",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40c8935813438aebf61b613c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40c8935813438aebf61b613c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40c8935813438aebf61b613c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-007ecd4607c52c029042fab5",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-007ecd4607c52c029042fab5",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-007ecd4607c52c029042fab5",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-08030634e72f7029889c8593",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 49,
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-08030634e72f7029889c8593",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-08030634e72f7029889c8593",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-df4e845d81ba12a0eb82548c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-df4e845d81ba12a0eb82548c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-df4e845d81ba12a0eb82548c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd6c1fef96d052054ca91a2c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 60,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd6c1fef96d052054ca91a2c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 60,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd6c1fef96d052054ca91a2c",
+   "resourceId": "intro-video-2-2",
+   "cueIndex": 60,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-74762e41578c997e7e9502b3",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 19,
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-74762e41578c997e7e9502b3",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-74762e41578c997e7e9502b3",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a54d4294b979ec31856a6929",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 29,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d215509dfd3251abf7de3ff6",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f1b7b66fae0d095f0624f4e0",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f1b7b66fae0d095f0624f4e0",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f1b7b66fae0d095f0624f4e0",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-12e656758b3d556942aba6aa",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-466b96bfbc6a91c29a0f9409",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 47,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95dd933b78e61ed2c750aef7",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38ed5a47e678f9d4193fc02d",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0f41563a59b21fed0a28cf37",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 62,
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0f41563a59b21fed0a28cf37",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 62,
+   "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0f41563a59b21fed0a28cf37",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 62,
+   "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-180b53646e115037af4ceaed",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 66,
+   "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9a67c29c198a90df480f5ca0",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 67,
+   "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f38704cefdfc6208341f3c59",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 68,
+   "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-94a61776e8dcfb6039c844cc",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 76,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-94a61776e8dcfb6039c844cc",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 76,
+   "canonicalId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-94a61776e8dcfb6039c844cc",
+   "resourceId": "intro-video-2-3",
+   "cueIndex": 76,
+   "canonicalId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7503b35aff2322d64d65049e",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7503b35aff2322d64d65049e",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-7503b35aff2322d64d65049e",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-45f00332e555fb8e759c0523",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 4,
+   "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-698fc8821545a3a88c5d6561",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89a8641da99d1c628e8408b5",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89a8641da99d1c628e8408b5",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89a8641da99d1c628e8408b5",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-482ce10c45d25724c192b53b",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-482ce10c45d25724c192b53b",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-482ce10c45d25724c192b53b",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a4756eda892fbe9ae5e3d845",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a4756eda892fbe9ae5e3d845",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a4756eda892fbe9ae5e3d845",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-33610eb4da6631daa54e9a8d",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ae22fbb09233ca2f0b2507f4",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ae22fbb09233ca2f0b2507f4",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ae22fbb09233ca2f0b2507f4",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-44f7d8b517b63b9a8d766d1f",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8968bb44e0e79ccd5c24fcac",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8968bb44e0e79ccd5c24fcac",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b812ee01de2cff1cd85f56a",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b812ee01de2cff1cd85f56a",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b812ee01de2cff1cd85f56a",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f78c1f6c113bead0880c772c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f78c1f6c113bead0880c772c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f78c1f6c113bead0880c772c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:v3e-object-2b5f4f871c7c21633232f228",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba32c7c24fdad5366a00a891",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba32c7c24fdad5366a00a891",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba32c7c24fdad5366a00a891",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d46f7c2654640b3299ad616b",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d46f7c2654640b3299ad616b",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 37,
+   "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0bcb162d8ae03302b59b0ad8",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0bcb162d8ae03302b59b0ad8",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0bcb162d8ae03302b59b0ad8",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5a7f3d2acab274737bc03ff3",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5a7f3d2acab274737bc03ff3",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5a7f3d2acab274737bc03ff3",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64c38a65b649e2dc163a2c9c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 43,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64c38a65b649e2dc163a2c9c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 43,
+   "canonicalId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-64c38a65b649e2dc163a2c9c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 43,
+   "canonicalId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-038b0f4e7ba4bc5f0ef2dbbc",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-038b0f4e7ba4bc5f0ef2dbbc",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-038b0f4e7ba4bc5f0ef2dbbc",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bc89b996804058fcea1bb793",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bc89b996804058fcea1bb793",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5113eeeef2a563ea6ee6b12c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5113eeeef2a563ea6ee6b12c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5113eeeef2a563ea6ee6b12c",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f53ef472ec8d29e24873c462",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-0cb92472c6a6b7ffe0ce22e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f53ef472ec8d29e24873c462",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-4acaa9cd561fa2c6178265f9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f53ef472ec8d29e24873c462",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-7395b8289642022572658fe0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-03437ad82ceb4ba4be01e007",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f4f224ad35df8d2e973bf9eb",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-74f1d0970ac9a3db4e06e499",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 60,
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6bf6790aa186795043582f12",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6bf6790aa186795043582f12",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6bf6790aa186795043582f12",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c5b7aa80195285729473a822",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 71,
+   "canonicalId": "ctkg:v3e-object-a13b2da86a1c1fae2c7dd624",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9d9ac02088b18c47f4ad783d",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9d9ac02088b18c47f4ad783d",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9d9ac02088b18c47f4ad783d",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-79676ca75d03aa7797a4c638",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 73,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-79676ca75d03aa7797a4c638",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 73,
+   "canonicalId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-79676ca75d03aa7797a4c638",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 73,
+   "canonicalId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e877dfe769a8b3a459ba975f",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 74,
+   "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-049dc32b7765724f36ade42f",
+   "resourceId": "intro-video-2-4",
+   "cueIndex": 79,
+   "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a463da1ab2b77a202d2bf00d",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:statement-argument:428a490cb8ecd96c72104182",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a463da1ab2b77a202d2bf00d",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a463da1ab2b77a202d2bf00d",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d43e12fd4cbae256a7872f69",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d43e12fd4cbae256a7872f69",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d43e12fd4cbae256a7872f69",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95812f63fea769f03e37d865",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95812f63fea769f03e37d865",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dcb9150b5e7a112102416dfd",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e105968da4536c90ed9266cc",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e105968da4536c90ed9266cc",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d9795e7e0faae73b6cdc28a",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 19,
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d9795e7e0faae73b6cdc28a",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6106d17cfd6afc4390d01faa",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6106d17cfd6afc4390d01faa",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c0079fd886bc6d1e00dda7e9",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c0079fd886bc6d1e00dda7e9",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2e21d81ab052fa4f5c1ea4b0",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2e21d81ab052fa4f5c1ea4b0",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2e21d81ab052fa4f5c1ea4b0",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 33,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-420282b961339b70fd1e8b47",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-420282b961339b70fd1e8b47",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-420282b961339b70fd1e8b47",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d745be3de13727e7e3d9189",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d745be3de13727e7e3d9189",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d745be3de13727e7e3d9189",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73b319ae1421db116b78018e",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3decfe306fd2d94a1e1222f0",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:v3e-object-75133150a7d64f1f5bdbf1f2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d9f858de38750c35d450a56f",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d9f858de38750c35d450a56f",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d9f858de38750c35d450a56f",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8cc1e9c7fc551d130efa3779",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 53,
+   "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ea8ecea29a9a6fb8ca788756",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 54,
+   "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b2a5409957864bd7a3cce60b",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b2a5409957864bd7a3cce60b",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b2a5409957864bd7a3cce60b",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89e847f2cf07fb330f40dba3",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 61,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89e847f2cf07fb330f40dba3",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 61,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-89e847f2cf07fb330f40dba3",
+   "resourceId": "intro-video-3-1",
+   "cueIndex": 61,
+   "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cf554fa3009b09b762b1cb2f",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cf554fa3009b09b762b1cb2f",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cf554fa3009b09b762b1cb2f",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-740f44911fbdeda1b60d74d9",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9e0e84ccc593294920a5b4b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9e0e84ccc593294920a5b4b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-7d32f9b3c367394b22e3b781",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9e0e84ccc593294920a5b4b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8bfa16c5fa19a3f73ae18420",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8351abd1371bdc6215d3e42d",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d6d673e0d88bb2cd2384e878",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d6d673e0d88bb2cd2384e878",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c34dc335555b83c89eb18d4e",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 18,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c34dc335555b83c89eb18d4e",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 18,
+   "canonicalId": "ctkg:v3e-object-7d32f9b3c367394b22e3b781",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c34dc335555b83c89eb18d4e",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 18,
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0f21460fba6ab251fa650131",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd223ccd783050f56d156841",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd223ccd783050f56d156841",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bd223ccd783050f56d156841",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9ed89066ac04ff2dfcb96028",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-adc11dabbcc3f625f3f76bdf",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-adc11dabbcc3f625f3f76bdf",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-7d32f9b3c367394b22e3b781",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-adc11dabbcc3f625f3f76bdf",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ea3e6fa4e895a1000cb6298d",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 48,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514e267f9b32a468a02268b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514e267f9b32a468a02268b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:a88bac284eb77cb885e403f0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514e267f9b32a468a02268b7",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a7dce728ce95272c816821f1",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 62,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a7dce728ce95272c816821f1",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 62,
+   "canonicalId": "ctkg:v3e-object-7d32f9b3c367394b22e3b781",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a7dce728ce95272c816821f1",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 62,
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cda79eefffcc1676a1c2f547",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 68,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-831e726adb7ab1863be28406",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-831e726adb7ab1863be28406",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1cb16cb04406e076f35fd3ce",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 74,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-45db26c1b3b9cd7fa9cf09a3",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 77,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-45db26c1b3b9cd7fa9cf09a3",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 77,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d95e898a814f5cc45e621109",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 79,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d95e898a814f5cc45e621109",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 79,
+   "canonicalId": "ctkg:v3e-object-7d32f9b3c367394b22e3b781",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d95e898a814f5cc45e621109",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 79,
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-725f3cfca9d52dc624225b2b",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 82,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-725f3cfca9d52dc624225b2b",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 82,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-725f3cfca9d52dc624225b2b",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 82,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-fea0f049c652a7a963434229",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 85,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-fea0f049c652a7a963434229",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 85,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-fea0f049c652a7a963434229",
+   "resourceId": "intro-video-3-2",
+   "cueIndex": 85,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-67ce2ce5efe8e4d42a1697d4",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-67ce2ce5efe8e4d42a1697d4",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:v3e-object-448b68ef8a03fa29e7eed365",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-67ce2ce5efe8e4d42a1697d4",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:v3e-object-9aac02e883a543e43b255294",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-41d634ea04c3a90506653488",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebcb8864e666071aa1a0ffba",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 15,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebcb8864e666071aa1a0ffba",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 15,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebcb8864e666071aa1a0ffba",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f147478a39b05f081b6df93d",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 23,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-684d1db68ba061cb7f19a3fa",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 25,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-684d1db68ba061cb7f19a3fa",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 25,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-684d1db68ba061cb7f19a3fa",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-312f84a6416290970517afff",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 26,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-312f84a6416290970517afff",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-312f84a6416290970517afff",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-795ff40fa4a9989e3419cb43",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 36,
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-27a04523e7178c74a2e4f98b",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 42,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-27a04523e7178c74a2e4f98b",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 42,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-27a04523e7178c74a2e4f98b",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9173e7183906f4d3fc751b9e",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 44,
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6a8e71f51cd3a14b556d2d42",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 50,
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e9b4eb2f7860988513b011a5",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 64,
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73874acd2375d4887767a996",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b5bb9123541a328dd854f278",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 73,
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-623e7a74d01d55c2ce8c19b3",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 74,
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-88935bfaa12690bbcd70ffee",
+   "resourceId": "intro-video-3-3",
+   "cueIndex": 75,
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73e2cdb59778cc4582f2d78e",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73e2cdb59778cc4582f2d78e",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-73e2cdb59778cc4582f2d78e",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1ed6fdc8d14113db753bd3c2",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1ed6fdc8d14113db753bd3c2",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6d7c0ed2f2908c12f0bdb03f",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e10f4b498baa6b7f2be90a1f",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 15,
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-463ec5ae9cf11031fc798aa2",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:v3e-object-23194f43d1c526da26e1397b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2775589ba24534143064d4b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 28,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2775589ba24534143064d4b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 28,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2775589ba24534143064d4b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 28,
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-79d32180244def83769a5b3e",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63c34a7a69c35f8dc0ddf031",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 31,
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-37f5b3bb1f870225f9725793",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 41,
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f0134869e7019e5a6d443852",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f0134869e7019e5a6d443852",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-39b152119fc4521266617819",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-39b152119fc4521266617819",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-39b152119fc4521266617819",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6d52ac539acfc49089325c85",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 60,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6d52ac539acfc49089325c85",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 60,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6d52ac539acfc49089325c85",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 60,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-933007435969a8a7efdbec8b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 65,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-933007435969a8a7efdbec8b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-933007435969a8a7efdbec8b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-618471abe561e240e891293b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 66,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-618471abe561e240e891293b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 66,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-618471abe561e240e891293b",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 66,
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-53b85581837065b206e4e6e8",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 67,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-53b85581837065b206e4e6e8",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 67,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-53b85581837065b206e4e6e8",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 67,
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3ff853cce3e95485b02a6ae0",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 71,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3ff853cce3e95485b02a6ae0",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 71,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8e561d432f983ea84ae5446f",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 78,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8e561d432f983ea84ae5446f",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 78,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8e561d432f983ea84ae5446f",
+   "resourceId": "intro-video-3-4",
+   "cueIndex": 78,
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6db369f10fcb28c5d86f1bc1",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6db369f10fcb28c5d86f1bc1",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6db369f10fcb28c5d86f1bc1",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-266b180baf9e574e4335ab0d",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 20,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-266b180baf9e574e4335ab0d",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 20,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-266b180baf9e574e4335ab0d",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5cb7122cb0f85ad9c2875079",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5cb7122cb0f85ad9c2875079",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-399e9c2399c5209a9a088151",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:domainconcept:1574c7db84468964721bb443",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-399e9c2399c5209a9a088151",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a87444552fc1e1d53d5a612f",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 38,
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a87444552fc1e1d53d5a612f",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a87444552fc1e1d53d5a612f",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40f57369422105478c93348c",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 41,
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40f57369422105478c93348c",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-40f57369422105478c93348c",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-14b3f85a6a23b2cfe9f7f3d7",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-14b3f85a6a23b2cfe9f7f3d7",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-14b3f85a6a23b2cfe9f7f3d7",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 49,
+   "canonicalId": "ctkg:v3e-object-2b5f4f871c7c21633232f228",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43228622403d80515e08b0bc",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 51,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c2f8ce0a6a1bccb50499b72b",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 64,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c2f8ce0a6a1bccb50499b72b",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 64,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d7da655b745429436fa39a79",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:m3-v1i:source-object:fcf91d76c2c634f20500b0b8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d7da655b745429436fa39a79",
+   "resourceId": "intro-video-3-5",
+   "cueIndex": 65,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0285d3fe3a97cc3dfbc3ab3d",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0285d3fe3a97cc3dfbc3ab3d",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 1,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-0285d3fe3a97cc3dfbc3ab3d",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38b19ac86865c71cb06a39a1",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 8,
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38b19ac86865c71cb06a39a1",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38b19ac86865c71cb06a39a1",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f525a1da22c35b8693414009",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 14,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f525a1da22c35b8693414009",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 14,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f525a1da22c35b8693414009",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ad56333217f4bd5d8dd85124",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-af71022992585df09d11c2dc",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-af71022992585df09d11c2dc",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-00428c4b584a5582c0f74150",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:v3e-object-75133150a7d64f1f5bdbf1f2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-429e58cb23c4a85814cf0865",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 31,
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-429e58cb23c4a85814cf0865",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-429e58cb23c4a85814cf0865",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-25888e1df3df3de8c5a24985",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 39,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-25888e1df3df3de8c5a24985",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 39,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-25888e1df3df3de8c5a24985",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 39,
+   "canonicalId": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3fa9925024f6f0c5c22b4676",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 46,
+   "canonicalId": "ctkg:v3e-object-75133150a7d64f1f5bdbf1f2",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba9158215ecd12fb0ca98bee",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 48,
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba9158215ecd12fb0ca98bee",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 48,
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ba9158215ecd12fb0ca98bee",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 48,
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f67fc53076ef6a7d781f8989",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 51,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d506dc52a18faee296abfd41",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 52,
+   "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5366e198c7293c486e7e1680",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5366e198c7293c486e7e1680",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5366e198c7293c486e7e1680",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-cb305151dc12284ab1cd3388",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9380ab231165440e67192e76",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9380ab231165440e67192e76",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9380ab231165440e67192e76",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-eb7d43781bc3a07e3e589da5",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-eb7d43781bc3a07e3e589da5",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-eb7d43781bc3a07e3e589da5",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d8401f54f88dbed3d9e82330",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 59,
+   "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1319005654e928363c1d7528",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 66,
+   "canonicalId": "ctkg:m3-v1i:source-object:fcf91d76c2c634f20500b0b8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1319005654e928363c1d7528",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 66,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f3213537907213dcc8b4d828",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 69,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f3213537907213dcc8b4d828",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 69,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f3213537907213dcc8b4d828",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 69,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-23883010df1ca531c51c4ece",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-23883010df1ca531c51c4ece",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-23883010df1ca531c51c4ece",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 70,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a130b9b49212bcf0f075d007",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a130b9b49212bcf0f075d007",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a130b9b49212bcf0f075d007",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 72,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-353a4496dc9d002a8b1e8d32",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 82,
+   "canonicalId": "ctkg:m3-v1i:source-object:fcf91d76c2c634f20500b0b8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-353a4496dc9d002a8b1e8d32",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 82,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514aca0503c02927f6d5fffb",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 84,
+   "canonicalId": "ctkg:domainconcept:28c7b2fa3807573e2160fad0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514aca0503c02927f6d5fffb",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 84,
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-514aca0503c02927f6d5fffb",
+   "resourceId": "intro-video-3-6",
+   "cueIndex": 84,
+   "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dfaeebd8d768db836e44d5a0",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dfaeebd8d768db836e44d5a0",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dfaeebd8d768db836e44d5a0",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:v3e-object-164939b5eaf8476f1023e4b1",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38f9811eab6dde9f01bd9eba",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38f9811eab6dde9f01bd9eba",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-38f9811eab6dde9f01bd9eba",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-object-164939b5eaf8476f1023e4b1",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63a6d82bd57dc5fa2f8ae2f3",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63a6d82bd57dc5fa2f8ae2f3",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63a6d82bd57dc5fa2f8ae2f3",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4a2809fa5c32d09ff3848fa1",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4a2809fa5c32d09ff3848fa1",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4a2809fa5c32d09ff3848fa1",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-bdddeb7dfd09de46a5983063",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce63de8d96fd6a1ef4eb7b15",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce63de8d96fd6a1ef4eb7b15",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ce63de8d96fd6a1ef4eb7b15",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 28,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-04647f68e38b2660b15091f5",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-04647f68e38b2660b15091f5",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-04647f68e38b2660b15091f5",
+   "resourceId": "intro-video-3-7",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6b91c32ba58234a1de039f01",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6b91c32ba58234a1de039f01",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8afa613e797d613a0ca42440",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8afa613e797d613a0ca42440",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8afa613e797d613a0ca42440",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e240e253c757d101e2fe3f65",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e240e253c757d101e2fe3f65",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e240e253c757d101e2fe3f65",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3179065b2989b6b22fafaba7",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3179065b2989b6b22fafaba7",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3179065b2989b6b22fafaba7",
+   "resourceId": "intro-video-3-8",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6ba88a269cd1be45de9887cc",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6ba88a269cd1be45de9887cc",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6ba88a269cd1be45de9887cc",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 12,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3280e8f4bdc55a8f245f860a",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3280e8f4bdc55a8f245f860a",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3280e8f4bdc55a8f245f860a",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 13,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2adc46581bf374120adcda29",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2b8f7e7a72332d2027ca32a0",
+   "resourceId": "intro-video-3-9",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-970ea82ce3edf07d8231773b",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 5,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e197cf099f5757807b8a1395",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e197cf099f5757807b8a1395",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e197cf099f5757807b8a1395",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b3ea99630cbf5d19801df52",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b3ea99630cbf5d19801df52",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:m3-v1i:source-object:11c78ffed1f0f5ab896c8b71",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5b3ea99630cbf5d19801df52",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 8,
+   "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-895d16fdd710cfef223d757c",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-895d16fdd710cfef223d757c",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c62b6788040252ffdc738b26",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c62b6788040252ffdc738b26",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c62b6788040252ffdc738b26",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 16,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-00b1846a696117aa410ed899",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-00b1846a696117aa410ed899",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-c181917e1c735fe605167d96",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-00b1846a696117aa410ed899",
+   "resourceId": "intro-video-4-1",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-c2edbb82f29031a97e974935",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-68b6f9e5c6038f84059f9e5d",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a64790cd35c23793811c6cc0",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 7,
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a64790cd35c23793811c6cc0",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a64790cd35c23793811c6cc0",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 7,
+   "canonicalId": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95b7c86a205bab8870872cb5",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 11,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95b7c86a205bab8870872cb5",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-95b7c86a205bab8870872cb5",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e11e7664d86f46d12eea2a9e",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 15,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e11e7664d86f46d12eea2a9e",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e11e7664d86f46d12eea2a9e",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-294250493e4dc27683ee703b",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:domainconcept:28c7b2fa3807573e2160fad0",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-294250493e4dc27683ee703b",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-294250493e4dc27683ee703b",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b97d115b6b9387c5dee46d53",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b97d115b6b9387c5dee46d53",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b97d115b6b9387c5dee46d53",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e727bfb6b9122d6b91c236cd",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 24,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e727bfb6b9122d6b91c236cd",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e727bfb6b9122d6b91c236cd",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-04fae2b28ab1db28e3235bb2",
+   "resourceId": "intro-video-4-2",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-object-2d0e269169df16cd5120134a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f797a061fc96c64a23ad655c",
+   "resourceId": "intro-video-4-3",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63fa11ed60e1b3acd39519cf",
+   "resourceId": "intro-video-4-3",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63fa11ed60e1b3acd39519cf",
+   "resourceId": "intro-video-4-3",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-63fa11ed60e1b3acd39519cf",
+   "resourceId": "intro-video-4-3",
+   "cueIndex": 17,
+   "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9420b6a165fb229bc2c5da6b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9420b6a165fb229bc2c5da6b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9420b6a165fb229bc2c5da6b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 9,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43820cda7162732886e65a7c",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43820cda7162732886e65a7c",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-43820cda7162732886e65a7c",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 26,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1346f74e25a7846236320ee2",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-697dad33b00a3500f33a2cb2",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-697dad33b00a3500f33a2cb2",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-697dad33b00a3500f33a2cb2",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4e97495c00bb0822ab100985",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4e97495c00bb0822ab100985",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4e97495c00bb0822ab100985",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f0fa41a6feef10a25ceecf5b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 46,
+   "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f0fa41a6feef10a25ceecf5b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 46,
+   "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f0fa41a6feef10a25ceecf5b",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 46,
+   "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b82ffb788943327b8e0a0ea0",
+   "resourceId": "intro-video-4-4",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1a59cbedb84cf956e1ae2495",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 3,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1a59cbedb84cf956e1ae2495",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 3,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1a59cbedb84cf956e1ae2495",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 3,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5f469c752e5004738218f444",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5f469c752e5004738218f444",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5f469c752e5004738218f444",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9b07d56953355b6b24b7dd3e",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:condition:a90aee6da47b74daa06feb7e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9b07d56953355b6b24b7dd3e",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9b07d56953355b6b24b7dd3e",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-75b134476ffdef91f684cc14",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-75b134476ffdef91f684cc14",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-75b134476ffdef91f684cc14",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 19,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9ab28a5795e440563197ceef",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 27,
+   "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9ab28a5795e440563197ceef",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 27,
+   "canonicalId": "ctk:1922f1c3c82ad4fae7d6b778",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-beb590a2d5a1a725e2ee7496",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:v3e-object-23194f43d1c526da26e1397b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-beb590a2d5a1a725e2ee7496",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 30,
+   "canonicalId": "ctkg:v3e-object-9bb860414fdc16e88d603689",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-311e5f607edf0cec03e10b65",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:domainconcept:d39faa7168016a381956c62d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-311e5f607edf0cec03e10b65",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-311e5f607edf0cec03e10b65",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:v3e-object-4db8271ddf72e4739741af2c",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-f2d8ccf4f1d5bcbbc712dc4d",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4dcf6483137f43630885b267",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4dcf6483137f43630885b267",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4dcf6483137f43630885b267",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9b7afe48afe4f41dfa377b2d",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1e0bd924ae075d32c2e783b4",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 47,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1e0bd924ae075d32c2e783b4",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-1e0bd924ae075d32c2e783b4",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2bc1a787f29f2b00a10ce66",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 50,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2bc1a787f29f2b00a10ce66",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 50,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e2bc1a787f29f2b00a10ce66",
+   "resourceId": "intro-video-4-5",
+   "cueIndex": 50,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c8398c29be64bd30b7ee9b64",
+   "resourceId": "intro-video-4-6",
+   "cueIndex": 29,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c8398c29be64bd30b7ee9b64",
+   "resourceId": "intro-video-4-6",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c8398c29be64bd30b7ee9b64",
+   "resourceId": "intro-video-4-6",
+   "cueIndex": 29,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4ea6744080cbb7d2fe7e8cc9",
+   "resourceId": "intro-video-4-6",
+   "cueIndex": 41,
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c484e5b2de6a9e553f8a3ae4",
+   "resourceId": "intro-video-4-7",
+   "cueIndex": 3,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b70a397d773d667ec455e7aa",
+   "resourceId": "intro-video-4-7",
+   "cueIndex": 50,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dfee2ad537cb1b86fa0a6615",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:v3e-object-23194f43d1c526da26e1397b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4433b346f96b6efd114639eb",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 21,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a17cb00960fa346e343d5509",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c67a45965f5233febc3cb4e",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:statement-argument:428a490cb8ecd96c72104182",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c67a45965f5233febc3cb4e",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3c67a45965f5233febc3cb4e",
+   "resourceId": "intro-video-5-1",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
+   "score": 4,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8167ca17246e708b6cdf6ed5",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 6,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d72cc939c1b42ce6e77d47e",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 9,
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-842d37707c2d5db3c343f159",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-842d37707c2d5db3c343f159",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-842d37707c2d5db3c343f159",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 10,
+   "canonicalId": "ctkg:v3e-object-0ff6d79ac8229bca531ca366",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9485e21e15da141fd8dee7a2",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:m3-v2k:source-object:cec75b55995b84a000aec445",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9485e21e15da141fd8dee7a2",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9485e21e15da141fd8dee7a2",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 11,
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-58b9937bf3db4b77681b0cfb",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 16,
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebf8deb97553a6bc631afeae",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 20,
+   "canonicalId": "ctf:bf39612a5f5fa263a2f8b68e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebf8deb97553a6bc631afeae",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:v3e-canonical-565dee73753cb538ec4f93a7",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ebf8deb97553a6bc631afeae",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 20,
+   "canonicalId": "ctkg:v3e-canonical-b28f590a204998012fde4be8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-26d96fb32f73630d6a4ef94c",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 23,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3b8fa1766d42b29a293521c7",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-6bedec6478d9eef19b49e7c8",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3cadeafa9b727e2732e7db3e",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 30,
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-4d03463b7be81053415a2629",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 31,
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-92d9dda279197b71be9ae7ba",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-92d9dda279197b71be9ae7ba",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 32,
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2db918e7931bc0058620a3aa",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-2db918e7931bc0058620a3aa",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 38,
+   "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5943b52eabb0d3b6c6bb68cd",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 42,
+   "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-e31ba6e4f6f40f3a6fa0f126",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 53,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-175407073b3c800d6fb053c4",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 57,
+   "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-175407073b3c800d6fb053c4",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-175407073b3c800d6fb053c4",
+   "resourceId": "intro-video-5-2",
+   "cueIndex": 57,
+   "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b00e16acf6aa053e0befd9d9",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 1,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-544b66ee282888793d391f3d",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 2,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-aecd9b051db4a59fb6f8c3a3",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 15,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-3ef8bc7323b6accb1f925688",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 22,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-5afc39251936646c973110b0",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 24,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-9fa8a4bf973630eed013ee39",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 25,
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-d7ba25d4695c000e09c8450e",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 27,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-c841ac2aa7492a9753b8150b",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 32,
+   "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-62e3e534f3af43e6a56f8dee",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8939a39fb3ddaf74139118f5",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 45,
+   "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8939a39fb3ddaf74139118f5",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:v3e-canonical-dd92d8b99ee1c4ad00191d47",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-8939a39fb3ddaf74139118f5",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:v3e-object-165b1e72f526043a3c2b3cb6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-852019fbd8a9400a43d7e872",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-96e40130a4ad82713a173595",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 51,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-31170f18884a316685454df7",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 54,
+   "canonicalId": "ctkg:v3e-object-6bf117c0f2dae6dc7780d72d",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a49623a6ddae2801ae650cd8",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 56,
+   "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a49623a6ddae2801ae650cd8",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-canonical-dd92d8b99ee1c4ad00191d47",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-a49623a6ddae2801ae650cd8",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 56,
+   "canonicalId": "ctkg:v3e-object-165b1e72f526043a3c2b3cb6",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-956f465a6c7d34073bfe0ae9",
+   "resourceId": "intro-video-5-3",
+   "cueIndex": 58,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ccb6a1a1a2610c844fce2e00",
+   "resourceId": "intro-video-5-4",
+   "cueIndex": 47,
+   "canonicalId": "ctkg:v3e-object-23194f43d1c526da26e1397b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-ddb4ec8607df8ca94027d079",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 14,
+   "canonicalId": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dbfcd69655adca7c10d40185",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-dbfcd69655adca7c10d40185",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 34,
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cc8d3e0843bcdcf6c160fae7",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 35,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cc8d3e0843bcdcf6c160fae7",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-cc8d3e0843bcdcf6c160fae7",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 35,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-98c2c61d9b83e7f4e12e8731",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 40,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-98c2c61d9b83e7f4e12e8731",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-98c2c61d9b83e7f4e12e8731",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 40,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-78dd170a1cddcfe83b7d1882",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 45,
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-78dd170a1cddcfe83b7d1882",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:condition:08d808d0120c685c3e234c78",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-78dd170a1cddcfe83b7d1882",
+   "resourceId": "intro-video-5-5",
+   "cueIndex": 45,
+   "canonicalId": "ctkg:condition:a3b01cc91f8734b457162b63",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  },
+  {
+   "atomId": "atom-b00a6b8d6f1df4e101c9a550",
+   "resourceId": "intro-video-5-6",
+   "cueIndex": 44,
+   "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+   "score": 2,
+   "evidence": "term-overlap-binding-model:modality-independent"
+  }
+ ]
+}

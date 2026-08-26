@@ -1,0 +1,15 @@
+{
+ "contract": "remediation-decision-record-provenance/v1",
+ "domain": "classical-control-design",
+ "sourceAbsolutePath": "/tmp/remediation-run/review/classical-control-design-review.jsonl",
+ "sourceSha256": "5230130f4b736e66b15fb5b6ce44da515e10b43c2a478d7ced7f56b238be2155",
+ "rowCount": 744,
+ "memberCount": 744,
+ "edgeCount": 0,
+ "receiptReconciliation": {
+  "packRows": 2232,
+  "publishedEdgeInReceipt": 0,
+  "jsonlEdgeCount": 0,
+  "match": true
+ }
+}

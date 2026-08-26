@@ -213,6 +213,22 @@ const adjustedCandidateBatch = {
       sourceCandidateId: candidateIds[0],
       sourceCandidateFingerprint: candidateFingerprints[0],
       activeProgressVersion: '2026-08-18T08:00:00.000Z',
+      requestSnapshot: {
+        requestedTimeBudgetMinutes: 45,
+        effectiveTimeBudgetMinutes: 45,
+        difficultyRhythm: 'challenge',
+        resourcePreference: ['simulation'],
+        checkpointPreference: 'dense',
+        allowExternalResources: false,
+      },
+      differenceSummary: {
+        candidates: [
+          {
+            styleId: 'adjusted-simulation',
+            changedFields: ['nodeIds', 'estimatedMinutes', 'resourceMix'],
+          },
+        ],
+      },
     },
   },
   candidates: [
@@ -567,6 +583,55 @@ for (const viewport of [
   { name: 'desktop-1440', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
 ] as const) {
+  test(`${viewport.name} keeps adjustment client-only until explicit generation`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await login(context);
+    await installRoutes(page, undefined, batchId, undefined, 'persisted');
+    const revisionRequests: Array<Record<string, unknown>> = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/api/adaptive/path-advisor-tool') && request.method() === 'POST') {
+        const body = request.postDataJSON() as Record<string, unknown> | null;
+        if (body?.operation === 'revise') revisionRequests.push(body);
+      }
+    });
+    await openGeneration(page, batchId);
+
+    const adjustAction = visibleFoundationAdjustmentAction(page);
+    await expect(adjustAction).toBeEnabled();
+    await adjustAction.click();
+    await expect(page.locator('[data-adaptive-path-adjustment-source="selected"]')).toContainText(
+      '正在调整：Foundation candidate',
+    );
+    expect(revisionRequests).toHaveLength(0);
+
+    await page.getByRole('button', { name: '取消调整' }).click();
+    await expect(page.locator('[data-adaptive-path-adjustment-source="selected"]')).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`batch=${batchId}`));
+    await expect(page.getByText('Foundation candidate', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    expect(revisionRequests).toHaveLength(0);
+
+    await adjustAction.click();
+    const generationPanel = page.locator('[data-adaptive-path-generation-panel="editable"]');
+    await generationPanel.locator('select').nth(1).selectOption({ label: '提高挑战密度' });
+    await page.getByRole('button', { name: '生成调整后的候选路径' }).click();
+    await expect.poll(() => revisionRequests.length).toBe(1);
+    expect(revisionRequests[0]).toMatchObject({
+      operation: 'revise',
+      sourceBatchId: batchId,
+      sourceCandidateId: candidateIds[0],
+      sourceCandidateFingerprint: candidateFingerprints[0],
+    });
+    await expect(page).toHaveURL(new RegExp(`batch=${adjustedBatchId}`));
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('45 分钟');
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('提高挑战密度');
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('仿真');
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('增加检查点');
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('学习步骤、预计用时、资源组合');
+    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+  });
+
   test(`${viewport.name} exposes persisted candidate adjustment without hiding the active path`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await installRoutes(page);
@@ -743,7 +808,11 @@ for (const viewport of [
     await expect(adjustAction).toBeEnabled();
     await adjustAction.click();
 
+    await page.getByRole('button', { name: '生成调整后的候选路径' }).click();
+
     await expect(page.getByText('Adjusted simulation route', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('45 分钟');
+    await expect(page.locator('[data-adaptive-path-adjustment-summary="visible"]')).toContainText('学习步骤、预计用时、资源组合');
     await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
     await captureEvidence(page, viewport, 'adjusted', [
       'adjustment loads the persisted derived candidate batch',
@@ -759,6 +828,7 @@ for (const viewport of [
     await openGeneration(page, batchId);
 
     await visibleFoundationAdjustmentAction(page).click();
+    await page.getByRole('button', { name: '生成调整后的候选路径' }).click();
     await expect(page.getByText(
       '调整后的方案与原候选没有实质差异，请修改调整条件后重试。',
       { exact: true },
@@ -780,6 +850,7 @@ for (const viewport of [
     await openGeneration(page, batchId);
 
     await visibleFoundationAdjustmentAction(page).click();
+    await page.getByRole('button', { name: '生成调整后的候选路径' }).click();
     await expect(page.getByText(
       '学习路径进度已更新，请基于最新进度重新调整。',
       { exact: true },

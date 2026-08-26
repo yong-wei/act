@@ -1,0 +1,7346 @@
+{
+ "contract": "remediation-domain-closure-receipt/v1",
+ "sealedAt": "2026-08-24",
+ "domain": "stability-analysis",
+ "packId": "rp-c1f6cfe4cd4fca4a41a8a622",
+ "packRows": 729,
+ "totalDecisions": 729,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 0,
+  "NO_RELATION": 729,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "memberClasses": {
+  "A": 228,
+  "C-out-of-scope": 15
+ },
+ "droppedInvalidIds": 0,
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles + confirmed codex suggestions)",
+ "closureComplete": true,
+ "outcomes": [
+  {
+   "canonicalId": "ctkg:v3e-object-006e5276f9c8e6d41fed8b72",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-006e5276f9c8e6d41fed8b72",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-006e5276f9c8e6d41fed8b72",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-00bc31c66979e1b4ca29dfec",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-00bc31c66979e1b4ca29dfec",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-00bc31c66979e1b4ca29dfec",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-03b16fad0404c4dd8faf890e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-03b16fad0404c4dd8faf890e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-03b16fad0404c4dd8faf890e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-04ae640742aad70aa69b194b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-04ae640742aad70aa69b194b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-04ae640742aad70aa69b194b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-068eb8697a3eeaec29fe8c76",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-068eb8697a3eeaec29fe8c76",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-068eb8697a3eeaec29fe8c76",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-06da478c63df32f958ccb33a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-06da478c63df32f958ccb33a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-06da478c63df32f958ccb33a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0bf4e8e7d4442f1b5c71a1fe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0bf4e8e7d4442f1b5c71a1fe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0bf4e8e7d4442f1b5c71a1fe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c2428053f75b115f075c134",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c2428053f75b115f075c134",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c2428053f75b115f075c134",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c95c7a03ede0b2ff917ea86",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c95c7a03ede0b2ff917ea86",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0c95c7a03ede0b2ff917ea86",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cb2701bdfded72d72bf7808",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cb2701bdfded72d72bf7808",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cb2701bdfded72d72bf7808",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cef8900607559a26de997cc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cef8900607559a26de997cc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0cef8900607559a26de997cc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-10b5819d0d443ede60d2ba1c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-10b5819d0d443ede60d2ba1c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-10b5819d0d443ede60d2ba1c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1472ae88c04a791a1cb96179",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1472ae88c04a791a1cb96179",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1472ae88c04a791a1cb96179",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-150d418d638a2861be369aa3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-150d418d638a2861be369aa3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-150d418d638a2861be369aa3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-166681519b0bd66e0bea52d8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-166681519b0bd66e0bea52d8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-166681519b0bd66e0bea52d8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1757f38ee7689067748a7b27",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1757f38ee7689067748a7b27",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1757f38ee7689067748a7b27",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18093182807aacf13187d33b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18093182807aacf13187d33b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18093182807aacf13187d33b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18ef510f584cac663f6b98fd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18ef510f584cac663f6b98fd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-18ef510f584cac663f6b98fd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1bec89fe061b3db5f56a7b7b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1bec89fe061b3db5f56a7b7b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1bec89fe061b3db5f56a7b7b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e6e6e4b6871662fcb4c03c5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e6e6e4b6871662fcb4c03c5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1e6e6e4b6871662fcb4c03c5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1f006788439504cf6e5bee05",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1f006788439504cf6e5bee05",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1f006788439504cf6e5bee05",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ff4286be8d997db84f4f092",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ff4286be8d997db84f4f092",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-1ff4286be8d997db84f4f092",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2265b9d4d567045c0e01d062",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2265b9d4d567045c0e01d062",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2265b9d4d567045c0e01d062",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2360f80ce087d9cff8bd5ee6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2360f80ce087d9cff8bd5ee6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2360f80ce087d9cff8bd5ee6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23cfd45cc09cdaaf6a05d0b5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23cfd45cc09cdaaf6a05d0b5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-23cfd45cc09cdaaf6a05d0b5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-258b42cef31585c4159bc46f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-258b42cef31585c4159bc46f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-258b42cef31585c4159bc46f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-25f8175180c74d1acddaa5ed",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-25f8175180c74d1acddaa5ed",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-25f8175180c74d1acddaa5ed",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d3fc506b74f5c4a57720caf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d3fc506b74f5c4a57720caf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2d3fc506b74f5c4a57720caf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd14d2ca692ed9dd5281ec8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd14d2ca692ed9dd5281ec8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd14d2ca692ed9dd5281ec8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd75669fa53b88a2c7778c1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd75669fa53b88a2c7778c1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2dd75669fa53b88a2c7778c1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-308e82671458823c736c225b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-308e82671458823c736c225b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-308e82671458823c736c225b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-32266a64feaa077e3a3d1464",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-32266a64feaa077e3a3d1464",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-32266a64feaa077e3a3d1464",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-340c40de80ac89222ca59cb6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-340c40de80ac89222ca59cb6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-340c40de80ac89222ca59cb6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3496e007d3d6b86331d55269",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3496e007d3d6b86331d55269",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3496e007d3d6b86331d55269",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-38db240fe66d9da83dfb95a5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-38db240fe66d9da83dfb95a5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-38db240fe66d9da83dfb95a5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3912357dc593f019141d8c29",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3912357dc593f019141d8c29",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3912357dc593f019141d8c29",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-39903086002f9e7c1d7feacb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-39903086002f9e7c1d7feacb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-39903086002f9e7c1d7feacb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3eadba5d5e22a6f60e5d19f6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3eadba5d5e22a6f60e5d19f6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3eadba5d5e22a6f60e5d19f6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f131b1a1233f692a731044b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f131b1a1233f692a731044b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f131b1a1233f692a731044b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b85903417762e876a3cbc8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b85903417762e876a3cbc8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b85903417762e876a3cbc8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46332a35facdf88977e655c9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46332a35facdf88977e655c9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46332a35facdf88977e655c9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46aab00af4ef3e0163a6e5ee",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46aab00af4ef3e0163a6e5ee",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-46aab00af4ef3e0163a6e5ee",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-48b61d1e62cb23367138fe4f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-48b61d1e62cb23367138fe4f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-48b61d1e62cb23367138fe4f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4a0df2541966f21b7474a608",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4a0df2541966f21b7474a608",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4a0df2541966f21b7474a608",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4afce8349b77117bdae7b453",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4afce8349b77117bdae7b453",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4afce8349b77117bdae7b453",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4c1139ac90c58aae414980c7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4c1139ac90c58aae414980c7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4c1139ac90c58aae414980c7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-521899e2aa37f3bcb04efbe0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-521899e2aa37f3bcb04efbe0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-521899e2aa37f3bcb04efbe0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-526906541f641018cd576367",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-527f16dacd77760a8ecc802f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-527f16dacd77760a8ecc802f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-527f16dacd77760a8ecc802f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5559ec0ce76661c53fac59e2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5559ec0ce76661c53fac59e2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5559ec0ce76661c53fac59e2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5826984bbdaae585fa46559c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5826984bbdaae585fa46559c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5826984bbdaae585fa46559c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-582ba4056b0e8959170a3c4d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-582ba4056b0e8959170a3c4d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-582ba4056b0e8959170a3c4d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5950f0c8d930f48df5bef6cc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5950f0c8d930f48df5bef6cc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5950f0c8d930f48df5bef6cc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5af66aa867667163af3ca825",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5af66aa867667163af3ca825",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5af66aa867667163af3ca825",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5b758f6663299a97ab99e923",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5b758f6663299a97ab99e923",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5b758f6663299a97ab99e923",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.3-2.5",
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5d8d533c786b32df70bc5632",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5d8d533c786b32df70bc5632",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5d8d533c786b32df70bc5632",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-61bcb3c4f8a81d0dd8c5d2f4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-61bcb3c4f8a81d0dd8c5d2f4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-61bcb3c4f8a81d0dd8c5d2f4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§特征方程"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§特征方程"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§特征方程"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65817d2012cc0b385538d24b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65817d2012cc0b385538d24b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65817d2012cc0b385538d24b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65a20d13b18c4bffda9675f5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65a20d13b18c4bffda9675f5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-65a20d13b18c4bffda9675f5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-674e2f84a1653bdfe725af0c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-674e2f84a1653bdfe725af0c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-674e2f84a1653bdfe725af0c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b36ffd8bd9cfb032fa2c858",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b36ffd8bd9cfb032fa2c858",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b36ffd8bd9cfb032fa2c858",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b8961a28ee810cd2fcac8b4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b8961a28ee810cd2fcac8b4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6b8961a28ee810cd2fcac8b4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6f33ccd1e8c172b2e686f9d3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6f33ccd1e8c172b2e686f9d3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6f33ccd1e8c172b2e686f9d3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ff0fffa58a6744d7475e83c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ff0fffa58a6744d7475e83c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-6ff0fffa58a6744d7475e83c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73247769835fa0fee0255533",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73247769835fa0fee0255533",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73247769835fa0fee0255533",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73efa711e60db7c64de62b1c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73efa711e60db7c64de62b1c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-73efa711e60db7c64de62b1c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74e7c10bacba901647c5f622",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74e7c10bacba901647c5f622",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-74e7c10bacba901647c5f622",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-795b6d002f98390eadbe4b70",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-795b6d002f98390eadbe4b70",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-795b6d002f98390eadbe4b70",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aaa2d3ecec627719fb4757b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aaa2d3ecec627719fb4757b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7aaa2d3ecec627719fb4757b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7eaf9b4b69cbde2cbeb86ea9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7eaf9b4b69cbde2cbeb86ea9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7eaf9b4b69cbde2cbeb86ea9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7edcf4a9fa5492e1fbc84190",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7edcf4a9fa5492e1fbc84190",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7edcf4a9fa5492e1fbc84190",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-81939eff73552b8937c06b84",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-81939eff73552b8937c06b84",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-81939eff73552b8937c06b84",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-824b853ff897a09b2926da9d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-824b853ff897a09b2926da9d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-824b853ff897a09b2926da9d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86add70d7a20e65586c10105",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86add70d7a20e65586c10105",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86add70d7a20e65586c10105",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86d8c30e9bb243ddcd23e599",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86d8c30e9bb243ddcd23e599",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-86d8c30e9bb243ddcd23e599",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-89414b1095600b2af39cce0a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-89414b1095600b2af39cce0a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-89414b1095600b2af39cce0a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c4ae68de59350da99046135",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c4ae68de59350da99046135",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8c4ae68de59350da99046135",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8fae1e29c01c2715c1959d5c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.3-4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8fae1e29c01c2715c1959d5c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.3-4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8fae1e29c01c2715c1959d5c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.3-4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-906d58a041e874cb7914d610",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-906d58a041e874cb7914d610",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-906d58a041e874cb7914d610",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9103ed62af432260b2436f00",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9103ed62af432260b2436f00",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9103ed62af432260b2436f00",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-91d2b0c54a7778878a9f5840",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-91d2b0c54a7778878a9f5840",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-91d2b0c54a7778878a9f5840",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9324b4194a263316921b55ed",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9324b4194a263316921b55ed",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9324b4194a263316921b55ed",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9374d45c76123cf3c68e9b7d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9374d45c76123cf3c68e9b7d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9374d45c76123cf3c68e9b7d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f40588759e636c002f9aba",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f40588759e636c002f9aba",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f40588759e636c002f9aba",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f57211c1e038c80dd43089",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f57211c1e038c80dd43089",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-93f57211c1e038c80dd43089",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-94ab50df201f12ed2ff86819",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-94ab50df201f12ed2ff86819",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-94ab50df201f12ed2ff86819",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-95337ad9c2ce1377d65823f5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-95337ad9c2ce1377d65823f5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-95337ad9c2ce1377d65823f5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f4b9b214860588b3306c5a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f4b9b214860588b3306c5a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f4b9b214860588b3306c5a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9a1527a39fe9ab702fbec095",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9a1527a39fe9ab702fbec095",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9a1527a39fe9ab702fbec095",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9be373d41f24289811b1343b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9be373d41f24289811b1343b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9be373d41f24289811b1343b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9d41615ec8d8cef559a502bc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9d41615ec8d8cef559a502bc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9d41615ec8d8cef559a502bc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9dc82ce0173803420ef89358",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9dc82ce0173803420ef89358",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9dc82ce0173803420ef89358",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a1c9746e09be2a51f6337956",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a1c9746e09be2a51f6337956",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a1c9746e09be2a51f6337956",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a9bc0f34547142e79d17146f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a9bc0f34547142e79d17146f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-a9bc0f34547142e79d17146f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa6546dc4dac93a0c05e2020",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa6546dc4dac93a0c05e2020",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aa6546dc4dac93a0c05e2020",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aaec4598c2b819e7b4d7c9e3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aaec4598c2b819e7b4d7c9e3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-aaec4598c2b819e7b4d7c9e3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ac40802813262332cb115daf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§稳定边界",
+     "src:3-2-handout§3.3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§稳定边界",
+     "src:3-2-handout§3.3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§稳定边界",
+     "src:3-2-handout§3.3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3465eb4492a845b41e6a29a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3465eb4492a845b41e6a29a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3465eb4492a845b41e6a29a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b5dcdf6e5488de031d9f939b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3",
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b5dcdf6e5488de031d9f939b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3",
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-b5dcdf6e5488de031d9f939b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3",
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba4785dad8cd6ce021217957",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba4785dad8cd6ce021217957",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ba4785dad8cd6ce021217957",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bab4514d83fa63eeedfec2c4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bab4514d83fa63eeedfec2c4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bab4514d83fa63eeedfec2c4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bec07962922afb75c3729ef1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bec07962922afb75c3729ef1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-bec07962922afb75c3729ef1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c2d61fb5964e61c1d43b4c7a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c2d61fb5964e61c1d43b4c7a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c2d61fb5964e61c1d43b4c7a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c429eb75a78f367236589b27",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c431d1667cf3472e08e8bf4b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2-5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c431d1667cf3472e08e8bf4b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2-5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c431d1667cf3472e08e8bf4b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2-5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c4e828da272374abcfa8c36a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c4e828da272374abcfa8c36a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c4e828da272374abcfa8c36a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c562bde02b2d80a2b984c67d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c562bde02b2d80a2b984c67d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c562bde02b2d80a2b984c67d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c5a37b3e9d347948085f31c1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c5a37b3e9d347948085f31c1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c5a37b3e9d347948085f31c1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c609ac68010c1f7e98a961e0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c609ac68010c1f7e98a961e0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c609ac68010c1f7e98a961e0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§3-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c798b3e99c91d8876565d869",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c798b3e99c91d8876565d869",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c798b3e99c91d8876565d869",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c7fa6f8faa23e8b9a134563a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c7fa6f8faa23e8b9a134563a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c7fa6f8faa23e8b9a134563a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9a8d2b9908677b92feb7564",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9a8d2b9908677b92feb7564",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9a8d2b9908677b92feb7564",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9abd42497d942a87922154d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9abd42497d942a87922154d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9abd42497d942a87922154d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9d323a6559df045d2cb415a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3.3",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9d323a6559df045d2cb415a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3.3",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-c9d323a6559df045d2cb415a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§3.3",
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ca1deef94714481e6a61555d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ca1deef94714481e6a61555d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ca1deef94714481e6a61555d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb94b27a46a9754c9c429adc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb94b27a46a9754c9c429adc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cb94b27a46a9754c9c429adc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3-6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cd90ce8052411bdb187f151b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cd90ce8052411bdb187f151b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cd90ce8052411bdb187f151b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cef321303ea6fceb23452460",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cef321303ea6fceb23452460",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cef321303ea6fceb23452460",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf5cc8d7b0c21a68d5e31352",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf5cc8d7b0c21a68d5e31352",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cf5cc8d7b0c21a68d5e31352",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d1f657c47ce4b5513d0f0137",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d1f657c47ce4b5513d0f0137",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d1f657c47ce4b5513d0f0137",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d28427304161c758470479d6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d28427304161c758470479d6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d28427304161c758470479d6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4859320ca5d006cd18cc576",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4859320ca5d006cd18cc576",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4859320ca5d006cd18cc576",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4d25ff410f335fae3ac2621",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4d25ff410f335fae3ac2621",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d4d25ff410f335fae3ac2621",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d55bd94c0daf47e1f56561e5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d55bd94c0daf47e1f56561e5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d55bd94c0daf47e1f56561e5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5648e2431a7c751e4cbb2ba",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5648e2431a7c751e4cbb2ba",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d5648e2431a7c751e4cbb2ba",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d832b275fcf04c9d2a7d15cc",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d832b275fcf04c9d2a7d15cc",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d832b275fcf04c9d2a7d15cc",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2-3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d936710484645940b76063d6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d949ba9a0c35ea493a048b98",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d949ba9a0c35ea493a048b98",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-d949ba9a0c35ea493a048b98",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-db265bb55206fea4d038b505",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-db265bb55206fea4d038b505",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-db265bb55206fea4d038b505",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-de7bb55c5f9159206342ada0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-de7bb55c5f9159206342ada0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-de7bb55c5f9159206342ada0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e4364a63a0cb19584fafff02",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e4364a63a0cb19584fafff02",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e4364a63a0cb19584fafff02",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:syllabus-module3§unit-boundaries"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e5eeb633370c81fdd5349d17",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e5eeb633370c81fdd5349d17",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e5eeb633370c81fdd5349d17",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e661ab47605bded23c92fcd2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e661ab47605bded23c92fcd2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e661ab47605bded23c92fcd2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e6ab11b185b97c36ba89ccd6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e6ab11b185b97c36ba89ccd6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e6ab11b185b97c36ba89ccd6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e785e657cafcc979bfea904f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e785e657cafcc979bfea904f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e785e657cafcc979bfea904f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.1"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1d7854c123fa2e53fb717d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1d7854c123fa2e53fb717d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1d7854c123fa2e53fb717d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:terminology§临界稳定"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1ebd6cf15a5caa099efe4c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1ebd6cf15a5caa099efe4c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ea1ebd6cf15a5caa099efe4c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1-handout§4"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb75ed988d9eae5ce87779c5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb75ed988d9eae5ce87779c5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb75ed988d9eae5ce87779c5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb7dfee16a7d49cdba8e537f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb7dfee16a7d49cdba8e537f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eb7dfee16a7d49cdba8e537f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ec7d9890887cbba965f49b43",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ec7d9890887cbba965f49b43",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ec7d9890887cbba965f49b43",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ecdf6b17af0c070069a8fd15",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ecdf6b17af0c070069a8fd15",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ecdf6b17af0c070069a8fd15",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eed504770777fa381a2a1135",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eed504770777fa381a2a1135",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-eed504770777fa381a2a1135",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§4.2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ef6d8f424b4533cb4bed7e86",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ef6d8f424b4533cb4bed7e86",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-ef6d8f424b4533cb4bed7e86",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-efc16e3143675f8268793253",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-efc16e3143675f8268793253",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-efc16e3143675f8268793253",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f1b74d4fff76a5bf2dd0af2b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f1b74d4fff76a5bf2dd0af2b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f1b74d4fff76a5bf2dd0af2b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§1-2"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f4f5ef101b23cdb2db015a1c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f4f5ef101b23cdb2db015a1c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f4f5ef101b23cdb2db015a1c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.4-2.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.4-2.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2-handout§2.4-2.5"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§6"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd5067cee3fb3cd591ea3e2f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd5067cee3fb3cd591ea3e2f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd5067cee3fb3cd591ea3e2f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:delegation-brief#A"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd6baf667b8745f5d1f9679a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd6baf667b8745f5d1f9679a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctkg:v3e-object-fd6baf667b8745f5d1f9679a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-2-handout§3"
+    ]
+   }
+  }
+ ],
+ "supersedes": {
+  "sha256": "ee2b23903f5dc2f8a96ff483e48729d1fe9cd7e35d4c4a4da2f6241d24a7541a"
+ },
+ "decisionsProvenanceSha256": "474043dc904141dc65b63c3ab8c8e678051b2487f8e86801818e1e43288aa91d",
+ "edgeEndpoints": 0,
+ "edgeEndpointsByFamily": {
+  "containment": 0,
+  "prerequisite": 0,
+  "association": 0
+ }
+}

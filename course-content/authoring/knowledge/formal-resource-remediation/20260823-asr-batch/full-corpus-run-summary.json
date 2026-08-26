@@ -1,0 +1,211 @@
+{
+ "contract": "remediation-asr-full-corpus-run/v1",
+ "sealedAt": "2026-08-24",
+ "allocationHash": "8d928978b2d7c6acf0646a33077c32831e291f44202ee21764eeb35106e5f112",
+ "preregistrationHash": "69d48f07f496d4c9",
+ "processorAddendum": {
+  "change": "funasr generate now runs with vad_model=fsmn-vad (max_single_segment_time=30000); discovered after the qualification receipt — long-form audio (>=600s) collapses to empty/garbage without VAD chunking; the frozen model weights and hotword contract are unchanged, VAD is a segmentation stage of the same processor identity",
+  "vadModel": "fsmn-vad (modelscope, auto-downloaded)"
+ },
+ "units": [
+  {
+   "unit": "1-1",
+   "chars": 6629,
+   "asrSeconds": 395.9,
+   "hotwords": 20,
+   "transcriptSha256": "ecd1543a28a4c9737e02e2f4356c9f0a48df0e52eeabd113d674ccfa48a05cd1"
+  },
+  {
+   "unit": "1-2",
+   "chars": 8292,
+   "asrSeconds": 296.6,
+   "hotwords": 20,
+   "transcriptSha256": "f7d9f94e3dac1cba8619a0867c90ac5bf092ef612a7f63c1b007f3f1ebbabc60"
+  },
+  {
+   "unit": "2-1",
+   "chars": 4904,
+   "asrSeconds": 275.9,
+   "hotwords": 9,
+   "transcriptSha256": "dc9cd0e2094db0891f9af0c05731c56792d0b94d318755e35d466ea18cbfc253"
+  },
+  {
+   "unit": "2-2",
+   "chars": 5450,
+   "asrSeconds": 300.8,
+   "hotwords": 14,
+   "transcriptSha256": "df8a64c1da529a70f5aed275fdcc5973693c6b132ca07ead50e54271a6569872"
+  },
+  {
+   "unit": "2-3",
+   "chars": 4454,
+   "asrSeconds": 214.2,
+   "hotwords": 6,
+   "transcriptSha256": "2b865a35c8e313e11b4806688c1aa8a3dc77cf8df1d078bef60b0dfda7d2f937"
+  },
+  {
+   "unit": "2-4",
+   "chars": 6448,
+   "asrSeconds": 369.3,
+   "hotwords": 7,
+   "transcriptSha256": "a2a40ba1a878a7252fd2f6775435bbd840cda9e2d99ce14006c2a79b7eccbe9c"
+  },
+  {
+   "unit": "3-1",
+   "chars": 5465,
+   "asrSeconds": 292.8,
+   "hotwords": 7,
+   "transcriptSha256": "65ddfa4246010fabf02aa7b5286f49543e066be7da76d15ce9cd8b74974f7453"
+  },
+  {
+   "unit": "3-2",
+   "chars": 6270,
+   "asrSeconds": 265.0,
+   "hotwords": 7,
+   "transcriptSha256": "7f179ac908c50cb1fc232e72898bc5a8fe18aeef21a67bf99fcf224174196571"
+  },
+  {
+   "unit": "3-3",
+   "chars": 7361,
+   "asrSeconds": 356.7,
+   "hotwords": 6,
+   "transcriptSha256": "058d8fc250111ac84e25acdba4a2388325dbe86e3d08e336f91955590aa018b0"
+  },
+  {
+   "unit": "3-4",
+   "chars": 6753,
+   "asrSeconds": 275.8,
+   "hotwords": 7,
+   "transcriptSha256": "872094ccd31e0a4c02eeb6bd2186b2490780708dabfe80b457bf57ef9fbbef35"
+  },
+  {
+   "unit": "3-5",
+   "chars": 7259,
+   "asrSeconds": 450.2,
+   "hotwords": 16,
+   "transcriptSha256": "dbcf3249840db53b3be1c5947f084915b1162294671e72f1ff7a5ca3e7e1e249"
+  },
+  {
+   "unit": "3-6",
+   "chars": 6529,
+   "asrSeconds": 389.5,
+   "hotwords": 11,
+   "transcriptSha256": "09fb1a44ad7f4a61f8179fac85440b8f23281a1988b717d30b5e72a0458ae3ab"
+  },
+  {
+   "unit": "3-7",
+   "chars": 6512,
+   "asrSeconds": 369.6,
+   "hotwords": 16,
+   "transcriptSha256": "af8bae79dc50d14b4a46e9978a497763c5936b027b6c46a93f20d6c3c0548410"
+  },
+  {
+   "unit": "3-8",
+   "chars": 5026,
+   "asrSeconds": 236.5,
+   "hotwords": 11,
+   "transcriptSha256": "735ad00cfc719f91ba3ed80e658599466be563a113ef6d800926b705eab92108"
+  },
+  {
+   "unit": "3-9",
+   "chars": 7829,
+   "asrSeconds": 391.8,
+   "hotwords": 8,
+   "transcriptSha256": "c0e4b1ce5a2b4b5357c05de4defc7067c33be533b1812531e9ce59921ddff0be"
+  },
+  {
+   "unit": "4-1",
+   "chars": 6470,
+   "asrSeconds": 374.7,
+   "hotwords": 13,
+   "transcriptSha256": "1f4c5df7fead912a7f33a21aef7464649297035628a58ce4cdbe676f2bbc0594"
+  },
+  {
+   "unit": "4-2",
+   "chars": 6594,
+   "asrSeconds": 321.3,
+   "hotwords": 7,
+   "transcriptSha256": "e2e5fc3406f04963164db5ad125c3c9d0160d161d772b154f612f41ccc42260b"
+  },
+  {
+   "unit": "4-3",
+   "chars": 5755,
+   "asrSeconds": 204.2,
+   "hotwords": 9,
+   "transcriptSha256": "681f0441e6e1fb5f58f48d47ebcf9ba0baf21fbc65a1c017fc84ceffdedc64fe"
+  },
+  {
+   "unit": "4-4",
+   "chars": 4585,
+   "asrSeconds": 255.7,
+   "hotwords": 5,
+   "transcriptSha256": "1255318fa0b7a481793db99ef4a8193a0d55ae99c03982b8de33c3e655853f15"
+  },
+  {
+   "unit": "4-5",
+   "chars": 4129,
+   "asrSeconds": 227.5,
+   "hotwords": 4,
+   "transcriptSha256": "5186434b4e0cb8280dd9acb204addab04e2276c39609db5b7fca5604580fda8c"
+  },
+  {
+   "unit": "4-6",
+   "chars": 6876,
+   "asrSeconds": 358.9,
+   "hotwords": 3,
+   "transcriptSha256": "88ae7421dfc4cb5ae579d1da5cad5293b5386f5deae5b8031de4d77fdf3f3149"
+  },
+  {
+   "unit": "4-7",
+   "chars": 5536,
+   "asrSeconds": 243.5,
+   "hotwords": 8,
+   "transcriptSha256": "90522890441dfe2b499dd5140407623d628f1a1e788607b0b1fa0898775d4014"
+  },
+  {
+   "unit": "5-1",
+   "chars": 6470,
+   "asrSeconds": 364.4,
+   "hotwords": 11,
+   "transcriptSha256": "c6c41c70a8b535bcd6375741b82513ece6b9f73aefbeacca41cca2b970f070e0"
+  },
+  {
+   "unit": "5-2",
+   "chars": 7688,
+   "asrSeconds": 371.6,
+   "hotwords": 7,
+   "transcriptSha256": "6196c8929c42064cece04a0193979eb37958254f88e4810f99b7089df9d9682c"
+  },
+  {
+   "unit": "5-3",
+   "chars": 5375,
+   "asrSeconds": 294.9,
+   "hotwords": 16,
+   "transcriptSha256": "fc359da7ed8d007423de64b3a5e103f3b9f3297f22c7acc5d16d0815cc81c3e0"
+  },
+  {
+   "unit": "5-4",
+   "chars": 5236,
+   "asrSeconds": 254.0,
+   "hotwords": 5,
+   "transcriptSha256": "1e8330d453a32262c7634375e9342652764a7895a6ef42414695ce83a1c0b1be"
+  },
+  {
+   "unit": "5-5",
+   "chars": 6805,
+   "asrSeconds": 285.4,
+   "hotwords": 8,
+   "transcriptSha256": "9167659e109be70263855e9e0242c0f5fed3cb021c08042b9fa3911c1af6b063"
+  },
+  {
+   "unit": "5-6",
+   "chars": 5463,
+   "asrSeconds": 245.2,
+   "hotwords": 2,
+   "transcriptSha256": "25de27bb700a66a48ba5101eb249438713e8146dbd6084817c42ded5c3ab39e2"
+  }
+ ],
+ "totalChars": 172163,
+ "unitCount": 28,
+ "qualityGate": "all units >1000 chars: PASS"
+}

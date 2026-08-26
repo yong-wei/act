@@ -1,0 +1,367 @@
+[
+ {
+  "unit": "2-2",
+  "cardId": "2-2/step-07/step-07:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "2-3",
+  "cardId": "2-3/step-09/step-09:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "2-4",
+  "cardId": "2-4/step-05/step-05:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "2-4",
+  "cardId": "2-4/step-09/step-09:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-1",
+  "cardId": "3-1/step-06/step-06:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-4",
+  "cardId": "3-4/step-09/step-09:response",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-05/ex1-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-05/ex1-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-06/type-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-06/type-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-07/ex2-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-07/ex2-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-09/lf-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-09/lf-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-10/time-pi-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-10/time-pi-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-11/time-lag-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-11/time-lag-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-12/time-compare-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-12/time-compare-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-13/freq-pi-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-13/freq-pi-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-14/freq-pd-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-14/freq-pd-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-14/freq-pd-card-3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-15/freq-compare-card-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-15/freq-compare-card-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-7",
+  "cardId": "3-7/step-15/freq-compare-card-3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "3-9",
+  "cardId": "3-9/step-10/mapping_table",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-03/pre-quiz-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-03/pre-quiz-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-03/pre-quiz-3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-04/improvement-gap",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-05/term-role",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-08/weight-preference",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-09/reading-why",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-10/pareto-meaning",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-11/pareto-point-why",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-12/language-shift-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-12/numeric-validation-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-12/tradeoff-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-13/post-quiz-1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-13/post-quiz-2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-4",
+  "cardId": "4-4/step-13/post-quiz-3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-04/constraint-role-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-04/misread-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-05/role-task",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-07/solver-task",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-08/same-weight-task",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-12/posttest-q1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-12/posttest-q2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-5",
+  "cardId": "4-5/step-12/posttest-q3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-03/task-change-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-03/boundary-split-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-05/trajectory-duty-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-05/action-duty-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-07/structure-first-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-07/active-slots-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-09/boundary-task",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-10/posttest-q1",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-10/posttest-q2",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-6",
+  "cardId": "4-6/step-10/posttest-q3",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-7",
+  "cardId": "4-7/step-07/c3-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "4-7",
+  "cardId": "4-7/step-07/c4-card",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/adjustment/controller-adjusted",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/adjustment/validation-metric",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/ai-analysis/ai-diagnosis",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/ai-analysis/human-decision",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/first-exploration/controller-first-pass",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/first-exploration/failure-cause",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/group-compare/tradeoff-reason",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/pause-reflection/reflection",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ },
+ {
+  "unit": "cruise-comfort-boppps",
+  "cardId": "cruise-comfort-boppps/prompt-refine/structured-prompt",
+  "reason": "no-reference-answer: open-ended response card stays outside the formal exercise denominator"
+ }
+]
