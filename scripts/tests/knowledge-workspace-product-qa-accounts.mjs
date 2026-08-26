@@ -8,19 +8,11 @@ import {
 
 const bcrypt = bcryptModule.default ?? bcryptModule;
 
-export const KNOWLEDGE_WORKSPACE_QA_ROLES = ['student', 'teacher', 'admin'] as const;
-
-export type KnowledgeWorkspaceQaRole = typeof KNOWLEDGE_WORKSPACE_QA_ROLES[number];
-
-export type KnowledgeWorkspaceQaCredentials = {
-  email: string;
-  password: string;
-  expectedRole: 'STUDENT' | 'TEACHER' | 'ADMIN';
-};
+export const KNOWLEDGE_WORKSPACE_QA_ROLES = ['student', 'teacher', 'admin'];
 
 const loopbackHosts = new Set(['localhost', '127.0.0.1', '::1']);
 
-function isLoopbackUrl(value: string) {
+function isLoopbackUrl(value) {
   try {
     return loopbackHosts.has(new URL(value).hostname.toLowerCase());
   } catch {
@@ -28,25 +20,22 @@ function isLoopbackUrl(value: string) {
   }
 }
 
-export function isLocalKnowledgeWorkspaceQaTarget(baseUrl: string) {
+export function isLocalKnowledgeWorkspaceQaTarget(baseUrl) {
   return isLoopbackUrl(baseUrl);
 }
 
-export function managedKnowledgeWorkspaceQaCredentials(): Record<KnowledgeWorkspaceQaRole, KnowledgeWorkspaceQaCredentials> {
+export function managedKnowledgeWorkspaceQaCredentials() {
   return Object.fromEntries(KNOWLEDGE_WORKSPACE_QA_ROLES.map((role) => {
     const account = accountByKey(role);
     return [role, {
       email: account.loginId,
       password: account.password,
-      expectedRole: account.role as KnowledgeWorkspaceQaCredentials['expectedRole'],
+      expectedRole: account.role,
     }];
-  })) as Record<KnowledgeWorkspaceQaRole, KnowledgeWorkspaceQaCredentials>;
+  }));
 }
 
-async function hasCurrentCredentials(
-  prisma: ReturnType<typeof createPrismaClient>,
-  role: KnowledgeWorkspaceQaRole,
-) {
+async function hasCurrentCredentials(prisma, role) {
   const account = accountByKey(role);
   const user = await prisma.user.findFirst({
     where: {
@@ -71,7 +60,7 @@ async function hasCurrentCredentials(
     && bcrypt.compare(account.password, user.passwordHash);
 }
 
-export async function provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl: string) {
+export async function provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl) {
   if (!isLocalKnowledgeWorkspaceQaTarget(baseUrl)) return null;
   if (!isLoopbackUrl(process.env.DATABASE_URL ?? '')) {
     throw new Error('managed knowledge workspace QA accounts require a loopback DATABASE_URL');
@@ -84,7 +73,7 @@ export async function provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl: string
     );
     if (!fixtureReady.every(Boolean)) {
       await ensureVerifiedTestAccounts(prisma, {
-        hashPassword: (password: string) => bcrypt.hash(password, 10),
+        hashPassword: (password) => bcrypt.hash(password, 10),
       });
     }
     return managedKnowledgeWorkspaceQaCredentials();

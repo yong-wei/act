@@ -5,7 +5,7 @@ import {
   isLocalKnowledgeWorkspaceQaTarget,
   KNOWLEDGE_WORKSPACE_QA_ROLES,
   managedKnowledgeWorkspaceQaCredentials,
-} from './knowledge-workspace-product-qa-accounts';
+} from './knowledge-workspace-product-qa-accounts.mjs';
 
 test('managed knowledge workspace QA credentials cover the three required roles', () => {
   const credentials = managedKnowledgeWorkspaceQaCredentials();

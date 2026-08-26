@@ -51,7 +51,7 @@ async function runCapture(environment) {
 async function main() {
   const configured = configuredRoleCredentials();
   const [{ provisionLocalKnowledgeWorkspaceQaAccounts }, { accountByKey }] = await Promise.all([
-    import('./knowledge-workspace-product-qa-accounts.ts'),
+    import('./knowledge-workspace-product-qa-accounts.mjs'),
     import('../db/verified-test-accounts.mjs'),
   ]);
   const managed = configured ? null : await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);

@@ -26,8 +26,13 @@ import {
 } from '../../src/lib/commercial-ui-capture-revision';
 import {
   KNOWLEDGE_WORKSPACE_QA_ROLES,
-  type KnowledgeWorkspaceQaCredentials,
-} from './knowledge-workspace-product-qa-accounts';
+} from './knowledge-workspace-product-qa-accounts.mjs';
+
+type KnowledgeWorkspaceQaCredentials = {
+  email: string;
+  password: string;
+  expectedRole: 'STUDENT' | 'TEACHER' | 'ADMIN';
+};
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
@@ -81,7 +86,7 @@ const sourceFiles = [
   'src/lib/konling-agent-runtime.ts',
   'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
-  'scripts/tests/knowledge-workspace-product-qa-accounts.ts',
+  'scripts/tests/knowledge-workspace-product-qa-accounts.mjs',
   'scripts/tests/run-knowledge-workspace-product-qa.mjs',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
