@@ -1,28 +1,29 @@
 # Knowledge Workspace Independent Visual Review
 
-- Reviewer: knowledge-visual-reviewer
-- Review scope: `4ea215bf2..b279e98`
-- Capture source revision: `9d874737eb6561525ce92e4fac5297ce0a6b440c`
-- Evidence artifact revision: `b279e9883`
+- Reviewer: knowledge_visual_review
+- Review scope: `8bcbb787edf84de3922cf637c359b5a9732c686b` 的现有产品 QA 工件：四个 Active 视口、三角色默认/移动/旧版截图和 29 个状态截图。
+- Capture source revision: `8bcbb787edf84de3922cf637c359b5a9732c686b`
+- Capture tree revision: `3a8728006f3b95083ef18ded20c5a0ed3731104f`
+- Source fingerprint: `36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262`
 - Result: PASS
 
 ## Scope
 
-This review is limited to the accepted P1: the 320×800 initial Active Authority view did not show an identifiable graph node, relation, or object directory in the first viewport. It does not re-review unchanged desktop, tablet, or broader product behaviour.
+This review verifies the accepted P1 and the evidence-bound workspace states. It covers the Active Authority desktop, tablet and mobile views, three authenticated roles, theme parity, interaction/focus evidence, and the stress state.
 
 ## Result
 
-The P1 is closed. The initial mobile capture presents a visible force canvas with identifiable nodes and relation lines. Search/filter controls and cross-domain entries are collapsed by default, so they no longer displace the graph below the first viewport.
+The P1 is closed. The 320×800 initial Active view presents two in-viewport, readable labels and a relation. `visibleNodeLabelCount=2`, `inViewportNodeLabelCount=2`, `readable=true`, and the visible renderer height is 398 CSS pixels. The header and mode controls do not overlap.
 
-The capture records 360 CSS pixels of visible canvas, 2,034 non-background canvas pixels, and 29 rendered relations. These exceed the product-QA minima of 160 CSS pixels and 30 non-background pixels. The control disclosure is recorded as collapsed in the initial mobile state.
+The four Active screenshots and all 29 state-matrix screenshots match the capture's SHA-256 map. All 40 recorded source checksums match the inspected source revision; runtime revision capture is clean before and after the browser run.
 
 ## Evidence binding
 
 - Screenshot: `artifacts/knowledge-workspace-product-qa-489/active-mobile.png`
 - Capture: `artifacts/knowledge-workspace-product-qa-489/browser-evidence.json`
 - Source checksums and the complete screenshot state map are recorded in that capture's `independentVisualReview` block.
-- All 43 capture screenshots were checked against their recorded SHA-256 values; the 29 state-matrix and four Active Authority visual states form the governance checksum map.
-- Targeted client test: 39/39 passed.
+- The governance checksum map covers 29 state-matrix and four Active Authority visual states.
+- The focused client tests and full product QA capture passed on the stated revision.
 
 ## Dimension disposition
 
@@ -32,4 +33,4 @@ The capture records 360 CSS pixels of visible canvas, 2,034 non-background canva
 
 No blocking findings remain. No P0/P1 issue was introduced by the remediation.
 
-Residual scope limitation: this review deliberately does not perform a new comprehensive review of unchanged desktop, tablet, or unrelated interaction states.
+Residual risk: mobile mathematical-object labels retain compact raw LaTex presentation. They are visible and selectable in the reviewed capture, but their typography can be improved independently.
