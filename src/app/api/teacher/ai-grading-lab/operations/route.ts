@@ -115,7 +115,7 @@ function parseOperation(kind: z.infer<typeof operationSchema>['operation'], inpu
 
 function parseJudgment(input: unknown, operatorUserId: string) {
   const annotationCorrection = z.discriminatedUnion('action', [
-    z.object({ action: z.literal('add'), annotationKey: token, criterionId: token, comment: z.string().trim().min(1).max(4_000), location: z.record(z.unknown()) }).strict(),
+    z.object({ action: z.literal('add'), annotationKey: token, criterionId: token, reason: z.string().trim().min(1).max(4_000), comment: z.string().trim().min(1).max(4_000), location: z.record(z.unknown()) }).strict(),
     z.object({ action: z.literal('delete'), sourceAnnotationId: token }).strict(),
     z.object({ action: z.literal('revise-text'), sourceAnnotationId: token, comment: z.string().trim().min(1).max(4_000) }).strict(),
     z.object({ action: z.literal('revise-location'), sourceAnnotationId: token, location: z.record(z.unknown()) }).strict(),

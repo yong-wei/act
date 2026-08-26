@@ -1260,6 +1260,7 @@ describe('production math-document grading persistence contracts', () => {
   it('persists an evaluation draft on an existing run without production submission lineage', async () => {
     const run = {
       id: 'evaluation-run-1',
+      rubricSnapshot: { criteria: [{ id: 'criterion-1', maxPoints: 2 }] },
       answerAttemptId: null,
       state: 'RUNNING',
       inputHash: 'sha256:evaluation-input',
@@ -1310,7 +1311,7 @@ describe('production math-document grading persistence contracts', () => {
         assessments: [{
           criterionId: 'criterion-1',
           levelId: 'full',
-          score: 2,
+          score: 1,
           maxScore: 2,
           rationale: 'The evidence supports the selected criterion.',
           confidence: 0.9,
@@ -1343,7 +1344,7 @@ describe('production math-document grading persistence contracts', () => {
     });
 
     expect(result).toEqual(expect.objectContaining({ id: run.id, answerAttemptId: null, state: 'AWAITING_REVIEW' }));
-    expect(assessments).toEqual([expect.objectContaining({ gradingRunId: run.id, criterionId: 'criterion-1', score: 2 })]);
+    expect(assessments).toEqual([expect.objectContaining({ gradingRunId: run.id, criterionId: 'criterion-1', score: 1 })]);
     expect(annotations).toHaveLength(1);
     expect(annotations).toEqual(expect.arrayContaining([
       expect.objectContaining({ blockId: 'conversion-1:block-1', reason: 'The intermediate step is incomplete.', authorRole: 'AI_DRAFT' }),
@@ -1351,7 +1352,7 @@ describe('production math-document grading persistence contracts', () => {
     expect(runUpdates).toEqual([expect.objectContaining({
       state: 'AWAITING_REVIEW',
       provider: 'configured-openai',
-      draftTotalScore: 2,
+      draftTotalScore: 1,
       overallFeedback: { strengths: ['The conclusion is clear.'], problems: ['The working needs more detail.'], suggestions: ['Show the intermediate calculation.'] },
       limitations: ['evaluation-package-source'],
       providerInputTokens: 321,
@@ -2088,6 +2089,46 @@ describe('production math-document grading persistence contracts', () => {
     await retryDocumentConversion({ db, conversionId: 'conversion-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'conversion-retry-002', reason: 'provider timeout', now });
     expect(createdConversions).toHaveLength(2);
     expect(createdConversions[1].dedupeKey).not.toBe(createdConversions[0].dedupeKey);
+  });
+
+  it('rejects a full-score annotation before it can cross the persistence boundary', async () => {
+    const run = {
+      id: 'evaluation-run-full-score-annotation',
+      rubricSnapshot: { criteria: [{ id: 'criterion-1', maxPoints: 2 }] },
+      state: 'RUNNING',
+      inputHash: 'sha256:evaluation-input',
+      evaluatorId: 'configured-openai',
+      evaluatorVersion: 'model.v1',
+    };
+    const db: any = {
+      gradingRun: { findUnique: async () => run, updateMany: async () => ({ count: 1 }) },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const draft: any = {
+      evaluatorId: run.evaluatorId,
+      evaluatorVersion: run.evaluatorVersion,
+      assessments: [{
+        criterionId: 'criterion-1', levelId: 'full', score: 2, maxScore: 2,
+        rationale: 'The evidence supports the selected criterion.', confidence: 0.9,
+        anchors: [], limitationState: 'none',
+        annotations: [{ reason: 'A deduction reason.', comment: 'A student-visible comment.', anchor: { blockId: 'block-1', precision: 'block', excerpt: 'evidence' } }],
+      }],
+      limitations: [], overallComment: 'The draft remains subject to teacher review.',
+      inputHash: run.inputHash,
+      evaluationIdentity: sha256(`grading:${run.id}:${run.evaluatorVersion}`),
+      dedupeKey: 'grading-run:full-score-annotation', state: 'awaiting-review', blockedReasons: [],
+      promptInjectionDetected: false, provider: run.evaluatorId, providerRequestId: null, deletionHandle: null,
+      providerRequestedAt: null, providerProcessedAt: null,
+    };
+
+    await expect(persistValidatedGradingDraft({ db, run, evidenceBlocks: [], draft }))
+      .rejects.toThrow('grading-draft-annotation-without-deduction');
+
+    const forgedMaxScore = structuredClone(draft);
+    forgedMaxScore.assessments[0].score = 1;
+    forgedMaxScore.assessments[0].maxScore = 1;
+    await expect(persistValidatedGradingDraft({ db, run, evidenceBlocks: [], draft: forgedMaxScore }))
+      .rejects.toThrow('grading-draft-score-invalid');
   });
 
   it('makes conversion cancellation actor-scoped and idempotent, including request conflicts', async () => {

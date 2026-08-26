@@ -143,6 +143,39 @@ describe('POST /api/teacher/ai-grading-lab/operations', () => {
     });
   });
 
+  it('requires an independent reason when a structured review adds an annotation', async () => {
+    const { core, handler } = dependencies();
+    const baseInput = {
+      judgmentKind: 'structured-review', executionId: 'execution-1', parentVersionId: null,
+      decision: 'correct', scoreCorrections: [],
+      annotationCorrections: [{
+        action: 'add', annotationKey: 'annotation-2', criterionId: 'criterion-1',
+        comment: 'Student-visible correction', location: { pageNumber: 1 },
+      }],
+    };
+
+    const rejected = await post(handler, { operation: 'record-human-judgment', input: baseInput });
+    expect(rejected.status).toBe(400);
+    expect(core.execute).not.toHaveBeenCalled();
+
+    const reason = 'The stated deduction has a missing intermediate step.';
+    const accepted = await post(handler, {
+      operation: 'record-human-judgment',
+      input: {
+        ...baseInput,
+        annotationCorrections: [{ ...baseInput.annotationCorrections[0], reason }],
+      },
+    });
+    expect(accepted.status).toBe(200);
+    expect(core.execute).toHaveBeenCalledWith({
+      kind: 'record-human-judgment',
+      input: expect.objectContaining({
+        operatorUserId: 'c123456789012345678901234',
+        annotationCorrections: [expect.objectContaining({ reason })],
+      }),
+    });
+  });
+
   it('projects core failures without leaking paths or credentials', async () => {
     const { core, disconnect, handler } = dependencies();
     core.execute.mockRejectedValueOnce(new Error('E:/private/dataset/student.docx credential=secret'));

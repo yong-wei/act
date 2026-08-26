@@ -1967,6 +1967,7 @@ export async function persistValidatedGradingDraft(input: {
     const current = await tx.gradingRun.findUnique({ where: { id: input.run?.id } });
     if (!current) throw new Error('grading-run-not-found');
     assertDraftMatchesFrozenRun(current, input.draft);
+    assertDraftAnnotationsMatchScores(input.draft, questionContractFromSnapshot(current));
     const persisted = await writeValidatedGradingDraftTransaction({
       db: tx,
       run: current,
@@ -2007,6 +2008,33 @@ function assertDraftIdentityMatchesFrozenRun(run: any, draft: ValidatedGradingDr
 
 function assertDraftEvaluationIdentity(run: any, draft: ValidatedGradingDraft): void {
   if (draft.evaluationIdentity !== buildGradingRunEvaluationIdentity(run)) throw new Error('grading-draft-evaluation-identity-mismatch');
+}
+
+function assertDraftAnnotationsMatchScores(draft: ValidatedGradingDraft, question: FrozenQuestionContract): void {
+  const criteria = new Map(question.rubric.criteria.map((criterion) => [criterion.id, criterion.maxPoints]));
+  const seen = new Set<string>();
+  if (draft.assessments.length !== criteria.size) throw new Error('grading-draft-criterion-count-mismatch');
+  for (const assessment of draft.assessments) {
+    const maxScore = criteria.get(assessment.criterionId);
+    if (maxScore === undefined || seen.has(assessment.criterionId)
+      || assessment.maxScore !== maxScore || !Number.isFinite(assessment.score)
+      || assessment.score < 0 || assessment.score > maxScore) {
+      throw new Error('grading-draft-score-invalid');
+    }
+    seen.add(assessment.criterionId);
+    const annotations = assessment.annotations ?? [];
+    if (assessment.score < maxScore && annotations.length === 0) {
+      throw new Error('grading-draft-deduction-annotation-missing');
+    }
+    if (assessment.score >= maxScore && annotations.length > 0) {
+      throw new Error('grading-draft-annotation-without-deduction');
+    }
+    for (const annotation of annotations) {
+      if (!annotation.reason?.trim()) throw new Error('grading-draft-deduction-reason-missing');
+      if (!annotation.comment?.trim()) throw new Error('grading-draft-annotation-comment-missing');
+    }
+  }
+  if (seen.size !== criteria.size) throw new Error('grading-draft-criterion-mismatch');
 }
 
 export function buildGradingRunEvaluationIdentity(run: { id: string; evaluatorVersion: string }): string {

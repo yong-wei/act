@@ -8,7 +8,7 @@ export interface TeacherAiGradingScoreCorrection {
 }
 
 export type TeacherAiGradingAnnotationCorrection =
-  | { action: 'add'; annotationKey: string; criterionId: string; comment: string; location: Readonly<Record<string, unknown>> }
+  | { action: 'add'; annotationKey: string; criterionId: string; reason: string; comment: string; location: Readonly<Record<string, unknown>> }
   | { action: 'delete'; sourceAnnotationId: string }
   | { action: 'revise-text'; sourceAnnotationId: string; comment: string }
   | { action: 'revise-location'; sourceAnnotationId: string; location: Readonly<Record<string, unknown>> };
@@ -94,16 +94,20 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
         state: true,
         gradingRun: {
           select: {
-            assessments: { select: { criterionId: true } },
-            annotations: { select: { id: true } },
+            rubricSnapshot: true,
+            assessments: { select: { criterionId: true, score: true } },
+            annotations: {
+              select: {
+                id: true, criterionId: true, reason: true, comment: true, pageNumber: true, blockId: true,
+                bbox: true, precision: true, block: { select: { coordinateProvenance: true } },
+              },
+            },
           },
         },
       },
     });
     if (!execution) throw new Error('teacher-ai-grading-review-execution-not-found');
     if (execution.state !== 'SUCCEEDED') throw new Error('teacher-ai-grading-review-execution-not-complete');
-    validateCorrectionSources(execution.gradingRun, scoreCorrections, annotationCorrections);
-
     const latest = await db.teacherAiGradingStructuredReviewVersion.findFirst({
       where: { executionId },
       orderBy: { version: 'desc' },
@@ -112,6 +116,24 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
     const parentVersionId = optionalToken(input.parentVersionId);
     if ((latest?.id ?? null) !== parentVersionId) throw new Error('teacher-ai-grading-review-parent-conflict');
     const version = (latest?.version ?? 0) + 1;
+    const priorVersions = await db.teacherAiGradingStructuredReviewVersion.findMany({
+      where: { executionId },
+      orderBy: { version: 'asc' },
+      select: {
+        id: true, executionId: true, version: true, parentVersionId: true, decision: true,
+        scoreCorrections: true, annotationCorrections: true, operatorUserId: true, contentHash: true, createdAt: true,
+      },
+    });
+    const rubricCriteria = rubricCriteriaFromSnapshot(execution.gradingRun.rubricSnapshot);
+    const state = reviewStateFromRun(execution.gradingRun);
+    applyReviewCorrections(state, priorVersions);
+    validateCorrectionSources(execution.gradingRun, scoreCorrections, annotationCorrections, state.annotations);
+    applyReviewCorrections(state, [{
+      id: `pending:${version}`,
+      scoreCorrections,
+      annotationCorrections,
+    }]);
+    assertReviewStateAnnotationConsistency(state, rubricCriteria);
     const content = {
       executionId,
       version,
@@ -194,39 +216,10 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
     const chain = resolveReviewChain(endpoint, versions);
     const run = endpoint.execution.gradingRun;
     const rubricCriteria = rubricCriteriaFromSnapshot(run.rubricSnapshot);
-    const scores = new Map<string, number>((run.assessments ?? []).map((row: any) => [row.criterionId, Number(row.score)]));
-    const annotations = new Map<string, any>((run.annotations ?? []).map((row: any) => [row.id, {
-      id: row.id,
-      criterionId: row.criterionId,
-      reason: row.reason ?? row.comment,
-      comment: String(row.comment),
-      location: {
-        pageNumber: row.pageNumber,
-        blockId: row.blockId,
-        bbox: row.bbox,
-        coordinateProvenance: row.block?.coordinateProvenance ?? null,
-        precision: row.precision,
-      },
-    }]));
-    for (const version of chain) {
-      for (const correction of version.scoreCorrections as any[]) scores.set(correction.criterionId, Number(correction.score));
-      for (const correction of version.annotationCorrections as any[]) {
-        if (correction.action === 'add') {
-          annotations.set(`${version.id}:${correction.annotationKey}`, {
-            id: `${version.id}:${correction.annotationKey}`,
-            criterionId: correction.criterionId,
-            comment: correction.comment,
-            location: correction.location,
-          });
-          continue;
-        }
-        const source = annotations.get(correction.sourceAnnotationId);
-        if (!source) throw new Error('teacher-ai-grading-review-annotation-chain-invalid');
-        if (correction.action === 'delete') annotations.delete(correction.sourceAnnotationId);
-        else if (correction.action === 'revise-text') source.comment = correction.comment;
-        else source.location = correction.location;
-      }
-    }
+    const state = reviewStateFromRun(run);
+    applyReviewCorrections(state, chain);
+    assertReviewStateAnnotationConsistency(state, rubricCriteria);
+    const { scores, annotations } = state;
     let score = 0;
     for (const [criterionId, criterionScore] of scores) {
       const maxPoints = rubricCriteria.get(criterionId);
@@ -246,7 +239,7 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
         errorCode: annotation.criterionId,
         reason: annotation.reason,
         correction: annotation.comment,
-        anchor: annotation.location,
+        anchor: materializeFeedbackAnchor(annotation.location),
       });
     }
   }
@@ -458,6 +451,7 @@ function normalizeAnnotationCorrections(input: readonly TeacherAiGradingAnnotati
       action: row.action,
       annotationKey: requireToken(row.annotationKey, 'teacher-ai-grading-review-annotation-key-missing'),
       criterionId: requireToken(row.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
+      reason: requireToken(row.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
       comment: requireToken(row.comment, 'teacher-ai-grading-review-comment-missing'),
       location: normalizeObject(row.location, 'teacher-ai-grading-review-location-invalid'),
     };
@@ -472,16 +466,116 @@ function normalizeAnnotationCorrections(input: readonly TeacherAiGradingAnnotati
   });
 }
 
-function validateCorrectionSources(run: any, scores: readonly TeacherAiGradingScoreCorrection[], annotations: readonly TeacherAiGradingAnnotationCorrection[]): void {
+function validateCorrectionSources(
+  run: any,
+  scores: readonly TeacherAiGradingScoreCorrection[],
+  annotations: readonly TeacherAiGradingAnnotationCorrection[],
+  knownAnnotations = new Map<string, unknown>((run?.annotations ?? []).map((row: any) => [row.id, row])),
+): void {
   const criteria = new Set((run?.assessments ?? []).map((row: any) => row.criterionId));
-  const sourceAnnotations = new Set((run?.annotations ?? []).map((row: any) => row.id));
   for (const row of scores) if (!criteria.has(row.criterionId)) throw new Error('teacher-ai-grading-review-criterion-mismatch');
   for (const row of annotations) {
     if (row.action === 'add' && !criteria.has(row.criterionId)) throw new Error('teacher-ai-grading-review-criterion-mismatch');
-    if (row.action !== 'add' && !sourceAnnotations.has(row.sourceAnnotationId)) {
+    if (row.action !== 'add' && !knownAnnotations.has(row.sourceAnnotationId)) {
       throw new Error('teacher-ai-grading-review-annotation-mismatch');
     }
   }
+}
+
+type ReviewState = {
+  scores: Map<string, number>;
+  annotations: Map<string, {
+    id: string;
+    criterionId: string;
+    reason: string;
+    comment: string;
+    location: Readonly<Record<string, unknown>>;
+  }>;
+};
+
+function reviewStateFromRun(run: any): ReviewState {
+  return {
+    scores: new Map<string, number>((run.assessments ?? []).map((row: any) => [row.criterionId, Number(row.score)])),
+    annotations: new Map<string, any>((run.annotations ?? []).map((row: any) => [row.id, {
+      id: row.id,
+      criterionId: row.criterionId,
+      reason: requireToken(row.reason ?? row.comment, 'teacher-ai-grading-review-deduction-reason-missing'),
+      comment: requireToken(row.comment, 'teacher-ai-grading-review-comment-missing'),
+      location: {
+        pageNumber: row.pageNumber,
+        blockId: row.blockId,
+        bbox: row.bbox,
+        coordinateProvenance: row.block?.coordinateProvenance ?? null,
+        precision: row.precision,
+      },
+    }])),
+  };
+}
+
+function applyReviewCorrections(state: ReviewState, versions: readonly any[]): void {
+  for (const version of versions) {
+    for (const correction of version.scoreCorrections ?? []) state.scores.set(correction.criterionId, Number(correction.score));
+    for (const correction of version.annotationCorrections ?? []) {
+      if (correction.action === 'add') {
+        const id = `${version.id}:${requireToken(correction.annotationKey, 'teacher-ai-grading-review-annotation-key-missing')}`;
+        if (state.annotations.has(id)) throw new Error('teacher-ai-grading-review-annotation-chain-invalid');
+        state.annotations.set(id, {
+          id,
+          criterionId: requireToken(correction.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
+          reason: requireToken(correction.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
+          comment: requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing'),
+          location: normalizeObject(correction.location, 'teacher-ai-grading-review-location-invalid'),
+        });
+        continue;
+      }
+      const source = state.annotations.get(correction.sourceAnnotationId);
+      if (!source) throw new Error('teacher-ai-grading-review-annotation-chain-invalid');
+      if (correction.action === 'delete') state.annotations.delete(correction.sourceAnnotationId);
+      else if (correction.action === 'revise-text') source.comment = requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing');
+      else source.location = normalizeObject(correction.location, 'teacher-ai-grading-review-location-invalid');
+    }
+  }
+}
+
+function assertReviewStateAnnotationConsistency(state: ReviewState, rubricCriteria: ReadonlyMap<string, number>): void {
+  const annotationCounts = new Map<string, number>();
+  for (const annotation of state.annotations.values()) {
+    const maxPoints = rubricCriteria.get(annotation.criterionId);
+    const score = state.scores.get(annotation.criterionId);
+    if (maxPoints === undefined || score === undefined || !Number.isFinite(score) || score < 0 || score > maxPoints) {
+      throw new Error('teacher-ai-grading-review-annotation-score-invalid');
+    }
+    if (score >= maxPoints) throw new Error('teacher-ai-grading-review-annotation-without-deduction');
+    if (!annotation.reason.trim()) throw new Error('teacher-ai-grading-review-deduction-reason-missing');
+    annotationCounts.set(annotation.criterionId, (annotationCounts.get(annotation.criterionId) ?? 0) + 1);
+  }
+  for (const [criterionId, maxPoints] of rubricCriteria) {
+    const score = state.scores.get(criterionId);
+    if (score === undefined || !Number.isFinite(score) || score < 0 || score > maxPoints) {
+      throw new Error('teacher-ai-grading-review-score-invalid');
+    }
+    if (score < maxPoints && (annotationCounts.get(criterionId) ?? 0) === 0) {
+      throw new Error('teacher-ai-grading-review-deduction-annotation-missing');
+    }
+  }
+}
+
+function materializeFeedbackAnchor(location: Readonly<Record<string, unknown>>): TeacherAiGradingMaterializedStructuredResult['feedback'][number]['anchor'] {
+  const pageNumber = location.pageNumber;
+  if (pageNumber !== null && (!Number.isInteger(pageNumber) || Number(pageNumber) < 1)) {
+    throw new Error('teacher-ai-grading-pdf-annotation-page-invalid');
+  }
+  const blockId = typeof location.blockId === 'string' && location.blockId.trim() ? location.blockId : null;
+  const bbox = Array.isArray(location.bbox) && location.bbox.length === 4 && location.bbox.every(Number.isFinite)
+    ? location.bbox as [number, number, number, number]
+    : null;
+  const coordinateProvenance = location.coordinateProvenance && typeof location.coordinateProvenance === 'object'
+    ? location.coordinateProvenance as Readonly<Record<string, unknown>>
+    : null;
+  const precision = ['EXACT', 'REGION', 'BLOCK', 'QUESTION', 'PAGE'].includes(String(location.precision))
+    ? String(location.precision) as 'EXACT' | 'REGION' | 'BLOCK' | 'QUESTION' | 'PAGE'
+    : undefined;
+  return { pageNumber: pageNumber as number | null, blockId, bbox, coordinateProvenance, precision };
 }
 
 function normalizeDerivativeRegistrations(input: readonly TeacherAiGradingDerivativeRegistration[]): TeacherAiGradingDerivativeRegistration[] {

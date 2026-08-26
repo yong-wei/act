@@ -83,7 +83,8 @@ function createMemoryDb(seedSelections = false) {
           executionId: row.executionId,
           execution: structuredClone(row.executionId === 'execution-b' ? executionB : execution),
         }));
-        return reviewVersions.filter((row) => where.executionId.in.includes(row.executionId)).map((row) => structuredClone(row));
+        const executionIds = Array.isArray(where.executionId?.in) ? where.executionId.in : [where.executionId];
+        return reviewVersions.filter((row) => executionIds.includes(row.executionId)).map((row) => structuredClone(row));
       },
     },
     teacherAiGradingHiddenAcceptance: {
@@ -253,6 +254,94 @@ describe('teacher AI grading structured review versions', () => {
       annotationCorrections: [{ action: 'delete', sourceAnnotationId: 'foreign-annotation' }],
       operatorUserId: 'teacher-a',
     })).rejects.toThrow('teacher-ai-grading-review-annotation-mismatch');
+  });
+
+  it('requires an independent reason for added annotations', async () => {
+    const db = createMemoryDb();
+    await expect(appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [],
+      annotationCorrections: [{
+        action: 'add', annotationKey: 'added-a', criterionId: 'criterion-a',
+        comment: 'Teacher correction', location: { pageNumber: 1 },
+      } as any],
+      operatorUserId: 'teacher-a',
+    })).rejects.toThrow('teacher-ai-grading-review-deduction-reason-missing');
+  });
+
+  it('requires score and annotation corrections to form a consistent review state', async () => {
+    const db = createMemoryDb();
+    await expect(appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [{ criterionId: 'criterion-a', score: 5 }],
+      annotationCorrections: [],
+      operatorUserId: 'teacher-a',
+    })).rejects.toThrow('teacher-ai-grading-review-annotation-without-deduction');
+
+    const corrected = await appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [{ criterionId: 'criterion-a', score: 5 }],
+      annotationCorrections: [{ action: 'delete', sourceAnnotationId: 'annotation-a' }],
+      operatorUserId: 'teacher-a',
+    });
+    const materialized = await materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: [corrected.id] });
+    expect(materialized.structuredResult.feedback).toEqual([]);
+  });
+
+  it('allows a later review version to revise an annotation added by its parent', async () => {
+    const db = createMemoryDb();
+    const first = await appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [],
+      annotationCorrections: [{
+        action: 'add', annotationKey: 'added-a', criterionId: 'criterion-a',
+        reason: 'An additional deduction has an omitted justification.',
+        comment: 'State the omitted justification.', location: { pageNumber: 1 },
+      }],
+      operatorUserId: 'teacher-a',
+    });
+    const second = await appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: first.id,
+      decision: 'correct',
+      scoreCorrections: [],
+      annotationCorrections: [{
+        action: 'revise-text', sourceAnnotationId: `${first.id}:added-a`, comment: 'Explain the omitted justification.',
+      }],
+      operatorUserId: 'teacher-a',
+    });
+
+    const materialized = await materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: [second.id] });
+    expect(materialized.structuredResult.feedback).toEqual(expect.arrayContaining([
+      expect.objectContaining({ correction: 'Explain the omitted justification.' }),
+    ]));
+  });
+
+  it('fails closed when a pre-existing review chain leaves a full-score annotation', async () => {
+    const db = createMemoryDb();
+    const createdAt = new Date('2026-07-28T00:00:00.000Z');
+    const content = {
+      executionId: 'execution-a', version: 1, parentVersionId: null, decision: 'CORRECTED',
+      scoreCorrections: [{ criterionId: 'criterion-a', score: 5 }], annotationCorrections: [],
+      operatorUserId: 'teacher-a', createdAt: createdAt.toISOString(),
+    };
+    db.reviewVersions.push({ id: 'invalid-full-score', ...content, createdAt, contentHash: hashJson(content) });
+
+    await expect(materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: ['invalid-full-score'] }))
+      .rejects.toThrow('teacher-ai-grading-review-annotation-without-deduction');
   });
 
   it('records an explicit acceptance without inventing corrections', async () => {
