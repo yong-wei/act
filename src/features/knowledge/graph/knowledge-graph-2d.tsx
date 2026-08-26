@@ -374,6 +374,7 @@ export function KnowledgeGraph2D({
   const consumedFitSignatureRef = useRef<string | null>(null);
   const fitTimerRef = useRef<number | null>(null);
   const labelProjectionTimerRef = useRef<number | null>(null);
+  const labelRefreshTimerRef = useRef<number | null>(null);
   const syncRichLabelLayerRef = useRef<(scale?: number) => void>(() => undefined);
   const labelPlacementCacheRef = useRef<{
     nodes: readonly unknown[];
@@ -462,6 +463,7 @@ export function KnowledgeGraph2D({
   useEffect(() => () => {
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
     if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
+    if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
     presentationGateRef.current.dispose();
     cameraTransitionRef.current.dispose();
     motionFrameLoopRef.current?.dispose();
@@ -1391,10 +1393,12 @@ export function KnowledgeGraph2D({
     const layer = rootRef.current?.querySelector('[data-knowledge-2d-dom-label-layer="true"]');
     const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
     if (!layer || !projector) return;
+    const richNodes = (graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>)
+      .filter((node) => node.richTitle);
+    if (richNodes.length === 0) return;
     const scale = Number(projectedScale ?? fgRef.current?.zoom?.() ?? 1);
     const placements = getFrameLabelPlacements(scale);
-    for (const node of graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>) {
-      if (!node.richTitle) continue;
+    for (const node of richNodes) {
       const element = layer.querySelector<HTMLElement>(`[data-semantic-label-id="${CSS.escape(node.id)}"]`);
       if (!element) continue;
       const placement = placements.get(node.id);
@@ -1417,6 +1421,19 @@ export function KnowledgeGraph2D({
   const handleEngineTick = useCallback(() => {
     syncRichLabelLayer();
   }, [syncRichLabelLayer]);
+
+  useEffect(() => {
+    if (!(graphData.nodes as KnowledgeNodeData[]).some((node) => node.richTitle)) return;
+    if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
+    labelRefreshTimerRef.current = window.setTimeout(() => {
+      syncRichLabelLayerRef.current();
+      labelRefreshTimerRef.current = null;
+    }, 400);
+    return () => {
+      if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
+      labelRefreshTimerRef.current = null;
+    };
+  }, [graphData.nodes, height, hoveredNode?.id, labelMode, selectedNode?.id, width]);
 
   const handleCanvasPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
