@@ -2462,6 +2462,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
   const qaAccountsSourcePath = 'scripts/tests/knowledge-workspace-product-qa-accounts.ts';
+  const qaRunnerSourcePath = 'scripts/tests/run-knowledge-workspace-product-qa.ts';
   const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
@@ -2498,6 +2499,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
     qaAccountsSourcePath,
+    qaRunnerSourcePath,
     governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))

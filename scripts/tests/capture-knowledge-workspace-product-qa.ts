@@ -26,7 +26,6 @@ import {
 } from '../../src/lib/commercial-ui-capture-revision';
 import {
   KNOWLEDGE_WORKSPACE_QA_ROLES,
-  provisionLocalKnowledgeWorkspaceQaAccounts,
   type KnowledgeWorkspaceQaCredentials,
 } from './knowledge-workspace-product-qa-accounts';
 
@@ -83,6 +82,7 @@ const sourceFiles = [
   'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
   'scripts/tests/knowledge-workspace-product-qa-accounts.ts',
+  'scripts/tests/run-knowledge-workspace-product-qa.ts',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
 
@@ -458,11 +458,10 @@ async function resolveRoleCredentials() {
   const configured = configuredRoleCredentials();
   if (configured) return configured;
 
-  const managed = await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
-  if (managed) return managed;
-
   const environment = roleEnvironment.student;
-  throw new Error(`missing credentials for student; set ${environment.email} and ${environment.password}`);
+  throw new Error(
+    `missing credentials for student; run run-knowledge-workspace-product-qa.ts for managed local fixtures or set ${environment.email} and ${environment.password}`,
+  );
 }
 
 async function establishRoleSession(
