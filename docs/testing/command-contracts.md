@@ -3,28 +3,24 @@
 Observation counts are revision-bound. Read `docs/testing/baseline/discovery-core.json` for the current denominator.
 
 - schemaVersion: `act-test-command-contracts/v1`
-- sourceCommit: `5ee65d52343029756a09a2ad0ba50504fb4f9557`
-- sourceTree: `03f832624c9ec800ff76702cdd4af1927946f895`
+- sourceCommit: `bc9b8d3000ee54e9edc23bae6d58bc9d818b2352`
+- sourceTree: `625a83394c716e7cc65198f10130176ee4ee9ac7`
 - baseline census: `40549dcad9b03da31abc6ef05c5ede5bff4e04b47268f86450831aa39788c52a`
 - charter: `76850de671d65e821dd2acebe070ab23d6a3f26a3a7d9f9527e32af75c957396`
-- discovered: 1229
-- classified: 1226
+- discovered: 1233
+- classified: 1230
 - excluded: 3
 - unresolved: 0
+- discoveryCoreHash: `a4f2c498f20f96e6109a2221372d746686d2e5fdcbd59338cde68a9831a63b3e`
+- `test:unit` receipt: `7bf33b8335e4d1f5a2faf39eb3da19e8daf38589f7ae1034153ba086667ff42d`
+- `npm test` receipt: `ac8c9209985abd1142ad85207a0230d720333771269480e2a6cfc8072916ce53`
 
 The denominator above is the current discovery output for the clean `HEAD`
-identity. The working tree used for the 2026-08-27 execution was dirty, so it
-cannot mint a qualified receipt. Current execution observations and individual
-fingerprints are revision-bound in
+identity. Execution fingerprints are in
 `docs/testing/baseline/failure-inventory.json`.
 
-The live dirty discovery observation at `2026-08-27T03:35:00+08:00` produced
-discovery core hash
-`be6d44be80bf6399b7c95ddf260b0f6c649960a8094693cc6e369ea19269ff70` and the
-single fail-closed reason `dirty-worktree`.
-
-Direct `test:unit` execution in this dirty tree is green and has zero accepted
-failures. Wrapper qualification remains blocked until the worktree is clean.
+`test:unit` and `npm test` have zero accepted failures on this revision.
+`test:release` remains fail-closed without `qualification-manifest`.
 
 ## `test`
 

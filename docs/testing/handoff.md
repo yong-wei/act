@@ -1,45 +1,43 @@
 # Test command contract handoff
 
-Inputs for `eliminate-accepted-red-test-baseline`,
-`split-production-tooling-test-typescript-graphs`, and CI gates.
+Inputs for `split-production-tooling-test-typescript-graphs`,
+`establish-architecture-fitness-budgets`, and
+`enforce-pr-integration-quality-gates`.
 
-## Current revision-bound observation
+## Qualified unit observation
 
-- sourceCommit: `5ee65d52343029756a09a2ad0ba50504fb4f9557`
-- sourceTree: `03f832624c9ec800ff76702cdd4af1927946f895`
-- observedAt: `2026-08-27T04:01:00+08:00`
-- worktree: dirty; the source identity above is the current `HEAD`, not a
-  qualified clean-tree receipt
-- direct Vitest unit scope: 805 files passed, 0 failed; 9,753 tests passed,
-  0 failed, 0 skipped; 0 unhandled errors
+- sourceCommit: `bc9b8d3000ee54e9edc23bae6d58bc9d818b2352`
+- sourceTree: `625a83394c716e7cc65198f10130176ee4ee9ac7`
+- observedAt: `2026-08-27T04:06:00+08:00`
+- worktree: clean, not mixed
+- `test:unit` receipt `7bf33b8335e4d1f5a2faf39eb3da19e8daf38589f7ae1034153ba086667ff42d`
+- `npm test` receipt `ac8c9209985abd1142ad85207a0230d720333771269480e2a6cfc8072916ce53`
+- discovery: 1233 discovered / 1230 classified / 3 excluded / 0 unresolved
+- discoveryCoreHash: `a4f2c498f20f96e6109a2221372d746686d2e5fdcbd59338cde68a9831a63b3e`
 - accepted failure count: 0
-- `test:unit` wrapper is not yet qualified because the worktree is dirty
+- unhandled errors: 0
+- unregistered skips: 0
 
-The complete revision-bound inventory is in
-`docs/testing/baseline/failure-inventory.json`. Counts in that file describe
-only the command and revision recorded there.
+The inventory is `docs/testing/baseline/failure-inventory.json`. Observation
+counts describe only this command and revision.
 
 ## Closed in this work package
 
 - Konling derived-path persistence uses a destination-legal test registry and
   remains in the unit lane.
-- Assessment remediation unavailable-attribution now exports
+- Assessment remediation unavailable-attribution exports
   `REMEDIATION_MANUAL_PRACTICE_PATH` from the orchestration mock.
 - ActKG public-bundle fixture cleanup retries `ENOTEMPTY` from Git object
-  directories instead of treating the cleanup as a test failure.
+  directories.
 - Capture-bound v0.18/v0.22 prepare, textbook canonical index, upstream Bundle
-  v2, and production DB-fallback checks live in `*.real-smoke.test.ts` files.
+  v2, and production DB-fallback checks live in `*.real-smoke.test.ts`.
   Discovery classifies them as nightly; they no longer decide `test:unit`.
 
 ## Gate status
 
-- Direct unit execution in this dirty tree is green and has no accepted
-  failure, unhandled error, or unregistered skip.
-- `npm run test:unit` and `npm test` wrappers fail closed on a dirty worktree
-  and cannot mint a HEAD-bound receipt until this change is committed.
-- `test:release` requires `qualification-manifest` and fails closed when it is
-  absent. This is a release blocker, not a product-test skip. The missing-input
-  contract is covered in `test-command-contracts.test.ts`.
+- `test:unit` and `npm test` wrappers passed on this clean HEAD.
+- `test:release` failed closed with `release-manifest-missing`. That is a
+  release blocker, not a product-test skip.
 - No production selector, destination contract, or release activation was
   changed.
 
