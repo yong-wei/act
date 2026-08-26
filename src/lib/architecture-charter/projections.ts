@@ -1,11 +1,15 @@
 import type { ArchitectureCharter, CharterGateRecord, OwnerId } from './types';
-import { OWNER_CATALOG } from './types';
+import { OWNER_CATALOG, REQUIRED_BASELINE } from './types';
+
+function cell(value: string): string {
+  return value.replaceAll('|', '\\|').replaceAll('\n', ' ');
+}
 
 function table(headers: readonly string[], rows: readonly (readonly string[])[]): string {
   return [
     `| ${headers.join(' | ')} |`,
     `| ${headers.map(() => '---').join(' | ')} |`,
-    ...rows.map((row) => `| ${row.join(' | ')} |`),
+    ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`),
   ].join('\n');
 }
 
@@ -21,6 +25,7 @@ function identityLine(charter: ArchitectureCharter): string[] {
     `- baseline.sourceCommit: \`${charter.baseline.sourceCommit}\``,
     `- baseline.sourceTree: \`${charter.baseline.sourceTree}\``,
     `- baseline.schemaVersion: \`${charter.baseline.schemaVersion}\``,
+    `- baseline.censusCoreSha256: \`${REQUIRED_BASELINE.censusCoreSha256}\``,
     `- frozenReceiptIds: ${charter.receiptIds.map((id) => `\`${id}\``).join(', ') || '_none_'}`,
     '',
     'This charter is governance-only. It does not change product routes, authorization, persistence, tests, TypeScript, CI, runtime, or production selectors.',
@@ -93,7 +98,16 @@ export function projectDependencyRules(charter: ArchitectureCharter): string {
 function gateRows(gates: readonly CharterGateRecord[], gateClass: CharterGateRecord['class']): string[][] {
   return gates
     .filter((item) => item.class === gateClass)
-    .map((item) => [item.identity, item.owner, item.validator, item.protectedFact, item.failureConsequence]);
+    .map((item) => [
+      item.identity,
+      item.owner,
+      item.validator,
+      item.protectedBoundary,
+      item.protectedFact,
+      item.threat,
+      item.failureConsequence,
+      item.consumers.join('; '),
+    ]);
 }
 
 export function projectTrustBoundaryMatrix(charter: ArchitectureCharter): string {
@@ -102,7 +116,7 @@ export function projectTrustBoundaryMatrix(charter: ArchitectureCharter): string
     `## ${gateClass}`,
     '',
     table(
-      ['identity', 'owner', 'validator', 'protected fact', 'consequence'],
+      ['identity', 'owner', 'validator', 'boundary', 'protected fact', 'threat', 'consequence', 'consumers'],
       gateRows(charter.gates, gateClass),
     ),
     '',
@@ -121,13 +135,16 @@ export function projectDeprecationLedger(charter: ArchitectureCharter): string {
     '',
     ...identityLine(charter),
     table(
-      ['identity', 'owner', 'replacement', 'deletion condition', 'follow-up'],
+      ['id', 'identity', 'owner', 'consumers', 'replacement', 'deletion condition', 'follow-up', 'evidence'],
       charter.compatibility.map((item) => [
+        item.id,
         item.identity,
         item.owner,
+        item.consumers.join('; '),
         item.replacement,
         item.deletionCondition,
         item.followUpChange,
+        item.evidence.join('; '),
       ]),
     ),
     '',

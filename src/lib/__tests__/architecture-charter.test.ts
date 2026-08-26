@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { CensusCore, CensusObservation, MeasurementReceipt } from '@/lib/architecture-census/types';
 import { INVENTORY_KINDS } from '@/lib/architecture-census/types';
 import {
+  classifyGate,
   generateArchitectureCharter,
   projectCharterDocuments,
   qualifyArchitectureCharter,
@@ -118,7 +119,11 @@ describe('architecture charter', () => {
     const receiptPath = join(process.cwd(), 'docs/architecture/modular-monolith/baseline/receipts.json');
     const snapshot = JSON.parse(readFileSync(censusPath, 'utf8')) as CensusCore;
     const receipts = JSON.parse(readFileSync(receiptPath, 'utf8')) as MeasurementReceipt[];
-    const { charter, failures } = generateArchitectureCharter(snapshot, receipts);
+    const censusCoreText = readFileSync(censusPath, 'utf8');
+    const { charter, failures } = generateArchitectureCharter(snapshot, receipts, {
+      censusCoreText,
+      requireFrozenArtifacts: true,
+    });
     qualifyArchitectureCharter(charter, failures);
     expect(charter.owners.length).toBeGreaterThan(0);
     expect(charter.gates.length).toBeGreaterThan(0);
@@ -135,5 +140,27 @@ describe('architecture charter', () => {
     ].sort());
     expect(docs['refactor-charter.md']).toContain(REQUIRED_BASELINE.sourceCommit);
     expect(docs['refactor-charter.md']).not.toContain('/Users/');
+    expect(docs['trust-boundary-matrix.md']).toContain('threat');
+    expect(docs['trust-boundary-matrix.md']).toContain('consumers');
+    expect(docs['deprecation-ledger.md']).toContain('| id |');
+    expect(docs['deprecation-ledger.md']).toContain('consumers');
+    const { failures: hashFailures } = generateArchitectureCharter(snapshot, receipts, {
+      censusCoreText: `${readFileSync(censusPath, 'utf8')} `,
+      requireFrozenArtifacts: true,
+    });
+    expect(hashFailures).toContain('baseline-artifact-hash-drift');
+  });
+
+  it('does not classify authoring paths as authentication hard gates', () => {
+    expect(classifyGate({
+      identity: 'course-content/authoring/lessons/1-1/README.md',
+      trustClass: 'local-validator',
+      attributes: {},
+    })).not.toBe('hard');
+    expect(classifyGate({
+      identity: 'package.json:scripts.verify:commit',
+      trustClass: 'package-script',
+      attributes: {},
+    })).toBe('hard');
   });
 });

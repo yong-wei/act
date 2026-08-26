@@ -24,7 +24,7 @@ export function assignOwner(observation: Pick<CensusObservation, 'id' | 'kind' |
 
 export function classifyGate(observation: Pick<CensusObservation, 'identity' | 'trustClass' | 'attributes'>): GateClass {
   const identity = observation.identity;
-  if (/(?:verify:commit|verify:push|pre-commit|pre-push|prisma|auth|wasm|selector|qualify:)/iu.test(identity)) {
+  if (/(?:verify:commit|verify:push|pre-commit|pre-push|prisma|wasm|qualify:|(?:^|[^A-Za-z0-9_-])(?:next-?auth|NEXTAUTH|getServerAuthSession)(?:$|[^A-Za-z0-9_-]))/u.test(identity)) {
     return 'hard';
   }
   if (/(?:typecheck|lint|openspec|schema)/iu.test(identity)) return 'contract';

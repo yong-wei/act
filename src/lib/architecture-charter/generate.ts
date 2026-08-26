@@ -24,9 +24,15 @@ function followUpFor(identity: string): string {
   return 'enforce-modular-domain-dependency-contracts';
 }
 
+export interface CharterGenerationOptions {
+  readonly censusCoreText?: string;
+  readonly requireFrozenArtifacts?: boolean;
+}
+
 export function generateArchitectureCharter(
   core: CensusCore,
   receipts: readonly MeasurementReceipt[],
+  options: CharterGenerationOptions = {},
 ): { charter: ArchitectureCharter; failures: string[] } {
   const failures: string[] = [];
   if (core.schemaVersion !== REQUIRED_BASELINE.schemaVersion) failures.push('baseline-schema-drift');
@@ -34,6 +40,22 @@ export function generateArchitectureCharter(
   if (core.captureIdentity.sourceTree !== REQUIRED_BASELINE.sourceTree) failures.push('baseline-tree-drift');
   if (core.manifests.some((manifest) => manifest.totals.unresolved > 0 || manifest.totals.duplicate > 0)) {
     failures.push('baseline-denominator-incomplete');
+  }
+  if (options.requireFrozenArtifacts) {
+    if (!options.censusCoreText) failures.push('baseline-artifact-missing');
+    else if (sha256Text(options.censusCoreText) !== REQUIRED_BASELINE.censusCoreSha256) {
+      failures.push('baseline-artifact-hash-drift');
+    }
+    const receiptIds = receipts.map((item) => item.receiptId).sort();
+    if (receiptIds.join(',') !== [...REQUIRED_BASELINE.receiptIds].sort().join(',')) {
+      failures.push('baseline-receipt-id-drift');
+    }
+    for (const receipt of receipts) {
+      if (receipt.schemaVersion !== REQUIRED_BASELINE.receiptSchemaVersion) failures.push('baseline-receipt-schema-drift');
+      if (receipt.sourceCommit !== REQUIRED_BASELINE.sourceCommit || receipt.sourceTree !== REQUIRED_BASELINE.sourceTree) {
+        failures.push('baseline-receipt-revision-drift');
+      }
+    }
   }
 
   const owners: CharterOwnerRecord[] = [];

@@ -16,9 +16,13 @@ function main(): void {
   const repoRoot = process.cwd();
   const baselineDir = join(repoRoot, 'docs/architecture/modular-monolith/baseline');
   const outDir = join(repoRoot, 'docs/architecture');
-  const core = JSON.parse(readFileSync(join(baselineDir, 'census-core.json'), 'utf8')) as CensusCore;
+  const censusCoreText = readFileSync(join(baselineDir, 'census-core.json'), 'utf8');
+  const core = JSON.parse(censusCoreText) as CensusCore;
   const receipts = JSON.parse(readFileSync(join(baselineDir, 'receipts.json'), 'utf8')) as MeasurementReceipt[];
-  const { charter, failures } = generateArchitectureCharter(core, receipts);
+  const { charter, failures } = generateArchitectureCharter(core, receipts, {
+    censusCoreText,
+    requireFrozenArtifacts: true,
+  });
   if (failures.length > 0) console.error(failures);
   qualifyArchitectureCharter(charter, failures);
   mkdirSync(outDir, { recursive: true });
