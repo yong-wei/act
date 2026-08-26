@@ -46,6 +46,7 @@ import {
 } from '@/lib/latest-authority-oss-cutover/denominator';
 import {
   assertCandidateReceiptSelfHash,
+  assertAllocationRecordSealed,
   bindInnerArtifact,
   reopenAndVerifyCandidate,
   sealCoordinatedCandidateReceipt,
@@ -254,6 +255,11 @@ interface PrepareInputs {
   readonly transactionImplementationIdentity: string;
   readonly rollbackPlanHash: string;
   readonly verificationPolicyHash: string;
+  /**
+   * Optional allocation sealed before any dependent candidate artifact. This
+   * is used when the formal resource envelope itself binds the allocation.
+   */
+  readonly allocation?: CoordinationAllocationRecord;
 }
 
 interface RemediationBinding {
@@ -354,7 +360,25 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
   // only an unbound run seals a fresh allocation record.
   const allocation: CoordinationAllocationRecord = remediation
     ? remediation.allocation
-    : sealCoordinationAllocationRecord({
+    : input.allocation
+      ? (() => {
+        assertAllocationRecordSealed(input.allocation as CoordinationAllocationRecord);
+        const presealed = input.allocation as CoordinationAllocationRecord;
+        if (presealed.captureHash !== authorityCaptureHash
+          || presealed.scopeHash !== input.scope.scopeHash
+          || presealed.denominatorHash !== denominator.denominatorHash) {
+          fail('presealed allocation does not bind this capture, scope, and denominator');
+        }
+        if (presealed.policyVersions.continuity !== 'resource-continuity/v1'
+          || presealed.policyVersions.teachingClosure !== 'coordinated-teaching-closure/v1'
+          || presealed.policyVersions.rollback !== 'coordinated-cutover-rollback/v1'
+          || presealed.implementationIdentities.builder !== 'latest-authority-oss-cutover-builder/v1'
+          || presealed.implementationIdentities.transaction !== input.transactionImplementationIdentity) {
+          fail('presealed allocation policy or implementation identity does not match this prepare run');
+        }
+        return presealed;
+      })()
+      : sealCoordinationAllocationRecord({
         sealedAt: new Date().toISOString(),
         capture: { captureHash: authorityCaptureHash, compatibility: capture!.compatibility },
         scopeHash: input.scope.scopeHash,

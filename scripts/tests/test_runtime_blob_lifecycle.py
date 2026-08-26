@@ -537,6 +537,47 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertEqual(parsed_receipt["runtimeActiveReceiptHash"], parsed_binding["bindingHash"])
             self.assertEqual(parsed_binding["runtimeRelease"]["releaseId"], summary["runtimeRelease"]["releaseId"])
 
+    def test_attach_coordinated_declaration_to_existing_desired_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate = self.write_identity(root, "runtime-b", "b")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate))
+            identity_b = json.loads(candidate.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                "releaseId": "runtime-b",
+                "manifestSha256": identity_b["manifestSha256"],
+                "treeSha256": identity_b["treeSha256"],
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            attached = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "3", "--identity", str(candidate),
+                "--coordinated-cutover", str(declaration),
+            )
+            self.assertEqual(attached["generation"], 4)
+            self.assertTrue((state / "coordinated-cutover.json").exists())
+            # The identical declaration is idempotent and does not create an
+            # extra lifecycle generation that could race the final activation.
+            repeated = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "4", "--identity", str(candidate),
+                "--coordinated-cutover", str(declaration),
+            )
+            self.assertEqual(repeated["generation"], 4)
+            other = self.write_identity(root, "runtime-c", "c")
+            rejected = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "4", "--identity", str(other),
+                "--coordinated-cutover", str(declaration), expect_ok=False,
+            )
+            self.assertIn("exact current desired identity", rejected.stderr)
+
     def test_coordinated_cutover_successor_requires_matching_graph_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -1,7 +1,7 @@
 {
   "contract": "act-versioned-knowledge-consumer-activation-current/v1",
-  "activationId": "first-cutover-7f4cdd1084af-769b1a832622",
-  "activationHash": "e1d353fd1b544b3115dec62f8206b027784e0f50b1c66406c8556049d9e7ecb5",
-  "activationReceiptId": "first-cutover-7f4cdd1084af419a3e837876-consumers",
-  "activatedAt": "2026-08-10T15:32:51.447Z"
+  "activationId": "activation-cebf24e4de846c1e49c8564c",
+  "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+  "activationReceiptId": "coordinated-r4-c4-consumers-v022",
+  "activatedAt": "2026-08-26T08:06:00.000Z"
 }

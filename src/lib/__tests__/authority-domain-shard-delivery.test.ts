@@ -2,7 +2,7 @@
  * Authority domain shard delivery (#1375).
  */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -39,6 +39,7 @@ import {
   createAuthorityLabelResolverContext,
   isSafeAuthorityLabel,
   resolveAuthorityLabel,
+  stageAuthorityDomainShards,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
   type AuthorityShardEnvelope,
@@ -465,6 +466,46 @@ function writeTeachingProjectionFixture(root: string) {
 }
 
 describe('authority domain shard delivery', () => {
+  it('stages an immutable shard closure without writing the active pointer', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'authority-shard-stage-'));
+    tempRoots.push(root);
+    const catalog = catalogRuntime();
+    const materialized = buildAuthorityDomainShards({
+      envelope: envelope({
+        catalog: {
+          catalogId: catalog.catalogId,
+          catalogHash: catalog.catalogHash,
+          catalogVersion: catalog.catalogVersion,
+        },
+      }),
+      catalog,
+      engineering: engineeringBody(),
+      activatedAt: '2026-08-26T00:00:00.000Z',
+    });
+    const paths = {
+      runtimeRoot: root,
+      currentPath: path.join(root, 'current.json'),
+      setsDir: path.join(root, 'sets'),
+    };
+
+    stageAuthorityDomainShards(paths, materialized);
+    stageAuthorityDomainShards(paths, materialized);
+
+    expect(existsSync(paths.currentPath)).toBe(false);
+    expect(readFileSync(
+      path.join(paths.setsDir, materialized.manifest.shardSetId, 'manifest.json'),
+      'utf8',
+    )).toContain(materialized.manifest.shardSetHash);
+    writeFileSync(
+      path.join(paths.setsDir, materialized.manifest.shardSetId, 'root.json'),
+      '{}\n',
+      'utf8',
+    );
+    expect(() => stageAuthorityDomainShards(paths, materialized)).toThrow(
+      /refusing to overwrite staged Authority shard/u,
+    );
+  });
+
   it('materializes five shard classes with bounded payloads and equivalent facts', () => {
     const { materialized } = writeShards();
     expect(materialized.root.shardClass).toBe('root');

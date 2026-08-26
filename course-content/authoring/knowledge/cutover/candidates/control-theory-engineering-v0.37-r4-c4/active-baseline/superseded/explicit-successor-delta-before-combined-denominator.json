@@ -1,0 +1,59 @@
+{
+  "contract": "successor-resource-delta-declaration/v1",
+  "baselineHash": "229b01c141c73e8fffcc44faa992f8cda0aae4c28cf2712a0bad28a6d28640f3",
+  "authorityCaptureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "authority": {
+    "successorBundleId": "ctb:control-theory-engineering-v0.37:r4",
+    "successorBundleDigest": "2943366bc2f836e0223828450671cc810a5935c551ffc74d77dd6c46211196dc",
+    "semanticSurface": {
+      "artifacts": [
+        {
+          "artifact": "release.json",
+          "predecessorSha256": "4e3929fc024a44f5edcf4610424850a14be707e70925cd2837956f861b62f232",
+          "successorSha256": "4e3929fc024a44f5edcf4610424850a14be707e70925cd2837956f861b62f232",
+          "unchanged": true
+        },
+        {
+          "artifact": "ctkg.schema.json",
+          "predecessorSha256": "4850ed2e4887f7b6a4f2a08f3eb786f82ef757170befef0f3f2dbf6dc9f6cb28",
+          "successorSha256": "4850ed2e4887f7b6a4f2a08f3eb786f82ef757170befef0f3f2dbf6dc9f6cb28",
+          "unchanged": true
+        },
+        {
+          "artifact": "component-releases.json",
+          "predecessorSha256": "469a95bdda403ab157eeeb789dc9bfef38242c1e46dc1d97c108f7fdb38226e0",
+          "successorSha256": "469a95bdda403ab157eeeb789dc9bfef38242c1e46dc1d97c108f7fdb38226e0",
+          "unchanged": true
+        },
+        {
+          "artifact": "act-projection.json",
+          "predecessorSha256": "219255e9a1137fd7727ab4733898d8d6b334756349a7c2f39a34e1d3afcc8238",
+          "successorSha256": "219255e9a1137fd7727ab4733898d8d6b334756349a7c2f39a34e1d3afcc8238",
+          "unchanged": true
+        },
+        {
+          "artifact": "domain-projection.json",
+          "predecessorSha256": "72c051338ab8b2636ecd79ce2d01978fff04cf601ed464f1f8a5d5fa091507ca",
+          "successorSha256": "72c051338ab8b2636ecd79ce2d01978fff04cf601ed464f1f8a5d5fa091507ca",
+          "unchanged": true
+        },
+        {
+          "artifact": "review-projection.json",
+          "predecessorSha256": "07ac5319351c5eefd1e532b67ea8e6bbeb3d1779a66a1724c93500d7686de53b",
+          "successorSha256": "07ac5319351c5eefd1e532b67ea8e6bbeb3d1779a66a1724c93500d7686de53b",
+          "unchanged": true
+        },
+        {
+          "artifact": "projection-link-metadata.jsonl",
+          "predecessorSha256": "056d38883f9813d32b6fbfb314cabba7ac1615609712c794879ce04aefb90407",
+          "successorSha256": "056d38883f9813d32b6fbfb314cabba7ac1615609712c794879ce04aefb90407",
+          "unchanged": true
+        }
+      ],
+      "changedSemanticArtifacts": []
+    }
+  },
+  "orderedInputs": [],
+  "deltaHash": "5855e42c19b1a8eb4c0ae9dc8b11b7ba240c3e95575fc48efb73be8f744b9f5b",
+  "classification": "EMPTY_SEMANTIC_DELTA"
+}

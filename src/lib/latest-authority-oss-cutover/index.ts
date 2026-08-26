@@ -8,4 +8,8 @@ export * from './envelope';
 export * from './transaction';
 export * from './runtime-binding';
 export * from './inventory-capture';
+export * from './active-baseline-classifier';
+export * from './baseline-continuity-obligation';
+export * from './active-course-binding-rebinding';
+export * from './authority-semantic-cache';
 export * from './latest-complete-capture';

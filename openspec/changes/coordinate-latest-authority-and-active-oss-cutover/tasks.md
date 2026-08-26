@@ -18,11 +18,11 @@
 ## 3. Active OSS resource continuity denominator
 
 - [x] 3.1 Read production readiness once to resolve the exact active Runtime Release v2 and reopen its immutable manifest and active receipt.
-- [ ] 3.2 Reconstruct and hash the complete active logical-resource inventory together with every explicit non-resource disposition.
-- [ ] 3.3 Accept an ordered, explicit successor delta of new or changed release inputs and reject undeclared workspace or OSS discovery.
-- [ ] 3.4 Emit immutable active-baseline, explicit-delta, and combined-denominator identities with a final disposition for every baseline entry.
-- [ ] 3.5 Exclude historical, rollback-only, retained, orphaned, abandoned, and output-discovered objects from denominator construction.
-- [ ] 3.6 Add denominator tests covering omission detection, non-resource preservation, declared deltas, historical OSS objects, and active-receipt drift.
+- [x] 3.2 Reconstruct and hash the complete active logical-resource inventory together with every explicit non-resource disposition.
+- [x] 3.3 Accept an ordered, explicit successor delta of new or changed release inputs and reject undeclared workspace or OSS discovery.
+- [x] 3.4 Emit immutable active-baseline, explicit-delta, and combined-denominator identities with a final disposition for every baseline entry.
+- [x] 3.5 Exclude historical, rollback-only, retained, orphaned, abandoned, and output-discovered objects from denominator construction.
+- [x] 3.6 Add denominator tests covering omission detection, non-resource preservation, declared deltas, historical OSS objects, and active-receipt drift.
 
 ## 4. Dependency-complete incremental derivation
 

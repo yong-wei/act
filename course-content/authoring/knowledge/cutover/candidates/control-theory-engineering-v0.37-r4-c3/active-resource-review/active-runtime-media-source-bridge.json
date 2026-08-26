@@ -1,0 +1,1566 @@
+{
+  "contract": "active-runtime-media-source-bridge/v1",
+  "activeRelease": {
+    "releaseId": "runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+    "manifestSha256": "11c8185de8d28768ef8b247039907d50228b28475f989619c1c22eb9bf04ea7b",
+    "treeSha256": "801e99665142e5212850f85a8280a263ac1d9c5ded9fe60fe6ff53216872baf4",
+    "activeReceiptHash": "0067ba3232e564dd36e3d69819ce876b47a650fd734c30e4e4927905fdde95eb",
+    "lifecycleGeneration": 27
+  },
+  "items": [
+    {
+      "resourceId": "runtime-media:1-1:1-1-audio",
+      "lessonKey": "1-1",
+      "mediaId": "1-1-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-1/media/1-1-audio.m4a",
+      "contentSha256": "4f2ea482eece6e3802edfcfb557b3dc3a6845049072f52b730130518e4661178",
+      "mediaIndexPath": "lessons/1-1/media/1-1-media.md",
+      "mediaIndexSha256": "6d33b2fa14d6fcce54bcdfd501571eea2706f2bdef58403510666a6610ceb3f0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-1/media/1-1-audio.m4a:sha256:4f2ea482eece6e3802edfcfb557b3dc3a6845049072f52b730130518e4661178",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-1:1-1-course",
+      "lessonKey": "1-1",
+      "mediaId": "1-1-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-1/media/1-1-course.mp4",
+      "contentSha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+      "mediaIndexPath": "lessons/1-1/media/1-1-media.md",
+      "mediaIndexSha256": "6d33b2fa14d6fcce54bcdfd501571eea2706f2bdef58403510666a6610ceb3f0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-1/media/1-1-course.mp4:sha256:f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-1:1-1-intro-video",
+      "lessonKey": "1-1",
+      "mediaId": "1-1-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-1/media/1-1-intro-video.mp4",
+      "contentSha256": "3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+      "mediaIndexPath": "lessons/1-1/media/1-1-media.md",
+      "mediaIndexSha256": "6d33b2fa14d6fcce54bcdfd501571eea2706f2bdef58403510666a6610ceb3f0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-1/media/1-1-intro-video.mp4:sha256:3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-1:1-1-slides",
+      "lessonKey": "1-1",
+      "mediaId": "1-1-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-1/media/1-1-slides.pdf",
+      "contentSha256": "9896b8d775fcc474437c54df8a806f8beb2036cf896a0a336c6baaa8938c635e",
+      "mediaIndexPath": "lessons/1-1/media/1-1-media.md",
+      "mediaIndexSha256": "6d33b2fa14d6fcce54bcdfd501571eea2706f2bdef58403510666a6610ceb3f0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-1/media/1-1-slides.pdf:sha256:9896b8d775fcc474437c54df8a806f8beb2036cf896a0a336c6baaa8938c635e",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-2:1-2-audio",
+      "lessonKey": "1-2",
+      "mediaId": "1-2-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-2/media/1-2-audio.m4a",
+      "contentSha256": "1a51dbf54610e60ed84b2edce99fb632e6b97262f8942ab5b22377d4fdf3f306",
+      "mediaIndexPath": "lessons/1-2/media/1-2-media.md",
+      "mediaIndexSha256": "8ace1cb13fb6aa1d6b81c46028c4b9e585d051e8a44308fe9dc3b999819e5c91",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-2/media/1-2-audio.m4a:sha256:1a51dbf54610e60ed84b2edce99fb632e6b97262f8942ab5b22377d4fdf3f306",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-2:1-2-course",
+      "lessonKey": "1-2",
+      "mediaId": "1-2-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-2/media/1-2-course.mp4",
+      "contentSha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+      "mediaIndexPath": "lessons/1-2/media/1-2-media.md",
+      "mediaIndexSha256": "8ace1cb13fb6aa1d6b81c46028c4b9e585d051e8a44308fe9dc3b999819e5c91",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-2/media/1-2-course.mp4:sha256:64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-2:1-2-intro-video",
+      "lessonKey": "1-2",
+      "mediaId": "1-2-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-2/media/1-2-intro-video.mp4",
+      "contentSha256": "a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+      "mediaIndexPath": "lessons/1-2/media/1-2-media.md",
+      "mediaIndexSha256": "8ace1cb13fb6aa1d6b81c46028c4b9e585d051e8a44308fe9dc3b999819e5c91",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-2/media/1-2-intro-video.mp4:sha256:a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-2:1-2-slides",
+      "lessonKey": "1-2",
+      "mediaId": "1-2-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-2/media/1-2-slides.pdf",
+      "contentSha256": "bd4d48c8599f56638f72375a6b096889b60e43a5ba60832fe4cf96fac673f6fb",
+      "mediaIndexPath": "lessons/1-2/media/1-2-media.md",
+      "mediaIndexSha256": "8ace1cb13fb6aa1d6b81c46028c4b9e585d051e8a44308fe9dc3b999819e5c91",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-2/media/1-2-slides.pdf:sha256:bd4d48c8599f56638f72375a6b096889b60e43a5ba60832fe4cf96fac673f6fb",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-audio",
+      "lessonKey": "1-4",
+      "mediaId": "1-4-audio",
+      "sourceIdentityState": "MISSING_RUNTIME_ASSET",
+      "runtimePath": null,
+      "contentSha256": null,
+      "mediaIndexPath": "lessons/1-4/media/1-4-media.md",
+      "mediaIndexSha256": "9582cb7798d57aaa2615cc74c6ad98232d2f6e7f7f4316e2577a566793f2995a",
+      "sourceIdentity": null,
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-course",
+      "lessonKey": "1-4",
+      "mediaId": "1-4-course",
+      "sourceIdentityState": "MISSING_RUNTIME_ASSET",
+      "runtimePath": null,
+      "contentSha256": null,
+      "mediaIndexPath": "lessons/1-4/media/1-4-media.md",
+      "mediaIndexSha256": "9582cb7798d57aaa2615cc74c6ad98232d2f6e7f7f4316e2577a566793f2995a",
+      "sourceIdentity": null,
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-intro-video",
+      "lessonKey": "1-4",
+      "mediaId": "1-4-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/1-4/media/1-4-intro-video.mp4",
+      "contentSha256": "77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+      "mediaIndexPath": "lessons/1-4/media/1-4-media.md",
+      "mediaIndexSha256": "9582cb7798d57aaa2615cc74c6ad98232d2f6e7f7f4316e2577a566793f2995a",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/1-4/media/1-4-intro-video.mp4:sha256:77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-slides",
+      "lessonKey": "1-4",
+      "mediaId": "1-4-slides",
+      "sourceIdentityState": "MISSING_RUNTIME_ASSET",
+      "runtimePath": null,
+      "contentSha256": null,
+      "mediaIndexPath": "lessons/1-4/media/1-4-media.md",
+      "mediaIndexSha256": "9582cb7798d57aaa2615cc74c6ad98232d2f6e7f7f4316e2577a566793f2995a",
+      "sourceIdentity": null,
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    },
+    {
+      "resourceId": "runtime-media:2-1:2-1-audio",
+      "lessonKey": "2-1",
+      "mediaId": "2-1-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-1/media/2-1-audio.m4a",
+      "contentSha256": "8bc57993aca6de149304381e609f3a18a3632cb1718889a8b911cffb4ebee7ff",
+      "mediaIndexPath": "lessons/2-1/media/2-1-media.md",
+      "mediaIndexSha256": "025307a795993853163fdfcfcd77ce51525afa0be622caf336b0d809d5236a66",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-1/media/2-1-audio.m4a:sha256:8bc57993aca6de149304381e609f3a18a3632cb1718889a8b911cffb4ebee7ff",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-1:2-1-course",
+      "lessonKey": "2-1",
+      "mediaId": "2-1-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-1/media/2-1-course.mp4",
+      "contentSha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+      "mediaIndexPath": "lessons/2-1/media/2-1-media.md",
+      "mediaIndexSha256": "025307a795993853163fdfcfcd77ce51525afa0be622caf336b0d809d5236a66",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-1/media/2-1-course.mp4:sha256:fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-1:2-1-intro-video",
+      "lessonKey": "2-1",
+      "mediaId": "2-1-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-1/media/2-1-intro-video.mp4",
+      "contentSha256": "6d05aee93be5f19bdcfd43898455b5fe8ab022bcc5be643097cfeed1687c7b3b",
+      "mediaIndexPath": "lessons/2-1/media/2-1-media.md",
+      "mediaIndexSha256": "025307a795993853163fdfcfcd77ce51525afa0be622caf336b0d809d5236a66",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-1/media/2-1-intro-video.mp4:sha256:6d05aee93be5f19bdcfd43898455b5fe8ab022bcc5be643097cfeed1687c7b3b",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-1:2-1-slides",
+      "lessonKey": "2-1",
+      "mediaId": "2-1-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-1/media/2-1-slides.pdf",
+      "contentSha256": "8418bbd21c9841c1421eb5ed13f947da2b9a67801d82bb20aeca128fcacfaf03",
+      "mediaIndexPath": "lessons/2-1/media/2-1-media.md",
+      "mediaIndexSha256": "025307a795993853163fdfcfcd77ce51525afa0be622caf336b0d809d5236a66",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-1/media/2-1-slides.pdf:sha256:8418bbd21c9841c1421eb5ed13f947da2b9a67801d82bb20aeca128fcacfaf03",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-2:2-2-audio",
+      "lessonKey": "2-2",
+      "mediaId": "2-2-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-2/media/2-2-audio.m4a",
+      "contentSha256": "5992253e27abaa59606a4bc8ee46f6b3799815d1e3b6cfd888eda2a4bdd1e5ce",
+      "mediaIndexPath": "lessons/2-2/media/2-2-media.md",
+      "mediaIndexSha256": "4040e87d1e59dea6d4d6b29592479b756112c3997bdbdaa3721afa5f9488de50",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-2/media/2-2-audio.m4a:sha256:5992253e27abaa59606a4bc8ee46f6b3799815d1e3b6cfd888eda2a4bdd1e5ce",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-2:2-2-course",
+      "lessonKey": "2-2",
+      "mediaId": "2-2-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-2/media/2-2-course.mp4",
+      "contentSha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+      "mediaIndexPath": "lessons/2-2/media/2-2-media.md",
+      "mediaIndexSha256": "4040e87d1e59dea6d4d6b29592479b756112c3997bdbdaa3721afa5f9488de50",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-2/media/2-2-course.mp4:sha256:73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-2:2-2-intro-video",
+      "lessonKey": "2-2",
+      "mediaId": "2-2-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-2/media/2-2-intro-video.mp4",
+      "contentSha256": "6b34a827d99d83a4fc067495edf77fb77af9e4658533215c6f2851e8a22dab52",
+      "mediaIndexPath": "lessons/2-2/media/2-2-media.md",
+      "mediaIndexSha256": "4040e87d1e59dea6d4d6b29592479b756112c3997bdbdaa3721afa5f9488de50",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-2/media/2-2-intro-video.mp4:sha256:6b34a827d99d83a4fc067495edf77fb77af9e4658533215c6f2851e8a22dab52",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-2:2-2-slides",
+      "lessonKey": "2-2",
+      "mediaId": "2-2-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-2/media/2-2-slides.pdf",
+      "contentSha256": "f3e5ff4cfae5d70453bc2b2982759e7f3ddfb9319433b8f8160d39233715c15a",
+      "mediaIndexPath": "lessons/2-2/media/2-2-media.md",
+      "mediaIndexSha256": "4040e87d1e59dea6d4d6b29592479b756112c3997bdbdaa3721afa5f9488de50",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-2/media/2-2-slides.pdf:sha256:f3e5ff4cfae5d70453bc2b2982759e7f3ddfb9319433b8f8160d39233715c15a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-3:2-3-audio",
+      "lessonKey": "2-3",
+      "mediaId": "2-3-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-3/media/2-3-audio.m4a",
+      "contentSha256": "52b8a246c143cb1f990dc179b97a2151e3b8bb33411f817f31dfd0f416b44a10",
+      "mediaIndexPath": "lessons/2-3/media/2-3-media.md",
+      "mediaIndexSha256": "8623c3af61f70165d781f75340d2e7af600d96d26daabc39b67ee71cd7fceba8",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-3/media/2-3-audio.m4a:sha256:52b8a246c143cb1f990dc179b97a2151e3b8bb33411f817f31dfd0f416b44a10",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-3:2-3-course",
+      "lessonKey": "2-3",
+      "mediaId": "2-3-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-3/media/2-3-course.mp4",
+      "contentSha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+      "mediaIndexPath": "lessons/2-3/media/2-3-media.md",
+      "mediaIndexSha256": "8623c3af61f70165d781f75340d2e7af600d96d26daabc39b67ee71cd7fceba8",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-3/media/2-3-course.mp4:sha256:b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-3:2-3-intro-video",
+      "lessonKey": "2-3",
+      "mediaId": "2-3-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-3/media/2-3-intro-video.mp4",
+      "contentSha256": "85fbea586946fc5adfb459a57885a11ba2202660e4aa295069f681cdc84b066f",
+      "mediaIndexPath": "lessons/2-3/media/2-3-media.md",
+      "mediaIndexSha256": "8623c3af61f70165d781f75340d2e7af600d96d26daabc39b67ee71cd7fceba8",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-3/media/2-3-intro-video.mp4:sha256:85fbea586946fc5adfb459a57885a11ba2202660e4aa295069f681cdc84b066f",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-3:2-3-slides",
+      "lessonKey": "2-3",
+      "mediaId": "2-3-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-3/media/2-3-slides.pdf",
+      "contentSha256": "881b05ce528613693aeefee89b481d67200eb2c90f03d7cd49bd65419ca1c411",
+      "mediaIndexPath": "lessons/2-3/media/2-3-media.md",
+      "mediaIndexSha256": "8623c3af61f70165d781f75340d2e7af600d96d26daabc39b67ee71cd7fceba8",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-3/media/2-3-slides.pdf:sha256:881b05ce528613693aeefee89b481d67200eb2c90f03d7cd49bd65419ca1c411",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-4:2-4-audio",
+      "lessonKey": "2-4",
+      "mediaId": "2-4-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-4/media/2-4-audio.m4a",
+      "contentSha256": "74631dfb24a9d4fdd4e6ce671ced97f9f7f10814297f029bafa7140c90398bcd",
+      "mediaIndexPath": "lessons/2-4/media/2-4-media.md",
+      "mediaIndexSha256": "4f77f7e213ae676acb3f74d473e9218d0bcfedb06c5825e15d9b1a8f91d35646",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-4/media/2-4-audio.m4a:sha256:74631dfb24a9d4fdd4e6ce671ced97f9f7f10814297f029bafa7140c90398bcd",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-4:2-4-course",
+      "lessonKey": "2-4",
+      "mediaId": "2-4-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-4/media/2-4-course.mp4",
+      "contentSha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+      "mediaIndexPath": "lessons/2-4/media/2-4-media.md",
+      "mediaIndexSha256": "4f77f7e213ae676acb3f74d473e9218d0bcfedb06c5825e15d9b1a8f91d35646",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-4/media/2-4-course.mp4:sha256:76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-4:2-4-intro-video",
+      "lessonKey": "2-4",
+      "mediaId": "2-4-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-4/media/2-4-intro-video.mp4",
+      "contentSha256": "a418709fff13c2701f127add5b2d4668f760666d9fe8bc9e3eb818f2dd098903",
+      "mediaIndexPath": "lessons/2-4/media/2-4-media.md",
+      "mediaIndexSha256": "4f77f7e213ae676acb3f74d473e9218d0bcfedb06c5825e15d9b1a8f91d35646",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-4/media/2-4-intro-video.mp4:sha256:a418709fff13c2701f127add5b2d4668f760666d9fe8bc9e3eb818f2dd098903",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:2-4:2-4-slides",
+      "lessonKey": "2-4",
+      "mediaId": "2-4-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/2-4/media/2-4-slides.pdf",
+      "contentSha256": "778bfa2db01a6503a5b1c239c46eef318056c286aa6837ea438d8b7fb72c2b85",
+      "mediaIndexPath": "lessons/2-4/media/2-4-media.md",
+      "mediaIndexSha256": "4f77f7e213ae676acb3f74d473e9218d0bcfedb06c5825e15d9b1a8f91d35646",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/2-4/media/2-4-slides.pdf:sha256:778bfa2db01a6503a5b1c239c46eef318056c286aa6837ea438d8b7fb72c2b85",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-1:3-1-audio",
+      "lessonKey": "3-1",
+      "mediaId": "3-1-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-1/media/3-1-audio.m4a",
+      "contentSha256": "b5a6ea9544788a2a2177ebcb007195619cf38d79b918fd296f2f592a1c872656",
+      "mediaIndexPath": "lessons/3-1/media/3-1-media.md",
+      "mediaIndexSha256": "8423c1b441b7c38ad8c0c0d2133f1a0d781a95b4a6a265a6b8b9cd7c75ab9458",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-1/media/3-1-audio.m4a:sha256:b5a6ea9544788a2a2177ebcb007195619cf38d79b918fd296f2f592a1c872656",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-1:3-1-course",
+      "lessonKey": "3-1",
+      "mediaId": "3-1-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-1/media/3-1-course.mp4",
+      "contentSha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+      "mediaIndexPath": "lessons/3-1/media/3-1-media.md",
+      "mediaIndexSha256": "8423c1b441b7c38ad8c0c0d2133f1a0d781a95b4a6a265a6b8b9cd7c75ab9458",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-1/media/3-1-course.mp4:sha256:ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-1:3-1-intro-video",
+      "lessonKey": "3-1",
+      "mediaId": "3-1-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-1/media/3-1-intro-video.mp4",
+      "contentSha256": "8da1c10dc6044cdbd191dbf70ccb398cf8c88ea2d7a401be40a6c562650ad118",
+      "mediaIndexPath": "lessons/3-1/media/3-1-media.md",
+      "mediaIndexSha256": "8423c1b441b7c38ad8c0c0d2133f1a0d781a95b4a6a265a6b8b9cd7c75ab9458",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-1/media/3-1-intro-video.mp4:sha256:8da1c10dc6044cdbd191dbf70ccb398cf8c88ea2d7a401be40a6c562650ad118",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-1:3-1-slides",
+      "lessonKey": "3-1",
+      "mediaId": "3-1-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-1/media/3-1-slides.pdf",
+      "contentSha256": "4c6fbd2e09dc2236c0a5cd7c9331260fc8b34aacd9013027d6a7e823471b1595",
+      "mediaIndexPath": "lessons/3-1/media/3-1-media.md",
+      "mediaIndexSha256": "8423c1b441b7c38ad8c0c0d2133f1a0d781a95b4a6a265a6b8b9cd7c75ab9458",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-1/media/3-1-slides.pdf:sha256:4c6fbd2e09dc2236c0a5cd7c9331260fc8b34aacd9013027d6a7e823471b1595",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-2:3-2-audio",
+      "lessonKey": "3-2",
+      "mediaId": "3-2-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-2/media/3-2-audio.m4a",
+      "contentSha256": "e37cdc075b7204b1e15941a64b1f6b8e63188ec164ce313201b3a505acef2877",
+      "mediaIndexPath": "lessons/3-2/media/3-2-media.md",
+      "mediaIndexSha256": "7d107f6ff3617d7fa2f71ec6c508e517022e2fed4702e232b31bca9ab9502eaa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-2/media/3-2-audio.m4a:sha256:e37cdc075b7204b1e15941a64b1f6b8e63188ec164ce313201b3a505acef2877",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-2:3-2-course",
+      "lessonKey": "3-2",
+      "mediaId": "3-2-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-2/media/3-2-course.mp4",
+      "contentSha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+      "mediaIndexPath": "lessons/3-2/media/3-2-media.md",
+      "mediaIndexSha256": "7d107f6ff3617d7fa2f71ec6c508e517022e2fed4702e232b31bca9ab9502eaa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-2/media/3-2-course.mp4:sha256:54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-2:3-2-intro-video",
+      "lessonKey": "3-2",
+      "mediaId": "3-2-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-2/media/3-2-intro-video.mp4",
+      "contentSha256": "6c695f3f5490cc8e39e00120f9ebf687e9fc3a6d2b3ee831a62e3f3ddb30c3fb",
+      "mediaIndexPath": "lessons/3-2/media/3-2-media.md",
+      "mediaIndexSha256": "7d107f6ff3617d7fa2f71ec6c508e517022e2fed4702e232b31bca9ab9502eaa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-2/media/3-2-intro-video.mp4:sha256:6c695f3f5490cc8e39e00120f9ebf687e9fc3a6d2b3ee831a62e3f3ddb30c3fb",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-2:3-2-slides",
+      "lessonKey": "3-2",
+      "mediaId": "3-2-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-2/media/3-2-slides.pdf",
+      "contentSha256": "6c6d95fc4c052896e8b6270c50c98a013459dd6717f682a3a9bf43664e8a3308",
+      "mediaIndexPath": "lessons/3-2/media/3-2-media.md",
+      "mediaIndexSha256": "7d107f6ff3617d7fa2f71ec6c508e517022e2fed4702e232b31bca9ab9502eaa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-2/media/3-2-slides.pdf:sha256:6c6d95fc4c052896e8b6270c50c98a013459dd6717f682a3a9bf43664e8a3308",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-3:3-3-audio",
+      "lessonKey": "3-3",
+      "mediaId": "3-3-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-3/media/3-3-audio.m4a",
+      "contentSha256": "942e63aa87ed94ad9ac496863cd860396c631b3df80f7b38312b55b12db7db21",
+      "mediaIndexPath": "lessons/3-3/media/3-3-media.md",
+      "mediaIndexSha256": "75c8184d1a132a068aa7f656d4050e42762c2d6cf7ebb8e9d422ae6e93da2272",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-3/media/3-3-audio.m4a:sha256:942e63aa87ed94ad9ac496863cd860396c631b3df80f7b38312b55b12db7db21",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-3:3-3-course",
+      "lessonKey": "3-3",
+      "mediaId": "3-3-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-3/media/3-3-course.mp4",
+      "contentSha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+      "mediaIndexPath": "lessons/3-3/media/3-3-media.md",
+      "mediaIndexSha256": "75c8184d1a132a068aa7f656d4050e42762c2d6cf7ebb8e9d422ae6e93da2272",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-3/media/3-3-course.mp4:sha256:3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-3:3-3-intro-video",
+      "lessonKey": "3-3",
+      "mediaId": "3-3-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-3/media/3-3-intro-video.mp4",
+      "contentSha256": "1039768af6dd735dccb057e7f0bd00b6a3baa01575b9dbdb593812b4bdd394d8",
+      "mediaIndexPath": "lessons/3-3/media/3-3-media.md",
+      "mediaIndexSha256": "75c8184d1a132a068aa7f656d4050e42762c2d6cf7ebb8e9d422ae6e93da2272",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-3/media/3-3-intro-video.mp4:sha256:1039768af6dd735dccb057e7f0bd00b6a3baa01575b9dbdb593812b4bdd394d8",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-3:3-3-slides",
+      "lessonKey": "3-3",
+      "mediaId": "3-3-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-3/media/3-3-slides.pdf",
+      "contentSha256": "a1a3bc2ef1c8cd3340b3bd441543bc3cf7673528253d350eb430a91f1f20c28f",
+      "mediaIndexPath": "lessons/3-3/media/3-3-media.md",
+      "mediaIndexSha256": "75c8184d1a132a068aa7f656d4050e42762c2d6cf7ebb8e9d422ae6e93da2272",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-3/media/3-3-slides.pdf:sha256:a1a3bc2ef1c8cd3340b3bd441543bc3cf7673528253d350eb430a91f1f20c28f",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-4:3-4-audio",
+      "lessonKey": "3-4",
+      "mediaId": "3-4-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-4/media/3-4-audio.m4a",
+      "contentSha256": "3666f4d99e046e04f004d0d65474b9635517d5f11638305712cc1e38db3b29c0",
+      "mediaIndexPath": "lessons/3-4/media/3-4-media.md",
+      "mediaIndexSha256": "56e49902a45845fc2818500a2fe1ca330b6b240b3c9a77c6ad76d25c1cd2b1cf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-4/media/3-4-audio.m4a:sha256:3666f4d99e046e04f004d0d65474b9635517d5f11638305712cc1e38db3b29c0",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-4:3-4-course",
+      "lessonKey": "3-4",
+      "mediaId": "3-4-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-4/media/3-4-course.mp4",
+      "contentSha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+      "mediaIndexPath": "lessons/3-4/media/3-4-media.md",
+      "mediaIndexSha256": "56e49902a45845fc2818500a2fe1ca330b6b240b3c9a77c6ad76d25c1cd2b1cf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-4/media/3-4-course.mp4:sha256:c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-4:3-4-intro-video",
+      "lessonKey": "3-4",
+      "mediaId": "3-4-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-4/media/3-4-intro-video.mp4",
+      "contentSha256": "643401951b97e262730f9b2b63c2018fe96804b5f35878037fb1adc8e346528a",
+      "mediaIndexPath": "lessons/3-4/media/3-4-media.md",
+      "mediaIndexSha256": "56e49902a45845fc2818500a2fe1ca330b6b240b3c9a77c6ad76d25c1cd2b1cf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-4/media/3-4-intro-video.mp4:sha256:643401951b97e262730f9b2b63c2018fe96804b5f35878037fb1adc8e346528a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-4:3-4-slides",
+      "lessonKey": "3-4",
+      "mediaId": "3-4-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-4/media/3-4-slides.pdf",
+      "contentSha256": "1bc57cb8a41bc5170b7b59086ce0122143d7e04a15edadfb13529f158a1cad3e",
+      "mediaIndexPath": "lessons/3-4/media/3-4-media.md",
+      "mediaIndexSha256": "56e49902a45845fc2818500a2fe1ca330b6b240b3c9a77c6ad76d25c1cd2b1cf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-4/media/3-4-slides.pdf:sha256:1bc57cb8a41bc5170b7b59086ce0122143d7e04a15edadfb13529f158a1cad3e",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-5:3-5-audio",
+      "lessonKey": "3-5",
+      "mediaId": "3-5-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-5/media/3-5-audio.m4a",
+      "contentSha256": "25818859b3b09ec4166aeb12a1a495b31b16a744e532443b62ae0f2f296955c4",
+      "mediaIndexPath": "lessons/3-5/media/3-5-media.md",
+      "mediaIndexSha256": "80fc47da1e5fa17deb0ca905f30001274ba34efc9a2512f9cd30b816b4123375",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-5/media/3-5-audio.m4a:sha256:25818859b3b09ec4166aeb12a1a495b31b16a744e532443b62ae0f2f296955c4",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-5:3-5-course",
+      "lessonKey": "3-5",
+      "mediaId": "3-5-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-5/media/3-5-course.mp4",
+      "contentSha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+      "mediaIndexPath": "lessons/3-5/media/3-5-media.md",
+      "mediaIndexSha256": "80fc47da1e5fa17deb0ca905f30001274ba34efc9a2512f9cd30b816b4123375",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-5/media/3-5-course.mp4:sha256:ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-5:3-5-intro-video",
+      "lessonKey": "3-5",
+      "mediaId": "3-5-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-5/media/3-5-intro-video.mp4",
+      "contentSha256": "96475414188e8619f4784803d41cd34b1d7068e24a46617460e6c4344ec8ad0d",
+      "mediaIndexPath": "lessons/3-5/media/3-5-media.md",
+      "mediaIndexSha256": "80fc47da1e5fa17deb0ca905f30001274ba34efc9a2512f9cd30b816b4123375",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-5/media/3-5-intro-video.mp4:sha256:96475414188e8619f4784803d41cd34b1d7068e24a46617460e6c4344ec8ad0d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-5:3-5-slides",
+      "lessonKey": "3-5",
+      "mediaId": "3-5-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-5/media/3-5-slides.pdf",
+      "contentSha256": "c1771cd7778fdb4539a6567ae72f1b80da38960cd5f4f1c157b95d5d579e8f15",
+      "mediaIndexPath": "lessons/3-5/media/3-5-media.md",
+      "mediaIndexSha256": "80fc47da1e5fa17deb0ca905f30001274ba34efc9a2512f9cd30b816b4123375",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-5/media/3-5-slides.pdf:sha256:c1771cd7778fdb4539a6567ae72f1b80da38960cd5f4f1c157b95d5d579e8f15",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-6:3-6-audio",
+      "lessonKey": "3-6",
+      "mediaId": "3-6-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-6/media/3-6-audio.m4a",
+      "contentSha256": "e9c4aadfad3688756e6cef300699a02df37e2cc107814867e0faff8929754a53",
+      "mediaIndexPath": "lessons/3-6/media/3-6-media.md",
+      "mediaIndexSha256": "5af85df7b9620df5a4430ac61382cb76c7189a37f583056752ea5b496ce8efbf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-6/media/3-6-audio.m4a:sha256:e9c4aadfad3688756e6cef300699a02df37e2cc107814867e0faff8929754a53",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-6:3-6-course",
+      "lessonKey": "3-6",
+      "mediaId": "3-6-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-6/media/3-6-course.mp4",
+      "contentSha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+      "mediaIndexPath": "lessons/3-6/media/3-6-media.md",
+      "mediaIndexSha256": "5af85df7b9620df5a4430ac61382cb76c7189a37f583056752ea5b496ce8efbf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-6/media/3-6-course.mp4:sha256:362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-6:3-6-intro-video",
+      "lessonKey": "3-6",
+      "mediaId": "3-6-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-6/media/3-6-intro-video.mp4",
+      "contentSha256": "cf0294dcc2296ede5af11133bed374031e6572d113fb9fff74af1041dbeb57f6",
+      "mediaIndexPath": "lessons/3-6/media/3-6-media.md",
+      "mediaIndexSha256": "5af85df7b9620df5a4430ac61382cb76c7189a37f583056752ea5b496ce8efbf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-6/media/3-6-intro-video.mp4:sha256:cf0294dcc2296ede5af11133bed374031e6572d113fb9fff74af1041dbeb57f6",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-6:3-6-slides",
+      "lessonKey": "3-6",
+      "mediaId": "3-6-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-6/media/3-6-slides.pdf",
+      "contentSha256": "c2f29f487955791408bb5875ae0284b4147227a268e10f9dbfd117ac8233ed2b",
+      "mediaIndexPath": "lessons/3-6/media/3-6-media.md",
+      "mediaIndexSha256": "5af85df7b9620df5a4430ac61382cb76c7189a37f583056752ea5b496ce8efbf",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-6/media/3-6-slides.pdf:sha256:c2f29f487955791408bb5875ae0284b4147227a268e10f9dbfd117ac8233ed2b",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-7:3-7-audio",
+      "lessonKey": "3-7",
+      "mediaId": "3-7-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-7/media/3-7-audio.m4a",
+      "contentSha256": "95fe81de36ce0485eeb6a30d07b85fc8c7a1e2da1d87a2d0e39d622915f6a382",
+      "mediaIndexPath": "lessons/3-7/media/3-7-media.md",
+      "mediaIndexSha256": "c0d09629b9eebc73d4186e713d324c0754e7b00e5b9910b2f2fb0e5c57f33aa0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-7/media/3-7-audio.m4a:sha256:95fe81de36ce0485eeb6a30d07b85fc8c7a1e2da1d87a2d0e39d622915f6a382",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-7:3-7-course",
+      "lessonKey": "3-7",
+      "mediaId": "3-7-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-7/media/3-7-course.mp4",
+      "contentSha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+      "mediaIndexPath": "lessons/3-7/media/3-7-media.md",
+      "mediaIndexSha256": "c0d09629b9eebc73d4186e713d324c0754e7b00e5b9910b2f2fb0e5c57f33aa0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-7/media/3-7-course.mp4:sha256:dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-7:3-7-intro-video",
+      "lessonKey": "3-7",
+      "mediaId": "3-7-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-7/media/3-7-intro-video.mp4",
+      "contentSha256": "ba4bdfab812083ed206466932abe9eb8714e495fddc37db3b5cb7188b47527c5",
+      "mediaIndexPath": "lessons/3-7/media/3-7-media.md",
+      "mediaIndexSha256": "c0d09629b9eebc73d4186e713d324c0754e7b00e5b9910b2f2fb0e5c57f33aa0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-7/media/3-7-intro-video.mp4:sha256:ba4bdfab812083ed206466932abe9eb8714e495fddc37db3b5cb7188b47527c5",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-7:3-7-slides",
+      "lessonKey": "3-7",
+      "mediaId": "3-7-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-7/media/3-7-slides.pdf",
+      "contentSha256": "093b83665d50aec85d260dbf3113a43241f09bbe4596ea905d8539ccaeea478d",
+      "mediaIndexPath": "lessons/3-7/media/3-7-media.md",
+      "mediaIndexSha256": "c0d09629b9eebc73d4186e713d324c0754e7b00e5b9910b2f2fb0e5c57f33aa0",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-7/media/3-7-slides.pdf:sha256:093b83665d50aec85d260dbf3113a43241f09bbe4596ea905d8539ccaeea478d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-8:3-8-audio",
+      "lessonKey": "3-8",
+      "mediaId": "3-8-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-8/media/3-8-audio.m4a",
+      "contentSha256": "dc958e12d5b4a7c5936a24a3aaa8c01a19db553bfa9158f2683edba5a179cf23",
+      "mediaIndexPath": "lessons/3-8/media/3-8-media.md",
+      "mediaIndexSha256": "b70bf74fadb19ff0761020c1163a1126483431c86abb750bf532078b028bcaa1",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-8/media/3-8-audio.m4a:sha256:dc958e12d5b4a7c5936a24a3aaa8c01a19db553bfa9158f2683edba5a179cf23",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-8:3-8-course",
+      "lessonKey": "3-8",
+      "mediaId": "3-8-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-8/media/3-8-course.mp4",
+      "contentSha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+      "mediaIndexPath": "lessons/3-8/media/3-8-media.md",
+      "mediaIndexSha256": "b70bf74fadb19ff0761020c1163a1126483431c86abb750bf532078b028bcaa1",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-8/media/3-8-course.mp4:sha256:e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-8:3-8-intro-video",
+      "lessonKey": "3-8",
+      "mediaId": "3-8-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-8/media/3-8-intro-video.mp4",
+      "contentSha256": "58b400749e3e7335d48e999203185e5e70c003fb78b85ce1bde96ebb4e23e3e0",
+      "mediaIndexPath": "lessons/3-8/media/3-8-media.md",
+      "mediaIndexSha256": "b70bf74fadb19ff0761020c1163a1126483431c86abb750bf532078b028bcaa1",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-8/media/3-8-intro-video.mp4:sha256:58b400749e3e7335d48e999203185e5e70c003fb78b85ce1bde96ebb4e23e3e0",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-8:3-8-slides",
+      "lessonKey": "3-8",
+      "mediaId": "3-8-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-8/media/3-8-slides.pdf",
+      "contentSha256": "c7a32700d573896541788734adc3a303f2a76747ab4fd90290e002af8d883560",
+      "mediaIndexPath": "lessons/3-8/media/3-8-media.md",
+      "mediaIndexSha256": "b70bf74fadb19ff0761020c1163a1126483431c86abb750bf532078b028bcaa1",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-8/media/3-8-slides.pdf:sha256:c7a32700d573896541788734adc3a303f2a76747ab4fd90290e002af8d883560",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-9:3-9-audio",
+      "lessonKey": "3-9",
+      "mediaId": "3-9-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-9/media/3-9-audio.m4a",
+      "contentSha256": "ec791b6a895aad911508de079549426ae594b386da3d2a8d7315dd21e040340d",
+      "mediaIndexPath": "lessons/3-9/media/3-9-media.md",
+      "mediaIndexSha256": "1b9556f8212e2d7ff5e971ca9a4c130682000c31cbbb390e06ea809e6cb17d36",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-9/media/3-9-audio.m4a:sha256:ec791b6a895aad911508de079549426ae594b386da3d2a8d7315dd21e040340d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-9:3-9-course",
+      "lessonKey": "3-9",
+      "mediaId": "3-9-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-9/media/3-9-course.mp4",
+      "contentSha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+      "mediaIndexPath": "lessons/3-9/media/3-9-media.md",
+      "mediaIndexSha256": "1b9556f8212e2d7ff5e971ca9a4c130682000c31cbbb390e06ea809e6cb17d36",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-9/media/3-9-course.mp4:sha256:30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-9:3-9-intro-video",
+      "lessonKey": "3-9",
+      "mediaId": "3-9-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-9/media/3-9-intro-video.mp4",
+      "contentSha256": "a9ba7011ec695a2593fe55b5cf454ef93edfe6ebbe794b828530577c3ce137a1",
+      "mediaIndexPath": "lessons/3-9/media/3-9-media.md",
+      "mediaIndexSha256": "1b9556f8212e2d7ff5e971ca9a4c130682000c31cbbb390e06ea809e6cb17d36",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-9/media/3-9-intro-video.mp4:sha256:a9ba7011ec695a2593fe55b5cf454ef93edfe6ebbe794b828530577c3ce137a1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:3-9:3-9-slides",
+      "lessonKey": "3-9",
+      "mediaId": "3-9-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/3-9/media/3-9-slides.pdf",
+      "contentSha256": "3cb2697afec4509e373d04727af2cb7b48d8c5d569056d6b0d8a64dcc85368d7",
+      "mediaIndexPath": "lessons/3-9/media/3-9-media.md",
+      "mediaIndexSha256": "1b9556f8212e2d7ff5e971ca9a4c130682000c31cbbb390e06ea809e6cb17d36",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/3-9/media/3-9-slides.pdf:sha256:3cb2697afec4509e373d04727af2cb7b48d8c5d569056d6b0d8a64dcc85368d7",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-1:4-1-audio",
+      "lessonKey": "4-1",
+      "mediaId": "4-1-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-1/media/4-1-audio.m4a",
+      "contentSha256": "37932cea190e0fc19da383aaa9df46936a61212d2fda115cecdaedd5909587e0",
+      "mediaIndexPath": "lessons/4-1/media/4-1-media.md",
+      "mediaIndexSha256": "72aa36f9394eafd7b75a491833d3e5ac81dfb11cfd4bcb0bb8e0b49e3d1f2515",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-1/media/4-1-audio.m4a:sha256:37932cea190e0fc19da383aaa9df46936a61212d2fda115cecdaedd5909587e0",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-1:4-1-course",
+      "lessonKey": "4-1",
+      "mediaId": "4-1-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-1/media/4-1-course.mp4",
+      "contentSha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+      "mediaIndexPath": "lessons/4-1/media/4-1-media.md",
+      "mediaIndexSha256": "72aa36f9394eafd7b75a491833d3e5ac81dfb11cfd4bcb0bb8e0b49e3d1f2515",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-1/media/4-1-course.mp4:sha256:4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-1:4-1-intro-video",
+      "lessonKey": "4-1",
+      "mediaId": "4-1-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-1/media/4-1-intro-video.mp4",
+      "contentSha256": "f7fc05bd74c976288b03276f4ba3b9d219c5c0f991ddeaa5aefd3c60cecfc299",
+      "mediaIndexPath": "lessons/4-1/media/4-1-media.md",
+      "mediaIndexSha256": "72aa36f9394eafd7b75a491833d3e5ac81dfb11cfd4bcb0bb8e0b49e3d1f2515",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-1/media/4-1-intro-video.mp4:sha256:f7fc05bd74c976288b03276f4ba3b9d219c5c0f991ddeaa5aefd3c60cecfc299",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-1:4-1-slides",
+      "lessonKey": "4-1",
+      "mediaId": "4-1-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-1/media/4-1-slides.pdf",
+      "contentSha256": "b04d65f5c543d2c812da024fc7477eda39f327ec5f22f39fa14085eab714dcd2",
+      "mediaIndexPath": "lessons/4-1/media/4-1-media.md",
+      "mediaIndexSha256": "72aa36f9394eafd7b75a491833d3e5ac81dfb11cfd4bcb0bb8e0b49e3d1f2515",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-1/media/4-1-slides.pdf:sha256:b04d65f5c543d2c812da024fc7477eda39f327ec5f22f39fa14085eab714dcd2",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-2:4-2-audio",
+      "lessonKey": "4-2",
+      "mediaId": "4-2-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-2/media/4-2-audio.m4a",
+      "contentSha256": "b1b02bfabf110d99cd9b282b3d6560c555bf7e6c9dd7270bfd011377c99fe2f9",
+      "mediaIndexPath": "lessons/4-2/media/4-2-media.md",
+      "mediaIndexSha256": "e9fcc7c1b0416d255555bdc2cd25cc2008b8db72cf5dd0812e3fa4785e0e2663",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-2/media/4-2-audio.m4a:sha256:b1b02bfabf110d99cd9b282b3d6560c555bf7e6c9dd7270bfd011377c99fe2f9",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-2:4-2-course",
+      "lessonKey": "4-2",
+      "mediaId": "4-2-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-2/media/4-2-course.mp4",
+      "contentSha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+      "mediaIndexPath": "lessons/4-2/media/4-2-media.md",
+      "mediaIndexSha256": "e9fcc7c1b0416d255555bdc2cd25cc2008b8db72cf5dd0812e3fa4785e0e2663",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-2/media/4-2-course.mp4:sha256:dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-2:4-2-intro-video",
+      "lessonKey": "4-2",
+      "mediaId": "4-2-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-2/media/4-2-intro-video.mp4",
+      "contentSha256": "4e15bda43a9385a61a5cfe72b5271a2e3fe64f07d2c494e86825d5270d0e4d4e",
+      "mediaIndexPath": "lessons/4-2/media/4-2-media.md",
+      "mediaIndexSha256": "e9fcc7c1b0416d255555bdc2cd25cc2008b8db72cf5dd0812e3fa4785e0e2663",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-2/media/4-2-intro-video.mp4:sha256:4e15bda43a9385a61a5cfe72b5271a2e3fe64f07d2c494e86825d5270d0e4d4e",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-2:4-2-slides",
+      "lessonKey": "4-2",
+      "mediaId": "4-2-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-2/media/4-2-slides.pdf",
+      "contentSha256": "044fa71f1a6fb4e5f2e63a58b5895ff25feafb4440ecb6ac1605423dab1e0f73",
+      "mediaIndexPath": "lessons/4-2/media/4-2-media.md",
+      "mediaIndexSha256": "e9fcc7c1b0416d255555bdc2cd25cc2008b8db72cf5dd0812e3fa4785e0e2663",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-2/media/4-2-slides.pdf:sha256:044fa71f1a6fb4e5f2e63a58b5895ff25feafb4440ecb6ac1605423dab1e0f73",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-3:4-3-audio",
+      "lessonKey": "4-3",
+      "mediaId": "4-3-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-3/media/4-3-audio.m4a",
+      "contentSha256": "499bbad1a1ff9335fafad21336abbffb822ebb1e800045c7e80f4fa21ada459b",
+      "mediaIndexPath": "lessons/4-3/media/4-3-media.md",
+      "mediaIndexSha256": "b54d8500731601a26fd4032d62e9ffc01e3db590fef003d939181e0a7eae3864",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-3/media/4-3-audio.m4a:sha256:499bbad1a1ff9335fafad21336abbffb822ebb1e800045c7e80f4fa21ada459b",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-3:4-3-course",
+      "lessonKey": "4-3",
+      "mediaId": "4-3-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-3/media/4-3-course.mp4",
+      "contentSha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+      "mediaIndexPath": "lessons/4-3/media/4-3-media.md",
+      "mediaIndexSha256": "b54d8500731601a26fd4032d62e9ffc01e3db590fef003d939181e0a7eae3864",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-3/media/4-3-course.mp4:sha256:0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-3:4-3-intro-video",
+      "lessonKey": "4-3",
+      "mediaId": "4-3-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-3/media/4-3-intro-video.mp4",
+      "contentSha256": "29e7088fcb7e9c6e3b6de6e42860022c873889552c289e6f6b6f49eca49910a3",
+      "mediaIndexPath": "lessons/4-3/media/4-3-media.md",
+      "mediaIndexSha256": "b54d8500731601a26fd4032d62e9ffc01e3db590fef003d939181e0a7eae3864",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-3/media/4-3-intro-video.mp4:sha256:29e7088fcb7e9c6e3b6de6e42860022c873889552c289e6f6b6f49eca49910a3",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-3:4-3-slides",
+      "lessonKey": "4-3",
+      "mediaId": "4-3-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-3/media/4-3-slides.pdf",
+      "contentSha256": "5e2da44d04a5b26f8e9899f0ad87ea44b41274ec8c2cb66fcd55881ec9c14c50",
+      "mediaIndexPath": "lessons/4-3/media/4-3-media.md",
+      "mediaIndexSha256": "b54d8500731601a26fd4032d62e9ffc01e3db590fef003d939181e0a7eae3864",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-3/media/4-3-slides.pdf:sha256:5e2da44d04a5b26f8e9899f0ad87ea44b41274ec8c2cb66fcd55881ec9c14c50",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-4:4-4-audio",
+      "lessonKey": "4-4",
+      "mediaId": "4-4-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-4/media/4-4-audio.m4a",
+      "contentSha256": "c9dd210abb1438996a09e47af9a262eeb6d75a03354ddae03c241af7e05bc2f1",
+      "mediaIndexPath": "lessons/4-4/media/4-4-media.md",
+      "mediaIndexSha256": "003f1942314f78f646a090be95ef987a238ee33391ef972934670214a1f2c77b",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-4/media/4-4-audio.m4a:sha256:c9dd210abb1438996a09e47af9a262eeb6d75a03354ddae03c241af7e05bc2f1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-4:4-4-course",
+      "lessonKey": "4-4",
+      "mediaId": "4-4-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-4/media/4-4-course.mp4",
+      "contentSha256": "600501060c7deba1e08d2c5b8d33ed8f0544add8316c689666ba139148cae2dc",
+      "mediaIndexPath": "lessons/4-4/media/4-4-media.md",
+      "mediaIndexSha256": "003f1942314f78f646a090be95ef987a238ee33391ef972934670214a1f2c77b",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-4/media/4-4-course.mp4:sha256:600501060c7deba1e08d2c5b8d33ed8f0544add8316c689666ba139148cae2dc",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-4:4-4-intro-video",
+      "lessonKey": "4-4",
+      "mediaId": "4-4-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-4/media/4-4-intro-video.mp4",
+      "contentSha256": "6f7d326957e0f107182c70f732e1d5d318f55e2efaf9e02ec9769748cd954f7f",
+      "mediaIndexPath": "lessons/4-4/media/4-4-media.md",
+      "mediaIndexSha256": "003f1942314f78f646a090be95ef987a238ee33391ef972934670214a1f2c77b",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-4/media/4-4-intro-video.mp4:sha256:6f7d326957e0f107182c70f732e1d5d318f55e2efaf9e02ec9769748cd954f7f",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-4:4-4-slides",
+      "lessonKey": "4-4",
+      "mediaId": "4-4-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-4/media/4-4-slides.pdf",
+      "contentSha256": "d83c18cd4e7197338ac4f3d7a63e606d23af3cedc7e6e0e782121cbbbb9f6876",
+      "mediaIndexPath": "lessons/4-4/media/4-4-media.md",
+      "mediaIndexSha256": "003f1942314f78f646a090be95ef987a238ee33391ef972934670214a1f2c77b",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-4/media/4-4-slides.pdf:sha256:d83c18cd4e7197338ac4f3d7a63e606d23af3cedc7e6e0e782121cbbbb9f6876",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-5:4-5-audio",
+      "lessonKey": "4-5",
+      "mediaId": "4-5-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-5/media/4-5-audio.m4a",
+      "contentSha256": "81d3b9635bf43d2b65c185ac4b8da5e9eaec07d379b8b257fa31798ea7564928",
+      "mediaIndexPath": "lessons/4-5/media/4-5-media.md",
+      "mediaIndexSha256": "b399aaec35baf34412b8c44be99a6317dd5dba8c3d9dbcf6de59c651c05b8c48",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-5/media/4-5-audio.m4a:sha256:81d3b9635bf43d2b65c185ac4b8da5e9eaec07d379b8b257fa31798ea7564928",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-5:4-5-course",
+      "lessonKey": "4-5",
+      "mediaId": "4-5-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-5/media/4-5-course.mp4",
+      "contentSha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+      "mediaIndexPath": "lessons/4-5/media/4-5-media.md",
+      "mediaIndexSha256": "b399aaec35baf34412b8c44be99a6317dd5dba8c3d9dbcf6de59c651c05b8c48",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-5/media/4-5-course.mp4:sha256:53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-5:4-5-intro-video",
+      "lessonKey": "4-5",
+      "mediaId": "4-5-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-5/media/4-5-intro-video.mp4",
+      "contentSha256": "92171732076d81244fb85fa4319e0cfd49e00c50ab779e1dcf41274781a0d6d1",
+      "mediaIndexPath": "lessons/4-5/media/4-5-media.md",
+      "mediaIndexSha256": "b399aaec35baf34412b8c44be99a6317dd5dba8c3d9dbcf6de59c651c05b8c48",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-5/media/4-5-intro-video.mp4:sha256:92171732076d81244fb85fa4319e0cfd49e00c50ab779e1dcf41274781a0d6d1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-5:4-5-slides",
+      "lessonKey": "4-5",
+      "mediaId": "4-5-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-5/media/4-5-slides.pdf",
+      "contentSha256": "014ef7846867e44427c8b94da64c97333b14881fc89f6578176ab383d7ca9279",
+      "mediaIndexPath": "lessons/4-5/media/4-5-media.md",
+      "mediaIndexSha256": "b399aaec35baf34412b8c44be99a6317dd5dba8c3d9dbcf6de59c651c05b8c48",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-5/media/4-5-slides.pdf:sha256:014ef7846867e44427c8b94da64c97333b14881fc89f6578176ab383d7ca9279",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-6:4-6-audio",
+      "lessonKey": "4-6",
+      "mediaId": "4-6-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-6/media/4-6-audio.m4a",
+      "contentSha256": "7fb63702a6d5d2b4a716f4b3c68b892eca939837fe12a3b97d73d47b6fdd8915",
+      "mediaIndexPath": "lessons/4-6/media/4-6-media.md",
+      "mediaIndexSha256": "ebc62423654053430d125dd88f6fcb425f4476d3f6e2e4f627ddba041c9ed530",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-6/media/4-6-audio.m4a:sha256:7fb63702a6d5d2b4a716f4b3c68b892eca939837fe12a3b97d73d47b6fdd8915",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-6:4-6-course",
+      "lessonKey": "4-6",
+      "mediaId": "4-6-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-6/media/4-6-course.mp4",
+      "contentSha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+      "mediaIndexPath": "lessons/4-6/media/4-6-media.md",
+      "mediaIndexSha256": "ebc62423654053430d125dd88f6fcb425f4476d3f6e2e4f627ddba041c9ed530",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-6/media/4-6-course.mp4:sha256:5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-6:4-6-intro-video",
+      "lessonKey": "4-6",
+      "mediaId": "4-6-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-6/media/4-6-intro-video.mp4",
+      "contentSha256": "de99707b2ef656fc403718244adc5b6d7dde0876b7d09f2dc9faf8d9250d3aee",
+      "mediaIndexPath": "lessons/4-6/media/4-6-media.md",
+      "mediaIndexSha256": "ebc62423654053430d125dd88f6fcb425f4476d3f6e2e4f627ddba041c9ed530",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-6/media/4-6-intro-video.mp4:sha256:de99707b2ef656fc403718244adc5b6d7dde0876b7d09f2dc9faf8d9250d3aee",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-6:4-6-slides",
+      "lessonKey": "4-6",
+      "mediaId": "4-6-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-6/media/4-6-slides.pdf",
+      "contentSha256": "1a1768c9e00e1c27f2f9cc960c6b0cad2a75f393ac4f711f08dfc88b47993a43",
+      "mediaIndexPath": "lessons/4-6/media/4-6-media.md",
+      "mediaIndexSha256": "ebc62423654053430d125dd88f6fcb425f4476d3f6e2e4f627ddba041c9ed530",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-6/media/4-6-slides.pdf:sha256:1a1768c9e00e1c27f2f9cc960c6b0cad2a75f393ac4f711f08dfc88b47993a43",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-7:4-7-audio",
+      "lessonKey": "4-7",
+      "mediaId": "4-7-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-7/media/4-7-audio.m4a",
+      "contentSha256": "ded1b7254c77f94eecebef0f391207bde6c9b2ac5b7d32e4c217902a9d9006b1",
+      "mediaIndexPath": "lessons/4-7/media/4-7-media.md",
+      "mediaIndexSha256": "e5fdee58680ce18ffeb65286c2556c0c37b9cfa9c9661d38ba300089531ad600",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-7/media/4-7-audio.m4a:sha256:ded1b7254c77f94eecebef0f391207bde6c9b2ac5b7d32e4c217902a9d9006b1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-7:4-7-course",
+      "lessonKey": "4-7",
+      "mediaId": "4-7-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-7/media/4-7-course.mp4",
+      "contentSha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+      "mediaIndexPath": "lessons/4-7/media/4-7-media.md",
+      "mediaIndexSha256": "e5fdee58680ce18ffeb65286c2556c0c37b9cfa9c9661d38ba300089531ad600",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-7/media/4-7-course.mp4:sha256:0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-7:4-7-intro-video",
+      "lessonKey": "4-7",
+      "mediaId": "4-7-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-7/media/4-7-intro-video.mp4",
+      "contentSha256": "c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+      "mediaIndexPath": "lessons/4-7/media/4-7-media.md",
+      "mediaIndexSha256": "e5fdee58680ce18ffeb65286c2556c0c37b9cfa9c9661d38ba300089531ad600",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-7/media/4-7-intro-video.mp4:sha256:c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:4-7:4-7-slides",
+      "lessonKey": "4-7",
+      "mediaId": "4-7-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/4-7/media/4-7-slides.pdf",
+      "contentSha256": "ad1df30f9e68efd8ea0dbe849862e885bc6ede271f277d42e54f3809c2a70463",
+      "mediaIndexPath": "lessons/4-7/media/4-7-media.md",
+      "mediaIndexSha256": "e5fdee58680ce18ffeb65286c2556c0c37b9cfa9c9661d38ba300089531ad600",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/4-7/media/4-7-slides.pdf:sha256:ad1df30f9e68efd8ea0dbe849862e885bc6ede271f277d42e54f3809c2a70463",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-1:5-1-audio",
+      "lessonKey": "5-1",
+      "mediaId": "5-1-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-1/media/5-1-audio.m4a",
+      "contentSha256": "afc6ce2b72108e62e05fb1fef0249c320bda55a82c32df0d8030bc650353df1d",
+      "mediaIndexPath": "lessons/5-1/media/5-1-media.md",
+      "mediaIndexSha256": "f0eef39d129dc90c9c030b91b71a0ddb050e145ca4af08f7f8f0ce7b63712b56",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-1/media/5-1-audio.m4a:sha256:afc6ce2b72108e62e05fb1fef0249c320bda55a82c32df0d8030bc650353df1d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-1:5-1-course",
+      "lessonKey": "5-1",
+      "mediaId": "5-1-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-1/media/5-1-course.mp4",
+      "contentSha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+      "mediaIndexPath": "lessons/5-1/media/5-1-media.md",
+      "mediaIndexSha256": "f0eef39d129dc90c9c030b91b71a0ddb050e145ca4af08f7f8f0ce7b63712b56",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-1/media/5-1-course.mp4:sha256:7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-1:5-1-intro-video",
+      "lessonKey": "5-1",
+      "mediaId": "5-1-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-1/media/5-1-intro-video.mp4",
+      "contentSha256": "47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+      "mediaIndexPath": "lessons/5-1/media/5-1-media.md",
+      "mediaIndexSha256": "f0eef39d129dc90c9c030b91b71a0ddb050e145ca4af08f7f8f0ce7b63712b56",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-1/media/5-1-intro-video.mp4:sha256:47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-1:5-1-slides",
+      "lessonKey": "5-1",
+      "mediaId": "5-1-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-1/media/5-1-slides.pdf",
+      "contentSha256": "5ca2e3657f98ea21ddda3c1ddbba77f0dda99cf6cf888220957fc952a6e96c8a",
+      "mediaIndexPath": "lessons/5-1/media/5-1-media.md",
+      "mediaIndexSha256": "f0eef39d129dc90c9c030b91b71a0ddb050e145ca4af08f7f8f0ce7b63712b56",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-1/media/5-1-slides.pdf:sha256:5ca2e3657f98ea21ddda3c1ddbba77f0dda99cf6cf888220957fc952a6e96c8a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-2:5-2-audio",
+      "lessonKey": "5-2",
+      "mediaId": "5-2-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-2/media/5-2-audio.m4a",
+      "contentSha256": "aaf656e41fd2fe705b22a26f3ab666c66dc4a30b6b297dd4a56b510fc515c7c2",
+      "mediaIndexPath": "lessons/5-2/media/5-2-media.md",
+      "mediaIndexSha256": "14aa8237ac725eb11d38d6c3b2c7423ce57aac224b07643a52496505ebe80f60",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-2/media/5-2-audio.m4a:sha256:aaf656e41fd2fe705b22a26f3ab666c66dc4a30b6b297dd4a56b510fc515c7c2",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-2:5-2-course",
+      "lessonKey": "5-2",
+      "mediaId": "5-2-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-2/media/5-2-course.mp4",
+      "contentSha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+      "mediaIndexPath": "lessons/5-2/media/5-2-media.md",
+      "mediaIndexSha256": "14aa8237ac725eb11d38d6c3b2c7423ce57aac224b07643a52496505ebe80f60",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-2/media/5-2-course.mp4:sha256:91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-2:5-2-intro-video",
+      "lessonKey": "5-2",
+      "mediaId": "5-2-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-2/media/5-2-intro-video.mp4",
+      "contentSha256": "6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+      "mediaIndexPath": "lessons/5-2/media/5-2-media.md",
+      "mediaIndexSha256": "14aa8237ac725eb11d38d6c3b2c7423ce57aac224b07643a52496505ebe80f60",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-2/media/5-2-intro-video.mp4:sha256:6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-2:5-2-slides",
+      "lessonKey": "5-2",
+      "mediaId": "5-2-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-2/media/5-2-slides.pdf",
+      "contentSha256": "d505bea9ed649b685c534ec1097613ceac0c03eefd18e3dc14f470273d174008",
+      "mediaIndexPath": "lessons/5-2/media/5-2-media.md",
+      "mediaIndexSha256": "14aa8237ac725eb11d38d6c3b2c7423ce57aac224b07643a52496505ebe80f60",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-2/media/5-2-slides.pdf:sha256:d505bea9ed649b685c534ec1097613ceac0c03eefd18e3dc14f470273d174008",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-3:5-3-audio",
+      "lessonKey": "5-3",
+      "mediaId": "5-3-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-3/media/5-3-audio.m4a",
+      "contentSha256": "545146c6cefc9ed9700f2a7ec9da3419fa199e39578f7d64106699ac65beefc1",
+      "mediaIndexPath": "lessons/5-3/media/5-3-media.md",
+      "mediaIndexSha256": "8e78d0acaf0e38f5ee228ae56c10527aac9416506446099238f15ae308b000aa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-3/media/5-3-audio.m4a:sha256:545146c6cefc9ed9700f2a7ec9da3419fa199e39578f7d64106699ac65beefc1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-3:5-3-course",
+      "lessonKey": "5-3",
+      "mediaId": "5-3-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-3/media/5-3-course.mp4",
+      "contentSha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+      "mediaIndexPath": "lessons/5-3/media/5-3-media.md",
+      "mediaIndexSha256": "8e78d0acaf0e38f5ee228ae56c10527aac9416506446099238f15ae308b000aa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-3/media/5-3-course.mp4:sha256:02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-3:5-3-intro-video",
+      "lessonKey": "5-3",
+      "mediaId": "5-3-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-3/media/5-3-intro-video.mp4",
+      "contentSha256": "75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+      "mediaIndexPath": "lessons/5-3/media/5-3-media.md",
+      "mediaIndexSha256": "8e78d0acaf0e38f5ee228ae56c10527aac9416506446099238f15ae308b000aa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-3/media/5-3-intro-video.mp4:sha256:75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-3:5-3-slides",
+      "lessonKey": "5-3",
+      "mediaId": "5-3-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-3/media/5-3-slides.pdf",
+      "contentSha256": "0f05be85f8f4a3a4fb671d30a54a6c4c3744493d5ae9773558db97fb0a1cae17",
+      "mediaIndexPath": "lessons/5-3/media/5-3-media.md",
+      "mediaIndexSha256": "8e78d0acaf0e38f5ee228ae56c10527aac9416506446099238f15ae308b000aa",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-3/media/5-3-slides.pdf:sha256:0f05be85f8f4a3a4fb671d30a54a6c4c3744493d5ae9773558db97fb0a1cae17",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-4:5-4-audio",
+      "lessonKey": "5-4",
+      "mediaId": "5-4-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-4/media/5-4-audio.m4a",
+      "contentSha256": "a9023905ea77a247aa40496861a2d6b8378b5af2657a991e14e6cd668a31003e",
+      "mediaIndexPath": "lessons/5-4/media/5-4-media.md",
+      "mediaIndexSha256": "76f4585f9533f19e39b5931cad8443a2f7f054dc70a8e9920c68047d25bcaa8c",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-4/media/5-4-audio.m4a:sha256:a9023905ea77a247aa40496861a2d6b8378b5af2657a991e14e6cd668a31003e",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-4:5-4-course",
+      "lessonKey": "5-4",
+      "mediaId": "5-4-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-4/media/5-4-course.mp4",
+      "contentSha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+      "mediaIndexPath": "lessons/5-4/media/5-4-media.md",
+      "mediaIndexSha256": "76f4585f9533f19e39b5931cad8443a2f7f054dc70a8e9920c68047d25bcaa8c",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-4/media/5-4-course.mp4:sha256:d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-4:5-4-intro-video",
+      "lessonKey": "5-4",
+      "mediaId": "5-4-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-4/media/5-4-intro-video.mp4",
+      "contentSha256": "97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+      "mediaIndexPath": "lessons/5-4/media/5-4-media.md",
+      "mediaIndexSha256": "76f4585f9533f19e39b5931cad8443a2f7f054dc70a8e9920c68047d25bcaa8c",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-4/media/5-4-intro-video.mp4:sha256:97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-4:5-4-slides",
+      "lessonKey": "5-4",
+      "mediaId": "5-4-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-4/media/5-4-slides.pdf",
+      "contentSha256": "a644e5cbd1a8a9a6590161a3a5f1501c4d292d7d7718f43e8c8b488126341bde",
+      "mediaIndexPath": "lessons/5-4/media/5-4-media.md",
+      "mediaIndexSha256": "76f4585f9533f19e39b5931cad8443a2f7f054dc70a8e9920c68047d25bcaa8c",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-4/media/5-4-slides.pdf:sha256:a644e5cbd1a8a9a6590161a3a5f1501c4d292d7d7718f43e8c8b488126341bde",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-5:5-5-audio",
+      "lessonKey": "5-5",
+      "mediaId": "5-5-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-5/media/5-5-audio.m4a",
+      "contentSha256": "4468eb29c37c2dfa12d7c68606fc9e40d3943dd3cc0dd04b9ba76ab1a8ec3464",
+      "mediaIndexPath": "lessons/5-5/media/5-5-media.md",
+      "mediaIndexSha256": "7e3d5c097b6ce9b91bedfb5e5a24160f206b3d0b445d2d7d41114ae79847aa10",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-5/media/5-5-audio.m4a:sha256:4468eb29c37c2dfa12d7c68606fc9e40d3943dd3cc0dd04b9ba76ab1a8ec3464",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-5:5-5-course",
+      "lessonKey": "5-5",
+      "mediaId": "5-5-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-5/media/5-5-course.mp4",
+      "contentSha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+      "mediaIndexPath": "lessons/5-5/media/5-5-media.md",
+      "mediaIndexSha256": "7e3d5c097b6ce9b91bedfb5e5a24160f206b3d0b445d2d7d41114ae79847aa10",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-5/media/5-5-course.mp4:sha256:29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-5:5-5-intro-video",
+      "lessonKey": "5-5",
+      "mediaId": "5-5-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-5/media/5-5-intro-video.mp4",
+      "contentSha256": "943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+      "mediaIndexPath": "lessons/5-5/media/5-5-media.md",
+      "mediaIndexSha256": "7e3d5c097b6ce9b91bedfb5e5a24160f206b3d0b445d2d7d41114ae79847aa10",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-5/media/5-5-intro-video.mp4:sha256:943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-5:5-5-slides",
+      "lessonKey": "5-5",
+      "mediaId": "5-5-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-5/media/5-5-slides.pdf",
+      "contentSha256": "6c34c35daf8370a97c1f8fa46ea459e515ae5b746e02701efb64ad837ab92be8",
+      "mediaIndexPath": "lessons/5-5/media/5-5-media.md",
+      "mediaIndexSha256": "7e3d5c097b6ce9b91bedfb5e5a24160f206b3d0b445d2d7d41114ae79847aa10",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-5/media/5-5-slides.pdf:sha256:6c34c35daf8370a97c1f8fa46ea459e515ae5b746e02701efb64ad837ab92be8",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-6:5-6-audio",
+      "lessonKey": "5-6",
+      "mediaId": "5-6-audio",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-6/media/5-6-audio.m4a",
+      "contentSha256": "fb1eb678af788b656369ba1888f6601c521100e579f666deaf3d8fba400f533d",
+      "mediaIndexPath": "lessons/5-6/media/5-6-media.md",
+      "mediaIndexSha256": "f2c25678d1fbf16cfb57281df24a6e411a1247c2e8288e52ba76b02d28b508dd",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-6/media/5-6-audio.m4a:sha256:fb1eb678af788b656369ba1888f6601c521100e579f666deaf3d8fba400f533d",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-6:5-6-course",
+      "lessonKey": "5-6",
+      "mediaId": "5-6-course",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-6/media/5-6-course.mp4",
+      "contentSha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+      "mediaIndexPath": "lessons/5-6/media/5-6-media.md",
+      "mediaIndexSha256": "f2c25678d1fbf16cfb57281df24a6e411a1247c2e8288e52ba76b02d28b508dd",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-6/media/5-6-course.mp4:sha256:69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-6:5-6-intro-video",
+      "lessonKey": "5-6",
+      "mediaId": "5-6-intro-video",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-6/media/5-6-intro-video.mp4",
+      "contentSha256": "394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+      "mediaIndexPath": "lessons/5-6/media/5-6-media.md",
+      "mediaIndexSha256": "f2c25678d1fbf16cfb57281df24a6e411a1247c2e8288e52ba76b02d28b508dd",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-6/media/5-6-intro-video.mp4:sha256:394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+      "blockerCodes": []
+    },
+    {
+      "resourceId": "runtime-media:5-6:5-6-slides",
+      "lessonKey": "5-6",
+      "mediaId": "5-6-slides",
+      "sourceIdentityState": "RECOVERED_FROM_ACTIVE_RUNTIME_MANIFEST",
+      "runtimePath": "lessons/5-6/media/5-6-slides.pdf",
+      "contentSha256": "7155a995f5c9eaf9d108cdfb2613acf56cac0f65e30d4d41fb064d215fa44cb3",
+      "mediaIndexPath": "lessons/5-6/media/5-6-media.md",
+      "mediaIndexSha256": "f2c25678d1fbf16cfb57281df24a6e411a1247c2e8288e52ba76b02d28b508dd",
+      "sourceIdentity": "runtime-release:runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057:lessons/5-6/media/5-6-slides.pdf:sha256:7155a995f5c9eaf9d108cdfb2613acf56cac0f65e30d4d41fb064d215fa44cb3",
+      "blockerCodes": []
+    }
+  ],
+  "recoveredCount": 113,
+  "missingCount": 3,
+  "bridgeHash": "02c1a48b6bce5ccc99a81bed44e1ccf0f9901f9b19a3db229c8e983c7c8932c0",
+  "runtimeObservationHash": "a2fcb0116c034f1ec2bd4cf029f0366c45df409361079660aab9a41ef7f33b92",
+  "projectionArtifact": {
+    "path": "course-content/runtime/resource-governance/runtime-resource-projections.jsonl",
+    "sha256": "c8510fa20b27c189c071bf25b7a82ccbacc5421433b9b12cb6ac9ac5e9887b62"
+  },
+  "formalBindingState": "NOT_A_FORMAL_BINDING",
+  "blockers": [
+    {
+      "resourceId": "runtime-media:1-4:1-4-audio",
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-course",
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-slides",
+      "blockerCodes": [
+        "active-runtime-media-file-missing"
+      ]
+    }
+  ],
+  "reviewHash": "9103baf6de76c2f7d9ef8cb0c0ddf4ed908ba564ff212609b96df3811bb95f7d",
+  "sourceInputs": [
+    {
+      "path": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c3/active-resource-review/production-runtime-observation.json",
+      "sha256": "8ef5972fde6aef1051a57b1f1e25bdd2e8e6e44f2b0eb24a54bfb292ad46a544"
+    },
+    {
+      "path": "course-content/runtime/resource-governance/runtime-resource-projections.jsonl",
+      "sha256": "c8510fa20b27c189c071bf25b7a82ccbacc5421433b9b12cb6ac9ac5e9887b62"
+    },
+    {
+      "path": "course-content/runtime/lessons/1-1/media/1-1-media.md",
+      "sha256": "6d33b2fa14d6fcce54bcdfd501571eea2706f2bdef58403510666a6610ceb3f0"
+    },
+    {
+      "path": "course-content/runtime/lessons/1-2/media/1-2-media.md",
+      "sha256": "8ace1cb13fb6aa1d6b81c46028c4b9e585d051e8a44308fe9dc3b999819e5c91"
+    },
+    {
+      "path": "course-content/runtime/lessons/1-4/media/1-4-media.md",
+      "sha256": "9582cb7798d57aaa2615cc74c6ad98232d2f6e7f7f4316e2577a566793f2995a"
+    },
+    {
+      "path": "course-content/runtime/lessons/2-1/media/2-1-media.md",
+      "sha256": "025307a795993853163fdfcfcd77ce51525afa0be622caf336b0d809d5236a66"
+    },
+    {
+      "path": "course-content/runtime/lessons/2-2/media/2-2-media.md",
+      "sha256": "4040e87d1e59dea6d4d6b29592479b756112c3997bdbdaa3721afa5f9488de50"
+    },
+    {
+      "path": "course-content/runtime/lessons/2-3/media/2-3-media.md",
+      "sha256": "8623c3af61f70165d781f75340d2e7af600d96d26daabc39b67ee71cd7fceba8"
+    },
+    {
+      "path": "course-content/runtime/lessons/2-4/media/2-4-media.md",
+      "sha256": "4f77f7e213ae676acb3f74d473e9218d0bcfedb06c5825e15d9b1a8f91d35646"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-1/media/3-1-media.md",
+      "sha256": "8423c1b441b7c38ad8c0c0d2133f1a0d781a95b4a6a265a6b8b9cd7c75ab9458"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-2/media/3-2-media.md",
+      "sha256": "7d107f6ff3617d7fa2f71ec6c508e517022e2fed4702e232b31bca9ab9502eaa"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-3/media/3-3-media.md",
+      "sha256": "75c8184d1a132a068aa7f656d4050e42762c2d6cf7ebb8e9d422ae6e93da2272"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-4/media/3-4-media.md",
+      "sha256": "56e49902a45845fc2818500a2fe1ca330b6b240b3c9a77c6ad76d25c1cd2b1cf"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-5/media/3-5-media.md",
+      "sha256": "80fc47da1e5fa17deb0ca905f30001274ba34efc9a2512f9cd30b816b4123375"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-6/media/3-6-media.md",
+      "sha256": "5af85df7b9620df5a4430ac61382cb76c7189a37f583056752ea5b496ce8efbf"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-7/media/3-7-media.md",
+      "sha256": "c0d09629b9eebc73d4186e713d324c0754e7b00e5b9910b2f2fb0e5c57f33aa0"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-8/media/3-8-media.md",
+      "sha256": "b70bf74fadb19ff0761020c1163a1126483431c86abb750bf532078b028bcaa1"
+    },
+    {
+      "path": "course-content/runtime/lessons/3-9/media/3-9-media.md",
+      "sha256": "1b9556f8212e2d7ff5e971ca9a4c130682000c31cbbb390e06ea809e6cb17d36"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-1/media/4-1-media.md",
+      "sha256": "72aa36f9394eafd7b75a491833d3e5ac81dfb11cfd4bcb0bb8e0b49e3d1f2515"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-2/media/4-2-media.md",
+      "sha256": "e9fcc7c1b0416d255555bdc2cd25cc2008b8db72cf5dd0812e3fa4785e0e2663"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-3/media/4-3-media.md",
+      "sha256": "b54d8500731601a26fd4032d62e9ffc01e3db590fef003d939181e0a7eae3864"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-4/media/4-4-media.md",
+      "sha256": "003f1942314f78f646a090be95ef987a238ee33391ef972934670214a1f2c77b"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-5/media/4-5-media.md",
+      "sha256": "b399aaec35baf34412b8c44be99a6317dd5dba8c3d9dbcf6de59c651c05b8c48"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-6/media/4-6-media.md",
+      "sha256": "ebc62423654053430d125dd88f6fcb425f4476d3f6e2e4f627ddba041c9ed530"
+    },
+    {
+      "path": "course-content/runtime/lessons/4-7/media/4-7-media.md",
+      "sha256": "e5fdee58680ce18ffeb65286c2556c0c37b9cfa9c9661d38ba300089531ad600"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-1/media/5-1-media.md",
+      "sha256": "f0eef39d129dc90c9c030b91b71a0ddb050e145ca4af08f7f8f0ce7b63712b56"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-2/media/5-2-media.md",
+      "sha256": "14aa8237ac725eb11d38d6c3b2c7423ce57aac224b07643a52496505ebe80f60"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-3/media/5-3-media.md",
+      "sha256": "8e78d0acaf0e38f5ee228ae56c10527aac9416506446099238f15ae308b000aa"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-4/media/5-4-media.md",
+      "sha256": "76f4585f9533f19e39b5931cad8443a2f7f054dc70a8e9920c68047d25bcaa8c"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-5/media/5-5-media.md",
+      "sha256": "7e3d5c097b6ce9b91bedfb5e5a24160f206b3d0b445d2d7d41114ae79847aa10"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-6/media/5-6-media.md",
+      "sha256": "f2c25678d1fbf16cfb57281df24a6e411a1247c2e8288e52ba76b02d28b508dd"
+    }
+  ]
+}

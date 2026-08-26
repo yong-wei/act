@@ -714,6 +714,25 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
                 if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
                     fail("coordinated cutover declaration must match the desired identity")
                 write_coordinated_cutover_declaration(state_dir, declaration)
+        elif operation == "attach-coordinated-desired":
+            candidate = read_identity_file(args.identity)
+            if current["desired"] != candidate:
+                fail("coordinated declaration requires the exact current desired identity")
+            declaration_source = getattr(args, "coordinated_cutover", None)
+            if not declaration_source:
+                fail("coordinated declaration source is required")
+            try:
+                declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                fail("coordinated cutover declaration is unreadable: %s" % error)
+            if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+                fail("coordinated cutover declaration must match the current desired identity")
+            existing = read_coordinated_cutover_declaration(state_dir)
+            if existing is not None:
+                if existing != declaration:
+                    fail("a different coordinated declaration is already attached to the desired identity")
+                return current
+            write_coordinated_cutover_declaration(state_dir, declaration)
         elif operation == "cancel-desired":
             if current["desired"] is None:
                 fail("there is no desired candidate to cancel")
@@ -1103,12 +1122,13 @@ def main() -> None:
     import_parser.add_argument("--active-identity-file", required=True)
     import_parser.add_argument("--v1-desired-selection-file")
     import_parser.add_argument("--desired-identity-file")
-    for name in ("begin-publish", "cancel-publishing", "set-desired", "retain", "release-retained"):
+    for name in ("begin-publish", "cancel-publishing", "set-desired", "attach-coordinated-desired", "retain", "release-retained"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--identity", required=True)
     commands.choices["set-desired"].add_argument("--coordinated-cutover")
+    commands.choices["attach-coordinated-desired"].add_argument("--coordinated-cutover", required=True)
     for name in ("retain", "release-retained"):
         commands.choices[name].add_argument("--now", help=argparse.SUPPRESS)
     activate_parser = commands.add_parser("activate")
@@ -1173,7 +1193,7 @@ def main() -> None:
         result = initialize(args)
     elif args.command == "initialize-v2-from-v1":
         result = initialize_from_v1(args)
-    elif args.command in {"begin-publish", "cancel-publishing", "set-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
+    elif args.command in {"begin-publish", "cancel-publishing", "set-desired", "attach-coordinated-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
         result = mutate(args, args.command)
     elif args.command == "protected-set":
         result = protected(args)

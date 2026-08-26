@@ -24,6 +24,8 @@ export const RESOURCE_CONTINUITY_RECEIPT_CONTRACT =
   'resource-continuity-receipt/v1' as const;
 export const RESOURCE_RETIREMENT_DECISION_CONTRACT =
   'resource-owner-retirement-decision/v1' as const;
+export const BASELINE_CONTINUITY_OBLIGATION_CONTRACT =
+  'baseline-continuity-obligation-ledger/v1' as const;
 export const TEACHING_CLOSURE_RECEIPT_CONTRACT =
   'coordinated-teaching-closure-receipt/v1' as const;
 export const COORDINATION_ALLOCATION_CONTRACT =
@@ -192,6 +194,12 @@ export interface ActiveBaselineEntry {
   readonly registryId?: string | null;
   readonly carrierEntryId?: string | null;
   readonly courseScope?: BaselineCourseScope;
+  /** Immutable content identity of the classification input. */
+  readonly sourceIdentity?: string | null;
+  /** Exact source bytes when this entry has a delivered Runtime carrier. */
+  readonly sourceContentSha256?: string | null;
+  /** Machine-readable reason for the resource or non-resource disposition. */
+  readonly dispositionReason?: string | null;
 }
 
 export interface ActiveRuntimeReleaseIdentity {
@@ -292,8 +300,30 @@ export interface RetirementDecision {
   readonly invalidationRules: readonly string[];
 }
 
+/**
+ * The successor obligation is determined from the sealed active Runtime, not
+ * from a blanket assumption that every delivered file is a teaching binding.
+ * A resource that can enter a current learner path remains fail-closed; an
+ * explicitly non-teaching or supporting resource remains accounted for but
+ * must never become path-selectable through this disposition.
+ */
+export const RESOURCE_CONTINUITY_OBLIGATION_KINDS = [
+  'FORMAL_TEACHING',
+  'FORMAL_EXPLICIT_NONE',
+  'RUNTIME_SUPPORT',
+  'CATALOG_ONLY',
+] as const;
+export type ResourceContinuityObligationKind =
+  (typeof RESOURCE_CONTINUITY_OBLIGATION_KINDS)[number];
+
 export interface ResourceSuccessorDisposition {
   readonly resourceId: string;
+  /** Omitted only by legacy callers; the gate treats that as FORMAL_TEACHING. */
+  readonly obligation?: ResourceContinuityObligationKind;
+  /** Immutable evidence identity for an explicit-none/supporting disposition. */
+  readonly obligationEvidenceHash?: string | null;
+  /** Supporting and catalog entries must remain ineligible for a current path. */
+  readonly currentPathEligible?: boolean;
   readonly atomicDispositionsComplete: boolean;
   readonly canonicalBindingCount: number;
   readonly launchContractQualified: boolean;

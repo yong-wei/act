@@ -120,6 +120,29 @@ assert.match(
   /--stage-only requires a successor Runtime release/,
   'staging must refuse to rematerialize the active Runtime release',
 );
+assert.match(
+  activation,
+  /--coordinated-activate-before-consumers/,
+  'coordinated execution must have an explicit deferred-consumer mode',
+);
+assert.match(
+  activation,
+  /coordinated Runtime activation requires every consumer stopped/,
+  'coordinated execution must reject a running consumer before view selection',
+);
+assert.match(
+  activation,
+  /coordinated activation requires all three regular coordinated receipt files/,
+  'coordinated execution must require the declaration, graph receipt, and Runtime binding together',
+);
+assert.ok(
+  activation.lastIndexOf('assert_coordinated_consumers_stopped') < activation.indexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'coordinated execution must check consumers before selecting the Runtime view',
+);
+assert.ok(
+  activation.indexOf('--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING"') < activation.indexOf('candidate_deploy_attempted=1'),
+  'coordinated execution must commit the lifecycle before restarting consumers',
+);
 assert.ok(
   activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),
   'non-selectable Runtime staging must stop before lifecycle desired state is written',

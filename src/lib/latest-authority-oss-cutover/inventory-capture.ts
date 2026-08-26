@@ -50,21 +50,39 @@ export function captureActiveLogicalInventory(
     fail('inventory-entry-duplicate', 'Classified inventory repeats an entryId.');
   }
 
-  const registryResources = input.teachingResources.filter(
-    (row) => typeof row.registryId === 'string' && row.registryId.length > 0,
-  );
-  for (const resource of registryResources) {
+  // A missing registry id is itself not a permission to omit an active DB
+  // resource.  Legacy rows are still carried by the active release and must
+  // be classified through their immutable database identity until repaired.
+  for (const resource of input.teachingResources) {
     const match = classified.find(
-      (entry) => entry.dbResourceId === resource.id || entry.registryId === resource.registryId,
+      (entry) => entry.dbResourceId === resource.id
+        || (
+          typeof resource.registryId === 'string'
+          && resource.registryId.length > 0
+          && entry.registryId === resource.registryId
+        ),
     );
     if (!match) {
       fail(
         'inventory-db-resource-missing',
-        `TeachingResource ${resource.id} (type ${resource.type}, registry ${resource.registryId}) has no classified inventory entry.`,
+        `TeachingResource ${resource.id} (type ${resource.type}, registry ${resource.registryId ?? 'null'}) has no classified inventory entry.`,
+      );
+    }
+    const inCourse = input.lessonItemResourceIds.includes(resource.id);
+    if (
+      inCourse
+      && (
+        match.classification !== 'resource'
+        || match.courseScope !== 'in-course'
+        || !match.resourceId
+      )
+    ) {
+      fail(
+        'inventory-in-course-resource-unscoped',
+        `TeachingResource ${resource.id} is referenced by a LessonItem and must be an in-course logical resource.`,
       );
     }
     if (resource.type === 'STATIC_MEDIA') {
-      const inCourse = input.lessonItemResourceIds.includes(resource.id);
       if (inCourse && match.courseScope !== 'in-course') {
         fail(
           'inventory-static-media-unscoped',
