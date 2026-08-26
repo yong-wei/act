@@ -2646,6 +2646,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
         ? `${name}:initial-canvas-content-missing`
         : null,
+      name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
+        ? `${name}:initial-controls-not-collapsed`
+        : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'

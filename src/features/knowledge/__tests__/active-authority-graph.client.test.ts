@@ -403,10 +403,18 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => button!.click());
     await act(async () => Promise.resolve());
     if (options.families === false) return;
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    const restoreMobileTools = mobileToolsToggle?.getAttribute('aria-expanded') === 'false';
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
+    }
     for (const family of ['association', 'application-and-analysis'] as const) {
       const familyButton = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
       expect(familyButton).not.toBeNull();
       await act(async () => familyButton!.click());
+    }
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
     }
     await act(async () => Promise.resolve());
   }
@@ -1649,6 +1657,13 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(container.querySelector('#active-authority-mobile-tools')).toBeNull();
+
+    await act(async () => mobileToolsToggle!.click());
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('#active-authority-mobile-tools')).not.toBeNull();
 
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     expect(graphSource).toContain('max-[639px]:pt-14');
@@ -1800,6 +1815,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS');
     expect(captureSource).toContain('rendererViewportVisibleHeight');
     expect(captureSource).toContain('rendererVisiblePaintPixelCount');
+    expect(captureSource).toContain('mobileToolsExpanded');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
     expect(captureSource).toContain('firstViewport: {');
@@ -1811,6 +1827,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
     expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
+    expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
+    expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
+    expect(governanceSource).toContain('initial-controls-not-collapsed');
   });
 
   it('fails closed before slicing unrelated Knowledge API paths', () => {

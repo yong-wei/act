@@ -1209,45 +1209,60 @@ async function enablePublishedActiveRelationFamily(
       ));
   });
 
-  if (await hasRenderedRelation()) return;
-
-  for (const family of [
-    'association',
-    'derivation-and-representation',
-    'application-and-analysis',
-    'structure',
-  ]) {
-    const control = page.locator(`button[data-authority-relation-family="${family}"]`);
-    if (await control.count() !== 1 || !(await control.isVisible())) continue;
-
-    if (await control.getAttribute('data-authority-family-enabled') !== 'true') {
-      await control.click({ timeout: 10000 });
-      await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
-    }
-
-    try {
-      await page.waitForFunction(
-        () => {
-          const nodes = new Set(
-            Array.from(document.querySelectorAll('[data-active-authority-node]'))
-              .map((node) => node.getAttribute('data-active-authority-node'))
-              .filter((value): value is string => Boolean(value)),
-          );
-          return Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
-            nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
-            && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
-          ));
-        },
-        undefined,
-        { timeout: 5000 },
-      );
-      return;
-    } catch {
-      // This family may only expose a cross-domain boundary. Try the next published family.
-    }
+  const mobileToolsToggle = page.locator('[data-active-authority-mobile-tools-toggle="true"]');
+  const mobileToolsWereCollapsed = await mobileToolsToggle.count() === 1
+    && await mobileToolsToggle.isVisible()
+    && await mobileToolsToggle.getAttribute('aria-expanded') === 'false';
+  if (mobileToolsWereCollapsed) {
+    await mobileToolsToggle.click({ timeout: 10000 });
   }
 
-  throw new Error(`active Authority did not render a published relation in ${context}`);
+  try {
+    if (await hasRenderedRelation()) return;
+
+    for (const family of [
+      'association',
+      'derivation-and-representation',
+      'application-and-analysis',
+      'structure',
+    ]) {
+      const control = page.locator(`button[data-authority-relation-family="${family}"]`);
+      if (await control.count() !== 1 || !(await control.isVisible())) continue;
+
+      if (await control.getAttribute('data-authority-family-enabled') !== 'true') {
+        await control.click({ timeout: 10000 });
+        await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
+      }
+
+      try {
+        await page.waitForFunction(
+          () => {
+            const nodes = new Set(
+              Array.from(document.querySelectorAll('[data-active-authority-node]'))
+                .map((node) => node.getAttribute('data-active-authority-node'))
+                .filter((value): value is string => Boolean(value)),
+            );
+            return Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
+              nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
+              && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
+            ));
+          },
+          undefined,
+          { timeout: 5000 },
+        );
+        return;
+      } catch {
+        // This family may only expose a cross-domain boundary. Try the next published family.
+      }
+    }
+
+    throw new Error(`active Authority did not render a published relation in ${context}`);
+  } finally {
+    if (mobileToolsWereCollapsed && await mobileToolsToggle.getAttribute('aria-expanded') === 'true') {
+      await mobileToolsToggle.click({ timeout: 10000 });
+      await page.waitForTimeout(150);
+    }
+  }
 }
 
 async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
@@ -2102,6 +2117,7 @@ async function captureMarkers(page: Page, stateName: string) {
      const activeHeaderRect = rectFor(activeGraph?.querySelector('[data-active-authority-header]'));
      const activeTitleRect = rectFor(activeGraph?.querySelector('[data-active-authority-title]'));
      const activeToolbarRect = rectFor(activeGraph?.querySelector('[data-active-authority-toolbar]'));
+     const activeMobileToolsToggle = activeGraph?.querySelector('[data-active-authority-mobile-tools-toggle="true"]');
      const activeViewport = activeGraph?.querySelector('[data-active-authority-viewport]');
      const knowledgeModeControlsRect = unionRect(
        Array.from(root?.querySelectorAll('[data-knowledge-mode]') ?? []).map(rectFor),
@@ -2283,6 +2299,7 @@ async function captureMarkers(page: Page, stateName: string) {
           toolbarRect: activeToolbarRect,
           modeControlsRect: knowledgeModeControlsRect,
           titleControlsOverlap: rectanglesOverlap(activeTitleRect, knowledgeModeControlsRect),
+          mobileToolsExpanded: activeMobileToolsToggle?.getAttribute('aria-expanded') ?? null,
           svgVisibleInViewport: intersectsViewport(activeSvgRect),
           rendererVisibleInViewport,
           rendererViewportVisibleHeight,
@@ -2820,6 +2837,7 @@ async function captureActiveAuthorityVisualMatrix(
       const rendererVisiblePaintPixelCount = typeof activeFirstViewport.rendererVisiblePaintPixelCount === 'number'
         ? activeFirstViewport.rendererVisiblePaintPixelCount
         : 0;
+      const mobileToolsExpanded = activeFirstViewport.mobileToolsExpanded === 'true';
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
       const forceGraphReady = activeMarkers.renderer === 'force-graph'
@@ -2840,6 +2858,7 @@ async function captureActiveAuthorityVisualMatrix(
         || (state.name === 'active-mobile' && (
           activeMarkers.viewport !== 'compact'
           || activeFirstViewport.titleControlsOverlap === true
+          || mobileToolsExpanded
           || !rendererVisibleInViewport
           || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
           || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
@@ -2849,12 +2868,14 @@ async function captureActiveAuthorityVisualMatrix(
         throw new Error(
           state.name === 'active-mobile' && (
               activeFirstViewport.titleControlsOverlap === true
+              || mobileToolsExpanded
               || !rendererVisibleInViewport
               || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
               || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
+                mobileToolsExpanded,
                 rendererVisibleInViewport,
                 rendererViewportVisibleHeight,
                 rendererVisiblePaintPixelCount,
