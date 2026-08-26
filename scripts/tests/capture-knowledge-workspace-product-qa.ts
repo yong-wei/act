@@ -1158,6 +1158,20 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   const active = latestApiSummary(log, '/api/knowledge/shards/active');
   assertActiveApiSummary(active, context);
   await enablePublishedActiveRelationFamily(page, probe, context);
+  await page.waitForFunction(() => {
+    const runtime = document.querySelector('[data-active-authority-runtime="force-graph"]');
+    const renderer = runtime?.querySelector('[data-knowledge-graph-renderer]');
+    const canvas = renderer?.querySelector('canvas');
+    const rect = canvas?.getBoundingClientRect();
+    return Boolean(
+      renderer
+      && canvas
+      && rect
+      && rect.width > 0
+      && rect.height > 0
+      && renderer.getAttribute('data-knowledge-edge-lanes'),
+    );
+  }, undefined, { timeout: 30000 });
   const completedLog = await probe.readLog();
   if (completedLog.some((entry) => (
     entry.path === '/api/knowledge/graph/active'
@@ -2076,11 +2090,31 @@ async function captureMarkers(page: Page, stateName: string) {
      const activeHeaderRect = rectFor(activeGraph?.querySelector('[data-active-authority-header]'));
      const activeTitleRect = rectFor(activeGraph?.querySelector('[data-active-authority-title]'));
      const activeToolbarRect = rectFor(activeGraph?.querySelector('[data-active-authority-toolbar]'));
+     const activeViewport = activeGraph?.querySelector('[data-active-authority-viewport]');
      const knowledgeModeControlsRect = unionRect(
        Array.from(root?.querySelectorAll('[data-knowledge-mode]') ?? []).map(rectFor),
      );
      const activeNodes = Array.from(document.querySelectorAll('[data-active-authority-node]'));
      const activeSvg = activeGraph?.querySelector('svg[data-active-authority-svg="true"]');
+     const activeForceRuntime = activeGraph?.querySelector('[data-active-authority-runtime="force-graph"]');
+     const activeForceRenderer = activeForceRuntime?.querySelector('[data-knowledge-graph-renderer]');
+     const activeForceCanvas = activeForceRenderer?.querySelector('canvas');
+     const activeForceCanvasRect = activeForceCanvas?.getBoundingClientRect() ?? null;
+     const activeForceCanvasGeometryRectValid = Boolean(
+       activeForceCanvasRect
+       && activeForceCanvasRect.width > 0
+       && activeForceCanvasRect.height > 0,
+     );
+     const activeForceEdgeLaneCount = (() => {
+       const value = activeForceRenderer?.getAttribute('data-knowledge-edge-lanes');
+       if (!value) return -1;
+       try {
+         const parsed = JSON.parse(value);
+         return Array.isArray(parsed) ? parsed.length : -1;
+       } catch {
+         return -1;
+       }
+     })();
      const activeSvgViewBox = (activeSvg?.getAttribute('viewBox') ?? '')
        .trim()
        .split(/\\s+/u)
@@ -2151,6 +2185,16 @@ async function captureMarkers(page: Page, stateName: string) {
        && activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-target') ?? '')
      )).length;
      const visibleSvgGeometryCount = activeRelations.filter(relationGeometryVisible).length;
+     const renderer = activeForceRuntime ? 'force-graph' : activeSvg ? 'svg' : null;
+     const rendererGeometryRectValid = activeForceRuntime
+       ? activeForceCanvasGeometryRectValid
+       : activeSvgGeometryRectValid;
+     const rendererVisibleInViewport = activeForceRuntime
+       ? intersectsViewport(activeForceCanvasRect)
+       : intersectsViewport(activeSvgRect);
+     const renderedRelationCount = activeForceRuntime
+       ? (activeForceCanvasGeometryRectValid && rendererVisibleInViewport ? activeForceEdgeLaneCount : 0)
+       : visibleSvgGeometryCount;
      const nodeGeometryWithinSvgCount = activeSvgGeometryRectValid
        ? activeNodes.filter((node) => rectWithinActiveSvg(node.getBoundingClientRect())).length
        : 0;
@@ -2182,7 +2226,14 @@ async function captureMarkers(page: Page, stateName: string) {
         nodeGeometryWithinSvgCount,
         relationGeometryWithinSvgCount,
         activeSvgGeometryRectValid,
-        viewport: activeSvg?.getAttribute('data-active-authority-viewport') ?? null,
+        renderer,
+        rendererGeometryRectValid,
+        rendererVisibleInViewport,
+        renderedRelationCount,
+        forceGraphCanvasCount: activeForceRenderer?.querySelectorAll('canvas').length ?? 0,
+        forceGraphEdgeLaneCount: activeForceEdgeLaneCount,
+        forceGraphLabelMaxLines: Number(activeForceRenderer?.getAttribute('data-knowledge-label-max-lines') ?? Number.NaN),
+        viewport: activeViewport?.getAttribute('data-active-authority-viewport') ?? null,
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
         firstViewport: {
@@ -2192,6 +2243,7 @@ async function captureMarkers(page: Page, stateName: string) {
           modeControlsRect: knowledgeModeControlsRect,
           titleControlsOverlap: rectanglesOverlap(activeTitleRect, knowledgeModeControlsRect),
           svgVisibleInViewport: intersectsViewport(activeSvgRect),
+          rendererVisibleInViewport,
           nodeGeometryWithinViewportCount,
           relationGeometryWithinViewportCount,
         },
@@ -2528,13 +2580,17 @@ async function captureAuthenticatedRoleEvidence(
         const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
         const activeMarkers = objectRecord(markers.activeAuthority);
         const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
-        const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
-          ? activeFirstViewport.nodeGeometryWithinViewportCount
-          : 0;
+        const teachingRelationsUnavailable = activeInteractionEvidence.teachingRelationsUnavailable === true;
         const titleControlsOverlap = activeFirstViewport.titleControlsOverlap === true;
-        const svgVisibleInViewport = activeFirstViewport.svgVisibleInViewport === true;
-        const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
-        const teachingSvgGeometryRequired = !teachingRelationsUnavailable;
+        const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+        const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
+        const forceGraphReady = activeMarkers.renderer === 'force-graph'
+          && activeMarkers.rendererGeometryRectValid === true
+          && rendererVisibleInViewport
+          && activeMarkers.forceGraphCanvasCount === 1
+          && activeMarkers.forceGraphEdgeLaneCount === relationCount
+          && typeof activeMarkers.forceGraphLabelMaxLines === 'number'
+          && activeMarkers.forceGraphLabelMaxLines > 0;
         const activeApiEvidence = projectSafeApiEvidence(
           role,
           await mobileProbe.readLog(),
@@ -2557,18 +2613,22 @@ async function captureAuthenticatedRoleEvidence(
           || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
           || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
           || activeMarkers.visibleNodeCount <= 0
+          || relationCount <= 0
+          || activeMarkers.resolvedEdgeEndpointCount !== relationCount
+          || activeMarkers.renderedRelationCount !== relationCount
+          || !forceGraphReady
           || activeMarkers.stage !== 'authority'
           || titleControlsOverlap
-          || (teachingSvgGeometryRequired && (
-            activeMarkers.viewport !== 'compact'
-            || !svgVisibleInViewport
-            || nodeGeometryWithinViewportCount <= 0
-          ))
+          || activeMarkers.viewport !== 'compact'
         ) {
           throw new Error(`active mobile first-viewport geometry contract failed in role:${role}: ${JSON.stringify({
             titleControlsOverlap,
-            svgVisibleInViewport,
-            nodeGeometryWithinViewportCount,
+            renderer: activeMarkers.renderer ?? null,
+            rendererVisibleInViewport,
+            renderedRelationCount: activeMarkers.renderedRelationCount ?? null,
+            relationCount,
+            forceGraphReady,
+            viewport: activeMarkers.viewport ?? null,
           })}`);
         }
         const screenshot = path.join(outputDir, `role-${role}-active-mobile.png`);
@@ -2581,8 +2641,7 @@ async function captureAuthenticatedRoleEvidence(
           activeInteractionEvidence,
           firstViewport: {
             titleControlsOverlap,
-            svgVisibleInViewport,
-            nodeGeometryWithinViewportCount,
+            rendererVisibleInViewport,
           },
           graphVisible: true,
           nonEmptyCanvas: true,
@@ -2710,67 +2769,54 @@ async function captureActiveAuthorityVisualMatrix(
       const markers = await captureMarkers(page, state.name);
       const completedApiLog = await probe.readLog();
       const activeMarkers = objectRecord(markers.activeAuthority);
-      const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
       const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
-      const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
-        ? activeFirstViewport.nodeGeometryWithinViewportCount
-        : 0;
-      const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
-      const teachingSvgGeometryRequired = !teachingRelationsUnavailable;
+      const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+      const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
+      const forceGraphReady = activeMarkers.renderer === 'force-graph'
+        && activeMarkers.rendererGeometryRectValid === true
+        && rendererVisibleInViewport
+        && activeMarkers.forceGraphCanvasCount === 1
+        && activeMarkers.forceGraphEdgeLaneCount === relationCount
+        && typeof activeMarkers.forceGraphLabelMaxLines === 'number'
+        && activeMarkers.forceGraphLabelMaxLines > 0;
       if (
         markers.knowledgeGraphMode !== 'active'
         || activeMarkers.visibleNodeCount <= 0
-        || (!teachingRelationsUnavailable && activeMarkers.relationCount <= 0)
-        || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
-        || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
-        || (teachingSvgGeometryRequired && (
-          activeMarkers.activeSvgGeometryRectValid !== true
-          || activeMarkers.nodeGeometryWithinSvgCount !== activeMarkers.visibleNodeCount
-          || activeMarkers.relationGeometryWithinSvgCount !== activeMarkers.relationCount
-        ))
+        || relationCount <= 0
+        || activeMarkers.resolvedEdgeEndpointCount !== relationCount
+        || activeMarkers.renderedRelationCount !== relationCount
+        || !forceGraphReady
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
-          (teachingSvgGeometryRequired && (
-            activeMarkers.viewport !== 'compact'
-            || activeMarkers.viewBox !== '0 0 320 520'
-            || activeNodeLabelReadability.readable !== true
-          ))
+          activeMarkers.viewport !== 'compact'
           || activeFirstViewport.titleControlsOverlap === true
-          || (teachingSvgGeometryRequired && (
-            activeFirstViewport.svgVisibleInViewport !== true
-            || nodeGeometryWithinViewportCount <= 0
-          ))
+          || !rendererVisibleInViewport
         ))
         || surfaceScan.passed !== true
       ) {
         throw new Error(
-          state.name === 'active-mobile' && activeNodeLabelReadability.readable !== true
-            ? `active mobile semantic label readability contract failed in ${state.name}: ${JSON.stringify({
-              labelCount: activeNodeLabelReadability.nodeLabelCount ?? null,
-              minFontSize: activeNodeLabelReadability.minFontSize ?? null,
-              minPixelSize: activeNodeLabelReadability.minPixelSize ?? null,
-              viewBoxWidth: activeNodeLabelReadability.viewBoxWidth ?? null,
-              viewBoxHeight: activeNodeLabelReadability.viewBoxHeight ?? null,
-              readable: activeNodeLabelReadability.readable === true,
-            })}`
-            : state.name === 'active-mobile' && (
+          state.name === 'active-mobile' && (
               activeFirstViewport.titleControlsOverlap === true
-              || activeFirstViewport.svgVisibleInViewport !== true
-              || nodeGeometryWithinViewportCount <= 0
+              || !rendererVisibleInViewport
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
-                svgVisibleInViewport: activeFirstViewport.svgVisibleInViewport === true,
-                nodeGeometryWithinViewportCount,
+                rendererVisibleInViewport,
               })}`
             : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
               knowledgeGraphMode: markers.knowledgeGraphMode ?? null,
               visibleNodeCount: activeMarkers.visibleNodeCount ?? null,
-              relationCount: activeMarkers.relationCount ?? null,
+              relationCount,
               resolvedEdgeEndpointCount: activeMarkers.resolvedEdgeEndpointCount ?? null,
-              visibleSvgGeometryCount: activeMarkers.visibleSvgGeometryCount ?? null,
-              teachingRelationsUnavailable,
+              renderedRelationCount: activeMarkers.renderedRelationCount ?? null,
+              renderer: activeMarkers.renderer ?? null,
+              forceGraphReady,
               stage: activeMarkers.stage ?? null,
+              forbiddenTokenCount: surfaceScan.forbiddenTokenCount,
+              forbiddenEnumCount: surfaceScan.forbiddenEnumCount,
+              forbiddenLocatorCount: surfaceScan.forbiddenLocatorCount,
+              internalIdentityLeakCount: surfaceScan.internalIdentityLeakCount,
+              copyEntryCount: surfaceScan.copyEntryCount,
               surfaceScanPassed: surfaceScan.passed === true,
             })}`,
         );

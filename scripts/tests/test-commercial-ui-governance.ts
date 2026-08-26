@@ -2594,7 +2594,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
-    const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+    const relationCount = numberFromEvidence(activeMarkers.relationCount);
+    const forceGraphReady = activeMarkers.renderer === 'force-graph'
+      && activeMarkers.rendererGeometryRectValid === true
+      && activeMarkers.rendererVisibleInViewport === true
+      && numberFromEvidence(activeMarkers.forceGraphCanvasCount) === 1
+      && numberFromEvidence(activeMarkers.forceGraphEdgeLaneCount) === relationCount
+      && numberFromEvidence(activeMarkers.forceGraphLabelMaxLines)! > 0;
     const interactionEvidence = objectRecord(state?.interactionEvidence);
     const forbiddenAutomaticRequests = apiSequence.some((entry) => (
       entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
@@ -2623,26 +2629,23 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:responsive-active-node-must-be-unobserved`,
       forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
       numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
-      teachingRelationsUnavailable
-        ? (numberFromEvidence(activeMarkers.relationCount) === 0 ? null : `${name}:unavailable-teaching-must-not-draw-edges`)
-        : (numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`),
-      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
+      relationCount! > 0 ? null : `${name}:dom-no-real-edges`,
+      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === relationCount
         ? null
         : `${name}:dom-edge-endpoint-mismatch`,
-      numberFromEvidence(activeMarkers.visibleSvgGeometryCount) === numberFromEvidence(activeMarkers.relationCount)
+      numberFromEvidence(activeMarkers.renderedRelationCount) === relationCount
         ? null
-        : `${name}:dom-edge-geometry-missing`,
+        : `${name}:renderer-edge-geometry-missing`,
+      forceGraphReady ? null : `${name}:force-graph-renderer-not-ready`,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'
         ? (interactionEvidence.semanticNodeFocusedBeforeClick === true
           && interactionEvidence.detailPanelFocusedAfterOpen === true
           && interactionEvidence.semanticDetailVisible === true
-          && (teachingRelationsUnavailable
-            ? interactionEvidence.visibleNodeControl === true
-              && interactionEvidence.adjacencyInteraction === false
-              && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
-            : interactionEvidence.adjacencyInteraction === true)
+          && interactionEvidence.visibleNodeControl === true
+          && interactionEvidence.adjacencyInteraction === true
+          && numberFromEvidence(interactionEvidence.renderedEdgeCount)! > 0
           && (interactionEvidence.focusReturnedToOriginNode === true
             || interactionEvidence.focusReturnedToSemanticCanvas === true)
           && safeActiveSurfaceScanPassed(interactionEvidence.detailSurfaceScan)
@@ -2715,11 +2718,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       defaultInteraction.semanticDetailVisible === true
         ? null
         : `${role}:active-detail-evidence-missing`,
-      (teachingRelationsUnavailable
-        ? defaultInteraction.visibleNodeControl === true
-          && defaultInteraction.adjacencyInteraction === false
-          && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
-        : defaultInteraction.adjacencyInteraction === true)
+      ((teachingRelationsUnavailable ? defaultInteraction.visibleNodeControl === true : true)
+        && defaultInteraction.adjacencyInteraction === true
+        && numberFromEvidence(defaultInteraction.renderedEdgeCount)! > 0)
         ? null
         : `${role}:active-adjacency-evidence-missing`,
       safeActiveSurfaceScanPassed(defaultInteraction.detailSurfaceScan)
