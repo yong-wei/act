@@ -6,7 +6,8 @@ import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata'
 import { MICRO_TUTORING_LEARNING_ACTION_VERSION } from '@/features/assessment/micro-tutoring-learning-actions';
 import {
   MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE,
-  MICRO_TUTORING_RESOURCE_PROJECTION_VERSION,
+  MICRO_TUTORING_RESOURCE_PROJECTION_V2_FILE,
+  MICRO_TUTORING_RESOURCE_PROJECTION_V2_VERSION,
   loadMicroTutoringResourceProjection,
   microTutoringResourceRelationSourceRef,
   microTutoringResourceRevision,
@@ -14,7 +15,8 @@ import {
 
 const OUTPUT_PATH = path.join(
   process.cwd(),
-  'course-content/runtime/resource-governance/micro-tutoring-resource-projection.json',
+  'course-content/runtime/resource-governance',
+  MICRO_TUTORING_RESOURCE_PROJECTION_V2_FILE,
 );
 
 type ActionType =
@@ -172,7 +174,7 @@ async function main() {
   }).sort((left, right) => left.knowledgeNodeId.localeCompare(right.knowledgeNodeId));
 
   const projection = {
-    version: MICRO_TUTORING_RESOURCE_PROJECTION_VERSION,
+    version: MICRO_TUTORING_RESOURCE_PROJECTION_V2_VERSION,
     source: MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE,
     actionVersion: MICRO_TUTORING_LEARNING_ACTION_VERSION,
     entries,

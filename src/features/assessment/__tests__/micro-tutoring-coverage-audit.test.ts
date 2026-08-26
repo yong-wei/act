@@ -24,6 +24,9 @@ import {
 import { resolveMicroTutoringGoalNode } from '../micro-tutoring-goal-node-catalog';
 import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
 import { listMicroTutoringGovernedValidationItems } from '../micro-tutoring-validation-registry';
+import publishedResourceProjection from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection.json';
+import publishedValidationRegistry from '../../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry.json';
+import publishedPracticeBaseline from '../../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
@@ -146,6 +149,8 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
         knowledgeNodeId,
         misconceptionTag,
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
       }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
       resolveValidationItems: () => [],
     });
@@ -159,7 +164,14 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
         knowledgeNodeId,
         misconceptionTag,
-        authorityRows: listMicroTutoringGovernedResources({ knowledgeNodeId, misconceptionTag })
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
+        authorityRows: listMicroTutoringGovernedResources({
+          knowledgeNodeId,
+          misconceptionTag,
+          projection: publishedResourceProjection,
+          optionAttributions: publishedOptionAttributions,
+        })
           .map((resource) => ({
             id: resource.registryId,
             registryId: resource.registryId,
@@ -176,6 +188,8 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
         knowledgeNodeId,
         misconceptionTag,
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
       }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
       resolveValidationItems: (sourceQuestionId, sourceContentHash, knowledgeNodeId, misconceptionTag) =>
         listMicroTutoringGovernedValidationItems({
@@ -183,13 +197,16 @@ describe('micro tutoring coverage audit', () => {
           misconceptionTag,
           sourceQuestionId,
           sourceContentHash,
+          registry: publishedValidationRegistry,
+          optionAttributions: publishedOptionAttributions,
+          practiceBaseline: publishedPracticeBaseline,
         }),
     });
 
     expect(result.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
     expect(result.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE).toBe(0);
     expect(result.rows.every((row) => row.resources.length === 1)).toBe(true);
-    expect(result.rows.every((row) => row.validationItems.length > 0)).toBe(true);
+    expect(result.rows.every((row) => row.validationItems.length === 5)).toBe(true);
     expect(result.rows.every((row) =>
       row.validationItems.every((item) => item.contentHash !== row.contentHash))).toBe(true);
     expect(JSON.stringify(result)).not.toContain('independenceRationale');

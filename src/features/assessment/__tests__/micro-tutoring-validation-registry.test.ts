@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import optionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
 import practiceBaselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
-import registrySource from '../../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry.json';
+import v1OptionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import v1PracticeBaselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
+import v1RegistrySource from '../../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry.json';
+import registrySource from '../../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry-v2.json';
 import {
   listMicroTutoringGovernedValidationItems,
   loadMicroTutoringValidationRegistry,
@@ -139,5 +142,16 @@ describe('micro tutoring validation registry', () => {
     });
     expect(loaded.registry).toBeNull();
     expect(loaded.issues.map((issue) => issue.code)).toContain('PURPOSE_INVALID');
+  });
+
+  it('keeps the v1 registry loadable without consuming the v2 artifact', () => {
+    const loaded = loadMicroTutoringValidationRegistry(
+      v1RegistrySource,
+      v1OptionAttributionSource,
+      v1PracticeBaselineSource,
+    );
+    expect(loaded.issues).toEqual([]);
+    expect(loaded.registry?.version).toBe('micro-tutoring-validation-registry.v1');
+    expect(loaded.registry?.entries).toHaveLength(54);
   });
 });

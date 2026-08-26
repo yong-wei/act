@@ -2,7 +2,7 @@
 
 ### Requirement: v2 验证注册表覆盖全部当前基线题
 
-系统 SHALL 为 `micro-tutoring-assessment-baseline-v2` 中的每道题登记一道与来源题身份和内容哈希均不同的独立验证题。正式注册表 MUST 恰好包含 135 条唯一 catalog、source 与 contentHash 记录，并绑定确定性 item revision。v1 验证注册表工件 MUST 保持只读历史兼容。
+系统 SHALL 为 `micro-tutoring-assessment-baseline-v2` 中的每道题登记一道与来源题身份和内容哈希均不同的独立验证题。正式 v2 注册表文件 `micro-tutoring-validation-registry-v2.json` MUST 使用版本 `micro-tutoring-validation-registry.v2`，恰好包含 135 条唯一 catalog、source 与 contentHash 记录，并绑定确定性 item revision 与当前可达的捕获修订。v1 验证注册表文件 `micro-tutoring-validation-registry.json` MUST 保持只读历史兼容，不得被原地扩写。
 
 #### Scenario: v2 分母均有独立验证题
 

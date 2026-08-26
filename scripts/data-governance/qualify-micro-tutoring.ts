@@ -23,7 +23,6 @@ const ARTIFACT_PATHS = [
   `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
-  `${GOVERNANCE_DIR}/micro-tutoring-validation-purpose-reviews-v1.jsonl`,
 ] as const;
 
 function git(args: string[]): string {

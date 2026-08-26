@@ -11,7 +11,8 @@ import {
   MICRO_TUTORING_VALIDATION_ACTION_PATH,
   MICRO_TUTORING_VALIDATION_ESTIMATED_MINUTES,
   MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
-  MICRO_TUTORING_VALIDATION_REGISTRY_VERSION,
+  MICRO_TUTORING_VALIDATION_REGISTRY_V2_FILE,
+  MICRO_TUTORING_VALIDATION_REGISTRY_V2_VERSION,
   loadMicroTutoringValidationRegistry,
   microTutoringValidationItemRevision,
   microTutoringValidationRelationSourceRef,
@@ -20,7 +21,7 @@ import {
 } from '@/features/assessment/micro-tutoring-validation-registry';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
-const OUTPUT_PATH = path.join(GOVERNANCE_DIR, 'micro-tutoring-validation-registry.json');
+const OUTPUT_PATH = path.join(GOVERNANCE_DIR, MICRO_TUTORING_VALIDATION_REGISTRY_V2_FILE);
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
 const SOURCE_PATHS = [
   `${path.relative(process.cwd(), GOVERNANCE_DIR)}/adaptive-assessment-item-catalog-items.jsonl`,
@@ -199,7 +200,7 @@ async function main() {
   }).sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 
   const registry = {
-    version: MICRO_TUTORING_VALIDATION_REGISTRY_VERSION,
+    version: MICRO_TUTORING_VALIDATION_REGISTRY_V2_VERSION,
     source: MICRO_TUTORING_VALIDATION_REGISTRY_SOURCE,
     sourceRevision: captureSourceRevision(),
     entries,
