@@ -3,8 +3,8 @@
 Observation counts are revision-bound. Read `docs/testing/baseline/discovery-core.json` for the current denominator.
 
 - schemaVersion: `act-test-command-contracts/v1`
-- sourceCommit: `8dbfa8627fe70b8c5cd90ff9bc087ee93a3424d0`
-- sourceTree: `0f29f93fab84b83e1cb492b57b2c7e64bef35988`
+- sourceCommit: `1f265fc97f7d3aa13a23009fe52a68d40e39917f`
+- sourceTree: `4b9e41513f7fd719dd6ee38f66ed2222dadfad2a`
 - baseline census: `40549dcad9b03da31abc6ef05c5ede5bff4e04b47268f86450831aa39788c52a`
 - charter: `76850de671d65e821dd2acebe070ab23d6a3f26a3a7d9f9527e32af75c957396`
 - discovered: 1229
@@ -57,7 +57,7 @@ Current red executions are not accepted failures. They remain blockers for `elim
 - CI: not a current required check
 - retained components:
   - `test:e2e:playwright` (platform: former-test-integration-playwright-bundle)
-  - `test:data-governance` (learning-record: postgres-integration-component)
+  - `test:data-governance` (learning-record: postgres-scripts-remain-nightly-until-executed)
 
 ## `test:e2e:critical`
 
