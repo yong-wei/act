@@ -1403,6 +1403,27 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const detailSurfaceScan = await captureActiveSurfaceScan(page, probe);
   await page.keyboard.press('Escape');
   await page.waitForTimeout(150);
+  if (await page.evaluate(() => window.innerWidth < 640)) {
+    await page.waitForFunction(() => {
+      const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
+      const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
+        '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+      ) ?? []);
+      const expectedNodeCount = runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0;
+      return expectedNodeCount > 0
+        && labels.length === expectedNodeCount
+        && labels.every((label) => {
+          const rect = label.getBoundingClientRect();
+          return !label.hidden
+            && rect.width > 0
+            && rect.height > 0
+            && rect.right > 0
+            && rect.bottom > 0
+            && rect.left < window.innerWidth
+            && rect.top < window.innerHeight;
+        });
+    }, undefined, { timeout: 5000 });
+  }
   const focusReturnedToOriginNode = originKey
     ? await page.locator('[data-active-authority-node]').evaluateAll(
       (nodes, key) => nodes.some((candidate) => candidate === document.activeElement && candidate.getAttribute('data-active-authority-node') === key),
