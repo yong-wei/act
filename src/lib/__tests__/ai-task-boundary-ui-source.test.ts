@@ -167,7 +167,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain("const reflectionTaskIntent = searchParams.get('taskIntent') ?? searchParams.get('intent') ?? undefined");
     expect(portfolio).toContain('intent: reflectionTaskIntent');
     expect(portfolio).toContain("fetch('/api/profile/portfolio-reflection-drafts')");
-    expect(portfolio).toContain('mockData.reflections = reflectionData.drafts');
+    expect(portfolio).toContain('reflections: reflectionData.drafts');
     expect(portfolio).toContain("method: 'POST'");
     expect(portfolio).toContain("method: 'PUT'");
     expect(portfolio).toContain("method: 'DELETE'");

@@ -2116,6 +2116,9 @@ function confidenceFromFact(fact: Record<string, unknown>): MasteryEvidenceRefer
 function confidenceForVisibleRefs(refs: MasteryEvidenceReference[], fallback: number): number {
   if (refs.length === 0) return 0;
   const refConfidence = Math.max(...refs.map((ref) => confidenceScoreFromReference(ref.confidence)));
+  if (!Number.isFinite(fallback) || fallback <= 0) {
+    return round(refConfidence, 2);
+  }
   return round(Math.min(fallback, refConfidence), 2);
 }
 

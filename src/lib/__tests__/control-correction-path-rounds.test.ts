@@ -7,7 +7,14 @@ import {
 } from '../adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+  projectPortraitV2ForConsumer,
+} from '../data-governance/portrait-v2-model';
+import {
   getPathNodeSemanticsForResourceType,
+  type ResourceNodeRegistry,
   type ResourceNodeType,
 } from '../resource-node-registry';
 import {
@@ -24,6 +31,37 @@ import {
   toLegacyLearningPathSummary,
   updateControlCorrectionPathRoundAfterExecution,
 } from '../control-correction-path-rounds';
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? { ...node, launchTarget: `/simulations/${node.sourceRef}` }
+      : node),
+  };
+}
+
+function lowCompetencyPlannerPortrait(now: Date) {
+  return projectPortraitV2ForConsumer(createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt: now.toISOString(),
+    now,
+    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+      id,
+      score: 10,
+      confidence: 0.2,
+      trend: 'stable' as const,
+      freshness: { state: 'current' as const, asOf: now.toISOString(), evidenceAgeDays: 0 },
+      evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
+      lastPositiveEvidenceAt: now.toISOString(),
+      lastNegativeEvidenceAt: null,
+      rationale: 'Governed evidence supports the current score.',
+      limitations: [],
+      sourceLineage: [{ kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const }],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  }), 'planner', { now });
+}
 
 function pathNodeSemantics(type: ResourceNodeType) {
   const semantics = getPathNodeSemanticsForResourceType(type);
@@ -988,8 +1026,10 @@ describe('control-correction path rounds', () => {
 
   it('persists the real readiness-gated control-correction planner output', async () => {
     const db = mockDb();
+    const now = new Date('2026-05-28T00:00:00Z');
     const plan = buildAdaptiveLearningPathPlan({
       studentId: 'student-1',
+      now,
       goal: {
         id: 'control-correction',
         title: '控制校正',
@@ -1002,6 +1042,9 @@ describe('control-correction path rounds', () => {
         competencyTargets: ['controlModeling', 'parameterDesign'],
       },
       learnerState: {
+        primaryPortraitState: 'SNAPSHOT',
+        primaryPortraitAvailability: 'available',
+        primaryPortrait: lowCompetencyPlannerPortrait(now),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
@@ -1028,7 +1071,7 @@ describe('control-correction path rounds', () => {
           },
         },
       },
-      registry: buildControlCorrectionResourceNodeRegistry(),
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],

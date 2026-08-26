@@ -319,6 +319,12 @@ function buildFactInput(
 
   const contextJson = compactJsonObject({
     ...readRecord(fact.contextJson),
+    evidenceGovernance: compactJsonObject({
+      evidenceQuality: 'rich',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'historical_server_verified_evidence',
+    }),
     historicalMaterialization: compactJsonObject({
       sourceId,
       sourceRecordId: row.id,

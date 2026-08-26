@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { listPromptAssessmentHistory } from '@/features/evaluation/prompt-assessment-history';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 interface RouteContext {
   params: Promise<{
@@ -28,6 +31,7 @@ export async function GET(_: Request, context: RouteContext) {
       total: history.length,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return NextResponse.json(
       {
         error: '获取提示词历史失败',

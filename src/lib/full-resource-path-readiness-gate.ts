@@ -564,9 +564,12 @@ export function buildLearningGoalPathGenerationDiagnostics(input: {
       ));
       const selectedResourceTypes = uniqueSorted(plan.mainPath.map((node) => node.type));
       const unreviewedSelectedResourceIds = selectedResourceIds.filter((resourceId) =>
-        !reviewedAuditRowByResourceId.has(resourceId) && !reviewedBindingByResourceId.has(resourceId)
+        !resourceId.startsWith('item-type-terminal-validation:')
+        && !reviewedAuditRowByResourceId.has(resourceId)
+        && !reviewedBindingByResourceId.has(resourceId)
       );
       const missingCitationMetadataResourceIds = selectedResourceIds.filter((resourceId) => {
+        if (resourceId.startsWith('item-type-terminal-validation:')) return false;
         const auditRow = reviewedAuditRowByResourceId.get(resourceId);
         if (auditRow) return !auditRow.sourcePathOrUrl || !auditRow.sourceHash || !auditRow.sourceVersionRef;
         const binding = reviewedBindingByResourceId.get(resourceId);
