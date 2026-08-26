@@ -46,6 +46,26 @@ function configuredRoleCredentials() {
   return KNOWLEDGE_WORKSPACE_QA_ROLES.every(complete) ? credentials : null;
 }
 
+async function runChild(
+  command: string,
+  args: string[],
+  environment: NodeJS.ProcessEnv,
+  stdio: 'inherit' | 'ignore',
+  label: string,
+) {
+  const child = spawn(command, args, {
+    env: environment,
+    stdio,
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.once('error', reject);
+    child.once('exit', (code, signal) => {
+      if (code === 0) return resolve();
+      reject(new Error(`${label} exited ${signal ? `from ${signal}` : `with ${code ?? 1}`}`));
+    });
+  });
+}
+
 async function main() {
   const configured = configuredRoleCredentials();
   const managed = configured ? null : await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
@@ -61,17 +81,20 @@ async function main() {
     childEnvironment[environment.password] = credentials[role].password;
   }
 
-  const child = spawn('npx', ['--yes', 'tsx', 'scripts/tests/capture-knowledge-workspace-product-qa.ts'], {
-    env: childEnvironment,
-    stdio: 'inherit',
-  });
-  await new Promise<void>((resolve, reject) => {
-    child.once('error', reject);
-    child.once('exit', (code, signal) => {
-      if (code === 0) return resolve();
-      reject(new Error(`knowledge workspace QA capture exited ${signal ? `from ${signal}` : `with ${code ?? 1}`}`));
-    });
-  });
+  await runChild(
+    process.execPath,
+    ['scripts/db/verify-test-account-login.mjs', '--base-url', baseUrl],
+    childEnvironment,
+    'ignore',
+    'knowledge workspace QA fixture authentication preflight',
+  );
+  await runChild(
+    'npx',
+    ['--yes', 'tsx', 'scripts/tests/capture-knowledge-workspace-product-qa.ts'],
+    childEnvironment,
+    'inherit',
+    'knowledge workspace QA capture',
+  );
 }
 
 main().catch((error) => {
