@@ -1647,7 +1647,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
-    await enterModelingDomain();
+    await enterModelingDomain({ families: false });
 
     const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
     expect(canvas).not.toBeNull();
@@ -1665,12 +1665,19 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('true');
     expect(container.querySelector('#active-authority-mobile-tools')).not.toBeNull();
 
+    const association = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(association).not.toBeNull();
+    await act(async () => association!.click());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-authority-relation]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
+
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     expect(graphSource).toContain('max-[639px]:pt-14');
     expect(graphSource).toContain('max-[639px]:flex-nowrap');
     expect(graphSource).toContain('max-[639px]:overflow-x-auto');
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
-    expect(graphSource).toContain('if (!model || isCompactViewport) return;');
+    expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
     expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
   });
 

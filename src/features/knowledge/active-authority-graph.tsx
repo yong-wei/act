@@ -1485,8 +1485,15 @@ export function ActiveAuthorityGraph({
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
-    if (!model || isCompactViewport) return;
+    if (!model) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        if (workspace.enabledFamilies.length === 0) return current;
+        const disclosedRelation = model.relations[0];
+        return disclosedRelation
+          ? expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)
+          : current;
+      }
       const next = new Set(current);
       for (const relation of model.relations) {
         const source = model.nodeByKey.get(relation.sourceKey);
@@ -1504,7 +1511,7 @@ export function ActiveAuthorityGraph({
       }
       return next;
     });
-  }, [isCompactViewport, model, workspace.enabledFamilies.length]);
+  }, [isCompactViewport, model, visibleNodeLimit, workspace.enabledFamilies.length]);
 
   useEffect(() => {
     if (!model || !selectedNodeKey) return;
