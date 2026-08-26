@@ -16,3 +16,14 @@ Implementation lands first as a clean checkpoint. Qualified baseline artifacts a
 A linked Git worktree is a valid capture root. Mixed-worktree failure is reserved for captures whose Git toplevel or `GIT_WORK_TREE` does not match the repository being scanned.
 
 Proposal investigation SHAs (`e74fd1fc`, `dd5be47f`) remain historical evidence. The qualified baseline identity is the implementation checkpoint that generated it, and that checkpoint remains an ancestor of the artifact commit on this branch. GitHub squash previews are not the capture source.
+
+Current qualified capture:
+
+- sourceCommit: `7837ec0f47859f9a9cbafc843e70ce1abb58a6b3`
+- sourceTree: `8531e9f05b7c3ae9e3f609c2ea78aef9427bc5c9`
+- schemaVersion: `act-architecture-census/v1`
+- typescriptVersion: `5.8.3`
+- observations: 27420
+- production feature-to-app edges: 2 (teacher diagnosis report-history)
+- `tsc --noEmit --incremental false`: exit 0
+- `vitest run`: 9826 passed, 93 failed, 37 files failed, 3 unhandled errors; failures are observations, not quarantine decisions
