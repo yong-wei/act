@@ -13,6 +13,8 @@ Implementation lands first as a clean checkpoint. Qualified baseline artifacts a
 
 `--measure` captures immutable TypeScript and Vitest receipts after the source-derived core is qualified. Independently rerun measurements create new receipt identities. Projections over a frozen receipt set remain byte-identical.
 
+The follow-up charter command is `rtk npm run charter:architecture`. It consumes this baseline identity and writes governance documents under `docs/architecture/`. It does not activate architecture rules.
+
 A linked Git worktree is a valid capture root. Mixed-worktree failure is reserved for captures whose Git toplevel or `GIT_WORK_TREE` does not match the repository being scanned.
 
 Proposal investigation SHAs (`e74fd1fc`, `dd5be47f`) remain historical evidence. The qualified baseline identity is the implementation checkpoint that generated it, and that checkpoint remains an ancestor of the artifact commit on this branch. GitHub squash previews are not the capture source.
