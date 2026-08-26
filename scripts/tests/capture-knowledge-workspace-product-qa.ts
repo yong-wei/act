@@ -1211,14 +1211,14 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]:visible', { timeout: 10000 });
+  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]', { timeout: 10000 });
   const beforeSelectionLog = await probe.readLog();
   const preSelectionDetailRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
   const preSelectionMediaRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
   if (preSelectionDetailRequests > 0 || preSelectionMediaRequests > 0) {
     throw new Error('active Authority detail or media was requested before a visible node selection');
   }
-  const node = page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]:visible').first();
+  const node = page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) {
     throw new Error('current Authority domain has no visible node for detail interaction');
@@ -1229,7 +1229,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   }, originKey);
   await node.focus();
   const semanticNodeFocusedBeforeClick = await node.evaluate((candidate) => candidate === document.activeElement);
-  await node.click();
+  await page.keyboard.press('Enter');
   await page.waitForSelector('[data-active-node-detail]', { timeout: 10000 });
   await probe.waitForPath('/api/knowledge/shards/active/nodes/:node');
   await page.waitForTimeout(50);
