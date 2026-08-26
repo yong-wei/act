@@ -1,0 +1,14 @@
+## ADDED Requirements
+
+### Requirement: Local authenticated knowledge-workspace QA uses managed three-role fixtures
+The knowledge-workspace product-QA capture SHALL exercise authenticated student, teacher, and administrator sessions. When both the capture target and its `DATABASE_URL` are loopback-local, the capture SHALL idempotently provision the canonical three-role test fixtures before authentication and SHALL not require credential environment variables. A non-loopback capture target or database MUST NOT receive managed fixture writes; it SHALL require explicitly supplied credentials for every required role. Neither browser evidence nor generated QA artifacts SHALL contain credential values.
+
+#### Scenario: Local product QA runs without credential variables
+- **WHEN** the capture target and configured database are both loopback-local and no `KNOWLEDGE_QA_*` credentials are supplied
+- **THEN** the test harness SHALL provision the canonical student, teacher, and administrator fixtures idempotently
+- **AND** it SHALL authenticate all three roles before recording product-QA evidence
+
+#### Scenario: Non-local product QA is requested
+- **WHEN** the capture target or database is not loopback-local
+- **THEN** the test harness SHALL not create or update any managed fixture account
+- **AND** missing or incomplete explicit credentials SHALL fail the capture before browser evidence is written

@@ -24,6 +24,11 @@ import {
   fetchRuntimeCaptureRevisionProof,
   type CaptureRevisionProof,
 } from '../../src/lib/commercial-ui-capture-revision';
+import {
+  KNOWLEDGE_WORKSPACE_QA_ROLES,
+  provisionLocalKnowledgeWorkspaceQaAccounts,
+  type KnowledgeWorkspaceQaCredentials,
+} from './knowledge-workspace-product-qa-accounts';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
@@ -77,6 +82,7 @@ const sourceFiles = [
   'src/lib/konling-agent-runtime.ts',
   'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
+  'scripts/tests/knowledge-workspace-product-qa-accounts.ts',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
 
@@ -408,7 +414,11 @@ function readExistingIndependentVisualReview(
   }
 }
 
-const roleEnvironment: Record<KnowledgeRole, { email: string; password: string; expectedRole: string }> = {
+const roleEnvironment: Record<KnowledgeRole, {
+  email: string;
+  password: string;
+  expectedRole: KnowledgeWorkspaceQaCredentials['expectedRole'];
+}> = {
   student: {
     email: 'KNOWLEDGE_QA_STUDENT_EMAIL',
     password: 'KNOWLEDGE_QA_STUDENT_PASSWORD',
@@ -426,13 +436,39 @@ const roleEnvironment: Record<KnowledgeRole, { email: string; password: string; 
   },
 };
 
-async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
-  const environment = roleEnvironment[role];
-  const email = process.env[environment.email]?.trim();
-  const password = process.env[environment.password];
-  if (!email || !password) {
-    throw new Error(`missing credentials for ${role}; set ${environment.email} and ${environment.password}`);
+function configuredRoleCredentials() {
+  const credentials = Object.fromEntries(KNOWLEDGE_WORKSPACE_QA_ROLES.map((role) => {
+    const environment = roleEnvironment[role];
+    return [role, {
+      email: process.env[environment.email]?.trim() ?? '',
+      password: process.env[environment.password] ?? '',
+      expectedRole: environment.expectedRole,
+    }];
+  })) as Record<KnowledgeRole, KnowledgeWorkspaceQaCredentials>;
+  const hasValue = (role: KnowledgeRole) => Boolean(credentials[role].email || credentials[role].password);
+  const isComplete = (role: KnowledgeRole) => Boolean(credentials[role].email && credentials[role].password);
+
+  if (KNOWLEDGE_WORKSPACE_QA_ROLES.some(hasValue) && !KNOWLEDGE_WORKSPACE_QA_ROLES.every(isComplete)) {
+    throw new Error('knowledge workspace QA credentials must be configured for all three roles');
   }
+  return KNOWLEDGE_WORKSPACE_QA_ROLES.every(isComplete) ? credentials : null;
+}
+
+async function resolveRoleCredentials() {
+  const configured = configuredRoleCredentials();
+  if (configured) return configured;
+
+  const managed = await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
+  if (managed) return managed;
+
+  const environment = roleEnvironment.student;
+  throw new Error(`missing credentials for student; set ${environment.email} and ${environment.password}`);
+}
+
+async function establishRoleSession(
+  role: KnowledgeRole,
+  credentials: KnowledgeWorkspaceQaCredentials,
+): Promise<RoleSession> {
   const api = await request.newContext();
   try {
     const csrfResponse = await api.get(`${baseUrl}/api/auth/csrf`);
@@ -444,8 +480,8 @@ async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
     const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials?json=true`, {
       form: {
         csrfToken: csrf.csrfToken,
-        email,
-        password,
+        email: credentials.email,
+        password: credentials.password,
         callbackUrl: baseUrl,
         json: 'true',
       },
@@ -453,7 +489,7 @@ async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
     if (!loginResponse.ok()) throw new Error(`credentials login failed for ${role}: ${loginResponse.status()}`);
     const sessionResponse = await api.get(`${baseUrl}/api/auth/session`);
     const session = await sessionResponse.json() as { user?: { id?: unknown; role?: unknown } };
-    if (session.user?.role !== environment.expectedRole || typeof session.user.id !== 'string') {
+    if (session.user?.role !== credentials.expectedRole || typeof session.user.id !== 'string') {
       throw new Error(`authenticated role mismatch for ${role}`);
     }
     return { role, storageState: await api.storageState() };
@@ -3034,9 +3070,10 @@ async function main() {
   );
   const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
   ensureOutputDir();
+  const roleCredentials = await resolveRoleCredentials();
   const sessions = new Map<KnowledgeRole, RoleSession>();
   for (const role of ['student', 'teacher', 'admin'] as const) {
-    sessions.set(role, await establishRoleSession(role));
+    sessions.set(role, await establishRoleSession(role, roleCredentials[role]));
   }
   const adminSession = sessions.get('admin');
   if (!adminSession) throw new Error('admin session is required for authenticated product capture');
