@@ -1380,20 +1380,20 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
       terminalValidationNodeIds,
       terminalValidationStrategy: {
         nodeIds: terminalValidationNodeIds,
-        summary: terminalValidationNodeIds.length > 0
-          && pathPlan.mainPath
-            .filter((node) => terminalValidationNodeIds.includes(node.nodeId))
-            .every((node) => node.status === 'locked'
-              || node.status === 'blocked'
-              || (node.readiness?.state ?? 'ready') !== 'ready')
+        summary: terminalValidationIsIncludedButUnverifiable(pathPlan.mainPath, terminalValidationNodeIds)
           ? '终点已纳入但当前不可验证'
           : terminalValidationNodeIds.length > 0
             ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
             : '阶段检查点用于学习反馈',
       },
-      limitations: pathPlan.status === 'fallback'
-        ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
-        : [],
+      limitations: [
+        ...(pathPlan.status === 'fallback'
+          ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
+          : []),
+        ...(terminalValidationIsIncludedButUnverifiable(pathPlan.mainPath, terminalValidationNodeIds)
+          ? ['终点已纳入但当前不可验证']
+          : []),
+      ],
     }];
   }
   if (!actionablePaths.length) {
@@ -1582,6 +1582,19 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
       ? toStudentPathReason(fallbackReasons[0])
       : null,
   });
+}
+
+function terminalValidationIsIncludedButUnverifiable(
+  path: AdaptiveLearningPathPlan['mainPath'],
+  terminalValidationNodeIds: string[],
+): boolean {
+  if (terminalValidationNodeIds.length === 0) return false;
+  const terminals = path.filter((node) => terminalValidationNodeIds.includes(node.nodeId));
+  if (terminals.length === 0) return true;
+  return terminals.every((node) =>
+    node.status === 'locked'
+    || node.status === 'blocked'
+    || (node.readiness?.state ?? 'ready') !== 'ready');
 }
 
 function toStudentPathReason(reason: string): string {

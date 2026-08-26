@@ -5005,6 +5005,15 @@ describe('adaptive learning path planner', () => {
       });
       expect(path.limitations).toContain('终点已纳入但当前不可验证');
     }
+    const serialized = serializeLearningPathPlan(plan);
+    const serializedOptions = (serialized.payload.pathOptions ?? []) as Array<{
+      terminalValidationNodeIds: string[];
+      limitations: string[];
+    }>;
+    expect(serializedOptions.some((path) =>
+      path.terminalValidationNodeIds.includes(terminalId)
+      && path.limitations.includes('终点已纳入但当前不可验证')
+    )).toBe(true);
   });
 
   it('keeps ready Arena terminal validation reporting unchanged', () => {

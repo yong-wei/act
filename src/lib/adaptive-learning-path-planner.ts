@@ -2587,15 +2587,16 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
       terminalValidationNodeIds.length > 0,
     ),
     checkpointNodeIds: terminalValidationNodeIds,
-    limitations: plan.status === 'fallback'
-      ? plan.explanations.fallbackReasons
-      : buildPathOptionLimitations(
+    limitations: unique([
+      ...(plan.status === 'fallback' ? plan.explanations.fallbackReasons : []),
+      ...buildPathOptionLimitations(
         plan,
         plan.mainPath,
         terminalValidationNodeIds,
         targetDeficits,
         terminalValidationNodeIds.length > 0,
       ),
+    ]),
   }];
 }
 
