@@ -13,6 +13,16 @@ const ROOT = process.cwd();
 const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
 const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
 
+type RuntimeLifecycleIdentity = {
+  readonly schemaVersion: 'runtime-blob-release-identity.v1';
+  readonly releaseId: string;
+  readonly manifestVersion: 'act-runtime-release.v2';
+  readonly manifestSha256: string;
+  readonly manifestWireSha256: string;
+  readonly manifestWireSizeBytes: number;
+  readonly treeSha256: string;
+};
+
 function option(name: string): string {
   const index = process.argv.indexOf(name);
   const value = index < 0 ? undefined : process.argv[index + 1];
@@ -58,6 +68,19 @@ function requireHash(value: unknown, label: string): string {
   return value;
 }
 
+function assertRuntimeLifecycleIdentity(value: RuntimeLifecycleIdentity): void {
+  if (value.schemaVersion !== 'runtime-blob-release-identity.v1'
+    || value.manifestVersion !== 'act-runtime-release.v2'
+    || !/^runtime-[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u.test(value.releaseId)
+    || !Number.isInteger(value.manifestWireSizeBytes)
+    || value.manifestWireSizeBytes < 1) {
+    throw new Error('staged Runtime release identity is invalid');
+  }
+  for (const field of ['manifestSha256', 'manifestWireSha256', 'treeSha256'] as const) {
+    requireHash(value[field], `staged Runtime ${field}`);
+  }
+}
+
 function main(): void {
   const candidateDir = option('--candidate-dir');
   const baselineRoot = optionOr('--baseline-root', LEGACY_BASELINE_ROOT);
@@ -69,10 +92,11 @@ function main(): void {
   if (allocation.allocationHash !== candidate.allocationHash) throw new Error('qualification allocation differs from candidate');
   const stage = readJson<{
     contract: string;
-    runtimeRelease: { releaseId: string; manifestSha256: string; treeSha256: string };
+    runtimeRelease: RuntimeLifecycleIdentity;
     materializationReceiptSha256: string;
   }>(path.join(candidateDir, 'runtime-stage.json'));
   if (stage.contract !== 'coordinated-runtime-stage/v1') throw new Error('runtime stage contract is invalid');
+  assertRuntimeLifecycleIdentity(stage.runtimeRelease);
   const extension = readJson<Record<string, unknown>>(path.join(candidateDir, 'successor-runtime-manifest-extension.json'));
   const extensionHash = projectionDigest({
     successorManifest: stage.runtimeRelease,

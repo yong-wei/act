@@ -32,6 +32,14 @@ export interface RuntimeReleaseIdentity {
   readonly treeSha256: string;
 }
 
+/** Exact Runtime v2 lifecycle identity, including the manifest wire binding. */
+export interface RuntimeLifecycleIdentity extends RuntimeReleaseIdentity {
+  readonly schemaVersion: 'runtime-blob-release-identity.v1';
+  readonly manifestVersion: 'act-runtime-release.v2';
+  readonly manifestWireSha256: string;
+  readonly manifestWireSizeBytes: number;
+}
+
 function assertRuntimeIdentity(identity: RuntimeReleaseIdentity): void {
   if (!identity.releaseId || typeof identity.releaseId !== 'string') {
     throw new LatestAuthorityCutoverError(
@@ -46,6 +54,20 @@ function assertRuntimeIdentity(identity: RuntimeReleaseIdentity): void {
         `Runtime binding field ${field} must be a lowercase SHA-256 hex digest.`,
       );
     }
+  }
+}
+
+function assertRuntimeLifecycleIdentity(identity: RuntimeLifecycleIdentity): void {
+  assertRuntimeIdentity(identity);
+  if (identity.schemaVersion !== 'runtime-blob-release-identity.v1'
+    || identity.manifestVersion !== 'act-runtime-release.v2'
+    || !/^[a-f0-9]{64}$/u.test(identity.manifestWireSha256)
+    || !Number.isInteger(identity.manifestWireSizeBytes)
+    || identity.manifestWireSizeBytes < 1) {
+    throw new LatestAuthorityCutoverError(
+      'runtime-active-binding-invalid',
+      'The Runtime active binding must carry the complete v2 lifecycle identity.',
+    );
   }
 }
 
@@ -140,7 +162,7 @@ export interface CoordinatedRuntimeActiveReceiptBinding {
   readonly contract: 'coordinated-runtime-active-receipt-binding/v1';
   readonly transactionId: string;
   readonly candidateReceiptHash: string;
-  readonly runtimeRelease: RuntimeReleaseIdentity;
+  readonly runtimeRelease: RuntimeLifecycleIdentity;
   readonly materializationReceiptHash: string;
   readonly bindingHash: string;
 }
@@ -153,7 +175,7 @@ export interface CoordinatedRuntimeActiveReceiptBinding {
 export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
   transactionId: string;
   candidateReceiptHash: string;
-  runtimeRelease: RuntimeReleaseIdentity;
+  runtimeRelease: RuntimeLifecycleIdentity;
   materializationReceiptHash: string;
 }): CoordinatedRuntimeActiveReceiptBinding {
   if (!input.transactionId?.startsWith('tx-')) {
@@ -168,7 +190,7 @@ export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
       'The Runtime active binding must carry the coordinated candidate receipt hash.',
     );
   }
-  assertRuntimeIdentity(input.runtimeRelease);
+  assertRuntimeLifecycleIdentity(input.runtimeRelease);
   if (!/^[a-f0-9]{64}$/u.test(input.materializationReceiptHash)) {
     throw new LatestAuthorityCutoverError(
       'runtime-active-binding-invalid',

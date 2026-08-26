@@ -449,13 +449,22 @@ if [[ "$stage_only" == "1" ]]; then
   materialization_receipt="$artifact_dir/materialization-receipt.json"
   scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$SSH_TARGET:$REMOTE_RUNTIME_VIEW_ROOT/views/$release_id/.act-runtime-release-materialization.v1.json" "$materialization_receipt.tmp"
   mv "$materialization_receipt.tmp" "$materialization_receipt"
-  python3 - "$manifest" "$materialization_receipt" "$artifact_dir/staged-runtime.json" <<'PY'
+  python3 - "$manifest" "$lifecycle_identity" "$materialization_receipt" "$artifact_dir/staged-runtime.json" <<'PY'
 import hashlib
 import json
 import sys
 
-manifest_path, receipt_path, output_path = sys.argv[1:]
-manifest = json.load(open(manifest_path, encoding="utf-8"))
+manifest_path, identity_path, receipt_path, output_path = sys.argv[1:]
+manifest_wire = open(manifest_path, "rb").read()
+manifest = json.loads(manifest_wire.decode("utf-8"))
+identity = json.load(open(identity_path, encoding="utf-8"))
+identity_keys = {"schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256"}
+if set(identity) != identity_keys or identity.get("schemaVersion") != "runtime-blob-release-identity.v1" or identity.get("manifestVersion") != "act-runtime-release.v2":
+    raise SystemExit("staged Runtime lifecycle identity is invalid")
+if identity.get("releaseId") != manifest.get("releaseId") or identity.get("manifestSha256") != manifest.get("manifestSha256") or identity.get("treeSha256") != manifest.get("treeSha256"):
+    raise SystemExit("staged Runtime lifecycle identity does not match the manifest")
+if identity.get("manifestWireSha256") != hashlib.sha256(manifest_wire).hexdigest() or identity.get("manifestWireSizeBytes") != len(manifest_wire):
+    raise SystemExit("staged Runtime lifecycle identity does not bind the manifest wire")
 wire = open(receipt_path, "rb").read()
 receipt = json.loads(wire.decode("utf-8"))
 if receipt.get("schemaVersion") not in {"runtime-blob-materialization.v1", "runtime-blob-materialization.v2"}:
@@ -464,11 +473,7 @@ if receipt.get("releaseId") != manifest.get("releaseId"):
     raise SystemExit("staged Runtime materialization receipt binds a different release")
 result = {
     "contract": "coordinated-runtime-stage/v1",
-    "runtimeRelease": {
-        "releaseId": manifest["releaseId"],
-        "manifestSha256": manifest["manifestSha256"],
-        "treeSha256": manifest["treeSha256"],
-    },
+    "runtimeRelease": identity,
     "materializationReceiptSha256": hashlib.sha256(wire).hexdigest(),
 }
 with open(output_path, "w", encoding="utf-8") as handle:

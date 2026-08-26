@@ -318,14 +318,21 @@ def coordinated_cutover_declaration(value: Any, label: str = "coordinated cutove
     # Coordinated cutover artifacts are serialized by the TypeScript library
     # and use its `contract` discriminator, unlike this script's local
     # `schemaVersion` records.
-    value = exact(value, ["contract", "releaseId", "manifestSha256", "treeSha256", "candidateReceiptHash"], label)
+    value = exact(value, ["contract", "schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256", "candidateReceiptHash"], label)
     if value["contract"] != COORDINATED_CUTOVER_SCHEMA:
         fail("%s has an unsupported contract" % label)
+    runtime_identity = identity({
+        "schemaVersion": value["schemaVersion"],
+        "releaseId": value["releaseId"],
+        "manifestVersion": value["manifestVersion"],
+        "manifestSha256": value["manifestSha256"],
+        "manifestWireSha256": value["manifestWireSha256"],
+        "manifestWireSizeBytes": value["manifestWireSizeBytes"],
+        "treeSha256": value["treeSha256"],
+    }, label + ".runtimeRelease")
     return {
         "contract": COORDINATED_CUTOVER_SCHEMA,
-        "releaseId": release_id(value["releaseId"], label + ".releaseId"),
-        "manifestSha256": sha(value["manifestSha256"], label + ".manifestSha256"),
-        "treeSha256": sha(value["treeSha256"], label + ".treeSha256"),
+        **runtime_identity,
         "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
     }
 
@@ -419,12 +426,7 @@ def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime bi
     ], label)
     if value["contract"] != "coordinated-runtime-active-receipt-binding/v1":
         fail("%s has an unsupported contract" % label)
-    release_row = exact(value["runtimeRelease"], ["releaseId", "manifestSha256", "treeSha256"], label + ".runtimeRelease")
-    runtime_release = {
-        "releaseId": release_id(release_row["releaseId"], label + ".runtimeRelease.releaseId"),
-        "manifestSha256": sha(release_row["manifestSha256"], label + ".runtimeRelease.manifestSha256"),
-        "treeSha256": sha(release_row["treeSha256"], label + ".runtimeRelease.treeSha256"),
-    }
+    runtime_release = identity(value["runtimeRelease"], label + ".runtimeRelease")
     binding = {
         "contract": "coordinated-runtime-active-receipt-binding/v1",
         "transactionId": string(value["transactionId"], label + ".transactionId"),
@@ -487,7 +489,7 @@ def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, An
     declaration = read_coordinated_cutover_declaration(state_dir)
     if declaration is None:
         return
-    if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+    if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
         return
     authorization_path = getattr(args, "coordinated_runtime_authorization", None)
     if not authorization_path:
@@ -511,7 +513,7 @@ def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, An
         fail("coordinated runtime binding belongs to a different transaction than the Runtime authorization")
     if authorization["runtimeBindingHash"] != binding["bindingHash"]:
         fail("coordinated Runtime authorization does not close over the provided runtime active binding")
-    if binding["runtimeRelease"]["releaseId"] != candidate["releaseId"] or binding["runtimeRelease"]["manifestSha256"] != candidate["manifestSha256"] or binding["runtimeRelease"]["treeSha256"] != candidate["treeSha256"]:
+    if binding["runtimeRelease"] != candidate:
         fail("coordinated runtime binding references a different runtime release than the candidate")
 
 
@@ -747,7 +749,7 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
                     declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
                 except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
                     fail("coordinated cutover declaration is unreadable: %s" % error)
-                if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+                if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
                     fail("coordinated cutover declaration must match the desired identity")
                 write_coordinated_cutover_declaration(state_dir, declaration)
         elif operation == "attach-coordinated-desired":
@@ -761,7 +763,7 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
                 declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
             except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
                 fail("coordinated cutover declaration is unreadable: %s" % error)
-            if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
+            if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
                 fail("coordinated cutover declaration must match the current desired identity")
             existing = read_coordinated_cutover_declaration(state_dir)
             if existing is not None:

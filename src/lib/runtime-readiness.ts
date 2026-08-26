@@ -103,10 +103,19 @@ function coordinatedActiveReceiptMatchesRuntime(
   const runtimeIdentity = receipt.runtimeActiveIdentity;
   if (!runtimeIdentity || typeof runtimeIdentity !== 'object' || Array.isArray(runtimeIdentity)) return false;
   const runtime = runtimeIdentity as Record<string, unknown>;
-  if (Object.keys(runtime).sort().join('\u0000') !== 'manifestSha256\u0000releaseId\u0000treeSha256'
+  const semanticKeys = 'manifestSha256\u0000releaseId\u0000treeSha256';
+  const lifecycleKeys = 'manifestSha256\u0000manifestVersion\u0000manifestWireSha256\u0000manifestWireSizeBytes\u0000releaseId\u0000schemaVersion\u0000treeSha256';
+  const runtimeKeys = Object.keys(runtime).sort().join('\u0000');
+  if ((runtimeKeys !== semanticKeys && runtimeKeys !== lifecycleKeys)
     || runtime.releaseId !== identity.releaseId
     || runtime.manifestSha256 !== identity.manifestSha256
     || runtime.treeSha256 !== identity.treeSha256) return false;
+  if (runtimeKeys === lifecycleKeys
+    && (runtime.schemaVersion !== 'runtime-blob-release-identity.v1'
+      || runtime.manifestVersion !== 'act-runtime-release.v2'
+      || !isSha256(runtime.manifestWireSha256)
+      || !Number.isInteger(runtime.manifestWireSizeBytes)
+      || (runtime.manifestWireSizeBytes as number) < 1)) return false;
   const expectedHash = projectionDigest({
     transactionId: receipt.transactionId,
     journalHash: receipt.journalHash,

@@ -29,6 +29,16 @@ const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candida
 const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
 const DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST = 'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae/manifest.json';
 
+type RuntimeLifecycleIdentity = {
+  readonly schemaVersion: 'runtime-blob-release-identity.v1';
+  readonly releaseId: string;
+  readonly manifestVersion: 'act-runtime-release.v2';
+  readonly manifestSha256: string;
+  readonly manifestWireSha256: string;
+  readonly manifestWireSizeBytes: number;
+  readonly treeSha256: string;
+};
+
 function fail(message: string): never {
   throw new Error(`build-r4-c5-cutover-input: ${message}`);
 }
@@ -63,6 +73,29 @@ function requireDigest(value: unknown, label: string): asserts value is string {
   if (typeof value !== 'string' || !/^[a-f0-9]{64}$/u.test(value)) fail(`${label} must be a SHA-256 digest`);
 }
 
+function requireRuntimeLifecycleIdentity(value: RuntimeLifecycleIdentity, label: string): void {
+  if (value.schemaVersion !== 'runtime-blob-release-identity.v1'
+    || value.manifestVersion !== 'act-runtime-release.v2'
+    || !/^runtime-[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u.test(value.releaseId)
+    || !Number.isInteger(value.manifestWireSizeBytes)
+    || value.manifestWireSizeBytes < 1) {
+    fail(`${label} is not a valid Runtime lifecycle identity`);
+  }
+  for (const field of ['manifestSha256', 'manifestWireSha256', 'treeSha256'] as const) {
+    requireDigest(value[field], `${label}.${field}`);
+  }
+}
+
+function sameRuntimeLifecycleIdentity(left: RuntimeLifecycleIdentity, right: RuntimeLifecycleIdentity): boolean {
+  return left.schemaVersion === right.schemaVersion
+    && left.releaseId === right.releaseId
+    && left.manifestVersion === right.manifestVersion
+    && left.manifestSha256 === right.manifestSha256
+    && left.manifestWireSha256 === right.manifestWireSha256
+    && left.manifestWireSizeBytes === right.manifestWireSizeBytes
+    && left.treeSha256 === right.treeSha256;
+}
+
 function requireTimestamp(value: string): void {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(value)) {
     fail('--sealed-at must be a millisecond RFC3339 UTC timestamp');
@@ -88,8 +121,8 @@ function main(): void {
   );
   const predecessor = readJson<{
     contract: string;
-    runtime: { releaseId: string; manifestSha256: string; treeSha256: string; activeReceiptHash: string; lifecycleGeneration: number };
-    stagedDesired: { releaseId: string; manifestSha256: string; treeSha256: string } | null;
+    runtime: RuntimeLifecycleIdentity & { activeReceiptHash: string; lifecycleGeneration: number };
+    stagedDesired: RuntimeLifecycleIdentity | null;
     selectors: { authority: { sha256: string; value: Record<string, unknown> } };
     observationHash: string;
   }>(option('--predecessor'));
@@ -98,15 +131,19 @@ function main(): void {
   requireTimestamp(sealedAt);
   const runtimeStage = prestage ? null : readJson<{
     contract: string;
-    runtimeRelease: { releaseId: string; manifestSha256: string; treeSha256: string };
+    runtimeRelease: RuntimeLifecycleIdentity;
     materializationReceiptSha256: string;
   }>(option('--runtime-stage'));
   if (runtimeStage !== null && runtimeStage.contract !== 'coordinated-runtime-stage/v1') {
     fail('runtime stage contract is invalid');
   }
+  requireRuntimeLifecycleIdentity(predecessor.runtime, 'production predecessor Runtime');
+  if (predecessor.stagedDesired !== null) requireRuntimeLifecycleIdentity(predecessor.stagedDesired, 'staged Runtime desired');
+  if (runtimeStage !== null) requireRuntimeLifecycleIdentity(runtimeStage.runtimeRelease, 'staged Runtime release');
   for (const value of [
     ...(runtimeStage === null ? [] : [
       runtimeStage.runtimeRelease.manifestSha256,
+      runtimeStage.runtimeRelease.manifestWireSha256,
       runtimeStage.runtimeRelease.treeSha256,
       runtimeStage.materializationReceiptSha256,
     ]),
@@ -122,7 +159,7 @@ function main(): void {
   if (prestage && predecessor.stagedDesired !== null) {
     fail('prestage reuse must begin from an idle Runtime lifecycle');
   }
-  if (runtimeStage !== null && JSON.stringify(predecessor.stagedDesired) !== JSON.stringify(runtimeStage.runtimeRelease)) {
+  if (runtimeStage !== null && !sameRuntimeLifecycleIdentity(predecessor.stagedDesired!, runtimeStage.runtimeRelease)) {
     fail('fresh predecessor observation is not the expected staged Runtime lifecycle');
   }
 

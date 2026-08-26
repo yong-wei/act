@@ -17,6 +17,21 @@ const DEFAULT_OUT = 'course-content/authoring/knowledge/cutover/candidates/contr
 
 type Wire = { readonly sha256: string; readonly value: unknown };
 
+type RuntimeLifecycleIdentity = {
+  readonly schemaVersion: 'runtime-blob-release-identity.v1';
+  readonly releaseId: string;
+  readonly manifestVersion: 'act-runtime-release.v2';
+  readonly manifestSha256: string;
+  readonly manifestWireSha256: string;
+  readonly manifestWireSizeBytes: number;
+  readonly treeSha256: string;
+};
+
+const RUNTIME_LIFECYCLE_IDENTITY_KEYS = [
+  'schemaVersion', 'releaseId', 'manifestVersion', 'manifestSha256',
+  'manifestWireSha256', 'manifestWireSizeBytes', 'treeSha256',
+] as const;
+
 function sha256(value: Buffer | string): string {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -46,6 +61,22 @@ function exactKeys(value: unknown, keys: readonly string[], label: string): Reco
 
 function requireDigest(value: unknown, label: string): asserts value is string {
   if (typeof value !== 'string' || !/^[a-f0-9]{64}$/u.test(value)) fail(`${label} must be a SHA-256 digest`);
+}
+
+function requireRuntimeLifecycleIdentity(value: unknown, label: string): RuntimeLifecycleIdentity {
+  const identity = exactKeys(value, RUNTIME_LIFECYCLE_IDENTITY_KEYS, label);
+  if (identity.schemaVersion !== 'runtime-blob-release-identity.v1'
+    || identity.manifestVersion !== 'act-runtime-release.v2'
+    || typeof identity.releaseId !== 'string'
+    || !identity.releaseId.startsWith('runtime-')
+    || !Number.isInteger(identity.manifestWireSizeBytes)
+    || (identity.manifestWireSizeBytes as number) < 1) {
+    fail(`${label} is not a valid Runtime lifecycle identity`);
+  }
+  requireDigest(identity.manifestSha256, `${label}.manifestSha256`);
+  requireDigest(identity.manifestWireSha256, `${label}.manifestWireSha256`);
+  requireDigest(identity.treeSha256, `${label}.treeSha256`);
+  return identity as RuntimeLifecycleIdentity;
 }
 
 function remoteProgram(): string {
@@ -79,22 +110,14 @@ function validate(
   allowStagedDesired: boolean,
 ) {
   const lifecycle = value.lifecycle;
-  const active = exactKeys(lifecycle.active, ['releaseId', 'manifestSha256', 'treeSha256'], 'lifecycle.active');
+  const active = requireRuntimeLifecycleIdentity(lifecycle.active, 'lifecycle.active');
   if (!Number.isInteger(lifecycle.generation) || (lifecycle.generation as number) < 1) fail('lifecycle generation is invalid');
   if (lifecycle.publishing === undefined || (!allowStagedDesired && lifecycle.desired !== null)) {
     fail('Runtime lifecycle is not idle');
   }
   if (allowStagedDesired && lifecycle.desired !== null) {
-    const desired = exactKeys(lifecycle.desired, ['manifestSha256', 'releaseId', 'treeSha256'], 'lifecycle.desired');
-    requireDigest(desired.manifestSha256, 'lifecycle desired manifest');
-    requireDigest(desired.treeSha256, 'lifecycle desired tree');
-    if (typeof desired.releaseId !== 'string' || !desired.releaseId.startsWith('runtime-')) {
-      fail('staged Runtime desired identity is invalid');
-    }
+    requireRuntimeLifecycleIdentity(lifecycle.desired, 'lifecycle.desired');
   }
-  requireDigest(active.manifestSha256, 'lifecycle active manifest');
-  requireDigest(active.treeSha256, 'lifecycle active tree');
-  if (typeof active.releaseId !== 'string' || !active.releaseId.startsWith('runtime-')) fail('active Runtime release is invalid');
   requireDigest(value.activeReceipt.sha256, 'active Runtime receipt');
   const receipt = exactKeys(value.activeReceipt.value, ['healthCheck', 'schemaVersion', 'selection'], 'active Runtime receipt');
   const selection = exactKeys(receipt.selection, ['generation', 'manifestSha256', 'releaseId', 'schemaVersion', 'treeSha256'], 'active Runtime selection');
@@ -135,14 +158,12 @@ function main(): void {
   const allowStagedDesired = flag('--allow-staged-desired');
   const remote = readRemote();
   validate(remote, allowStagedDesired);
-  const active = remote.lifecycle.active as Record<string, unknown>;
+  const active = requireRuntimeLifecycleIdentity(remote.lifecycle.active, 'lifecycle.active');
   const result = {
     contract: 'r4-production-predecessor-observation/v1',
     capturedAt: new Date().toISOString(),
     runtime: {
-      releaseId: active.releaseId,
-      manifestSha256: active.manifestSha256,
-      treeSha256: active.treeSha256,
+      ...active,
       activeReceiptHash: remote.activeReceipt.sha256,
       lifecycleGeneration: remote.lifecycle.generation,
     },

@@ -172,10 +172,22 @@ if stage.get('contract') != 'coordinated-runtime-stage/v1' or observed.get('cont
   raise SystemExit('runtime stage or predecessor observation is invalid')
 runtime_stage=stage.get('runtimeRelease')
 successor_runtime=json.load(open(successor_runtime_path, encoding='utf-8'))
-runtime_manifest=json.load(open(runtime_manifest_path, encoding='utf-8'))
+runtime_manifest_wire=open(runtime_manifest_path,'rb').read()
+runtime_manifest=json.loads(runtime_manifest_wire.decode('utf-8'))
 materialization_receipt_wire=open(materialization_receipt_path,'rb').read()
 extension=json.load(open(extension_path, encoding='utf-8'))
-if not isinstance(runtime_stage,dict) or runtime_stage != successor_runtime or any(runtime_manifest.get(key) != runtime_stage.get(key) for key in ('releaseId','manifestSha256','treeSha256')):
+identity_keys={'schemaVersion','releaseId','manifestVersion','manifestSha256','manifestWireSha256','manifestWireSizeBytes','treeSha256'}
+def runtime_identity(value, label):
+  if not isinstance(value,dict) or set(value) != identity_keys or value.get('schemaVersion') != 'runtime-blob-release-identity.v1' or value.get('manifestVersion') != 'act-runtime-release.v2':
+    raise SystemExit(label + ' is not a complete Runtime lifecycle identity')
+  if not isinstance(value.get('releaseId'),str) or not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?',value['releaseId']):
+    raise SystemExit(label + ' has an invalid release id')
+  if any(not isinstance(value.get(key),str) or not re.fullmatch(r'[a-f0-9]{64}',value[key]) for key in ('manifestSha256','manifestWireSha256','treeSha256')) or not isinstance(value.get('manifestWireSizeBytes'),int) or value['manifestWireSizeBytes'] < 1:
+    raise SystemExit(label + ' has invalid content identity')
+  return value
+runtime_stage=runtime_identity(runtime_stage, 'Runtime stage')
+successor_runtime=runtime_identity(successor_runtime, 'sealed successor Runtime')
+if runtime_stage != successor_runtime or any(runtime_manifest.get(key) != runtime_stage.get(key) for key in ('releaseId','manifestSha256','treeSha256')) or hashlib.sha256(runtime_manifest_wire).hexdigest() != runtime_stage['manifestWireSha256'] or len(runtime_manifest_wire) != runtime_stage['manifestWireSizeBytes']:
   raise SystemExit('Runtime stage does not match the sealed successor Runtime manifest')
 runtime_manifest_input={key:value for key,value in runtime_manifest.items() if key != 'manifestSha256'}
 if sha(canonical(runtime_manifest_input)) != runtime_stage.get('manifestSha256'):
@@ -190,7 +202,8 @@ if candidate['predecessor'] != [{'selectorId':'authority:current','identity':sha
   raise SystemExit('Authority predecessor drifted from candidate')
 live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
 runtime = observed['runtime']
-if live['desired'] is None or live['active'] != {key: runtime[key] for key in ('releaseId','manifestSha256','treeSha256')} or live['generation'] != runtime['lifecycleGeneration']:
+runtime_before=runtime_identity({key: runtime.get(key) for key in identity_keys}, 'observed predecessor Runtime')
+if live['desired'] is None or live['active'] != runtime_before or live['generation'] != runtime['lifecycleGeneration']:
   raise SystemExit('Runtime predecessor or staged desired state drifted')
 if sha(open(active_receipt_path,'rb').read()) != runtime.get('activeReceiptHash'):
   raise SystemExit('Runtime active receipt differs from the observed predecessor')
@@ -224,7 +237,7 @@ if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshot
 binding_authority=projection_scope_binding.get('authority')
 if not isinstance(binding_authority,dict) or any(binding_authority.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
-declaration = {'contract':'runtime-blob-coordinated-cutover.v1', **stage['runtimeRelease'], 'candidateReceiptHash':candidate['receiptHash']}
+declaration = {'contract':'runtime-blob-coordinated-cutover.v1', **runtime_stage, 'candidateReceiptHash':candidate['receiptHash']}
 with open(declaration_path, 'w', encoding='utf-8') as handle:
   json.dump(declaration, handle, sort_keys=True, separators=(',', ':')); handle.write('\n')
 PY
@@ -294,7 +307,7 @@ restore_runtime_predecessor() {
   if python3 - "$state" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" <<'PY'
 import json, sys
 live, stage, predecessor = map(json.loads, sys.argv[1:])
-before = {key: predecessor['runtime'][key] for key in ('releaseId', 'manifestSha256', 'treeSha256')}
+before = {key: predecessor['runtime'][key] for key in ('schemaVersion', 'releaseId', 'manifestVersion', 'manifestSha256', 'manifestWireSha256', 'manifestWireSizeBytes', 'treeSha256')}
 if live['active'] == stage['runtimeRelease']:
     raise SystemExit(10)
 if live['active'] == before and live['desired'] in (None, stage['runtimeRelease']):
@@ -314,7 +327,7 @@ PY
   python3 - "$state" "$candidate_dir/predecessor-observation.json" <<'PY'
 import json, sys
 live, predecessor = map(json.loads, sys.argv[1:])
-before = {key: predecessor['runtime'][key] for key in ('releaseId', 'manifestSha256', 'treeSha256')}
+before = {key: predecessor['runtime'][key] for key in ('schemaVersion', 'releaseId', 'manifestVersion', 'manifestSha256', 'manifestWireSha256', 'manifestWireSizeBytes', 'treeSha256')}
 if live['active'] != before or live['desired'] is not None:
     raise SystemExit(1)
 PY

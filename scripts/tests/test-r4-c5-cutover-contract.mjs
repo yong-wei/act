@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -54,6 +54,17 @@ try {
     path.join(root, 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/active-baseline/active-baseline-classification.json'),
     'utf8',
   )).activeRelease;
+  const predecessorRuntime = {
+    schemaVersion: 'runtime-blob-release-identity.v1',
+    releaseId: baseline.releaseId,
+    manifestVersion: 'act-runtime-release.v2',
+    manifestSha256: baseline.manifestSha256,
+    manifestWireSha256: '9'.repeat(64),
+    manifestWireSizeBytes: 456,
+    treeSha256: baseline.treeSha256,
+    activeReceiptHash: baseline.activeReceiptHash,
+    lifecycleGeneration: baseline.lifecycleGeneration,
+  };
   const authority = {
     contract: 'actkg-engineering-authority-current/v1',
     snapshotId: 'snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151',
@@ -68,19 +79,32 @@ try {
   const out = path.join(fixture, 'candidate');
   const writePredecessor = (stagedDesired) => fs.writeFileSync(predecessorPath, `${JSON.stringify({
     contract: 'r4-production-predecessor-observation/v1',
-    runtime: baseline,
+    runtime: predecessorRuntime,
     stagedDesired,
     selectors: { authority: { sha256: 'a'.repeat(64), value: authority } },
     observationHash: 'b'.repeat(64),
   })}\n`);
   writePredecessor(null);
   const run = (args) => execFileSync(path.join(root, 'node_modules/.bin/tsx'), [builder, '--', ...args], { cwd: root, encoding: 'utf8' });
+  const expectFailure = (args, pattern) => {
+    const result = spawnSync(path.join(root, 'node_modules/.bin/tsx'), [builder, '--', ...args], { cwd: root, encoding: 'utf8' });
+    assert.notEqual(result.status, 0, 'expected the c5 builder to fail');
+    assert.match(`${result.stdout}${result.stderr}`, pattern);
+  };
   run(['--prestage', '--predecessor', predecessorPath, '--out', out, '--sealed-at', '2026-08-26T09:00:00.000Z']);
   const allocation = JSON.parse(fs.readFileSync(path.join(out, 'allocation.json'), 'utf8'));
   const envelope = JSON.parse(fs.readFileSync(path.join(out, 'formal-resource-envelope.json'), 'utf8'));
   assert.match(allocation.allocationHash, /^[a-f0-9]{64}$/);
   assert.match(envelope.envelopeHash, /^[a-f0-9]{64}$/);
-  const runtimeRelease = { releaseId: 'runtime-r4-c5-test', manifestSha256: 'c'.repeat(64), treeSha256: 'd'.repeat(64) };
+  const runtimeRelease = {
+    schemaVersion: 'runtime-blob-release-identity.v1',
+    releaseId: 'runtime-r4-c5-test',
+    manifestVersion: 'act-runtime-release.v2',
+    manifestSha256: 'c'.repeat(64),
+    manifestWireSha256: 'd'.repeat(64),
+    manifestWireSizeBytes: 123,
+    treeSha256: 'e'.repeat(64),
+  };
   fs.writeFileSync(stagePath, `${JSON.stringify({
     contract: 'coordinated-runtime-stage/v1',
     runtimeRelease,
@@ -112,6 +136,16 @@ try {
   execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'qualify',
     '--candidate', path.join(out, 'candidate-receipt.json'), '--artifacts', path.join(out, 'outer-artifacts.json'),
   ], { cwd: root, encoding: 'utf8' });
+  const tamperedRuntimeRelease = { ...runtimeRelease, manifestWireSha256: 'f'.repeat(64) };
+  fs.writeFileSync(stagePath, `${JSON.stringify({
+    contract: 'coordinated-runtime-stage/v1',
+    runtimeRelease: tamperedRuntimeRelease,
+    materializationReceiptSha256: 'e'.repeat(64),
+  })}\n`);
+  expectFailure(
+    ['--runtime-stage', stagePath, '--predecessor', predecessorPath, '--out', out, '--sealed-at', '2026-08-26T09:01:00.000Z'],
+    /fresh predecessor observation is not the expected staged Runtime lifecycle/,
+  );
 } finally {
   fs.rmSync(fixture, { recursive: true, force: true });
 }

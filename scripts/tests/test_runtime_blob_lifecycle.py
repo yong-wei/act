@@ -111,7 +111,15 @@ async function main() {
     await applyJournaledMutation(opened.journal, 0, stores[0], '2030-01-01T00:01:00.000Z'),
     await applyJournaledMutation(opened.journal, 1, stores[1], '2030-01-01T00:01:01.000Z'),
   ];
-  const runtimeRelease = { releaseId: 'runtime-b', manifestSha256: H('e'), treeSha256: H('f') };
+  const runtimeRelease = {
+    schemaVersion: 'runtime-blob-release-identity.v1',
+    releaseId: 'runtime-b',
+    manifestVersion: 'act-runtime-release.v2',
+    manifestSha256: H('e'),
+    manifestWireSha256: H('f'),
+    manifestWireSizeBytes: 10,
+    treeSha256: H('a'),
+  };
   const binding = buildCoordinatedRuntimeActiveReceiptBinding({
     transactionId: opened.journal.transactionId,
     candidateReceiptHash: candidate.receiptHash,
@@ -159,11 +167,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             "contract": "coordinated-runtime-active-receipt-binding/v1",
             "transactionId": "tx-1",
             "candidateReceiptHash": candidate_receipt_hash,
-            "runtimeRelease": {
-                "releaseId": candidate_identity["releaseId"],
-                "manifestSha256": candidate_identity["manifestSha256"],
-                "treeSha256": candidate_identity["treeSha256"],
-            },
+            "runtimeRelease": candidate_identity,
             "materializationReceiptHash": "3" * 64,
             "bindingHash": "",
         }
@@ -557,9 +561,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             declaration = root / "coordinated-cutover.json"
             declaration.write_text(json.dumps({
                 "contract": "runtime-blob-coordinated-cutover.v1",
-                "releaseId": "runtime-b",
-                "manifestSha256": identity_b["manifestSha256"],
-                "treeSha256": identity_b["treeSha256"],
+                **identity_b,
                 "candidateReceiptHash": "e" * 64,
             }), encoding="utf-8")
             attached = self.call(
@@ -597,19 +599,16 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             declaration = root / "coordinated-cutover.json"
             declaration.write_text(json.dumps({
                 "contract": "runtime-blob-coordinated-cutover.v1",
-                "releaseId": "runtime-b",
-                "manifestSha256": identity_b["manifestSha256"],
-                "treeSha256": identity_b["treeSha256"],
+                **identity_b,
                 "candidateReceiptHash": "e" * 64,
             }), encoding="utf-8")
             # A declaration that does not match the desired identity is
             # rejected before the lifecycle state changes.
             mismatched = root / "coordinated-cutover-mismatch.json"
+            mismatched_identity = {**identity_b, "releaseId": "runtime-c"}
             mismatched.write_text(json.dumps({
                 "contract": "runtime-blob-coordinated-cutover.v1",
-                "releaseId": "runtime-c",
-                "manifestSha256": identity_b["manifestSha256"],
-                "treeSha256": identity_b["treeSha256"],
+                **mismatched_identity,
                 "candidateReceiptHash": "e" * 64,
             }), encoding="utf-8")
             rejected_decl = self.call(
@@ -697,9 +696,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             declaration_e = root / "coordinated-cutover-e.json"
             declaration_e.write_text(json.dumps({
                 "contract": "runtime-blob-coordinated-cutover.v1",
-                "releaseId": "runtime-e",
-                "manifestSha256": identity_e["manifestSha256"],
-                "treeSha256": identity_e["treeSha256"],
+                **identity_e,
                 "candidateReceiptHash": "e" * 64,
             }), encoding="utf-8")
             self.call("set-desired", "--state-dir", str(state), "--expected-generation", "8", "--identity", str(candidate_e), "--coordinated-cutover", str(declaration_e))

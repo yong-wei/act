@@ -613,13 +613,29 @@ describe('Runtime and readiness integration', () => {
     const binding = buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'tx-abc',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     });
     expect(() => buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'not-a-tx',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     })).toThrow(/preallocated transaction id/);
     expect(Object.hasOwn(binding, 'finalCoordinatedActiveReceiptHash')).toBe(false);
@@ -629,7 +645,15 @@ describe('Runtime and readiness integration', () => {
     const binding = buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'tx-abc',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     });
     expect(() => assertRuntimeSuccessorAuthorizedByAuthorization(binding, null))
