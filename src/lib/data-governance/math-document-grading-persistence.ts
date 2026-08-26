@@ -1182,7 +1182,7 @@ export async function processDocumentConversionJob(input: {
   now?: Date;
 }): Promise<{ conversion: any; evidence: any | null }> {
   const now = input.now ?? new Date();
-  const job = await input.db.gradingJob.findUnique({ where: { id: input.jobId }, include: { conversion: { include: { answerEvidence: { include: { blocks: true } }, asset: { include: { answer: { include: { submission: true } } } }, attempt: true, policy: true, visualPolicy: true } } } });
+  const job = await input.db.gradingJob.findUnique({ where: { id: input.jobId }, include: { conversion: { include: { answerEvidence: { include: { blocks: true } }, asset: { include: { answer: { include: { submission: true, question: true } } } }, attempt: true, policy: true, visualPolicy: true } } } });
   if (!job?.conversion) throw new Error('conversion-job-not-found');
   const terminalConversion = ['SUCCEEDED', 'FALLBACK', 'BLOCKED', 'FAILED', 'CANCELLED', 'CONTENT_UNAVAILABLE', 'DELETED'].includes(job.conversion.state);
   const terminalJob = ['SUCCEEDED', 'FAILED', 'CANCELLED', 'BLOCKED', 'CONTENT_UNAVAILABLE'].includes(job.state);
@@ -1258,6 +1258,9 @@ export async function processDocumentConversionJob(input: {
     mathpix: input.mathpix,
     local: input.local,
     assignmentResponse: job.conversion.adapterVersion === 'assignment-understanding.v1',
+    expectedQuestionIds: job.conversion.asset?.answer?.question?.stableQuestionId
+      ? [job.conversion.asset.answer.question.stableQuestionId]
+      : undefined,
     now,
     isCancellationRequested: () => isConversionCancellationRequested(input.db, job.id, job.conversion.id, job, job.conversion),
     isLeaseLost: async () => {
@@ -1386,6 +1389,8 @@ export async function processDocumentConversionJob(input: {
         normalizedBlocks: normalized.blocks,
         renderedObjectKey,
         renderedChecksum,
+        renderedPageCount: result.wordRepresentation?.renderedPdfPageCount ?? physicalPageCount(normalized.blocks),
+        layoutRepresentation: buildConversionLayoutRepresentation(result),
         precision: result.precision.toUpperCase(),
         confidence: result.confidence,
         warningCodes,
@@ -2274,6 +2279,7 @@ export function buildPersistedAnswerEvidenceBlocks(input: { normalized: Normaliz
     id: `${input.conversionId}:${block.id}`,
     evidenceId: input.evidenceId,
     blockIndex: block.blockIndex,
+    questionId: block.questionId ?? null,
     pageNumber: block.pageNumber ?? null,
     text: block.text,
     markdown: block.markdown ?? block.text,
@@ -2286,6 +2292,36 @@ export function buildPersistedAnswerEvidenceBlocks(input: { normalized: Normaliz
     sourceHash: input.sourceHash,
     createdAt: input.now,
   }));
+}
+
+function physicalPageCount(blocks: readonly { pageNumber?: number | null }[]): number | null {
+  const pageNumbers = blocks.map((block) => block.pageNumber).filter((page): page is number => typeof page === 'number' && Number.isInteger(page) && page > 0);
+  return pageNumbers.length > 0 ? Math.max(...pageNumbers) : null;
+}
+
+export function buildConversionLayoutRepresentation(result: Pick<Awaited<ReturnType<typeof convertProtectedSubmission>>, 'wordRepresentation'>): Record<string, unknown> | null {
+  const representation = result.wordRepresentation;
+  if (!representation) return null;
+  const blocksById = new Map(representation.blocks.map((block) => [block.id, block]));
+  return {
+    schemaVersion: 'document-layout-representation.v1',
+    sourceFormat: representation.sourceFormat,
+    renderedPdfChecksum: representation.renderedPdfChecksum,
+    renderedPdfPageCount: representation.renderedPdfPageCount,
+    extractorVersion: representation.extractorVersion,
+    rendererVersion: representation.rendererVersion,
+    paragraphs: representation.paragraphs.map(({ id, paragraphIndex, questionId, introducesQuestion }) => ({ id, paragraphIndex, questionId, introducesQuestion })),
+    formulas: representation.formulas.map(({ id, paragraphId, questionId, text, omml }) => ({ id, paragraphId, questionId, text, ommlChecksum: sha256(omml) })),
+    images: representation.images.map(({ id, paragraphId, questionId, mediaType, checksum }) => ({ id, paragraphId, questionId, mediaType, checksum })),
+    anchors: representation.anchors.map((anchor) => ({ ...anchor })),
+    questionRegions: representation.questionStates.map((state) => ({
+      ...state,
+      candidates: state.candidateBlockIds.map((blockId) => {
+        const block = blocksById.get(blockId);
+        return block ? { blockId, pageNumber: block.pageNumber ?? null, bbox: block.bbox ?? null, confidence: block.confidence ?? 0 } : { blockId, pageNumber: null, bbox: null, confidence: 0 };
+      }),
+    })),
+  };
 }
 
 function nestedAnswerEvidenceBlocks(

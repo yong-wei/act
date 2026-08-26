@@ -31,7 +31,17 @@ export interface WordRepresentationAdapter {
   resolveWordProcessorVersion?(signal?: AbortSignal): Promise<string>;
   normalizeLegacyDoc?(bytes: Uint8Array, signal?: AbortSignal): Promise<Uint8Array>;
   renderPdf(bytes: Uint8Array, signal?: AbortSignal): Promise<Uint8Array>;
-  extractPdfPages?(bytes: Uint8Array): Promise<Array<{ pageNumber: number; text: string; imageCount: number }>>;
+  extractPdfPages?(bytes: Uint8Array): Promise<PdfPageRepresentation[]>;
+}
+
+export interface PdfPageRepresentation {
+  pageNumber: number;
+  text: string;
+  imageCount: number;
+  pageWidth?: number;
+  pageHeight?: number;
+  rotation?: 0 | 90 | 180 | 270;
+  textItems?: Array<{ text: string; bbox: [number, number, number, number] }>;
 }
 
 export interface WordParagraphRepresentation {
@@ -67,7 +77,11 @@ export interface WordRepresentationAnchor {
   questionId: string | null;
   sourcePart: 'word/document.xml';
   pdfPageNumber: number | null;
+  bbox: [number, number, number, number] | null;
+  coordinateProvenance: { origin: 'BOTTOM_LEFT'; unit: 'PDF_POINT'; pageWidth: number; pageHeight: number; rotation: 0 | 90 | 180 | 270 } | null;
   precision: 'page' | 'block';
+  mappingDecision: 'pdf-text-region-match' | 'pdf-page-match' | 'paragraph-order-fallback';
+  mappingConfidence: number;
   verified: boolean;
 }
 
@@ -91,6 +105,10 @@ export interface WordQuestionState {
   questionId: string;
   state: 'scorable' | 'review-required' | 'blocked';
   reasons: string[];
+  candidateBlockIds: string[];
+  selectedBlockIds: string[];
+  mappingDecision: 'pdf-text-region-match' | 'pdf-page-match' | 'paragraph-order-fallback' | 'unmapped';
+  mappingConfidence: number;
 }
 
 export interface WordDualRepresentation {
@@ -193,7 +211,7 @@ export async function createWordDualRepresentation(input: {
   if (!startsWith(renderedPdfBytes, Buffer.from('%PDF-'))) throw new WordRepresentationError('word-pdf-render-invalid');
   const pdfPages = await (input.adapter.extractPdfPages ?? extractPdfPages)(renderedPdfBytes);
   const mapped = mapParagraphsToPdf(extracted.paragraphs, pdfPages);
-  const issues = [...extracted.issues, ...mapped.issues];
+  const issues = [...extracted.issues, ...mapped.issues, ...detectCrossQuestionRegionOverlaps(mapped.blocks)];
 
   const hasElectronicAnswerContent = extracted.formulas.length > 0
     || extracted.paragraphs.some((paragraph) => substantiveText(paragraph.text).length > 0);
@@ -208,7 +226,7 @@ export async function createWordDualRepresentation(input: {
     if (!signal.consistent) issues.push(issue('text-image-conflict', 'review', signal.questionId));
   }
 
-  const questionStates = buildQuestionStates(expectedQuestionIds, extracted, issues);
+  const questionStates = buildQuestionStates(expectedQuestionIds, extracted, mapped.blocks, issues);
   const verdict = issues.some((entry) => entry.severity === 'blocked')
     ? 'blocked'
     : issues.length > 0 ? 'review' : 'scorable';
@@ -303,7 +321,7 @@ function readParagraphs(document: XmlDocument, expectedQuestionIds: readonly str
       .filter((candidate) => localName(candidate) === 't')
       .map((candidate) => candidate.textContent ?? '')
       .join(''));
-    const detectedQuestionId = QUESTION_ID.exec(text)?.[1] ?? null;
+    const detectedQuestionId = text.match(/^\s*([A-Za-z]\d+(?:-\d+)+)(?:\s|[:：.、)）-]|$)/u)?.[1] ?? null;
     const explicitQuestionId = detectedQuestionId && (expectedQuestionIds.length === 0 || expectedQuestionIds.includes(detectedQuestionId))
       ? detectedQuestionId
       : null;
@@ -338,16 +356,20 @@ function readParagraphs(document: XmlDocument, expectedQuestionIds: readonly str
 
 function mapParagraphsToPdf(
   paragraphs: WordParagraphRepresentation[],
-  pages: Array<{ pageNumber: number; text: string; imageCount: number }>,
+  pages: PdfPageRepresentation[],
 ) {
   let spanStart = 0;
   const issues: WordIntegrityIssue[] = [];
   const anchors: WordRepresentationAnchor[] = [];
   const blocks = paragraphs.filter((paragraph) => paragraph.text.trim()).map((paragraph, blockIndex) => {
     const normalizedParagraph = comparableText(paragraph.text);
-    const matchingPage = normalizedParagraph.length >= 2
-      ? pages.find((page) => comparableText(page.text).includes(normalizedParagraph))
-      : undefined;
+    const match = normalizedParagraph.length >= 2
+      ? findPdfTextRegion(pages, normalizedParagraph)
+      : null;
+    const matchingPage = match?.page;
+    const coordinateProvenance = match?.bbox && matchingPage?.pageWidth && matchingPage.pageHeight
+      ? { origin: 'BOTTOM_LEFT' as const, unit: 'PDF_POINT' as const, pageWidth: matchingPage.pageWidth, pageHeight: matchingPage.pageHeight, rotation: matchingPage.rotation ?? 0 }
+      : null;
     const blockId = `word-block-${blockIndex + 1}`;
     const block: EvidenceBlockInput = {
       id: blockId,
@@ -358,8 +380,10 @@ function mapParagraphsToPdf(
       spanStart,
       spanEnd: spanStart + paragraph.text.length,
       precision: matchingPage ? 'page' : 'block',
-      confidence: matchingPage ? 0.92 : 0.68,
+      confidence: match?.bbox ? 0.96 : matchingPage ? 0.92 : 0.68,
       questionId: paragraph.questionId,
+      bbox: match?.bbox ?? null,
+      coordinateProvenance,
     };
     spanStart = (block.spanEnd ?? spanStart) + 2;
     anchors.push({
@@ -368,7 +392,11 @@ function mapParagraphsToPdf(
       questionId: paragraph.questionId,
       sourcePart: 'word/document.xml',
       pdfPageNumber: matchingPage?.pageNumber ?? null,
+      bbox: match?.bbox ?? null,
+      coordinateProvenance,
       precision: matchingPage ? 'page' : 'block',
+      mappingDecision: match?.bbox ? 'pdf-text-region-match' : matchingPage ? 'pdf-page-match' : 'paragraph-order-fallback',
+      mappingConfidence: match?.bbox ? 0.96 : matchingPage ? 0.92 : 0.68,
       verified: Boolean(matchingPage),
     });
     if (!matchingPage) issues.push(issue('pdf-text-anchor-unresolved', 'review', paragraph.questionId, blockId));
@@ -381,11 +409,72 @@ function mapParagraphsToPdf(
       questionId: paragraph.questionId,
       sourcePart: 'word/document.xml',
       pdfPageNumber: null,
+      bbox: null,
+      coordinateProvenance: null,
       precision: 'block',
+      mappingDecision: 'paragraph-order-fallback',
+      mappingConfidence: 0.4,
       verified: false,
     });
   }
   return { blocks, anchors, issues };
+}
+
+function findPdfTextRegion(pages: PdfPageRepresentation[], query: string): { page: PdfPageRepresentation; bbox: [number, number, number, number] | null } | null {
+  for (const page of pages) {
+    const text = comparableText(page.text);
+    if (!text.includes(query)) continue;
+    const bbox = findPdfTextItemBbox(page, query);
+    return { page, bbox };
+  }
+  return null;
+}
+
+function findPdfTextItemBbox(page: PdfPageRepresentation, query: string): [number, number, number, number] | null {
+  const items = page.textItems ?? [];
+  if (items.length === 0) return null;
+  let combined = '';
+  const ranges = items.map((item) => {
+    const start = combined.length;
+    combined += comparableText(item.text);
+    return { start, end: combined.length, bbox: item.bbox };
+  });
+  const start = combined.indexOf(query);
+  if (start < 0) return null;
+  const end = start + query.length;
+  const matched = ranges.filter((range) => range.start < end && range.end > start).map((range) => range.bbox);
+  return unionBbox(matched);
+}
+
+function unionBbox(boxes: Array<[number, number, number, number]>): [number, number, number, number] | null {
+  if (boxes.length === 0 || boxes.some(([left, bottom, right, top]) => !Number.isFinite(left) || !Number.isFinite(bottom) || !Number.isFinite(right) || !Number.isFinite(top) || left >= right || bottom >= top)) return null;
+  return [
+    Math.min(...boxes.map(([left]) => left)),
+    Math.min(...boxes.map(([, bottom]) => bottom)),
+    Math.max(...boxes.map(([, , right]) => right)),
+    Math.max(...boxes.map(([, , , top]) => top)),
+  ];
+}
+
+function detectCrossQuestionRegionOverlaps(blocks: EvidenceBlockInput[]): WordIntegrityIssue[] {
+  const issues: WordIntegrityIssue[] = [];
+  for (let index = 0; index < blocks.length; index += 1) {
+    const left = blocks[index]!;
+    if (!left.questionId || left.pageNumber == null || !left.bbox) continue;
+    for (const right of blocks.slice(index + 1)) {
+      if (!right.questionId || right.questionId === left.questionId || right.pageNumber !== left.pageNumber || !right.bbox) continue;
+      if (boxesOverlap(left.bbox, right.bbox)) {
+        issues.push(issue('question-region-overlap', 'review', left.questionId, left.id ?? null));
+        issues.push(issue('question-region-overlap', 'review', right.questionId, right.id ?? null));
+      }
+    }
+  }
+  return issues;
+}
+
+function boxesOverlap(left: [number, number, number, number], right: [number, number, number, number]): boolean {
+  return Math.max(left[0], right[0]) < Math.min(left[2], right[2])
+    && Math.max(left[1], right[1]) < Math.min(left[3], right[3]);
 }
 
 function mapImagesToPdf(
@@ -407,6 +496,7 @@ function mapImagesToPdf(
 function buildQuestionStates(
   expectedQuestionIds: readonly string[],
   extracted: { paragraphs: WordParagraphRepresentation[]; formulas: WordFormulaRepresentation[]; images: WordImageRepresentation[] },
+  blocks: EvidenceBlockInput[],
   issues: WordIntegrityIssue[],
 ): WordQuestionState[] {
   const globalBlocked = issues.some((entry) => entry.severity === 'blocked' && entry.questionId === null);
@@ -422,10 +512,23 @@ function buildQuestionStates(
     if (!hasAnswer) issues.push(issue('answer-not-found', 'review', questionId));
     const reasons = uniqueIssues(issues.filter((entry) => entry.questionId === questionId)).map((entry) => entry.code);
     const blocked = globalBlocked || issues.some((entry) => entry.questionId === questionId && entry.severity === 'blocked');
+    const candidates = blocks.filter((block) => block.questionId === questionId);
+    const selected = candidates.filter((block) => block.pageNumber != null).sort((left, right) => (right.confidence ?? 0) - (left.confidence ?? 0)).slice(0, 1);
+    const mappingConfidence = selected.length > 0
+      ? selected.reduce((total, block) => total + (block.confidence ?? 0), 0) / selected.length
+      : candidates.length > 0 ? Math.max(...candidates.map((block) => block.confidence ?? 0)) : 0;
+    const mappingDecision = selected.some((block) => block.bbox != null)
+      ? 'pdf-text-region-match' as const
+      : selected.length > 0 ? 'pdf-page-match' as const
+      : candidates.length > 0 ? 'paragraph-order-fallback' as const : 'unmapped' as const;
     return {
       questionId,
       state: blocked ? 'blocked' : reasons.length > 0 ? 'review-required' : 'scorable',
       reasons,
+      candidateBlockIds: candidates.map((block) => block.id ?? ''),
+      selectedBlockIds: selected.map((block) => block.id ?? ''),
+      mappingDecision,
+      mappingConfidence,
     };
   });
 }
@@ -552,7 +655,7 @@ function parseXml(xml: string): XmlDocument {
   return document;
 }
 
-async function extractPdfPages(bytes: Uint8Array): Promise<Array<{ pageNumber: number; text: string; imageCount: number }>> {
+async function extractPdfPages(bytes: Uint8Array): Promise<PdfPageRepresentation[]> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const task = pdfjs.getDocument({ data: Uint8Array.from(bytes), isEvalSupported: false, useWorkerFetch: false });
   const document = await task.promise;
@@ -566,8 +669,19 @@ async function extractPdfPages(bytes: Uint8Array): Promise<Array<{ pageNumber: n
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const [content, operators] = await Promise.all([page.getTextContent(), page.getOperatorList()]);
+      const viewport = page.getViewport({ scale: 1 });
+      const textItems = content.items.flatMap((item: any) => {
+        if (!('str' in item) || typeof item.str !== 'string' || !item.str) return [];
+        const [, , , height, x, y] = item.transform as number[];
+        const width = Number(item.width);
+        const itemHeight = Math.abs(Number(height)) || Math.abs(Number(item.height));
+        const bbox: [number, number, number, number] = [x, y - itemHeight, x + width, y];
+        return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(width) && width > 0 && Number.isFinite(itemHeight) && itemHeight > 0
+          ? [{ text: item.str, bbox }]
+          : [];
+      });
       const text = content.items.flatMap((item) => 'str' in item ? [item.str] : []).join(' ');
-      pages.push({ pageNumber, text, imageCount: operators.fnArray.filter((operator) => imageOps.has(operator)).length });
+      pages.push({ pageNumber, text, imageCount: operators.fnArray.filter((operator) => imageOps.has(operator)).length, pageWidth: viewport.width, pageHeight: viewport.height, rotation: (page.rotate ?? 0) as 0 | 90 | 180 | 270, textItems });
     }
     return pages;
   } finally {

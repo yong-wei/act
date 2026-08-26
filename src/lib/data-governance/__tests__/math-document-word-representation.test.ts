@@ -9,6 +9,7 @@ import { createLocalDocumentConverter } from '../math-document-conversion';
 import {
   createWordDualRepresentation,
   detectSubmissionDocumentFormat,
+  type PdfPageRepresentation,
 } from '../math-document-word-representation';
 
 const fakePdf = Buffer.from('%PDF-1.7\nsynthetic');
@@ -205,6 +206,67 @@ describe('Word dual representation', () => {
     expect(result.questionStates).toContainEqual(expect.objectContaining({ questionId: 'T1-1', state: 'scorable' }));
   });
 
+  it('persists deterministic PDF regions for cross-page answer areas without crossing major questions', async () => {
+    const docx = await buildDocx({
+      paragraphs: [
+        '<w:p><w:r><w:t>T1-1 第一问作答。</w:t></w:r></w:p>',
+        '<w:p><w:r><w:t>比较 T1-2 的结果后，第一问结论不变。</w:t></w:r></w:p>',
+        '<w:p><w:r><w:t>T1-2 第二问作答。</w:t></w:r></w:p>',
+      ],
+    });
+    const result = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'answer.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1', 'T1-2'],
+      adapter: adapter({ pages: [
+        page(1, 'T1-1 第一问作答。', [{ text: 'T1-1 第一问作答。', bbox: [20, 700, 160, 716] }]),
+        page(2, '比较 T1-2 的结果后，第一问结论不变。 T1-2 第二问作答。', [
+          { text: '比较 T1-2 的结果后，第一问结论不变。', bbox: [20, 680, 260, 696] },
+          { text: 'T1-2 第二问作答。', bbox: [20, 620, 160, 636] },
+        ]),
+      ] }),
+    });
+
+    expect(result.renderedPdfPageCount).toBe(2);
+    expect(result.blocks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ questionId: 'T1-1', pageNumber: 1, bbox: [20, 700, 160, 716], confidence: 0.96 }),
+      expect.objectContaining({ questionId: 'T1-1', pageNumber: 2, bbox: [20, 680, 260, 696], confidence: 0.96 }),
+      expect.objectContaining({ questionId: 'T1-2', pageNumber: 2, bbox: [20, 620, 160, 636], confidence: 0.96 }),
+    ]));
+    expect(result.questionStates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ questionId: 'T1-1', candidateBlockIds: ['word-block-1', 'word-block-2'], selectedBlockIds: ['word-block-1'], mappingDecision: 'pdf-text-region-match' }),
+      expect.objectContaining({ questionId: 'T1-2', candidateBlockIds: ['word-block-3'], selectedBlockIds: ['word-block-3'], mappingDecision: 'pdf-text-region-match' }),
+    ]));
+  });
+
+  it('routes overlapping regions from different questions to review without changing their authoritative IDs', async () => {
+    const docx = await buildDocx({ paragraphs: [
+      '<w:p><w:r><w:t>T1-1 第一问作答。</w:t></w:r></w:p>',
+      '<w:p><w:r><w:t>T1-2 第二问作答。</w:t></w:r></w:p>',
+    ] });
+    const result = await createWordDualRepresentation({
+      sourceBytes: docx,
+      fileName: 'answer.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      expectedQuestionIds: ['T1-1', 'T1-2'],
+      adapter: adapter({ pages: [page(1, 'T1-1 第一问作答。 T1-2 第二问作答。', [
+        { text: 'T1-1 第一问作答。', bbox: [20, 680, 180, 710] },
+        { text: 'T1-2 第二问作答。', bbox: [100, 660, 260, 690] },
+      ])] }),
+    });
+
+    expect(result.blocks.map((block) => block.questionId)).toEqual(['T1-1', 'T1-2']);
+    expect(result.integrity.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'question-region-overlap', questionId: 'T1-1' }),
+      expect.objectContaining({ code: 'question-region-overlap', questionId: 'T1-2' }),
+    ]));
+    expect(result.questionStates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ questionId: 'T1-1', state: 'review-required' }),
+      expect.objectContaining({ questionId: 'T1-2', state: 'review-required' }),
+    ]));
+  });
+
   it('leaves image page anchors unresolved when rendered image cardinality differs', async () => {
     const docx = await buildDocx({
       paragraphs: ['<w:p><w:r><w:t>T1-1 图像证据。</w:t></w:r><w:drawing><a:blip r:embed="rId5"/></w:drawing></w:p>'],
@@ -292,7 +354,7 @@ describe('Word dual representation', () => {
 
 function adapter(options: {
   normalizedDocx?: Buffer;
-  pages?: Array<{ pageNumber: number; text: string; imageCount: number }>;
+  pages?: PdfPageRepresentation[];
 } = {}) {
   return {
     wordProcessorVersion: 'LibreOffice test.1',
@@ -302,6 +364,18 @@ function adapter(options: {
     },
     renderPdf: async () => fakePdf,
     extractPdfPages: async () => options.pages ?? [{ pageNumber: 1, text: '', imageCount: 0 }],
+  };
+}
+
+function page(pageNumber: number, text: string, textItems: Array<{ text: string; bbox: [number, number, number, number] }>): PdfPageRepresentation {
+  return {
+    pageNumber,
+    text,
+    imageCount: 0,
+    pageWidth: 612,
+    pageHeight: 792,
+    rotation: 0,
+    textItems,
   };
 }
 

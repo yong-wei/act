@@ -6,6 +6,7 @@ import {
   buildRerunIdentity,
   externalProcessingPolicyHash,
   gradingRequestScope,
+  normalizeDocumentEvidence,
   pseudonymousAuditId,
   sha256,
   stableStringify,
@@ -13,7 +14,9 @@ import {
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { ConversionLeaseLostError, convertProtectedSubmission } from '../math-document-conversion';
 import {
+  buildConversionLayoutRepresentation,
   cancelDocumentConversion,
+  buildPersistedAnswerEvidenceBlocks,
   evidenceFromRow,
   enqueueDocumentConversion,
   enqueueGradingRun,
@@ -125,6 +128,44 @@ function lifecyclePolicyRepository() {
 }
 
 describe('production math-document grading persistence contracts', () => {
+  it('persists question-scoped PDF region evidence without discarding coordinate provenance', () => {
+    const normalized = normalizeDocumentEvidence({
+      sourceHash: 'sha256:layout',
+      markdown: 'T1-1 answer',
+      blocks: [{
+        id: 'word-block-1', blockIndex: 0, questionId: 'T1-1', pageNumber: 2, text: 'T1-1 answer',
+        bbox: [20, 620, 160, 636],
+        coordinateProvenance: { origin: 'BOTTOM_LEFT', unit: 'PDF_POINT', pageWidth: 612, pageHeight: 792, rotation: 0 },
+        precision: 'page', confidence: 0.96,
+      }],
+    });
+    const rows = buildPersistedAnswerEvidenceBlocks({ normalized, conversionId: 'conversion-layout', evidenceId: 'evidence-layout', sourceHash: normalized.sourceHash, now });
+
+    expect(rows).toEqual([expect.objectContaining({
+      questionId: 'T1-1', pageNumber: 2, bbox: [20, 620, 160, 636],
+      coordinateProvenance: { origin: 'BOTTOM_LEFT', unit: 'PDF_POINT', pageWidth: 612, pageHeight: 792, rotation: 0 },
+    })]);
+  });
+
+  it('builds a replayable Word layout with immutable PDF identity and selected region evidence', () => {
+    const layout = buildConversionLayoutRepresentation({
+      wordRepresentation: {
+        sourceFormat: 'docx', renderedPdfChecksum: 'sha256:rendered', renderedPdfPageCount: 2,
+        extractorVersion: 'word-layout.v1', rendererVersion: 'LibreOffice 24.2.0.3',
+        blocks: [{ id: 'word-block-1', questionId: 'T1-1', pageNumber: 2, bbox: [20, 620, 160, 636], confidence: 0.96 }],
+        paragraphs: [{ id: 'word-paragraph-1', paragraphIndex: 0, questionId: 'T1-1', introducesQuestion: true }],
+        formulas: [{ id: 'formula-1', paragraphId: 'word-paragraph-1', questionId: 'T1-1', text: 'x=1', omml: '<m:oMath />' }],
+        images: [],
+        anchors: [{ blockId: 'word-block-1', paragraphId: 'word-paragraph-1', questionId: 'T1-1', pdfPageNumber: 2, bbox: [20, 620, 160, 636], coordinateProvenance: { origin: 'BOTTOM_LEFT', unit: 'PDF_POINT', pageWidth: 612, pageHeight: 792, rotation: 0 }, precision: 'page', mappingDecision: 'pdf-text-region-match', mappingConfidence: 0.96, verified: true }],
+        questionStates: [{ questionId: 'T1-1', state: 'scorable', reasons: [], candidateBlockIds: ['word-block-1'], selectedBlockIds: ['word-block-1'], mappingDecision: 'pdf-text-region-match', mappingConfidence: 0.96 }],
+      } as any,
+    });
+
+    expect(layout).toMatchObject({
+      schemaVersion: 'document-layout-representation.v1', renderedPdfChecksum: 'sha256:rendered', renderedPdfPageCount: 2,
+      questionRegions: [expect.objectContaining({ questionId: 'T1-1', selectedBlockIds: ['word-block-1'], candidates: [expect.objectContaining({ pageNumber: 2, bbox: [20, 620, 160, 636] })] })],
+    });
+  });
   it('preserves namespaced aggregate evidence block ids', () => {
     const evidenceId = 'evidence:attempt-1:1';
     const evidence = evidenceFromRow({
@@ -2243,7 +2284,7 @@ describe('production math-document grading persistence contracts', () => {
             formulas: [],
             images: [{ id: 'image-1', paragraphId: 'paragraph-1', questionId: null, relationshipId: 'rId1', path: 'word/media/image1.png', mediaType: 'image/png', checksum: sha256(image), bytes: Buffer.from(image) }],
             imageAnchors: [],
-            anchors: [{ blockId: 'block-1', paragraphId: 'paragraph-1', questionId: null, sourcePart: 'word/document.xml', pdfPageNumber: 1, precision: 'page', verified: true }],
+            anchors: [{ blockId: 'block-1', paragraphId: 'paragraph-1', questionId: null, sourcePart: 'word/document.xml', pdfPageNumber: 1, bbox: null, coordinateProvenance: null, precision: 'page', mappingDecision: 'pdf-page-match', mappingConfidence: 0.92, verified: true }],
             questionStates: [],
             integrity: { verdict: 'scorable', issues: [] },
           },

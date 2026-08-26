@@ -2247,6 +2247,7 @@ model AnswerEvidenceBlock {
   id                   String           @id @default(cuid())
   evidenceId           String
   blockIndex           Int
+  questionId           String?
   pageNumber           Int?
   text                 String           @db.Text
   markdown             String           @db.Text
@@ -2263,7 +2264,7 @@ model AnswerEvidenceBlock {
   annotations GradingAnnotation[]
 
   @@unique([evidenceId, blockIndex])
-  @@index([evidenceId, pageNumber])
+  @@index([evidenceId, questionId, pageNumber])
   @@index([sourceHash])
 }
 
@@ -2296,6 +2297,8 @@ model DocumentConversion {
   normalizedBlocks                  Json?
   renderedObjectKey                 String?
   renderedChecksum                  String?
+  renderedPageCount                 Int?
+  layoutRepresentation              Json?
   precision                         GradingPrecision?
   confidence                        Float?
   warningCodes                      String[]                @default([])
