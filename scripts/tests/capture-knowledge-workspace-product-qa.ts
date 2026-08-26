@@ -634,6 +634,7 @@ function canonicalKnowledgeApiPath(pathName: string, method: string) {
 }
 
 const knowledgeApiSensitiveKeyPattern = /(?:id|hash|digest|canonicaltype|predicate|direction|status|mode|tier|family|evidence|traversal|locator|edition|section|consumer|release|snapshot|activation|projection|version)/iu;
+const knowledgeApiSemanticEnumKeyPattern = /^(?:canonicaltype|predicate|direction|relationfamily|family|conceptkind|layer|qualitytier|status|mode|tier|evidence|traversal)$/iu;
 
 function collectKnowledgeApiSensitiveValues(
   value: unknown,
@@ -641,7 +642,9 @@ function collectKnowledgeApiSensitiveValues(
   field = '',
 ) {
   if (typeof value === 'string') {
-    if (knowledgeApiSensitiveKeyPattern.test(field)) rememberToken(value);
+    if (knowledgeApiSensitiveKeyPattern.test(field) && !knowledgeApiSemanticEnumKeyPattern.test(field)) {
+      rememberToken(value);
+    }
     return;
   }
   if (Array.isArray(value)) {
@@ -1287,7 +1290,8 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       __ACT_KNOWLEDGE_PRODUCT_QA_COPY_PAYLOADS__?: string[];
     };
     const forbiddenTokenPattern = /\b(?:ReleaseSet|Release|Snapshot|Activation|Projection|hash)\b|发布集|快照|激活|投影|哈希/i;
-    const forbiddenEnumPattern = /\b(?:canonicalType|predicate|direction|directed|undirected|prerequisite|postrequisite|association|concept|formula|system|module|procedure|parameter)\b/i;
+    const forbiddenEnumExactPattern = /^(?:canonicalType|predicate|direction|directed|undirected|unordered|prerequisite|postrequisite|association|concept|formula|system|module|procedure|parameter|DomainConcept|KnowledgeStatement|SystemModel|ModelRepresentation)$/i;
+    const forbiddenEnumMachineTokenPattern = /(?:^|[^\\p{L}\\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\\p{L}\\p{N}])/iu;
     const forbiddenLocatorPattern = /\b(?:sourceLocator|source locator|locator|sourceEditionId|sectionId|editionId)\b|(?:^|[\s])internal[-_](?:source|edition|section)\b|file:\/\/|https?:\/\/|(?:^|\s)\/(?:src|course-content|artifacts)\//i;
     const surfaceValues = [...surfaces];
     const copyPayloads = qaWindow.__ACT_KNOWLEDGE_PRODUCT_QA_COPY_PAYLOADS__ ?? [];
@@ -1296,7 +1300,9 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       .filter(Boolean);
     const scannedValues = [...surfaceValues, ...copyPayloads, ...copyValues];
     const forbiddenTokenCount = scannedValues.filter((value) => forbiddenTokenPattern.test(value)).length;
-    const forbiddenEnumCount = scannedValues.filter((value) => forbiddenEnumPattern.test(value)).length;
+    const forbiddenEnumCount = scannedValues.filter((value) => (
+      forbiddenEnumExactPattern.test(value) || forbiddenEnumMachineTokenPattern.test(value)
+    )).length;
     const forbiddenLocatorCount = scannedValues.filter((value) => forbiddenLocatorPattern.test(value)).length;
     const copyEntryCount = document.querySelectorAll('[data-copy-value], [data-copy-content], [data-copy-target], [data-copy], [aria-label*="复制"], [aria-label*="copy" i]').length
       + copyPayloads.length;
