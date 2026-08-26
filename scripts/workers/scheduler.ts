@@ -57,7 +57,7 @@ async function scheduleJobs() {
     'event-ingestion-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.EVENT_INGESTION_NIGHTLY },
+      repeat: { pattern: SCHEDULES.EVENT_INGESTION_NIGHTLY },
       jobId: 'coordinator-event-ingestion',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -67,7 +67,7 @@ async function scheduleJobs() {
     'active-student-snapshot-coordinator',
     { coordinator: true, simulationTaskCatalogRefresh: true },
     {
-      repeat: { cron: SCHEDULES.ACTIVE_STUDENT_SNAPSHOT },
+      repeat: { pattern: SCHEDULES.ACTIVE_STUDENT_SNAPSHOT },
       jobId: 'coordinator-active-student-snapshot',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -77,7 +77,7 @@ async function scheduleJobs() {
     'class-snapshot-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.CLASS_SNAPSHOT },
+      repeat: { pattern: SCHEDULES.CLASS_SNAPSHOT },
       jobId: 'coordinator-class-snapshot',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -87,7 +87,7 @@ async function scheduleJobs() {
     'evidence-feature-cache-rebuild',
     { coordinator: true, rebuildAll: true },
     {
-      repeat: { cron: SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD },
+      repeat: { pattern: SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD },
       jobId: 'coordinator-evidence-feature-cache-rebuild',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -97,7 +97,7 @@ async function scheduleJobs() {
     'risk-flag-scan-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
+      repeat: { pattern: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
       jobId: 'coordinator-risk-flag-scan',
       ...JOB_HISTORY_OPTIONS,
     },

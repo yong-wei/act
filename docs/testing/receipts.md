@@ -12,3 +12,21 @@ Duration, RSS, Node/OS, and service state belong in a measurement receipt. A new
 Qualified receipts must not contain credentials, raw event payloads, learner identifiers, or machine-local absolute paths.
 
 Do not encode a current pass/fail count as a permanent constant. Read the receipt bound to the source revision.
+
+## TypeScript graph receipts
+
+The graph contract uses `act-typescript-graph-manifest/v1` for deterministic
+scope and file identity, and
+`act-typescript-graph-measurement-receipt/v1` for runtime observations. A
+manifest records graph/config/source commit and tree, include/exclude roots,
+compiler policy, entrypoints, project references, file hashes and shared
+contract owners. A receipt adds command, manifest hash, toolchain, platform,
+cache mode, capture time, duration, peak RSS, file count, tsc status, fixture
+probe state and failure codes.
+
+Manifest hashes must not depend on duration, RSS, capture time or other machine
+state. Cold and warm measurements are separate receipts. Receipts are written
+by identity and are not overwritten; a receipt with `dirty: true`, a stale
+source identity, a non-passing status or a non-zero exit status is not
+qualification evidence. Main/release consumers must also require current
+`typecheck:tools` and `typecheck:test` receipts.

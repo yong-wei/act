@@ -12,6 +12,24 @@ Each required CI check must invoke exactly one governed local command, or a docu
 | `test:release` | `test:release` | none yet; later CI change must reuse this command id | explicit-release-qualification-evidence |
 | `test:nightly` | `test:nightly` | none yet; later CI change must reuse this command id | full-visual-performance-real-provider-smoke |
 
+## TypeScript graph mapping
+
+The production typecheck command is an aggregate of the two production graphs;
+tooling and test graphs remain independent inputs and are not swallowed by the
+root compatibility `tsconfig.json`.
+
+| graph command | npm script | scope | CI/release contract |
+| --- | --- | --- | --- |
+| `typecheck:web` | `typecheck:web` | Next App Router production | production aggregate |
+| `typecheck:worker` | `typecheck:worker` | worker/scheduler production | production aggregate |
+| `typecheck:tools` | `typecheck:tools` | content/knowledge/runtime/evidence/one-off tooling | PR/integration mandatory; main/release receipt required |
+| `typecheck:test` | `typecheck:test` | Vitest/Playwright/script tests | PR/integration mandatory; main/release receipt required |
+
+Each command writes a graph manifest and a revision-bound measurement receipt
+under `.logs/typescript-graphs/`. `typecheck:tools` and `typecheck:test` cannot
+be replaced by `test:nightly`; missing, stale, dirty, or failed receipts must
+fail closed in the consuming PR/integration and main/release gates.
+
 The historical `npm test` commercial UI evidence validator is not a PR command. It is a `test:release` component.
 The historical Playwright bundle `test:integration` is retained as `test:e2e:playwright` and is not the integration command contract.
 

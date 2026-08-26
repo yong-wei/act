@@ -1,0 +1,32 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "scripts/**/*.ts",
+    "scripts/**/*.tsx",
+    "scripts/**/*.mts",
+    "scripts/**/*.cts",
+    "typescript-graph-fixtures/tools.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts/tests",
+    "scripts/**/__tests__",
+    "scripts/**/fixtures",
+    "scripts/**/*.test.*",
+    "scripts/**/*.spec.*",
+    "tests",
+    "openspec",
+    "docs",
+    "artifacts",
+    ".logs",
+    "evaluate",
+    "data",
+    "deploy",
+    "course-content",
+    ".next",
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "src/**/*.spec.*",
+    "src/**/fixtures/**"
+  ]
+}
