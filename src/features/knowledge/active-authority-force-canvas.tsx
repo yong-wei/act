@@ -94,7 +94,20 @@ export function ActiveAuthorityForceCanvas({
   );
   const links = useMemo(() => toRuntimeLinks(view), [view]);
   const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
-  const fitViewRequest = useMemo(() => ({ id: 1, target: 'current' as const }), []);
+  const fitScopeSignature = useMemo(
+    () => nodes.map((node) => `${node.id}:${node.name}:${node.positionX}:${node.positionY}`).join('|'),
+    [nodes],
+  );
+  const fitScopeVersionRef = useRef({ signature: '', id: 0 });
+  const fitViewRequest = useMemo(() => {
+    if (fitScopeVersionRef.current.signature !== fitScopeSignature) {
+      fitScopeVersionRef.current = {
+        signature: fitScopeSignature,
+        id: fitScopeVersionRef.current.id + 1,
+      };
+    }
+    return { id: fitScopeVersionRef.current.id, target: 'current' as const };
+  }, [fitScopeSignature]);
   const showNodeDirectory = view.edges.length === 0 || showUnavailableTeachingDirectory;
 
   useEffect(() => {
