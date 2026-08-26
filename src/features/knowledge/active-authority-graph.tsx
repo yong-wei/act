@@ -1820,16 +1820,16 @@ export function ActiveAuthorityGraph({
               <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable')}</span>
             </div>
             {boundaryCues.length > 0 ? (
-              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3" aria-labelledby="active-authority-boundaries">
+              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
                 <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary">{graphCopy(locale, 'boundary.title')}</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                   {boundaryCues.map((cue) => (
                     <button
                       key={cue.key}
                       type="button"
                       data-authority-boundary-node={cue.nodeId}
                       onClick={() => followBoundary(cue.nodeId)}
-                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:max-w-64 max-[639px]:shrink-0 max-[639px]:truncate max-[639px]:whitespace-nowrap"
                     >
                       {boundaryEnterCopy(locale, cue.domainName, cue.objectLabel, cue.relationLabel)}
                     </button>
