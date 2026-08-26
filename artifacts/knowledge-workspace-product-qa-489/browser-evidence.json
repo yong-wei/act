@@ -1,21 +1,21 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-08-26T09:16:04.099Z",
-  "headCommit": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
+  "capturedAt": "2026-08-26T10:31:59.036Z",
+  "headCommit": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
   "captureRevision": {
-    "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-    "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a"
+    "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+    "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5"
   },
   "captureGuard": {
     "before": {
-      "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-      "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a",
+      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
       "dirty": false
     },
     "afterBrowserCapture": {
-      "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-      "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a",
+      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
       "dirty": true
     },
     "allowedOutputPrefixes": [
@@ -26,24 +26,24 @@
       "artifacts/commercial-ui/evidence.json"
     ]
   },
-  "baseUrl": "http://localhost:3210",
+  "baseUrl": "http://127.0.0.1:3210",
   "runtimeRevisionProof": {
-    "endpoint": "http://localhost:3210/api/internal/local-qa/revision",
+    "endpoint": "http://127.0.0.1:3210/api/internal/local-qa/revision",
     "expected": {
-      "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-      "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a",
+      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "beforeCapture": {
-      "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-      "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a",
+      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     },
     "afterCapture": {
-      "commitSha": "5e9e2f60c61c6a6d67d40f46e6f13c49f4aa2b0f",
-      "treeSha": "d8d2379b511919722bab6ca8b14bfa1f4f3ed58a",
+      "commitSha": "bb8468f36abeceb1c1d045a18b61431d2b9b447a",
+      "treeSha": "fb2af173db7ebdc7ffe9263e366abbbfb7c430c5",
       "sourceFingerprint": "36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262",
       "clean": true
     }
@@ -79,11 +79,11 @@
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "fe7ed10eed5bb96a7210501282504637dcbc31031ff8ded05a967f17992b5d8e",
     "src/features/knowledge/knowledge-graph-workspace.tsx": "52537468a75d2fa27218154922df67baab8c53fea48edf76b4dd727db97d6cec",
-    "src/features/knowledge/active-authority-graph.tsx": "cfc15a0ac23e47d195403f24e1a06e4f68965ed8435e68811ae3e99434379bb6",
-    "src/features/knowledge/active-authority-force-canvas.tsx": "3d899c25d390924054517d9dbc52bc3f17c3934437c0a73cd5e5c1f7e4ae0460",
+    "src/features/knowledge/active-authority-graph.tsx": "23b08a6623b3d28fa0dea40b2e0fd160ed9e43d8bb2f85cb7e9cdf7094bb5122",
+    "src/features/knowledge/active-authority-force-canvas.tsx": "3eeaad0c14683ecc5af4cc47c11ee4776ae80e555274d06888926c7948ad7b9a",
     "src/features/knowledge/active-authority-root-canvas.tsx": "afcedee9c23a4e87f3f484f9f9edc020d2db90ad7f479f7c0943105d0f5b70c6",
     "src/features/knowledge/active-authority-shard-store.ts": "db20cf1f7129a31c5ed3593ca5bc1dc77e70b5c9a9802fb9768de910f0659d14",
-    "src/features/knowledge/active-authority-presentation.ts": "fe40525d6f04c2099d56eb5e7588b27a78a5da8dde90878a040379dbfd1d91bf",
+    "src/features/knowledge/active-authority-presentation.ts": "92911ca0de2400f7b755a83fb59cc393901c032466635e107f24901d02980a5a",
     "src/features/knowledge/active-authority-graph-contracts.ts": "54ec5b6341a7e364fc153b8f372bbd0e581a83b48cd0b60d27e0d0d01a6cbab5",
     "src/lib/authority-domain-shards/contracts.ts": "055c0968ac155070f201a3c17b73db8a28d1931b46e6667366a7ec2678683120",
     "src/lib/authority-domain-shards/envelope.ts": "8b162e9a750959ccfdc7d719ec2844c6eff401ddc7fae9adf5d676b7b2753921",
@@ -113,16 +113,16 @@
     "src/app/globals.css": "897c4a477bfd9180f9bc516112daa005a12b8a55cb7df360439480d02929eacd",
     "src/lib/konling-agent-runtime.ts": "d0211ef4e133029de75f717bebb6d101840e04df9076220473e7cb56453a039d",
     "src/lib/evidence-capture-guard.ts": "7abfa901a1456bb77a7e46b89169ad4d8624f3a0f89d28cb5e650a8e52ce1b50",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "f65254ca65095d0a2c90a870a466d473b07fe79f972a354f55e0b5794f28a833",
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "a754307171d95c90f473e3207ff392b2fc1668832ba8e978c878d2680c5770eb",
     "scripts/tests/knowledge-workspace-product-qa-accounts.mjs": "963dfba6d422ba9ec9ca493cc5bf15ae0cae9642177cb1ed46b3d60e63de5c40",
     "scripts/tests/run-knowledge-workspace-product-qa.mjs": "6053c466cd379dcdd0164fc99633201b9251021c6b803a02a2762e5d486d2fbc",
-    "scripts/tests/test-commercial-ui-governance.ts": "9f825f513cefae2c27486e6278b378f1966b9027495edcedeed61e9774598a32"
+    "scripts/tests/test-commercial-ui-governance.ts": "acdfbcf144f5d2defb5fe10465d03f24d82f696ea17a3bf1501a320fb9f81faf"
   },
   "stateMatrix": [
     {
       "name": "desktop-default-collapsed-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -141,7 +141,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -168,13 +168,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -191,6 +198,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -309,7 +317,7 @@
     {
       "name": "desktop-expanded-persisted-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -328,7 +336,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -355,13 +363,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -378,6 +393,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -496,7 +512,7 @@
     {
       "name": "desktop-local-tools-directory-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -515,7 +531,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -542,13 +558,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -565,6 +588,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -690,7 +714,7 @@
     {
       "name": "desktop-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -709,7 +733,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -736,13 +760,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -759,6 +790,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -884,7 +916,7 @@
     {
       "name": "desktop-local-tools-view-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -903,7 +935,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -930,13 +962,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -953,6 +992,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1084,7 +1124,7 @@
     {
       "name": "desktop-selected-focus-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1103,7 +1143,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -1130,13 +1170,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -1153,6 +1200,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1303,7 +1351,7 @@
     {
       "name": "desktop-all-relation-families-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1322,7 +1370,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -1349,13 +1397,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -1372,6 +1427,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1490,7 +1546,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -1509,7 +1565,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -1536,13 +1592,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -1559,6 +1622,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1696,7 +1760,7 @@
     {
       "name": "desktop-hover-click-drag-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1715,7 +1779,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -1734,7 +1798,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "86bc4afad447afb5105e22b7fc882dcd156980f64e20bfb4c4977a260bd3a5ff",
+      "screenshotSha256": "7903e7fa318f273fd3d711c6f7b3cc56ed24a7f562ca7337edd48e4118104cc8",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1742,13 +1806,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -1765,6 +1836,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -1970,7 +2042,7 @@
     {
       "name": "desktop-selected-page-tools-menu-dark",
       "route": "/assessment/adaptive-practice",
-      "url": "http://localhost:3210/assessment/adaptive-practice?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/assessment/adaptive-practice?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -1997,7 +2069,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "adb08d8243fb3076e7e53170c84572cb22148e0b8f97e4431583e9f0cbdc9370",
+      "screenshotSha256": "c7a36e8ebf919d305a4bc4d9b902270fad4cbc51ab0e25bd41b900b0db461301",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -2085,7 +2157,7 @@
     {
       "name": "desktop-explicit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -2104,7 +2176,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -2131,13 +2203,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -2154,6 +2233,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -2304,7 +2384,7 @@
     {
       "name": "desktop-3d-fit-relayout-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -2323,7 +2403,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -2350,13 +2430,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -2373,6 +2460,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4091,7 +4179,7 @@
     {
       "name": "desktop-konling-selected-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4110,7 +4198,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -4137,13 +4225,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -4160,6 +4255,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4285,7 +4381,7 @@
     {
       "name": "desktop-konling-no-selection-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4304,7 +4400,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -4331,13 +4427,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -4354,6 +4457,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4479,7 +4583,7 @@
     {
       "name": "desktop-konling-degraded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=missing-node&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=missing-node&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4498,7 +4602,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -4525,13 +4629,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -4548,6 +4659,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4673,7 +4785,7 @@
     {
       "name": "desktop-stress-expanded-tool-inspector-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -4692,7 +4804,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -4711,7 +4823,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "c499275bb8bad6da290d478439c27f9976739298eecd636ee5cb26b49192b59a",
+      "screenshotSha256": "c3e0fdcaa975bc810bc376e62b0417f21b440870f459ebef08b8849896104e7d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4719,13 +4831,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -4742,6 +4861,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -4893,7 +5013,7 @@
     {
       "name": "desktop-wide-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -4912,7 +5032,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -4939,13 +5059,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -4962,6 +5089,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5080,7 +5208,7 @@
     {
       "name": "desktop-wide-inspector-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1920,
@@ -5099,7 +5227,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -5126,13 +5254,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -5149,6 +5284,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5293,7 +5429,7 @@
     {
       "name": "tablet-1100-default-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5312,7 +5448,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -5339,13 +5475,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -5362,6 +5505,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5480,7 +5624,7 @@
     {
       "name": "tablet-1100-local-tools-filter-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5499,7 +5643,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -5526,13 +5670,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -5549,6 +5700,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5674,7 +5826,7 @@
     {
       "name": "tablet-1100-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -5693,7 +5845,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -5720,13 +5872,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -5743,6 +5902,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -5880,7 +6040,7 @@
     {
       "name": "tablet-1024-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -5899,7 +6059,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -5918,7 +6078,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "5409eefc11a504f20e7f78d68d31f14ffebe135e8e36393ecdfc95481ce86974",
+      "screenshotSha256": "c193b4bd206ebabcc53de952434ee7544bfab640e0efd6ac585e93874949a960",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5926,13 +6086,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -5949,6 +6116,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6079,7 +6247,7 @@
     {
       "name": "tablet-1100-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1100,
@@ -6098,7 +6266,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -6117,7 +6285,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "538c180d2cfd8a6df963678d97a99c638bce036369f80c1aca2dd2705120abe5",
+      "screenshotSha256": "3cd8a34bd72cf44127db75a787f586ec2c9f8fd90c6daab10d561ffd02a6d58c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6125,13 +6293,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -6148,6 +6323,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6285,7 +6461,7 @@
     {
       "name": "tablet-1279-inspector-tools-konling-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1279,
@@ -6304,7 +6480,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -6331,13 +6507,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -6354,6 +6537,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6491,7 +6675,7 @@
     {
       "name": "mobile-320-local-tools-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6510,7 +6694,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -6537,13 +6721,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "compact",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -6560,6 +6751,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6684,7 +6876,7 @@
     {
       "name": "mobile-320-selected-inspector-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6703,7 +6895,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -6730,13 +6922,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "compact",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -6753,6 +6952,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -6890,7 +7090,7 @@
     {
       "name": "mobile-320-konling-expanded-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -6909,7 +7109,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -6936,13 +7136,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "compact",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -6959,6 +7166,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7070,7 +7278,7 @@
     {
       "name": "mobile-320-inspector-konling-stress-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -7089,7 +7297,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -7116,13 +7324,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "compact",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -7139,6 +7354,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7250,7 +7466,7 @@
     {
       "name": "light-theme-default",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -7269,7 +7485,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           },
           {
             "endpointClass": "legacy",
@@ -7296,13 +7512,20 @@
         "knowledgeGraphVersion": "legacy",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": false,
+          "rendererVisibleInViewport": false,
+          "renderedRelationCount": 0,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -7319,6 +7542,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": false,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7483,7 +7707,7 @@
     {
       "name": "active-desktop-dark",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1440,
@@ -7498,7 +7722,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 3
+            "requestCount": 4
           },
           {
             "endpointClass": "active-node",
@@ -7519,7 +7743,7 @@
         {
           "endpointClass": "active-canvas",
           "status": 200,
-          "requestCount": 3
+          "requestCount": 4
         },
         {
           "endpointClass": "active-node",
@@ -7533,14 +7757,21 @@
         "knowledgeGraphMode": "active",
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
-          "visibleNodeCount": 24,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "visibleNodeCount": 49,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": true,
+          "rendererVisibleInViewport": true,
+          "renderedRelationCount": 29,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -7562,9 +7793,9 @@
             },
             "toolbarRect": {
               "left": 112,
-              "top": 265,
+              "top": -62,
               "right": 1400,
-              "bottom": 303,
+              "bottom": -24,
               "width": 1288,
               "height": 38
             },
@@ -7578,11 +7809,12 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
-            "nodeGeometryWithinViewportCount": 9,
+            "rendererVisibleInViewport": true,
+            "nodeGeometryWithinViewportCount": 15,
             "relationGeometryWithinViewportCount": 0
           },
           "nodeLabelReadability": {
-            "nodeLabelCount": 24,
+            "nodeLabelCount": 49,
             "minFontSize": 14,
             "minPixelSize": 0,
             "viewBoxWidth": null,
@@ -7664,7 +7896,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 82,
+        "scannedSurfaceCount": 115,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -7686,11 +7918,11 @@
         "learningCardVisible": false,
         "learningInfographVisible": false,
         "optionalLearningContentOmitted": true,
-        "adjacencyInteraction": false,
-        "renderedEdgeCount": 0,
+        "adjacencyInteraction": true,
+        "renderedEdgeCount": 29,
         "detailSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 96,
+          "scannedSurfaceCount": 129,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7701,7 +7933,7 @@
         },
         "overviewSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 82,
+          "scannedSurfaceCount": 115,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -7716,12 +7948,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-dark.png",
-      "screenshotSha256": "83518258a837a5afb507e3f6ecad7f065f1b70c814303bddcd9a5ae501343790"
+      "screenshotSha256": "1b0ac8b182fc47f7d586a2a42305dafa5e01e7fda0056f62d57cf82e15cab20f"
     },
     {
       "name": "active-desktop-light",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "light",
       "viewport": {
         "width": 1440,
@@ -7736,7 +7968,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           }
         ],
         "checks": {
@@ -7752,7 +7984,7 @@
         {
           "endpointClass": "active-canvas",
           "status": 200,
-          "requestCount": 2
+          "requestCount": 3
         }
       ],
       "markers": {
@@ -7762,13 +7994,20 @@
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": true,
+          "rendererVisibleInViewport": true,
+          "renderedRelationCount": 29,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -7806,7 +8045,8 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
-            "nodeGeometryWithinViewportCount": 9,
+            "rendererVisibleInViewport": true,
+            "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
           "nodeLabelReadability": {
@@ -7892,7 +8132,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 161,
+        "scannedSurfaceCount": 169,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -7903,12 +8143,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-light.png",
-      "screenshotSha256": "6889d66518cb0ef2e378d1722f3cff87e891840166461648a20a9cf2d124a232"
+      "screenshotSha256": "e590c4b1f5deb75a99347e74a8598014c7e87313c4e620686e8a6fdb55289419"
     },
     {
       "name": "active-tablet",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 1024,
@@ -7923,7 +8163,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           }
         ],
         "checks": {
@@ -7939,7 +8179,7 @@
         {
           "endpointClass": "active-canvas",
           "status": 200,
-          "requestCount": 2
+          "requestCount": 3
         }
       ],
       "markers": {
@@ -7949,13 +8189,20 @@
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": true,
+          "rendererVisibleInViewport": true,
+          "renderedRelationCount": 29,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "default",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -7993,6 +8240,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": true,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -8079,7 +8327,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 161,
+        "scannedSurfaceCount": 169,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -8090,12 +8338,12 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-tablet.png",
-      "screenshotSha256": "701febf4aaa8c4175ea9e72eb4e7bbda05a1687ceebec12a4c76fb50f435c992"
+      "screenshotSha256": "8f8b28b117d97e20a208fdb91a484994fc129f188b61f5a9d8007b0a4a65dd22"
     },
     {
       "name": "active-mobile",
       "route": "/knowledge",
-      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3210/knowledge?qa=knowledge-product",
       "theme": "dark",
       "viewport": {
         "width": 320,
@@ -8110,7 +8358,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 2
+            "requestCount": 3
           }
         ],
         "checks": {
@@ -8126,7 +8374,7 @@
         {
           "endpointClass": "active-canvas",
           "status": 200,
-          "requestCount": 2
+          "requestCount": 3
         }
       ],
       "markers": {
@@ -8136,13 +8384,20 @@
         "knowledgeGraphVersion": "active",
         "activeAuthority": {
           "visibleNodeCount": 104,
-          "relationCount": 0,
-          "resolvedEdgeEndpointCount": 0,
+          "relationCount": 29,
+          "resolvedEdgeEndpointCount": 29,
           "visibleSvgGeometryCount": 0,
           "nodeGeometryWithinSvgCount": 0,
           "relationGeometryWithinSvgCount": 0,
           "activeSvgGeometryRectValid": false,
-          "viewport": null,
+          "renderer": "force-graph",
+          "rendererGeometryRectValid": true,
+          "rendererVisibleInViewport": true,
+          "renderedRelationCount": 29,
+          "forceGraphCanvasCount": 1,
+          "forceGraphEdgeLaneCount": 29,
+          "forceGraphLabelMaxLines": 3,
+          "viewport": "compact",
           "nodeLimit": null,
           "viewBox": null,
           "firstViewport": {
@@ -8180,6 +8435,7 @@
             },
             "titleControlsOverlap": false,
             "svgVisibleInViewport": false,
+            "rendererVisibleInViewport": true,
             "nodeGeometryWithinViewportCount": 0,
             "relationGeometryWithinViewportCount": 0
           },
@@ -8266,7 +8522,7 @@
       },
       "surfaceScan": {
         "graphPresent": true,
-        "scannedSurfaceCount": 161,
+        "scannedSurfaceCount": 169,
         "forbiddenTokenCount": 0,
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
@@ -8277,7 +8533,7 @@
       },
       "teachingRelationsUnavailable": true,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-mobile.png",
-      "screenshotSha256": "f809d5d435936c0ff9e3bd19160824aa8652b061d0787ba8f1cca276c7ee9f38"
+      "screenshotSha256": "fa8cdc538adc3216693fd28dede528892918a6b83bf0d4cfbfd052b57a612f4c"
     }
   ],
   "authenticatedRoleEvidence": [
@@ -8292,7 +8548,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8311,7 +8567,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 161,
+          "scannedSurfaceCount": 169,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8333,11 +8589,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 96,
+            "scannedSurfaceCount": 129,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8348,7 +8604,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 82,
+            "scannedSurfaceCount": 115,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8370,7 +8626,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 3
+            "requestCount": 4
           },
           {
             "endpointClass": "active-node",
@@ -8379,7 +8635,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "2d3d3640d30ad22376db1c3ef67ba701d8499daf39828356f09868f36faf5a3b"
+        "screenshotSha256": "ca9cf1fc79419734f3d402e3bcfdeca007c255f278649c5cb4d40d6b72e2ba1b"
       },
       "mobile": {
         "mode": "active",
@@ -8394,7 +8650,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8413,7 +8669,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 161,
+          "scannedSurfaceCount": 169,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8435,11 +8691,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 78,
+            "scannedSurfaceCount": 116,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8450,7 +8706,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 64,
+            "scannedSurfaceCount": 102,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8465,13 +8721,12 @@
         },
         "firstViewport": {
           "titleControlsOverlap": false,
-          "svgVisibleInViewport": false,
-          "nodeGeometryWithinViewportCount": 6
+          "rendererVisibleInViewport": true
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-active-mobile.png",
-        "screenshotSha256": "58f043bcece1cec1138f298c7d568b64c7e95656dc3988243702940ae3baf6c0"
+        "screenshotSha256": "c5d1ef9e2577391fdba89ebd31950d83eaf9563865bb6cf77bcf47bb6930a5a3"
       },
       "legacy": {
         "mode": "legacy",
@@ -8482,7 +8737,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8508,7 +8763,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-legacy.png",
-        "screenshotSha256": "39c990295f1896c7b87270dd9954c1f45b2b00b5201c7d0343843522d2fd8677"
+        "screenshotSha256": "252a6b3b0366ba37155e8350270ab3dbdbb4cf900f3c3a6f76dfa9908ca84a9f"
       },
       "candidate": null
     },
@@ -8523,7 +8778,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8542,7 +8797,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 157,
+          "scannedSurfaceCount": 165,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8564,11 +8819,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 92,
+            "scannedSurfaceCount": 125,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8579,7 +8834,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 78,
+            "scannedSurfaceCount": 111,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8601,7 +8856,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 3
+            "requestCount": 4
           },
           {
             "endpointClass": "active-node",
@@ -8610,7 +8865,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "1e278522c696d3cbc54d5a324ed01a41eb915357ed0fe824556105de598888c7"
+        "screenshotSha256": "abc3fc68fe0df5dc83e6acac8adbc8300f1191d99b7513768270775b251ccc17"
       },
       "mobile": {
         "mode": "active",
@@ -8625,7 +8880,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8644,7 +8899,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 157,
+          "scannedSurfaceCount": 165,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8666,11 +8921,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 74,
+            "scannedSurfaceCount": 112,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8681,7 +8936,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 60,
+            "scannedSurfaceCount": 98,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8696,13 +8951,12 @@
         },
         "firstViewport": {
           "titleControlsOverlap": false,
-          "svgVisibleInViewport": false,
-          "nodeGeometryWithinViewportCount": 6
+          "rendererVisibleInViewport": true
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-active-mobile.png",
-        "screenshotSha256": "a00f8670fb0a95ce5f10cd58c6cd57323fd169f24b1a2967287775ffaac431fb"
+        "screenshotSha256": "9f044697c6c9f43897e50e21a49c4bbc14b439f4f5b6111c7252a7718bdf1324"
       },
       "legacy": {
         "mode": "legacy",
@@ -8713,7 +8967,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8739,7 +8993,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-legacy.png",
-        "screenshotSha256": "eec3377618e16d8fd4bebe75fc001d953507dc37366152390b5cd1547480a588"
+        "screenshotSha256": "472989c6e8a93ac57ecd008960edc4d9942b3f130287b70b07406de83276208a"
       },
       "candidate": null
     },
@@ -8754,7 +9008,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8773,7 +9027,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 157,
+          "scannedSurfaceCount": 165,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8795,11 +9049,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 92,
+            "scannedSurfaceCount": 125,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8810,7 +9064,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 78,
+            "scannedSurfaceCount": 111,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8832,7 +9086,7 @@
           {
             "endpointClass": "active-canvas",
             "status": 200,
-            "requestCount": 3
+            "requestCount": 4
           },
           {
             "endpointClass": "active-node",
@@ -8841,7 +9095,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "ac7473e5e265ab3a350133f3a8e19a274bb02f002268f01f20bfbe617de8a8e4"
+        "screenshotSha256": "5884a3236b91a003e03bc14dbca822ba7693a79214d3b58052f587c568d5ef12"
       },
       "mobile": {
         "mode": "active",
@@ -8856,7 +9110,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8875,7 +9129,7 @@
         },
         "activeSurfaceScan": {
           "graphPresent": true,
-          "scannedSurfaceCount": 157,
+          "scannedSurfaceCount": 165,
           "forbiddenTokenCount": 0,
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
@@ -8897,11 +9151,11 @@
           "learningCardVisible": false,
           "learningInfographVisible": false,
           "optionalLearningContentOmitted": true,
-          "adjacencyInteraction": false,
-          "renderedEdgeCount": 0,
+          "adjacencyInteraction": true,
+          "renderedEdgeCount": 29,
           "detailSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 74,
+            "scannedSurfaceCount": 112,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8912,7 +9166,7 @@
           },
           "overviewSurfaceScan": {
             "graphPresent": true,
-            "scannedSurfaceCount": 60,
+            "scannedSurfaceCount": 98,
             "forbiddenTokenCount": 0,
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
@@ -8927,13 +9181,12 @@
         },
         "firstViewport": {
           "titleControlsOverlap": false,
-          "svgVisibleInViewport": false,
-          "nodeGeometryWithinViewportCount": 6
+          "rendererVisibleInViewport": true
         },
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-active-mobile.png",
-        "screenshotSha256": "787752857bfd99a844a0b36ee92d9c5705c6ced2c3c1dda5bda8b6223ab283fa"
+        "screenshotSha256": "168bfac87ea1343a0a9e9901da9fa8697812441e82bfa94f07c617b7c4924eca"
       },
       "legacy": {
         "mode": "legacy",
@@ -8944,7 +9197,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
@@ -8970,7 +9223,7 @@
         "visibleNodeCount": 15,
         "explicitSwitch": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-legacy.png",
-        "screenshotSha256": "f7a303d0a8c0501c83d591a6378f24b4c45c25f28eaa63b1c9299c7d8ed986c6"
+        "screenshotSha256": "c81d7858c9cdaede3ddd44c59fac531f207ee1b09d6ca4b1050c0bbe11a00290"
       },
       "candidate": {
         "mode": "candidate",
@@ -8986,7 +9239,7 @@
             {
               "endpointClass": "active-canvas",
               "status": 200,
-              "requestCount": 3
+              "requestCount": 4
             },
             {
               "endpointClass": "active-node",
