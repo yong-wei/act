@@ -2581,16 +2581,22 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
     },
     expectedTargetLift: round(plan.score.objectives.learningGain, 3),
     terminalValidationNodeIds,
-    terminalValidationStrategy: {
-      nodeIds: terminalValidationNodeIds,
-      summary: terminalValidationNodeIds.length > 0
-        ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-        : '阶段检查点用于学习反馈',
-    },
+    terminalValidationStrategy: buildTerminalValidationStrategy(
+      plan.mainPath,
+      terminalValidationNodeIds,
+      terminalValidationNodeIds.length > 0,
+    ),
     checkpointNodeIds: terminalValidationNodeIds,
-    limitations: plan.status === 'fallback'
-      ? plan.explanations.fallbackReasons
-      : [],
+    limitations: unique([
+      ...(plan.status === 'fallback' ? plan.explanations.fallbackReasons : []),
+      ...buildPathOptionLimitations(
+        plan,
+        plan.mainPath,
+        terminalValidationNodeIds,
+        targetDeficits,
+        terminalValidationNodeIds.length > 0,
+      ),
+    ]),
   }];
 }
 
@@ -5046,16 +5052,19 @@ function buildPolicyBundle(
         },
         expectedTargetLift: round(plan.score.objectives.learningGain, 3),
         terminalValidationNodeIds,
-        terminalValidationStrategy: {
-          nodeIds: terminalValidationNodeIds,
-          summary: terminalValidationRequired
-            ? terminalValidationNodeIds.length > 0
-              ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-              : 'terminal validation unavailable'
-            : '阶段检查点用于学习反馈',
-        },
+        terminalValidationStrategy: buildTerminalValidationStrategy(
+          mainPath,
+          terminalValidationNodeIds,
+          terminalValidationRequired,
+        ),
         checkpointNodeIds,
-        limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
+        limitations: buildPathOptionLimitations(
+          plan,
+          mainPath,
+          terminalValidationNodeIds,
+          deficits,
+          terminalValidationRequired,
+        ),
       });
       familyAccepted = true;
       break;
@@ -5599,14 +5608,58 @@ function effortLabel(estimatedMinutes: number, timeBudgetMinutes: number): 'shor
   return 'long';
 }
 
+const INCLUDED_UNVERIFIABLE_TERMINAL_VALIDATION = '终点已纳入但当前不可验证';
+
+function isPathTerminalCurrentlyReady(node: AdaptiveLearningPathPlanNode): boolean {
+  return node.status !== 'locked'
+    && node.status !== 'blocked'
+    && (node.readiness?.state ?? 'ready') === 'ready';
+}
+
+function terminalValidationIsIncludedButUnverifiable(
+  path: AdaptiveLearningPathPlanNode[],
+  terminalValidationNodeIds: string[],
+): boolean {
+  if (terminalValidationNodeIds.length === 0) return false;
+  const terminals = path.filter((node) => terminalValidationNodeIds.includes(node.nodeId));
+  if (terminals.length === 0) return true;
+  return terminals.every((node) => !isPathTerminalCurrentlyReady(node));
+}
+
+function buildTerminalValidationStrategy(
+  path: AdaptiveLearningPathPlanNode[],
+  terminalValidationNodeIds: string[],
+  terminalValidationRequired = true,
+): { nodeIds: string[]; summary: string } {
+  let summary = '阶段检查点用于学习反馈';
+  if (terminalValidationRequired) {
+    if (terminalValidationNodeIds.length === 0) {
+      summary = 'terminal validation unavailable';
+    } else if (terminalValidationIsIncludedButUnverifiable(path, terminalValidationNodeIds)) {
+      summary = INCLUDED_UNVERIFIABLE_TERMINAL_VALIDATION;
+    } else {
+      summary = `terminal validation through ${terminalValidationNodeIds.join(', ')}`;
+    }
+  }
+  return {
+    nodeIds: terminalValidationNodeIds,
+    summary,
+  };
+}
+
 function buildPathOptionLimitations(
   plan: AdaptiveLearningPathPlan,
+  path: AdaptiveLearningPathPlanNode[],
   terminalValidationNodeIds: string[],
   deficits: AdaptiveLearningPathDeficit[],
   terminalValidationRequired = true,
 ): string[] {
   return unique([
     terminalValidationRequired && terminalValidationNodeIds.length === 0 ? '需要完成终点检验' : null,
+    terminalValidationRequired
+      && terminalValidationIsIncludedButUnverifiable(path, terminalValidationNodeIds)
+      ? INCLUDED_UNVERIFIABLE_TERMINAL_VALIDATION
+      : null,
     deficits.some((deficit) => deficit.evidenceCount === 0) ? '部分目标还缺少直接证据' : null,
     plan.confidence.level === 'low' ? '当前证据较少' : null,
   ]);
