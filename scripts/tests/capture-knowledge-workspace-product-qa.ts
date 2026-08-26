@@ -1174,20 +1174,7 @@ async function enablePublishedActiveRelationFamily(
   probe: KnowledgeApiProbe,
   context: string,
 ) {
-  const enabledControl = page.locator(
-    'button[data-authority-relation-family][data-authority-family-enabled="true"]',
-  ).first();
-  if (await enabledControl.count() === 0) {
-    const control = page.locator(
-      'button[data-authority-relation-family][data-authority-family-enabled="false"]',
-    ).first();
-    if (await control.count() !== 1 || !(await control.isVisible())) {
-      throw new Error(`active Authority relation-family control is unavailable in ${context}`);
-    }
-    await control.click({ timeout: 10000 });
-    await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
-  }
-  await page.waitForFunction(() => {
+  const hasRenderedRelation = () => page.evaluate(() => {
     const enabled = document.querySelector(
       'button[data-authority-relation-family][data-authority-family-enabled="true"]',
     );
@@ -1201,7 +1188,47 @@ async function enablePublishedActiveRelationFamily(
         nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
         && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
       ));
-  }, undefined, { timeout: 30000 });
+  });
+
+  if (await hasRenderedRelation()) return;
+
+  for (const family of [
+    'association',
+    'derivation-and-representation',
+    'application-and-analysis',
+    'structure',
+  ]) {
+    const control = page.locator(`button[data-authority-relation-family="${family}"]`);
+    if (await control.count() !== 1 || !(await control.isVisible())) continue;
+
+    if (await control.getAttribute('data-authority-family-enabled') !== 'true') {
+      await control.click({ timeout: 10000 });
+      await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
+    }
+
+    try {
+      await page.waitForFunction(
+        () => {
+          const nodes = new Set(
+            Array.from(document.querySelectorAll('[data-active-authority-node]'))
+              .map((node) => node.getAttribute('data-active-authority-node'))
+              .filter((value): value is string => Boolean(value)),
+          );
+          return Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
+            nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
+            && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
+          ));
+        },
+        undefined,
+        { timeout: 5000 },
+      );
+      return;
+    } catch {
+      // This family may only expose a cross-domain boundary. Try the next published family.
+    }
+  }
+
+  throw new Error(`active Authority did not render a published relation in ${context}`);
 }
 
 async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
