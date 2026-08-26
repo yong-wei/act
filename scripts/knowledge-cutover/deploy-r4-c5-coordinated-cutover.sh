@@ -27,7 +27,7 @@ done
 [[ -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
 
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json; do
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
   [[ -f "$candidate_dir/$file" && ! -L "$candidate_dir/$file" ]] || { echo "ERROR: qualified candidate file is missing: $file" >&2; exit 1; }
 done
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
@@ -65,7 +65,7 @@ copy_immutable() {
 }
 
 remote "test ! -e '$remote_dir' && mkdir -p '$remote_dir'"
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json; do
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
   copy_immutable "$candidate_dir/$file" "$remote_dir/$file"
 done
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
@@ -74,9 +74,22 @@ done
 copy_immutable "$ROOT_DIR/scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh" "$remote_dir/remote-activate-r4-coordinated-cutover.sh"
 remote "chmod 0755 '$remote_dir/remote-activate-r4-coordinated-cutover.sh'"
 
-snapshot='snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a'
+snapshot="$(python3 - "$candidate_dir/authority-current.json" <<'PY'
+import json, re, sys
+value=json.load(open(sys.argv[1], encoding='utf-8'))
+snapshot=value.get('snapshotId'); digest=value.get('snapshotHash')
+if not isinstance(snapshot,str) or not re.fullmatch(r'snap-[0-9a-f]{64}',snapshot) or digest != snapshot[5:]: raise SystemExit(1)
+print(snapshot)
+PY
+)"
 source_snapshot="$ROOT_DIR/course-content/authoring/knowledge/authority/releases/$snapshot"
 [[ -d "$source_snapshot" && ! -L "$source_snapshot" ]] || { echo "ERROR: r4 Authority snapshot is unavailable" >&2; exit 1; }
+python3 - "$candidate_dir/authority-current.json" "$source_snapshot/manifest.json" <<'PY'
+import json, sys
+successor=json.load(open(sys.argv[1], encoding='utf-8')); manifest=json.load(open(sys.argv[2], encoding='utf-8'))
+for key in ('snapshotId','snapshotHash','releaseId','releaseSetId'):
+    if successor.get(key) != manifest.get(key): raise SystemExit('Authority snapshot manifest does not match the sealed successor')
+PY
 remote "test ! -e '$REMOTE_PROJECT_DIR/course-content/authoring/knowledge/authority/releases/$snapshot'"
 tar -C "$(dirname "$source_snapshot")" -cf - "$snapshot" | remote "mkdir -p '$REMOTE_PROJECT_DIR/course-content/authoring/knowledge/authority/releases' && tar -C '$REMOTE_PROJECT_DIR/course-content/authoring/knowledge/authority/releases' -xf -"
 remote "test -f '$REMOTE_PROJECT_DIR/course-content/authoring/knowledge/authority/releases/$snapshot/manifest.json' && ! test -L '$REMOTE_PROJECT_DIR/course-content/authoring/knowledge/authority/releases/$snapshot/manifest.json'"

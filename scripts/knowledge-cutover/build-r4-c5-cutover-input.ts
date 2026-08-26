@@ -25,7 +25,9 @@ import {
 } from '@/lib/latest-authority-oss-cutover/envelope';
 
 const ROOT = process.cwd();
-const C4 = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
+const DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST = 'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae/manifest.json';
 
 function fail(message: string): never {
   throw new Error(`build-r4-c5-cutover-input: ${message}`);
@@ -36,6 +38,13 @@ function option(name: string): string {
   const value = index < 0 ? undefined : process.argv[index + 1];
   if (!value || value.startsWith('--')) fail(`missing ${name}`);
   return value;
+}
+
+function optionOr(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  const value = index < 0 ? undefined : process.argv[index + 1];
+  if (value !== undefined && (!value || value.startsWith('--'))) fail(`missing ${name}`);
+  return value ?? fallback;
 }
 
 function absolute(filePath: string): string {
@@ -70,6 +79,13 @@ function immutableWrite(filePath: string, value: unknown): void {
 
 function main(): void {
   const prestage = process.argv.includes('--prestage');
+  const baselineRoot = optionOr('--baseline-root', LEGACY_BASELINE_ROOT);
+  const selectorRoot = optionOr('--selector-root', DEFAULT_SELECTOR_ROOT);
+  const governanceRoot = optionOr('--governance-root', selectorRoot);
+  const successorAuthorityManifestPath = optionOr(
+    '--successor-authority-manifest',
+    DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST,
+  );
   const predecessor = readJson<{
     contract: string;
     runtime: { releaseId: string; manifestSha256: string; treeSha256: string; activeReceiptHash: string; lifecycleGeneration: number };
@@ -113,31 +129,180 @@ function main(): void {
   const classification = readJson<{
     activeRelease: { releaseId: string; manifestSha256: string; treeSha256: string; lifecycleGeneration: number };
     entries: unknown[];
-  }>(`${C4}/active-baseline/active-baseline-classification.json`);
-  const obligations = readJson<{ entries: { disposition: unknown }[] }>(`${C4}/active-baseline/baseline-continuity-obligations.json`);
-  const delta = readJson<{ orderedInputs: unknown[]; combinedDenominator: { denominatorHash: string } }>(`${C4}/active-baseline/explicit-successor-delta.json`);
-  const teaching = readJson<{ dispositions: unknown[] }>(`${C4}/teaching-dispositions.json`);
-  const scope = readJson<{ scopeHash: string; members: { canonicalId: string }[] }>(`${C4}/domain-catalog/scope.json`);
-  const semanticCache = readJson<{ contract: string; cacheHash: string; summary: { recomputedCount: number; retiredCount: number } }>(`${C4}/authority-semantic-cache.json`);
-  const capture = reopenAuthorityCaptureReceipt(readJson(`${C4}/authority-capture/authority-capture.json`));
-  const resourceEnvelope = readJson<{ envelopeHash: string }>(`${C4}/formal-resource-envelope.json`);
-  const derivation = readJson<{ receiptHash: string }>(`${C4}/derivation-receipt.json`);
+  }>(`${baselineRoot}/active-baseline/active-baseline-classification.json`);
+  const obligations = readJson<{ entries: { disposition: unknown }[] }>(`${baselineRoot}/active-baseline/baseline-continuity-obligations.json`);
+  const delta = readJson<{ orderedInputs: unknown[]; combinedDenominator: { denominatorHash: string } }>(`${baselineRoot}/active-baseline/explicit-successor-delta.json`);
+  const teaching = readJson<{
+    contract: string;
+    authorityCaptureHash: string;
+    scopeHash: string;
+    semanticCacheHash: string;
+    dispositionHash: string;
+    source: { scopeHash: string; dispositionHash: string; dispositionSha256: string };
+    dispositions: unknown[];
+  }>(`${governanceRoot}/teaching-dispositions.json`);
+  const teachingReclosure = readJson<{
+    contract: string;
+    status: string;
+    sourceScopeHash: string;
+    successorScopeHash: string;
+    successorSnapshotHash: string;
+    semanticCacheHash: string;
+    dispositionHash: string;
+    changedFields: string[];
+    receiptHash: string;
+  }>(`${governanceRoot}/teaching-reclosure-receipt.json`);
+  const scope = readJson<{
+    scopeHash: string;
+    members: { canonicalId: string }[];
+    authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+  }>(`${selectorRoot}/domain-catalog/scope.json`);
+  const semanticCache = readJson<{ contract: string; cacheHash: string; summary: { recomputedCount: number; retiredCount: number } }>(`${selectorRoot}/authority-semantic-cache.json`);
+  const capture = reopenAuthorityCaptureReceipt(readJson(`${baselineRoot}/authority-capture/authority-capture.json`));
+  const resourceEnvelope = readJson<{ envelopeHash: string }>(`${baselineRoot}/formal-resource-envelope.json`);
+  const derivation = readJson<{ receiptHash: string }>(`${baselineRoot}/derivation-receipt.json`);
   const selectors = readJson<{
+    selectorHash: string;
     selectors: {
       projection: { projectionHash: string };
       prerequisite: { publicationHash: string };
-      catalog: { catalogHash: string };
-      shards: { shardSetHash: string };
+      catalog: { catalogHash: string; snapshotId: string; snapshotHash: string; releaseId: string };
+      shards: { shardSetHash: string; snapshotId: string; snapshotHash: string; releaseId: string; catalogHash: string };
       consumerActivation: { activationHash: string };
     };
-  }>(`${C4}/runtime-selector-set.json`);
+    appliedToSourceTree: boolean;
+    sourceSelectorHashes: Record<'projection' | 'prerequisite' | 'catalog' | 'shards' | 'consumerActivation', string>;
+  }>(`${selectorRoot}/runtime-selector-set.json`);
+  const presentationLabels = readJson<{
+    contract: string;
+    status: string;
+    reviewRequired: number;
+    qualificationHash: string;
+    authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+    catalog: { catalogId: string; catalogHash: string; sha256: string };
+    shards: { shardSetId: string; shardSetHash: string; stageSha256: string; manifestSha256: string };
+  }>(`${selectorRoot}/presentation-label-qualification.json`);
+  const projectionAdjustmentPath = `${selectorRoot}/projection-adjustments.json`;
+  const projectionAdjustment = readJson<{
+    contract: string;
+    scopeHash: string;
+    authoritySnapshotHash: string;
+  }>(projectionAdjustmentPath);
+  const selectedCatalog = readJson<{
+    catalogId: string;
+    catalogHash: string;
+    authorityBinding: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+  }>(`${selectorRoot}/domain-catalog/catalog.json`);
+  const successorManifest = readJson<{
+    snapshotId: string;
+    snapshotHash: string;
+    releaseId: string;
+    releaseSetId: string;
+  }>(successorAuthorityManifestPath);
+  if (
+    !/^snap-[a-f0-9]{64}$/u.test(successorManifest.snapshotId)
+    || successorManifest.snapshotHash !== successorManifest.snapshotId.slice('snap-'.length)
+  ) fail('successor Authority manifest has an invalid snapshot identity');
   if (semanticCache.contract !== 'authority-semantic-cache/v1'
     || semanticCache.summary.recomputedCount !== 0
     || semanticCache.summary.retiredCount !== 0) fail('r4 semantic cache is not reusable');
   for (const value of [scope.scopeHash, semanticCache.cacheHash, capture.captureHash, resourceEnvelope.envelopeHash, derivation.receiptHash,
     selectors.selectors.projection.projectionHash, selectors.selectors.prerequisite.publicationHash,
-    selectors.selectors.catalog.catalogHash, selectors.selectors.shards.shardSetHash, selectors.selectors.consumerActivation.activationHash]) {
+    selectors.selectors.catalog.catalogHash, selectors.selectors.shards.shardSetHash, selectors.selectors.consumerActivation.activationHash,
+    presentationLabels.qualificationHash]) {
     requireDigest(value, 'frozen r4 identity');
+  }
+  if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
+    fail('r4 presentation-label qualification requires review or did not pass');
+  }
+  if (
+    projectionAdjustment.contract !== 'act-coordinated-projection-adjustments/v1'
+    || projectionAdjustment.scopeHash !== scope.scopeHash
+    || projectionAdjustment.authoritySnapshotHash !== successorManifest.snapshotHash
+  ) {
+    fail('r4 Teaching Projection does not close over the selected scope and Authority snapshot');
+  }
+  const { qualificationHash: ignoredPresentationQualificationHash, ...presentationQualificationInput } = presentationLabels;
+  void ignoredPresentationQualificationHash;
+  if (
+    presentationLabels.contract !== 'r4-presentation-label-qualification/v1'
+    || projectionDigest(presentationQualificationInput) !== presentationLabels.qualificationHash
+  ) fail('presentation-label qualification hash is invalid');
+  const expectedAuthority = successorManifest;
+  for (const [label, actual, expected] of [
+    ['scope snapshot', scope.authority.snapshotId, expectedAuthority.snapshotId],
+    ['scope snapshot hash', scope.authority.snapshotHash, expectedAuthority.snapshotHash],
+    ['scope release', scope.authority.releaseId, expectedAuthority.releaseId],
+    ['scope release set', scope.authority.releaseSetId, expectedAuthority.releaseSetId],
+    ['catalog snapshot', selectedCatalog.authorityBinding.snapshotId, expectedAuthority.snapshotId],
+    ['catalog snapshot hash', selectedCatalog.authorityBinding.snapshotHash, expectedAuthority.snapshotHash],
+    ['catalog release', selectedCatalog.authorityBinding.releaseId, expectedAuthority.releaseId],
+    ['catalog release set', selectedCatalog.authorityBinding.releaseSetId, expectedAuthority.releaseSetId],
+    ['selector catalog snapshot', selectors.selectors.catalog.snapshotId, expectedAuthority.snapshotId],
+    ['selector catalog snapshot hash', selectors.selectors.catalog.snapshotHash, expectedAuthority.snapshotHash],
+    ['selector catalog release', selectors.selectors.catalog.releaseId, expectedAuthority.releaseId],
+    ['selector shard snapshot', selectors.selectors.shards.snapshotId, expectedAuthority.snapshotId],
+    ['selector shard snapshot hash', selectors.selectors.shards.snapshotHash, expectedAuthority.snapshotHash],
+    ['selector shard release', selectors.selectors.shards.releaseId, expectedAuthority.releaseId],
+    ['presentation snapshot', presentationLabels.authority.snapshotId, expectedAuthority.snapshotId],
+    ['presentation snapshot hash', presentationLabels.authority.snapshotHash, expectedAuthority.snapshotHash],
+    ['presentation release', presentationLabels.authority.releaseId, expectedAuthority.releaseId],
+    ['presentation release set', presentationLabels.authority.releaseSetId, expectedAuthority.releaseSetId],
+    ['selector catalog id', selectors.selectors.catalog.catalogHash, selectedCatalog.catalogHash],
+    ['selector shard catalog', selectors.selectors.shards.catalogHash, selectedCatalog.catalogHash],
+    ['presentation catalog id', presentationLabels.catalog.catalogId, selectedCatalog.catalogId],
+    ['presentation catalog hash', presentationLabels.catalog.catalogHash, selectedCatalog.catalogHash],
+    ['selector shard set', selectors.selectors.shards.shardSetHash, presentationLabels.shards.shardSetHash],
+  ] as const) {
+    if (actual !== expected) fail(`${label} does not close over the selected r4 presentation candidate`);
+  }
+  const {
+    selectorHash: ignoredSelectorHash,
+    sourceSelectorHashes,
+    appliedToSourceTree,
+    ...selectorHashInput
+  } = selectors;
+  void ignoredSelectorHash;
+  if (appliedToSourceTree !== true) fail('r4 runtime selector set was not applied to the candidate Runtime source tree');
+  if (projectionDigest(selectorHashInput) !== selectors.selectorHash) fail('r4 runtime selector set hash is invalid');
+  for (const [name, expectedHash] of Object.entries(sourceSelectorHashes)) {
+    requireDigest(expectedHash, `r4 source selector ${name}`);
+  }
+  const runtimeSelectorPaths = {
+    projection: 'course-content/runtime/knowledge/projection/current.json',
+    prerequisite: 'course-content/runtime/knowledge/prerequisites/current.json',
+    catalog: 'course-content/runtime/knowledge/authority-domain-catalog/current.json',
+    shards: 'course-content/runtime/knowledge/authority-domain-shards/current.json',
+    consumerActivation: 'course-content/runtime/knowledge/consumer-activation/current.json',
+  } as const;
+  for (const [name, sourcePath] of Object.entries(runtimeSelectorPaths)) {
+    if (sha256File(sourcePath) !== sourceSelectorHashes[name as keyof typeof sourceSelectorHashes]) {
+      fail(`source Runtime ${name} selector differs from the sealed r4 selector set`);
+    }
+  }
+  if (
+    teaching.contract !== 'coordinated-teaching-disposition-scope-reclosure/v1'
+    || teaching.authorityCaptureHash !== capture.captureHash
+    || teaching.scopeHash !== scope.scopeHash
+    || teaching.semanticCacheHash !== semanticCache.cacheHash
+    || teaching.dispositionHash !== projectionDigest(teaching.dispositions)
+  ) {
+    fail('r4 c6 teaching governance does not close over the selected scope and Authority cache');
+  }
+  const { receiptHash: ignoredTeachingReclosureHash, ...teachingReclosureHashInput } = teachingReclosure;
+  void ignoredTeachingReclosureHash;
+  if (
+    teachingReclosure.contract !== 'r4-c6-teaching-governance-reclosure/v1'
+    || teachingReclosure.status !== 'COMPLETE'
+    || teachingReclosure.sourceScopeHash !== teaching.source.scopeHash
+    || teachingReclosure.successorScopeHash !== scope.scopeHash
+    || teachingReclosure.successorSnapshotHash !== successorManifest.snapshotHash
+    || teachingReclosure.semanticCacheHash !== semanticCache.cacheHash
+    || teachingReclosure.dispositionHash !== teaching.dispositionHash
+    || JSON.stringify(teachingReclosure.changedFields) !== JSON.stringify(['scopeHash'])
+    || teachingReclosure.receiptHash !== projectionDigest(teachingReclosureHashInput)
+  ) {
+    fail('r4 c6 teaching governance reclosure receipt is invalid');
   }
   const baseline = classification.activeRelease;
   if (baseline.releaseId !== predecessor.runtime.releaseId
@@ -244,10 +409,10 @@ function main(): void {
   }
   const successorAuthority = {
     contract: 'actkg-engineering-authority-current/v1',
-    snapshotId: 'snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a',
-    snapshotHash: '0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a',
-    releaseId: 'ctr:release:control-theory-engineering-v0.37',
-    releaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v0.37-r4',
+    snapshotId: successorManifest.snapshotId,
+    snapshotHash: successorManifest.snapshotHash,
+    releaseId: successorManifest.releaseId,
+    releaseSetId: successorManifest.releaseSetId,
     activationReceiptId: 'coordinated-r4-c5-authority',
     activatedAt: sealedAt,
   };
@@ -260,12 +425,25 @@ function main(): void {
     runtimeBefore: predecessor.runtime,
     runtimeAfter: runtimeStage.runtimeRelease,
   });
-  const verificationPolicyHash = projectionDigest({
+  const verificationPolicy = {
     contract: 'r4-c5-coordinated-production-verification/v1',
     semanticCacheHash: semanticCache.cacheHash,
+    presentationLabelQualificationHash: presentationLabels.qualificationHash,
+    presentationLabelQualificationSha256: sha256File(`${selectorRoot}/presentation-label-qualification.json`),
+    projectionScopeHash: projectionAdjustment.scopeHash,
+    projectionScopeAdjustmentSha256: sha256File(projectionAdjustmentPath),
+    teachingGovernanceReclosureHash: teachingReclosure.receiptHash,
+    teachingGovernanceReclosureSha256: sha256File(`${governanceRoot}/teaching-reclosure-receipt.json`),
     requireFinalReceiptBeforeConsumerRestart: true,
     sourceRevisionMustBeIntegrationAncestor: true,
-  });
+    verificationPolicyHash: '',
+  };
+  const { verificationPolicyHash: ignoredVerificationPolicyHash, ...verificationPolicyHashInput } = verificationPolicy;
+  void ignoredVerificationPolicyHash;
+  const sealedVerificationPolicy = {
+    ...verificationPolicy,
+    verificationPolicyHash: projectionDigest(verificationPolicyHashInput),
+  };
   const input = {
     activeRelease: baseline,
     runtimePredecessorForBinding: predecessor.runtime,
@@ -291,12 +469,16 @@ function main(): void {
     successorSelectorExpectations: [{ selectorId: 'authority:current', expectedSuccessorIdentity: successorAuthorityIdentity }],
     transactionImplementationIdentity,
     rollbackPlanHash,
-    verificationPolicyHash,
+    verificationPolicyHash: sealedVerificationPolicy.verificationPolicyHash,
     allocation,
   };
   immutableWrite(path.join(out, 'prepare-input.json'), input);
   immutableWrite(path.join(out, 'predecessor-observation.json'), predecessor);
   immutableWrite(path.join(out, 'runtime-stage.json'), runtimeStage);
+  immutableWrite(path.join(out, 'presentation-label-qualification.json'), presentationLabels);
+  immutableWrite(path.join(out, 'projection-adjustments.json'), projectionAdjustment);
+  immutableWrite(path.join(out, 'teaching-reclosure-receipt.json'), teachingReclosure);
+  immutableWrite(path.join(out, 'verification-policy.json'), sealedVerificationPolicy);
   immutableWrite(path.join(out, 'reuse-receipt.json'), {
     contract: 'r4-c5-incremental-reuse/v1',
     c4SemanticCacheHash: semanticCache.cacheHash,

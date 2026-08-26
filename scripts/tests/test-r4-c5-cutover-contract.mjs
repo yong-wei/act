@@ -39,6 +39,8 @@ assert.ok(
   'mutable transaction status must not participate in the immutable journal hash',
 );
 assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapshot"/, 'local wrapper must transfer the immutable Authority snapshot');
+assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and validate the Authority snapshot from the sealed successor');
+assert.doesNotMatch(deploy, /snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/, 'local wrapper must not retain the superseded c4 snapshot');
 assert.doesNotMatch(deploy, /scripts\/build\.sh|docker buildx/, 'outer cutover wrapper must not build on the production path');
 assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
 assert.doesNotMatch(activationTransaction, /coordinated-graph-receipt/, 'activation wrapper must not retain the cyclic final-receipt argument');
@@ -86,6 +88,16 @@ try {
   const input = JSON.parse(fs.readFileSync(path.join(out, 'prepare-input.json'), 'utf8'));
   assert.equal(input.allocation.allocationHash, allocation.allocationHash, 'Runtime staging must consume the presealed allocation');
   assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
+  const labels = JSON.parse(fs.readFileSync(path.join(out, 'presentation-label-qualification.json'), 'utf8'));
+  const adjustments = JSON.parse(fs.readFileSync(path.join(out, 'projection-adjustments.json'), 'utf8'));
+  const reclosure = JSON.parse(fs.readFileSync(path.join(out, 'teaching-reclosure-receipt.json'), 'utf8'));
+  const policy = JSON.parse(fs.readFileSync(path.join(out, 'verification-policy.json'), 'utf8'));
+  assert.equal(labels.status, 'PASS', 'candidate must carry the automated presentation-label qualification');
+  assert.match(adjustments.scopeHash, /^[a-f0-9]{64}$/, 'candidate must carry the Teaching Projection scope binding');
+  assert.equal(policy.projectionScopeHash, adjustments.scopeHash, 'candidate must bind the Teaching Projection scope');
+  assert.equal(reclosure.status, 'COMPLETE', 'candidate must carry the completed teaching-governance reclosure');
+  assert.equal(policy.teachingGovernanceReclosureHash, reclosure.receiptHash, 'candidate must bind the teaching-governance reclosure');
+  assert.equal(policy.verificationPolicyHash, input.verificationPolicyHash, 'candidate must bind the presentation-label verification policy');
   execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'prepare',
     '--capture', 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/authority-capture/authority-capture.json',
     '--input', path.join(out, 'prepare-input.json'), '--out', out,

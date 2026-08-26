@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ "$candidate_dir" = /* && -d "$candidate_dir" && ! -L "$candidate_dir" ]] || { echo "ERROR: --candidate-dir must be an absolute real directory" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
-for file in "$LIFECYCLE" "$ACTIVATION" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json"; do
+for file in "$LIFECYCLE" "$ACTIVATION" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/verification-policy.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required regular file is missing: $file" >&2; exit 1; }
 done
 
@@ -110,9 +110,9 @@ PY
 }
 
 preflight_and_prepare() {
-  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
+  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/verification-policy.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
 import hashlib, json, os, re, subprocess, sys
-candidate_path, successor_path, stage_path, observed_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
+candidate_path, successor_path, stage_path, observed_path, artifacts_path, labels_path, teaching_reclosure_path, projection_adjustment_path, policy_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
 sha = lambda value: hashlib.sha256(value).hexdigest()
 canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
 candidate = json.load(open(candidate_path, encoding='utf-8'))
@@ -122,6 +122,42 @@ if sorted(candidate) != keys or candidate['contract'] != 'coordinated-candidate-
 hash_keys = ['candidateId','sealedAt','allocationHash','authorityCaptureHash','localeQualificationHash','teachingProjectionHash','teachingClosureReceiptHash','formalResourceEnvelopeHash','continuityReceiptHash','derivationReceiptHash','successorRuntimeManifestHash','successorRuntimeMaterializationHash','domainShardCatalogHash','domainShardSetHash','prerequisitePublicationHash','consumerActivationHash','predecessor','predecessorRuntimeLifecycleGeneration','successorSelectorExpectations','transactionImplementationIdentity','rollbackPlanHash','verificationPolicyHash']
 if sha(canonical({key: candidate[key] for key in hash_keys})) != candidate['receiptHash']:
   raise SystemExit('candidate receipt hash is invalid')
+artifacts=json.load(open(artifacts_path, encoding='utf-8'))
+expected_artifacts={
+  'authority-capture':candidate['authorityCaptureHash'], 'locale-qualification':candidate['localeQualificationHash'],
+  'teaching-projection':candidate['teachingProjectionHash'], 'teaching-closure-receipt':candidate['teachingClosureReceiptHash'],
+  'formal-resource-envelope':candidate['formalResourceEnvelopeHash'], 'continuity-receipt':candidate['continuityReceiptHash'],
+  'derivation-receipt':candidate['derivationReceiptHash'], 'successor-runtime-manifest':candidate['successorRuntimeManifestHash'],
+  'successor-runtime-materialization':candidate['successorRuntimeMaterializationHash'], 'authority-domain-shard-catalog':candidate['domainShardCatalogHash'],
+  'authority-domain-shard-set':candidate['domainShardSetHash'], 'prerequisite-publication':candidate['prerequisitePublicationHash'],
+  'consumer-activation':candidate['consumerActivationHash'],
+}
+if not isinstance(artifacts,list) or len(artifacts) != len(expected_artifacts): raise SystemExit('candidate artifact closure is invalid')
+seen={}
+for row in artifacts:
+  if not isinstance(row,dict) or set(row) - {'artifactId','artifactHash','allocationHash'}: raise SystemExit('candidate artifact row is invalid')
+  artifact_id=row.get('artifactId'); artifact_hash=row.get('artifactHash')
+  if artifact_id in seen or expected_artifacts.get(artifact_id) != artifact_hash: raise SystemExit('candidate artifact closure differs from receipt')
+  seen[artifact_id]=artifact_hash
+if set(seen) != set(expected_artifacts): raise SystemExit('candidate artifact closure is incomplete')
+labels=json.load(open(labels_path, encoding='utf-8')); teaching_reclosure=json.load(open(teaching_reclosure_path, encoding='utf-8')); projection_adjustment=json.load(open(projection_adjustment_path, encoding='utf-8')); policy=json.load(open(policy_path, encoding='utf-8'))
+if labels.get('contract') != 'r4-presentation-label-qualification/v1' or labels.get('status') != 'PASS' or labels.get('reviewRequired') != 0:
+  raise SystemExit('presentation label qualification is not production ready')
+if policy.get('contract') != 'r4-c5-coordinated-production-verification/v1': raise SystemExit('presentation label verification policy is invalid')
+policy_hash=policy.get('verificationPolicyHash')
+if not isinstance(policy_hash,str) or policy_hash != candidate['verificationPolicyHash']: raise SystemExit('presentation label verification policy differs from candidate')
+reclosure_hash=teaching_reclosure.get('receiptHash')
+reclosure_input={key:value for key,value in teaching_reclosure.items() if key != 'receiptHash'}
+if teaching_reclosure.get('contract') != 'r4-c6-teaching-governance-reclosure/v1' or teaching_reclosure.get('status') != 'COMPLETE' or not isinstance(reclosure_hash,str) or sha(canonical(reclosure_input)) != reclosure_hash:
+  raise SystemExit('teaching governance reclosure receipt is invalid')
+if policy.get('teachingGovernanceReclosureHash') != reclosure_hash or policy.get('teachingGovernanceReclosureSha256') != sha(open(teaching_reclosure_path,'rb').read()):
+  raise SystemExit('teaching governance reclosure is not sealed by the verification policy')
+if projection_adjustment.get('contract') != 'act-coordinated-projection-adjustments/v1' or projection_adjustment.get('scopeHash') != policy.get('projectionScopeHash') or policy.get('projectionScopeAdjustmentSha256') != sha(open(projection_adjustment_path,'rb').read()):
+  raise SystemExit('Teaching Projection scope binding is not sealed by the verification policy')
+policy_input={key:value for key,value in policy.items() if key != 'verificationPolicyHash'}
+if sha(canonical(policy_input)) != policy_hash: raise SystemExit('presentation label verification policy hash is invalid')
+if policy.get('presentationLabelQualificationHash') != labels.get('qualificationHash') or policy.get('presentationLabelQualificationSha256') != sha(open(labels_path,'rb').read()):
+  raise SystemExit('presentation label qualification is not sealed by the verification policy')
 stage = json.load(open(stage_path, encoding='utf-8'))
 observed = json.load(open(observed_path, encoding='utf-8'))
 if stage.get('contract') != 'coordinated-runtime-stage/v1' or observed.get('contract') != 'r4-production-predecessor-observation/v1':
@@ -143,6 +179,16 @@ snapshot=successor.get('snapshotId')
 if not isinstance(snapshot, str) or not re.fullmatch(r'snap-[0-9a-f]{64}', snapshot): raise SystemExit('Authority successor snapshot identity is invalid')
 manifest=os.path.join(os.path.dirname(authority_path), 'releases', snapshot, 'manifest.json')
 if not os.path.isfile(manifest) or os.path.islink(manifest): raise SystemExit('Authority successor snapshot is not installed as a regular manifest')
+authority_labels=labels.get('authority')
+if not isinstance(authority_labels,dict) or any(authority_labels.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
+  raise SystemExit('presentation label qualification does not bind the successor Authority')
+installed_manifest=json.load(open(manifest, encoding='utf-8'))
+if any(installed_manifest.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
+  raise SystemExit('installed Authority snapshot manifest differs from successor')
+if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') != ['scopeHash']:
+  raise SystemExit('teaching governance reclosure does not bind the successor Authority')
+if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshotHash'):
+  raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
 declaration = {'contract':'runtime-blob-coordinated-cutover.v1', **stage['runtimeRelease'], 'candidateReceiptHash':candidate['receiptHash']}
 with open(declaration_path, 'w', encoding='utf-8') as handle:
   json.dump(declaration, handle, sort_keys=True, separators=(',', ':')); handle.write('\n')

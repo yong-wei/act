@@ -10,13 +10,23 @@ import { assertCandidateReceiptSelfHash } from '@/lib/latest-authority-oss-cutov
 import type { CoordinatedCandidateReceipt } from '@/lib/latest-authority-oss-cutover/contracts';
 
 const ROOT = process.cwd();
-const C4 = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
 
 function option(name: string): string {
   const index = process.argv.indexOf(name);
   const value = index < 0 ? undefined : process.argv[index + 1];
   if (!value || value.startsWith('--')) throw new Error(`build-r4-c5-qualification-artifacts: missing ${name}`);
   return value;
+}
+
+function optionOr(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  const value = index < 0 ? undefined : process.argv[index + 1];
+  if (value !== undefined && (!value || value.startsWith('--'))) {
+    throw new Error(`build-r4-c5-qualification-artifacts: missing ${name}`);
+  }
+  return value ?? fallback;
 }
 
 function absolute(value: string): string {
@@ -50,6 +60,9 @@ function requireHash(value: unknown, label: string): string {
 
 function main(): void {
   const candidateDir = option('--candidate-dir');
+  const baselineRoot = optionOr('--baseline-root', LEGACY_BASELINE_ROOT);
+  const selectorRoot = optionOr('--selector-root', DEFAULT_SELECTOR_ROOT);
+  const governanceRoot = optionOr('--governance-root', selectorRoot);
   const candidate = readJson<CoordinatedCandidateReceipt>(path.join(candidateDir, 'candidate-receipt.json'));
   assertCandidateReceiptSelfHash(candidate);
   const allocation = readJson<{ allocationHash: string }>(path.join(candidateDir, 'allocation.json'));
@@ -66,7 +79,7 @@ function main(): void {
     materializationReceiptHash: stage.materializationReceiptSha256,
     extension,
   });
-  const capture = readJson<{ captureHash: string }>(`${C4}/authority-capture/authority-capture.json`);
+  const capture = readJson<{ captureHash: string }>(`${baselineRoot}/authority-capture/authority-capture.json`);
   const selectors = readJson<{
     selectors: {
       projection: { projectionHash: string };
@@ -75,12 +88,121 @@ function main(): void {
       shards: { shardSetHash: string };
       consumerActivation: { activationHash: string };
     };
-  }>(`${C4}/runtime-selector-set.json`);
+  }>(`${selectorRoot}/runtime-selector-set.json`);
+  const scope = readJson<{ scopeHash: string }>(`${governanceRoot}/domain-catalog/scope.json`);
+  const presentationLabelsPath = path.join(candidateDir, 'presentation-label-qualification.json');
+  const presentationLabels = readJson<{
+    contract: string;
+    status: string;
+    reviewRequired: number;
+    qualificationHash: string;
+    authority: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+    catalog: { catalogId: string; catalogHash: string };
+    shards: { shardSetId: string; shardSetHash: string };
+  }>(presentationLabelsPath);
+  const verificationPolicy = readJson<{
+    contract: string;
+    semanticCacheHash: string;
+    presentationLabelQualificationHash: string;
+    presentationLabelQualificationSha256: string;
+    projectionScopeHash: string;
+    projectionScopeAdjustmentSha256: string;
+    teachingGovernanceReclosureHash: string;
+    teachingGovernanceReclosureSha256: string;
+    requireFinalReceiptBeforeConsumerRestart: boolean;
+    sourceRevisionMustBeIntegrationAncestor: boolean;
+    verificationPolicyHash: string;
+  }>(path.join(candidateDir, 'verification-policy.json'));
+  const successorAuthority = readJson<{
+    snapshotId: string;
+    snapshotHash: string;
+    releaseId: string;
+    releaseSetId: string;
+  }>(path.join(candidateDir, 'authority-current.json'));
+  if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
+    throw new Error('presentation-label qualification did not pass without review');
+  }
+  if (
+    presentationLabels.contract !== 'r4-presentation-label-qualification/v1'
+    || presentationLabels.authority.snapshotId !== successorAuthority.snapshotId
+    || presentationLabels.authority.snapshotHash !== successorAuthority.snapshotHash
+    || presentationLabels.authority.releaseId !== successorAuthority.releaseId
+    || presentationLabels.authority.releaseSetId !== successorAuthority.releaseSetId
+    || presentationLabels.catalog.catalogHash !== selectors.selectors.catalog.catalogHash
+    || presentationLabels.shards.shardSetHash !== selectors.selectors.shards.shardSetHash
+  ) {
+    throw new Error('presentation-label qualification does not close over the selected successor');
+  }
+  const { verificationPolicyHash: ignoredPolicyHash, ...verificationPolicyInput } = verificationPolicy;
+  void ignoredPolicyHash;
+  if (
+    verificationPolicy.contract !== 'r4-c5-coordinated-production-verification/v1'
+    || verificationPolicy.presentationLabelQualificationHash !== presentationLabels.qualificationHash
+    || verificationPolicy.presentationLabelQualificationSha256 !== sha256File(presentationLabelsPath)
+    || verificationPolicy.verificationPolicyHash !== projectionDigest(verificationPolicyInput)
+    || verificationPolicy.verificationPolicyHash !== candidate.verificationPolicyHash
+  ) {
+    throw new Error('presentation-label verification policy is not bound to the candidate');
+  }
+  for (const value of [
+    verificationPolicy.semanticCacheHash,
+    verificationPolicy.presentationLabelQualificationHash,
+    verificationPolicy.presentationLabelQualificationSha256,
+    verificationPolicy.projectionScopeHash,
+    verificationPolicy.projectionScopeAdjustmentSha256,
+    verificationPolicy.teachingGovernanceReclosureHash,
+    verificationPolicy.teachingGovernanceReclosureSha256,
+    verificationPolicy.verificationPolicyHash,
+  ]) requireHash(value, 'presentation-label verification identity');
+  requireHash(presentationLabels.qualificationHash, 'presentation-label qualification');
   const locale = sha256File('course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/locale-manifest.json');
   const continuity = readJson<{ receiptHash: string }>(path.join(candidateDir, 'continuity-receipt.json'));
   const teaching = readJson<{ receiptHash: string }>(path.join(candidateDir, 'teaching-closure-receipt.json'));
   const envelope = readJson<{ allocationHash: string; envelopeHash: string }>(path.join(candidateDir, 'formal-resource-envelope.json'));
   const derivation = readJson<{ allocationHash: string; receiptHash: string }>(path.join(candidateDir, 'derivation-receipt.json'));
+  const governance = readJson<{
+    contract: string;
+    authorityCaptureHash: string;
+    scopeHash: string;
+    semanticCacheHash: string;
+    dispositionHash: string;
+    dispositions: unknown[];
+  }>(`${governanceRoot}/teaching-dispositions.json`);
+  const teachingReclosurePath = path.join(candidateDir, 'teaching-reclosure-receipt.json');
+  const teachingReclosure = readJson<{
+    contract: string;
+    status: string;
+    successorScopeHash: string;
+    successorSnapshotHash: string;
+    dispositionHash: string;
+    receiptHash: string;
+  }>(teachingReclosurePath);
+  const projectionAdjustmentPath = path.join(candidateDir, 'projection-adjustments.json');
+  const projectionAdjustment = readJson<{
+    contract: string;
+    scopeHash: string;
+    authoritySnapshotHash: string;
+  }>(projectionAdjustmentPath);
+  if (
+    governance.contract !== 'coordinated-teaching-disposition-scope-reclosure/v1'
+    || governance.scopeHash !== scope.scopeHash
+    || governance.authorityCaptureHash !== capture.captureHash
+    || governance.dispositionHash !== projectionDigest(governance.dispositions)
+    || teachingReclosure.contract !== 'r4-c6-teaching-governance-reclosure/v1'
+    || teachingReclosure.status !== 'COMPLETE'
+    || teachingReclosure.successorScopeHash !== scope.scopeHash
+    || teachingReclosure.successorSnapshotHash !== successorAuthority.snapshotHash
+    || teachingReclosure.dispositionHash !== governance.dispositionHash
+    || verificationPolicy.teachingGovernanceReclosureHash !== teachingReclosure.receiptHash
+    || verificationPolicy.teachingGovernanceReclosureSha256 !== sha256File(teachingReclosurePath)
+    || projectionAdjustment.contract !== 'act-coordinated-projection-adjustments/v1'
+    || projectionAdjustment.scopeHash !== scope.scopeHash
+    || projectionAdjustment.authoritySnapshotHash !== successorAuthority.snapshotHash
+    || verificationPolicy.projectionScopeHash !== projectionAdjustment.scopeHash
+    || verificationPolicy.projectionScopeAdjustmentSha256 !== sha256File(projectionAdjustmentPath)
+  ) {
+    throw new Error('reopened teaching governance does not close over the C6 successor');
+  }
   const rows = [
     { artifactId: 'authority-capture', artifactHash: requireHash(capture.captureHash, 'Authority capture') },
     { artifactId: 'locale-qualification', artifactHash: locale },

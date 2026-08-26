@@ -1,0 +1,16 @@
+{
+  "contract": "r4-c6-teaching-governance-reclosure/v1",
+  "status": "COMPLETE",
+  "sourceDispositionSha256": "0b99f5ce64894e308f1553a09db5983dc9097490cb74d44909f6f456934d5ef8",
+  "sourceScopeHash": "dda4e749e7191250e4b56c74e37143aff980f59d931d8eed410b5600c28db292",
+  "successorScopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+  "successorSnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "dispositionHash": "3b0e40edf2495cbb299f6c633cade4a01dae6bec17a47e346ebd8589da84549b",
+  "closureReceiptHash": "f9eb5d70f2980beaa23685430c2baf88a8f95a54c74de2788bfa25a80f646a7e",
+  "changedFields": [
+    "scopeHash"
+  ],
+  "reclosedDispositionCount": 22428,
+  "receiptHash": "6eddca2fe2a91b47dc10c20629672d3822722d413d0886e294acf37b6ca15947"
+}

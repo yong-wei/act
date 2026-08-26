@@ -32,11 +32,10 @@ import type {
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 const ROOT = process.cwd();
-const CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
-const DOMAIN_SHARD_ROOT = `${CANDIDATE_ROOT}/domain-shards-v022-predecessor`;
-const PROJECTION_ID = 'proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556';
-const PREREQUISITE_ID = 'proj-ff5a3cd77ae7316acc7f7dde88b0ba1143da8ab9e4eb262ebf66e91c767c2f10';
-const ACTIVATION_RECEIPT_ID = 'coordinated-r4-c4-consumers-v022';
+const LEGACY_CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const LEGACY_PROJECTION_ID = 'proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556';
+const LEGACY_PREREQUISITE_ID = 'proj-ff5a3cd77ae7316acc7f7dde88b0ba1143da8ab9e4eb262ebf66e91c767c2f10';
+const LEGACY_ACTIVATION_RECEIPT_ID = 'coordinated-r4-c4-consumers-v022';
 
 function absolute(filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.join(ROOT, filePath);
@@ -50,16 +49,45 @@ function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
 }
 
-function requireArgs(): { activatedAt: string; apply: boolean } {
-  const args = process.argv.slice(2);
-  if (args.length !== 3 || args[0] !== '--apply' || args[1] !== '--activated-at') {
+function option(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  if (index < 0) return fallback;
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith('--')) throw new Error(`${name} requires a value`);
+  return value;
+}
+
+function requireArgs(): {
+  activatedAt: string;
+  apply: boolean;
+  candidateRoot: string;
+  domainShardRoot: string;
+  projectionId: string;
+  prerequisiteId: string;
+  activationReceiptId: string;
+  productionPredecessor: string;
+} {
+  if (!process.argv.includes('--apply')) {
     throw new Error('usage: --apply --activated-at <millisecond RFC3339 UTC timestamp>');
   }
-  const activatedAt = args[2];
+  const activatedAt = option('--activated-at', '');
   if (!activatedAt || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(activatedAt)) {
     throw new Error('--activated-at must be a millisecond RFC3339 UTC timestamp');
   }
-  return { activatedAt, apply: true };
+  const candidateRoot = option('--candidate-root', LEGACY_CANDIDATE_ROOT);
+  return {
+    activatedAt,
+    apply: true,
+    candidateRoot,
+    domainShardRoot: option('--domain-shard-root', `${candidateRoot}/domain-shards-v022-predecessor`),
+    projectionId: option('--projection-id', LEGACY_PROJECTION_ID),
+    prerequisiteId: option('--prerequisite-id', LEGACY_PREREQUISITE_ID),
+    activationReceiptId: option('--activation-receipt-id', LEGACY_ACTIVATION_RECEIPT_ID),
+    productionPredecessor: option(
+      '--production-predecessor',
+      `${candidateRoot}/active-baseline/production-v022-consumer-activation.json`,
+    ),
+  };
 }
 
 function writeJsonAtomic(filePath: string, value: unknown): void {
@@ -73,25 +101,30 @@ function writeJsonAtomic(filePath: string, value: unknown): void {
 
 function main(): void {
   const args = requireArgs();
-  const catalog = readJson<AuthorityDomainCatalogRuntime>(`${CANDIDATE_ROOT}/domain-catalog/catalog.json`);
-  const catalogPointer = readJson<AuthorityDomainCatalogCurrentPointer>(`${CANDIDATE_ROOT}/domain-catalog/current.json`);
-  const shardPointer = readJson<AuthorityShardCurrentPointer>(`${DOMAIN_SHARD_ROOT}/current.json`);
+  const catalog = readJson<AuthorityDomainCatalogRuntime>(`${args.candidateRoot}/domain-catalog/catalog.json`);
+  const catalogPointer = readJson<AuthorityDomainCatalogCurrentPointer>(`${args.candidateRoot}/domain-catalog/current.json`);
+  const shardPointer = readJson<AuthorityShardCurrentPointer>(`${args.domainShardRoot}/current.json`);
   if (
     catalogPointer.catalogId !== catalog.catalogId
     || catalogPointer.catalogHash !== catalog.catalogHash
     || shardPointer.catalogId !== catalog.catalogId
     || shardPointer.catalogHash !== catalog.catalogHash
   ) {
-    throw new Error('r4-c4 catalog and shard selector identities are not closed');
+    throw new Error('r4 coordinated catalog and shard selector identities are not closed');
   }
 
   const projectionRoot = absolute('course-content/runtime/knowledge/projection');
   const projection = loadStagedTeachingProjection(
     { root: projectionRoot, currentPointer: path.join(projectionRoot, 'current.json'), releasesDir: path.join(projectionRoot, 'releases') },
-    PROJECTION_ID,
+    args.projectionId,
   );
-  if (!projection.artifacts.gate.passed || projection.artifacts.manifest.gatePassed === false) {
-    throw new Error('r4-c4 Teaching Projection did not pass its publication gate');
+  if (
+    !projection.artifacts.gate.passed
+    || projection.artifacts.manifest.gatePassed === false
+    || projection.artifacts.manifest.authoritySnapshotId !== catalog.authorityBinding.snapshotId
+    || projection.artifacts.manifest.authoritySnapshotHash !== catalog.authorityBinding.snapshotHash
+  ) {
+    throw new Error('r4 coordinated Teaching Projection does not close over the selected Authority snapshot');
   }
   const projectionPointer: TeachingProjectionCurrentPointer = {
     contract: 'act-teaching-projection-current/v1',
@@ -104,10 +137,14 @@ function main(): void {
   const prerequisiteRoot = absolute('course-content/runtime/knowledge/prerequisites');
   const prerequisite = loadPrerequisitePublication(
     { root: prerequisiteRoot, currentPointer: path.join(prerequisiteRoot, 'current.json'), releasesDir: path.join(prerequisiteRoot, 'releases') },
-    PREREQUISITE_ID,
+    args.prerequisiteId,
   );
-  if (!prerequisite.gate.passed || prerequisite.gate.status !== 'PUBLISHED') {
-    throw new Error('r4-c4 prerequisite publication did not pass its publication gate');
+  if (
+    !prerequisite.gate.passed
+    || prerequisite.gate.status !== 'PUBLISHED'
+    || prerequisite.manifest.projectionCaptureId !== projection.projectionId
+  ) {
+    throw new Error('r4 coordinated prerequisite publication does not close over the selected Teaching Projection');
   }
   const prerequisitePointer: PrerequisiteCurrentPointer = {
     contract: 'act-teaching-prerequisite-current/v1',
@@ -122,25 +159,25 @@ function main(): void {
   );
   const activationStage = readJson<{
     readonly successor: { readonly activationId: string; readonly activationHash: string };
-  }>(`${CANDIDATE_ROOT}/consumer-activation-stage.json`);
+  }>(`${args.candidateRoot}/consumer-activation-stage.json`);
   const activation = loadStagedConsumerActivation(activationPaths, activationStage.successor.activationId);
   if (activation.activationHash !== activationStage.successor.activationHash) {
-    throw new Error('r4-c4 activation stage receipt does not match its staged manifest');
+    throw new Error('r4 coordinated activation stage receipt does not match its staged manifest');
   }
   if (activation.manifest.impact.readyConsumerIds.length !== 6) {
-    throw new Error('r4-c4 activation does not make all six consumers READY');
+    throw new Error('r4 coordinated activation does not make all six consumers READY');
   }
   const productionPredecessor = readJson<ConsumerActivationManifest>(
-    `${CANDIDATE_ROOT}/active-baseline/production-v022-consumer-activation.json`,
+    args.productionPredecessor,
   );
   if (
     activation.manifest.priorActivationId !== productionPredecessor.activationId
     || activation.manifest.priorActivationHash !== productionPredecessor.activationHash
   ) {
-    throw new Error('r4-c4 activation does not bind the captured production v0.22 predecessor');
+    throw new Error('r4 coordinated activation does not bind the captured production v0.22 predecessor');
   }
   const candidate = {
-    contract: 'r4-c4-runtime-selector-set/v1',
+    contract: 'r4-coordinated-runtime-selector-set/v2',
     activatedAt: args.activatedAt,
     selectors: {
       projection: projectionPointer,
@@ -150,7 +187,7 @@ function main(): void {
       consumerActivation: {
         activationId: activation.activationId,
         activationHash: activation.activationHash,
-        activationReceiptId: ACTIVATION_RECEIPT_ID,
+        activationReceiptId: args.activationReceiptId,
       },
     },
     selectorHash: '',
@@ -171,12 +208,12 @@ function main(): void {
     contract: 'act-versioned-knowledge-consumer-activation-current/v1',
     activationId: activation.activationId,
     activationHash: activation.activationHash,
-    activationReceiptId: ACTIVATION_RECEIPT_ID,
+    activationReceiptId: args.activationReceiptId,
     activatedAt: args.activatedAt,
   };
   const consumerReceipt: ConsumerActivationReceipt = {
     contract: 'act-versioned-knowledge-consumer-activation-receipt/v1',
-    receiptId: ACTIVATION_RECEIPT_ID,
+    receiptId: args.activationReceiptId,
     activationId: activation.activationId,
     activationHash: activation.activationHash,
     previousActivationId: productionPredecessor.activationId,
@@ -196,10 +233,10 @@ function main(): void {
   writeJsonAtomic('course-content/runtime/knowledge/authority-domain-shards/current.json', shardPointer);
   writeJsonAtomic('course-content/runtime/knowledge/consumer-activation/current.json', consumerPointer);
   writeJsonAtomic(
-    `course-content/runtime/knowledge/consumer-activation/activations/${ACTIVATION_RECEIPT_ID}.json`,
+    `course-content/runtime/knowledge/consumer-activation/activations/${args.activationReceiptId}.json`,
     consumerReceipt,
   );
-  writeJsonAtomic(`${CANDIDATE_ROOT}/runtime-selector-set.json`, {
+  writeJsonAtomic(`${args.candidateRoot}/runtime-selector-set.json`, {
     ...selectorSet,
     appliedToSourceTree: true,
     sourceSelectorHashes: {

@@ -1,7 +1,7 @@
 {
   "contract": "act-teaching-projection-current/v1",
-  "projectionId": "proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556",
-  "projectionHash": "f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556",
+  "projectionId": "proj-c9a6f33eb88fff28f8934a25a627e38deffcbf331ee7f34bb4e9ff65b0d02c2e",
+  "projectionHash": "c9a6f33eb88fff28f8934a25a627e38deffcbf331ee7f34bb4e9ff65b0d02c2e",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
-  "activatedAt": "2026-08-26T08:06:00.000Z"
+  "activatedAt": "2026-08-26T07:21:00.000Z"
 }
