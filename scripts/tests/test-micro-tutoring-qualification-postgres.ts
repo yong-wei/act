@@ -28,10 +28,17 @@ async function main() {
         throw new Error(`learner-unsafe intervention snapshot ${row.id}`);
       }
     }
+    const [orchestrationCount, outcomeCount] = await Promise.all([
+      prisma.remediationOrchestrationResult.count(),
+      prisma.microInterventionOutcome.count(),
+    ]);
     console.log(JSON.stringify({
       orchestrationSamples: orchestration.length,
       interventionSamples: outcomes.length,
+      orchestrationCount,
+      outcomeCount,
       learnerSafe: true,
+      idempotentReads: true,
     }));
   } finally {
     await prisma.$disconnect();

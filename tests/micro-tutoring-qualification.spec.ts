@@ -39,10 +39,14 @@ async function login(context: BrowserContext) {
   expect(loginResponse.ok(), `login failed: ${loginResponse.status()}`).toBe(true);
 }
 
-async function persistWrongAnswer(context: BrowserContext, goalId: string): Promise<AnswerFixture> {
+async function persistWrongAnswer(
+  context: BrowserContext,
+  goalId: string,
+  routeIntent = 'practice',
+): Promise<AnswerFixture> {
   const key = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const questionResponse = await context.request.post(`${baseURL}/api/assessment/next-question`, {
-    data: { sessionId: `micro-tutoring-qualify-${goalId}-${key}`, goalId, routeIntent: 'practice' },
+    data: { sessionId: `micro-tutoring-qualify-${goalId}-${key}`, goalId, routeIntent },
   });
   expect(questionResponse.ok(), await questionResponse.text()).toBe(true);
   const question = await questionResponse.json() as AnswerFixture['question'];
@@ -148,12 +152,12 @@ async function installRoutes(page: Page, fixture: AnswerFixture, mode: 'success'
   });
 }
 
-async function openPanel(page: Page, fixture: AnswerFixture, goalId: string, width: number) {
+async function openPanel(page: Page, fixture: AnswerFixture, goalId: string, width: number, intent = 'practice') {
   await page.setViewportSize({ width, height: width === 320 ? 900 : 1000 });
   const nextQuestionResponse = page.waitForResponse((response) => (
     response.url().endsWith('/api/assessment/next-question') && response.ok()
   ));
-  await page.goto(`/assessment/adaptive-practice?goal=${goalId}&intent=practice`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`/assessment/adaptive-practice?goal=${goalId}&intent=${intent}`, { waitUntil: 'domcontentloaded' });
   await nextQuestionResponse;
   const resourceModule = page.locator('[data-adaptive-practice-resource="path-node"]');
   await expect(resourceModule).toBeVisible();
@@ -243,3 +247,23 @@ test('keeps 320px dark theme free of horizontal overflow', async ({ context, pag
   expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewport);
   await expect(panel).toBeVisible();
 });
+
+const v2Entries = ['practice', 'checkpoint', 'readiness', 'remediation'] as const;
+
+for (const routeIntent of v2Entries) {
+  test(`covers a v2-entry ${routeIntent} wrong-answer loop for control-correction`, async ({ context, page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const fixture = await persistWrongAnswer(context, 'control-correction', routeIntent);
+    await installRoutes(page, fixture, 'success');
+    const panel = await openPanel(page, fixture, 'control-correction', 1440, routeIntent);
+    await panel.getByRole('button', { name: '开始微辅导' }).click();
+    await panel.getByRole('button', { name: '开始本次辅导' }).click();
+    await panel.getByRole('button', { name: '完成学习，进入验证' }).click();
+    await panel.getByRole('button', { name: '获取验证题' }).click();
+    await panel.getByRole('radio', { name: /相位裕度/ }).check();
+    await panel.getByRole('button', { name: '提交验证' }).click();
+    await expect(panel.getByRole('status')).toContainText('验证通过');
+    expect(errors.filter((message) => /ChunkLoadError|React/.test(message))).toEqual([]);
+  });
+}

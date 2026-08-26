@@ -10,9 +10,9 @@ const script = path.join(repoRoot, 'scripts/data-governance/qualify-micro-tutori
 const outputDir = mkdtempSync(path.join(os.tmpdir(), 'act-micro-tutoring-qualification-'));
 const optionReferenceSecret = 'test-only-micro-tutoring-option-reference-secret';
 
-function run() {
+function run(args = []) {
   try {
-    const output = execFileSync(process.execPath, [tsxCli, script, '--output-dir', outputDir], {
+    const output = execFileSync(process.execPath, [tsxCli, script, '--output-dir', outputDir, ...args], {
       cwd: repoRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -44,6 +44,11 @@ try {
     assert.match(result.output, /MISSING_OCI_DIGEST/);
     assert.match(result.output, /REQUIRED_TESTS_INCOMPLETE/);
   }
+  const v2Result = run(['--profile', 'v2']);
+  const v2ReceiptPath = path.join(outputDir, 'micro-tutoring-v2-candidate-receipt.json');
+  assert.notEqual(v2Result.status, 0, v2Result.output);
+  assert.equal(existsSync(v2ReceiptPath), false, 'v2 fail-closed qualification must not write a candidate receipt');
+  assert.equal(existsSync(receiptPath), false, 'v2 qualification must not overwrite the v1 receipt path');
   console.log('micro tutoring qualification command contract passed');
 } finally {
   rmSync(outputDir, { recursive: true, force: true });

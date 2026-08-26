@@ -1,20 +1,29 @@
 import { createHash } from 'node:crypto';
 
 import {
+  MICRO_TUTORING_ASSESSMENT_BASELINE_V2_ITEM_COUNT,
   MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT,
+  MICRO_TUTORING_V2_ERROR_OPTION_COUNT,
   microTutoringCoverageAuditContentDigest,
   microTutoringCoverageAuditIsGitContentComplete,
   microTutoringCoverageAuditIsStrictlyComplete,
   type MicroTutoringCoverageAuditReport,
+  type MicroTutoringCoverageProfile,
 } from './micro-tutoring-coverage-audit';
 
 export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION = 'micro-tutoring-production-qualification.v1';
+export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_V2_VERSION = 'micro-tutoring-production-qualification.v2';
 export const MICRO_TUTORING_PRODUCTION_FEATURE_FLAG = 'micro-tutoring-production-canary';
 export const MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND = 'candidate';
 export const MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS = [
   'verify:micro-tutoring-coverage',
   'test:micro-tutoring-qualification-postgres',
   'test:micro-tutoring-qualification',
+] as const;
+export const MICRO_TUTORING_REQUIRED_V2_QUALIFICATION_TESTS = [
+  'verify:micro-tutoring-coverage:v2',
+  'test:micro-tutoring-qualification-postgres',
+  'test:micro-tutoring-qualification:v2',
 ] as const;
 
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
@@ -63,7 +72,9 @@ export interface MicroTutoringCanaryMetrics {
 }
 
 export interface MicroTutoringProductionQualificationReceipt {
-  version: typeof MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION;
+  version:
+    | typeof MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION
+    | typeof MICRO_TUTORING_PRODUCTION_QUALIFICATION_V2_VERSION;
   kind: typeof MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND;
   generatedAt: string;
   sourceRevision: string;
@@ -73,6 +84,7 @@ export interface MicroTutoringProductionQualificationReceipt {
   gitContentComplete: boolean;
   strictlyComplete: boolean;
   qualifiedPracticeItemCount: number;
+  qualifiedItemCount?: number;
   errorOptionCount: number;
   completeOptionCount: number;
   artifactDigests: MicroTutoringArtifactDigest[];
@@ -130,8 +142,9 @@ function isRevisionBoundDigest(
 function qualificationTestsAreBound(
   tests: MicroTutoringQualificationTestProof[],
   expectedRevision: string,
+  requiredTests: readonly string[] = MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS,
 ): boolean {
-  return MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS.every((name) =>
+  return requiredTests.every((name) =>
     tests.some((test) =>
       test.name === name &&
       test.status === 'passed' &&
@@ -172,7 +185,13 @@ export function evaluateMicroTutoringProductionActivation(input: {
     !input.receipt.gitContentComplete ||
     !isGitRevision(input.receipt.governedProjectionRevision) ||
     input.receipt.governedProjectionRevision !== input.receipt.sourceRevision ||
-    !qualificationTestsAreBound(input.receipt.tests, input.receipt.sourceRevision) ||
+    !qualificationTestsAreBound(
+      input.receipt.tests,
+      input.receipt.sourceRevision,
+      input.receipt.version === MICRO_TUTORING_PRODUCTION_QUALIFICATION_V2_VERSION
+        ? MICRO_TUTORING_REQUIRED_V2_QUALIFICATION_TESTS
+        : MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS,
+    ) ||
     !isRevisionBoundDigest(input.receipt.browserEvidence, input.receipt.sourceRevision) ||
     !isRevisionBoundDigest(input.receipt.ociImage, input.receipt.sourceRevision)
   ) {
@@ -201,8 +220,13 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
   tests: MicroTutoringQualificationTestProof[];
   browserEvidence?: MicroTutoringRevisionBoundDigest | null;
   ociImage?: MicroTutoringRevisionBoundDigest | null;
+  coverageProfile?: MicroTutoringCoverageProfile;
 }): { receipt: MicroTutoringProductionQualificationReceipt | null; issues: MicroTutoringQualificationIssue[] } {
   const issues: MicroTutoringQualificationIssue[] = [];
+  const coverageProfile = input.coverageProfile ?? input.report.coverageProfile ?? 'v1';
+  const requiredTests = coverageProfile === 'v2'
+    ? MICRO_TUTORING_REQUIRED_V2_QUALIFICATION_TESTS
+    : MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS;
   const capture = input.report.inputCapture;
   const sourceRevision = capture?.sourceRevision ?? '';
   const governedProjectionRevision = capture?.governedProjectionRevision ?? null;
@@ -224,7 +248,23 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
   if (!microTutoringCoverageAuditIsStrictlyComplete(input.report)) {
     issues.push('STRICT_COVERAGE_INCOMPLETE');
   }
-  const requiredTestsPresent = MICRO_TUTORING_REQUIRED_QUALIFICATION_TESTS.every((name) =>
+  if (
+    coverageProfile === 'v2' &&
+    (
+      input.report.coverageProfile !== 'v2' ||
+      input.report.qualifiedItemCount !== MICRO_TUTORING_ASSESSMENT_BASELINE_V2_ITEM_COUNT ||
+      input.report.errorOptionCount !== MICRO_TUTORING_V2_ERROR_OPTION_COUNT
+    )
+  ) {
+    issues.push('STRICT_COVERAGE_INCOMPLETE');
+  }
+  if (
+    coverageProfile === 'v1' &&
+    input.report.qualifiedPracticeItemCount !== MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT
+  ) {
+    issues.push('STRICT_COVERAGE_INCOMPLETE');
+  }
+  const requiredTestsPresent = requiredTests.every((name) =>
     input.tests.some((test) => test.name === name));
   if (!requiredTestsPresent) {
     issues.push('REQUIRED_TESTS_INCOMPLETE');
@@ -254,7 +294,9 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
     return { receipt: null, issues: [...new Set(issues)] };
   }
   const envelope: Omit<MicroTutoringProductionQualificationReceipt, 'receiptDigest'> = {
-    version: MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION,
+    version: coverageProfile === 'v2'
+      ? MICRO_TUTORING_PRODUCTION_QUALIFICATION_V2_VERSION
+      : MICRO_TUTORING_PRODUCTION_QUALIFICATION_VERSION,
     kind: MICRO_TUTORING_PRODUCTION_QUALIFICATION_KIND,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     sourceRevision,
@@ -264,6 +306,7 @@ export function buildMicroTutoringProductionQualificationReceipt(input: {
     gitContentComplete: true,
     strictlyComplete: true,
     qualifiedPracticeItemCount: input.report.qualifiedPracticeItemCount,
+    ...(coverageProfile === 'v2' ? { qualifiedItemCount: input.report.qualifiedItemCount } : {}),
     errorOptionCount: input.report.errorOptionCount,
     completeOptionCount: input.report.completeOptionCount,
     artifactDigests: [...input.artifactDigests].sort((left, right) => left.path.localeCompare(right.path)),

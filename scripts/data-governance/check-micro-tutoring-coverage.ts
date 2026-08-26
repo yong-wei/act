@@ -26,14 +26,10 @@ import { prisma } from '@/lib/prisma';
 
 const GOVERNANCE_DIR = 'course-content/runtime/resource-governance';
 const DEFAULT_OUTPUT_DIR = path.join(process.cwd(), '.reports/micro-tutoring-coverage');
-const GOVERNANCE_CAPTURE_PATHS = [
+const SHARED_CAPTURE_PATHS = [
   `${GOVERNANCE_DIR}/adaptive-assessment-item-catalog-items.jsonl`,
   `${GOVERNANCE_DIR}/assessment-item-semantic-review-snapshots.jsonl`,
-  `${GOVERNANCE_DIR}/micro-tutoring-practice-baseline.json`,
-  `${GOVERNANCE_DIR}/micro-tutoring-option-attributions.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
-  `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
-  `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
   'src/features/assessment/micro-tutoring-coverage-audit.ts',
   'src/features/assessment/micro-tutoring-production-qualification.ts',
   'scripts/data-governance/qualify-micro-tutoring.ts',
@@ -46,24 +42,47 @@ const GOVERNANCE_CAPTURE_PATHS = [
   'src/lib/data-governance/autocontrol-kaq-graph-catalog.ts',
   'scripts/data-governance/check-micro-tutoring-coverage.ts',
 ] as const;
+const V1_CAPTURE_PATHS = [
+  ...SHARED_CAPTURE_PATHS,
+  `${GOVERNANCE_DIR}/micro-tutoring-practice-baseline.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-option-attributions.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
+] as const;
+const V2_CAPTURE_PATHS = [
+  ...SHARED_CAPTURE_PATHS,
+  `${GOVERNANCE_DIR}/micro-tutoring-assessment-baseline-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-option-attributions-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-resource-projection-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-registry-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-purpose-reviews-v1.jsonl`,
+] as const;
 const GIT_REVISION = /^[a-f0-9]{40}$/u;
 
+type CoverageProfile = 'v1' | 'v2';
 type Options = {
   strict: boolean;
   offline: boolean;
   outputDir: string;
+  profile: CoverageProfile;
 };
 
 function parseArgs(args: string[]): Options {
   const strict = args.includes('--strict');
   const outputIndex = args.indexOf('--output-dir');
+  const profileIndex = args.indexOf('--profile');
   if (outputIndex >= 0 && !args[outputIndex + 1]) {
     throw new Error('--output-dir requires a directory');
+  }
+  const profileArg = profileIndex >= 0 ? args[profileIndex + 1] : 'v1';
+  if (profileArg !== 'v1' && profileArg !== 'v2') {
+    throw new Error('--profile must be v1 or v2');
   }
   return {
     strict,
     offline: args.includes('--offline'),
     outputDir: outputIndex >= 0 ? path.resolve(args[outputIndex + 1]!) : DEFAULT_OUTPUT_DIR,
+    profile: profileArg,
   };
 }
 
@@ -84,8 +103,12 @@ function git(args: string[]): string {
   return result.stdout;
 }
 
-function captureGovernanceInputs(): GovernanceInputCapture {
-  git(['ls-files', '--error-unmatch', '--', ...GOVERNANCE_CAPTURE_PATHS]);
+function capturePaths(profile: CoverageProfile): readonly string[] {
+  return profile === 'v2' ? V2_CAPTURE_PATHS : V1_CAPTURE_PATHS;
+}
+
+function captureGovernanceInputs(profile: CoverageProfile): GovernanceInputCapture {
+  git(['ls-files', '--error-unmatch', '--', ...capturePaths(profile)]);
   const sourceRevision = git(['rev-parse', '--verify', 'HEAD']).trim();
   if (!GIT_REVISION.test(sourceRevision)) {
     throw new Error('微辅导覆盖审计无法解析有效的 Git 修订');
@@ -240,7 +263,7 @@ async function loadGovernedRows(offline: boolean, sourceRevision: string): Promi
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const inputCapture = captureGovernanceInputs();
+  const inputCapture = captureGovernanceInputs(options.profile);
   const optionReferenceSecret = nonEmptyString(process.env.MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET);
   if (!optionReferenceSecret) {
     throw new Error('MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET is required');
@@ -248,14 +271,28 @@ async function main() {
   const [catalogItems, reviewDecisions, baselineSource, attributionSource, resourceProjectionSource, validationRegistrySource, governedRows] = await Promise.all([
     readJsonl<AdaptiveAssessmentCatalogItem>(inputCapture, 'adaptive-assessment-item-catalog-items.jsonl'),
     readJsonl<AssessmentItemSemanticReviewDecision>(inputCapture, 'assessment-item-semantic-review-snapshots.jsonl'),
-    readJson<MicroTutoringPracticeBaseline>(inputCapture, 'micro-tutoring-practice-baseline.json'),
-    readJson<{ entries: unknown[] }>(inputCapture, 'micro-tutoring-option-attributions.json'),
-    readJson<unknown>(inputCapture, 'micro-tutoring-resource-projection.json'),
-    readJson<unknown>(inputCapture, 'micro-tutoring-validation-registry.json'),
+    readJson<MicroTutoringPracticeBaseline>(
+      inputCapture,
+      options.profile === 'v2' ? 'micro-tutoring-assessment-baseline-v2.json' : 'micro-tutoring-practice-baseline.json',
+    ),
+    readJson<{ entries: unknown[]; stageCounts?: Record<string, number> }>(
+      inputCapture,
+      options.profile === 'v2' ? 'micro-tutoring-option-attributions-v2.json' : 'micro-tutoring-option-attributions.json',
+    ),
+    readJson<unknown>(
+      inputCapture,
+      options.profile === 'v2' ? 'micro-tutoring-resource-projection-v2.json' : 'micro-tutoring-resource-projection.json',
+    ),
+    readJson<unknown>(
+      inputCapture,
+      options.profile === 'v2' ? 'micro-tutoring-validation-registry-v2.json' : 'micro-tutoring-validation-registry.json',
+    ),
     loadGovernedRows(options.offline, inputCapture.sourceRevision),
   ]);
   const baseline: MicroTutoringPracticeBaseline = {
     version: baselineSource.version,
+    itemCount: baselineSource.itemCount,
+    stageCounts: baselineSource.stageCounts,
     entries: sourceEntries<MicroTutoringPracticeBaseline['entries'][number]>(baselineSource, 'practice baseline'),
   };
   const optionAttributions = sourceEntries<unknown>(
@@ -266,6 +303,7 @@ async function main() {
     catalogItems,
     reviewDecisions,
     baseline,
+    coverageProfile: options.profile,
     optionAttributions,
     optionReferenceSecret,
     activeLearningGoalIds: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
