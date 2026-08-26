@@ -28,9 +28,14 @@ import {
 } from '@/lib/governed-math/render-cache';
 import { matchesGovernedSearch, stripLatexCommandNoise } from '@/lib/governed-math/search-text';
 import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
-import { attachGovernedMathToLearnerShard, loadGovernedMathRuntime } from '@/lib/governed-math/attach';
+import {
+  admitGovernedMathCorpus,
+  attachGovernedMathToLearnerShard,
+  loadGovernedMathRuntime,
+} from '@/lib/governed-math/attach';
 import {
   GOVERNED_MATH_PRESENTATION_BUNDLE,
+  GOVERNED_MATH_SIDECAR_FILES,
   loadGovernedMathSidecarCorpus,
 } from '@/lib/governed-math/sidecar';
 import { validateGovernedMathCorpus } from '@/lib/governed-math/validate';
@@ -78,6 +83,18 @@ describe('governed math sidecar consumption', () => {
     expect(title?.state).toBe('available');
     if (title?.state !== 'available') return;
     expect(title.blocks.some((block) => block.spans.some((span) => span.kind === 'math'))).toBe(true);
+  });
+
+  it('fails closed when a sidecar index hash drifts while readiness identity is unchanged', () => {
+    const tampered = {
+      ...corpus,
+      fileHashes: {
+        ...corpus.fileHashes,
+        [GOVERNED_MATH_SIDECAR_FILES.richText]: '0'.repeat(64),
+      },
+    };
+    expect(admitGovernedMathCorpus(tampered)).toBeNull();
+    expect(admitGovernedMathCorpus(corpus)).not.toBeNull();
   });
 
   it('closes r3 sidecar hashes, identity and references', () => {

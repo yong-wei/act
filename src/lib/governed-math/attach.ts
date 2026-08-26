@@ -16,6 +16,7 @@ import {
   loadGovernedMathSidecarCorpus,
   type GovernedMathSidecarCorpus,
 } from './sidecar';
+import { validateGovernedMathCorpus } from './validate';
 import type {
   GovernedFormulaProjection,
   GovernedMathLocale,
@@ -32,20 +33,29 @@ export interface GovernedMathRuntimeFields {
 
 const corpusCache = new Map<string, GovernedMathSidecarCorpus>();
 
+export function admitGovernedMathCorpus(
+  corpus: GovernedMathSidecarCorpus,
+): GovernedMathSidecarCorpus | null {
+  if (
+    corpus.readiness.release_id !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId
+    || corpus.readiness.release_hash !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash
+  ) {
+    return null;
+  }
+  const validation = validateGovernedMathCorpus(corpus);
+  if (!validation.ok) return null;
+  return corpus;
+}
+
 export function loadGovernedMathRuntime(): GovernedMathSidecarCorpus | null {
   try {
     const cacheKey = `${GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId}:${GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash}`;
     const cached = corpusCache.get(cacheKey);
     if (cached) return cached;
-    const corpus = loadGovernedMathSidecarCorpus();
-    if (
-      corpus.readiness.release_id !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId
-      || corpus.readiness.release_hash !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash
-    ) {
-      return null;
-    }
-    corpusCache.set(cacheKey, corpus);
-    return corpus;
+    const admitted = admitGovernedMathCorpus(loadGovernedMathSidecarCorpus());
+    if (!admitted) return null;
+    corpusCache.set(cacheKey, admitted);
+    return admitted;
   } catch {
     return null;
   }
