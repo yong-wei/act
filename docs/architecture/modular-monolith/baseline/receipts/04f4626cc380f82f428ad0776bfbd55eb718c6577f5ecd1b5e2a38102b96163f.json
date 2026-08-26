@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "act-architecture-measurement-receipt/v1",
+  "sourceCommit": "58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac",
+  "sourceTree": "189dfeb5ad35f1d88e8ea5509a48b388424bf88f",
+  "command": "npx tsc --noEmit --incremental false --pretty false",
+  "scope": "tsconfig.json",
+  "platform": "darwin-arm64",
+  "toolVersions": {
+    "node": "v26.0.0",
+    "npm": "11.12.1"
+  },
+  "cacheMode": "cold",
+  "capturedAt": "2026-08-26T14:26:25.567Z",
+  "exitStatus": 0,
+  "aggregate": {
+    "durationMs": 38865,
+    "errorCount": 0
+  },
+  "fingerprints": [
+    "tsc:ok"
+  ],
+  "receiptId": "04f4626cc380f82f428ad0776bfbd55eb718c6577f5ecd1b5e2a38102b96163f"
+}
