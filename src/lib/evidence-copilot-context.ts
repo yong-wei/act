@@ -126,10 +126,10 @@ function resolveStatus(state: AdaptiveLearnerState): EvidenceCopilotStatus {
   const markers = state.evidence.statusMarkers;
   const coverageValues = Object.values(state.evidence.sourceCoverage);
   const evidenceCount = state.evidence.confidence.evidenceCount;
+  if (state.evidence.readState === 'stale' || markers.includes('stale')) return 'stale';
   if (state.evidence.confidence.level === 'none' && evidenceCount === 0 && coverageValues.every((value) => value === 'missing')) {
     return 'missing';
   }
-  if (state.evidence.readState === 'stale' || markers.includes('stale')) return 'stale';
   if (
     markers.includes('partial')
     || markers.includes('missing-source')

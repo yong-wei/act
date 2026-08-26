@@ -157,6 +157,19 @@ describe('evidence copilot context', () => {
     expect(staleReadState.weakTargets).toEqual([]);
     expect(staleReadState.limitations.join(' ')).toContain('过期');
 
+    const incompatibleCache = projectEvidenceCopilotState(learnerState({
+      evidence: {
+        readState: 'stale',
+        evidenceWindow: { firstStartedAt: null, lastStartedAt: null, daysCovered: 0 },
+        sourceCounts: {},
+        sourceCoverage: {},
+        confidence: { level: 'none', score: 0, evidenceCount: 0, sourceCompleteness: 0 },
+        statusMarkers: [],
+      },
+    }));
+    expect(incompatibleCache.status).toBe('stale');
+    expect(incompatibleCache.limitations.join(' ')).toContain('过期');
+
     const partial = projectEvidenceCopilotState(learnerState({
       missingEvidence: ['QuizAttempt'],
     }));
