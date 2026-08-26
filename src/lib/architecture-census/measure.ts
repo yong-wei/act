@@ -100,32 +100,38 @@ export function captureTypecheckReceipt(repoRoot: string, sourceCommit: string, 
 export function captureVitestReceipt(repoRoot: string, sourceCommit: string, sourceTree: string): MeasurementReceipt {
   const dir = mkdtempSync(join(tmpdir(), 'architecture-census-'));
   const outputFile = join(dir, 'vitest.json');
+  const sidecarFile = join(dir, 'unhandled.json');
   try {
     return captureMeasuredCommand({
       sourceCommit,
       sourceTree,
       command: 'npx',
-      args: ['vitest', 'run', '--reporter=json', `--outputFile=${outputFile}`],
-      recordedCommand: 'npx vitest run --reporter=json --outputFile=<tmpdir>/vitest.json',
+      args: [
+        'vitest',
+        'run',
+        '--reporter=json',
+        `--outputFile=${outputFile}`,
+        '--reporter=./src/lib/architecture-census/vitest-unhandled-reporter.ts',
+      ],
+      recordedCommand: 'npx vitest run --reporter=json --outputFile=<tmpdir>/vitest.json --reporter=./src/lib/architecture-census/vitest-unhandled-reporter.ts',
       scope: 'vitest unit',
       cacheMode: 'cold',
       cwd: repoRoot,
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --disable-warning=DEP0205`.trim(),
+        ARCHITECTURE_CENSUS_VITEST_SIDECAR: sidecarFile,
       },
       parse: ({ status }) => {
         let passed = 0;
         let failed = 0;
-        let unhandledErrors = 0;
+        let unhandledErrors: number | string = 'unparsed';
         const failing: string[] = [];
         const failedFiles = new Set<string>();
         try {
           const report = JSON.parse(readFileSync(outputFile, 'utf8')) as {
             numPassedTests?: number;
             numFailedTests?: number;
-            numFailedTestFiles?: number;
-            unhandledErrors?: unknown[];
             testResults?: Array<{
               name?: string;
               status?: string;
@@ -134,7 +140,6 @@ export function captureVitestReceipt(repoRoot: string, sourceCommit: string, sou
           };
           passed = report.numPassedTests ?? 0;
           failed = report.numFailedTests ?? 0;
-          unhandledErrors = Array.isArray(report.unhandledErrors) ? report.unhandledErrors.length : 0;
           for (const file of report.testResults ?? []) {
             const filePath = toRepoPath(repoRoot, file.name ?? 'file');
             for (const assertion of file.assertionResults ?? []) {
@@ -148,6 +153,14 @@ export function captureVitestReceipt(repoRoot: string, sourceCommit: string, sou
         } catch {
           failing.push('vitest-json-unparsed');
         }
+        try {
+          const sidecar = JSON.parse(readFileSync(sidecarFile, 'utf8')) as { unhandledErrorCount?: number };
+          if (typeof sidecar.unhandledErrorCount === 'number') {
+            unhandledErrors = sidecar.unhandledErrorCount;
+          }
+        } catch {
+          failing.push('vitest-unhandled-unparsed');
+        }
         failing.sort();
         return {
           aggregate: {
@@ -156,9 +169,9 @@ export function captureVitestReceipt(repoRoot: string, sourceCommit: string, sou
             filesFailed: failedFiles.size,
             unhandledErrors,
           },
-          fingerprints: status === 0 && failed === 0
+          fingerprints: status === 0 && failed === 0 && unhandledErrors === 0
             ? ['vitest:ok']
-            : [`vitest:exit:${status}`, `vitest:failed:${failed}`, ...failing],
+            : [`vitest:exit:${status}`, `vitest:failed:${failed}`, `vitest:unhandled:${unhandledErrors}`, ...failing],
         };
       },
     });

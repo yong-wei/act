@@ -13,15 +13,33 @@ function git(repoRoot: string, args: string[]): string {
   }).trim();
 }
 
+function installedTypescriptVersion(repoRoot: string): string {
+  try {
+    const pkg = JSON.parse(readFileSync(join(repoRoot, 'node_modules/typescript/package.json'), 'utf8')) as { version?: string };
+    if (pkg.version && /^\d+\.\d+/u.test(pkg.version)) return pkg.version;
+  } catch {
+    // Fall through to the compiler binary.
+  }
+  try {
+    const output = execFileSync(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '-v'], {
+      encoding: 'utf8',
+    }).trim();
+    const match = output.match(/Version\s+(\S+)/u);
+    if (match?.[1]) return match[1];
+  } catch {
+    // Keep fail-visible unknown rather than a dependency range.
+  }
+  return 'unknown';
+}
+
 export function readCaptureIdentity(repoRoot: string): CaptureIdentity {
-  const pkg = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8')) as { devDependencies?: Record<string, string> };
   return {
     sourceCommit: git(repoRoot, ['rev-parse', 'HEAD']),
     sourceTree: git(repoRoot, ['rev-parse', 'HEAD^{tree}']),
     commitTime: git(repoRoot, ['show', '-s', '--format=%cI', 'HEAD']),
     nodeVersion: process.version,
     npmVersion: execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim(),
-    typescriptVersion: pkg.devDependencies?.typescript ?? pkg.devDependencies?.['typescript'] ?? 'unknown',
+    typescriptVersion: installedTypescriptVersion(repoRoot),
   };
 }
 

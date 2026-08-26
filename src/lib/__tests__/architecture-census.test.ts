@@ -6,6 +6,7 @@ import {
   isMixedWorktree,
   projectWithReceipts,
   qualifyCensusCore,
+  readCaptureIdentity,
   serializeDeterministic,
   snapshotFromFiles,
   type CaptureIdentity,
@@ -256,5 +257,12 @@ describe('architecture census', () => {
 
   it('does not treat a linked git worktree as mixed capture', () => {
     expect(isMixedWorktree(process.cwd())).toBe(false);
+  });
+
+  it('records the installed TypeScript version instead of unknown or a dependency range', () => {
+    const captured = readCaptureIdentity(process.cwd());
+    expect(captured.typescriptVersion).toMatch(/^\d+\.\d+\.\d+/u);
+    expect(captured.typescriptVersion).not.toBe('unknown');
+    expect(captured.typescriptVersion.includes('^')).toBe(false);
   });
 });
