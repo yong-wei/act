@@ -10,5 +10,5 @@
 
 ## 3. 验证与交付
 
-- [ ] 3.1 运行资源、验证注册表、类型检查和覆盖审计测试（资源/验证/编排测试已通过；完整 typecheck 与 OpenSpec strict 仍受当前环境工具链限制）。
+- [x] 3.1 运行资源、验证注册表、类型检查和覆盖审计测试。当前 HEAD 证据：`vitest` 5 个相关文件 67 项通过；`npm run typecheck` 通过；`openspec validate configure-micro-tutoring-v2-resources --type change --strict` 通过。
 - [x] 3.2 提交并创建关联 Issue #1521 的 PR。
