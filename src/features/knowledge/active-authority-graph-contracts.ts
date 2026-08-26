@@ -7,6 +7,10 @@
  */
 
 import type { AuthorityNodeLearningContent } from '@/lib/authority-domain-shards/contracts';
+import type {
+  GovernedFormulaProjection,
+  GovernedRichTextProjection,
+} from '@/lib/governed-math';
 
 export interface ActiveAuthoritySource {
   authorityState: 'active';
@@ -60,6 +64,10 @@ export interface ActiveCanvasNode {
   conceptKind?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
   typeLabel?: string | null;
+  richTitle?: GovernedRichTextProjection;
+  richDescription?: GovernedRichTextProjection;
+  searchText?: string;
+  accessibleName?: string;
 }
 
 export interface ActiveCanvasRelation {
@@ -132,8 +140,37 @@ export interface ActiveNodeAdjacency {
 }
 
 export type ActiveNodeMathematics =
-  | { state: 'available'; expression: string; display: 'block' }
+  | {
+    state: 'available';
+    expression: string;
+    display: 'block' | 'inline';
+    accessibleLabel?: string;
+    copyLatex?: string;
+    renderKey?: string;
+    macroProfileId?: string;
+    macroProfileHash?: string;
+  }
+  | { state: 'unavailable'; message: string }
   | { state: 'missing' };
+
+export function projectGovernedFormulaToActiveMathematics(
+  projection: GovernedFormulaProjection | null | undefined,
+): ActiveNodeMathematics | null {
+  if (!projection || projection.state === 'missing') return null;
+  if (projection.state === 'registered-unavailable') {
+    return { state: 'unavailable', message: projection.fallbackText };
+  }
+  return {
+    state: 'available',
+    expression: projection.latex,
+    display: projection.display,
+    accessibleLabel: projection.accessibleLabel,
+    copyLatex: projection.copyLatex,
+    renderKey: projection.renderKey,
+    macroProfileId: projection.macroProfileId,
+    macroProfileHash: projection.macroProfileHash,
+  };
+}
 
 export const ACTIVE_RESOURCE_BINDING_ROLES = ['讲解', '练习', '评价', '引用'] as const;
 export type ActiveResourceBindingRole = (typeof ACTIVE_RESOURCE_BINDING_ROLES)[number];
@@ -190,6 +227,10 @@ export interface ActiveNodeDetailResponse {
     releaseTier?: string;
     aliases?: string[];
     teachingFields?: Record<string, unknown>;
+    richTitle?: GovernedRichTextProjection;
+    richDescription?: GovernedRichTextProjection;
+    searchText?: string;
+    accessibleName?: string;
     mathematics?: ActiveNodeMathematics;
     resourceBindings?: ActiveNodeResourceBindings;
     governance?: {

@@ -5,6 +5,8 @@ import type {
   ActiveNodeAdjacency,
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
+import type { GovernedRichTextProjection } from '@/lib/governed-math';
+import { governedSearchHaystack, matchesGovernedSearch, titleIsProductHidden } from '@/lib/governed-math';
 
 /**
  * The active Authority response is intentionally richer than the browser
@@ -41,6 +43,10 @@ export interface ActiveNodePresentation {
   description: string | null;
   type: ActiveNodeTypePresentation;
   sourceNode: ActiveCanvasNode;
+  richTitle?: GovernedRichTextProjection;
+  richDescription?: GovernedRichTextProjection;
+  searchText?: string;
+  accessibleName?: string;
 }
 
 export interface ActiveRelationView {
@@ -308,9 +314,11 @@ function relationQualityLabel(relation: ActiveCanvasRelation): string {
 }
 
 function isSupportedNode(node: ActiveCanvasNode): boolean {
+  if (node.richTitle && titleIsProductHidden(node.richTitle)) return false;
+  const label = safeNodeLabel(node);
+  if (!label || label === '名称暂不可用') return false;
   return Boolean(
     nonEmpty(node.id)
-      && safeNodeLabel(node)
       && node.semanticSupport?.supported === true
       && node.semanticSupport?.readOnly === true
       && presentActiveNodeType(node.canonicalType).supported,
@@ -349,6 +357,10 @@ export function createActiveAuthorityGraphModel(
       description: safeDescription(sourceNode),
       type: presentActiveNodeType(sourceNode.canonicalType, sourceNode.typeLabel),
       sourceNode,
+      richTitle: sourceNode.richTitle,
+      richDescription: sourceNode.richDescription,
+      searchText: sourceNode.searchText,
+      accessibleName: sourceNode.accessibleName,
     } satisfies ActiveNodePresentation))
     .sort(compareKey);
   const nodeByKey = new Map(candidates.map((node) => [node.key, node]));
@@ -490,7 +502,16 @@ export function activeNodeSearch(
   const needle = query.trim().toLocaleLowerCase();
   return model.nodes
     .filter((node) => !canonicalType || node.type.canonicalType === canonicalType)
-    .filter((node) => !needle || `${node.label} ${node.aliases.join(' ')} ${node.description ?? ''} ${node.type.label}`.toLocaleLowerCase().includes(needle))
+    .filter((node) => {
+      if (!needle) return true;
+      return matchesGovernedSearch(governedSearchHaystack({
+        label: node.label,
+        aliases: node.aliases,
+        description: node.description,
+        searchText: node.searchText,
+        typeLabel: node.type.label,
+      }), query);
+    })
     .sort((left, right) => left.label.localeCompare(right.label) || left.key.localeCompare(right.key));
 }
 

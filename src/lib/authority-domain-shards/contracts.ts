@@ -13,6 +13,10 @@ import type {
 } from '@/lib/authority-domain-catalog/contracts';
 import type { TeachingCoverageState } from '@/lib/teaching-projection/domain-fragments/contracts';
 import type { PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
+import type {
+  GovernedFormulaProjection,
+  GovernedRichTextProjection,
+} from '@/lib/governed-math';
 
 export const AUTHORITY_SHARD_ENVELOPE_CONTRACT =
   'act-authority-shard-envelope/v1' as const;
@@ -134,6 +138,10 @@ export interface AuthorityShardObject {
   conceptKind?: string | null;
   /** Complete-locale type term; omitted on sealed historical shards. */
   typeLabel?: string | null;
+  richTitle?: GovernedRichTextProjection;
+  richDescription?: GovernedRichTextProjection;
+  searchText?: string;
+  accessibleName?: string;
 }
 
 export interface AuthorityShardMembership {
@@ -246,6 +254,11 @@ export interface AuthorityNodeDetailShard {
     };
     /** Complete-locale type term; omitted on sealed historical shards. */
     typeLabel?: string | null;
+    richTitle?: GovernedRichTextProjection;
+    richDescription?: GovernedRichTextProjection;
+    searchText?: string;
+    accessibleName?: string;
+    mathematics?: GovernedFormulaProjection;
     sources: Array<{ sourceEditionId: string; sectionId: string; label?: string | null }>;
     media: {
       cardAvailable: false;
