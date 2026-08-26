@@ -135,8 +135,8 @@ async function main() {
     sha256: `sha256:${createHash('sha256').update(git(['show', `${sourceRevision}:${filePath}`])).digest('hex')}`,
   }));
   const extraTests = parseTestProofs(process.env.MICRO_TUTORING_QUALIFICATION_TEST_PROOFS);
-  let postgresProof = extraTests.find((test) => test.name === 'test:micro-tutoring-qualification-postgres');
-  if (options.profile === 'v2' && !postgresProof) {
+  let postgresProof: MicroTutoringQualificationTestProof | undefined;
+  if (options.profile === 'v2') {
     const postgres = spawnSync(process.execPath, [
       path.join(process.cwd(), 'node_modules/tsx/dist/cli.mjs'),
       path.join(process.cwd(), 'scripts/tests/test-micro-tutoring-qualification-postgres.ts'),
@@ -155,6 +155,8 @@ async function main() {
       scope: 'production-like-postgres-write-replay',
       sourceRevision,
     };
+  } else {
+    postgresProof = extraTests.find((test) => test.name === 'test:micro-tutoring-qualification-postgres');
   }
   const tests = [
     {

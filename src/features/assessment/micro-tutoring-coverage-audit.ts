@@ -282,6 +282,14 @@ function baselineIssues(
       });
     }
     if (profile === 'v2') {
+      if ((baseline.itemCount ?? 0) !== expectedCount) {
+        issues.push({
+          reason: 'BASELINE_ITEM_COUNT_DRIFT',
+          catalogItemId: 'declared-item-count',
+          expectedItemCount: expectedCount,
+          actualItemCount: baseline.itemCount ?? 0,
+        });
+      }
       const actualStages = countBaselineStages(baseline);
       for (const [stage, expected] of Object.entries(MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
         if ((actualStages[stage] ?? 0) !== expected) {
@@ -301,6 +309,16 @@ function baselineIssues(
             catalogItemId: `declared-stage:${stage}`,
             expectedItemCount: expected,
             actualItemCount: declaredStages[stage] ?? 0,
+          });
+        }
+      }
+      for (const [stage, count] of Object.entries(declaredStages)) {
+        if (!(stage in MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
+          issues.push({
+            reason: 'BASELINE_ITEM_COUNT_DRIFT',
+            catalogItemId: `declared-stage:${stage}`,
+            expectedItemCount: 0,
+            actualItemCount: count ?? 0,
           });
         }
       }

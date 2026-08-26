@@ -10,7 +10,7 @@ const script = path.join(repoRoot, 'scripts/data-governance/qualify-micro-tutori
 const outputDir = mkdtempSync(path.join(os.tmpdir(), 'act-micro-tutoring-qualification-'));
 const optionReferenceSecret = 'test-only-micro-tutoring-option-reference-secret';
 
-function run(args = []) {
+function run(args = [], environment = {}) {
   try {
     const output = execFileSync(process.execPath, [tsxCli, script, '--output-dir', outputDir, ...args], {
       cwd: repoRoot,
@@ -19,6 +19,7 @@ function run(args = []) {
       env: {
         ...process.env,
         MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET: optionReferenceSecret,
+        ...environment,
       },
     });
     return { status: 0, output };
@@ -49,6 +50,18 @@ try {
   assert.notEqual(v2Result.status, 0, v2Result.output);
   assert.equal(existsSync(v2ReceiptPath), false, 'v2 fail-closed qualification must not write a candidate receipt');
   assert.equal(existsSync(receiptPath), false, 'v2 qualification must not overwrite the v1 receipt path');
+  const v2Injected = run(['--profile', 'v2'], {
+    DATABASE_URL: '',
+    MICRO_TUTORING_QUALIFICATION_TEST_PROOFS: JSON.stringify([{
+      name: 'test:micro-tutoring-qualification-postgres',
+      status: 'passed',
+      scope: 'injected-env',
+      sourceRevision: 'a'.repeat(40),
+    }]),
+  });
+  assert.notEqual(v2Injected.status, 0, v2Injected.output);
+  assert.equal(existsSync(v2ReceiptPath), false, 'injected postgres proofs must not skip required v2 execution');
+  assert.match(v2Injected.output, /TESTS_FAILED/);
   console.log('micro tutoring qualification command contract passed');
 } finally {
   rmSync(outputDir, { recursive: true, force: true });

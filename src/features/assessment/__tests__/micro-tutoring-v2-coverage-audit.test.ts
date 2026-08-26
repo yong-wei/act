@@ -12,6 +12,7 @@ import v2RegistrySource from '../../../../course-content/runtime/resource-govern
 import v2PracticeBaselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import {
   MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS,
+  MICRO_TUTORING_ASSESSMENT_BASELINE_V2_VERSION,
   buildMicroTutoringCoverageAuditReport,
   microTutoringCoverageAuditIsGitContentComplete,
   microTutoringCoverageAuditIsStrictlyComplete,
@@ -81,5 +82,55 @@ describe('micro tutoring v2 coverage audit', () => {
     expect(result.rows.every((row) => row.validationItems.length >= 1)).toBe(true);
     expect(microTutoringCoverageAuditIsGitContentComplete(result)).toBe(true);
     expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(true);
+  });
+
+  it('fail-closes a contradictory declared itemCount or unknown extra stage key', () => {
+    const assessmentStages = [
+      ...Array.from({ length: 54 }, () => 'practice' as const),
+      ...Array.from({ length: 27 }, () => 'checkpoint' as const),
+      ...Array.from({ length: 27 }, () => 'remediation' as const),
+      ...Array.from({ length: 2 }, () => 'readiness' as const),
+      ...Array.from({ length: 25 }, () => 'readiness-gate' as const),
+    ];
+    const result = buildMicroTutoringCoverageAuditReport({
+      catalogItems: [],
+      reviewDecisions: [],
+      baseline: {
+        version: MICRO_TUTORING_ASSESSMENT_BASELINE_V2_VERSION,
+        itemCount: 134,
+        stageCounts: {
+          ...MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS,
+          quiz: 1,
+        },
+        entries: assessmentStages.map((assessmentStage, index) => ({
+          catalogItemId: `drift-item-${index}`,
+          contentHash: 'a'.repeat(64),
+          assessmentStage,
+        })),
+      },
+      coverageProfile: 'v2',
+      optionAttributions: [],
+      optionReferenceSecret: OPTION_REFERENCE_SECRET,
+      activeLearningGoalIds: [],
+      activeKnowledgeNodeIds: [],
+      resolveResources: () => [],
+      resolveValidationItems: () => [],
+    });
+
+    expect(result.baselineIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: 'declared-item-count',
+        expectedItemCount: 135,
+        actualItemCount: 134,
+      }),
+      expect.objectContaining({
+        reason: 'BASELINE_ITEM_COUNT_DRIFT',
+        catalogItemId: 'declared-stage:quiz',
+        expectedItemCount: 0,
+        actualItemCount: 1,
+      }),
+    ]));
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(false);
   });
 });
