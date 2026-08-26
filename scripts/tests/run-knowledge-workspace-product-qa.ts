@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
 
 import {
+  isLocalKnowledgeWorkspaceQaTarget,
   KNOWLEDGE_WORKSPACE_QA_ROLES,
+  managedKnowledgeWorkspaceQaCredentials,
   provisionLocalKnowledgeWorkspaceQaAccounts,
   type KnowledgeWorkspaceQaCredentials,
 } from './knowledge-workspace-product-qa-accounts';
@@ -68,26 +70,41 @@ async function runChild(
 
 async function main() {
   const configured = configuredRoleCredentials();
-  const managed = configured ? null : await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
-  const credentials = configured ?? managed;
+  let credentials = configured ?? (
+    isLocalKnowledgeWorkspaceQaTarget(baseUrl) ? managedKnowledgeWorkspaceQaCredentials() : null
+  );
   if (!credentials) {
     throw new Error('non-local knowledge workspace QA requires explicit credentials for student, teacher, and admin');
   }
 
-  const childEnvironment = { ...process.env, KNOWLEDGE_QA_BASE_URL: baseUrl };
-  for (const role of KNOWLEDGE_WORKSPACE_QA_ROLES) {
-    const environment = roleEnvironment[role];
-    childEnvironment[environment.email] = credentials[role].email;
-    childEnvironment[environment.password] = credentials[role].password;
-  }
-
-  await runChild(
+  const environmentFor = (selected: typeof credentials) => {
+    const childEnvironment = { ...process.env, KNOWLEDGE_QA_BASE_URL: baseUrl };
+    for (const role of KNOWLEDGE_WORKSPACE_QA_ROLES) {
+      const environment = roleEnvironment[role];
+      childEnvironment[environment.email] = selected[role].email;
+      childEnvironment[environment.password] = selected[role].password;
+    }
+    return childEnvironment;
+  };
+  let childEnvironment = environmentFor(credentials);
+  const verifyFixtures = () => runChild(
     process.execPath,
     ['scripts/db/verify-test-account-login.mjs', '--base-url', baseUrl],
     childEnvironment,
     'ignore',
     'knowledge workspace QA fixture authentication preflight',
   );
+
+  try {
+    await verifyFixtures();
+  } catch (error) {
+    if (configured) throw error;
+    const provisioned = await provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl);
+    if (!provisioned) throw error;
+    credentials = provisioned;
+    childEnvironment = environmentFor(credentials);
+    await verifyFixtures();
+  }
   await runChild(
     'npx',
     ['--yes', 'tsx', 'scripts/tests/capture-knowledge-workspace-product-qa.ts'],
