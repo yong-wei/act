@@ -91,7 +91,7 @@ export function ActiveAuthorityForceCanvas({
 
   return (
     <div
-      className="relative flex h-full min-h-[23rem] w-full flex-col overflow-hidden rounded-xl border border-platform-border bg-[#07111f]"
+      className="relative flex h-full min-h-[23rem] w-full flex-col overflow-hidden rounded-xl border border-platform-border bg-platform-canvas"
       data-active-authority-runtime="force-graph"
       data-active-authority-dimension={dimension}
       data-active-graph-stage="authority"
