@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3002';
 const generatorFile = 'tests/adaptive-path-recommendation-provenance-evidence.spec.ts';
@@ -25,12 +25,87 @@ const viewports = [
   { name: 'desktop-1440', width: 1440, height: 1100 },
   { name: 'mobile-320', width: 320, height: 1100 },
 ] as const;
-const expectedScreenshotFiles = viewports.flatMap((viewport) => fixtures.map((fixture) => (
-  path.posix.join(
+const expectedScreenshotFiles = [
+  ...viewports.flatMap((viewport) => fixtures.map((fixture) => (
+    path.posix.join(
+      'artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186',
+      `${viewport.name}-${fixture}.png`,
+    )
+  ))),
+  ...viewports.map((viewport) => path.posix.join(
     'artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186',
-    `${viewport.name}-${fixture}.png`,
-  )
-)));
+    `${viewport.name}-continue-existing-path.png`,
+  )),
+];
+const persistedPathId = 'persisted-profile-path-1532';
+const persistedNodeId = 'persisted-phase-margin-node';
+const persistedPathTitle = '已保存的画像规划路径';
+const persistedNodeTitle = '相位裕度校正节点-已保存';
+const persistedPath = {
+  path: {
+    id: persistedPathId,
+    userId: 'demo-student',
+    title: persistedPathTitle,
+    goalId: 'control-correction',
+    plannerVersion: 'profile-consumption-persisted-v1',
+    pathStatus: 'active',
+    currentNodeId: persistedNodeId,
+    pathPayload: {
+      status: 'ready',
+      planNodes: [{
+        nodeId: persistedNodeId,
+        title: persistedNodeTitle,
+        type: 'checkpoint',
+        status: 'current',
+        target: '/assessment/adaptive-practice',
+        estimatedTimeMinutes: 30,
+        terminalConstraints: [],
+      }],
+      mainPathNodeIds: [persistedNodeId],
+      pathOptions: [{
+        optionId: 'persisted-option',
+        styleId: 'persisted',
+        label: persistedPathTitle,
+        nodeIds: [persistedNodeId],
+        recommendationProvenance: {
+          summary: '依据已保存规划快照恢复本路径。',
+          personalizationNotes: ['根据你的学习方式偏好，优先安排视频、讲义和仿真类学习资源。'],
+          confidence: 'medium',
+          evidenceReviewHref: '/profile/evidence',
+          limitations: [],
+        },
+      }],
+      visualization: {
+        evidence: {
+          learnerStateSnapshot: {
+            payloadVersion: 'adaptive-learner-state.v1',
+            generatedAt: '2026-08-20T00:00:00.000Z',
+            authority: 'server-owned',
+            evidenceWindow: {
+              firstStartedAt: '2026-08-01T00:00:00.000Z',
+              lastStartedAt: '2026-08-19T00:00:00.000Z',
+              daysCovered: 18,
+            },
+            preferredModalities: ['video', 'handout', 'simulation'],
+          },
+        },
+      },
+      feedbackEvents: [],
+      selectionHistory: [],
+      activity: [],
+      score: { total: 0.8, objectives: {} },
+      confidence: { level: 'medium', score: 0.8, sourceCoverage: 0.8 },
+    },
+    explanationPayload: { explanations: { selectedReasons: [], fallbackReasons: [] }, selectedReasons: [], fallbackReasons: [] },
+    alternativePayload: [],
+    terminalValidation: {},
+    lastExecutionMetadata: { adopted: true, completedNodeIds: [], activeNodeId: persistedNodeId },
+    executions: [],
+    deviations: [],
+    interventions: [],
+    updatedAt: '2026-08-20T00:00:00.000Z',
+  },
+};
 const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const screenshots: Array<Record<string, unknown>> = [];
 const assertions: Array<Record<string, unknown>> = [];
@@ -67,7 +142,7 @@ async function verifyNoHorizontalOverflow(page: Page, viewportName: string) {
 async function capture(
   page: Page,
   viewport: typeof viewports[number],
-  fixture: typeof fixtures[number],
+  fixture: typeof fixtures[number] | 'continue-existing-path',
 ) {
   await verifyNoHorizontalOverflow(page, viewport.name);
   if (!updateEvidence) return;
@@ -84,6 +159,92 @@ async function capture(
     sha256: sha256(image),
     noHorizontalOverflow: true,
   });
+}
+
+async function login(context: BrowserContext) {
+  const csrfResponse = await context.request.get('/api/auth/csrf');
+  const csrf = await csrfResponse.json() as { csrfToken?: string };
+  expect(csrfResponse.ok()).toBe(true);
+  expect(csrf.csrfToken).toBeTruthy();
+  const response = await context.request.post('/api/auth/callback/credentials?json=true', {
+    form: {
+      csrfToken: csrf.csrfToken!,
+      email: 'demo',
+      password: 'DemoStudent@Just2026!',
+      callbackUrl: '/',
+      json: 'true',
+    },
+  });
+  expect(response.ok() || (response.status() >= 300 && response.status() < 400), await response.text()).toBe(true);
+}
+
+async function installPersistedPathRoutes(page: Page, generationRequests: { count: number }) {
+  await page.route('**/api/adaptive/path-advisor-context**', (route) => route.fulfill({
+    json: {
+      goalId: 'control-correction',
+      classId: 'class-profile-consumption',
+      courseTitle: 'Control correction',
+      topic: 'Continue persisted path',
+      learningObjectives: ['Resume the saved planning snapshot'],
+      modeContextToken: 'profile-consumption-mode-context',
+      readiness: {
+        status: 'ready',
+        reason: 'ready',
+        source: 'path-advisor',
+        studentAction: 'generate',
+        studentMessage: 'Ready',
+      },
+    },
+  }));
+  await page.route('**/api/adaptive/path-advisor-tool', async (route) => {
+    if (route.request().method() === 'POST') generationRequests.count += 1;
+    await route.fulfill({
+      status: 500,
+      json: { error: 'path generation must not run when continuing a persisted path' },
+    });
+  });
+  await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({
+    json: {
+      userId: 'demo-student',
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-08-26T00:00:00.000Z',
+      authority: 'server-owned',
+      roleScope: { role: 'student', classId: 'class-profile-consumption', privacyScopes: ['student-visible'] },
+      clientHints: { received: false, authoritative: false, reason: 'client-hints-non-authoritative' },
+      primaryCompetencies: { authority: 'legacy-compatibility-only', source: 'fallback-empty', vector: {} },
+      secondaryDimensions: {},
+      knowledgeMastery: { coverage: 'missing', tags: {} },
+      pathContext: {
+        activePathCount: 1,
+        bookmarkedPathCount: 0,
+        recentPathIds: [persistedPathId],
+        activeControlCorrectionPath: {
+          state: 'active',
+          pathId: persistedPathId,
+          status: 'active',
+          currentNodeId: persistedNodeId,
+          terminalValidationState: null,
+          lowConfidenceMarkers: [],
+        },
+        statusMarkers: ['available'],
+      },
+      assessmentState: { latestAbilityEstimate: null },
+      evidence: {
+        readState: 'ready',
+        evidenceWindow: { firstStartedAt: null, lastStartedAt: null, daysCovered: 0 },
+        sourceCounts: {},
+        sourceCoverage: {},
+        confidence: { level: 'none', score: 0, evidenceCount: 0, sourceCompleteness: 0 },
+        statusMarkers: [],
+      },
+      missingEvidence: [],
+    },
+  }));
+  await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: persistedPath }));
+  await page.route(`**/api/learning-paths/${persistedPathId}`, (route) => route.fulfill({ json: persistedPath }));
+  await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => (
+    route.fulfill({ json: { batch: null } })
+  ));
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -191,26 +352,38 @@ for (const viewport of viewports) {
 }
 
 for (const viewport of viewports) {
-  test(`${viewport.name} keeps the active path without invoking generation`, async ({ page }) => {
+  test(`${viewport.name} continues the persisted path without invoking generation`, async ({ context, page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    let generationRequests = 0;
-    await page.route('**/api/adaptive/path-advisor-tool', async (route) => {
-      if (route.request().method() === 'POST') generationRequests += 1;
-      await route.continue();
-    });
+    const generationRequests = { count: 0 };
+    await login(context);
+    await installPersistedPathRoutes(page, generationRequests);
     await page.goto(
-      '/assessment/adaptive-practice?demo=1&goal=control-correction&intent=contextual-recommendation',
+      '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation',
       { waitUntil: 'domcontentloaded' },
     );
-    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+
+    const continueAction = page.locator('[data-adaptive-path-continue-action="current-path"]');
+    await expect(continueAction).toBeVisible();
+    await expect(continueAction).toHaveAttribute('href', new RegExp(`intent=path-execution`));
+    await expect(continueAction).toHaveAttribute('href', new RegExp(`pathId=${persistedPathId}`));
+    await continueAction.click();
+
+    await expect(page).toHaveURL(new RegExp(`intent=path-execution`));
+    await expect(page).toHaveURL(new RegExp(`pathId=${persistedPathId}`));
+    const activeRoute = page.locator('[data-adaptive-path-execution-surface="active-route"]');
+    await expect(activeRoute).toBeVisible();
+    await expect(activeRoute).toContainText(persistedPathTitle);
+    await expect(activeRoute).toContainText(persistedNodeTitle);
     await expect(page.locator('[data-learning-path-options-layout="route-modules"]')).toHaveCount(0);
-    expect(generationRequests).toBe(0);
+    expect(generationRequests.count).toBe(0);
+    await capture(page, viewport, 'continue-existing-path');
     assertions.push({
       viewport: viewport.name,
       fixture: 'continue-existing-path',
       passed: true,
       checks: [
-        'active path remains visible',
+        'continue action is clicked from the loaded persisted path',
+        'path-execution restore uses the original planning snapshot',
         'candidate comparison stays hidden',
         'path generation endpoint is not invoked',
       ],
@@ -221,7 +394,7 @@ for (const viewport of viewports) {
 test.afterAll(() => {
   if (!updateEvidence) return;
   expect(assertions).toHaveLength(8);
-  expect(screenshots).toHaveLength(6);
+  expect(screenshots).toHaveLength(8);
   mkdirSync(evidenceDir, { recursive: true });
   const commitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   writeFileSync(manifestPath, `${JSON.stringify({
@@ -234,7 +407,10 @@ test.afterAll(() => {
     productionSourceSha256: Object.fromEntries(
       productionSourceFiles.map((file) => [file, sourceHashAtCommit(commitSha, file)]),
     ),
-    routes: fixtures.map(routeFor),
+    routes: [
+      ...fixtures.map(routeFor),
+      '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation',
+    ],
     assertions,
     screenshots,
   }, null, 2)}\n`, 'utf8');
