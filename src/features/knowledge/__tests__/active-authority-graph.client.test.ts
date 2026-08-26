@@ -1812,6 +1812,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('if (!pathName.startsWith(prefix)) return null;');
     expect(captureSource).toContain('detailPanelFocusedAfterOpen');
     expect(captureSource).toContain('nodeLabelReadability');
+    expect(captureSource).toContain('data-knowledge-2d-dom-label-layer');
     expect(captureSource).toContain('minPixelSize');
     expect(captureSource).toContain('activeNodeLabelGeometryValid');
     expect(captureSource).toContain('nodeGeometryWithinSvgCount');

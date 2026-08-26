@@ -2184,17 +2184,24 @@ async function captureMarkers(page: Page, stateName: string) {
        && rect.right <= activeSvgRect.right + 0.5
        && rect.top >= activeSvgRect.top - 0.5
        && rect.bottom <= activeSvgRect.bottom + 0.5;
-     const activeNodeLabelElements = Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
+     const activeForceLabelElements = Array.from(activeForceRuntime?.querySelectorAll(
+       '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+     ) ?? []);
+     const activeNodeLabelElements = activeForceLabelElements.length > 0
+       ? activeForceLabelElements
+       : Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
      const activeNodeLabelFontSizes = activeNodeLabelElements
        .map((element) => Number.parseFloat(element.getAttribute('font-size') ?? window.getComputedStyle(element).fontSize))
        .filter((value) => Number.isFinite(value) && value > 0);
      const activeNodeLabelGeometryValid = activeNodeLabelElements.every((element) => {
        const rect = element.getBoundingClientRect();
        const style = window.getComputedStyle(element);
-       return style.display !== 'none'
+       return !element.hidden
+         && style.display !== 'none'
          && style.visibility !== 'hidden'
          && rect.width > 0
-         && rect.height > 0;
+         && rect.height > 0
+         && intersectsViewport(rect);
      });
      const activeSvgScale = activeSvgRect
        && activeSvgViewBox.length === 4
@@ -2205,7 +2212,7 @@ async function captureMarkers(page: Page, stateName: string) {
      const minNodeLabelFontSize = activeNodeLabelFontSizes.length > 0
        ? Math.min(...activeNodeLabelFontSizes)
        : 0;
-     const minNodeLabelPixelSize = minNodeLabelFontSize * activeSvgScale;
+     const minNodeLabelPixelSize = minNodeLabelFontSize * (activeForceRuntime ? 1 : activeSvgScale);
      const nodeLabelReadability = {
        nodeLabelCount: activeNodeLabelElements.length,
        minFontSize: Number(minNodeLabelFontSize.toFixed(2)),
