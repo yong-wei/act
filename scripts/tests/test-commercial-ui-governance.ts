@@ -2432,6 +2432,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
   const activeAuthorityForceCanvasSourcePath = 'src/features/knowledge/active-authority-force-canvas.tsx';
+  const activeAuthorityRootCanvasSourcePath = 'src/features/knowledge/active-authority-root-canvas.tsx';
   const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
@@ -2466,6 +2467,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
     activeAuthorityForceCanvasSourcePath,
+    activeAuthorityRootCanvasSourcePath,
     activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,

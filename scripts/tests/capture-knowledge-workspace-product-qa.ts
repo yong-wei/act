@@ -44,6 +44,7 @@ const sourceFiles = [
   'src/features/knowledge/knowledge-graph-workspace.tsx',
   'src/features/knowledge/active-authority-graph.tsx',
   'src/features/knowledge/active-authority-force-canvas.tsx',
+  'src/features/knowledge/active-authority-root-canvas.tsx',
   'src/features/knowledge/active-authority-shard-store.ts',
   'src/features/knowledge/active-authority-presentation.ts',
   'src/features/knowledge/active-authority-graph-contracts.ts',
@@ -1086,11 +1087,15 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
 
 async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
-  await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  const root = page.locator('[data-authority-shard-root="true"]');
+  await root.waitFor({ state: 'visible', timeout: 30000 });
   const rootDomainCount = await page.locator('[data-authority-domain-entry]').count();
+  const declaredRootDomainCount = Number(await root.getAttribute('data-authority-root-domain-count'));
   const aggregateEntry = page.locator('[data-authority-aggregate-entry="true"]');
   if (
-    rootDomainCount !== 8
+    !Number.isInteger(declaredRootDomainCount)
+    || declaredRootDomainCount < 1
+    || rootDomainCount !== declaredRootDomainCount
     || await aggregateEntry.count() !== 1
     || await page.locator('[data-active-graph-stage="authority"]').count() !== 0
   ) {
