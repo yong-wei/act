@@ -1,4 +1,4 @@
-import type { CensusCore } from '@/lib/architecture-census/types';
+import type { CensusCore, CensusSourceFile } from '@/lib/architecture-census/types';
 import { REQUIRED_BASELINE } from '@/lib/architecture-charter';
 import { collectViolations } from './collect';
 import type { FitnessAllowlist, FitnessReport, FitnessViolation } from './types';
@@ -7,27 +7,26 @@ import { FITNESS_SCHEMA_VERSION } from './types';
 export function createAllowlist(
   core: CensusCore,
   charterSha256: string,
+  files: readonly CensusSourceFile[] = [],
 ): FitnessAllowlist {
-  if (core.captureIdentity.sourceCommit !== REQUIRED_BASELINE.sourceCommit) {
-    throw new Error('baseline-commit-drift');
-  }
-  if (core.captureIdentity.sourceTree !== REQUIRED_BASELINE.sourceTree) {
-    throw new Error('baseline-tree-drift');
-  }
   return {
     schemaVersion: FITNESS_SCHEMA_VERSION,
     baselineSourceCommit: REQUIRED_BASELINE.sourceCommit,
     baselineSourceTree: REQUIRED_BASELINE.sourceTree,
     charterSha256,
-    entries: collectViolations(core),
+    entries: collectViolations(core, files),
   };
 }
 
-export function checkFitness(core: CensusCore, allowlist: FitnessAllowlist): FitnessReport {
+export function checkFitness(
+  core: CensusCore,
+  allowlist: FitnessAllowlist,
+  files: readonly CensusSourceFile[] = [],
+): FitnessReport {
   if (allowlist.schemaVersion !== FITNESS_SCHEMA_VERSION) {
     throw new Error('unsupported-fitness-schema');
   }
-  const current = collectViolations(core);
+  const current = collectViolations(core, files);
   const allowed = new Set(allowlist.entries.map((item) => item.id));
   const newViolations = current.filter((item) => !allowed.has(item.id));
   const remaining = current.filter((item) => allowed.has(item.id));

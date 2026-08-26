@@ -99,6 +99,32 @@ describe('architecture fitness', () => {
     expect(() => assertFitness(failed)).toThrow(/new-architecture-violation/);
   });
 
+  it('does not treat public-api imports as deep-import violations', () => {
+    const snapshot = core([
+      observation({
+        id: 'deep-import:src/features/teacher/view.ts->src/features/knowledge/public-api.ts',
+        kind: 'deep-import',
+        identity: 'src/features/teacher/view.ts->src/features/knowledge/public-api.ts',
+        attributes: {
+          from: 'src/features/teacher/view.ts',
+          to: 'src/features/knowledge/public-api.ts',
+        },
+      }),
+    ]);
+    expect(createAllowlist(snapshot, 'charterhash').entries.some((item) => item.kind === 'deep-import')).toBe(false);
+  });
+
+  it('records domain-core Next imports and ignores React UI files', () => {
+    const snapshot = core([]);
+    const files = [
+      { path: 'src/features/teacher/application/read.ts', content: 'import { headers } from "next/headers";\n', byteLength: 10 },
+      { path: 'src/features/teacher/panel.tsx', content: 'import { useState } from "react";\n', byteLength: 10 },
+    ];
+    const entries = createAllowlist(snapshot, 'charterhash', files).entries;
+    expect(entries.some((item) => item.identity.endsWith('application/read.ts'))).toBe(true);
+    expect(entries.some((item) => item.identity.endsWith('panel.tsx'))).toBe(false);
+  });
+
   it('treats a new src/lib business file as a freeze violation', () => {
     const baseline = core([
       observation({ id: 'script:src/lib/existing.ts', kind: 'script', identity: 'src/lib/existing.ts' }),
