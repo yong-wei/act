@@ -18,6 +18,7 @@ import {
 } from '@/lib/authoritative-knowledge/authority-store';
 import {
   projectActiveNodeMathematics,
+  projectGovernedFormulaToActiveMathematics,
   type ActiveAuthorityProvenance,
   type ActiveAuthoritySource,
   type ActiveCanvasResponse,
@@ -62,6 +63,7 @@ import {
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -531,7 +533,8 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
       receipt,
     );
-    const shard = projectAuthorityLearnerShard(localized, {
+    const withMath = attachGovernedMathToLearnerShard(localized, resolved.locale);
+    const shard = projectAuthorityLearnerShard(withMath, {
       localeBinding: localeBindingForCapability(
         resolved.locale,
         capability,
@@ -541,7 +544,8 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
     });
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
-      const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);
+      const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
+        ?? projectActiveNodeMathematics(detail.node.teachingFields);
       const resourceBindings = attachActiveAuthorityResourceBindings(
         raw as AuthorityNodeDetailShard,
         role,

@@ -9,7 +9,12 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { BlockMath } from 'react-katex';
+import { GovernedBlockMath } from '@/components/shared/governed-rich-text';
+import {
+  createGovernedRehypeKatexOptions,
+  GOVERNED_KATEX_MACRO_PROFILE_HASH,
+  GOVERNED_KATEX_MACRO_PROFILE_ID,
+} from '@/lib/governed-math';
 import { ArrowLeftRight, Image as ImageIcon, Maximize2, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
@@ -276,7 +281,7 @@ function RuntimeNodeCardSectionsContent({
       <div className="max-h-[52vh] overflow-y-auto rounded-2xl border border-border/70 bg-muted/25 p-4">
         {sections.active ? (
           <div className={`max-w-none ${isLightTheme ? 'prose prose-slate' : 'prose prose-invert'} prose-p:leading-7 prose-li:leading-7`}>
-            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}>
               {sections.active}
             </ReactMarkdown>
           </div>
@@ -433,13 +438,25 @@ export function KnowledgeCard({
             {metadata.formulas.continuous && (
               <div>
                 <div className={`mb-1 text-xs ${descriptionClassName}`}>连续时间</div>
-                <BlockMath math={metadata.formulas.continuous} />
+                <GovernedBlockMath
+                  latex={metadata.formulas.continuous}
+                  macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                  macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                  accessibleLabel={metadata.formulas.continuous}
+                  copyLatex={metadata.formulas.continuous}
+                />
               </div>
             )}
             {metadata.formulas.discrete && (
               <div>
                 <div className={`mb-1 text-xs ${descriptionClassName}`}>离散时间</div>
-                <BlockMath math={metadata.formulas.discrete} />
+                <GovernedBlockMath
+                  latex={metadata.formulas.discrete}
+                  macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                  macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                  accessibleLabel={metadata.formulas.discrete}
+                  copyLatex={metadata.formulas.discrete}
+                />
               </div>
             )}
           </div>

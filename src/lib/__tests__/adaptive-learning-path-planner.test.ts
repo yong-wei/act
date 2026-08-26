@@ -4944,6 +4944,191 @@ describe('adaptive learning path planner', () => {
     }
   });
 
+  it('reports included locked Arena terminals as currently unverifiable', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    });
+    const input = plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    });
+    const plan = buildAdaptiveLearningPathPlan(input);
+    const bundle = buildControlCorrectionThreeStylePathBundle(input);
+    const terminalId = 'arena-task:task-second-order-lead-pid';
+    const terminal = plan.mainPath.find((node) => node.nodeId === terminalId);
+    expect(terminal).toMatchObject({
+      status: 'locked',
+      readiness: { state: 'locked' },
+    });
+    const reportedPaths = (bundle?.paths ?? []).filter((path) => path.terminalValidationNodeIds.includes(terminalId));
+    expect(reportedPaths.length).toBeGreaterThan(0);
+    for (const path of reportedPaths) {
+      expect(path.activeNodeIds).not.toContain(terminalId);
+      expect(path.terminalValidationStrategy).toEqual({
+        nodeIds: expect.arrayContaining([terminalId]),
+        summary: '终点已纳入但当前不可验证',
+      });
+      expect(path.limitations).toContain('终点已纳入但当前不可验证');
+    }
+    const serialized = serializeLearningPathPlan(plan);
+    const serializedOptions = (serialized.payload.pathOptions ?? []) as Array<{
+      terminalValidationNodeIds: string[];
+      limitations: string[];
+    }>;
+    expect(serializedOptions.some((path) =>
+      path.terminalValidationNodeIds.includes(terminalId)
+      && path.limitations.includes('终点已纳入但当前不可验证')
+    )).toBe(true);
+  });
+
+  it('keeps ready Arena terminal validation reporting unchanged', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    });
+    const input = plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+        completedNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'registry:lesson09-time-domain-synthesis',
+          'registry:lesson09-summary-card',
+        ],
+        availableOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryPortrait: createPlannerPortrait(new Date('2026-05-27T08:00:00.000Z'), {
+          controlModelingRepresentation: { score: 60, totalCount: 3 },
+          systemAnalysisInterpretation: { score: 60, totalCount: 3 },
+          controllerDesignSynthesis: { score: 60, totalCount: 3 },
+          engineeringConstraintSafety: { score: 60, totalCount: 3 },
+        }),
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.6, confidence: 0.7, evidenceCount: 4 },
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    });
+    const plan = buildAdaptiveLearningPathPlan(input);
+    const bundle = buildControlCorrectionThreeStylePathBundle(input);
+    const terminalId = 'arena-task:task-second-order-lead-pid';
+    expect(plan.mainPath.find((node) => node.nodeId === terminalId)).toMatchObject({
+      readiness: { state: 'ready' },
+    });
+    const reportedPaths = (bundle?.paths ?? []).filter((path) => path.terminalValidationNodeIds.includes(terminalId));
+    expect(reportedPaths.length).toBeGreaterThan(0);
+    for (const path of reportedPaths) {
+      expect(path.terminalValidationStrategy.summary).toBe(`terminal validation through ${path.terminalValidationNodeIds.join(', ')}`);
+      expect(path.limitations).not.toContain('终点已纳入但当前不可验证');
+    }
+  });
+
+  it('reports remaining NO_EVIDENCE locked terminals without making them current', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    });
+    const input = plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        primaryPortraitState: 'NO_EVIDENCE',
+        primaryPortraitAvailability: 'missing',
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0,
+            evidenceCount: 0,
+            sourceCompleteness: 0,
+          },
+        },
+      },
+    });
+    const plan = buildAdaptiveLearningPathPlan(input);
+    const bundle = buildControlCorrectionThreeStylePathBundle(input);
+    const lockedTerminals = plan.mainPath.filter((node) =>
+      node.terminalConstraints.includes('terminal-validation') && node.status === 'locked');
+    for (const terminal of lockedTerminals) {
+      expect(terminal.readiness?.state).not.toBe('ready');
+    }
+    for (const path of bundle?.paths ?? []) {
+      if (path.terminalValidationNodeIds.length === 0) continue;
+      const included = plan.mainPath.filter((node) => path.terminalValidationNodeIds.includes(node.nodeId));
+      if (included.some((node) => node.readiness?.state === 'ready')) continue;
+      expect(path.activeNodeIds).not.toEqual(expect.arrayContaining(path.terminalValidationNodeIds));
+      expect(path.terminalValidationStrategy.summary).toBe('终点已纳入但当前不可验证');
+      expect(path.limitations).toContain('终点已纳入但当前不可验证');
+    }
+  });
+
   it('keeps central control-correction policy options scoped to control-correction resources', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: getAllRegisteredResourceMetadata(),

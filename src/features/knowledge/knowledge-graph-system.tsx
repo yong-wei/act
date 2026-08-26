@@ -159,6 +159,7 @@ export interface KnowledgeNodeData {
     state: 'expandable' | 'leaf' | 'unknown';
     revealableNeighborCount?: number;
   };
+  richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
 }
 
 // 知识连接接口

@@ -117,6 +117,7 @@ import {
   installKnowledgeGraphTask74Snapshot,
   isKnowledgeGraphTask74PerformanceQa,
 } from './performance-snapshot';
+import { SemanticLabelLayer } from './semantic-label-layer';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
@@ -1157,7 +1158,7 @@ export function KnowledgeGraph2D({
     }
 
     const labelPresentation = getFrameLabelPlacements(globalScale).get(node.id)!;
-    if (!labelPresentation.visible) {
+    if (!labelPresentation.visible || node.richTitle) {
       ctx.restore();
       return;
     }
@@ -1382,7 +1383,30 @@ export function KnowledgeGraph2D({
 
   const handleEngineTick = useCallback(() => {
     labelProjectionRevisionRef.current += 1;
-  }, []);
+    const layer = rootRef.current?.querySelector('[data-knowledge-2d-dom-label-layer="true"]');
+    const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
+    if (!layer || !projector) return;
+    const scale = Number(fgRef.current?.zoom?.() ?? 1);
+    const placements = getFrameLabelPlacements(scale);
+    for (const node of graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>) {
+      if (!node.richTitle) continue;
+      const element = layer.querySelector<HTMLElement>(`[data-semantic-label-id="${CSS.escape(node.id)}"]`);
+      if (!element) continue;
+      const placement = placements.get(node.id);
+      const point = Number.isFinite(node.x) && Number.isFinite(node.y)
+        ? projector(node.x!, node.y!)
+        : null;
+      const visible = Boolean(placement?.visible && point && Number.isFinite(point.x) && Number.isFinite(point.y));
+      element.hidden = !visible;
+      if (!visible || !placement || !point) continue;
+      const layout = layoutKnowledgeNodeLabel(node.name);
+      element.style.left = `${point.x + placement.offsetX}px`;
+      element.style.top = `${point.y + placement.offsetY}px`;
+      element.style.width = `${layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize}px`;
+      element.style.minHeight = `${layout.height * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize}px`;
+      element.style.fontSize = `${placement.fontSize}px`;
+    }
+  }, [getFrameLabelPlacements, graphData.nodes]);
 
   const handleCanvasPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
@@ -1810,7 +1834,11 @@ export function KnowledgeGraph2D({
         // 节点渲染
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintNodePointerArea}
-        nodeLabel={(node: any) => layoutKnowledgeNodeLabel(node.name).accessibleName}
+        nodeLabel={(node: any) => (
+          node.richTitle?.state === 'available'
+            ? node.richTitle.accessibleName
+            : layoutKnowledgeNodeLabel(node.name).accessibleName
+        )}
 
         // 连线渲染
         linkCanvasObject={paintLink}
@@ -1833,6 +1861,28 @@ export function KnowledgeGraph2D({
         d3VelocityDecay={0.3}
         warmupTicks={20}
         cooldownTicks={0}
+      />
+      <SemanticLabelLayer
+        labels={(graphData.nodes as KnowledgeNodeData[])
+          .filter((node) => node.richTitle)
+          .map((node) => ({
+            id: node.id,
+            richTitle: node.richTitle,
+            fallbackLines: layoutKnowledgeNodeLabel(node.name).lines.map((line) => line.text),
+            accessibleName: node.richTitle?.state === 'available'
+              ? node.richTitle.accessibleName
+              : layoutKnowledgeNodeLabel(node.name).accessibleName,
+            visible: false,
+            x: 0,
+            y: 0,
+            width: 160,
+            height: 32,
+            fontSize: KNOWLEDGE_NODE_LABEL_POLICY.fontSize,
+            isRootBubble: false,
+            opacity: 1,
+          }))}
+        theme={isLightTheme ? 'light' : 'dark'}
+        layerAttr="data-knowledge-2d-dom-label-layer"
       />
     </div>
   );

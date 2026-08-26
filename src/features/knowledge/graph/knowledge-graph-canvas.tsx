@@ -10,6 +10,7 @@
 import { useRef, useCallback, useMemo, useEffect, useLayoutEffect, useState, type PointerEvent } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
+import { GovernedRichText } from '@/components/shared/governed-rich-text';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   getNodeColor,
@@ -2102,7 +2103,11 @@ export function KnowledgeGraphCanvas({
     link: any,
   ) => updatePresentationLinkObjectRef.current(object, positions, link), []);
   const getAccessibleNodeLabel = useCallback(
-    (node: any) => layoutKnowledgeNodeLabel(node.name).accessibleName,
+    (node: any) => (
+      node.richTitle?.state === 'available'
+        ? node.richTitle.accessibleName
+        : layoutKnowledgeNodeLabel(node.name).accessibleName
+    ),
     [],
   );
 
@@ -2708,6 +2713,7 @@ export function KnowledgeGraphCanvas({
     return [{
       id: node.id,
       lines: layout.lines.map((line) => line.text),
+      richTitle: node.richTitle,
       x: Number(point.x) + (isRootBubble ? 0 : placement.offsetX),
       y: Number(point.y) + (isRootBubble ? 0 : placement.offsetY),
       width: layout.width * placement.fontSize / policyFontSize,
@@ -2890,7 +2896,9 @@ export function KnowledgeGraphCanvas({
               transform: 'translate(-50%, -50%)',
             }}
           >
-            {label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
+            {label.richTitle ? (
+              <GovernedRichText projection={label.richTitle} density="canvas" theme={isLightTheme ? 'light' : 'dark'} />
+            ) : label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
           </div>
         ))}
       </div>

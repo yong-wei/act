@@ -18,8 +18,12 @@ import {
   ACTIVE_RESOURCE_BINDING_ROLES,
   type ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
-import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
+import {
+  GOVERNED_KATEX_MACRO_PROFILE_HASH,
+  GOVERNED_KATEX_MACRO_PROFILE_ID,
+} from '@/lib/governed-math';
 import {
   activeModelRelationSummaries,
   activeNodeRelationSummaries,
@@ -1132,23 +1136,44 @@ function ActiveNodeDetail({
       ) : detail ? (
         <div className="mt-5 space-y-5">
           <div>
-            <div className="text-lg font-semibold text-platform-fg-primary">{detailLabel}</div>
+            <div className="text-lg font-semibold text-platform-fg-primary">
+              {node?.richTitle
+                ? <GovernedRichText projection={node.richTitle} density="detail" />
+                : detailLabel}
+            </div>
             <div className="mt-1 text-xs text-platform-fg-muted">{type.label}</div>
-            <p className="mt-3 text-sm leading-6 text-platform-fg-secondary">
-              {presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
-            </p>
+            <div className="mt-3 text-sm leading-6 text-platform-fg-secondary">
+              {node?.richDescription
+                ? <GovernedRichText projection={node.richDescription} density="detail" />
+                : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
+            </div>
             {node?.aliases && node.aliases.length > 0 ? (
               <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
             ) : null}
             {node?.mathematics?.state === 'available' ? (
               <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
-                <BlockMath
-                  math={node.mathematics.expression}
-                  renderError={() => (
-                    <p className="text-sm text-platform-fg-muted">{graphCopy(locale, 'inspector.mathUnavailable')}</p>
-                  )}
-                />
+                {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
+                  <GovernedBlockMath
+                    latex={node.mathematics.expression}
+                    macroProfileId={node.mathematics.macroProfileId}
+                    macroProfileHash={node.mathematics.macroProfileHash}
+                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                    display={node.mathematics.display}
+                  />
+                ) : (
+                  <GovernedBlockMath
+                    latex={node.mathematics.expression}
+                    macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                    macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                    display={node.mathematics.display}
+                  />
+                )}
               </div>
+            ) : node?.mathematics?.state === 'unavailable' ? (
+              <GovernedUnavailableMath message={node.mathematics.message} />
             ) : null}
           </div>
           {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
@@ -1294,7 +1319,11 @@ function SearchResults({
           data-active-authority-search-result={node.key}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
-          <span className="truncate text-platform-fg-primary">{node.label}</span>
+          <span className="truncate text-platform-fg-primary">
+            {node.richTitle
+              ? <GovernedRichText projection={node.richTitle} density="preview" />
+              : node.label}
+          </span>
           <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
         </button>
       ))}
@@ -1537,6 +1566,8 @@ export function ActiveAuthorityGraph({
       name: model.nodeByKey.get(hoveredNodeId)!.label,
       typeLabel: model.nodeByKey.get(hoveredNodeId)!.type.label,
       summary: model.nodeByKey.get(hoveredNodeId)!.description ?? graphCopy(locale, 'empty.domain'),
+      richTitle: model.nodeByKey.get(hoveredNodeId)!.richTitle,
+      richDescription: model.nodeByKey.get(hoveredNodeId)!.richDescription,
     }
     : null;
 

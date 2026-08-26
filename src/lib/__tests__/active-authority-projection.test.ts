@@ -14,6 +14,20 @@ vi.mock('@/lib/authoritative-knowledge/projections', () => ({
   buildActiveAuthorityCanvasProjection: mocks.canvas,
   buildActiveAuthorityNodeDetailProjection: mocks.nodeDetail,
 }));
+vi.mock('@/lib/authority-domain-shards/identity', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/authority-domain-shards/identity')>();
+  return {
+    ...original,
+    resolveActiveShardIdentity: () => ({
+      envelope: {
+        authority: {
+          releaseId: 'release-1',
+          snapshotHash: 'a'.repeat(64),
+        },
+      },
+    }),
+  };
+});
 
 import {
   activeShardResponse,

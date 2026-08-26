@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 
+import { GovernedRichText } from '@/components/shared/governed-rich-text';
 import type { KnowledgeLinkData, KnowledgeNodeData } from './knowledge-graph-system';
 import { getEmptyKnowledgeGraphLayoutState } from './graph/layout-state';
 import { toSharedRuntimeRelationType, type AuthorityGraphViewModel } from './authority-graph-view-model';
@@ -24,7 +25,13 @@ interface ActiveAuthorityForceCanvasProps {
   selectedNodeId: string | null;
   onSelect: (canonicalId: string) => void;
   onHover: (canonicalId: string | null) => void;
-  hoverPreview: { name: string; typeLabel: string; summary: string } | null;
+  hoverPreview: {
+    name: string;
+    typeLabel: string;
+    summary: string;
+    richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
+    richDescription?: import('@/lib/governed-math').GovernedRichTextProjection;
+  } | null;
   canvasAriaLabel: string;
   showUnavailableTeachingDirectory?: boolean;
 }
@@ -43,6 +50,7 @@ function toRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNodeData[] {
       sourceMode: 'active',
       decoration: node.decoration,
     },
+    richTitle: node.presentation.richTitle,
   }));
 }
 
@@ -219,9 +227,17 @@ export function ActiveAuthorityForceCanvas({
           data-active-authority-hover-preview="true"
           className="pointer-events-none absolute left-3 top-3 max-w-xs rounded-md border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg"
         >
-          <p className="font-medium">{hoverPreview.name}</p>
+          <p className="font-medium">
+            {hoverPreview.richTitle
+              ? <GovernedRichText projection={hoverPreview.richTitle} density="preview" />
+              : hoverPreview.name}
+          </p>
           <p className="text-platform-fg-secondary">{hoverPreview.typeLabel}</p>
-          <p className="mt-1 text-platform-fg-muted">{hoverPreview.summary}</p>
+          <p className="mt-1 text-platform-fg-muted">
+            {hoverPreview.richDescription
+              ? <GovernedRichText projection={hoverPreview.richDescription} density="preview" />
+              : hoverPreview.summary}
+          </p>
         </div>
       ) : null}
     </div>
