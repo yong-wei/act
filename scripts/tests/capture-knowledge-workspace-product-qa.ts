@@ -2838,6 +2838,8 @@ async function captureActiveAuthorityVisualMatrix(
         ? activeFirstViewport.rendererVisiblePaintPixelCount
         : 0;
       const mobileToolsExpanded = activeFirstViewport.mobileToolsExpanded === 'true';
+      const nodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
+      const nodeLabelsReadable = nodeLabelReadability.readable === true;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
       const forceGraphReady = activeMarkers.renderer === 'force-graph'
@@ -2862,6 +2864,7 @@ async function captureActiveAuthorityVisualMatrix(
           || !rendererVisibleInViewport
           || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
           || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
+          || !nodeLabelsReadable
         ))
         || surfaceScan.passed !== true
       ) {
@@ -2872,6 +2875,7 @@ async function captureActiveAuthorityVisualMatrix(
               || !rendererVisibleInViewport
               || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
               || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
+              || !nodeLabelsReadable
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
@@ -2879,6 +2883,7 @@ async function captureActiveAuthorityVisualMatrix(
                 rendererVisibleInViewport,
                 rendererViewportVisibleHeight,
                 rendererVisiblePaintPixelCount,
+                nodeLabelReadability,
               })}`
             : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
               knowledgeGraphMode: markers.knowledgeGraphMode ?? null,

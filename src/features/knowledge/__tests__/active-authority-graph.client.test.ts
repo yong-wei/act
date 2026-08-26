@@ -1652,7 +1652,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
     expect(canvas).not.toBeNull();
     expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
-    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-active-authority-node]')).toHaveLength(2);
     expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
@@ -1669,6 +1669,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(graphSource).toContain('max-[639px]:pt-14');
     expect(graphSource).toContain('max-[639px]:flex-nowrap');
     expect(graphSource).toContain('max-[639px]:overflow-x-auto');
+    expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
+    expect(graphSource).toContain('if (!model || isCompactViewport) return;');
+    expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
   });
 
   it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
@@ -1815,6 +1818,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS');
     expect(captureSource).toContain('rendererViewportVisibleHeight');
     expect(captureSource).toContain('rendererVisiblePaintPixelCount');
+    expect(captureSource).toContain('nodeLabelsReadable');
     expect(captureSource).toContain('mobileToolsExpanded');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');

@@ -1469,7 +1469,9 @@ export function ActiveAuthorityGraph({
       pendingCrossDomainSelectionRef.current = null;
     } else {
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(new Set(model.nodes.map((node) => node.key)));
+      setVisibleKeys(isCompactViewport
+        ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+        : new Set(model.nodes.map((node) => node.key)));
       setSelectedNodeKey(null);
     }
     setQuery('');
@@ -1479,11 +1481,11 @@ export function ActiveAuthorityGraph({
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection, pan, or zoom.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainEpoch, modelReady, visibleNodeLimit]);
+  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
-    if (!model) return;
+    if (!model || isCompactViewport) return;
     setVisibleKeys((current) => {
       const next = new Set(current);
       for (const relation of model.relations) {
@@ -1502,11 +1504,14 @@ export function ActiveAuthorityGraph({
       }
       return next;
     });
-  }, [model, workspace.enabledFamilies.length]);
+  }, [isCompactViewport, model, workspace.enabledFamilies.length]);
 
   useEffect(() => {
     if (!model || !selectedNodeKey) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        return materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit);
+      }
       const next = new Set(current);
       if (model.nodeByKey.has(selectedNodeKey)) next.add(selectedNodeKey);
       for (const relation of model.adjacency.get(selectedNodeKey) ?? []) {
@@ -1515,7 +1520,7 @@ export function ActiveAuthorityGraph({
       }
       return next;
     });
-  }, [model, selectedNodeKey]);
+  }, [isCompactViewport, model, selectedNodeKey, visibleNodeLimit]);
 
   useEffect(() => {
     if (!selectedNodeKey) return;

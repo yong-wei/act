@@ -2592,6 +2592,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const markers = objectRecord(state?.markers);
     const activeMarkers = objectRecord(markers.activeAuthority);
     const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
+    const nodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
@@ -2645,6 +2646,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       name === 'active-mobile'
         && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
         ? `${name}:initial-canvas-content-missing`
+        : null,
+      name === 'active-mobile' && nodeLabelReadability.readable !== true
+        ? `${name}:node-label-unreadable`
         : null,
       name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
         ? `${name}:initial-controls-not-collapsed`
