@@ -26,6 +26,7 @@ interface ActiveAuthorityForceCanvasProps {
   onHover: (canonicalId: string | null) => void;
   hoverPreview: { name: string; typeLabel: string; summary: string } | null;
   canvasAriaLabel: string;
+  showUnavailableTeachingDirectory?: boolean;
 }
 
 function toRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNodeData[] {
@@ -69,13 +70,14 @@ export function ActiveAuthorityForceCanvas({
   onHover,
   hoverPreview,
   canvasAriaLabel,
+  showUnavailableTeachingDirectory = false,
 }: ActiveAuthorityForceCanvasProps) {
   const nodes = useMemo(() => toRuntimeNodes(view), [view]);
   const links = useMemo(() => toRuntimeLinks(view), [view]);
   const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const [layoutState] = useState(getEmptyKnowledgeGraphLayoutState);
   const fitViewRequest = useMemo(() => ({ id: 1, target: 'current' as const }), []);
-  const showNodeDirectory = view.edges.length === 0;
+  const showNodeDirectory = view.edges.length === 0 || showUnavailableTeachingDirectory;
 
   const handleNodeEvent = (node: KnowledgeNodeData | null, kind: 'click' | 'hover') => {
     if (kind === 'hover') {

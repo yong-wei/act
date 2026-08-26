@@ -1204,7 +1204,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => Promise.resolve());
-    await enterModelingDomain({ families: false });
+    await enterModelingDomain({ families: true });
 
     const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="visible"]');
     const node = container.querySelector<HTMLButtonElement>('[data-active-authority-visible-node="true"][data-active-authority-node="node-concept"]');

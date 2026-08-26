@@ -1863,6 +1863,7 @@ export function ActiveAuthorityGraph({
                   onHover={setHoveredNodeId}
                   hoverPreview={hoverPreview}
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                  showUnavailableTeachingDirectory={teachingCoverage?.note === '教学关系暂不可用'}
                 />
               </div>
             ) : null}
