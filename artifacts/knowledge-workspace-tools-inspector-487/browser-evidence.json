@@ -2,13 +2,13 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-08-26T06:45:31.456Z",
-  "headCommit": "c8ca7a5cc681816bb4ef6d889b2627dfa3414f1b",
+  "capturedAt": "2026-08-26T08:43:39.010Z",
+  "headCommit": "8422c017998af4cc04b33405104d00529c9f5003",
   "captureRevision": {
-    "commitSha": "c8ca7a5cc681816bb4ef6d889b2627dfa3414f1b",
-    "treeSha": "95e0369d46e894de9ebbc2abf3530ccb7b746de8"
+    "commitSha": "8422c017998af4cc04b33405104d00529c9f5003",
+    "treeSha": "ea6b7aeef5fb3bfc5260d51d71698b1a15e4bbdc"
   },
-  "baseUrl": "http://localhost:3002",
+  "baseUrl": "http://localhost:3210",
   "selectedNodeId": "稳定性_1_7288b4ea",
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -64,7 +64,7 @@
     {
       "name": "desktop-default-compact-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "state": "desktop default compact tools",
       "theme": "dark",
       "viewport": "1440x960",
@@ -94,7 +94,7 @@
     {
       "name": "desktop-open-filters-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "state": "desktop opened node filters",
       "theme": "dark",
       "viewport": "1440x960",
@@ -124,7 +124,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
-      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "desktop selected direct leaf inspector",
       "theme": "light",
       "viewport": "1440x960",
@@ -166,7 +166,7 @@
     {
       "name": "mobile-320-selected-sheet-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
-      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "mobile selected node sheet with graph reachable above collapsed tools",
       "theme": "dark",
       "viewport": "320x800",
@@ -208,7 +208,7 @@
     {
       "name": "mobile-320-view-layout-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3210/knowledge?qa=knowledge-product",
       "state": "mobile view and layout tool opened with graph controls available",
       "theme": "dark",
       "viewport": "320x800",
