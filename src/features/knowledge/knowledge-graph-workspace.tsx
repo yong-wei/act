@@ -84,9 +84,11 @@ export function KnowledgeGraphWorkspace({
           />
         </div>
       ) : null}
-      <div className={mode === 'legacy' ? 'h-full min-h-0' : 'hidden'} data-knowledge-legacy-view="true" data-knowledge-session="legacy">
-        {legacy}
-      </div>
+      {mode === 'legacy' ? (
+        <div className="h-full min-h-0" data-knowledge-legacy-view="true" data-knowledge-session="legacy">
+          {legacy}
+        </div>
+      ) : null}
     </div>
   );
 }
