@@ -7,6 +7,7 @@ import {
   createActiveAuthorityGraphModel,
   expandActiveAuthorityOneHop,
   materializeActiveNodeScope,
+  presentActiveHumanText,
   presentActiveNodeType,
   presentActiveRelation,
   presentGovernanceLabel,
@@ -57,6 +58,7 @@ describe('active Authority presentation adapter', () => {
     expect(presentActiveRelation('internal_predicate', 'internal_direction')).toMatchObject({ label: '关系暂不可解释', supported: false });
     expect(presentActiveRelation('internal_predicate', 'internal_direction').directionLabel).not.toContain('internal_');
     expect(JSON.stringify(presentActiveRelation('internal_predicate', 'internal_direction'))).not.toContain('internal_');
+    expect(presentActiveHumanText('association', '对象名称暂不可用')).toBe('对象名称暂不可用');
   });
 
   it('prefers complete-locale projected type and relation labels over historical Chinese maps', () => {

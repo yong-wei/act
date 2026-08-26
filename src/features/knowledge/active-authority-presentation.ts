@@ -183,7 +183,10 @@ function nonEmpty(value: string | null | undefined): string | null {
 
 function isUnsafeIdentity(value: string): boolean {
   return /^(?:node|relation|source|target|release|snapshot|activation|projection|edition|section)[-_:/]/iu.test(value)
-    || /^[a-f0-9]{32,}$/iu.test(value);
+    || /^[a-f0-9]{32,}$/iu.test(value)
+    || Object.hasOwn(NODE_TYPES, value)
+    || Object.hasOwn(RELATION_TYPES, value)
+    || ['directed', 'undirected', 'unordered', 'source_to_target', 'source-to-target'].includes(value);
 }
 
 function presentProjectedRelationText(
