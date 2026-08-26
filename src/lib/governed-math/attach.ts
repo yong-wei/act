@@ -11,7 +11,11 @@ import {
   projectGovernedTitle,
 } from './project';
 import { titleIsProductHidden } from './types';
-import { loadGovernedMathSidecarCorpus, type GovernedMathSidecarCorpus } from './sidecar';
+import {
+  GOVERNED_MATH_PRESENTATION_BUNDLE,
+  loadGovernedMathSidecarCorpus,
+  type GovernedMathSidecarCorpus,
+} from './sidecar';
 import type {
   GovernedFormulaProjection,
   GovernedMathLocale,
@@ -28,17 +32,18 @@ export interface GovernedMathRuntimeFields {
 
 const corpusCache = new Map<string, GovernedMathSidecarCorpus>();
 
-export function loadGovernedMathRuntime(
-  releaseId: string,
-  releaseHash: string | null | undefined,
-): GovernedMathSidecarCorpus | null {
+export function loadGovernedMathRuntime(): GovernedMathSidecarCorpus | null {
   try {
-    const cacheKey = `${releaseId}:${releaseHash ?? ''}`;
+    const cacheKey = `${GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId}:${GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash}`;
     const cached = corpusCache.get(cacheKey);
     if (cached) return cached;
     const corpus = loadGovernedMathSidecarCorpus();
-    if (corpus.readiness.release_id !== releaseId) return null;
-    if (releaseHash && corpus.readiness.release_hash !== releaseHash) return null;
+    if (
+      corpus.readiness.release_id !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId
+      || corpus.readiness.release_hash !== GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash
+    ) {
+      return null;
+    }
     corpusCache.set(cacheKey, corpus);
     return corpus;
   } catch {
@@ -86,10 +91,8 @@ function attachObject(
 export function attachGovernedMathToLearnerShard<T extends AuthorityLearnerShard>(
   shard: T,
   locale: AdmittedLocale,
-  releaseId: string,
-  releaseHash?: string | null,
 ): T {
-  const corpus = loadGovernedMathRuntime(releaseId, releaseHash);
+  const corpus = loadGovernedMathRuntime();
   if (!corpus) return shard;
   const governedLocale = asLocale(locale);
   if (shard.shardClass === 'domain-default' || shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood') {

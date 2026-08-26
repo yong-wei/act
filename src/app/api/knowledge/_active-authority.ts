@@ -533,11 +533,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
       receipt,
     );
-    const withMath = attachGovernedMathToLearnerShard(
-      localized,
-      resolved.locale,
-      activeIdentity.envelope.authority.releaseId,
-    );
+    const withMath = attachGovernedMathToLearnerShard(localized, resolved.locale);
     const shard = projectAuthorityLearnerShard(withMath, {
       localeBinding: localeBindingForCapability(
         resolved.locale,

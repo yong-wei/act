@@ -27,12 +27,58 @@ import {
   resetGovernedKatexCache,
 } from '@/lib/governed-math/render-cache';
 import { matchesGovernedSearch, stripLatexCommandNoise } from '@/lib/governed-math/search-text';
-import { loadGovernedMathSidecarCorpus } from '@/lib/governed-math/sidecar';
+import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
+import { attachGovernedMathToLearnerShard, loadGovernedMathRuntime } from '@/lib/governed-math/attach';
+import {
+  GOVERNED_MATH_PRESENTATION_BUNDLE,
+  loadGovernedMathSidecarCorpus,
+} from '@/lib/governed-math/sidecar';
 import { validateGovernedMathCorpus } from '@/lib/governed-math/validate';
 import { GOVERNED_KATEX_MACRO_PROFILE_HASH, GOVERNED_KATEX_MACRO_PROFILE_ID } from '@/lib/governed-math/types';
 
 describe('governed math sidecar consumption', () => {
   const corpus = loadGovernedMathSidecarCorpus();
+
+  it('loads the presentation bundle even when the production selector remains v0.9', () => {
+    const runtime = loadGovernedMathRuntime();
+    expect(runtime).not.toBeNull();
+    expect(runtime?.readiness.release_id).toBe(GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId);
+    expect(runtime?.readiness.release_hash).toBe(GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash);
+    const shard = attachGovernedMathToLearnerShard({
+      shardClass: 'node-detail',
+      envelope: {
+        contract: 'act-authority-shard-envelope/v1',
+        authority: {
+          snapshotId: 'snap-test',
+          snapshotHash: 'a'.repeat(64),
+          releaseId: 'ctr:release:control-theory-engineering-v0.9',
+          releaseSetId: 'set-test',
+          activationId: 'act-test',
+          activationHash: 'b'.repeat(64),
+          projectionId: null,
+          projectionHash: null,
+        },
+        catalog: { catalogId: 'cat', catalogHash: 'c'.repeat(64), catalogVersion: 'v1' },
+        teaching: { status: 'unavailable', projectionId: null, projectionHash: null, teachingCacheFamily: null },
+        match: { authority: true, catalog: true, teaching: null },
+      },
+      node: {
+        id: 'ctk:03a7812b9c8465ffa7c29a01',
+        canonicalType: 'KnowledgeStatement',
+        label: '对偶关系',
+        description: null,
+        teachingFields: {},
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        sources: [],
+        media: { cardAvailable: false, infographAvailable: false },
+        semanticSupport: { supported: true, readOnly: true },
+      },
+    } as AuthorityNodeDetailShard, 'zh-CN');
+    const title = shard.node.richTitle;
+    expect(title?.state).toBe('available');
+    if (title?.state !== 'available') return;
+    expect(title.blocks.some((block) => block.spans.some((span) => span.kind === 'math'))).toBe(true);
+  });
 
   it('closes r3 sidecar hashes, identity and references', () => {
     const validation = validateGovernedMathCorpus(corpus);

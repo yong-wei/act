@@ -7,6 +7,13 @@ import { GOVERNED_MATH_LOCALES, type GovernedMathLocale } from './types';
 export const R3_RICH_TEXT_RELEASE_RELATIVE =
   'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r3' as const;
 
+/** Presentation-bundle pin. Independent of the production Authority selector. */
+export const GOVERNED_MATH_PRESENTATION_BUNDLE = {
+  relativePath: R3_RICH_TEXT_RELEASE_RELATIVE,
+  releaseId: 'ctr:release:control-theory-engineering-v0.37',
+  releaseHash: 'cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39',
+} as const;
+
 export const GOVERNED_MATH_SIDECAR_FILES = {
   readiness: 'rich-text-readiness-manifest.json',
   richText: 'localized-rich-text-index.jsonl',
