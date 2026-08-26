@@ -286,6 +286,16 @@ describe('teacher AI grading structured review versions', () => {
       }],
       operatorUserId: 'teacher-a',
     })).rejects.toThrow('teacher-ai-grading-review-location-page-missing');
+
+    await expect(appendTeacherAiGradingStructuredReviewVersion({
+      db,
+      executionId: 'execution-a',
+      parentVersionId: null,
+      decision: 'correct',
+      scoreCorrections: [],
+      annotationCorrections: [{ action: 'revise-location', sourceAnnotationId: 'annotation-a', location: { blockId: 'block-a' } }],
+      operatorUserId: 'teacher-a',
+    })).rejects.toThrow('teacher-ai-grading-review-location-page-missing');
   });
 
   it('requires score and annotation corrections to form a consistent review state', async () => {
@@ -358,6 +368,21 @@ describe('teacher AI grading structured review versions', () => {
 
     await expect(materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: ['invalid-full-score'] }))
       .rejects.toThrow('teacher-ai-grading-review-annotation-without-deduction');
+  });
+
+  it('fails closed when a pre-existing review chain relocates an annotation without a page', async () => {
+    const db = createMemoryDb();
+    const createdAt = new Date('2026-07-28T00:00:00.000Z');
+    const content = {
+      executionId: 'execution-a', version: 1, parentVersionId: null, decision: 'CORRECTED',
+      scoreCorrections: [],
+      annotationCorrections: [{ action: 'revise-location', sourceAnnotationId: 'annotation-a', location: { blockId: 'block-a' } }],
+      operatorUserId: 'teacher-a', createdAt: createdAt.toISOString(),
+    };
+    db.reviewVersions.push({ id: 'invalid-page-location', ...content, createdAt, contentHash: hashJson(content) });
+
+    await expect(materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: ['invalid-page-location'] }))
+      .rejects.toThrow('teacher-ai-grading-review-location-page-missing');
   });
 
   it('records an explicit acceptance without inventing corrections', async () => {
