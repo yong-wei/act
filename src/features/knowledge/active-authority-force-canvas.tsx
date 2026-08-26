@@ -36,7 +36,10 @@ interface ActiveAuthorityForceCanvasProps {
   showUnavailableTeachingDirectory?: boolean;
 }
 
-function toRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNodeData[] {
+function toRuntimeNodes(
+  view: AuthorityGraphViewModel,
+  compactLabelPriority: boolean,
+): KnowledgeNodeData[] {
   return view.nodes.map((node, index) => ({
     id: node.canonicalId,
     name: node.label,
@@ -45,6 +48,7 @@ function toRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNodeData[] {
     positionX: (index % 6) * 80,
     positionY: Math.floor(index / 6) * 80,
     positionZ: 0,
+    labelPriority: compactLabelPriority,
     conceptKind: node.canonicalType,
     metadata: {
       sourceMode: 'active',
@@ -80,12 +84,16 @@ export function ActiveAuthorityForceCanvas({
   canvasAriaLabel,
   showUnavailableTeachingDirectory = false,
 }: ActiveAuthorityForceCanvasProps) {
-  const nodes = useMemo(() => toRuntimeNodes(view), [view]);
-  const links = useMemo(() => toRuntimeLinks(view), [view]);
-  const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const [layoutState] = useState(getEmptyKnowledgeGraphLayoutState);
   const rendererHostRef = useRef<HTMLDivElement | null>(null);
   const [rendererSize, setRendererSize] = useState<{ width: number; height: number } | null>(null);
+  const compactLabelPriority = Boolean(rendererSize && rendererSize.width < 640);
+  const nodes = useMemo(
+    () => toRuntimeNodes(view, compactLabelPriority),
+    [compactLabelPriority, view],
+  );
+  const links = useMemo(() => toRuntimeLinks(view), [view]);
+  const selectedNode = nodes.find((row) => row.id === selectedNodeId) ?? null;
   const fitViewRequest = useMemo(() => ({ id: 1, target: 'current' as const }), []);
   const showNodeDirectory = view.edges.length === 0 || showUnavailableTeachingDirectory;
 

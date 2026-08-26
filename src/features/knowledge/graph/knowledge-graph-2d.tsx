@@ -991,6 +991,7 @@ export function KnowledgeGraph2D({
           projectedScale: globalScale,
           bodyRadius,
           isRootBubble: Boolean(rootPacking),
+          isKeyNode: candidate.labelPriority,
           importance: candidate.importance,
           labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
             name: candidate.name, bodyRadius,
@@ -1555,6 +1556,7 @@ export function KnowledgeGraph2D({
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
       isRootBubble: Boolean(node.__knowledgeRootPacking),
+      isKeyNode: node.labelPriority,
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,

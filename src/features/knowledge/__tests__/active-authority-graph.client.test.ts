@@ -1679,6 +1679,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
     expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
     expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
+    const forceCanvasSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-force-canvas.tsx'), 'utf8');
+    expect(forceCanvasSource).toContain('labelPriority: compactLabelPriority');
   });
 
   it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
