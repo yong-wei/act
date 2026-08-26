@@ -1,8 +1,7 @@
 import { dirname, join, posix } from 'node:path';
+import ts from 'typescript';
 
 import { isGeneratedPath, isSourcePath, isTestPath } from './classify';
-
-const IMPORT_PATTERN = /(?:from\s+|import\(\s*|require\(\s*)['"]([^'"]+)['"]/gu;
 
 export interface ResolvedImport {
   readonly from: string;
@@ -28,11 +27,33 @@ function candidates(resolved: string): string[] {
   ];
 }
 
-export function extractSpecifiers(content: string): string[] {
+function scriptKind(path: string): ts.ScriptKind {
+  if (path.endsWith('.tsx')) return ts.ScriptKind.TSX;
+  if (path.endsWith('.jsx')) return ts.ScriptKind.JSX;
+  if (/\.(?:js|mjs|cjs)$/u.test(path)) return ts.ScriptKind.JS;
+  return ts.ScriptKind.TS;
+}
+
+function addLiteral(found: Set<string>, node: ts.Expression | undefined): void {
+  if (node && ts.isStringLiteralLike(node)) found.add(node.text);
+}
+
+export function extractSpecifiers(path: string, content: string): string[] {
+  const source = ts.createSourceFile(path, content, ts.ScriptTarget.Latest, true, scriptKind(path));
   const found = new Set<string>();
-  for (const match of content.matchAll(IMPORT_PATTERN)) {
-    if (match[1]) found.add(match[1]);
-  }
+  const visit = (node: ts.Node): void => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      addLiteral(found, node.moduleSpecifier);
+    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      addLiteral(found, node.moduleReference.expression);
+    } else if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      if (callee.kind === ts.SyntaxKind.ImportKeyword) addLiteral(found, node.arguments[0]);
+      if (ts.isIdentifier(callee) && callee.text === 'require') addLiteral(found, node.arguments[0]);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
   return [...found].sort();
 }
 
@@ -61,7 +82,7 @@ export function collectResolvedImports(
   const edges: ResolvedImport[] = [];
   for (const [path, content] of files) {
     if (!isSourcePath(path) || isGeneratedPath(path)) continue;
-    for (const specifier of extractSpecifiers(content)) {
+    for (const specifier of extractSpecifiers(path, content)) {
       edges.push(resolveImport(path, specifier, names));
     }
   }

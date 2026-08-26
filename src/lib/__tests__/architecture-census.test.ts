@@ -216,6 +216,24 @@ describe('architecture census', () => {
     expect(manifest?.totals.discovered).toBe(manifest?.totals.represented);
   });
 
+  it('ignores import-like strings and records side-effect imports', () => {
+    const snapshot = fixture([
+      file('src/features/teacher/strings.ts', 'export const example = "from \\"./public\\"";\n'),
+      file('src/features/teacher/side-effect.ts', 'import "./public";\n'),
+      file('src/features/teacher/public.ts', 'export const value = 1;\n'),
+    ]);
+    const { core, failures } = generateCensusCore(snapshot);
+    qualifyCensusCore(core, failures);
+    const fromStrings = core.observations.filter((row) => (
+      row.kind === 'dependency-edge' && String(row.attributes.from).endsWith('strings.ts')
+    ));
+    const sideEffect = core.observations.find((row) => (
+      row.kind === 'dependency-edge' && String(row.attributes.from).endsWith('side-effect.ts')
+    ));
+    expect(fromStrings).toHaveLength(0);
+    expect(sideEffect?.attributes.to).toBe('src/features/teacher/public.ts');
+  });
+
   it('deduplicates equivalent import specifiers into one dependency edge', () => {
     const snapshot = fixture([
       file('src/features/teacher/a.ts', 'import { b } from "./b";\nimport { b2 } from "./b.ts";\n'),
