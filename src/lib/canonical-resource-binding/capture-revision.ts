@@ -41,9 +41,13 @@ async function isInsideGitWorkTree(cwd: string): Promise<boolean> {
     if (commandError.code === 'ENOENT') {
       return false;
     }
+    const stderr = commandError.stderr ?? '';
     if (
       commandError.code === 128
-      && commandError.stderr?.includes('not a git repository')
+      && (
+        stderr.includes('not a git repository')
+        || stderr.includes('不是 Git 仓库')
+      )
     ) {
       return false;
     }

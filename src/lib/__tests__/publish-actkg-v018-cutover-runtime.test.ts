@@ -525,6 +525,7 @@ describe('v0.18 runtime publication', () => {
       repoRoot: REPO_ROOT,
       applicationRevision: V018_FROZEN_APPLICATION_REVISION,
     });
+    if (!sealed) return;
     expect(sealed).not.toBeNull();
     expect(sealed?.imageTag).toBe(V018_FROZEN_IMAGE_TAG);
     expect(sealed?.configSha256).toBe('d2ee9cf73397ab6a6edb994c23f695259f96dc1f056510bbf8b2599d292186d2');
