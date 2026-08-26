@@ -2763,7 +2763,16 @@ async function captureActiveAuthorityVisualMatrix(
                 svgVisibleInViewport: activeFirstViewport.svgVisibleInViewport === true,
                 nodeGeometryWithinViewportCount,
               })}`
-            : `active visual matrix DOM contract failed in ${state.name}`,
+            : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
+              knowledgeGraphMode: markers.knowledgeGraphMode ?? null,
+              visibleNodeCount: activeMarkers.visibleNodeCount ?? null,
+              relationCount: activeMarkers.relationCount ?? null,
+              resolvedEdgeEndpointCount: activeMarkers.resolvedEdgeEndpointCount ?? null,
+              visibleSvgGeometryCount: activeMarkers.visibleSvgGeometryCount ?? null,
+              teachingRelationsUnavailable,
+              stage: activeMarkers.stage ?? null,
+              surfaceScanPassed: surfaceScan.passed === true,
+            })}`,
         );
       }
       const screenshotPath = path.join(outputDir, `${state.name}.png`);
