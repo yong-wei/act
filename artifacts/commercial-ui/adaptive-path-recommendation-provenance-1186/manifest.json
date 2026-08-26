@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-08-25T03:47:10.308Z",
-  "commitSha": "d613eb044a6b1b011ab3bff9736058013ca772f8",
+  "capturedAt": "2026-08-26T04:41:56.909Z",
+  "commitSha": "225dc2f01acd48b85633e632900b4b945e706b97",
   "generator": {
     "file": "tests/adaptive-path-recommendation-provenance-evidence.spec.ts",
-    "sha256": "741d95836ef8dcd452d9c308d76e2b5eb180b70778fd5a77460e866f4fa90117"
+    "sha256": "982282cc12b5597246f16021ff333284f39b5eaea459e15e1a354872316ddb6d"
   },
   "productionSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "aecfa537403ab5a5a2aa062cd8ecff63af737efd9057707dd3e89a38770e11a1",
+    "src/app/assessment/adaptive-practice/page.tsx": "4a056f5fc66d98b3d6ef2bec7ee7a9bc7671533ffd8aa996dc3add69f4ac3f20",
     "src/features/adaptive/adaptive-learning-center-contracts.ts": "770d11d9bf70d819dab6c31f785e071baa79cd75919afe8f47dd84f4c0bd6682",
     "src/lib/adaptive-learning-path-planner.ts": "7e2cfa3cc219e80775821da8b55b378aceeab79b77fffb0dff19dae6d6a4af70",
     "src/lib/adaptive-path-round-restore.ts": "fa0982dd2bc939351246d18b6ec3d9f8d5e651b755cd2902c1d73567c2e225e8",
@@ -15,7 +15,8 @@
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=low",
-    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=legacy"
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=legacy",
+    "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation"
   ],
   "assertions": [
     {
@@ -97,7 +98,8 @@
       "fixture": "continue-existing-path",
       "passed": true,
       "checks": [
-        "active path remains visible",
+        "continue action is clicked from the loaded persisted path",
+        "path-execution restore uses the original planning snapshot",
         "candidate comparison stays hidden",
         "path generation endpoint is not invoked"
       ]
@@ -107,7 +109,8 @@
       "fixture": "continue-existing-path",
       "passed": true,
       "checks": [
-        "active path remains visible",
+        "continue action is clicked from the loaded persisted path",
+        "path-execution restore uses the original planning snapshot",
         "candidate comparison stays hidden",
         "path generation endpoint is not invoked"
       ]
@@ -120,7 +123,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-sufficient.png",
-      "sha256": "6e07582c9c43bf5d22fd7097ef1abe4e490b8623a466534ab02d4b8eb28b146e",
+      "sha256": "3fc0250b9d8a05788ef1e580c7c9e41f3750ec6ad8f5ace5771e9f6fe55e9269",
       "noHorizontalOverflow": true
     },
     {
@@ -129,7 +132,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-low.png",
-      "sha256": "7da9c88095761b4d1b96cde9d2f16bc9d4575a57a33a34c5a65c7a8345988adb",
+      "sha256": "0f000f91c80fbc4d60315442ed77af8ef12af60e631107357047801ba5030ac9",
       "noHorizontalOverflow": true
     },
     {
@@ -138,7 +141,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-legacy.png",
-      "sha256": "2df8ed0a87c52fbb37da4d8575abb09c6bfcaa11a8a5486cd06114776d7b2318",
+      "sha256": "fdf11758673556fabd51a5cd2dde6921ea33ca37e6510b6dbea01a62b7e6f48e",
       "noHorizontalOverflow": true
     },
     {
@@ -147,7 +150,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-sufficient.png",
-      "sha256": "c0adfeda54ed1aeabf476324a6a85798409f80f137274dcf9efb35feb56de6d7",
+      "sha256": "514408f5276d701f0ca8443e1e88f10949570bb7858e36256ee992bb18237886",
       "noHorizontalOverflow": true
     },
     {
@@ -156,7 +159,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-low.png",
-      "sha256": "83e02cc1bb6f1405596bf44a30e335f0736c66e580c024c85b001edfe4121ca7",
+      "sha256": "a7c2f324187fef7799be5c77ecb3f0cd0b609a37f6658acc8d960630399d8757",
       "noHorizontalOverflow": true
     },
     {
@@ -165,7 +168,25 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-legacy.png",
-      "sha256": "9cbb1468f217e86f380a9b40950212e755aeb29db68c3729ae80cd61fc3e842d",
+      "sha256": "b8e5f91d4de2428ad0548a27e32f8785571bcdf6f82ee53918d158381f36d70a",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "continue-existing-path",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-continue-existing-path.png",
+      "sha256": "01729a613815ff6cc6638fce5befb8295db01fad49b9fc575c47441af2098ffe",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "continue-existing-path",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-continue-existing-path.png",
+      "sha256": "d07d86630c5f655dfb163b8a15d7585b05031f4702f1fce2df61ee1b1cc84e05",
       "noHorizontalOverflow": true
     }
   ]
