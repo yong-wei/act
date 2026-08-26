@@ -76,6 +76,7 @@ async function expectUniqueConflict(work: () => Promise<unknown>, label: string)
 async function main() {
   const prisma = createPrismaClient();
   const marker = `v2-qualify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const createdAttributionIds: string[] = [];
   const createdOrchestrationIds: string[] = [];
   const createdInterventionIds: string[] = [];
   try {
@@ -96,12 +97,20 @@ async function main() {
       assertLearnerSafe(row.sourceSnapshot, `intervention snapshot ${row.id}`);
     }
 
-    const seed = await prisma.wrongAnswerAttribution.findFirst({
-      select: { id: true, userId: true },
+    const seedAnswer = await prisma.adaptiveAssessmentAnswer.findFirst({
+      where: { isCorrect: false },
+      select: {
+        id: true,
+        userId: true,
+        sessionId: true,
+        questionRefId: true,
+        questionId: true,
+        questionRef: { select: { contentHash: true } },
+      },
     });
-    if (!seed) {
+    if (!seedAnswer?.questionRef.contentHash) {
       if (required) {
-        throw new Error('postgres qualification requires at least one WrongAnswerAttribution row for write/replay');
+        throw new Error('postgres qualification requires at least one incorrect AdaptiveAssessmentAnswer row for attribution write/replay');
       }
       console.log(JSON.stringify({
         orchestrationSamples: orchestrationSamples.length,
@@ -112,13 +121,124 @@ async function main() {
       return;
     }
 
+    const attributionEvidence = {
+      marker,
+      learnerSafe: true,
+      outcome: 'incorrect',
+    };
+    assertLearnerSafe(attributionEvidence, 'written attribution evidence');
+    const createdAttribution = await prisma.wrongAnswerAttribution.create({
+      data: {
+        answerId: seedAnswer.id,
+        attributionVersion: marker,
+        userId: seedAnswer.userId,
+        sessionId: seedAnswer.sessionId,
+        questionRefId: seedAnswer.questionRefId,
+        questionId: seedAnswer.questionId,
+        itemContentHash: seedAnswer.questionRef.contentHash,
+        state: 'ATTRIBUTED',
+        knowledgeNodeIds: ['kn:autocontrol:controller-correction'],
+        misconceptionTags: ['misconception:control-correction:sample'],
+        evidenceSummary: attributionEvidence,
+        evidenceRefs: [`adaptive-assessment-answer:${seedAnswer.id}`],
+        confidence: 0.8,
+        limitations: ['qualification-postgres'],
+        nextAction: 'REPEAT_PRACTICE',
+      },
+      select: {
+        id: true,
+        answerId: true,
+        attributionVersion: true,
+        itemContentHash: true,
+        evidenceSummary: true,
+      },
+    });
+    createdAttributionIds.push(createdAttribution.id);
+    const attributionReplay = await prisma.wrongAnswerAttribution.findUnique({
+      where: { id: createdAttribution.id },
+      select: {
+        id: true,
+        answerId: true,
+        attributionVersion: true,
+        itemContentHash: true,
+        state: true,
+        nextAction: true,
+      },
+    });
+    if (
+      !attributionReplay ||
+      attributionReplay.answerId !== seedAnswer.id ||
+      attributionReplay.attributionVersion !== marker ||
+      attributionReplay.itemContentHash !== seedAnswer.questionRef.contentHash ||
+      attributionReplay.state !== 'ATTRIBUTED' ||
+      attributionReplay.nextAction !== 'REPEAT_PRACTICE'
+    ) {
+      throw new Error('postgres qualification failed to replay the written attribution row');
+    }
+    const upsertedAttribution = await prisma.wrongAnswerAttribution.upsert({
+      where: {
+        answerId_attributionVersion: {
+          answerId: seedAnswer.id,
+          attributionVersion: marker,
+        },
+      },
+      update: {},
+      create: {
+        answerId: seedAnswer.id,
+        attributionVersion: marker,
+        userId: seedAnswer.userId,
+        sessionId: seedAnswer.sessionId,
+        questionRefId: seedAnswer.questionRefId,
+        questionId: seedAnswer.questionId,
+        itemContentHash: seedAnswer.questionRef.contentHash,
+        state: 'UNCERTAIN',
+        knowledgeNodeIds: [],
+        misconceptionTags: [],
+        evidenceSummary: { marker, duplicate: true },
+        evidenceRefs: [],
+        confidence: 0,
+        limitations: [],
+        nextAction: 'NONE',
+      },
+      select: { id: true, state: true, nextAction: true },
+    });
+    if (
+      upsertedAttribution.id !== createdAttribution.id ||
+      upsertedAttribution.state !== 'ATTRIBUTED' ||
+      upsertedAttribution.nextAction !== 'REPEAT_PRACTICE'
+    ) {
+      throw new Error('postgres qualification attribution upsert must replay the original row');
+    }
+    await expectUniqueConflict(
+      () => prisma.wrongAnswerAttribution.create({
+        data: {
+          answerId: seedAnswer.id,
+          attributionVersion: marker,
+          userId: seedAnswer.userId,
+          sessionId: seedAnswer.sessionId,
+          questionRefId: seedAnswer.questionRefId,
+          questionId: seedAnswer.questionId,
+          itemContentHash: seedAnswer.questionRef.contentHash,
+          state: 'ATTRIBUTED',
+          knowledgeNodeIds: ['kn:autocontrol:controller-correction'],
+          misconceptionTags: ['misconception:control-correction:sample'],
+          evidenceSummary: { marker, duplicate: true, learnerSafe: true },
+          evidenceRefs: [`adaptive-assessment-answer:${seedAnswer.id}`],
+          confidence: 0.8,
+          limitations: ['qualification-postgres'],
+          nextAction: 'REPEAT_PRACTICE',
+        },
+      }),
+      'attribution',
+    );
+
     const taskSnapshot = learnerSafeTaskSnapshot(marker);
     assertLearnerSafe(taskSnapshot, 'written orchestration snapshot');
     const created = await prisma.remediationOrchestrationResult.create({
       data: {
-        wrongAnswerAttributionId: seed.id,
+        wrongAnswerAttributionId: createdAttribution.id,
         orchestratorVersion: marker,
-        userId: seed.userId,
+        userId: seedAnswer.userId,
         status: 'AVAILABLE',
         taskSnapshot,
       },
@@ -136,9 +256,9 @@ async function main() {
     await expectUniqueConflict(
       () => prisma.remediationOrchestrationResult.create({
         data: {
-          wrongAnswerAttributionId: seed.id,
+          wrongAnswerAttributionId: createdAttribution.id,
           orchestratorVersion: marker,
-          userId: seed.userId,
+          userId: seedAnswer.userId,
           status: 'AVAILABLE',
           taskSnapshot: learnerSafeTaskSnapshot(`${marker}-duplicate`),
         },
@@ -150,7 +270,7 @@ async function main() {
       prisma.microInterventionOutcome.create({
         data: {
           remediationOrchestrationResultId: created.id,
-          userId: seed.userId,
+          userId: seedAnswer.userId,
           learnerSessionId: `${marker}-session`,
           startEventKey: `${marker}-start-a`,
           sourceSnapshot: { marker, lane: 'a', learnerSafe: true },
@@ -160,7 +280,7 @@ async function main() {
       prisma.microInterventionOutcome.create({
         data: {
           remediationOrchestrationResultId: created.id,
-          userId: seed.userId,
+          userId: seedAnswer.userId,
           learnerSessionId: `${marker}-session`,
           startEventKey: `${marker}-start-b`,
           sourceSnapshot: { marker, lane: 'b', learnerSafe: true },
@@ -194,7 +314,7 @@ async function main() {
       prisma.microInterventionOutcome.create({
         data: {
           remediationOrchestrationResultId: created.id,
-          userId: seed.userId,
+          userId: seedAnswer.userId,
           learnerSessionId: `${marker}-session`,
           startEventKey: `${marker}-start-conflict`,
           sourceSnapshot: { marker, lane: 'conflict-1', learnerSafe: true },
@@ -204,7 +324,7 @@ async function main() {
       prisma.microInterventionOutcome.create({
         data: {
           remediationOrchestrationResultId: created.id,
-          userId: seed.userId,
+          userId: seedAnswer.userId,
           learnerSessionId: `${marker}-session`,
           startEventKey: `${marker}-start-conflict`,
           sourceSnapshot: { marker, lane: 'conflict-2', learnerSafe: true },
@@ -304,6 +424,7 @@ async function main() {
       interventionSamples: outcomeSamples.length,
       learnerSafe: true,
       writeReplay: true,
+      attributionWriteReplay: true,
       concurrentWrites: true,
       idempotentConflict: true,
       eventPersistence: true,
@@ -318,6 +439,11 @@ async function main() {
     if (createdOrchestrationIds.length > 0) {
       await prisma.remediationOrchestrationResult.deleteMany({
         where: { id: { in: createdOrchestrationIds } },
+      }).catch(() => undefined);
+    }
+    if (createdAttributionIds.length > 0) {
+      await prisma.wrongAnswerAttribution.deleteMany({
+        where: { id: { in: createdAttributionIds } },
       }).catch(() => undefined);
     }
     await prisma.$disconnect();
