@@ -61,6 +61,27 @@ try {
   const missingSecretResult = run([], { MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET: '' });
   assert.notEqual(missingSecretResult.status, 0, 'the command must reject a missing private option-reference secret');
   assert.match(missingSecretResult.output, /MICRO_TUTORING_COVERAGE_OPTION_REFERENCE_SECRET is required/);
+
+  const v2Result = run(['--profile', 'v2']);
+  assert.equal(v2Result.status, 0, v2Result.output);
+  const v2Report = JSON.parse(readFileSync(path.join(outputDir, 'micro-tutoring-coverage.json'), 'utf8'));
+  assert.equal(v2Report.coverageProfile, 'v2');
+  assert.equal(v2Report.qualifiedItemCount, 135);
+  assert.equal(v2Report.qualifiedPracticeItemCount, 54);
+  assert.equal(v2Report.errorOptionCount, 272);
+  assert.deepEqual(v2Report.stageCounts, {
+    practice: 54,
+    checkpoint: 27,
+    remediation: 27,
+    readiness: 2,
+    'readiness-gate': 25,
+  });
+  if (v2Report.inputCapture.sourceInputsClean) {
+    assert.equal(v2Report.gapOptionCount, 0);
+    assert.equal(run(['--profile', 'v2', '--strict']).status, 0);
+  } else {
+    assert.notEqual(run(['--profile', 'v2', '--strict']).status, 0);
+  }
   console.log('micro tutoring coverage command contract passed');
 } finally {
   rmSync(outputDir, { recursive: true, force: true });

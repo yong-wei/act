@@ -56,6 +56,7 @@ import {
 } from './source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
 import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
+import type { StudentEvidenceWindow } from './data-governance/student-evidence-feature-cache';
 import { resolveAdaptivePathDestinationContract } from './adaptive-path-destination-contract';
 import {
   resolveItemTypeTerminalValidation,
@@ -321,11 +322,15 @@ export interface AdaptiveLearningPathRegisteredGoalDefinition {
 }
 
 export interface AdaptiveLearningPathLearnerState {
+  payloadVersion?: string;
+  generatedAt?: string;
+  authority?: 'server-owned';
   knowledgeMastery?: {
     tags?: Record<string, {
       posteriorMastery?: number;
       confidence?: number;
       evidenceCount?: number;
+      freshness?: 'current' | 'partial' | 'stale' | 'missing';
       eventReferences?: StudentSafeEvidenceEventReference[];
     }>;
   };
@@ -342,8 +347,10 @@ export interface AdaptiveLearningPathLearnerState {
   primaryPortraitAvailability?: string;
   resourcePreference?: {
     preferredModalities?: string[];
+    confidence?: 'none' | 'low' | 'medium';
   };
   evidence?: {
+    evidenceWindow?: StudentEvidenceWindow;
     confidence?: {
       level?: 'none' | 'low' | 'medium' | 'high';
       score?: number;
@@ -362,6 +369,72 @@ export interface AdaptiveLearningPathLearnerState {
       severity: string;
     }>;
   };
+  missingEvidence?: string[];
+}
+
+export interface AdaptiveLearningPathLearnerStateSnapshot {
+  payloadVersion: string | null;
+  generatedAt: string | null;
+  authority: 'server-owned' | 'unknown';
+  sourceCoverage: Record<string, string>;
+  evidenceWindow: StudentEvidenceWindow | null;
+  freshness: 'current' | 'partial' | 'stale' | 'missing';
+  confidence: {
+    level: 'none' | 'low' | 'medium' | 'high';
+    score: number;
+    sourceCompleteness: number;
+    evidenceCount: number;
+  };
+  missingEvidence: string[];
+  preferredModalities: string[];
+  preferredModalityConfidence: 'none' | 'low' | 'medium';
+}
+
+export function buildAdaptiveLearningPathLearnerStateSnapshot(
+  learnerState: AdaptiveLearningPathLearnerState | null | undefined,
+): AdaptiveLearningPathLearnerStateSnapshot | null {
+  if (!learnerState) return null;
+  const confidence = learnerState.evidence?.confidence;
+  const freshnessValues = [
+    ...Object.values(learnerState.knowledgeMastery?.tags ?? {}).map((tag) => tag.freshness),
+    ...Object.values(learnerState.goalSlices ?? {}).flatMap((slice) =>
+      (slice?.capabilityTargets ?? []).map((target) => target.observedEvidence.freshness),
+    ),
+  ]
+    .filter((value): value is NonNullable<typeof value> => Boolean(value));
+  const freshness = freshnessValues.includes('stale')
+    ? 'stale'
+    : freshnessValues.includes('partial')
+      ? 'partial'
+      : freshnessValues.includes('current')
+        ? 'current'
+        : 'missing';
+  return {
+    payloadVersion: learnerState.payloadVersion ?? null,
+    generatedAt: learnerState.generatedAt ?? null,
+    authority: learnerState.authority === 'server-owned' ? 'server-owned' : 'unknown',
+    sourceCoverage: { ...(learnerState.evidence?.sourceCoverage ?? {}) },
+    evidenceWindow: learnerState.evidence?.evidenceWindow
+      ? { ...learnerState.evidence.evidenceWindow }
+      : null,
+    freshness,
+    confidence: {
+      level: confidence?.level ?? 'none',
+      score: confidence?.score ?? 0,
+      sourceCompleteness: confidence?.sourceCompleteness ?? 0,
+      evidenceCount: confidence?.evidenceCount ?? 0,
+    },
+    missingEvidence: [...(learnerState.missingEvidence ?? [])],
+    preferredModalities: [...(learnerState.resourcePreference?.preferredModalities ?? [])],
+    preferredModalityConfidence: learnerState.resourcePreference?.confidence
+      ?? preferredModalityConfidenceFromCount(learnerState.resourcePreference?.preferredModalities?.length ?? 0),
+  };
+}
+
+function preferredModalityConfidenceFromCount(count: number): 'none' | 'low' | 'medium' {
+  if (count >= 5) return 'medium';
+  if (count > 0) return 'low';
+  return 'none';
 }
 
 export function hasTrustedPortraitForPersonalization(
@@ -588,6 +661,7 @@ export interface AdaptiveLearningPathEvidencePayload {
   sourcePackEvidence?: AdaptiveLearningPathSourcePackEvidence | null;
   candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics | null;
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
+  learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
 }
 
 export interface AdaptiveLearningPathCandidatePoolDiagnostics {
@@ -781,6 +855,7 @@ export interface AdaptiveLearningPathRecommendationProvenance {
   summary: string;
   confidence: 'low' | 'medium' | 'high';
   entries: AdaptiveLearningPathRecommendationProvenanceEntry[];
+  personalizationNotes?: string[];
   evidenceReviewHref: '/profile/evidence';
   limitations: string[];
   nextAction: string | null;
@@ -809,6 +884,7 @@ export interface AdaptiveLearningPathCapabilityEvidence {
     confidence: number;
     directEvidenceCount: number;
     supportingEvidenceCount: number;
+    freshness?: 'current' | 'partial' | 'stale' | 'missing';
     portraitDimensionIds?: PortraitV2DimensionId[];
     eventReferences?: StudentSafeEvidenceEventReference[];
     source: 'adaptive-learner-state';
@@ -1982,6 +2058,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
+  const learnerStateSnapshot = buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState);
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
   const preferenceContext = buildPlannerPreferenceContext(input);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
@@ -2288,6 +2365,7 @@ function buildAdaptiveLearningPathPlanInternal(
       learnerState: input.learnerState,
       sourceCoverage,
       confidence,
+      learnerStateSnapshot,
       status,
       hasUsablePath: mainPath.length > 0,
       sourcePackEvidence,
@@ -2488,6 +2566,7 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
       path: plan.mainPath,
       deficits: targetDeficits,
       confidence: plan.confidence.level,
+      learnerStateSnapshot: plan.visualization.evidence.learnerStateSnapshot,
     }),
     evidenceBasis: plan.confidence.level === 'low'
       ? ['learner-evidence-low-confidence']
@@ -4068,7 +4147,12 @@ function toRepairCandidate(
 ): PathConstraintRepairCandidate {
   const planningUnit = requirePlanningUnit(entry.node);
   const readiness = evaluateNodeReadiness(entry.node, learnerState, constraints, completedNodeIds);
-  const officialTerminalValidation = isTerminalValidationNode(entry.node);
+  const officialTerminalValidation = officialTerminalValidationReachable(
+    entry.node,
+    learnerState,
+    constraints,
+    completedNodeIds,
+  );
   const previewTerminalValidation = !officialTerminalValidation &&
     entry.node.planningMetadata.terminalConstraints.includes('terminal-validation');
   const completed = completedNodeIds.includes(entry.node.id);
@@ -4667,6 +4751,20 @@ function isTerminalValidationNode(node: ResourceNode): boolean {
     node.planningMetadata.terminalConstraints.includes('terminal-validation');
 }
 
+function officialTerminalValidationReachable(
+  node: ResourceNode,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  constraints: AdaptiveLearningPathConstraints,
+  completedNodeIds: string[],
+): boolean {
+  if (!isTerminalValidationNode(node)) return false;
+  const readiness = evaluateNodeReadiness(node, learnerState, constraints, completedNodeIds);
+  const pathCanCloseRemainingGates =
+    readiness.missingCompletedNodeIds.length > 0 || readiness.missingOutcomeRefs.length > 0;
+  if (pathCanCloseRemainingGates) return true;
+  return readiness.missingCompetencies.length === 0 && readiness.missingEvidenceCount === 0;
+}
+
 function endsWithTerminalValidationNode(entries: ScoredNode[]): boolean {
   const last = entries.at(-1);
   return last ? isTerminalValidationNode(last.node) : false;
@@ -4933,6 +5031,7 @@ function buildPolicyBundle(
           path: mainPath,
           deficits: targetDeficits,
           confidence: plan.confidence.level,
+          learnerStateSnapshot: plan.visualization.evidence.learnerStateSnapshot,
         }),
         evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
         estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
@@ -5332,6 +5431,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   path: AdaptiveLearningPathPlanNode[];
   deficits: AdaptiveLearningPathDeficit[];
   confidence: AdaptiveLearningPathPlan['confidence']['level'];
+  learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
 }): AdaptiveLearningPathRecommendationProvenance {
   const entries = input.deficits.slice(0, 3).map((deficit) => {
     const confidence = recommendationEntryConfidence(deficit);
@@ -5368,12 +5468,20 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   const confidence = input.confidence === 'low' || entries.length === 0 || hasLowConfidenceDeficit
     ? 'low'
     : input.confidence;
+  const appliedPreferredModalities = trustedPreferredModalitiesOnPath(
+    input.path,
+    input.learnerStateSnapshot,
+  );
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
+    unmatchedPreferredModalityLimitation(input.learnerStateSnapshot, appliedPreferredModalities),
   ]);
+  const personalizationNotes = appliedPreferredModalities.length
+    ? [`根据你的学习方式偏好，优先安排${appliedPreferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
+    : [];
   return {
     summary: confidence === 'low'
       ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
@@ -5382,6 +5490,7 @@ export function buildAdaptivePathRecommendationProvenance(input: {
         : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
     confidence,
     entries,
+    personalizationNotes,
     evidenceReviewHref: '/profile/evidence',
     limitations,
     nextAction: confidence === 'low' || hasLowConfidenceDeficit
@@ -5396,6 +5505,59 @@ function recommendationEntryConfidence(
   if (deficit.evidenceCount < 2 || deficit.confidence < 0.5) return 'low';
   if (deficit.evidenceCount < 5 || deficit.confidence < 0.75) return 'medium';
   return 'high';
+}
+
+function isTrustedPersonalizationSnapshot(
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+): snapshot is AdaptiveLearningPathLearnerStateSnapshot {
+  return Boolean(
+    snapshot
+      && snapshot.confidence.level !== 'none'
+      && snapshot.confidence.level !== 'low'
+      && snapshot.preferredModalityConfidence !== 'none'
+      && snapshot.preferredModalityConfidence !== 'low'
+      && snapshot.freshness !== 'stale'
+  );
+}
+
+function pathResourceTypes(path: AdaptiveLearningPathPlanNode[]): Set<string> {
+  return new Set(
+    path.flatMap((node) => [node.type, node.pathNodeType].filter(Boolean)),
+  );
+}
+
+function trustedPreferredModalitiesOnPath(
+  path: AdaptiveLearningPathPlanNode[],
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+): string[] {
+  if (!isTrustedPersonalizationSnapshot(snapshot)) return [];
+  const present = pathResourceTypes(path);
+  return snapshot.preferredModalities.filter((modality) => present.has(modality));
+}
+
+function unmatchedPreferredModalityLimitation(
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+  appliedPreferredModalities: string[],
+): string | null {
+  if (!snapshot?.preferredModalities.length || appliedPreferredModalities.length > 0) return null;
+  if (!isTrustedPersonalizationSnapshot(snapshot)) {
+    return '学习方式偏好证据不足或已过期，本路径未据此调整资源组合。';
+  }
+  return '当前学习方式偏好未能落实到本路径的可用资源。';
+}
+
+function resourceTypeLabel(resourceType: string): string {
+  const labels: Record<string, string> = {
+    video: '视频',
+    handout: '讲义',
+    knowledge_card: '知识卡片',
+    simulation: '仿真',
+    adaptive_quiz: '自适应练习',
+    quiz: '练习题',
+    audio: '音频',
+    textbook_section: '教材阅读',
+  };
+  return labels[resourceType] ?? '学习';
 }
 
 function nodeMatchesRecommendationTarget(
@@ -5596,6 +5758,7 @@ function buildVisualization(input: {
   learnerState: AdaptiveLearningPathLearnerState | null;
   sourceCoverage: Record<string, string>;
   confidence: AdaptiveLearningPathPlan['confidence'];
+  learnerStateSnapshot: AdaptiveLearningPathLearnerStateSnapshot | null;
   status: AdaptiveLearningPathStatus;
   hasUsablePath: boolean;
   sourcePackEvidence: AdaptiveLearningPathSourcePackEvidence | null;
@@ -5635,6 +5798,7 @@ function buildVisualization(input: {
       sourcePackEvidence: input.sourcePackEvidence,
       candidatePoolDiagnostics: input.candidatePoolDiagnostics ?? null,
       associativeRetrieval: input.associativeRetrieval,
+      learnerStateSnapshot: input.learnerStateSnapshot,
     },
   };
 }

@@ -48,7 +48,10 @@ export async function POST(request: Request) {
     const goalId = continuity?.targetKnowledgeId ?? verifiedPathContext?.goalId ?? readStandaloneGoalId(body);
     const questionScope: AdaptiveQuestionScope = continuity ? 'practice' : verifiedPathContext?.questionScope ?? 'practice';
     const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId, questionScope, continuity });
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      assessmentStage: questionScope,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof AdaptiveAssessmentCatalogSelectionError) {

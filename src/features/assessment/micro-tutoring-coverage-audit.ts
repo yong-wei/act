@@ -17,8 +17,24 @@ import {
 export type { MicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 
 export const MICRO_TUTORING_COVERAGE_AUDIT_VERSION = 'micro-tutoring-coverage-audit.v1';
+export const MICRO_TUTORING_COVERAGE_AUDIT_V2_VERSION = 'micro-tutoring-coverage-audit.v2';
 export const MICRO_TUTORING_PRACTICE_BASELINE_VERSION = 'micro-tutoring-practice-baseline.v1';
 export const MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT = 54;
+export const MICRO_TUTORING_ASSESSMENT_BASELINE_V2_VERSION = 'micro-tutoring-assessment-baseline.v2';
+export const MICRO_TUTORING_ASSESSMENT_BASELINE_V2_ITEM_COUNT = 135;
+export const MICRO_TUTORING_V2_ERROR_OPTION_COUNT = 272;
+export const MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS = {
+  practice: 54,
+  checkpoint: 27,
+  remediation: 27,
+  readiness: 2,
+  'readiness-gate': 25,
+} as const;
+
+export type MicroTutoringCoverageProfile = 'v1' | 'v2';
+export type MicroTutoringCoverageAuditArtifactVersion =
+  | typeof MICRO_TUTORING_COVERAGE_AUDIT_VERSION
+  | typeof MICRO_TUTORING_COVERAGE_AUDIT_V2_VERSION;
 
 export type MicroTutoringCoverageGapReason =
   | 'ATTRIBUTION_UNCERTAIN'
@@ -50,9 +66,12 @@ export type MicroTutoringOptionAttributionIssueReason =
 
 export interface MicroTutoringPracticeBaseline {
   version: string;
+  itemCount?: number;
+  stageCounts?: Partial<Record<string, number>>;
   entries: Array<{
     catalogItemId: string;
     contentHash: string;
+    assessmentStage?: string;
   }>;
 }
 
@@ -76,6 +95,7 @@ export interface MicroTutoringCoverageAuditInput {
   catalogItems: AdaptiveAssessmentCatalogItem[];
   reviewDecisions: AssessmentItemSemanticReviewDecision[];
   baseline: MicroTutoringPracticeBaseline;
+  coverageProfile?: MicroTutoringCoverageProfile;
   optionAttributions: unknown[];
   goalNodeCatalogSource?: unknown;
   goalNodeSourceContext?: MicroTutoringGoalNodeSourceContext;
@@ -118,9 +138,12 @@ export interface MicroTutoringCoverageRow {
 }
 
 export interface MicroTutoringCoverageAuditReport {
-  artifactVersion: typeof MICRO_TUTORING_COVERAGE_AUDIT_VERSION;
+  artifactVersion: MicroTutoringCoverageAuditArtifactVersion;
+  coverageProfile: MicroTutoringCoverageProfile;
   baselineItemCount: number;
   qualifiedPracticeItemCount: number;
+  qualifiedItemCount: number;
+  stageCounts?: Record<string, number>;
   errorOptionCount: number;
   completeOptionCount: number;
   gapOptionCount: number;
@@ -196,33 +219,109 @@ function practiceItems(
   }).sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 }
 
+function v2BaselineItems(
+  items: AdaptiveAssessmentCatalogItem[],
+  decisions: AssessmentItemSemanticReviewDecision[],
+  baseline: MicroTutoringPracticeBaseline,
+): AdaptiveAssessmentCatalogItem[] {
+  const itemById = new Map(items.map((item) => [item.catalogItemId, item]));
+  const decisionById = new Map(decisions.map((decision) => [decision.catalogItemId, decision]));
+  return baseline.entries.flatMap((entry) => {
+    const item = itemById.get(entry.catalogItemId);
+    const decision = decisionById.get(entry.catalogItemId);
+    if (!item || item.contentHash !== entry.contentHash) return [];
+    if (!decision || decision.decisionKind !== 'human-review' || decision.outcome !== 'approved') return [];
+    if (entry.assessmentStage && decision.selectedStagePurpose !== entry.assessmentStage) return [];
+    return [item];
+  }).sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
+}
+
+function countBaselineStages(baseline: MicroTutoringPracticeBaseline): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const entry of baseline.entries) {
+    const stage = entry.assessmentStage?.trim();
+    if (!stage) continue;
+    counts[stage] = (counts[stage] ?? 0) + 1;
+  }
+  return counts;
+}
+
 function baselineIssues(
   baseline: MicroTutoringPracticeBaseline,
   qualifiedItems: AdaptiveAssessmentCatalogItem[],
   catalogItems: AdaptiveAssessmentCatalogItem[],
+  profile: MicroTutoringCoverageProfile,
 ): MicroTutoringCoverageAuditReport['baselineIssues'] {
   const issues: MicroTutoringCoverageAuditReport['baselineIssues'] = [];
-  if (baseline.version !== MICRO_TUTORING_PRACTICE_BASELINE_VERSION) {
+  const expectedVersion = profile === 'v2'
+    ? MICRO_TUTORING_ASSESSMENT_BASELINE_V2_VERSION
+    : MICRO_TUTORING_PRACTICE_BASELINE_VERSION;
+  const expectedCount = profile === 'v2'
+    ? MICRO_TUTORING_ASSESSMENT_BASELINE_V2_ITEM_COUNT
+    : MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT;
+  if (baseline.version !== expectedVersion) {
     issues.push({
       reason: 'BASELINE_VERSION_UNSUPPORTED',
       catalogItemId: baseline.version,
     });
   } else {
-    if (baseline.entries.length !== MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT) {
+    if (baseline.entries.length !== expectedCount) {
       issues.push({
         reason: 'BASELINE_ITEM_COUNT_DRIFT',
         catalogItemId: baseline.version,
-        expectedItemCount: MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT,
+        expectedItemCount: expectedCount,
         actualItemCount: baseline.entries.length,
       });
     }
-    if (qualifiedItems.length !== MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT) {
+    if (qualifiedItems.length !== expectedCount) {
       issues.push({
         reason: 'BASELINE_ITEM_COUNT_DRIFT',
-        catalogItemId: 'qualified-practice-items',
-        expectedItemCount: MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT,
+        catalogItemId: profile === 'v2' ? 'qualified-baseline-items' : 'qualified-practice-items',
+        expectedItemCount: expectedCount,
         actualItemCount: qualifiedItems.length,
       });
+    }
+    if (profile === 'v2') {
+      if ((baseline.itemCount ?? 0) !== expectedCount) {
+        issues.push({
+          reason: 'BASELINE_ITEM_COUNT_DRIFT',
+          catalogItemId: 'declared-item-count',
+          expectedItemCount: expectedCount,
+          actualItemCount: baseline.itemCount ?? 0,
+        });
+      }
+      const actualStages = countBaselineStages(baseline);
+      for (const [stage, expected] of Object.entries(MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
+        if ((actualStages[stage] ?? 0) !== expected) {
+          issues.push({
+            reason: 'BASELINE_ITEM_COUNT_DRIFT',
+            catalogItemId: `stage:${stage}`,
+            expectedItemCount: expected,
+            actualItemCount: actualStages[stage] ?? 0,
+          });
+        }
+      }
+      const declaredStages = baseline.stageCounts ?? {};
+      for (const [stage, expected] of Object.entries(MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
+        if ((declaredStages[stage] ?? 0) !== expected) {
+          issues.push({
+            reason: 'BASELINE_ITEM_COUNT_DRIFT',
+            catalogItemId: `declared-stage:${stage}`,
+            expectedItemCount: expected,
+            actualItemCount: declaredStages[stage] ?? 0,
+          });
+        }
+      }
+      for (const [stage, count] of Object.entries(declaredStages)) {
+        if (!(stage in MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
+          issues.push({
+            reason: 'BASELINE_ITEM_COUNT_DRIFT',
+            catalogItemId: `declared-stage:${stage}`,
+            expectedItemCount: 0,
+            actualItemCount: count ?? 0,
+          });
+        }
+      }
     }
   }
   const baselineById = new Map<string, string>();
@@ -457,7 +556,10 @@ export function buildMicroTutoringCoverageAuditReport(
   if (!isNonEmptyString(input.optionReferenceSecret)) {
     throw new Error('micro tutoring coverage audit requires a non-empty option reference secret');
   }
-  const qualifiedItems = practiceItems(input.catalogItems, input.reviewDecisions);
+  const coverageProfile = input.coverageProfile ?? 'v1';
+  const qualifiedItems = coverageProfile === 'v2'
+    ? v2BaselineItems(input.catalogItems, input.reviewDecisions, input.baseline)
+    : practiceItems(input.catalogItems, input.reviewDecisions);
   const attributionAudit = auditOptionAttributions({
     optionAttributions: input.optionAttributions,
     goalNodeCatalogSource: input.goalNodeCatalogSource,
@@ -558,14 +660,30 @@ export function buildMicroTutoringCoverageAuditReport(
     for (const reason of row.reasons) gapReasonCounts[reason] += 1;
   }
   const completeOptionCount = rows.filter((row) => row.status === 'COMPLETE').length;
+  const stageCounts = coverageProfile === 'v2' ? countBaselineStages(input.baseline) : undefined;
+  const practiceIds = coverageProfile === 'v2'
+    ? new Set(
+      input.baseline.entries
+        .filter((entry) => entry.assessmentStage === 'practice')
+        .map((entry) => entry.catalogItemId),
+    )
+    : null;
+  const qualifiedPracticeItemCount = practiceIds
+    ? qualifiedItems.filter((item) => practiceIds.has(item.catalogItemId)).length
+    : qualifiedItems.length;
   const report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'> = {
-    artifactVersion: MICRO_TUTORING_COVERAGE_AUDIT_VERSION,
+    artifactVersion: coverageProfile === 'v2'
+      ? MICRO_TUTORING_COVERAGE_AUDIT_V2_VERSION
+      : MICRO_TUTORING_COVERAGE_AUDIT_VERSION,
+    coverageProfile,
     baselineItemCount: input.baseline.entries.length,
-    qualifiedPracticeItemCount: qualifiedItems.length,
+    qualifiedPracticeItemCount,
+    qualifiedItemCount: qualifiedItems.length,
+    ...(stageCounts ? { stageCounts } : {}),
     errorOptionCount: rows.length,
     completeOptionCount,
     gapOptionCount: rows.length - completeOptionCount,
-    baselineIssues: baselineIssues(input.baseline, qualifiedItems, input.catalogItems),
+    baselineIssues: baselineIssues(input.baseline, qualifiedItems, input.catalogItems, coverageProfile),
     attributionIssueCount: attributionAudit.issues.length,
     attributionIssues: attributionAudit.issues,
     gapReasonCounts,
@@ -585,6 +703,10 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
     `- 审计版本：${report.artifactVersion}`,
     `- 基线题目：${report.baselineItemCount}`,
     `- 当前合格常规练习题：${report.qualifiedPracticeItemCount}`,
+    `- 当前合格题目：${report.qualifiedItemCount}`,
+    ...(report.stageCounts
+      ? [`- 阶段计数：${Object.entries(report.stageCounts).map(([stage, count]) => `${stage}=${count}`).join(', ')}`]
+      : []),
     `- 错误选项：${report.errorOptionCount}`,
     `- 完整链路：${report.completeOptionCount}`,
     `- 缺口：${report.gapOptionCount}`,
@@ -629,18 +751,33 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
 export function microTutoringCoverageAuditIsStrictlyComplete(
   report: MicroTutoringCoverageAuditReport,
 ): boolean {
-  return report.baselineIssues.length === 0 &&
+  const complete = report.baselineIssues.length === 0 &&
     report.attributionIssues.length === 0 &&
     report.gapOptionCount === 0;
+  if (!complete) return false;
+  if ((report.coverageProfile ?? 'v1') === 'v2') {
+    return microTutoringCoverageAuditIsGitContentComplete(report);
+  }
+  return true;
 }
 
 export function microTutoringCoverageAuditIsGitContentComplete(
   report: MicroTutoringCoverageAuditReport,
 ): boolean {
+  const coverageProfile = report.coverageProfile ?? 'v1';
+  const expectedItems = coverageProfile === 'v2'
+    ? MICRO_TUTORING_ASSESSMENT_BASELINE_V2_ITEM_COUNT
+    : MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT;
+  const expectedOptions = coverageProfile === 'v2'
+    ? MICRO_TUTORING_V2_ERROR_OPTION_COUNT
+    : 108;
+  const expectedQualified = coverageProfile === 'v2'
+    ? report.qualifiedItemCount
+    : report.qualifiedPracticeItemCount;
   return report.baselineIssues.length === 0 &&
     report.attributionIssues.length === 0 &&
-    report.qualifiedPracticeItemCount === MICRO_TUTORING_PRACTICE_BASELINE_V1_ITEM_COUNT &&
-    report.errorOptionCount === 108 &&
+    expectedQualified === expectedItems &&
+    report.errorOptionCount === expectedOptions &&
     report.gapReasonCounts.ATTRIBUTION_UNCERTAIN === 0 &&
     report.gapReasonCounts.CANONICAL_NODE_UNAVAILABLE === 0 &&
     report.gapReasonCounts.RESOURCE_UNAVAILABLE === 0 &&

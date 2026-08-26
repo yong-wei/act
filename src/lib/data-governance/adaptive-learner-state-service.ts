@@ -1097,10 +1097,15 @@ function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2C
 export async function readPathPlannerLearnerState(
   db: AdaptiveLearnerStateDb,
   userId: string,
+  input: Pick<AdaptiveLearnerStateInput, 'goal' | 'classId' | 'now'> = {},
 ): Promise<AdaptiveLearnerState> {
   return readAdaptiveLearnerState(db, {
     userId,
     role: 'system',
+    goal: input.goal,
+    classId: input.classId,
+    now: input.now,
+    portraitConsumer: 'planner',
   });
 }
 
