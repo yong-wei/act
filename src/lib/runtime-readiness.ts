@@ -1,6 +1,8 @@
 import 'server-only';
 
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import {
   ACT_RUNTIME_BLOB_RELEASE_SCHEMA_VERSION,
@@ -69,10 +71,19 @@ function isSha256(value: unknown): value is string {
   return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value);
 }
 
-function coordinatedActiveReceiptMatchesRuntime(
+function resolveAuthorityCurrentPath(
+  authorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT?.trim()
+    || process.env.AUTHORITY_STORE_ROOT?.trim()
+    || path.join(process.cwd(), 'course-content', 'authoring', 'knowledge', 'authority'),
+): string {
+  return path.join(authorityRoot, 'current.json');
+}
+
+async function coordinatedActiveReceiptMatchesRuntime(
   value: unknown,
   identity: RuntimeReadinessIdentity,
-): value is CoordinatedActiveReceiptWire {
+  authorityCurrentPath: string,
+): Promise<boolean> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const receipt = value as Record<string, unknown>;
   const expectedKeys = [
@@ -100,6 +111,8 @@ function coordinatedActiveReceiptMatchesRuntime(
     && Object.keys(selector).sort().join('\u0000') === 'identity\u0000selectorId'
     && typeof (selector as Record<string, unknown>).selectorId === 'string'
     && typeof (selector as Record<string, unknown>).identity === 'string')) return false;
+  const authoritySelectors = selectors.filter((selector) => (selector as Record<string, unknown>).selectorId === 'authority:current');
+  if (authoritySelectors.length !== 1) return false;
   const runtimeIdentity = receipt.runtimeActiveIdentity;
   if (!runtimeIdentity || typeof runtimeIdentity !== 'object' || Array.isArray(runtimeIdentity)) return false;
   const runtime = runtimeIdentity as Record<string, unknown>;
@@ -125,17 +138,25 @@ function coordinatedActiveReceiptMatchesRuntime(
     runtimeActiveReceiptHash: receipt.runtimeActiveReceiptHash,
     runtimeActiveIdentity: receipt.runtimeActiveIdentity,
   });
-  return receipt.receiptHash === expectedHash && receipt.receiptId === `act-${expectedHash.slice(0, 24)}`;
+  if (receipt.receiptHash !== expectedHash || receipt.receiptId !== `act-${expectedHash.slice(0, 24)}`) return false;
+  try {
+    const authorityWire = await readFile(authorityCurrentPath);
+    return createHash('sha256').update(authorityWire).digest('hex')
+      === (authoritySelectors[0] as Record<string, unknown>).identity;
+  } catch {
+    return false;
+  }
 }
 
 async function hasMatchingCoordinatedActiveReceipt(
   identity: RuntimeReadinessIdentity,
   receiptPath = process.env.ACT_COORDINATED_ACTIVE_RECEIPT_PATH,
+  authorityCurrentPath = resolveAuthorityCurrentPath(),
 ): Promise<boolean> {
   if (!receiptPath) return false;
   try {
     const receipt = JSON.parse(await readFile(receiptPath, 'utf8')) as unknown;
-    return coordinatedActiveReceiptMatchesRuntime(receipt, identity);
+    return await coordinatedActiveReceiptMatchesRuntime(receipt, identity, authorityCurrentPath);
   } catch {
     return false;
   }
@@ -145,6 +166,7 @@ export async function projectRuntimeReadiness(
   runtimeRoot?: string,
   activeReceiptPath?: string,
   coordinatedActiveReceiptPath?: string,
+  authorityCurrentPath?: string,
 ): Promise<RuntimeReadinessProjection> {
   const required = isBlobViewRuntimeRequired();
   if (!required) {
@@ -158,7 +180,7 @@ export async function projectRuntimeReadiness(
     }
     const identity = projectRuntimeIdentity(manifest);
     if (isCoordinatedCutoverRequired()
-      && !await hasMatchingCoordinatedActiveReceipt(identity, coordinatedActiveReceiptPath)) {
+      && !await hasMatchingCoordinatedActiveReceipt(identity, coordinatedActiveReceiptPath, authorityCurrentPath)) {
       return { required: true, ready: false, identity: null };
     }
     return {

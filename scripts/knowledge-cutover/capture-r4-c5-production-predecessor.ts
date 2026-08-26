@@ -109,7 +109,16 @@ function validate(
   value: { lifecycle: Record<string, unknown>; activeReceipt: Wire; selectors: Record<string, Wire>; transaction: Wire | null },
   allowStagedDesired: boolean,
 ) {
-  const lifecycle = value.lifecycle;
+  const lifecycle = exactKeys(value.lifecycle, [
+    'active', 'desired', 'generation', 'publishing', 'retained', 'rollback', 'schemaVersion', 'transactionId',
+  ], 'Runtime lifecycle');
+  if (lifecycle.schemaVersion !== 'runtime-blob-release-lifecycle.v2'
+    || typeof lifecycle.transactionId !== 'string'
+    || !/^[a-f0-9]{32}$/u.test(lifecycle.transactionId)
+    || !Array.isArray(lifecycle.publishing)
+    || !Array.isArray(lifecycle.retained)) {
+    fail('Runtime lifecycle is invalid');
+  }
   const active = requireRuntimeLifecycleIdentity(lifecycle.active, 'lifecycle.active');
   if (!Number.isInteger(lifecycle.generation) || (lifecycle.generation as number) < 1) fail('lifecycle generation is invalid');
   if (lifecycle.publishing === undefined || (!allowStagedDesired && lifecycle.desired !== null)) {
@@ -168,6 +177,7 @@ function main(): void {
       lifecycleGeneration: remote.lifecycle.generation,
     },
     stagedDesired: remote.lifecycle.desired,
+    lifecycle: remote.lifecycle,
     selectors: remote.selectors,
     observationHash: '',
   };

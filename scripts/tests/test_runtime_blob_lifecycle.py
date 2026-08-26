@@ -587,6 +587,55 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             )
             self.assertIn("exact current desired identity", rejected.stderr)
 
+    def test_restores_full_captured_lifecycle_after_coordinated_activation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active_a = self.write_identity(root, "runtime-a", "a")
+            active_b = self.write_identity(root, "runtime-b", "b")
+            successor_c = self.write_identity(root, "runtime-c", "c")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active_a))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(active_b))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(active_b))
+            self.call("activate", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(active_b), "--host-state-script", str(HOST_STATE))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(successor_c))
+            predecessor = self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(successor_c))
+            predecessor_path = root / "predecessor-lifecycle.json"
+            predecessor_path.write_text(json.dumps(predecessor), encoding="utf-8")
+            successor_identity = json.loads(successor_c.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **successor_identity,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "6", "--identity", str(successor_c),
+                "--coordinated-cutover", str(declaration),
+            )
+            authorization, binding = self.coordinated_authorization_and_binding(root, successor_identity, "e" * 64)
+            self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "7",
+                "--identity", str(successor_c), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(authorization),
+                "--coordinated-runtime-binding", str(binding),
+            )
+            restored = self.call(
+                "restore-coordinated-predecessor", "--state-dir", str(state),
+                "--predecessor-lifecycle", str(predecessor_path), "--successor-identity", str(successor_c),
+                "--coordinated-cutover", str(declaration), "--host-state-script", str(HOST_STATE),
+            )
+            self.assertTrue(restored["restored"])
+            self.assertEqual(self.call("inspect", "--state-dir", str(state)), predecessor)
+            self.assertFalse((state / "coordinated-cutover.json").exists())
+            host_active = subprocess.run(
+                ["python3", str(HOST_STATE), "active", "--state-dir", str(state)],
+                text=True, capture_output=True,
+            )
+            self.assertEqual(host_active.returncode, 0, host_active.stderr)
+            self.assertEqual(json.loads(host_active.stdout)["activeReleaseId"], predecessor["active"]["releaseId"])
+
     def test_coordinated_cutover_successor_requires_matching_runtime_authorization(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

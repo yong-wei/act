@@ -39,6 +39,17 @@ type RuntimeLifecycleIdentity = {
   readonly treeSha256: string;
 };
 
+type RuntimeLifecyclePredecessor = {
+  readonly schemaVersion: 'runtime-blob-release-lifecycle.v2';
+  readonly generation: number;
+  readonly transactionId: string;
+  readonly desired: RuntimeLifecycleIdentity | null;
+  readonly active: RuntimeLifecycleIdentity;
+  readonly rollback: RuntimeLifecycleIdentity | null;
+  readonly publishing: readonly RuntimeLifecycleIdentity[];
+  readonly retained: readonly Record<string, unknown>[];
+};
+
 function fail(message: string): never {
   throw new Error(`build-r4-c5-cutover-input: ${message}`);
 }
@@ -96,6 +107,26 @@ function sameRuntimeLifecycleIdentity(left: RuntimeLifecycleIdentity, right: Run
     && left.treeSha256 === right.treeSha256;
 }
 
+function requireRuntimeLifecyclePredecessor(
+  value: RuntimeLifecyclePredecessor,
+  runtime: RuntimeLifecycleIdentity,
+  stagedDesired: RuntimeLifecycleIdentity | null,
+): void {
+  if (value.schemaVersion !== 'runtime-blob-release-lifecycle.v2'
+    || !Number.isInteger(value.generation)
+    || value.generation < 1
+    || typeof value.transactionId !== 'string'
+    || !/^[a-f0-9]{32}$/u.test(value.transactionId)
+    || !Array.isArray(value.publishing)
+    || !Array.isArray(value.retained)
+    || !sameRuntimeLifecycleIdentity(value.active, runtime)
+    || value.desired !== stagedDesired && (value.desired === null || stagedDesired === null || !sameRuntimeLifecycleIdentity(value.desired, stagedDesired))) {
+    fail('captured Runtime lifecycle does not match the observed predecessor');
+  }
+  if (value.rollback !== null) requireRuntimeLifecycleIdentity(value.rollback, 'captured Runtime lifecycle rollback');
+  for (const publishing of value.publishing) requireRuntimeLifecycleIdentity(publishing, 'captured Runtime lifecycle publishing');
+}
+
 function requireTimestamp(value: string): void {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(value)) {
     fail('--sealed-at must be a millisecond RFC3339 UTC timestamp');
@@ -123,6 +154,7 @@ function main(): void {
     contract: string;
     runtime: RuntimeLifecycleIdentity & { activeReceiptHash: string; lifecycleGeneration: number };
     stagedDesired: RuntimeLifecycleIdentity | null;
+    lifecycle: RuntimeLifecyclePredecessor;
     selectors: { authority: { sha256: string; value: Record<string, unknown> } };
     observationHash: string;
   }>(option('--predecessor'));
@@ -139,6 +171,7 @@ function main(): void {
   }
   requireRuntimeLifecycleIdentity(predecessor.runtime, 'production predecessor Runtime');
   if (predecessor.stagedDesired !== null) requireRuntimeLifecycleIdentity(predecessor.stagedDesired, 'staged Runtime desired');
+  requireRuntimeLifecyclePredecessor(predecessor.lifecycle, predecessor.runtime, predecessor.stagedDesired);
   if (runtimeStage !== null) requireRuntimeLifecycleIdentity(runtimeStage.runtimeRelease, 'staged Runtime release');
   for (const value of [
     ...(runtimeStage === null ? [] : [
@@ -493,7 +526,7 @@ function main(): void {
   const rollbackPlanHash = projectionDigest({
     authorityBefore: predecessor.selectors.authority.sha256,
     authorityAfter: successorAuthorityIdentity,
-    runtimeBefore: predecessor.runtime,
+    runtimeLifecycleBefore: predecessor.lifecycle,
     runtimeAfter: runtimeStage.runtimeRelease,
   });
   const verificationPolicy = {
@@ -547,6 +580,7 @@ function main(): void {
   };
   immutableWrite(path.join(out, 'prepare-input.json'), input);
   immutableWrite(path.join(out, 'predecessor-observation.json'), predecessor);
+  immutableWrite(path.join(out, 'lifecycle-predecessor.json'), predecessor.lifecycle);
   immutableWrite(path.join(out, 'runtime-stage.json'), runtimeStage);
   immutableWrite(path.join(out, 'presentation-label-qualification.json'), presentationLabels);
   immutableWrite(path.join(out, 'projection-adjustments.json'), projectionAdjustment);

@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ "$candidate_dir" = /* && -d "$candidate_dir" && ! -L "$candidate_dir" ]] || { echo "ERROR: --candidate-dir must be an absolute real directory" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
-for file in "$LIFECYCLE" "$ACTIVATION" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$STATE_DIR/act-runtime-active-receipt.json" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json" "$candidate_dir/materialization-receipt.json"; do
+for file in "$LIFECYCLE" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$STATE_DIR/act-runtime-active-receipt.json" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/lifecycle-predecessor.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json" "$candidate_dir/materialization-receipt.json"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required regular file is missing: $file" >&2; exit 1; }
 done
 
@@ -110,9 +110,9 @@ PY
 }
 
 preflight_and_prepare() {
-  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/manifest.json" "$candidate_dir/materialization-receipt.json" "$STATE_DIR/act-runtime-active-receipt.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
+  python3 - "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/lifecycle-predecessor.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/manifest.json" "$candidate_dir/materialization-receipt.json" "$STATE_DIR/act-runtime-active-receipt.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/coordinated-cutover.json" <<'PY'
 import hashlib, json, os, re, subprocess, sys
-candidate_path, successor_path, stage_path, observed_path, artifacts_path, labels_path, teaching_reclosure_path, projection_adjustment_path, projection_scope_binding_path, policy_path, extension_path, successor_runtime_path, runtime_manifest_path, materialization_receipt_path, active_receipt_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
+candidate_path, successor_path, stage_path, observed_path, predecessor_lifecycle_path, artifacts_path, labels_path, teaching_reclosure_path, projection_adjustment_path, projection_scope_binding_path, policy_path, extension_path, successor_runtime_path, runtime_manifest_path, materialization_receipt_path, active_receipt_path, authority_path, lifecycle, state_dir, declaration_path = sys.argv[1:]
 sha = lambda value: hashlib.sha256(value).hexdigest()
 canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
 candidate = json.load(open(candidate_path, encoding='utf-8'))
@@ -168,6 +168,7 @@ if policy.get('presentationLabelQualificationHash') != labels.get('qualification
   raise SystemExit('presentation label qualification is not sealed by the verification policy')
 stage = json.load(open(stage_path, encoding='utf-8'))
 observed = json.load(open(observed_path, encoding='utf-8'))
+predecessor_lifecycle = json.load(open(predecessor_lifecycle_path, encoding='utf-8'))
 if stage.get('contract') != 'coordinated-runtime-stage/v1' or observed.get('contract') != 'r4-production-predecessor-observation/v1':
   raise SystemExit('runtime stage or predecessor observation is invalid')
 runtime_stage=stage.get('runtimeRelease')
@@ -203,7 +204,9 @@ if candidate['predecessor'] != [{'selectorId':'authority:current','identity':sha
 live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
 runtime = observed['runtime']
 runtime_before=runtime_identity({key: runtime.get(key) for key in identity_keys}, 'observed predecessor Runtime')
-if live['desired'] is None or live['active'] != runtime_before or live['generation'] != runtime['lifecycleGeneration']:
+if observed.get('lifecycle') != predecessor_lifecycle:
+  raise SystemExit('candidate predecessor lifecycle artifact differs from the captured observation')
+if live != predecessor_lifecycle or live['desired'] is None or live['active'] != runtime_before or live['generation'] != runtime['lifecycleGeneration']:
   raise SystemExit('Runtime predecessor or staged desired state drifted')
 if sha(open(active_receipt_path,'rb').read()) != runtime.get('activeReceiptHash'):
   raise SystemExit('Runtime active receipt differs from the observed predecessor')
@@ -216,7 +219,7 @@ if extension.get('predecessorRuntimeReleaseId') != runtime.get('releaseId') or e
 after = open(successor_path, 'rb').read()
 if candidate['successorSelectorExpectations'] != [{'selectorId':'authority:current','expectedSuccessorIdentity':sha(after)}]:
   raise SystemExit('Authority successor does not match candidate')
-rollback_hash=sha(canonical({'authorityBefore':sha(before),'authorityAfter':sha(after),'runtimeBefore':runtime,'runtimeAfter':runtime_stage}))
+rollback_hash=sha(canonical({'authorityBefore':sha(before),'authorityAfter':sha(after),'runtimeLifecycleBefore':predecessor_lifecycle,'runtimeAfter':runtime_stage}))
 if candidate.get('rollbackPlanHash') != rollback_hash:
   raise SystemExit('candidate rollback plan does not bind the observed Runtime and Authority identities')
 successor=json.loads(after)
@@ -300,37 +303,11 @@ PY
 }
 
 restore_runtime_predecessor() {
-  local state generation
-  state="$(python3 "$LIFECYCLE" inspect --state-dir "$STATE_DIR" 2>/dev/null)" || return 1
-  generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$state")" || return 1
-  [[ "$generation" =~ ^[0-9]+$ ]] || return 1
-  if python3 - "$state" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" <<'PY'
-import json, sys
-live, stage, predecessor = map(json.loads, sys.argv[1:])
-before = {key: predecessor['runtime'][key] for key in ('schemaVersion', 'releaseId', 'manifestVersion', 'manifestSha256', 'manifestWireSha256', 'manifestWireSizeBytes', 'treeSha256')}
-if live['active'] == stage['runtimeRelease']:
-    raise SystemExit(10)
-if live['active'] == before and live['desired'] in (None, stage['runtimeRelease']):
-    raise SystemExit(0)
-raise SystemExit(1)
-PY
-  then
-    return 0
-  else
-    case "$?" in
-      10) ;;
-      *) return 1 ;;
-    esac
-  fi
-  python3 "$ACTIVATION" rollback --state-dir "$STATE_DIR" --lifecycle-script "$LIFECYCLE" --host-state-script "$HOST_STATE" --expected-generation "$generation" >/dev/null 2>&1 || return 1
-  state="$(python3 "$LIFECYCLE" inspect --state-dir "$STATE_DIR" 2>/dev/null)" || return 1
-  python3 - "$state" "$candidate_dir/predecessor-observation.json" <<'PY'
-import json, sys
-live, predecessor = map(json.loads, sys.argv[1:])
-before = {key: predecessor['runtime'][key] for key in ('schemaVersion', 'releaseId', 'manifestVersion', 'manifestSha256', 'manifestWireSha256', 'manifestWireSizeBytes', 'treeSha256')}
-if live['active'] != before or live['desired'] is not None:
-    raise SystemExit(1)
-PY
+  python3 "$LIFECYCLE" restore-coordinated-predecessor \
+    --state-dir "$STATE_DIR" --predecessor-lifecycle "$candidate_dir/lifecycle-predecessor.json" \
+    --successor-identity "$candidate_dir/lifecycle-identity.json" \
+    --coordinated-cutover "$candidate_dir/coordinated-cutover.json" \
+    --host-state-script "$HOST_STATE" >/dev/null 2>&1
 }
 
 restore_final_receipt() {
@@ -367,7 +344,22 @@ recover() {
     RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED="$([[ "$previous_final_receipt_present" == "1" ]] && printf true || printf false)" \
       ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
       ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
-      "$DEPLOY" --runtime-cutover-app-only >/dev/null 2>&1 || true
+      "$DEPLOY" --runtime-cutover-app-only >/dev/null 2>&1 || recovery_safe=0
+    if [[ "$recovery_safe" == "1" ]]; then
+      for name in act-obe-app act-obe-worker act-obe-submission-scanner act-obe-submission-gc; do
+        if ! podman container exists "$name" || [[ "$(podman inspect --format '{{.State.Running}}' "$name")" != "true" ]]; then
+          recovery_safe=0
+          break
+        fi
+      done
+    fi
+    if [[ "$recovery_safe" == "1" ]]; then
+      app_port="$(awk -F= '$1 == "APP_PORT" { print $2 }' "$PROJECT_DIR/data/runtime/act-obe.env" | tail -n 1)"
+      [[ "$app_port" =~ ^[0-9]{1,5}$ ]] || recovery_safe=0
+      if [[ "$recovery_safe" == "1" ]]; then
+        curl -fsS "http://127.0.0.1:${app_port}/api/readyz" >/dev/null || recovery_safe=0
+      fi
+    fi
   fi
   if [[ -n "$transaction_id" ]]; then
     if [[ "$recovery_safe" == "1" ]]; then write_journal ROLLED_BACK; else write_journal BLOCKED_RECOVERY; fi

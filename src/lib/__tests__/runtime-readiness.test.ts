@@ -1,4 +1,5 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -51,13 +52,15 @@ async function blobView(options?: { extraReceiptField?: boolean; mismatch?: bool
 async function writeCoordinatedActiveReceipt(
   root: string,
   manifest: Awaited<ReturnType<typeof buildRuntimeBlobReleaseManifest>>,
+  authorityCurrentPath: string,
   runtimeReleaseId = manifest.releaseId,
 ) {
+  const authorityIdentity = createHash('sha256').update(await readFile(authorityCurrentPath)).digest('hex');
   const payload = {
     transactionId: 'tx-runtime-readiness',
     journalHash: 'a'.repeat(64),
     candidateReceiptHash: 'b'.repeat(64),
-    committedSelectors: [{ selectorId: 'authority:current', identity: 'snap-r4' }],
+    committedSelectors: [{ selectorId: 'authority:current', identity: authorityIdentity }],
     mutationReceiptHashes: ['c'.repeat(64)],
     runtimeActiveReceiptHash: 'd'.repeat(64),
     runtimeActiveIdentity: {
@@ -77,6 +80,17 @@ async function writeCoordinatedActiveReceipt(
   const receiptPath = path.join(root, 'coordinated-active-receipt.json');
   await writeFile(receiptPath, JSON.stringify(receipt));
   return receiptPath;
+}
+
+async function writeAuthorityCurrent(root: string, snapshotId = 'snap-r4') {
+  const authorityRoot = path.join(root, 'authority');
+  await mkdir(authorityRoot, { recursive: true });
+  const authorityCurrentPath = path.join(authorityRoot, 'current.json');
+  await writeFile(authorityCurrentPath, JSON.stringify({
+    contract: 'actkg-engineering-authority-current/v1',
+    snapshotId,
+  }));
+  return authorityCurrentPath;
 }
 
 afterEach(async () => {
@@ -158,7 +172,7 @@ describe('runtime readiness projector', () => {
     });
   });
 
-  it('requires a matching sealed coordinated receipt only when coordinated cutover is enabled', async () => {
+  it('requires matching Runtime and Authority identities when coordinated cutover is enabled', async () => {
     vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
     vi.stubEnv('ACT_COORDINATED_CUTOVER_REQUIRED', 'true');
     const { root, manifest } = await blobView();
@@ -167,14 +181,24 @@ describe('runtime readiness projector', () => {
       ready: false,
       identity: null,
     });
-    const matching = await writeCoordinatedActiveReceipt(root, manifest);
-    await expect(projectRuntimeReadiness(root, undefined, matching)).resolves.toMatchObject({
+    const authorityCurrentPath = await writeAuthorityCurrent(root);
+    const matching = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath);
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toMatchObject({
       required: true,
       ready: true,
       identity: { releaseId: manifest.releaseId },
     });
-    const mismatched = await writeCoordinatedActiveReceipt(root, manifest, 'runtime-foreign');
-    await expect(projectRuntimeReadiness(root, undefined, mismatched)).resolves.toEqual({
+    await writeFile(authorityCurrentPath, JSON.stringify({
+      contract: 'actkg-engineering-authority-current/v1',
+      snapshotId: 'snap-foreign',
+    }));
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
+    });
+    const mismatched = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath, 'runtime-foreign');
+    await expect(projectRuntimeReadiness(root, undefined, mismatched, authorityCurrentPath)).resolves.toEqual({
       required: true,
       ready: false,
       identity: null,

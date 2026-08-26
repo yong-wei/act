@@ -22,6 +22,9 @@ for (const invariant of [
   'coordinated-active-receipt/v1',
   'ACT_COORDINATED_CUTOVER_REQUIRED=true',
   'BLOCKED_RECOVERY',
+  'restore-coordinated-predecessor',
+  'lifecycle-predecessor.json',
+  'curl -fsS "http://127.0.0.1:${app_port}/api/readyz"',
   'Authority successor snapshot is not installed as a regular manifest',
   'Teaching Projection scope binding does not select the candidate Projection',
   'Runtime manifest extension does not match the sealed candidate',
@@ -32,6 +35,11 @@ for (const invariant of [
 assert.ok(
   remote.lastIndexOf('--coordinated-activate-before-consumers') < remote.lastIndexOf('seal_final_receipt'),
   'Runtime must activate with consumers stopped before the final active receipt is sealed',
+);
+assert.doesNotMatch(
+  remote,
+  /"\$DEPLOY" --runtime-cutover-app-only[^\n]*\|\| true/,
+  'recovery deployment failure must not be reported as a completed rollback',
 );
 assert.ok(
   remote.lastIndexOf('seal_final_receipt') < remote.lastIndexOf('"$DEPLOY" --runtime-cutover-app-only'),
@@ -65,6 +73,15 @@ try {
     activeReceiptHash: baseline.activeReceiptHash,
     lifecycleGeneration: baseline.lifecycleGeneration,
   };
+  const predecessorIdentity = {
+    schemaVersion: predecessorRuntime.schemaVersion,
+    releaseId: predecessorRuntime.releaseId,
+    manifestVersion: predecessorRuntime.manifestVersion,
+    manifestSha256: predecessorRuntime.manifestSha256,
+    manifestWireSha256: predecessorRuntime.manifestWireSha256,
+    manifestWireSizeBytes: predecessorRuntime.manifestWireSizeBytes,
+    treeSha256: predecessorRuntime.treeSha256,
+  };
   const authority = {
     contract: 'actkg-engineering-authority-current/v1',
     snapshotId: 'snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151',
@@ -77,13 +94,27 @@ try {
   const predecessorPath = path.join(fixture, 'predecessor.json');
   const stagePath = path.join(fixture, 'stage.json');
   const out = path.join(fixture, 'candidate');
-  const writePredecessor = (stagedDesired) => fs.writeFileSync(predecessorPath, `${JSON.stringify({
-    contract: 'r4-production-predecessor-observation/v1',
-    runtime: predecessorRuntime,
-    stagedDesired,
-    selectors: { authority: { sha256: 'a'.repeat(64), value: authority } },
-    observationHash: 'b'.repeat(64),
-  })}\n`);
+  const writePredecessor = (stagedDesired) => {
+    const lifecycle = {
+      schemaVersion: 'runtime-blob-release-lifecycle.v2',
+      generation: predecessorRuntime.lifecycleGeneration,
+      transactionId: '1'.repeat(32),
+      desired: stagedDesired,
+      active: predecessorIdentity,
+      rollback: null,
+      publishing: [],
+      retained: [],
+    };
+    fs.writeFileSync(predecessorPath, `${JSON.stringify({
+      contract: 'r4-production-predecessor-observation/v1',
+      runtime: predecessorRuntime,
+      stagedDesired,
+      lifecycle,
+      selectors: { authority: { sha256: 'a'.repeat(64), value: authority } },
+      observationHash: 'b'.repeat(64),
+    })}\n`);
+    return lifecycle;
+  };
   writePredecessor(null);
   const run = (args) => execFileSync(path.join(root, 'node_modules/.bin/tsx'), [builder, '--', ...args], { cwd: root, encoding: 'utf8' });
   const expectFailure = (args, pattern) => {
@@ -110,11 +141,16 @@ try {
     runtimeRelease,
     materializationReceiptSha256: 'e'.repeat(64),
   })}\n`);
-  writePredecessor(runtimeRelease);
+  const stagedLifecycle = writePredecessor(runtimeRelease);
   run(['--runtime-stage', stagePath, '--predecessor', predecessorPath, '--out', out, '--sealed-at', '2026-08-26T09:01:00.000Z']);
   const input = JSON.parse(fs.readFileSync(path.join(out, 'prepare-input.json'), 'utf8'));
   assert.equal(input.allocation.allocationHash, allocation.allocationHash, 'Runtime staging must consume the presealed allocation');
   assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(out, 'lifecycle-predecessor.json'), 'utf8')),
+    stagedLifecycle,
+    'candidate must retain the complete staged Runtime lifecycle predecessor for compensation',
+  );
   const labels = JSON.parse(fs.readFileSync(path.join(out, 'presentation-label-qualification.json'), 'utf8'));
   const adjustments = JSON.parse(fs.readFileSync(path.join(out, 'projection-adjustments.json'), 'utf8'));
   const scopeBinding = JSON.parse(fs.readFileSync(path.join(out, 'projection-scope-binding.json'), 'utf8'));

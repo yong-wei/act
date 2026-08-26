@@ -830,6 +830,104 @@ def inspect(args: argparse.Namespace) -> Dict[str, Any]:
         lock.close()
 
 
+def read_lifecycle_file(path_value: str, label: str) -> Dict[str, Any]:
+    path = Path(path_value)
+    if path.is_symlink() or not path.is_file():
+        fail("%s must be a regular non-symlink file" % label)
+    value = read_json(path, lifecycle)
+    if value is None:
+        fail("%s is missing" % label)
+    return value
+
+
+def is_attached_coordinated_predecessor(current: Dict[str, Any], predecessor: Dict[str, Any]) -> bool:
+    return (
+        current["generation"] == predecessor["generation"] + 1
+        and current["schemaVersion"] == predecessor["schemaVersion"]
+        and current["desired"] == predecessor["desired"]
+        and current["active"] == predecessor["active"]
+        and current["rollback"] == predecessor["rollback"]
+        and current["publishing"] == predecessor["publishing"]
+        and current["retained"] == predecessor["retained"]
+    )
+
+
+def is_activated_coordinated_successor(
+    current: Dict[str, Any],
+    predecessor: Dict[str, Any],
+    successor: Dict[str, Any],
+) -> bool:
+    if (
+        current["generation"] != predecessor["generation"] + 2
+        or current["active"] != successor
+        or current["desired"] is not None
+        or current["rollback"] != predecessor["active"]
+        or current["publishing"] != predecessor["publishing"]
+    ):
+        return False
+    prior_rollback = predecessor["rollback"]
+    if prior_rollback is None:
+        return current["retained"] == predecessor["retained"]
+    replacement = [
+        item for item in current["retained"]
+        if item["identity"]["releaseId"] == prior_rollback["releaseId"]
+    ]
+    retained_without_prior = [
+        item for item in current["retained"]
+        if item["identity"]["releaseId"] != prior_rollback["releaseId"]
+    ]
+    return len(replacement) == 1 and replacement[0]["identity"] == prior_rollback and retained_without_prior == predecessor["retained"]
+
+
+def restore_coordinated_predecessor(args: argparse.Namespace) -> Dict[str, Any]:
+    """Restore a c5 lifecycle image only from one recorded transaction state.
+
+    A coordinated desired declaration changes the lifecycle once before
+    activation, and activation changes it once more.  A plain runtime rollback
+    cannot recreate the original desired candidate, rollback root, retained
+    set, generation or transaction identity, so compensation has to restore
+    the complete captured predecessor instead.
+    """
+    state_dir = Path(args.state_dir)
+    predecessor = read_lifecycle_file(args.predecessor_lifecycle, "captured predecessor lifecycle")
+    successor = read_identity_file(args.successor_identity)
+    try:
+        declaration = coordinated_cutover_declaration(json.loads(Path(args.coordinated_cutover).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated cutover declaration is unreadable: %s" % error)
+    if predecessor["desired"] != successor:
+        fail("captured predecessor must retain the exact staged coordinated successor")
+    if any(declaration[key] != successor[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
+        fail("coordinated cutover declaration does not match the staged successor")
+    host_script = require_runtime_script(args.host_state_script, "host state script")
+    lock = locked(state_dir)
+    try:
+        current = read_v2(state_dir)
+        existing = read_coordinated_cutover_declaration(state_dir)
+        if current == predecessor:
+            if existing is not None and existing != declaration:
+                fail("current coordinated declaration differs from the recorded transaction")
+            project_host_active(state_dir, host_script, predecessor["active"])
+            if existing is not None:
+                remove_coordinated_cutover_declaration(state_dir)
+            return {"active": predecessor["active"], "generation": predecessor["generation"], "restored": True}
+        attached = is_attached_coordinated_predecessor(current, predecessor)
+        activated = is_activated_coordinated_successor(current, predecessor, successor)
+        if not attached and not activated:
+            fail("current lifecycle is outside the recorded coordinated transaction states")
+        if existing != declaration:
+            fail("current coordinated declaration differs from the recorded transaction")
+        transaction(state_dir, predecessor)
+        # This reopens the v1 host receipt for the exact restored active
+        # identity before the declaration is removed.  A failure keeps the
+        # declaration in place and lets the outer transaction remain blocked.
+        project_host_active(state_dir, host_script, predecessor["active"])
+        remove_coordinated_cutover_declaration(state_dir)
+        return {"active": predecessor["active"], "generation": predecessor["generation"], "restored": True}
+    finally:
+        lock.close()
+
+
 def recover_unlocked(state_dir: Path) -> Dict[str, Any]:
     marker_value = read_json(state_dir / MARKER_FILE, marker)
     current = read_recoverable_lifecycle(state_dir / LIFECYCLE_FILE)
@@ -1213,6 +1311,12 @@ def main() -> None:
     protected_parser.add_argument("--state-dir", required=True)
     inspect_parser = commands.add_parser("inspect")
     inspect_parser.add_argument("--state-dir", required=True)
+    restore_predecessor_parser = commands.add_parser("restore-coordinated-predecessor")
+    restore_predecessor_parser.add_argument("--state-dir", required=True)
+    restore_predecessor_parser.add_argument("--predecessor-lifecycle", required=True)
+    restore_predecessor_parser.add_argument("--successor-identity", required=True)
+    restore_predecessor_parser.add_argument("--coordinated-cutover", required=True)
+    restore_predecessor_parser.add_argument("--host-state-script", required=True)
     recover_parser = commands.add_parser("recover")
     recover_parser.add_argument("--state-dir", required=True)
     project_recover_parser = commands.add_parser("recover-and-project")
@@ -1237,6 +1341,8 @@ def main() -> None:
         result = protected(args)
     elif args.command == "inspect":
         result = inspect(args)
+    elif args.command == "restore-coordinated-predecessor":
+        result = restore_coordinated_predecessor(args)
     elif args.command == "recover":
         result = recover(args)
     elif args.command == "recover-and-project":
