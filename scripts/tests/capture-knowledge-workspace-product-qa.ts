@@ -2213,8 +2213,22 @@ async function captureMarkers(page: Page, stateName: string) {
        ? Math.min(...activeNodeLabelFontSizes)
        : 0;
      const minNodeLabelPixelSize = minNodeLabelFontSize * (activeForceRuntime ? 1 : activeSvgScale);
+     const activeNodeLabelVisibility = activeNodeLabelElements.map((element) => {
+       const rect = element.getBoundingClientRect();
+       const style = window.getComputedStyle(element);
+       return {
+         hidden: element.hidden,
+         display: style.display,
+         visibility: style.visibility,
+         width: Number(rect.width.toFixed(2)),
+         height: Number(rect.height.toFixed(2)),
+         inViewport: intersectsViewport(rect),
+       };
+     });
      const nodeLabelReadability = {
        nodeLabelCount: activeNodeLabelElements.length,
+       visibleNodeLabelCount: activeNodeLabelVisibility.filter((label) => !label.hidden && label.display !== 'none' && label.visibility !== 'hidden').length,
+       inViewportNodeLabelCount: activeNodeLabelVisibility.filter((label) => label.inViewport).length,
        minFontSize: Number(minNodeLabelFontSize.toFixed(2)),
        minPixelSize: Number(minNodeLabelPixelSize.toFixed(2)),
        viewBoxWidth: activeSvgViewBox[2] ?? null,
