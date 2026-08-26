@@ -73,12 +73,16 @@ describe('AI chat route Konling runtime guard', () => {
   it('validates and injects the server-owned portfolio reflection task contract', () => {
     expect(chatRouteSource).toContain('auditTaskContext');
     expect(chatRouteSource).toContain('resolveAiAuditTaskContext');
+    expect(chatRouteSource).toContain('parseEvidenceCopilotRequest');
+    expect(chatRouteSource).toContain('resolveEvidenceCopilotContext');
+    expect(chatRouteSource).toContain('buildEvidenceCopilotPrompt');
     expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
     expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
+    expect(chatRouteSource).toContain('X-Evidence-Copilot-Status');
     expect(chatRouteSource).toContain('buildAiAuditTaskLogEntry');
     expect(chatRouteSource).toContain("console.info('[ai.task-context]'");
     expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
-    expect(chatRouteSource.indexOf('const taskContextResolution = resolveAiAuditTaskContext'))
+    expect(chatRouteSource.indexOf('parseEvidenceCopilotRequest(auditTaskContext)'))
       .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
   });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
