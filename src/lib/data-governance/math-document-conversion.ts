@@ -367,7 +367,7 @@ export function createLocalDocumentConverter(input: {
   let cachedWordProcessorVersion: string | null = null;
   const resolveWordProcessorVersion = async (signal?: AbortSignal) => {
     if (cachedWordProcessorVersion) return cachedWordProcessorVersion;
-    cachedWordProcessorVersion = await readLibreOfficeVersion(run, signal);
+    cachedWordProcessorVersion = await resolveLibreOfficeRuntimeVersion({ exec: run, signal });
     return cachedWordProcessorVersion;
   };
   return {
@@ -821,15 +821,18 @@ async function normalizeLegacyDocToDocx(
   }
 }
 
-async function readLibreOfficeVersion(
-  run: typeof execFileAsync,
-  signal?: AbortSignal,
-): Promise<string> {
+export async function resolveLibreOfficeRuntimeVersion(input: {
+  command?: string;
+  exec?: typeof execFileAsync;
+  signal?: AbortSignal;
+} = {}): Promise<string> {
+  const run = input.exec ?? execFileAsync;
+  const command = input.command ?? process.env.LIBREOFFICE_COMMAND ?? 'soffice';
   try {
-    const result = await run(process.env.LIBREOFFICE_COMMAND ?? 'soffice', ['--version'], {
+    const result = await run(command, ['--version'], {
       timeout: 10_000,
       maxBuffer: 256 * 1024,
-      signal,
+      signal: input.signal,
     });
     const version = `${String(result.stdout ?? '')} ${String(result.stderr ?? '')}`.trim().replace(/\s+/gu, ' ');
     if (!/^LibreOffice\b/iu.test(version) || version.length > 200) {
@@ -837,7 +840,7 @@ async function readLibreOfficeVersion(
     }
     return version;
   } catch (error) {
-    if (signal?.aborted) throw error;
+    if (input.signal?.aborted) throw error;
     if (error instanceof WordRepresentationError) throw error;
     throw new WordRepresentationError('word-processor-version-unavailable');
   }

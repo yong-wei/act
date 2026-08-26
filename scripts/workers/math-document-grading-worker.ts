@@ -1,9 +1,11 @@
+import 'dotenv/config';
+
 import { Job, Queue, Worker } from 'bullmq';
 import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
 
 import { createSubmissionObjectStore } from '../../src/lib/assignments/submission-object-store';
-import { createMathpixClient } from '../../src/lib/data-governance/math-document-conversion';
+import { createMathpixClient, resolveLibreOfficeRuntimeVersion } from '../../src/lib/data-governance/math-document-conversion';
 import { processQuestionGradingBatch } from '../../src/lib/data-governance/math-document-grading-batch';
 import { refreshAssignmentAiGradingOperation } from '../../src/lib/data-governance/assignment-grading-orchestration';
 import {
@@ -35,11 +37,17 @@ function safeWorkerStartupError(error: unknown): string {
   if (/redis|bullmq/i.test(message)) return 'math-document-grading-worker-redis-unavailable';
   if (/database|postgres|prisma/i.test(message)) return 'math-document-grading-worker-database-unavailable';
   if (/object-store/i.test(message)) return 'math-document-grading-worker-object-store-unavailable';
+  if (/libreoffice/i.test(message)) return 'math-document-grading-worker-libreoffice-unavailable';
   return 'math-document-grading-worker-start-failed';
 }
 
 async function assertWorkerRuntimeDependencies(db: any): Promise<MathDocumentGradingWorkerCapabilityStatus> {
   const config = assertMathDocumentGradingWorkerConfig();
+  try {
+    await resolveLibreOfficeRuntimeVersion();
+  } catch {
+    throw new Error('math-document-grading-worker-libreoffice-unavailable');
+  }
   try {
     await db.$queryRawUnsafe('SELECT 1');
   } catch {

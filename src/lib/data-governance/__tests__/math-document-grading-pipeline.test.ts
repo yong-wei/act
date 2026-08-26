@@ -26,6 +26,7 @@ import {
   createLocalDocumentConverter,
   mathpixToConversionResult,
   renderPdfPagesToPng,
+  resolveLibreOfficeRuntimeVersion,
   toAnswerEvidence,
 } from '../math-document-conversion';
 import {
@@ -222,6 +223,24 @@ async function buildDocxParagraphs(paragraphs: string[]): Promise<Buffer> {
 }
 
 describe('production math-document grading contracts', () => {
+  it('requires the configured LibreOffice command to expose a bounded version', async () => {
+    const exec = vi.fn(async (command: string, args: readonly string[]) => {
+      expect(command).toBe('C:/controlled/LibreOffice/soffice.com');
+      expect(args).toEqual(['--version']);
+      return { stdout: 'LibreOffice 26.2.5.2', stderr: '' };
+    });
+
+    await expect(resolveLibreOfficeRuntimeVersion({ command: 'C:/controlled/LibreOffice/soffice.com', exec: exec as never }))
+      .resolves.toBe('LibreOffice 26.2.5.2');
+  });
+
+  it('rejects a missing or unrecognizable LibreOffice command before conversion starts', async () => {
+    await expect(resolveLibreOfficeRuntimeVersion({
+      command: 'missing-soffice',
+      exec: (async () => { throw new Error('spawn missing-soffice ENOENT'); }) as never,
+    })).rejects.toThrow('word-processor-version-unavailable');
+  });
+
   it('rejects non-PDF input before visual page rendering', async () => {
     await expect(renderPdfPagesToPng({ pdfBytes: Buffer.from('not-a-pdf') }))
       .rejects.toThrow('visual-evidence-pdf-invalid');
