@@ -477,12 +477,12 @@ async function establishRoleSession(
     if (typeof csrf.csrfToken !== 'string' || !csrf.csrfToken) {
       throw new Error(`CSRF response missing token for ${role}`);
     }
-    const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials?json=true`, {
+    const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials`, {
       form: {
         csrfToken: csrf.csrfToken,
         email: credentials.email,
         password: credentials.password,
-        callbackUrl: baseUrl,
+        redirect: 'false',
         json: 'true',
       },
     });
