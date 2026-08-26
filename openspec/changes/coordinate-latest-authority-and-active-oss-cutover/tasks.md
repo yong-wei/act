@@ -98,4 +98,4 @@
 - [ ] 10.5 Publish only the immutable non-selectable coordinated candidate, receipts, review evidence, and rollback evidence under implementation authority.
 - [ ] 10.6 Require two independent explicit authorities for production deployment and later production activation; prove that deployment authorization without activation authorization stops before service shutdown or any production selector mutation.
 - [ ] 10.7 Record the separately authorized activation transaction result without treating candidate completion or deployment completion as activation authority.
-- [ ] 10.8 Run authenticated knowledge-workspace product QA with managed local student, teacher, and administrator fixtures; require explicit supplied credentials for a non-local target and ensure that capture evidence contains no credential values.
+- [x] 10.8 Run authenticated knowledge-workspace product QA with managed local student, teacher, and administrator fixtures; require explicit supplied credentials for a non-local target and ensure that capture evidence contains no credential values.
