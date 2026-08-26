@@ -1706,7 +1706,7 @@ export function ActiveAuthorityGraph({
               <h2 className="text-base font-semibold max-[639px]:whitespace-nowrap" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
               <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100 max-[639px]:sr-only">{graphCopy(locale, 'badge.engineering')}</span>
             </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-2">{graphCopy(locale, 'subtitle.graph')}</p>
+            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-1">{graphCopy(locale, 'subtitle.graph')}</p>
           </div>
           <div className="flex flex-col items-end gap-2 max-[639px]:shrink-0 max-[639px]:gap-0">
             <div
@@ -1784,7 +1784,7 @@ export function ActiveAuthorityGraph({
       ) : (
         <div className="relative min-h-0 flex-1">
           <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4 max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
-            <div className="mb-3" data-active-authority-toolbar="true">
+            <div className="mb-3 max-[639px]:mb-1" data-active-authority-toolbar="true">
               <button
                 type="button"
                 data-active-authority-mobile-tools-toggle="true"
@@ -1921,7 +1921,7 @@ export function ActiveAuthorityGraph({
               </section>
             ) : null}
 
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
               <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
             </div>
