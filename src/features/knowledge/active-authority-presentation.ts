@@ -186,6 +186,17 @@ function isUnsafeIdentity(value: string): boolean {
     || /^[a-f0-9]{32,}$/iu.test(value);
 }
 
+function presentProjectedRelationText(
+  value: string | null | undefined,
+  rawValue: string | null,
+  fallback: string,
+): string {
+  const normalized = nonEmpty(value);
+  return normalized && normalized !== rawValue && !isUnsafeIdentity(normalized)
+    ? normalized
+    : fallback;
+}
+
 export function presentActiveHumanText(value: string | null | undefined, fallback: string): string {
   const normalized = nonEmpty(value);
   return normalized && !isUnsafeIdentity(normalized) ? normalized : fallback;
@@ -249,10 +260,13 @@ export function presentActiveRelation(
   }
   return {
     predicate,
-    label: nonEmpty(projected?.label) ?? known.label,
+    label: presentProjectedRelationText(projected?.label, predicate, known.label),
     kind: isUndirected ? 'undirected' : 'directed',
-    directionLabel: nonEmpty(projected?.directionLabel)
-      ?? (isUndirected ? '关联关系' : known.directionLabel),
+    directionLabel: presentProjectedRelationText(
+      projected?.directionLabel,
+      direction,
+      isUndirected ? '关联关系' : known.directionLabel,
+    ),
     supported: true,
   };
 }

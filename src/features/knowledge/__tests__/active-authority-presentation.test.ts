@@ -50,6 +50,10 @@ describe('active Authority presentation adapter', () => {
     expect(JSON.stringify(presentActiveNodeType('internal_node_type'))).not.toContain('internal_node_type');
     expect(presentActiveRelation('association', 'unordered')).toMatchObject({ label: '关联', kind: 'undirected', supported: true });
     expect(presentActiveRelation('applies_to', 'source_to_target')).toMatchObject({ label: '适用于', kind: 'directed', supported: true });
+    expect(presentActiveRelation('association', 'unordered', {
+      label: 'association',
+      directionLabel: 'unordered',
+    })).toMatchObject({ label: '关联', directionLabel: '关联关系', supported: true });
     expect(presentActiveRelation('internal_predicate', 'internal_direction')).toMatchObject({ label: '关系暂不可解释', supported: false });
     expect(presentActiveRelation('internal_predicate', 'internal_direction').directionLabel).not.toContain('internal_');
     expect(JSON.stringify(presentActiveRelation('internal_predicate', 'internal_direction'))).not.toContain('internal_');
