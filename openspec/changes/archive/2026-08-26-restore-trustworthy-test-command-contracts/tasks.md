@@ -31,6 +31,6 @@
 
 ## 5. Documentation and receipt handoff
 
-- [ ] 5.1 更新测试命令说明、CI command mapping 和 receipt schema 文档，注明当前观察值必须通过 revision-bound receipt 获取。
-- [ ] 5.2 记录当前命令/发现 baseline receipt、qualified charter identity 及其环境限制，向 `eliminate-accepted-red-test-baseline`、`split-production-tooling-test-typescript-graphs` 和 CI change 提供稳定输入。
-- [ ] 5.3 明确剩余未分类、红色或受外部限制的项目及 owner/change，不 claim 默认门禁已恢复绿色。
+- [x] 5.1 更新测试命令说明、CI command mapping 和 receipt schema 文档，注明当前观察值必须通过 revision-bound receipt 获取。
+- [x] 5.2 记录当前命令/发现 baseline receipt、qualified charter identity 及其环境限制，向 `eliminate-accepted-red-test-baseline`、`split-production-tooling-test-typescript-graphs` 和 CI change 提供稳定输入。
+- [x] 5.3 明确剩余未分类、红色或受外部限制的项目及 owner/change，不 claim 默认门禁已恢复绿色。
