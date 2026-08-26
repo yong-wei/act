@@ -54,7 +54,7 @@ async function persistWrongAnswer(
   expect(firstOption).toBeTruthy();
   const submit = async (sessionId: string, selectedOption: string) => {
     const response = await context.request.post(`${baseURL}/api/assessment/submit-answer`, {
-      data: { sessionId, questionId: question.question.id, selectedOption, timeSpent: 1, goalId, routeIntent: 'practice' },
+      data: { sessionId, questionId: question.question.id, selectedOption, timeSpent: 1, goalId, routeIntent },
     });
     expect(response.ok(), await response.text()).toBe(true);
     return response.json() as Promise<{ isCorrect: boolean; correctOption: string }>;

@@ -8,6 +8,7 @@ import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessme
 import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   buildMicroTutoringCoverageAuditReport,
+  microTutoringCoverageAuditIsGitContentComplete,
   microTutoringCoverageAuditIsStrictlyComplete,
   microTutoringCoverageAuditMarkdown,
   type MicroTutoringPracticeBaseline,
@@ -399,7 +400,13 @@ async function main() {
     governedProjectionRevision: governedRows.governedProjectionRevision,
   }, null, 2));
 
-  if (options.strict && !microTutoringCoverageAuditIsStrictlyComplete(report)) {
+  if (
+    options.strict &&
+    (
+      !microTutoringCoverageAuditIsStrictlyComplete(report) ||
+      !microTutoringCoverageAuditIsGitContentComplete(report)
+    )
+  ) {
     process.exitCode = 1;
   }
 }

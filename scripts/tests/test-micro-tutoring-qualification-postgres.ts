@@ -11,6 +11,8 @@ if (!databaseUrl) {
 
 async function main() {
   const prisma = new PrismaClient();
+  const marker = `v2-qualify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let createdId: string | null = null;
   try {
     const [orchestration, outcomes] = await Promise.all([
       prisma.remediationOrchestrationResult.findMany({ take: 5, select: { id: true, status: true, taskSnapshot: true, unavailableReason: true } }),
@@ -28,19 +30,75 @@ async function main() {
         throw new Error(`learner-unsafe intervention snapshot ${row.id}`);
       }
     }
-    const [orchestrationCount, outcomeCount] = await Promise.all([
-      prisma.remediationOrchestrationResult.count(),
-      prisma.microInterventionOutcome.count(),
+
+    const seed = await prisma.wrongAnswerAttribution.findFirst({
+      select: { id: true, userId: true },
+    });
+    if (!seed) {
+      if (required) {
+        throw new Error('postgres qualification requires at least one WrongAnswerAttribution row for write/replay');
+      }
+      console.log(JSON.stringify({
+        orchestrationSamples: orchestration.length,
+        interventionSamples: outcomes.length,
+        learnerSafe: true,
+        writeReplay: 'skipped-empty',
+      }));
+      return;
+    }
+
+    const created = await prisma.remediationOrchestrationResult.create({
+      data: {
+        wrongAnswerAttributionId: seed.id,
+        orchestratorVersion: marker,
+        userId: seed.userId,
+        status: 'UNAVAILABLE',
+        unavailableReason: 'RESOURCE_UNAVAILABLE',
+        taskSnapshot: { marker, learnerSafe: true },
+      },
+      select: { id: true, status: true, taskSnapshot: true },
+    });
+    createdId = created.id;
+    const replay = await prisma.remediationOrchestrationResult.findUnique({
+      where: { id: created.id },
+      select: { id: true, status: true, taskSnapshot: true, orchestratorVersion: true },
+    });
+    if (!replay || replay.orchestratorVersion !== marker || replay.status !== 'UNAVAILABLE') {
+      throw new Error('postgres qualification failed to replay the written orchestration row');
+    }
+    let conflicted = false;
+    try {
+      await prisma.remediationOrchestrationResult.create({
+        data: {
+          wrongAnswerAttributionId: seed.id,
+          orchestratorVersion: marker,
+          userId: seed.userId,
+          status: 'UNAVAILABLE',
+          unavailableReason: 'RESOURCE_UNAVAILABLE',
+          taskSnapshot: { marker, duplicate: true },
+        },
+      });
+    } catch {
+      conflicted = true;
+    }
+    if (!conflicted) {
+      throw new Error('postgres qualification expected unique orchestration writes to conflict');
+    }
+    await Promise.all([
+      prisma.remediationOrchestrationResult.findUnique({ where: { id: created.id } }),
+      prisma.remediationOrchestrationResult.findUnique({ where: { id: created.id } }),
     ]);
     console.log(JSON.stringify({
       orchestrationSamples: orchestration.length,
       interventionSamples: outcomes.length,
-      orchestrationCount,
-      outcomeCount,
       learnerSafe: true,
-      idempotentReads: true,
+      writeReplay: true,
+      idempotentConflict: true,
     }));
   } finally {
+    if (createdId) {
+      await prisma.remediationOrchestrationResult.delete({ where: { id: createdId } }).catch(() => undefined);
+    }
     await prisma.$disconnect();
   }
 }

@@ -135,6 +135,27 @@ async function main() {
     sha256: `sha256:${createHash('sha256').update(git(['show', `${sourceRevision}:${filePath}`])).digest('hex')}`,
   }));
   const extraTests = parseTestProofs(process.env.MICRO_TUTORING_QUALIFICATION_TEST_PROOFS);
+  let postgresProof = extraTests.find((test) => test.name === 'test:micro-tutoring-qualification-postgres');
+  if (options.profile === 'v2' && !postgresProof) {
+    const postgres = spawnSync(process.execPath, [
+      path.join(process.cwd(), 'node_modules/tsx/dist/cli.mjs'),
+      path.join(process.cwd(), 'scripts/tests/test-micro-tutoring-qualification-postgres.ts'),
+    ], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        MICRO_TUTORING_QUALIFICATION_POSTGRES_REQUIRED: '1',
+      },
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    postgresProof = {
+      name: 'test:micro-tutoring-qualification-postgres',
+      status: postgres.status === 0 ? 'passed' : 'failed',
+      scope: 'production-like-postgres-write-replay',
+      sourceRevision,
+    };
+  }
   const tests = [
     {
       name: options.profile === 'v2' ? 'verify:micro-tutoring-coverage:v2' : 'verify:micro-tutoring-coverage',
@@ -142,8 +163,11 @@ async function main() {
       scope: options.offline ? 'offline-git-content' : 'online-git-db',
       sourceRevision,
     },
+    ...(postgresProof ? [postgresProof] : []),
     ...extraTests.filter((test) =>
-      test.name !== 'verify:micro-tutoring-coverage' && test.name !== 'verify:micro-tutoring-coverage:v2'),
+      test.name !== 'verify:micro-tutoring-coverage'
+      && test.name !== 'verify:micro-tutoring-coverage:v2'
+      && test.name !== 'test:micro-tutoring-qualification-postgres'),
   ];
   const built = buildMicroTutoringProductionQualificationReceipt({
     report,

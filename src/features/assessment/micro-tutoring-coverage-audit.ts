@@ -282,9 +282,7 @@ function baselineIssues(
       });
     }
     if (profile === 'v2') {
-      const actualStages = baseline.stageCounts && Object.keys(baseline.stageCounts).length > 0
-        ? Object.fromEntries(Object.entries(baseline.stageCounts).map(([stage, count]) => [stage, count ?? 0]))
-        : countBaselineStages(baseline);
+      const actualStages = countBaselineStages(baseline);
       for (const [stage, expected] of Object.entries(MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
         if ((actualStages[stage] ?? 0) !== expected) {
           issues.push({
@@ -292,6 +290,17 @@ function baselineIssues(
             catalogItemId: `stage:${stage}`,
             expectedItemCount: expected,
             actualItemCount: actualStages[stage] ?? 0,
+          });
+        }
+      }
+      const declaredStages = baseline.stageCounts ?? {};
+      for (const [stage, expected] of Object.entries(MICRO_TUTORING_ASSESSMENT_BASELINE_V2_STAGE_COUNTS)) {
+        if ((declaredStages[stage] ?? 0) !== expected) {
+          issues.push({
+            reason: 'BASELINE_ITEM_COUNT_DRIFT',
+            catalogItemId: `declared-stage:${stage}`,
+            expectedItemCount: expected,
+            actualItemCount: declaredStages[stage] ?? 0,
           });
         }
       }
@@ -634,11 +643,15 @@ export function buildMicroTutoringCoverageAuditReport(
   }
   const completeOptionCount = rows.filter((row) => row.status === 'COMPLETE').length;
   const stageCounts = coverageProfile === 'v2' ? countBaselineStages(input.baseline) : undefined;
-  const qualifiedPracticeItemCount = coverageProfile === 'v2'
-    ? qualifiedItems.filter((item) => {
-      const stage = input.baseline.entries.find((entry) => entry.catalogItemId === item.catalogItemId)?.assessmentStage;
-      return stage === 'practice';
-    }).length
+  const practiceIds = coverageProfile === 'v2'
+    ? new Set(
+      input.baseline.entries
+        .filter((entry) => entry.assessmentStage === 'practice')
+        .map((entry) => entry.catalogItemId),
+    )
+    : null;
+  const qualifiedPracticeItemCount = practiceIds
+    ? qualifiedItems.filter((item) => practiceIds.has(item.catalogItemId)).length
     : qualifiedItems.length;
   const report: Omit<MicroTutoringCoverageAuditReport, 'contentDigest'> = {
     artifactVersion: coverageProfile === 'v2'
@@ -720,9 +733,14 @@ export function microTutoringCoverageAuditMarkdown(report: MicroTutoringCoverage
 export function microTutoringCoverageAuditIsStrictlyComplete(
   report: MicroTutoringCoverageAuditReport,
 ): boolean {
-  return report.baselineIssues.length === 0 &&
+  const complete = report.baselineIssues.length === 0 &&
     report.attributionIssues.length === 0 &&
     report.gapOptionCount === 0;
+  if (!complete) return false;
+  if ((report.coverageProfile ?? 'v1') === 'v2') {
+    return microTutoringCoverageAuditIsGitContentComplete(report);
+  }
+  return true;
 }
 
 export function microTutoringCoverageAuditIsGitContentComplete(

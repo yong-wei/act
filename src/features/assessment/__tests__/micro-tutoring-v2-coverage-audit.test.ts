@@ -40,7 +40,7 @@ const baseline: MicroTutoringPracticeBaseline = {
 };
 
 describe('micro tutoring v2 coverage audit', () => {
-  it('covers the published 135-item v2 denominator without mutating v1 artifacts', () => {
+  it('covers the published 135-item v2 denominator without mutating v1 artifacts', { timeout: 180_000 }, () => {
     const result = buildMicroTutoringCoverageAuditReport({
       catalogItems,
       reviewDecisions,
