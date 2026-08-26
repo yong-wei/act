@@ -6,20 +6,22 @@ Inputs for `split-production-tooling-test-typescript-graphs`,
 
 ## Qualified unit observation
 
-- sourceCommit: `bc9b8d3000ee54e9edc23bae6d58bc9d818b2352`
-- sourceTree: `625a83394c716e7cc65198f10130176ee4ee9ac7`
-- observedAt: `2026-08-27T04:06:00+08:00`
+- sourceCommit: `49117482cdda904ac0fde0ba33c93c82fe45d48d`
+- sourceTree: `2614e8ae6eb6c84f08f156d8f90f69c5a105a4f3`
+- observedAt: `2026-08-27T04:25:00+08:00`
 - worktree: clean, not mixed
-- `test:unit` receipt `7bf33b8335e4d1f5a2faf39eb3da19e8daf38589f7ae1034153ba086667ff42d`
-- `npm test` receipt `ac8c9209985abd1142ad85207a0230d720333771269480e2a6cfc8072916ce53`
+- `test:unit` receipt `5ac6378629e30a988645f601727f19b74c5cf4b7bb8384aefa3e14ceb96e56f1`
+- `npm test` receipt `7533baefc0ad4729d7a682a1ea8b20dfd7d505d58b92caeb10ebc83e217812c3`
 - discovery: 1233 discovered / 1230 classified / 3 excluded / 0 unresolved
-- discoveryCoreHash: `a4f2c498f20f96e6109a2221372d746686d2e5fdcbd59338cde68a9831a63b3e`
+- discoveryCoreHash: `5531b98699f0dafb75aae48ad49ad6216a3bebf99de43e3f1a011c76e0dc4137`
 - accepted failure count: 0
 - unhandled errors: 0
 - unregistered skips: 0
 
 The inventory is `docs/testing/baseline/failure-inventory.json`. Observation
-counts describe only this command and revision.
+counts describe only the measurement checkpoint above. A later generated docs
+commit may follow that checkpoint as an ancestor; it does not reuse the
+receipt for an unrelated tree.
 
 ## Closed in this work package
 
