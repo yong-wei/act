@@ -14,6 +14,7 @@
     "models:validate": "node ./scripts/assets/validate-optimized-models.mjs --source-root ./public/assets --optimized-root ./public/assets/models-opt",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "typecheck": "export NODE_OPTIONS=\"${NODE_OPTIONS:-} --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE:-8192}\"; tsc --noEmit --pretty false",
+    "census:architecture": "tsx ./scripts/architecture-census.ts",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
     "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
     "lint": "eslint . --max-warnings=0",
