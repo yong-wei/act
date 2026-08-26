@@ -43,6 +43,34 @@ export function managedKnowledgeWorkspaceQaCredentials(): Record<KnowledgeWorksp
   })) as Record<KnowledgeWorkspaceQaRole, KnowledgeWorkspaceQaCredentials>;
 }
 
+async function hasCurrentCredentials(
+  prisma: ReturnType<typeof createPrismaClient>,
+  role: KnowledgeWorkspaceQaRole,
+) {
+  const account = accountByKey(role);
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          profile: {
+            is: {
+              studentNumber: { equals: account.loginId, mode: 'insensitive' },
+            },
+          },
+        },
+        { employeeNumber: { equals: account.loginId, mode: 'insensitive' } },
+      ],
+    },
+    select: {
+      role: true,
+      passwordHash: true,
+    },
+  });
+  return user?.role === account.role
+    && Boolean(user.passwordHash)
+    && bcrypt.compare(account.password, user.passwordHash);
+}
+
 export async function provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl: string) {
   if (!isLocalKnowledgeWorkspaceQaTarget(baseUrl)) return null;
   if (!isLoopbackUrl(process.env.DATABASE_URL ?? '')) {
@@ -51,9 +79,14 @@ export async function provisionLocalKnowledgeWorkspaceQaAccounts(baseUrl: string
 
   const prisma = createPrismaClient();
   try {
-    await ensureVerifiedTestAccounts(prisma, {
-      hashPassword: (password: string) => bcrypt.hash(password, 10),
-    });
+    const fixtureReady = await Promise.all(
+      KNOWLEDGE_WORKSPACE_QA_ROLES.map((role) => hasCurrentCredentials(prisma, role)),
+    );
+    if (!fixtureReady.every(Boolean)) {
+      await ensureVerifiedTestAccounts(prisma, {
+        hashPassword: (password: string) => bcrypt.hash(password, 10),
+      });
+    }
     return managedKnowledgeWorkspaceQaCredentials();
   } finally {
     await prisma.$disconnect();
