@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { GovernedRichText } from '@/components/shared/governed-rich-text';
 import { projectActiveNodeMathematics } from '../active-authority-graph-contracts';
 import {
   activeNodeSearch,
@@ -78,6 +81,38 @@ describe('governed math knowledge presentation', () => {
       relations: [],
     });
     expect(model.nodes).toEqual([]);
+  });
+
+  it('renders repeated governed math spans without duplicate React keys', () => {
+    const duplicateKeyWarning = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      const markup = renderToStaticMarkup(
+        createElement(GovernedRichText, {
+          projection: {
+            state: 'available',
+            locale: 'zh-CN',
+            contentHash: 'b'.repeat(64),
+            renderKey: 'repeated-formula',
+            accessibleName: '重复公式 P(s)',
+            copyText: 'P(s) P(s)',
+            searchText: 'P(s) P(s)',
+            blocks: [{
+              kind: 'paragraph',
+              spans: [
+                { kind: 'math', display: 'inline', latex: 'P(s)', macroProfileId: 'ctmacro:katex-default-v1', macroProfileHash: '9da48a920152b4ea1ca7eacd8b5d8f94aeb54ca3218b47ec08923611a3942b74', accessibleLabel: 'P(s)', copyLatex: 'P(s)', renderKey: 'same-math' },
+                { kind: 'text', text: ' 与 ' },
+                { kind: 'math', display: 'inline', latex: 'P(s)', macroProfileId: 'ctmacro:katex-default-v1', macroProfileHash: '9da48a920152b4ea1ca7eacd8b5d8f94aeb54ca3218b47ec08923611a3942b74', accessibleLabel: 'P(s)', copyLatex: 'P(s)', renderKey: 'same-math' },
+              ],
+            }],
+          },
+          density: 'preview',
+        }),
+      );
+      expect(markup.match(/data-governed-math-span="same-math"/g)).toHaveLength(2);
+      expect(duplicateKeyWarning).not.toHaveBeenCalled();
+    } finally {
+      duplicateKeyWarning.mockRestore();
+    }
   });
 
   it('keeps shared graph and card consumers on one KaTeX factory', () => {
