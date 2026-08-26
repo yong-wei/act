@@ -4898,6 +4898,53 @@ describe('adaptive learning path planner', () => {
     });
   });
 
+  it('does not end cold-start control-correction paths on competency-locked Arena terminals', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    });
+    const input = plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        primaryPortraitState: 'NO_EVIDENCE',
+        primaryPortraitAvailability: 'missing',
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0,
+            evidenceCount: 0,
+            sourceCompleteness: 0,
+          },
+        },
+      },
+    });
+    const plan = buildAdaptiveLearningPathPlan(input);
+    const bundle = buildControlCorrectionThreeStylePathBundle(input);
+    const candidateTerminals = [
+      plan.mainPath.at(-1)?.nodeId,
+      ...(bundle?.paths ?? []).map((path) => path.nodeIds.at(-1)),
+    ].filter((nodeId): nodeId is string => Boolean(nodeId));
+
+    expect(candidateTerminals).not.toContain('arena-task:task-cruise-roll-blackbox-identification');
+    for (const terminalId of candidateTerminals) {
+      if (!terminalId.startsWith('arena-task:') && !terminalId.startsWith('simulation:')) continue;
+      const terminalNode = registry.nodes.find((node) => node.id === terminalId);
+      const readiness = terminalNode?.planningMetadata.readiness;
+      if (!readiness) continue;
+      const onlyCompetencyOrEvidenceLocked =
+        readiness.requiredCompletedNodeIds.length === 0 &&
+        readiness.requiredOutcomeRefs.length === 0 &&
+        (Object.keys(readiness.minimumCompetency).length > 0 || readiness.minimumEvidenceCount > 0);
+      expect(onlyCompetencyOrEvidenceLocked).toBe(false);
+    }
+  });
+
   it('keeps central control-correction policy options scoped to control-correction resources', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: getAllRegisteredResourceMetadata(),
