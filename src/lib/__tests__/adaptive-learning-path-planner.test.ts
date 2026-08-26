@@ -143,6 +143,40 @@ describe('adaptive path recommendation provenance', () => {
     expect(provenance.summary).toContain('当前证据较少');
   });
 
+  it('does not present stale snapshot evidence as current personalized provenance', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const provenance = buildAdaptivePathRecommendationProvenance({
+      path: plan.mainPath,
+      deficits: [{
+        targetId: 'kn-bode',
+        kind: 'knowledge',
+        value: 0.32,
+        confidence: 0.7,
+        evidenceCount: 3,
+        reasonCode: 'internal-low-mastery-target',
+      }],
+      confidence: 'medium',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-01T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: { LearningFact: 'available' },
+        evidenceWindow: null,
+        freshness: 'stale',
+        confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.7, evidenceCount: 6 },
+        missingEvidence: [],
+        preferredModalities: ['video'],
+        preferredModalityConfidence: 'medium',
+      },
+    });
+
+    expect(provenance.summary).toContain('课程结构、先修规则和可用资源');
+    expect(provenance.personalizationNotes ?? []).toEqual([]);
+    expect(provenance.entries[0]?.judgment).toContain('暂不能确认该项为稳定薄弱点');
+    expect(provenance.entries[0]?.judgment).not.toContain('因此优先安排');
+    expect(provenance.summary).not.toMatch(/依据 .+ 的学习证据安排本路径/);
+  });
+
   it('does not treat overall medium evidence as trusted when preference confidence is low', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({

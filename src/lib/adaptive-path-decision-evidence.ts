@@ -103,8 +103,24 @@ function isTrustedPreference(snapshot: AdaptiveLearningPathLearnerStateSnapshot 
       && snapshot.confidence.level !== 'low'
       && snapshot.preferredModalityConfidence !== 'none'
       && snapshot.preferredModalityConfidence !== 'low'
-      && snapshot.freshness !== 'stale',
+      && snapshot.freshness !== 'stale'
+      && snapshot.freshness !== 'partial',
   );
+}
+
+export function listPersonalizedPathDegradationReasons(
+  snapshot: AdaptiveLearningPathLearnerStateSnapshot | null | undefined,
+): string[] {
+  const trustedPreference = isTrustedPreference(snapshot);
+  return unique([
+    !snapshot || snapshot.confidence.level === 'none' || snapshot.confidence.level === 'low'
+      ? 'insufficient-evidence'
+      : null,
+    snapshot?.freshness === 'stale' ? 'stale-evidence' : null,
+    snapshot?.freshness === 'partial' ? 'partial-evidence' : null,
+    snapshot?.missingEvidence.length ? 'missing-evidence' : null,
+    snapshot?.preferredModalities.length && !trustedPreference ? 'preference-untrusted' : null,
+  ]);
 }
 
 function nodeCoversDeficit(
@@ -117,8 +133,9 @@ function nodeCoversDeficit(
     : Boolean(node.capabilityTargets?.includes(deficit.targetId));
 }
 
-function degradationStudentText(reason: string): string {
+export function degradationStudentText(reason: string): string {
   if (reason === 'stale-evidence') return '部分学习证据已经过期，暂时不能据此给出个性化判断。';
+  if (reason === 'partial-evidence') return '部分学习证据仍然不完整，暂时不能据此给出个性化判断。';
   if (reason === 'missing-evidence') return '部分学习证据仍然缺失，暂时不能据此给出个性化判断。';
   return '目前学习记录不足，暂时无法判断你的资源偏好。';
 }
@@ -130,19 +147,12 @@ export function buildPersonalizedPathDecisionSnapshot(input: {
   deficits: AdaptiveLearningPathDeficit[];
 }): PersonalizedPathDecisionSnapshot {
   const snapshot = input.learnerStateSnapshot ?? null;
-  const trustedPreference = isTrustedPreference(snapshot);
-  const degradationReasons = unique([
-    !snapshot || snapshot.confidence.level === 'none' || snapshot.confidence.level === 'low'
-      ? 'insufficient-evidence'
-      : null,
-    snapshot?.freshness === 'stale' ? 'stale-evidence' : null,
-    snapshot?.missingEvidence.length ? 'missing-evidence' : null,
-    snapshot?.preferredModalities.length && !trustedPreference ? 'preference-untrusted' : null,
-  ]);
+  const degradationReasons = listPersonalizedPathDegradationReasons(snapshot);
   const limitations = unique([
     ...degradationReasons.map((reason) => {
       if (reason === 'insufficient-evidence') return '当前没有足够的有效学习证据支持个性化判断。';
       if (reason === 'stale-evidence') return '部分学习证据已经过期。';
+      if (reason === 'partial-evidence') return '部分学习证据仍然不完整。';
       if (reason === 'missing-evidence') return '部分学习证据仍然缺失。';
       return '学习方式偏好证据不足或已过期，暂时无法据此判断。';
     }),

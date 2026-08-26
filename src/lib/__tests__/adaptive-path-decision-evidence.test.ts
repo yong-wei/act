@@ -167,6 +167,59 @@ describe('personalized path decision evidence', () => {
     ]));
   });
 
+  it('does not present partial freshness as current personalized conclusions', () => {
+    const evidence = buildPersonalizedPathDecisionEvidence({
+      capturedAt: '2026-08-26T00:00:00.000Z',
+      plannerVersion: 'adaptive-learning-path-planner.v1',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-25T00:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: { LearningFact: 'available' },
+        evidenceWindow: null,
+        freshness: 'partial',
+        confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.7, evidenceCount: 6 },
+        missingEvidence: [],
+        preferredModalities: [],
+        preferredModalityConfidence: 'none',
+      },
+      deficits: [{
+        targetId: '频域分析',
+        kind: 'knowledge',
+        value: 0.3,
+        confidence: 0.7,
+        evidenceCount: 4,
+        reasonCode: 'low-mastery-target',
+      }],
+      paths: [
+        {
+          optionId: 'path-option-1',
+          styleId: 'foundation-remediation',
+          nodeIds: ['shared', 'freq-card'],
+          planNodes: [
+            { nodeId: 'shared', title: '共享节点', knowledgeCoverage: [], capabilityTargets: [] } as never,
+            { nodeId: 'freq-card', title: '频域讲解', knowledgeCoverage: ['频域分析'], capabilityTargets: [] } as never,
+          ],
+          resourceMix: { knowledge_card: 1 },
+        },
+        {
+          optionId: 'path-option-2',
+          styleId: 'simulation-driven',
+          nodeIds: ['shared', 'sim-lab'],
+          planNodes: [
+            { nodeId: 'shared', title: '共享节点', knowledgeCoverage: [], capabilityTargets: [] } as never,
+            { nodeId: 'sim-lab', title: '仿真实验', knowledgeCoverage: [], capabilityTargets: [] } as never,
+          ],
+          resourceMix: { simulation: 1 },
+        },
+      ],
+    });
+
+    expect(evidence.snapshot.degradationReasons).toContain('partial-evidence');
+    expect(evidence.paths[0]?.explanations.map((item) => item.code)).toContain('partial-evidence');
+    expect(evidence.paths[0]?.explanations.some((item) => item.code === 'weak-target')).toBe(false);
+  });
+
   it('does not describe shared target coverage as a personalized addition', () => {
     const evidence = buildPersonalizedPathDecisionEvidence({
       capturedAt: '2026-08-26T00:00:00.000Z',
