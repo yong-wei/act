@@ -24,12 +24,14 @@ import {
   journalProtectedReleaseIdentities,
   openCutoverTransaction,
   projectCoordinatedReadiness,
+  coordinatedRuntimeAuthorizationHash,
+  sealCoordinatedRuntimeAuthorization,
   sealCoordinatedActiveReceipt,
   type CutoverJournalStore,
   type CutoverSelectorStore,
 } from '@/lib/latest-authority-oss-cutover/transaction';
 import {
-  assertRuntimeSuccessorAuthorizedByGraphReceipt,
+  assertRuntimeSuccessorAuthorizedByAuthorization,
   buildCoordinatedRuntimeActiveReceiptBinding,
   buildCoordinatedRuntimeManifestExtension,
   projectCoordinatedRuntimeReadiness,
@@ -324,6 +326,15 @@ describe('stopped-service coordinated transaction', () => {
       expect(receipt.candidateReceiptHash).toBe(candidate.receiptHash);
       expect(Object.hasOwn(receipt, 'activeReceiptHash')).toBe(false);
     }
+    const authorization = sealCoordinatedRuntimeAuthorization({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: receipts,
+      runtimeBindingHash: HASH_D,
+      authorizedAt: '2026-08-23T00:01:30.000Z',
+    });
+    expect(authorization.runtimeBindingHash).toBe(HASH_D);
     const activeReceipt = sealCoordinatedActiveReceipt({
       journal: opened.journal,
       candidateReceipt: candidate,
@@ -614,28 +625,32 @@ describe('Runtime and readiness integration', () => {
     expect(Object.hasOwn(binding, 'finalCoordinatedActiveReceiptHash')).toBe(false);
   });
 
-  it('rejects ordinary runtime activation without the matching committed graph receipt', () => {
+  it('rejects runtime activation without a matching pre-activation authorization', () => {
     const binding = buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'tx-abc',
       candidateReceiptHash: HASH_A,
       runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
       materializationReceiptHash: HASH_C,
     });
-    expect(() => assertRuntimeSuccessorAuthorizedByGraphReceipt(binding, null))
-      .toThrow(/no committed coordinated graph receipt/);
-    const committed = {
-      contract: 'coordinated-active-receipt/v1' as const,
-      receiptId: 'act-x',
-      sealedAt: '2026-08-23T00:00:00.000Z',
+    expect(() => assertRuntimeSuccessorAuthorizedByAuthorization(binding, null))
+      .toThrow(/no coordinated Runtime authorization/);
+    const authorizationPayload = {
       transactionId: 'tx-other',
       journalHash: HASH_B,
       candidateReceiptHash: HASH_A,
       committedSelectors: [{ selectorId: 'authority:current', identity: 'auth-new' }],
-      mutationReceiptHashes: ['mut-x'],
-      runtimeActiveReceiptHash: binding.bindingHash,
-      receiptHash: HASH_D,
+      mutationReceiptHashes: [HASH_C],
+      runtimeBindingHash: binding.bindingHash,
     };
-    expect(() => assertRuntimeSuccessorAuthorizedByGraphReceipt(binding, committed))
+    const authorizationHash = coordinatedRuntimeAuthorizationHash(authorizationPayload);
+    const authorization = {
+      contract: 'coordinated-runtime-authorization/v1' as const,
+      authorizationId: `auth-${authorizationHash.slice(0, 24)}`,
+      authorizedAt: '2026-08-23T00:00:00.000Z',
+      ...authorizationPayload,
+      authorizationHash,
+    };
+    expect(() => assertRuntimeSuccessorAuthorizedByAuthorization(binding, authorization))
       .toThrow(/different transaction/);
   });
 

@@ -132,16 +132,16 @@ assert.match(
 );
 assert.match(
   activation,
-  /coordinated activation requires all three regular coordinated receipt files/,
-  'coordinated execution must require the declaration, graph receipt, and Runtime binding together',
+  /coordinated activation requires regular declaration, authorization, and binding files/,
+  'coordinated execution must require the declaration, Runtime authorization, and Runtime binding together',
 );
 assert.ok(
   activation.lastIndexOf('assert_coordinated_consumers_stopped') < activation.indexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
   'coordinated execution must check consumers before selecting the Runtime view',
 );
 assert.ok(
-  activation.indexOf('--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING"') < activation.indexOf('candidate_deploy_attempted=1'),
-  'coordinated execution must commit the lifecycle before restarting consumers',
+  activation.indexOf('--coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION"') < activation.indexOf('"consumersStopped":true'),
+  'coordinated execution must authorize and commit the lifecycle before returning with consumers stopped',
 );
 assert.ok(
   activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),

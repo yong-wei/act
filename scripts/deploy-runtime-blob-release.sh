@@ -33,7 +33,7 @@ expected_active_release=""
 matching_parent_release_id=""
 ram_role="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
 coordinated_cutover_declaration=""
-coordinated_graph_receipt=""
+coordinated_runtime_authorization=""
 coordinated_runtime_binding=""
 formal_resource_envelope_hash=""
 stage_only=0
@@ -53,7 +53,7 @@ while [[ $# -gt 0 ]]; do
     --expected-active-release) expected_active_release="$2"; shift 2 ;;
     --ram-role) ram_role="$2"; shift 2 ;;
     --coordinated-cutover-declaration) coordinated_cutover_declaration="$2"; shift 2 ;;
-    --coordinated-graph-receipt) coordinated_graph_receipt="$2"; shift 2 ;;
+    --coordinated-runtime-authorization) coordinated_runtime_authorization="$2"; shift 2 ;;
     --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
     --formal-resource-envelope-hash) formal_resource_envelope_hash="$2"; shift 2 ;;
     --stage-only) stage_only=1; shift ;;
@@ -93,22 +93,26 @@ fi
 # Coordinated cutover inputs (#1509) are validated before any publish side
 # effect: all three artifacts must be provided together and exist locally.
 coordinated_inputs_provided=0
-for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+for value in "$coordinated_cutover_declaration" "$coordinated_runtime_authorization" "$coordinated_runtime_binding"; do
   [[ -z "$value" ]] || coordinated_inputs_provided=$((coordinated_inputs_provided + 1))
 done
 if [[ "$coordinated_inputs_provided" -ne 0 && "$coordinated_inputs_provided" -ne 3 ]]; then
-  echo "ERROR: --coordinated-cutover-declaration, --coordinated-graph-receipt, and --coordinated-runtime-binding must be provided together" >&2
+  echo "ERROR: --coordinated-cutover-declaration, --coordinated-runtime-authorization, and --coordinated-runtime-binding must be provided together" >&2
   exit 1
 fi
 if [[ "$stage_only" == "1" && "$coordinated_inputs_provided" -ne 0 ]]; then
   echo "ERROR: --stage-only publishes a non-selectable Runtime candidate and cannot accept committed coordinated activation artifacts" >&2
   exit 1
 fi
+if [[ "$coordinated_inputs_provided" -ne 0 ]]; then
+  echo "ERROR: coordinated Runtime activation must run inside the stopped-service outer transaction; this publisher only stages non-selectable releases" >&2
+  exit 1
+fi
 if [[ -n "$formal_resource_envelope_hash" && ! "$formal_resource_envelope_hash" =~ ^[a-f0-9]{64}$ ]]; then
   echo "ERROR: --formal-resource-envelope-hash must be a lowercase SHA-256 digest" >&2
   exit 1
 fi
-for value in "$coordinated_cutover_declaration" "$coordinated_graph_receipt" "$coordinated_runtime_binding"; do
+for value in "$coordinated_cutover_declaration" "$coordinated_runtime_authorization" "$coordinated_runtime_binding"; do
   [[ -z "$value" || -f "$value" ]] || { echo "ERROR: coordinated cutover input does not exist: $value" >&2; exit 1; }
 done
 [[ -n "$KNOWN_HOSTS_FILE" && -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
@@ -425,13 +429,13 @@ done
 # argument set was validated before any publish side effect above.
 remote_coordinated_env=""
 if [[ "$coordinated_inputs_provided" -eq 3 ]]; then
-  for pair in "coordinated-cutover.json:$coordinated_cutover_declaration" "coordinated-graph-receipt.json:$coordinated_graph_receipt" "coordinated-runtime-binding.json:$coordinated_runtime_binding"; do
+  for pair in "coordinated-cutover.json:$coordinated_cutover_declaration" "coordinated-runtime-authorization.json:$coordinated_runtime_authorization" "coordinated-runtime-binding.json:$coordinated_runtime_binding"; do
     remote_name="${pair%%:*}"
     local_path="${pair#*:}"
     scp -q -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS_FILE" -o StrictHostKeyChecking=yes "$local_path" "$SSH_TARGET:$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp"
     remote "chmod 0600 '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp' && mv '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name.tmp' '$REMOTE_ARTIFACT_ROOT/$release_id/$remote_name'"
   done
-  remote_coordinated_env="ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-cutover.json' ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-graph-receipt.json' ACT_RUNTIME_COORDINATED_RUNTIME_BINDING='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-runtime-binding.json' "
+  remote_coordinated_env="ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-cutover.json' ACT_RUNTIME_COORDINATED_RUNTIME_AUTHORIZATION='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-runtime-authorization.json' ACT_RUNTIME_COORDINATED_RUNTIME_BINDING='$REMOTE_ARTIFACT_ROOT/$release_id/coordinated-runtime-binding.json' "
 fi
 
 activation_started_seconds=$SECONDS

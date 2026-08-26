@@ -43,6 +43,7 @@ const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/features/knowledge/knowledge-graph-workspace.tsx',
   'src/features/knowledge/active-authority-graph.tsx',
+  'src/features/knowledge/active-authority-force-canvas.tsx',
   'src/features/knowledge/active-authority-shard-store.ts',
   'src/features/knowledge/active-authority-presentation.ts',
   'src/features/knowledge/active-authority-graph-contracts.ts',

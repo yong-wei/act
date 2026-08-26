@@ -21,9 +21,9 @@ APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
 READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 # Coordinated cutover (#1509): when set, the desired identity is declared as
 # a coordinated successor and the activation must carry the matching
-# committed coordinated graph receipt.
+# pre-activation Runtime authorization.
 COORDINATED_CUTOVER_DECLARATION="${ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION:-}"
-COORDINATED_GRAPH_RECEIPT="${ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT:-}"
+COORDINATED_RUNTIME_AUTHORIZATION="${ACT_RUNTIME_COORDINATED_RUNTIME_AUTHORIZATION:-}"
 COORDINATED_RUNTIME_BINDING="${ACT_RUNTIME_COORDINATED_RUNTIME_BINDING:-}"
 
 release_id=""
@@ -78,9 +78,9 @@ done
 [[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
 if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
   [[ "$stage_only" != "1" ]] || { echo "ERROR: coordinated activation cannot be stage-only" >&2; exit 1; }
-  for value in "$COORDINATED_CUTOVER_DECLARATION" "$COORDINATED_GRAPH_RECEIPT" "$COORDINATED_RUNTIME_BINDING"; do
+  for value in "$COORDINATED_CUTOVER_DECLARATION" "$COORDINATED_RUNTIME_AUTHORIZATION" "$COORDINATED_RUNTIME_BINDING"; do
     [[ -n "$value" && -f "$value" && ! -L "$value" ]] || {
-      echo "ERROR: coordinated activation requires all three regular coordinated receipt files" >&2
+      echo "ERROR: coordinated activation requires regular declaration, authorization, and binding files" >&2
       exit 1
     }
   done
@@ -714,7 +714,7 @@ if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
     --host-state-script "$HOST_STATE_SCRIPT" \
     --expected-generation "$lifecycle_generation" \
     --identity "$lifecycle_identity" \
-    --coordinated-graph-receipt "$COORDINATED_GRAPH_RECEIPT" \
+    --coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION" \
     --coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
@@ -723,25 +723,12 @@ if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
     echo "ERROR: lifecycle activation did not commit the coordinated candidate release" >&2
     exit 1
   }
-  candidate_deploy_attempted=1
-  RUNTIME_DELIVERY_MODE=ossfs-blob-view \
-    ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
-    ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
-    RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
-    APP_IMAGE="$rollback_app_image" \
-    "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
-  source "$ENV_FILE"
-  wait_for_readyz
-  run_candidate_consumer_smoke
-  run_active_media_resolver_smoke
-  post_activation_media_smoke_passed=1
-  if [[ -n "${rebuild_backup:-}" && -d "$rebuild_backup" ]]; then
-    rm -rf -- "$rebuild_backup"
-    rebuild_backup=""
-  fi
+  # The outer coordinator must seal the final active receipt before any
+  # graph/runtime consumer restarts. This branch intentionally returns while
+  # every consumer remains stopped.
   trap - ERR
   cleanup_lifecycle_identity
-  printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view","coordinated":true}\n' "$release_id" "$old_active"
+  printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view","coordinated":true,"consumersStopped":true}\n' "$release_id" "$old_active"
   exit 0
 fi
 write_candidate_readyz_receipt
@@ -769,8 +756,8 @@ if [[ "$release_id" == "$old_active" ]]; then
 else
   activation_attempted=1
   coordinated_activation_args=()
-  if [[ -n "$COORDINATED_GRAPH_RECEIPT" ]]; then
-    coordinated_activation_args+=(--coordinated-graph-receipt "$COORDINATED_GRAPH_RECEIPT")
+  if [[ -n "$COORDINATED_RUNTIME_AUTHORIZATION" ]]; then
+    coordinated_activation_args+=(--coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION")
   fi
   if [[ -n "$COORDINATED_RUNTIME_BINDING" ]]; then
     coordinated_activation_args+=(--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING")

@@ -21,8 +21,10 @@ import { projectionDigest } from '@/lib/teaching-projection/hash';
 import {
   LatestAuthorityCutoverError,
   type CoordinatedActiveReceipt,
+  type CoordinatedRuntimeAuthorization,
   type CoordinatedRuntimeManifestExtension,
 } from './contracts';
+import { assertCoordinatedRuntimeAuthorizationWellFormed } from './transaction';
 
 export interface RuntimeReleaseIdentity {
   readonly releaseId: string;
@@ -191,34 +193,35 @@ export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
 
 /**
  * Ordinary Runtime lifecycle activation must reject a successor that lacks
- * the matching committed coordinated graph receipt.
+ * the matching pre-activation coordinated Runtime authorization.
  */
-export function assertRuntimeSuccessorAuthorizedByGraphReceipt(
+export function assertRuntimeSuccessorAuthorizedByAuthorization(
   runtimeBinding: CoordinatedRuntimeActiveReceiptBinding,
-  committedGraphActiveReceipt: CoordinatedActiveReceipt | null,
+  authorization: CoordinatedRuntimeAuthorization | null,
 ): void {
-  if (!committedGraphActiveReceipt) {
+  if (!authorization) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The successor Runtime Release has no committed coordinated graph receipt.',
+      'The successor Runtime Release has no coordinated Runtime authorization.',
     );
   }
-  if (committedGraphActiveReceipt.candidateReceiptHash !== runtimeBinding.candidateReceiptHash) {
+  assertCoordinatedRuntimeAuthorizationWellFormed(authorization);
+  if (authorization.candidateReceiptHash !== runtimeBinding.candidateReceiptHash) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt binds a different candidate than the Runtime successor.',
+      'The Runtime authorization binds a different candidate than the Runtime successor.',
     );
   }
-  if (committedGraphActiveReceipt.transactionId !== runtimeBinding.transactionId) {
+  if (authorization.transactionId !== runtimeBinding.transactionId) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt belongs to a different transaction than the Runtime successor.',
+      'The Runtime authorization belongs to a different transaction than the Runtime successor.',
     );
   }
-  if (committedGraphActiveReceipt.runtimeActiveReceiptHash !== runtimeBinding.bindingHash) {
+  if (authorization.runtimeBindingHash !== runtimeBinding.bindingHash) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt does not close over this Runtime active receipt binding.',
+      'The Runtime authorization does not close over this Runtime active receipt binding.',
     );
   }
 }

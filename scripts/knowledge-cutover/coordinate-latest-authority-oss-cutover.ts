@@ -226,7 +226,17 @@ async function runCapture(values: Map<string, string>): Promise<void> {
 }
 
 interface PrepareInputs {
+  /**
+   * Immutable resource-baseline identity. Its lifecycle generation belongs to
+   * the frozen resource inventory rather than a later desired-state write.
+   */
   readonly activeRelease: ActiveRuntimeReleaseIdentity;
+  /**
+   * The live predecessor used by the Runtime lifecycle binding. It may have a
+   * later generation after non-selectable staging while retaining the exact
+   * immutable active Runtime bytes and receipt captured by activeRelease.
+   */
+  readonly runtimePredecessorForBinding?: ActiveRuntimeReleaseIdentity;
   readonly entries: ActiveBaselineEntry[];
   readonly delta?: ExplicitDeltaInput[];
   readonly dispositions: ResourceSuccessorDisposition[];
@@ -340,6 +350,12 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     : capture!.captureHash;
 
   const baseline = buildActiveBaseline({ activeRelease: input.activeRelease, entries: input.entries });
+  const runtimePredecessor = input.runtimePredecessorForBinding ?? input.activeRelease;
+  for (const field of ['releaseId', 'manifestSha256', 'treeSha256', 'activeReceiptHash'] as const) {
+    if (runtimePredecessor[field] !== input.activeRelease[field]) {
+      fail(`runtime predecessor binding differs from the frozen active baseline at ${field}`);
+    }
+  }
   const delta = buildExplicitDelta(input.delta ?? []);
   const denominator = buildCombinedDenominator(baseline, delta);
   const continuity = evaluateContinuityGate({
@@ -406,9 +422,9 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     prerequisitePublicationHash: inner.prerequisitePublicationHash,
     consumerActivationHash: inner.consumerActivationHash,
     allocationHash: allocation.allocationHash,
-    predecessorRuntimeReleaseId: input.activeRelease.releaseId,
-    predecessorRuntimeManifestSha256: input.activeRelease.manifestSha256,
-    predecessorLifecycleGeneration: input.activeRelease.lifecycleGeneration,
+    predecessorRuntimeReleaseId: runtimePredecessor.releaseId,
+    predecessorRuntimeManifestSha256: runtimePredecessor.manifestSha256,
+    predecessorLifecycleGeneration: runtimePredecessor.lifecycleGeneration,
   });
   const runtimeExtensionHash = projectionDigest({
     successorManifest: inner.successorRuntimeManifest,

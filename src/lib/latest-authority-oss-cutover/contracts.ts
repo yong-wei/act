@@ -38,6 +38,8 @@ export const CUTOVER_MUTATION_RECEIPT_CONTRACT =
   'cutover-selector-mutation-receipt/v1' as const;
 export const COORDINATED_ACTIVE_RECEIPT_CONTRACT =
   'coordinated-active-receipt/v1' as const;
+export const COORDINATED_RUNTIME_AUTHORIZATION_CONTRACT =
+  'coordinated-runtime-authorization/v1' as const;
 export const COORDINATED_RUNTIME_MANIFEST_EXTENSION_CONTRACT =
   'coordinated-runtime-manifest-extension/v1' as const;
 export const LATEST_AUTHORITY_CUTOVER_BUILDER_VERSION =
@@ -490,7 +492,31 @@ export interface CoordinatedActiveReceipt {
   readonly committedSelectors: readonly { selectorId: string; identity: string }[];
   readonly mutationReceiptHashes: readonly string[];
   readonly runtimeActiveReceiptHash: string | null;
+  /** Exact v2 Runtime identity observed immediately before sealing. */
+  readonly runtimeActiveIdentity: {
+    readonly releaseId: string;
+    readonly manifestSha256: string;
+    readonly treeSha256: string;
+  } | null;
   readonly receiptHash: string;
+}
+
+/**
+ * Pre-activation authorization for the Runtime lifecycle. It is deliberately
+ * distinct from the final active receipt: the Runtime must become active
+ * before the latter can truthfully be sealed.
+ */
+export interface CoordinatedRuntimeAuthorization {
+  readonly contract: typeof COORDINATED_RUNTIME_AUTHORIZATION_CONTRACT;
+  readonly authorizationId: string;
+  readonly authorizedAt: string;
+  readonly transactionId: string;
+  readonly journalHash: string;
+  readonly candidateReceiptHash: string;
+  readonly committedSelectors: readonly { selectorId: string; identity: string }[];
+  readonly mutationReceiptHashes: readonly string[];
+  readonly runtimeBindingHash: string;
+  readonly authorizationHash: string;
 }
 
 export interface CoordinatedRuntimeManifestExtension {

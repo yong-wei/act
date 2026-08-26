@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 
 import { readActiveRuntimeReleaseManifest } from '../runtime-active-release';
+import { projectionDigest } from '../teaching-projection/hash';
 import {
   isBlobViewRuntimeRequired,
   projectRuntimeIdentity,
@@ -45,6 +46,37 @@ async function blobView(options?: { extraReceiptField?: boolean; mismatch?: bool
   if (options?.extraReceiptField) receipt.desiredReleaseId = 'runtime-candidate';
   await writeFile(path.join(root, 'act-runtime-active-receipt.json'), JSON.stringify(receipt));
   return { root, manifest };
+}
+
+async function writeCoordinatedActiveReceipt(
+  root: string,
+  manifest: Awaited<ReturnType<typeof buildRuntimeBlobReleaseManifest>>,
+  runtimeReleaseId = manifest.releaseId,
+) {
+  const payload = {
+    transactionId: 'tx-runtime-readiness',
+    journalHash: 'a'.repeat(64),
+    candidateReceiptHash: 'b'.repeat(64),
+    committedSelectors: [{ selectorId: 'authority:current', identity: 'snap-r4' }],
+    mutationReceiptHashes: ['c'.repeat(64)],
+    runtimeActiveReceiptHash: 'd'.repeat(64),
+    runtimeActiveIdentity: {
+      releaseId: runtimeReleaseId,
+      manifestSha256: manifest.manifestSha256,
+      treeSha256: manifest.treeSha256,
+    },
+  };
+  const receiptHash = projectionDigest(payload);
+  const receipt = {
+    contract: 'coordinated-active-receipt/v1',
+    receiptId: `act-${receiptHash.slice(0, 24)}`,
+    sealedAt: '2030-01-01T00:00:00.000Z',
+    ...payload,
+    receiptHash,
+  };
+  const receiptPath = path.join(root, 'coordinated-active-receipt.json');
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  return receiptPath;
 }
 
 afterEach(async () => {
@@ -123,6 +155,29 @@ describe('runtime readiness projector', () => {
     expect(JSON.stringify(projection)).not.toContain('runtime-candidate-should-stay-hidden');
     await expect(readActiveRuntimeReleaseManifest(root)).resolves.toMatchObject({
       releaseId: manifest.releaseId,
+    });
+  });
+
+  it('requires a matching sealed coordinated receipt only when coordinated cutover is enabled', async () => {
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+    vi.stubEnv('ACT_COORDINATED_CUTOVER_REQUIRED', 'true');
+    const { root, manifest } = await blobView();
+    await expect(projectRuntimeReadiness(root, undefined, path.join(root, 'missing.json'))).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
+    });
+    const matching = await writeCoordinatedActiveReceipt(root, manifest);
+    await expect(projectRuntimeReadiness(root, undefined, matching)).resolves.toMatchObject({
+      required: true,
+      ready: true,
+      identity: { releaseId: manifest.releaseId },
+    });
+    const mismatched = await writeCoordinatedActiveReceipt(root, manifest, 'runtime-foreign');
+    await expect(projectRuntimeReadiness(root, undefined, mismatched)).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
     });
   });
 

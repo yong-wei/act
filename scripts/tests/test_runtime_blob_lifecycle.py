@@ -29,7 +29,7 @@ def identity(release_id, seed):
 
 TYPESCRIPT_ARTIFACT_GENERATOR = """
 import { writeFileSync } from 'node:fs';
-import { openCutoverTransaction, applyJournaledMutation, sealCoordinatedActiveReceipt, type CutoverJournalStore, type CutoverSelectorStore } from '@/lib/latest-authority-oss-cutover/transaction';
+import { openCutoverTransaction, applyJournaledMutation, sealCoordinatedRuntimeAuthorization, type CutoverJournalStore, type CutoverSelectorStore } from '@/lib/latest-authority-oss-cutover/transaction';
 import { buildCoordinatedRuntimeActiveReceiptBinding } from '@/lib/latest-authority-oss-cutover/runtime-binding';
 import { sealCoordinatedCandidateReceipt, sealCoordinationAllocationRecord } from '@/lib/latest-authority-oss-cutover/envelope';
 
@@ -118,15 +118,15 @@ async function main() {
     runtimeRelease,
     materializationReceiptHash: H('c'),
   });
-  const active = sealCoordinatedActiveReceipt({
+  const authorization = sealCoordinatedRuntimeAuthorization({
     journal: opened.journal,
     candidateReceipt: candidate,
     observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
     mutationReceipts: receipts,
-    runtimeActiveReceiptHash: binding.bindingHash,
-    sealedAt: '2030-01-01T00:02:00.000Z',
+    runtimeBindingHash: binding.bindingHash,
+    authorizedAt: '2030-01-01T00:02:00.000Z',
   });
-  writeFileSync(process.argv[2], JSON.stringify(active));
+  writeFileSync(process.argv[2], JSON.stringify(authorization));
   writeFileSync(process.argv[3], JSON.stringify(binding));
   writeFileSync(process.argv[4], JSON.stringify({ candidateReceiptHash: candidate.receiptHash, runtimeRelease }));
 }
@@ -151,8 +151,8 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         path.write_text(json.dumps(identity(release_id, seed)), encoding="utf-8")
         return path
 
-    def coordinated_receipt_and_binding(self, root, candidate_identity, candidate_receipt_hash):
-        """Build a graph receipt and runtime binding with genuine
+    def coordinated_authorization_and_binding(self, root, candidate_identity, candidate_receipt_hash):
+        """Build a Runtime authorization and binding with genuine
         content-addressed hashes over the same canonical JSON the lifecycle
         gate recomputes."""
         binding = {
@@ -173,26 +173,33 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             "runtimeRelease": binding["runtimeRelease"],
             "materializationReceiptHash": binding["materializationReceiptHash"],
         })
-        receipt = {
-            "contract": "coordinated-active-receipt/v1",
-            "receiptId": "",
-            "sealedAt": "2030-01-01T00:00:00Z",
+        authorization = {
+            "contract": "coordinated-runtime-authorization/v1",
+            "authorizationId": "",
+            "authorizedAt": "2030-01-01T00:00:00Z",
             "transactionId": "tx-1",
             "journalHash": "1" * 64,
             "candidateReceiptHash": candidate_receipt_hash,
             "committedSelectors": [{"selectorId": "authority:current", "identity": "auth-new"}],
             "mutationReceiptHashes": ["2" * 64],
-            "runtimeActiveReceiptHash": binding["bindingHash"],
-            "receiptHash": "",
+            "runtimeBindingHash": binding["bindingHash"],
+            "authorizationHash": "",
         }
-        payload_hash = LIFECYCLE.coordinated_active_receipt_payload_hash(receipt)
-        receipt["receiptHash"] = payload_hash
-        receipt["receiptId"] = "act-" + payload_hash[:24]
-        receipt_path = root / "graph-receipt.json"
-        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        payload_hash = LIFECYCLE.canonical_digest({
+            "transactionId": authorization["transactionId"],
+            "journalHash": authorization["journalHash"],
+            "candidateReceiptHash": authorization["candidateReceiptHash"],
+            "committedSelectors": authorization["committedSelectors"],
+            "mutationReceiptHashes": authorization["mutationReceiptHashes"],
+            "runtimeBindingHash": authorization["runtimeBindingHash"],
+        })
+        authorization["authorizationHash"] = payload_hash
+        authorization["authorizationId"] = "auth-" + payload_hash[:24]
+        authorization_path = root / "runtime-authorization.json"
+        authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
         binding_path = root / "runtime-binding.json"
         binding_path.write_text(json.dumps(binding), encoding="utf-8")
-        return receipt_path, binding_path
+        return authorization_path, binding_path
 
     def write_v1_state(self, root):
         selection = {
@@ -518,7 +525,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             ts_script = root / "generate.ts"
-            receipt_path = root / "ts-graph-receipt.json"
+            receipt_path = root / "ts-runtime-authorization.json"
             binding_path = root / "ts-runtime-binding.json"
             summary_path = root / "ts-summary.json"
             ts_script.write_text(TYPESCRIPT_ARTIFACT_GENERATOR, encoding="utf-8")
@@ -531,10 +538,10 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
             binding = json.loads(binding_path.read_text(encoding="utf-8"))
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
-            parsed_receipt = LIFECYCLE.coordinated_graph_receipt(receipt)
+            parsed_receipt = LIFECYCLE.coordinated_runtime_authorization(receipt)
             parsed_binding = LIFECYCLE.coordinated_runtime_binding(binding)
             self.assertEqual(parsed_receipt["candidateReceiptHash"], summary["candidateReceiptHash"])
-            self.assertEqual(parsed_receipt["runtimeActiveReceiptHash"], parsed_binding["bindingHash"])
+            self.assertEqual(parsed_receipt["runtimeBindingHash"], parsed_binding["bindingHash"])
             self.assertEqual(parsed_binding["runtimeRelease"]["releaseId"], summary["runtimeRelease"]["releaseId"])
 
     def test_attach_coordinated_declaration_to_existing_desired_identity(self):
@@ -578,7 +585,7 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             )
             self.assertIn("exact current desired identity", rejected.stderr)
 
-    def test_coordinated_cutover_successor_requires_matching_graph_receipt(self):
+    def test_coordinated_cutover_successor_requires_matching_runtime_authorization(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             state = root / "state"
@@ -615,52 +622,59 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
                 "--identity", str(candidate_b), "--coordinated-cutover", str(declaration),
             )
             # Activation of the declared coordinated successor without the
-            # committed graph receipt fails closed.
+            # pre-activation Runtime authorization fails closed.
             rejected_activate = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE), expect_ok=False,
             )
-            self.assertIn("--coordinated-graph-receipt", rejected_activate.stderr)
-            # A graph receipt whose own content-addressed hash is forged, or
+            self.assertIn("--coordinated-runtime-authorization", rejected_activate.stderr)
+            # A Runtime authorization whose own content-addressed hash is forged, or
             # that binds a different candidate, is rejected.
-            receipt, binding = self.coordinated_receipt_and_binding(root, identity_b, "e" * 64)
-            forged = json.loads(receipt.read_text(encoding="utf-8"))
+            authorization, binding = self.coordinated_authorization_and_binding(root, identity_b, "e" * 64)
+            forged = json.loads(authorization.read_text(encoding="utf-8"))
             forged["candidateReceiptHash"] = "9" * 64
-            forged_path = root / "graph-receipt-forged.json"
+            forged_path = root / "runtime-authorization-forged.json"
             forged_path.write_text(json.dumps(forged), encoding="utf-8")
             rejected_forged = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(forged_path),
+                "--coordinated-runtime-authorization", str(forged_path),
                 "--coordinated-runtime-binding", str(binding), expect_ok=False,
             )
             self.assertIn("does not match its own content-addressed hash", rejected_forged.stderr)
-            foreign = json.loads(receipt.read_text(encoding="utf-8"))
+            foreign = json.loads(authorization.read_text(encoding="utf-8"))
             foreign["candidateReceiptHash"] = "9" * 64
-            foreign["receiptHash"] = LIFECYCLE.coordinated_active_receipt_payload_hash(foreign)
-            foreign["receiptId"] = "act-" + foreign["receiptHash"][:24]
-            foreign_path = root / "graph-receipt-foreign.json"
+            foreign["authorizationHash"] = LIFECYCLE.canonical_digest({
+                "transactionId": foreign["transactionId"],
+                "journalHash": foreign["journalHash"],
+                "candidateReceiptHash": foreign["candidateReceiptHash"],
+                "committedSelectors": foreign["committedSelectors"],
+                "mutationReceiptHashes": foreign["mutationReceiptHashes"],
+                "runtimeBindingHash": foreign["runtimeBindingHash"],
+            })
+            foreign["authorizationId"] = "auth-" + foreign["authorizationHash"][:24]
+            foreign_path = root / "runtime-authorization-foreign.json"
             foreign_path.write_text(json.dumps(foreign), encoding="utf-8")
             rejected_foreign = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(foreign_path),
+                "--coordinated-runtime-authorization", str(foreign_path),
                 "--coordinated-runtime-binding", str(binding), expect_ok=False,
             )
             self.assertIn("different candidate", rejected_foreign.stderr)
-            # A valid receipt without the runtime binding still fails closed.
+            # A valid authorization without the runtime binding still fails closed.
             rejected_no_binding = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(receipt), expect_ok=False,
+                "--coordinated-runtime-authorization", str(authorization), expect_ok=False,
             )
             self.assertIn("--coordinated-runtime-binding", rejected_no_binding.stderr)
-            # The matching committed graph receipt and runtime binding
+            # The matching Runtime authorization and runtime binding
             # unlock the activation.
             activated = self.call(
                 "activate", "--state-dir", str(state), "--expected-generation", "3",
                 "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
-                "--coordinated-graph-receipt", str(receipt),
+                "--coordinated-runtime-authorization", str(authorization),
                 "--coordinated-runtime-binding", str(binding),
             )
             self.assertEqual(activated["active"]["active"]["releaseId"], "runtime-b")

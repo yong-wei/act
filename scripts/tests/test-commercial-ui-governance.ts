@@ -90,7 +90,15 @@ function git(args: string[]) {
 
 function gitRequired(args: string[], message: string) {
   try {
-    return execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      // A generated Runtime candidate can legitimately add tens of thousands
+      // of content-addressed files. Governance must inspect that complete
+      // diff rather than fail at Node's one-megabyte child-process default.
+      maxBuffer: 64 * 1024 * 1024,
+    });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(`${message}: ${detail}`);
@@ -516,6 +524,14 @@ function hasNonAccessibilityOnlyDiff(file: string) {
   return diffDeletedLines(file).some((line) => !normalizedAddedLines.has(
     normalizeAccessibilityOnlyLine(line, file, 'deleted'),
   ));
+}
+
+function canAffectCommercialUiBehavior(file: string) {
+  return (
+    (/^src\/(?:app|components|features|resources)\//.test(file) && /\.(?:css|tsx?)$/.test(file))
+    || file === 'src/lib/platform-role-navigation.ts'
+    || /^course-content\/runtime\/lessons\/[^/]+\/interactive-manifest\.json$/.test(file)
+  );
 }
 
 function someLineMatches(lines: string[], pattern: RegExp) {
@@ -2415,6 +2431,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityForceCanvasSourcePath = 'src/features/knowledge/active-authority-force-canvas.tsx';
   const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
@@ -2448,6 +2465,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityForceCanvasSourcePath,
     activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
@@ -2486,6 +2504,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     : '';
   const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityForceCanvasSource = existsSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath), 'utf8')
     : '';
   const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
@@ -3123,7 +3144,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? null
       : 'active-workspace:mode-controls-missing',
     activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
-      && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
+      && activeAuthorityForceCanvasSource.includes('data-active-graph-stage="authority"')
       ? null
       : 'active-graph:stable-dom-contract-missing',
     activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')
@@ -3891,7 +3912,13 @@ function readInteractiveVisualComponentAcceptanceArtifacts(
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
   assertPureClientBoundaryRefactorGuard(files);
-  const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+  // A generated knowledge/runtime candidate can contain thousands of JSON
+  // shards. They cannot change commercial UI behavior; filtering before the
+  // per-file Git diff prevents quadratic process spawning while preserving
+  // every UI, route-ledger, and interactive-manifest gate.
+  const commercialUiBehaviorFiles = files
+    .filter(canAffectCommercialUiBehavior)
+    .filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
   const interactiveVisualComponentArtifacts = readInteractiveVisualComponentAcceptanceArtifacts(files);
@@ -3973,7 +4000,9 @@ function changedPrimaryRouteInventoryBlocks() {
   if (inPrimaryRouteBlock) finishBlock();
   return [...blocks.values()];
 }
-const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
+const changedPrimaryRouteBlocks = files.includes('src/lib/platform-role-navigation.ts')
+  ? changedPrimaryRouteInventoryBlocks()
+  : [];
 const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
 assertCoveredRouteGlobDoesNotHideStaticPages();
@@ -3987,6 +4016,7 @@ const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolatio
     evidence: ['missing-current-inventory-entry'],
   }));
 const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] = files
+  .filter((file) => /^src\/app\/.+\/page\.tsx$/.test(file))
   .filter(hasNonAccessibilityOnlyDiff)
   .map(appPageRouteHref)
   .filter((href): href is string => Boolean(href))

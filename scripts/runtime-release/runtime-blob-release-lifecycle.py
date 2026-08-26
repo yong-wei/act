@@ -444,24 +444,60 @@ def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime bi
     return binding
 
 
+def coordinated_runtime_authorization(value: Any, label: str = "coordinated runtime authorization") -> Dict[str, Any]:
+    value = exact(value, [
+        "contract", "authorizationId", "authorizedAt", "transactionId", "journalHash",
+        "candidateReceiptHash", "committedSelectors", "mutationReceiptHashes",
+        "runtimeBindingHash", "authorizationHash",
+    ], label)
+    if value["contract"] != "coordinated-runtime-authorization/v1":
+        fail("%s has an unsupported contract" % label)
+    hashes = value["mutationReceiptHashes"]
+    if not isinstance(hashes, list):
+        fail("%s.mutationReceiptHashes must be an array" % label)
+    authorization = {
+        "contract": "coordinated-runtime-authorization/v1",
+        "authorizationId": string(value["authorizationId"], label + ".authorizationId"),
+        "authorizedAt": string(value["authorizedAt"], label + ".authorizedAt"),
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "journalHash": sha(value["journalHash"], label + ".journalHash"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "committedSelectors": committed_selector_entries(value["committedSelectors"], label + ".committedSelectors"),
+        "mutationReceiptHashes": [sha(item, "%s.mutationReceiptHashes[%d]" % (label, index)) for index, item in enumerate(hashes)],
+        "runtimeBindingHash": sha(value["runtimeBindingHash"], label + ".runtimeBindingHash"),
+        "authorizationHash": sha(value["authorizationHash"], label + ".authorizationHash"),
+    }
+    expected = canonical_digest({
+        "transactionId": authorization["transactionId"],
+        "journalHash": authorization["journalHash"],
+        "candidateReceiptHash": authorization["candidateReceiptHash"],
+        "committedSelectors": authorization["committedSelectors"],
+        "mutationReceiptHashes": authorization["mutationReceiptHashes"],
+        "runtimeBindingHash": authorization["runtimeBindingHash"],
+    })
+    if authorization["authorizationHash"] != expected or authorization["authorizationId"] != "auth-" + expected[:24]:
+        fail("%s does not match its own content-addressed hash" % label)
+    return authorization
+
+
 def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, Any], args: argparse.Namespace) -> None:
     """A desired identity declared as a coordinated cutover successor may be
-    activated only with the matching committed coordinated graph receipt and
+    activated only with the matching pre-activation Runtime authorization and
     runtime binding."""
     declaration = read_coordinated_cutover_declaration(state_dir)
     if declaration is None:
         return
     if declaration["releaseId"] != candidate["releaseId"] or declaration["manifestSha256"] != candidate["manifestSha256"] or declaration["treeSha256"] != candidate["treeSha256"]:
         return
-    receipt_path = getattr(args, "coordinated_graph_receipt", None)
-    if not receipt_path:
-        fail("coordinated cutover successor requires --coordinated-graph-receipt")
+    authorization_path = getattr(args, "coordinated_runtime_authorization", None)
+    if not authorization_path:
+        fail("coordinated cutover successor requires --coordinated-runtime-authorization")
     try:
-        receipt = coordinated_graph_receipt(json.loads(Path(receipt_path).read_text(encoding="utf-8")))
+        authorization = coordinated_runtime_authorization(json.loads(Path(authorization_path).read_text(encoding="utf-8")))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        fail("coordinated graph receipt is unreadable: %s" % error)
-    if receipt["candidateReceiptHash"] != declaration["candidateReceiptHash"]:
-        fail("coordinated graph receipt binds a different candidate than the declared cutover")
+        fail("coordinated Runtime authorization is unreadable: %s" % error)
+    if authorization["candidateReceiptHash"] != declaration["candidateReceiptHash"]:
+        fail("coordinated Runtime authorization binds a different candidate than the declared cutover")
     binding_path = getattr(args, "coordinated_runtime_binding", None)
     if not binding_path:
         fail("coordinated cutover successor requires --coordinated-runtime-binding")
@@ -469,12 +505,12 @@ def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, An
         binding = coordinated_runtime_binding(json.loads(Path(binding_path).read_text(encoding="utf-8")))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         fail("coordinated runtime binding is unreadable: %s" % error)
-    if binding["candidateReceiptHash"] != receipt["candidateReceiptHash"]:
-        fail("coordinated runtime binding binds a different candidate than the graph receipt")
-    if binding["transactionId"] != receipt["transactionId"]:
-        fail("coordinated runtime binding belongs to a different transaction than the graph receipt")
-    if receipt["runtimeActiveReceiptHash"] != binding["bindingHash"]:
-        fail("coordinated graph receipt does not close over the provided runtime active binding")
+    if binding["candidateReceiptHash"] != authorization["candidateReceiptHash"]:
+        fail("coordinated runtime binding binds a different candidate than the Runtime authorization")
+    if binding["transactionId"] != authorization["transactionId"]:
+        fail("coordinated runtime binding belongs to a different transaction than the Runtime authorization")
+    if authorization["runtimeBindingHash"] != binding["bindingHash"]:
+        fail("coordinated Runtime authorization does not close over the provided runtime active binding")
     if binding["runtimeRelease"]["releaseId"] != candidate["releaseId"] or binding["runtimeRelease"]["manifestSha256"] != candidate["manifestSha256"] or binding["runtimeRelease"]["treeSha256"] != candidate["treeSha256"]:
         fail("coordinated runtime binding references a different runtime release than the candidate")
 
@@ -1136,7 +1172,7 @@ def main() -> None:
     activate_parser.add_argument("--expected-generation", required=True, type=int)
     activate_parser.add_argument("--identity", required=True)
     activate_parser.add_argument("--host-state-script", required=True)
-    activate_parser.add_argument("--coordinated-graph-receipt")
+    activate_parser.add_argument("--coordinated-runtime-authorization")
     activate_parser.add_argument("--coordinated-runtime-binding")
     activate_parser.add_argument("--now", help=argparse.SUPPRESS)
     rollback_parser = commands.add_parser("rollback")
@@ -1186,7 +1222,7 @@ def main() -> None:
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
-    commands.choices["activate-and-project"].add_argument("--coordinated-graph-receipt")
+    commands.choices["activate-and-project"].add_argument("--coordinated-runtime-authorization")
     commands.choices["activate-and-project"].add_argument("--coordinated-runtime-binding")
     args = parser.parse_args()
     if args.command == "initialize-v2":

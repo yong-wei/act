@@ -26,30 +26,30 @@
 
 ## 4. Dependency-complete incremental derivation
 
-- [ ] 4.1 Define and persist the resource-binding cache identity over resource and atom hashes, Canonical identity and revision, role, course scope, source, qualified pipeline, anchor contract, and launcher contract.
-- [ ] 4.2 Define and persist the teaching-decision cache identity over Canonical member and revision, relation family, scope, evidence, candidate or decision hash, and qualified pipeline identity.
-- [ ] 4.3 Compute predecessor-to-successor deltas and reuse only exact cache-identity matches with their original evidence lineage.
-- [ ] 4.4 Recompute affected atoms, binding pairs, teaching candidates, domain fragments, and dependent summaries without an unconditional full-library rebuild.
-- [ ] 4.5 Emit reuse, invalidation, recomputation, and summary identities in the coordinated derivation receipt.
+- [x] 4.1 Define and persist the resource-binding cache identity over resource and atom hashes, Canonical identity and revision, role, course scope, source, qualified pipeline, anchor contract, and launcher contract.
+- [x] 4.2 Define and persist the teaching-decision cache identity over Canonical member and revision, relation family, scope, evidence, candidate or decision hash, and qualified pipeline identity.
+- [x] 4.3 Compute predecessor-to-successor deltas and reuse only exact cache-identity matches with their original evidence lineage.
+- [x] 4.4 Recompute affected atoms, binding pairs, teaching candidates, domain fragments, and dependent summaries without an unconditional full-library rebuild.
+- [x] 4.5 Emit reuse, invalidation, recomputation, and summary identities in the coordinated derivation receipt.
 - [ ] 4.6 Add targeted invalidation tests for every cache component and prove that unrelated records remain reusable.
 
 ## 5. Production resource continuity gate
 
-- [ ] 5.1 Require every retained active-baseline teaching resource to have complete atomic dispositions, at least one valid Canonical binding, and a qualified launch contract.
-- [ ] 5.2 Preserve technical failures in the denominator and block coordinated qualification for missing scripts, failed recognition, invalid atomization or alignment, unsafe anchors, weak mappings, or unsupported launchers.
-- [ ] 5.3 Add an immutable course-owner retirement decision binding the resource, active Release, reason, evidence, decision identity, and invalidation rules.
-- [ ] 5.4 Keep failed new or changed resources development-only and exclude them from the successor formal manifest and product projection without weakening the active baseline.
-- [ ] 5.5 Emit included, retired, development-only, failed, atom, binding, launcher, and qualification ledgers whose hashes close over the denominator.
+- [x] 5.1 Require every retained active-baseline teaching resource to have complete atomic dispositions, at least one valid Canonical binding, and a qualified launch contract.
+- [x] 5.2 Preserve technical failures in the denominator and block coordinated qualification for missing scripts, failed recognition, invalid atomization or alignment, unsafe anchors, weak mappings, or unsupported launchers.
+- [x] 5.3 Add an immutable course-owner retirement decision binding the resource, active Release, reason, evidence, decision identity, and invalidation rules.
+- [x] 5.4 Keep failed new or changed resources development-only and exclude them from the successor formal manifest and product projection without weakening the active baseline.
+- [x] 5.5 Emit included, retired, development-only, failed, atom, binding, launcher, and qualification ledgers whose hashes close over the denominator.
 - [ ] 5.6 Add continuity tests proving that technical exclusion cannot remove an active teaching resource and that explicit retirement and failed-new-resource paths remain distinguishable.
 
 ## 6. Complete Teaching Projection governance
 
-- [ ] 6.1 Seal the target course active-domain scope against the captured Authority and enumerate every in-scope Canonical member and semantic revision.
-- [ ] 6.2 Produce final containment dispositions through one admitted parent or `COURSE_ROOT` for every in-scope member.
-- [ ] 6.3 Produce final prerequisite dispositions through admitted relations or evidence-bearing governed `NO_RELATION` decisions for every in-scope member.
-- [ ] 6.4 Produce final pedagogical-association dispositions through admitted relations or evidence-bearing governed `NO_RELATION` decisions for every in-scope member.
-- [ ] 6.5 Complete all approvals, rejections, modifications, conflicts, and no-relation decisions in repository development with no runtime review role or service.
-- [ ] 6.6 Emit a governance receipt with zero unresolved candidates across all three families and evidence-derived admitted, rejected, modified, and no-relation counts.
+- [x] 6.1 Seal the target course active-domain scope against the captured Authority and enumerate every in-scope Canonical member and semantic revision.
+- [x] 6.2 Produce final containment dispositions through one admitted parent or `COURSE_ROOT` for every in-scope member.
+- [x] 6.3 Produce final prerequisite dispositions through admitted relations or evidence-bearing governed `NO_RELATION` decisions for every in-scope member.
+- [x] 6.4 Produce final pedagogical-association dispositions through admitted relations or evidence-bearing governed `NO_RELATION` decisions for every in-scope member.
+- [x] 6.5 Complete all approvals, rejections, modifications, conflicts, and no-relation decisions in repository development with no runtime review role or service.
+- [x] 6.6 Emit a governance receipt with zero unresolved candidates across all three families and evidence-derived admitted, rejected, modified, and no-relation counts.
 - [ ] 6.7 Reject `PARTIAL`, empty, stale, fabricated-edge, wrong-scope, wrong-Authority, and wrong-resource-envelope projections at the coordinated production gate.
 - [ ] 6.8 Add completeness and mismatch tests while preserving truthful `PARTIAL` projections for independently permitted non-coordinated consumers.
 
@@ -62,6 +62,7 @@
 - [ ] 7.5 Bind the complete predecessor graph selectors and Runtime lifecycle generation together with the ordered successor expectations.
 - [ ] 7.6 Emit one immutable non-selectable coordinated candidate and receipt without writing any production selector.
 - [ ] 7.7 Add deterministic construction tests proving one-way identity closure without receipt rewriting, plus mixed-identity, missing-predecessor, tampering, and absent-activation-authority cases.
+- [ ] 7.8 Seal the c5 allocation and formal resource envelope before non-selectable Runtime publication; retain a separately re-read Runtime lifecycle predecessor for the final activation fence.
 
 ## 8. Stopped-service coordinated transaction and rollback
 
@@ -77,11 +78,13 @@
 - [ ] 8.10 Protect every predecessor, successor, rollback, and journal-reachable Runtime Release from garbage collection until transaction evidence permits release.
 - [ ] 8.11 Add failure-injection tests at every selector, Runtime lifecycle, receipt, readiness, restart, and compensation boundary.
 
+- [x] 8.12 Introduce a pre-activation Runtime authorization that binds the journaled Authority mutation and Runtime binding without claiming the Runtime is already active.
+
 ## 9. Runtime, readiness, and consumer integration
 
 - [ ] 9.1 Extend the successor Runtime Release v2 manifest and materialization receipt to bind the resource denominator, formal binding envelope, Authority, complete Teaching Projection, shards, prerequisite publication, shared-consumer activation, coordination allocation record, and predecessor combination.
 - [ ] 9.2 Make the Runtime active receipt bind the preallocated transaction ID and candidate receipt, and make the later outer active receipt bind that immutable Runtime receipt hash.
-- [ ] 9.3 Make ordinary Runtime lifecycle activation reject a successor that lacks the matching committed coordinated graph receipt.
+- [x] 9.3 Make ordinary Runtime lifecycle activation reject a successor that lacks the matching pre-activation Runtime authorization.
 - [ ] 9.4 Project readiness, media signing, node resource indicators, and teaching consumers only from the committed coherent combination.
 - [ ] 9.5 Verify that same-Schema later releases create distinct non-selectable captures and candidates without mutating an in-flight or active combination.
 - [ ] 9.6 Add integration tests for acyclic receipt construction, coherent successor readiness, mismatched graph and Runtime identities, rollback after Runtime mutation, and newer non-active candidates.

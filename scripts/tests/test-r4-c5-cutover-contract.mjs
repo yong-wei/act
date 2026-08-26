@@ -1,0 +1,101 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+const root = process.cwd();
+const builder = path.join(root, 'scripts/knowledge-cutover/build-r4-c5-cutover-input.ts');
+const coordinator = path.join(root, 'scripts/knowledge-cutover/coordinate-latest-authority-oss-cutover.ts');
+const qualificationArtifacts = path.join(root, 'scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts');
+const remote = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'), 'utf8');
+const deploy = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/deploy-r4-c5-coordinated-cutover.sh'), 'utf8');
+const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
+
+for (const invariant of [
+  'flock -x 9',
+  'stop_consumers',
+  'act-obe-app act-obe-worker act-obe-submission-scanner act-obe-submission-gc',
+  'cutover-transaction-journal/v1',
+  'coordinated-runtime-authorization/v1',
+  '--coordinated-activate-before-consumers',
+  'coordinated-active-receipt/v1',
+  'ACT_COORDINATED_CUTOVER_REQUIRED=true',
+  'BLOCKED_RECOVERY',
+  'Authority successor snapshot is not installed as a regular manifest',
+]) {
+  assert.ok(remote.includes(invariant), `coordinated remote transaction must include ${invariant}`);
+}
+assert.ok(
+  remote.lastIndexOf('--coordinated-activate-before-consumers') < remote.lastIndexOf('seal_final_receipt'),
+  'Runtime must activate with consumers stopped before the final active receipt is sealed',
+);
+assert.ok(
+  remote.lastIndexOf('seal_final_receipt') < remote.lastIndexOf('"$DEPLOY" --runtime-cutover-app-only'),
+  'consumer visibility must wait until the final coordinated receipt is durable',
+);
+assert.ok(
+  remote.indexOf("'status': status") > remote.indexOf("'journalHash'"),
+  'mutable transaction status must not participate in the immutable journal hash',
+);
+assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapshot"/, 'local wrapper must transfer the immutable Authority snapshot');
+assert.doesNotMatch(deploy, /scripts\/build\.sh|docker buildx/, 'outer cutover wrapper must not build on the production path');
+assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
+assert.doesNotMatch(activationTransaction, /coordinated-graph-receipt/, 'activation wrapper must not retain the cyclic final-receipt argument');
+
+const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-r4-c5-builder-'));
+try {
+  const baseline = JSON.parse(fs.readFileSync(
+    path.join(root, 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/active-baseline/active-baseline-classification.json'),
+    'utf8',
+  )).activeRelease;
+  const authority = {
+    contract: 'actkg-engineering-authority-current/v1',
+    snapshotId: 'snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151',
+    snapshotHash: '9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151',
+    releaseId: 'ctr:release:control-theory-engineering-v0.22',
+    releaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v0.22',
+    activationReceiptId: 'v022-cutover-authority',
+    activatedAt: '2026-08-20T00:00:00.000Z',
+  };
+  const predecessorPath = path.join(fixture, 'predecessor.json');
+  const stagePath = path.join(fixture, 'stage.json');
+  const out = path.join(fixture, 'candidate');
+  const writePredecessor = (stagedDesired) => fs.writeFileSync(predecessorPath, `${JSON.stringify({
+    contract: 'r4-production-predecessor-observation/v1',
+    runtime: baseline,
+    stagedDesired,
+    selectors: { authority: { sha256: 'a'.repeat(64), value: authority } },
+    observationHash: 'b'.repeat(64),
+  })}\n`);
+  writePredecessor(null);
+  const run = (args) => execFileSync(path.join(root, 'node_modules/.bin/tsx'), [builder, '--', ...args], { cwd: root, encoding: 'utf8' });
+  run(['--prestage', '--predecessor', predecessorPath, '--out', out, '--sealed-at', '2026-08-26T09:00:00.000Z']);
+  const allocation = JSON.parse(fs.readFileSync(path.join(out, 'allocation.json'), 'utf8'));
+  const envelope = JSON.parse(fs.readFileSync(path.join(out, 'formal-resource-envelope.json'), 'utf8'));
+  assert.match(allocation.allocationHash, /^[a-f0-9]{64}$/);
+  assert.match(envelope.envelopeHash, /^[a-f0-9]{64}$/);
+  const runtimeRelease = { releaseId: 'runtime-r4-c5-test', manifestSha256: 'c'.repeat(64), treeSha256: 'd'.repeat(64) };
+  fs.writeFileSync(stagePath, `${JSON.stringify({
+    contract: 'coordinated-runtime-stage/v1',
+    runtimeRelease,
+    materializationReceiptSha256: 'e'.repeat(64),
+  })}\n`);
+  writePredecessor(runtimeRelease);
+  run(['--runtime-stage', stagePath, '--predecessor', predecessorPath, '--out', out, '--sealed-at', '2026-08-26T09:01:00.000Z']);
+  const input = JSON.parse(fs.readFileSync(path.join(out, 'prepare-input.json'), 'utf8'));
+  assert.equal(input.allocation.allocationHash, allocation.allocationHash, 'Runtime staging must consume the presealed allocation');
+  assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
+  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'prepare',
+    '--capture', 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/authority-capture/authority-capture.json',
+    '--input', path.join(out, 'prepare-input.json'), '--out', out,
+  ], { cwd: root, encoding: 'utf8' });
+  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [qualificationArtifacts, '--candidate-dir', out], { cwd: root, encoding: 'utf8' });
+  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'qualify',
+    '--candidate', path.join(out, 'candidate-receipt.json'), '--artifacts', path.join(out, 'outer-artifacts.json'),
+  ], { cwd: root, encoding: 'utf8' });
+} finally {
+  fs.rmSync(fixture, { recursive: true, force: true });
+}
+
+process.stdout.write('r4 c5 coordinated cutover contract tests passed\n');
