@@ -6,6 +6,8 @@ import {
 import { tryRenderGovernedKatex } from './render-cache';
 import {
   expectedSidecarHashesFromBundleManifest,
+  GOVERNED_MATH_PRESENTATION_BUNDLE,
+  GOVERNED_MATH_SIDECAR_FILES,
   type GovernedMathSidecarCorpus,
 } from './sidecar';
 import {
@@ -39,9 +41,25 @@ export function validateGovernedMathCorpus(
   corpus: GovernedMathSidecarCorpus,
 ): GovernedMathValidationResult {
   const issues: GovernedMathValidationIssue[] = [];
-  const expectedHashes = expectedSidecarHashesFromBundleManifest(corpus.bundleDir);
-  for (const [path, hash] of Object.entries(corpus.fileHashes)) {
-    if (expectedHashes[path] && expectedHashes[path] !== hash) {
+  const manifestIndex = expectedSidecarHashesFromBundleManifest(corpus.bundleDir);
+  for (const path of manifestIndex.duplicatePaths) {
+    issues.push(issue('duplicate-manifest-entry', `${path} is duplicated in the bundle manifest`));
+  }
+  for (const path of Object.values(GOVERNED_MATH_SIDECAR_FILES)) {
+    const pinned = GOVERNED_MATH_PRESENTATION_BUNDLE.fileHashes[
+      path as keyof typeof GOVERNED_MATH_PRESENTATION_BUNDLE.fileHashes
+    ];
+    const actual = corpus.fileHashes[path];
+    if (!actual) {
+      issues.push(issue('missing-sidecar', `${path} is missing from the loaded presentation bundle`));
+      continue;
+    }
+    if (actual !== pinned) {
+      issues.push(issue('hash-drift', `${path} sha256 drifted from the presentation-bundle pin`));
+    }
+    if (path !== GOVERNED_MATH_SIDECAR_FILES.bundleManifest && !manifestIndex.hashes[path]) {
+      issues.push(issue('missing-manifest-entry', `${path} is missing from bundle-manifest.json`));
+    } else if (manifestIndex.hashes[path] && manifestIndex.hashes[path] !== actual) {
       issues.push(issue('hash-drift', `${path} sha256 drifted from the bundle manifest`));
     }
   }

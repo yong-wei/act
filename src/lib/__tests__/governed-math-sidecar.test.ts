@@ -97,6 +97,18 @@ describe('governed math sidecar consumption', () => {
     expect(admitGovernedMathCorpus(corpus)).not.toBeNull();
   });
 
+  it('fails closed when the bundle manifest omits a required sidecar entry', () => {
+    const validation = validateGovernedMathCorpus({
+      ...corpus,
+      fileHashes: {
+        ...corpus.fileHashes,
+        [GOVERNED_MATH_SIDECAR_FILES.richText]: '0'.repeat(64),
+      },
+    });
+    expect(validation.ok).toBe(false);
+    expect(validation.issues.some((row) => row.code === 'hash-drift')).toBe(true);
+  });
+
   it('closes r3 sidecar hashes, identity and references', () => {
     const validation = validateGovernedMathCorpus(corpus);
     expect(validation.ok).toBe(true);

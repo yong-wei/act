@@ -12,6 +12,14 @@ export const GOVERNED_MATH_PRESENTATION_BUNDLE = {
   relativePath: R3_RICH_TEXT_RELEASE_RELATIVE,
   releaseId: 'ctr:release:control-theory-engineering-v0.37',
   releaseHash: 'cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39',
+  fileHashes: {
+    'rich-text-readiness-manifest.json': '41c9e44840a692b340a79d603980f8ff8d554a93c4f1e78558904ad6ea202f5c',
+    'localized-rich-text-index.jsonl': '0b716fb2d07616d9f342ab8b00022c1c390b9485eb6545dc622346fcb8192d5c',
+    'typed-math-fragment-index.jsonl': '746216f8b912ccf4056a5aa9015cc7375fe152a8e3cd63a2d6c5f8a87ee1035a',
+    'formula-render-index.jsonl': 'c71573c2b78af5162b97afa30f39e293af3f0a3f9c59c20051dbc034125a7ef0',
+    'localized-content-index.jsonl': 'c84fc834551e44101cc51cb009ff2d97577e1b2585f67c9ca3e126bd9d02ee77',
+    'bundle-manifest.json': '694046f5f851f428dc639f11721c68bfe0f10e169fd7c512ad3493bf1c160bcd',
+  },
 } as const;
 
 export const GOVERNED_MATH_SIDECAR_FILES = {
@@ -225,13 +233,20 @@ export function loadGovernedMathSidecarCorpus(
   };
 }
 
-export function expectedSidecarHashesFromBundleManifest(bundleDir: string): Record<string, string> {
+export function expectedSidecarHashesFromBundleManifest(bundleDir: string): {
+  hashes: Record<string, string>;
+  duplicatePaths: string[];
+} {
   const manifest = JSON.parse(
     readFileSync(join(bundleDir, GOVERNED_MATH_SIDECAR_FILES.bundleManifest), 'utf8'),
   ) as BundleManifest;
   const hashes: Record<string, string> = {};
+  const duplicatePaths: string[] = [];
   for (const artifact of manifest.artifacts) {
+    if (Object.prototype.hasOwnProperty.call(hashes, artifact.path)) {
+      duplicatePaths.push(artifact.path);
+    }
     hashes[artifact.path] = artifact.sha256;
   }
-  return hashes;
+  return { hashes, duplicatePaths };
 }
