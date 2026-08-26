@@ -59,6 +59,7 @@ describe('active Authority presentation adapter', () => {
     expect(presentActiveRelation('internal_predicate', 'internal_direction').directionLabel).not.toContain('internal_');
     expect(JSON.stringify(presentActiveRelation('internal_predicate', 'internal_direction'))).not.toContain('internal_');
     expect(presentActiveHumanText('association', '对象名称暂不可用')).toBe('对象名称暂不可用');
+    expect(presentActiveHumanText('关系 has_component', '对象名称暂不可用')).toBe('对象名称暂不可用');
   });
 
   it('prefers complete-locale projected type and relation labels over historical Chinese maps', () => {

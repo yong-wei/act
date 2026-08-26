@@ -165,6 +165,8 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
   },
 };
 
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/iu;
+
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
   approved: '已审核',
   published: '已发布',
@@ -186,7 +188,8 @@ function isUnsafeIdentity(value: string): boolean {
     || /^[a-f0-9]{32,}$/iu.test(value)
     || Object.hasOwn(NODE_TYPES, value)
     || Object.hasOwn(RELATION_TYPES, value)
-    || ['directed', 'undirected', 'unordered', 'source_to_target', 'source-to-target'].includes(value);
+    || ['directed', 'undirected', 'unordered', 'source_to_target', 'source-to-target'].includes(value)
+    || RAW_SEMANTIC_MACHINE_TOKEN.test(value);
 }
 
 function presentProjectedRelationText(
