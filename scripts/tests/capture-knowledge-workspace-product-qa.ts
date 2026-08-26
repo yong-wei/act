@@ -2777,6 +2777,7 @@ async function captureActiveAuthorityVisualMatrix(
       const activeMarkers = objectRecord(markers.activeAuthority);
       const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
       const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+      const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
       const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
       const forceGraphReady = activeMarkers.renderer === 'force-graph'
         && activeMarkers.rendererGeometryRectValid === true
