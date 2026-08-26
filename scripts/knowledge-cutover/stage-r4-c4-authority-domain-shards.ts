@@ -30,10 +30,8 @@ import type { ConsumerActivationManifest } from '@/lib/versioned-knowledge-activ
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 const ROOT = process.cwd();
-const CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
-const OUTPUT_ROOT = `${CANDIDATE_ROOT}/domain-shards-v022-predecessor`;
-const SUPERSEDED_OUTPUT_ROOT = `${CANDIDATE_ROOT}/domain-shards`;
-const SNAPSHOT_ID = 'snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a';
+const LEGACY_CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const LEGACY_SNAPSHOT_ID = 'snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a';
 
 function absolute(filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.join(ROOT, filePath);
@@ -47,12 +45,13 @@ function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
 }
 
+function option(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  return index < 0 ? fallback : (process.argv[index + 1] ?? fallback);
+}
+
 function requireTimestamp(): string {
-  const args = process.argv.slice(2);
-  if (args.length !== 2 || args[0] !== '--staged-at') {
-    throw new Error('usage: --staged-at <millisecond RFC3339 UTC timestamp>');
-  }
-  const value = args[1];
+  const value = option('--staged-at', '');
   if (!value || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(value)) {
     throw new Error('--staged-at must be a millisecond RFC3339 UTC timestamp');
   }
@@ -60,6 +59,8 @@ function requireTimestamp(): string {
 }
 
 function recordSupersededStage(input: {
+  readonly previousRoot: string;
+  readonly outputRoot: string;
   readonly stagedAt: string;
   readonly replacement: {
     readonly shardSetId: string;
@@ -68,7 +69,7 @@ function recordSupersededStage(input: {
     readonly stageHash: string;
   };
 }): void {
-  const previousPath = `${SUPERSEDED_OUTPUT_ROOT}/stage.json`;
+  const previousPath = `${input.previousRoot}/stage.json`;
   if (!existsSync(absolute(previousPath))) return;
   const previous = readJson<{
     readonly shardSetId?: unknown;
@@ -83,21 +84,21 @@ function recordSupersededStage(input: {
     || !/^[a-f0-9]{64}$/u.test(previous.activationHash)
     || previous.activationHash === input.replacement.activationHash
   ) {
-    throw new Error('the historical r4-c4 shard stage cannot be safely superseded');
+    throw new Error('the requested historical shard stage cannot be safely superseded');
   }
-  immutableWrite(`${SUPERSEDED_OUTPUT_ROOT}/superseded-by-v022-predecessor.json`, {
+  immutableWrite(`${input.previousRoot}/superseded-by-v022-predecessor.json`, {
     contract: 'r4-c4-superseded-domain-shard-stage/v1',
     supersededAt: input.stagedAt,
     reason: 'missing-captured-production-v022-activation-predecessor',
     previous: {
-      directory: SUPERSEDED_OUTPUT_ROOT,
+      directory: input.previousRoot,
       stageSha256: sha256File(previousPath),
       shardSetId: previous.shardSetId,
       shardSetHash: previous.shardSetHash,
       activationHash: previous.activationHash,
     },
     replacement: {
-      directory: OUTPUT_ROOT,
+      directory: input.outputRoot,
       ...input.replacement,
     },
   });
@@ -144,11 +145,15 @@ function requireReadyActivation(
 
 function main(): void {
   const stagedAt = requireTimestamp();
+  const candidateRoot = option('--candidate-root', LEGACY_CANDIDATE_ROOT);
+  const outputRoot = option('--out', `${candidateRoot}/domain-shards-v022-predecessor`);
+  const snapshotId = option('--snapshot-id', LEGACY_SNAPSHOT_ID);
+  const supersedeRoot = option('--supersede-root', '');
   const authority = loadStagedAuthoritySnapshot(
     resolveAuthorityStorePaths(absolute('course-content/authoring/knowledge/authority')),
-    SNAPSHOT_ID,
+    snapshotId,
   );
-  const catalog = readJson<AuthorityDomainCatalogRuntime>(`${CANDIDATE_ROOT}/domain-catalog/catalog.json`);
+  const catalog = readJson<AuthorityDomainCatalogRuntime>(`${candidateRoot}/domain-catalog/catalog.json`);
   if (
     catalog.authorityBinding.snapshotId !== authority.snapshotId
     || catalog.authorityBinding.snapshotHash !== authority.snapshotHash
@@ -159,7 +164,7 @@ function main(): void {
   }
   const activationStage = readJson<{
     readonly successor: { readonly activationId: string; readonly activationHash: string };
-  }>(`${CANDIDATE_ROOT}/consumer-activation-stage.json`);
+  }>(`${candidateRoot}/consumer-activation-stage.json`);
   const activation = readJson<ConsumerActivationManifest>(
     `course-content/runtime/knowledge/consumer-activation/releases/${activationStage.successor.activationId}/activation.json`,
   );
@@ -210,7 +215,7 @@ function main(): void {
   stageAuthorityDomainShards(paths, materialized);
 
   const setArtifact = {
-    contract: 'r4-c4-authority-domain-shard-stage/v1',
+    contract: 'r4-coordinated-authority-domain-shard-stage/v2',
     stagedAt,
     authority: envelope.authority,
     catalog: envelope.catalog,
@@ -226,18 +231,22 @@ function main(): void {
   const { artifactHash: ignoredArtifactHash, ...hashInput } = setArtifact;
   void ignoredArtifactHash;
   const staged = { ...setArtifact, artifactHash: projectionDigest(hashInput) };
-  immutableWrite(`${OUTPUT_ROOT}/stage.json`, staged);
-  immutableWrite(`${OUTPUT_ROOT}/current.json`, materialized.pointer);
-  immutableWrite(`${OUTPUT_ROOT}/manifest.json`, materialized.manifest);
-  recordSupersededStage({
-    stagedAt,
-    replacement: {
-      shardSetId: materialized.manifest.shardSetId,
-      shardSetHash: materialized.manifest.shardSetHash,
-      activationHash: activation.activationHash,
-      stageHash: staged.artifactHash,
-    },
-  });
+  immutableWrite(`${outputRoot}/stage.json`, staged);
+  immutableWrite(`${outputRoot}/current.json`, materialized.pointer);
+  immutableWrite(`${outputRoot}/manifest.json`, materialized.manifest);
+  if (supersedeRoot) {
+    recordSupersededStage({
+      previousRoot: supersedeRoot,
+      outputRoot,
+      stagedAt,
+      replacement: {
+        shardSetId: materialized.manifest.shardSetId,
+        shardSetHash: materialized.manifest.shardSetHash,
+        activationHash: activation.activationHash,
+        stageHash: staged.artifactHash,
+      },
+    });
+  }
   process.stdout.write(`${JSON.stringify({
     shardSetId: materialized.manifest.shardSetId,
     shardSetHash: materialized.manifest.shardSetHash,

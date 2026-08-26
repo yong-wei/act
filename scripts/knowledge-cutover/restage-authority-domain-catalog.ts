@@ -95,6 +95,7 @@ function main(): void {
   const successorSnapshotRoot = value('--successor-snapshot', DEFAULT_SUCCESSOR_SNAPSHOT);
   const semanticCachePath = value('--semantic-cache', DEFAULT_SEMANTIC_CACHE);
   const outputRoot = value('--out', DEFAULT_OUTPUT);
+  const catalogVersion = value('--catalog-version', 'v0.37-r4-c4-candidate');
   const stagedAt = value('--staged-at', '');
   requireRfc3339(stagedAt);
 
@@ -133,7 +134,7 @@ function main(): void {
 
   const authoring: AuthorityDomainCatalogAuthoring = {
     ...predecessorAuthoring,
-    catalogVersion: 'v0.37-r4-c4-candidate',
+    catalogVersion,
     authorityBinding: {
       releaseId: successorManifest.releaseId,
       releaseSetId: successorManifest.releaseSetId,

@@ -17,10 +17,9 @@ import type { ConsumerActivationManifest } from '@/lib/versioned-knowledge-activ
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 const ROOT = process.cwd();
-const CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
-const SNAPSHOT_ID = 'snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a';
-const PROJECTION_ID = 'proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556';
-const PRODUCTION_PREDECESSOR = `${CANDIDATE_ROOT}/active-baseline/production-v022-consumer-activation.json`;
+const LEGACY_CANDIDATE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
+const LEGACY_SNAPSHOT_ID = 'snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a';
+const LEGACY_PROJECTION_ID = 'proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556';
 
 function absolute(filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.join(ROOT, filePath);
@@ -32,6 +31,11 @@ function readJson<T>(filePath: string): T {
 
 function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
+}
+
+function option(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  return index < 0 ? fallback : (process.argv[index + 1] ?? fallback);
 }
 
 function requireTimestamp(): string {
@@ -58,21 +62,28 @@ function immutableWrite(filePath: string, value: unknown): void {
 
 function main(): void {
   const stagedAt = requireTimestamp();
-  const snapshotDir = `course-content/authoring/knowledge/authority/releases/${SNAPSHOT_ID}`;
+  const candidateRoot = option('--candidate-root', LEGACY_CANDIDATE_ROOT);
+  const snapshotId = option('--snapshot-id', LEGACY_SNAPSHOT_ID);
+  const projectionId = option('--projection-id', LEGACY_PROJECTION_ID);
+  const productionPredecessor = option(
+    '--production-predecessor',
+    `${candidateRoot}/active-baseline/production-v022-consumer-activation.json`,
+  );
+  const snapshotDir = `course-content/authoring/knowledge/authority/releases/${snapshotId}`;
   const authority = readJson<{
     readonly releaseId: string;
     readonly snapshotId: string;
     readonly snapshotHash: string;
     readonly captureRevision: string;
   }>(`${snapshotDir}/manifest.json`);
-  const projectionDir = `course-content/runtime/knowledge/projection/releases/${PROJECTION_ID}`;
+  const projectionDir = `course-content/runtime/knowledge/projection/releases/${projectionId}`;
   const projection = readJson<{
     readonly projectionId: string;
     readonly projectionHash: string;
     readonly authorityReleaseId: string;
     readonly gatePassed: boolean;
   }>(`${projectionDir}/projection-manifest.json`);
-  const predecessor = readJson<ConsumerActivationManifest>(PRODUCTION_PREDECESSOR);
+  const predecessor = readJson<ConsumerActivationManifest>(productionPredecessor);
   if (
     predecessor.activationId !== 'v022-cutover-9c4b2c1c2c97-1ab3029ae058'
     || predecessor.activationHash !== '63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129'
@@ -81,8 +92,8 @@ function main(): void {
     throw new Error('captured production v0.22 activation is not the sealed predecessor');
   }
   if (
-    authority.snapshotId !== SNAPSHOT_ID
-    || projection.projectionId !== PROJECTION_ID
+    authority.snapshotId !== snapshotId
+    || projection.projectionId !== projectionId
     || projection.authorityReleaseId !== authority.releaseId
     || !projection.gatePassed
   ) {
@@ -144,12 +155,12 @@ function main(): void {
     throw new Error('restaged r4-c4 activation does not make all six consumers READY');
   }
   const receipt = {
-    contract: 'r4-c4-production-predecessor-activation-restage/v1',
+    contract: 'r4-coordinated-production-predecessor-activation-restage/v2',
     stagedAt,
     predecessor: {
       activationId: predecessor.activationId,
       activationHash: predecessor.activationHash,
-      sourceSha256: sha256File(PRODUCTION_PREDECESSOR),
+      sourceSha256: sha256File(productionPredecessor),
     },
     successor: {
       activationId: staged.activationId,
@@ -163,7 +174,7 @@ function main(): void {
   };
   const { receiptHash: ignoredReceiptHash, ...hashInput } = receipt;
   void ignoredReceiptHash;
-  immutableWrite(`${CANDIDATE_ROOT}/consumer-activation-stage.json`, {
+  immutableWrite(`${candidateRoot}/consumer-activation-stage.json`, {
     ...receipt,
     receiptHash: projectionDigest(hashInput),
   });
