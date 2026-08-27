@@ -1,0 +1,181 @@
+name: Layered quality gates
+
+on:
+  pull_request:
+    branches:
+      - integration
+  push:
+    branches:
+      - integration
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      layer:
+        description: 'Layer to execute manually'
+        required: true
+        default: nightly
+        type: choice
+        options:
+          - nightly
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: quality-gates-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr:
+    name: ${{ matrix.checkId }}
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        checkId:
+          - pr/architecture-fitness
+          - pr/affected-lint
+          - pr/typecheck-test
+          - pr/typecheck-tools
+          - pr/typecheck-web
+          - pr/typecheck-worker
+          - pr/affected-unit
+          - pr/contract
+          - pr/prisma-migration
+          - pr/critical-e2e
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        if: contains(matrix.checkId, 'e2e')
+        run: npx playwright install --with-deps
+      - name: Validate gate registry
+        run: npm run quality-gates:validate
+      - name: Execute required PR check
+        run: npm run quality-gates:run -- --layer pr --check ${{ matrix.checkId }}
+
+  integration:
+    name: ${{ matrix.checkId }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/integration'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        checkId:
+          - integration/architecture-fitness
+          - integration/unit
+          - integration/contract
+          - integration/integration
+          - integration/typecheck-test
+          - integration/typecheck-tools
+          - integration/typecheck-web
+          - integration/typecheck-worker
+          - integration/next-build
+          - integration/wasm-build
+          - integration/migration-rehearsal
+          - integration/critical-e2e
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: act
+          POSTGRES_PASSWORD: act
+          POSTGRES_DB: act_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U act -d act_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://act:act@localhost:5432/act_test
+      SUBMISSION_TEST_DATABASE_BASE_URL: postgresql://act:act@localhost:5432/act_test
+      SMART_LESSON_TEST_DATABASE_BASE_URL: postgresql://act:act@localhost:5432/act_test
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Setup Rust
+        if: matrix.checkId == 'integration/wasm-build' || matrix.checkId == 'integration/next-build'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        if: matrix.checkId == 'integration/wasm-build' || matrix.checkId == 'integration/next-build'
+        run: cargo install wasm-pack --locked --version 0.15.0
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        if: contains(matrix.checkId, 'integration') || contains(matrix.checkId, 'migration')
+        run: npx prisma generate
+      - name: Install Playwright browsers
+        if: contains(matrix.checkId, 'e2e')
+        run: npx playwright install --with-deps
+      - name: Validate gate registry
+        run: npm run quality-gates:validate
+      - name: Execute required integration check
+        run: npm run quality-gates:run -- --layer integration --check ${{ matrix.checkId }}
+
+  nightly:
+    name: ${{ matrix.checkId }}
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.layer == 'nightly')
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        checkId:
+          - nightly/isolated
+          - nightly/visual-performance
+          - nightly/real-provider
+          - nightly/course-matrix
+          - nightly/data-replay
+          - nightly/arena
+          - nightly/simulation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate gate registry
+        run: npm run quality-gates:validate
+      - name: Execute nightly breadth check
+        run: npm run quality-gates:run -- --layer nightly --check ${{ matrix.checkId }}

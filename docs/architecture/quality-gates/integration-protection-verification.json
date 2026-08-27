@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "act-integration-protection-verification/v1",
+  "branch": "integration",
+  "status": "blocked-unverified",
+  "sourceCommit": "8f66b75e01ba1fa0365e5997895cc8e647914e16",
+  "sourceTree": "2236329ce0078bc6c3e46689f24fd85f3c091281",
+  "dirty": true,
+  "provider": "github",
+  "responseClass": "not-queried-in-patch-worker-scope",
+  "enforcement": "unknown",
+  "requiredChecks": [],
+  "strictStatus": null,
+  "requiredReviews": null,
+  "conversationResolution": null,
+  "bypassActors": [],
+  "affectedGate": "integration-branch-protection",
+  "resolutionCondition": "A platform-authorized read or exported ruleset must prove enforcement and the exact integration required-check set before claiming protection.",
+  "capturedAt": "2026-08-27T03:53:36.401Z",
+  "receiptId": "a6e07f18391b49bf07ba16c3fe54b24b11cb51d152a4c616fc9e353e9402422a"
+}
