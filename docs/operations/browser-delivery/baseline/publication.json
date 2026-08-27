@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "browser-delivery-publication/v1",
+  "cohortId": "simulation-glb-v1",
+  "bucket": "act-course-delivery",
+  "manifestDigest": "83216d928f627f08c948de12cb3dfd5f03f73f02a460f13b0d1305c5901f041d",
+  "applied": false,
+  "objects": [
+    {
+      "logicalId": "destroyer",
+      "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
+      "sha256": "0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae",
+      "sizeBytes": 3394880,
+      "mediaType": "model/gltf-binary",
+      "basename": "destroyer.glb"
+    },
+    {
+      "logicalId": "icebreaker",
+      "objectKey": "assets/c3f7a8ac8a74b5dea726a4ffe265e238598452838a714479e084ed2ea6ab3619/icebreaker.glb",
+      "sha256": "c3f7a8ac8a74b5dea726a4ffe265e238598452838a714479e084ed2ea6ab3619",
+      "sizeBytes": 6119568,
+      "mediaType": "model/gltf-binary",
+      "basename": "icebreaker.glb"
+    },
+    {
+      "logicalId": "lng-carrier",
+      "objectKey": "assets/f81b81f3d74e12ec05cde36acbe1aebb34b6dac28777151990a831e8ca134d6a/Lng-carrier.glb",
+      "sha256": "f81b81f3d74e12ec05cde36acbe1aebb34b6dac28777151990a831e8ca134d6a",
+      "sizeBytes": 4135612,
+      "mediaType": "model/gltf-binary",
+      "basename": "Lng-carrier.glb"
+    },
+    {
+      "logicalId": "container",
+      "objectKey": "assets/c48abd535f29011e39a9dd01e1b1ba443e300e8e0d3305b3deb8f60f87640706/container.glb",
+      "sha256": "c48abd535f29011e39a9dd01e1b1ba443e300e8e0d3305b3deb8f60f87640706",
+      "sizeBytes": 3964796,
+      "mediaType": "model/gltf-binary",
+      "basename": "container.glb"
+    },
+    {
+      "logicalId": "dredger",
+      "objectKey": "assets/6a6b2223fce6a65e09a7d88867af50dad884bd7e33e6386f930a340b87a23f12/dredger.glb",
+      "sha256": "6a6b2223fce6a65e09a7d88867af50dad884bd7e33e6386f930a340b87a23f12",
+      "sizeBytes": 5416640,
+      "mediaType": "model/gltf-binary",
+      "basename": "dredger.glb"
+    },
+    {
+      "logicalId": "luxury-liner",
+      "objectKey": "assets/6c942d2bb9cfc58e6df4ae03700ad777a530fa463d96b7ae43ac3d3f5ff3999c/luxury-liner.glb",
+      "sha256": "6c942d2bb9cfc58e6df4ae03700ad777a530fa463d96b7ae43ac3d3f5ff3999c",
+      "sizeBytes": 5292772,
+      "mediaType": "model/gltf-binary",
+      "basename": "luxury-liner.glb"
+    },
+    {
+      "logicalId": "drilling-rig",
+      "objectKey": "assets/bba2dbece41497d87a806a7d10f663b14f56b7d8c25978ede68b8124b9eafb49/drilling-rig.glb",
+      "sha256": "bba2dbece41497d87a806a7d10f663b14f56b7d8c25978ede68b8124b9eafb49",
+      "sizeBytes": 9189472,
+      "mediaType": "model/gltf-binary",
+      "basename": "drilling-rig.glb"
+    }
+  ],
+  "missing": [],
+  "blockingReasons": []
+}

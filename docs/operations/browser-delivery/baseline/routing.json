@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "browser-delivery-routing/v1",
+  "cohortId": "simulation-glb-v1",
+  "toolVersion": "browser-delivery/1",
+  "sourceCommit": "5a3a34f7eabecf39c9a07a7f2f1ebfcf232e1f01",
+  "sourceTree": "fb256ba2ea870ce86f0a675b004f5a01bcf28eae",
+  "capturedAt": "2026-08-27T15:47:27.949Z",
+  "status": "incomplete",
+  "manifestDigest": "83216d928f627f08c948de12cb3dfd5f03f73f02a460f13b0d1305c5901f041d",
+  "esaFirst": false,
+  "blockingReasons": [],
+  "missingEvidence": [
+    "esa-poc",
+    "publication",
+    "traffic-baseline"
+  ]
+}
