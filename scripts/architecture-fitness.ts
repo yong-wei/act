@@ -99,7 +99,7 @@ function main(): void {
   }
   if (writeLedger) {
     const frozen = readJson<CensusCore>(repoRoot, BASELINE_CORE_PATH);
-    const allowlist = readJson<FitnessAllowlist>(repoRoot, ALLOWLIST_PATH);
+    const allowlist = readJson<FitnessAllowlist>(repoRoot, FROZEN_ALLOWLIST_PATH);
     if (frozen.captureIdentity.sourceCommit !== REQUIRED_BASELINE.sourceCommit) throw new Error('baseline-commit-drift');
     const ledger = createFitnessBudgetLedger({
       baselineCore: frozen,

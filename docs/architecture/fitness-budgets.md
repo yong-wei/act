@@ -31,13 +31,11 @@ Fitness report 只负责这些输入的结构性投影，不替代 domain depend
 ## 验证
 
 ```sh
-rtk node --import tsx ./scripts/architecture-fitness.ts --write-ledger
 rtk node --import tsx ./scripts/architecture-fitness.ts
 rtk npm run typecheck:web
 rtk npm run typecheck:worker
 rtk npm run typecheck:tools
 rtk npm run typecheck:test
-rtk openspec validate establish-architecture-fitness-budgets --type change --strict
 ```
 
-`npm run fitness:architecture` 是标准入口，脚本使用 `node --import tsx` 避免 CLI IPC 依赖；不得以 heap 参数替代 graph 或 receipt 证据。
+`--write-ledger` 只从冻结 `fitness-budget-allowlist.json` 重建 ledger，不会消费当前候选 `dependency-allowlist.json`。例外收缩只改候选集合，不得改写冻结 allowlist 或 ledger pin。`npm run fitness:architecture` 是标准入口，脚本使用 `node --import tsx` 避免 CLI IPC 依赖；不得以 heap 参数替代 graph 或 receipt 证据。
