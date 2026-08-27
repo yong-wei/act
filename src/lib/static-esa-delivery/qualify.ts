@@ -212,6 +212,18 @@ export function parseCost(raw: unknown): CostReceipt {
   return receipt;
 }
 
+export function validContentRange(contentRange: string, sizeBytes: number | null): boolean {
+  const match = /^bytes (\d+)-(\d+)\/(\d+)$/u.exec(contentRange);
+  if (!match) return false;
+  const start = Number(match[1]);
+  const end = Number(match[2]);
+  const total = Number(match[3]);
+  if (![start, end, total].every((value) => Number.isSafeInteger(value))) return false;
+  if (start < 0 || end < start || total < 1 || end >= total) return false;
+  if (sizeBytes !== null && total !== sizeBytes) return false;
+  return true;
+}
+
 export function rollbackPlan(dns: DnsReceipt): RollbackReceipt {
   if (dns.hostname !== STATIC_HOSTNAME) throw new Error('rollback-hostname-mismatch');
   if (dns.namesChanged.some((name) => name !== STATIC_HOSTNAME && name !== `${STATIC_HOSTNAME}.`)) {
@@ -279,6 +291,8 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
     if (dns.recordType === 'intercepted') {
       if (dns.applied) blockingReasons.push('dns-observation-intercepted');
       else missingEvidence.push('dns-trusted-observation');
+    } else if (!dns.applied || dns.recordType !== 'CNAME' || !dns.desiredValue) {
+      missingEvidence.push('dns-cutover');
     }
   }
 
@@ -289,7 +303,7 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
     if (!transport.https) blockingReasons.push('transport-https');
     if (transport.certificateHost !== STATIC_HOSTNAME) blockingReasons.push('transport-certificate-host');
     if (object && transport.fullObjectSha256 !== object.objectSha256) blockingReasons.push('transport-hash-mismatch');
-    if (transport.rangeStatus !== 206 || !transport.contentRange.startsWith('bytes ')) {
+    if (transport.rangeStatus !== 206 || !validContentRange(transport.contentRange, object?.sizeBytes ?? null)) {
       blockingReasons.push('transport-range');
     }
     if (transport.cacheFirst !== 'MISS' || transport.cacheSecond !== 'HIT') blockingReasons.push('transport-cache');
@@ -303,7 +317,14 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
     isolation = parseIsolation(input.isolation);
     if (isolation.extraObjectsInBucket !== 0) blockingReasons.push('isolation-extra-objects');
     if (isolation.probes.some((probe) => probe.served)) blockingReasons.push('isolation-authority-served');
-    if (isolation.probes.length < 1) blockingReasons.push('isolation-probes-missing');
+    if (isolation.probes.some((probe) => !probe.served && probe.status < 400)) {
+      blockingReasons.push('isolation-status-contradiction');
+    }
+    const requiredClasses = ['runtime-blob', 'runtime-release', 'knowledge', 'assessment', 'unlisted'] as const;
+    const seen = new Set(isolation.probes.map((probe) => probe.keyClass));
+    if (requiredClasses.some((keyClass) => !seen.has(keyClass))) {
+      blockingReasons.push('isolation-probes-missing');
+    }
   }
 
   let cost: CostReceipt | null = null;
@@ -343,8 +364,12 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
     dnsApplied: dns?.applied === true,
     originBucket: originBucket ?? object?.bucket ?? null,
   };
+  const evidence = { serviceRole, object, dns, transport, isolation, cost };
+  const evidenceFingerprint = sha256Text(serializeDeterministic({ capturedAt: input.capturedAt, evidence }));
   const envelope = {
     ...body,
+    evidence,
+    evidenceFingerprint,
     qualificationId: sha256Text(serializeDeterministic({
       sourceCommit: body.sourceCommit,
       sourceTree: body.sourceTree,
@@ -352,6 +377,7 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
       blockingReasons: body.blockingReasons,
       missingEvidence: body.missingEvidence,
       objectKey: body.objectKey,
+      evidenceFingerprint,
     })),
   } as QualificationEnvelope;
   assertPortable(envelope, 'qualification');

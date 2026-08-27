@@ -121,6 +121,15 @@ export interface QualificationEnvelope {
   readonly serviceRoleAccepted: boolean;
   readonly dnsApplied: boolean;
   readonly originBucket: string | null;
+  readonly evidenceFingerprint: string;
+  readonly evidence: {
+    readonly serviceRole: ServiceRoleReceipt | null;
+    readonly object: ObjectReceipt | null;
+    readonly dns: DnsReceipt | null;
+    readonly transport: TransportReceipt | null;
+    readonly isolation: IsolationReceipt | null;
+    readonly cost: CostReceipt | null;
+  };
 }
 
 export interface RollbackReceipt {

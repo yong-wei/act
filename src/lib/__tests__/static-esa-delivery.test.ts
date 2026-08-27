@@ -82,7 +82,10 @@ function isolation(overrides: Partial<IsolationReceipt> = {}): IsolationReceipt 
     extraObjectsInBucket: 0,
     probes: [
       { keyClass: 'runtime-blob', served: false, status: 403 },
+      { keyClass: 'runtime-release', served: false, status: 403 },
       { keyClass: 'knowledge', served: false, status: 404 },
+      { keyClass: 'assessment', served: false, status: 404 },
+      { keyClass: 'unlisted', served: false, status: 404 },
     ],
     ...overrides,
   };
@@ -135,7 +138,10 @@ describe('static ESA delivery qualification', () => {
     expect(envelope.hostname).toBe(STATIC_HOSTNAME);
     expect(envelope.dnsApplied).toBe(true);
     expect(envelope.blockingReasons).toEqual([]);
+    expect(envelope.evidenceFingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(cost().shiftedNotFree).toBe(true);
+    const otherRole = qualify({ serviceRole: role(true, 'account-wide') });
+    expect(otherRole.qualificationId).not.toBe(envelope.qualificationId);
   });
 
   it('blocks an Authority origin, unaccepted role, overwrite, and out-of-scope DNS', () => {
@@ -205,5 +211,14 @@ describe('static ESA delivery qualification', () => {
     expect(qualify({
       object: objectReceipt({ objectKey: 'models/destroyer.glb' }),
     }).blockingReasons).toContain('object-key-mismatch');
+    expect(qualify({
+      dns: dns({ applied: false, recordType: 'absent', desiredValue: null }),
+    }).status).toBe('incomplete');
+    expect(qualify({
+      transport: transport(objectReceipt(), { contentRange: 'bytes nonsense' }),
+    }).blockingReasons).toContain('transport-range');
+    expect(qualify({
+      isolation: isolation({ probes: [{ keyClass: 'unlisted', served: false, status: 200 }] }),
+    }).blockingReasons).toEqual(expect.arrayContaining(['isolation-probes-missing', 'isolation-status-contradiction']));
   });
 });
