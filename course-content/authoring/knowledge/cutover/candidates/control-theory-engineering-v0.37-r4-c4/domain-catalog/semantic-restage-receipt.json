@@ -1,0 +1,36 @@
+{
+  "contract": "authority-domain-catalog-semantic-restage/v1",
+  "stagedAt": "2026-08-26T03:31:00.000Z",
+  "predecessorCatalogHash": "911c6be012126012e7faad66fe0e7bc8aec3a40090cc5327153cb8a4f2e5fd35",
+  "predecessorScopeHash": "5c48983fa855c4318343545f1d3e74bdc915f837b4b31f26b3cb9da014f4c6d3",
+  "successorCatalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+  "successorScopeHash": "dda4e749e7191250e4b56c74e37143aff980f59d931d8eed410b5600c28db292",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "sourceInputs": [
+    {
+      "path": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c3/domain-catalog/catalog-authoring.json",
+      "sha256": "21c1b51a7c85a9b2ed044fb7f95accc18ba5683f3f3462846855db82fa90fa93"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c3/domain-catalog/catalog.json",
+      "sha256": "997c75f407cd7ecdd744bfe73d5fc5968ad050e2efa92c38c72b2e1ae95fff03"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c3/domain-catalog/scope.json",
+      "sha256": "eba73d813209bea6f1ac5ed6abaec48a1930caf6c4556cc3737bc944f4085b64"
+    },
+    {
+      "path": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/authority-semantic-cache.json",
+      "sha256": "1a9930f46c60bb7dac8fc288b9b1654f81bfc1aebf4e1a2738931ae17d75f868"
+    },
+    {
+      "path": "course-content/authoring/knowledge/authority/releases/snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/manifest.json",
+      "sha256": "7add6199a37438a7ba1bdb25551d435fdd8ecfb23962f5e76abc5c26e5763489"
+    },
+    {
+      "path": "course-content/authoring/knowledge/authority/releases/snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/engineering.json",
+      "sha256": "2c120a1ea6107c662f6a95449fcaea2087529693255248171fc928ab43f05c99"
+    }
+  ],
+  "receiptHash": "35dacf1911ff9fcf548846db04541030eec78f7614fb292b0d9a3547dac39635"
+}

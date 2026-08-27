@@ -1,0 +1,51 @@
+name: Wolfram Cloud MCP Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Wolfram Cloud MCP calculator
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run calculator unit tests
+        run: npx vitest run src/lib/__tests__/math-calc.test.ts src/lib/__tests__/wolfram-cloud-mcp.test.ts src/lib/__tests__/konling-math-precompute.test.ts
+
+      - name: Assert image no longer bakes Wolfram Engine
+        run: node scripts/tests/test-docker-migration-readiness.mjs
+
+      - name: Live Wolfram Cloud MCP regression
+        run: npx tsx scripts/tests/test-math-calc-wolfram.ts
+
+      - name: Ready-check smoke
+        run: ./scripts/math-calc/check-wolfram-ready.sh
+
+      - name: Ready-check fail-closed on unreachable MCP
+        run: |
+          if WOLFRAM_CLOUD_MCP_URL='http://127.0.0.1:9' ./scripts/math-calc/check-wolfram-ready.sh; then
+            echo 'unreachable Cloud MCP unexpectedly passed ready-check' >&2
+            exit 1
+          fi
+          echo 'unreachable Cloud MCP fail-closed passed'

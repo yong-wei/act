@@ -238,14 +238,14 @@ export function buildV022DomainCatalogAuthoring(input: {
   }
 
   const memberships = new Map<string, Set<string>>();
-  for (const module of modules) {
-    if (!presentationById.has(module.domainId)) {
-      throw new V022EnvelopeError('domain-presentation-missing', `missing reviewed presentation for ${module.domainId}`);
+  for (const moduleDefinition of modules) {
+    if (!presentationById.has(moduleDefinition.domainId)) {
+      throw new V022EnvelopeError('domain-presentation-missing', `missing reviewed presentation for ${moduleDefinition.domainId}`);
     }
-    for (const canonicalId of module.objects) {
+    for (const canonicalId of moduleDefinition.objects) {
       if (!published.has(canonicalId)) continue;
       const domains = memberships.get(canonicalId) ?? new Set<string>();
-      domains.add(module.domainId);
+      domains.add(moduleDefinition.domainId);
       memberships.set(canonicalId, domains);
     }
   }

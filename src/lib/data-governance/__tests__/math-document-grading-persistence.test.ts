@@ -119,7 +119,7 @@ function lifecyclePolicyRepository() {
     gradingLifecyclePolicy: {
       findMany: async ({ where }: any) => where.dataClass.in.map((dataClass: string) => ({ id: `lifecycle:${dataClass}:v1`, dataClass, version: 'v1', retentionSeconds: 3600, governedRecordRule: null, deleteStrategy: 'delete-content', providerRetentionSeconds: 0, enabled: true })),
     },
-    gradingAuditEvent: { create: async () => undefined },
+    gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
   };
 }
 
@@ -268,7 +268,7 @@ describe('production math-document grading persistence contracts', () => {
           return { ...data, blocks: data.blocks.create };
         },
       },
-      gradingAuditEvent: { create: async ({ data }: any) => { audits.push(data); } },
+      gradingAuditEvent: { create: async ({ data }: any) => { audits.push(data); return { id: 'audit-1', ...data }; } },
     };
 
     const first = await materializeTextAnswerEvidence({ db, attemptId: 'attempt-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now });
@@ -303,7 +303,7 @@ describe('production math-document grading persistence contracts', () => {
         findUnique: async ({ where }: any) => evidenceRows.find((row) => row.id === where.id) ?? null,
         create: async ({ data }: any) => { const row = { ...data, blocks: data.blocks.create }; evidenceRows.push(row); return row; },
       },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
@@ -615,7 +615,7 @@ describe('production math-document grading persistence contracts', () => {
       },
       documentConversion: { updateMany: async () => ({ count: 1 }) },
       gradingConversionWarning: { createMany: async () => undefined },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
     await expect(processDocumentConversionJob({
@@ -656,7 +656,7 @@ describe('production math-document grading persistence contracts', () => {
         },
       },
       gradingRun: { updateMany: async ({ data }: any) => { Object.assign(run, data); return { count: 1 }; } },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
     await expect(processGradingRunJob({
@@ -813,7 +813,7 @@ describe('production math-document grading persistence contracts', () => {
         gradingConversionWarning: { createMany: async () => undefined },
         answerEvidence: { findFirst: async () => null, create: async ({ data }: any) => data },
         gradingTombstone: { upsert: async ({ create }: any) => { orphanTombstones.push(create); return create; } },
-        gradingAuditEvent: { create: async ({ data }: any) => { orphanAudits.push(data); return data; } },
+        gradingAuditEvent: { create: async ({ data }: any) => { orphanAudits.push(data); return { id: 'audit-orphan', ...data }; } },
         $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
       };
       if (cleanupFails) store.delete = async () => { throw new Error('orphan-delete-failed'); };
@@ -1855,7 +1855,7 @@ describe('production math-document grading persistence contracts', () => {
         update: async ({ data }: any) => { Object.assign(conversion, data); return conversion; },
       },
       gradingJob: { updateMany: async () => ({ count: 1 }) },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };

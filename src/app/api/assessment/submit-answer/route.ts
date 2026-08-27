@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import type { AdaptiveQuestionScope } from '@/features/assessment/adaptive-engine';
 import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
+import {
+  projectStudentMicroTutoringEligibility,
+  studentMicroTutoringCatalogReviewFromSnapshot,
+} from '@/features/assessment/student-micro-tutoring-eligibility';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
       throw new Error('Companion-practice session does not match the continuity snapshot.');
     }
 
+    const pathContext = await readVerifiedPathContext(body, userId, sessionId);
     const result = await submitAnswerWithPersistenceFallback({
       userId,
       sessionId,
@@ -56,10 +62,23 @@ export async function POST(request: Request) {
       selectedOption: body.selectedOption,
       timeSpent: body.timeSpent,
       continuity,
-      pathContext: await readVerifiedPathContext(body, userId, sessionId),
+      pathContext,
     });
+    const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(body.questionId);
+    const catalogReview = studentMicroTutoringCatalogReviewFromSnapshot(catalogSnapshot);
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      microTutoring: projectStudentMicroTutoringEligibility({
+        isCorrect: result.isCorrect,
+        selectedOptionKey: body.selectedOption,
+        correctOptionKey: result.correctOption,
+        assessmentStage: pathContext?.questionScope ?? 'practice',
+        catalogItemId: result.adaptiveAssessmentRef?.catalogItemId ?? catalogReview?.catalogItemId,
+        contentHash: result.adaptiveAssessmentRef?.contentHash ?? catalogReview?.contentHash,
+        catalogReview,
+      }),
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return NextResponse.json(

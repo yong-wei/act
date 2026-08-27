@@ -422,13 +422,18 @@ export function inspectTextbookRetrievalIndex(
   ) {
     throw new Error('textbook-retrieval-manifest-schema-invalid');
   }
-  if (typeof manifest.resourceSetId !== 'string' || !manifest.resourceSetId) {
-    throw new Error(`textbook-retrieval-resource-set-mismatch:expected= actual=${String(manifest.resourceSetId)}`);
-  }
-  if (expectedResourceSetId !== undefined && manifest.resourceSetId !== expectedResourceSetId) {
-    throw new Error(
-      `textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`,
-    );
+  // A frozen v1 corpus inherits without a resource set (spec: legacy textbook
+  // provenance stays immutable and is identified as legacy); only a v2
+  // expectation demands and compares the resourceSetId.
+  if (expectedResourceSetId !== undefined) {
+    if (typeof manifest.resourceSetId !== 'string' || !manifest.resourceSetId) {
+      throw new Error(`textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`);
+    }
+    if (manifest.resourceSetId !== expectedResourceSetId) {
+      throw new Error(
+        `textbook-retrieval-resource-set-mismatch:expected=${expectedResourceSetId} actual=${String(manifest.resourceSetId)}`,
+      );
+    }
   }
   assertRevision(manifest.sourceRevision, 'index-source-revision');
   if (
@@ -505,6 +510,28 @@ function readSidecar(sidecarPath) {
   if (sidecar.schemaVersion !== TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION) {
     throw new Error(`textbook-v2-provenance-schema-invalid:${String(sidecar.schemaVersion)}`);
   }
+  assertRevision(sidecar.appRevision, 'provenance-app-revision');
+  if (typeof sidecar.imageTarSha256 !== 'string' || !SHA256_PATTERN.test(sidecar.imageTarSha256)) {
+    throw new Error(`textbook-v2-provenance-image-sha256-invalid:${String(sidecar.imageTarSha256)}`);
+  }
+  if (sidecar.deploymentScope === 'app-only') {
+    for (const field of [
+      'resourceSetId',
+      'runtimeSourceRevision',
+      'runtimeDigest',
+      'runtimeInputDigest',
+      'indexSourceRevision',
+      'indexDigest',
+    ]) {
+      if (field in sidecar) {
+        throw new Error(`textbook-v2-app-only-provenance-runtime-field-forbidden:${field}`);
+      }
+    }
+    return sidecar;
+  }
+  if (sidecar.deploymentScope !== undefined) {
+    throw new Error(`textbook-v2-provenance-deployment-scope-invalid:${String(sidecar.deploymentScope)}`);
+  }
   if (
     typeof sidecar.resourceSetId !== 'string'
     || sidecar.resourceSetId !== loadTextbookResourceSet().resourceSetId
@@ -513,7 +540,6 @@ function readSidecar(sidecarPath) {
       `textbook-v2-provenance-resource-set-mismatch:expected=${loadTextbookResourceSet().resourceSetId} actual=${String(sidecar.resourceSetId)}`,
     );
   }
-  assertRevision(sidecar.appRevision, 'provenance-app-revision');
   assertRevision(sidecar.runtimeSourceRevision, 'provenance-runtime-source-revision');
   assertRevision(sidecar.indexSourceRevision, 'provenance-index-source-revision');
   if (sidecar.runtimeSourceRevision !== sidecar.indexSourceRevision) {
@@ -521,9 +547,6 @@ function readSidecar(sidecarPath) {
       `textbook-v2-provenance-runtime-index-revision-mismatch:runtime=${sidecar.runtimeSourceRevision}`
       + ` index=${sidecar.indexSourceRevision}`,
     );
-  }
-  if (typeof sidecar.imageTarSha256 !== 'string' || !SHA256_PATTERN.test(sidecar.imageTarSha256)) {
-    throw new Error(`textbook-v2-provenance-image-sha256-invalid:${String(sidecar.imageTarSha256)}`);
   }
   if (typeof sidecar.runtimeDigest !== 'string' || !SHA256_PATTERN.test(sidecar.runtimeDigest)) {
     throw new Error(`textbook-v2-provenance-runtime-digest-invalid:${String(sidecar.runtimeDigest)}`);
@@ -540,6 +563,10 @@ function readSidecar(sidecarPath) {
     );
   }
   return sidecar;
+}
+
+function isAppOnlySidecar(sidecar) {
+  return sidecar.deploymentScope === 'app-only';
 }
 
 function parseArgs(argv) {
@@ -596,6 +623,23 @@ async function writeSidecar(options) {
   process.stdout.write(`${JSON.stringify(sidecar, null, 2)}\n`);
 }
 
+async function writeAppOnlySidecar(options) {
+  const imageTar = path.resolve(requireOption(options, 'image-tar'));
+  const output = path.resolve(requireOption(options, 'output'));
+  const appRevision = requireOption(options, 'app-revision');
+  assertRevision(appRevision, 'app-revision');
+  const sidecar = {
+    schemaVersion: TEXTBOOK_V2_PROVENANCE_SCHEMA_VERSION,
+    deploymentScope: 'app-only',
+    appRevision,
+    imageTarSha256: await sha256FileStream(imageTar),
+  };
+  const temporary = `${output}.tmp-${process.pid}`;
+  fs.writeFileSync(temporary, `${JSON.stringify(sidecar, null, 2)}\n`, { flag: 'wx' });
+  fs.renameSync(temporary, output);
+  process.stdout.write(`${JSON.stringify(sidecar, null, 2)}\n`);
+}
+
 async function verifyImage(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
   const actual = await sha256FileStream(path.resolve(requireOption(options, 'image-tar')));
@@ -605,6 +649,7 @@ async function verifyImage(options) {
     );
   }
   process.stdout.write(`${JSON.stringify({
+    deploymentScope: sidecar.deploymentScope ?? 'runtime-bound',
     appRevision: sidecar.appRevision,
     imageTarSha256: actual,
   })}\n`);
@@ -612,6 +657,9 @@ async function verifyImage(options) {
 
 function verifyRuntime(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
+  if (isAppOnlySidecar(sidecar)) {
+    throw new Error('textbook-v2-provenance-runtime-unavailable-for-app-only');
+  }
   const runtime = inspectTextbookRuntimeV2(
     path.resolve(requireOption(options, 'runtime-root')),
     {
@@ -655,6 +703,7 @@ function printField(options) {
   const sidecar = readSidecar(path.resolve(requireOption(options, 'sidecar')));
   const field = requireOption(options, 'field');
   if (![
+    'deploymentScope',
     'appRevision',
     'imageTarSha256',
     'resourceSetId',
@@ -664,6 +713,13 @@ function printField(options) {
     'indexDigest',
   ].includes(field)) {
     throw new Error(`unsupported provenance field:${field}`);
+  }
+  if (field === 'deploymentScope') {
+    process.stdout.write(`${sidecar.deploymentScope ?? 'runtime-bound'}\n`);
+    return;
+  }
+  if (isAppOnlySidecar(sidecar) && field !== 'appRevision' && field !== 'imageTarSha256') {
+    throw new Error(`textbook-v2-provenance-field-unavailable-for-app-only:${field}`);
   }
   process.stdout.write(`${sidecar[field]}\n`);
 }
@@ -676,6 +732,7 @@ function inspectCorpus(options) {
 async function main() {
   const { command, options } = parseArgs(process.argv.slice(2));
   if (command === 'write-sidecar') return writeSidecar(options);
+  if (command === 'write-app-only-sidecar') return writeAppOnlySidecar(options);
   if (command === 'verify-image') return verifyImage(options);
   if (command === 'verify-runtime') return verifyRuntime(options);
   if (command === 'print-field') return printField(options);

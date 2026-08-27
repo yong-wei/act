@@ -1,4 +1,5 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -7,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 
 import { readActiveRuntimeReleaseManifest } from '../runtime-active-release';
+import { projectionDigest } from '../teaching-projection/hash';
 import {
   isBlobViewRuntimeRequired,
   projectRuntimeIdentity,
@@ -45,6 +47,50 @@ async function blobView(options?: { extraReceiptField?: boolean; mismatch?: bool
   if (options?.extraReceiptField) receipt.desiredReleaseId = 'runtime-candidate';
   await writeFile(path.join(root, 'act-runtime-active-receipt.json'), JSON.stringify(receipt));
   return { root, manifest };
+}
+
+async function writeCoordinatedActiveReceipt(
+  root: string,
+  manifest: Awaited<ReturnType<typeof buildRuntimeBlobReleaseManifest>>,
+  authorityCurrentPath: string,
+  runtimeReleaseId = manifest.releaseId,
+) {
+  const authorityIdentity = createHash('sha256').update(await readFile(authorityCurrentPath)).digest('hex');
+  const payload = {
+    transactionId: 'tx-runtime-readiness',
+    journalHash: 'a'.repeat(64),
+    candidateReceiptHash: 'b'.repeat(64),
+    committedSelectors: [{ selectorId: 'authority:current', identity: authorityIdentity }],
+    mutationReceiptHashes: ['c'.repeat(64)],
+    runtimeActiveReceiptHash: 'd'.repeat(64),
+    runtimeActiveIdentity: {
+      releaseId: runtimeReleaseId,
+      manifestSha256: manifest.manifestSha256,
+      treeSha256: manifest.treeSha256,
+    },
+  };
+  const receiptHash = projectionDigest(payload);
+  const receipt = {
+    contract: 'coordinated-active-receipt/v1',
+    receiptId: `act-${receiptHash.slice(0, 24)}`,
+    sealedAt: '2030-01-01T00:00:00.000Z',
+    ...payload,
+    receiptHash,
+  };
+  const receiptPath = path.join(root, 'coordinated-active-receipt.json');
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  return receiptPath;
+}
+
+async function writeAuthorityCurrent(root: string, snapshotId = 'snap-r4') {
+  const authorityRoot = path.join(root, 'authority');
+  await mkdir(authorityRoot, { recursive: true });
+  const authorityCurrentPath = path.join(authorityRoot, 'current.json');
+  await writeFile(authorityCurrentPath, JSON.stringify({
+    contract: 'actkg-engineering-authority-current/v1',
+    snapshotId,
+  }));
+  return authorityCurrentPath;
 }
 
 afterEach(async () => {
@@ -123,6 +169,39 @@ describe('runtime readiness projector', () => {
     expect(JSON.stringify(projection)).not.toContain('runtime-candidate-should-stay-hidden');
     await expect(readActiveRuntimeReleaseManifest(root)).resolves.toMatchObject({
       releaseId: manifest.releaseId,
+    });
+  });
+
+  it('requires matching Runtime and Authority identities when coordinated cutover is enabled', async () => {
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+    vi.stubEnv('ACT_COORDINATED_CUTOVER_REQUIRED', 'true');
+    const { root, manifest } = await blobView();
+    await expect(projectRuntimeReadiness(root, undefined, path.join(root, 'missing.json'))).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
+    });
+    const authorityCurrentPath = await writeAuthorityCurrent(root);
+    const matching = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath);
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toMatchObject({
+      required: true,
+      ready: true,
+      identity: { releaseId: manifest.releaseId },
+    });
+    await writeFile(authorityCurrentPath, JSON.stringify({
+      contract: 'actkg-engineering-authority-current/v1',
+      snapshotId: 'snap-foreign',
+    }));
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
+    });
+    const mismatched = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath, 'runtime-foreign');
+    await expect(projectRuntimeReadiness(root, undefined, mismatched, authorityCurrentPath)).resolves.toEqual({
+      required: true,
+      ready: false,
+      identity: null,
     });
   });
 

@@ -3,7 +3,7 @@
 ## Purpose
 Provide one governed catalog for all adaptive-assessment question sources so path planning, review workflows, and answer snapshots share stable item identity, lineage, content hashes, review state, and eligibility semantics.
 
-The catalog separates low-stakes imported or generated practice from explicitly path-eligible items used for readiness, checkpoint, remediation, and terminal-validation gates.
+The catalog separates low-stakes imported or generated practice from explicitly path-eligible items used for readiness, checkpoint, remediation, and terminal-validation gates. Micro-tutoring validation purpose is an explicit review decision bound to catalog identity; it is not inferred from `allowedStages`.
 ## Requirements
 ### Requirement: Assessment item catalog registers all adaptive question sources
 The system SHALL maintain a governed assessment item catalog that registers all current and future sources that may supply adaptive-assessment questions.
@@ -208,6 +208,22 @@ LearningGoal assessment baseline completion SHALL support deterministic shards s
 - **THEN** 目录 SHALL 报告缺失层级
 - **AND** 项目不得计入当前可选择数量
 
+### Requirement: 目录显式登记微辅导验证用途
+
+评估目录 SHALL 将“可作为微辅导验证候选”作为独立人工审核用途，而不是由一般 `allowedStages`、path eligibility 或 remediation/checkpoint 标签推断。审核决定 MUST 绑定内容哈希、学习目标、规范节点、适用错因、难度、变式独立性和 metadata version。
+
+#### Scenario: 审核者批准验证用途
+
+- **WHEN** 审核者确认一个目录题目适合特定节点和错因的微辅导验证
+- **THEN** 目录 SHALL 记录版本化验证用途决定及依据
+- **AND** 内容、答案、节点或审核版本变化 SHALL 使决定 stale
+
+#### Scenario: 题目只有一般 path eligibility
+
+- **WHEN** 题目为 path-eligible 但没有当前微辅导验证用途决定
+- **THEN** 它 SHALL 保持可用于原阶段
+- **AND** 不得进入微辅导验证登记
+
 ### Requirement: 目录仅接收具备生成发布回执的候选题
 
 生成来源题目只有在候选 lineage 完整、自动预检有效、独立人工审核批准且 publication receipt 可回读时，才 MAY 进入评估目录。目录记录 MUST 包含 generation kind、候选/修订引用、内容哈希、审核决定和 publication identity；临时内存题、模板练习或仅有模型建议的题目不得成为 path-eligible。
@@ -223,4 +239,3 @@ LearningGoal assessment baseline completion SHALL support deterministic shards s
 - **WHEN** 候选只有模型输出、自动预检、临时运行时对象或过期审核
 - **THEN** 目录 SHALL 将其报告为 provisional/blocked 或不纳入发布集合
 - **AND** 不得以 `ai_generated` 字符串推断正式资格
-

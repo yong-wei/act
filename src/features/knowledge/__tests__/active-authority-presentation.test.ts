@@ -7,6 +7,7 @@ import {
   createActiveAuthorityGraphModel,
   expandActiveAuthorityOneHop,
   materializeActiveNodeScope,
+  presentActiveHumanText,
   presentActiveNodeType,
   presentActiveRelation,
   presentGovernanceLabel,
@@ -50,9 +51,35 @@ describe('active Authority presentation adapter', () => {
     expect(JSON.stringify(presentActiveNodeType('internal_node_type'))).not.toContain('internal_node_type');
     expect(presentActiveRelation('association', 'unordered')).toMatchObject({ label: '关联', kind: 'undirected', supported: true });
     expect(presentActiveRelation('applies_to', 'source_to_target')).toMatchObject({ label: '适用于', kind: 'directed', supported: true });
+    expect(presentActiveRelation('association', 'unordered', {
+      label: 'association',
+      directionLabel: 'unordered',
+    })).toMatchObject({ label: '关联', directionLabel: '关联关系', supported: true });
     expect(presentActiveRelation('internal_predicate', 'internal_direction')).toMatchObject({ label: '关系暂不可解释', supported: false });
     expect(presentActiveRelation('internal_predicate', 'internal_direction').directionLabel).not.toContain('internal_');
     expect(JSON.stringify(presentActiveRelation('internal_predicate', 'internal_direction'))).not.toContain('internal_');
+    expect(presentActiveHumanText('association', '对象名称暂不可用')).toBe('对象名称暂不可用');
+    expect(presentActiveHumanText('关系 has_component', '对象名称暂不可用')).toBe('对象名称暂不可用');
+  });
+
+  it('prefers complete-locale projected type and relation labels over historical Chinese maps', () => {
+    expect(presentActiveNodeType('DomainConcept', 'Domain concept').label).toBe('Domain concept');
+    expect(presentActiveRelation('applies_to', 'source_to_target', {
+      label: 'Applies to',
+      directionLabel: 'From the former to the latter',
+    })).toMatchObject({
+      label: 'Applies to',
+      directionLabel: 'From the former to the latter',
+      supported: true,
+    });
+    const model = createActiveAuthorityGraphModel({
+      nodes: [{
+        ...node('a', 'DomainConcept', 'Transfer function'),
+        typeLabel: 'Domain concept',
+      }],
+      relations: [],
+    });
+    expect(model.nodes[0]?.type.label).toBe('Domain concept');
   });
 
   it('keeps only valid nodes and exact real edges with deterministic adjacency', () => {

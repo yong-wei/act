@@ -31,6 +31,7 @@ import {
   CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
+  readPathPlannerLearnerState,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
@@ -69,6 +70,7 @@ import {
 } from '@/lib/structured-textbook-runtime';
 import {
   buildAdaptiveLearningPathPlan,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
   type AdaptiveLearningPathConfigurationRequest,
@@ -209,6 +211,8 @@ export type KonlingToolName =
   | 'record_path_adjustment_outcome'
   | 'propose_smart_lesson_task_change'
   | 'analyze_attempt'
+  | 'get_class_assignment_outcomes'
+  | 'get_class_assessment_outcomes'
   | 'get_student_risk_flags'
   | 'get_class_competency_summary'
   | 'calculate'
@@ -697,7 +701,6 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'apply_controller_patch',
       'record_intervention_result',
       'analyze_attempt',
-      'calculate',
     ],
     citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
     payload: 'student-visible-summary',
@@ -804,6 +807,8 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     requiredContext: ['evidence-citations'],
     optionalContext: ['class-report', 'diagnosis-view', 'learner-state-summary', 'resource-node'],
     permittedTools: [
+      'get_class_assignment_outcomes',
+      'get_class_assessment_outcomes',
       'get_student_risk_flags',
       'get_class_competency_summary',
       'get_student_knowledge_progress',
@@ -889,6 +894,9 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     citationContext: input.runtimeContext.citationContext,
     preferences: input.studyAnswerPreferences,
     currentUserQuery: input.currentUserQuery,
+    mathToolAvailable: mode.id === 'generic-chat'
+      ? input.runtimeContext.permittedTools.includes('calculate')
+      : mode.permittedTools.includes('calculate'),
   });
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
@@ -1113,9 +1121,14 @@ function buildKonlingStudyQuestionContract(input: {
   citationContext: KonlingCitationContext | null | undefined;
   preferences: unknown;
   currentUserQuery?: string | null;
+  mathToolAvailable?: boolean;
 }): KonlingStudyQuestionContract | null {
   if (!isStudyQuestionIntent(input.answerIntent)) return null;
-  const preferences = normalizeKonlingStudyAnswerPreferences(input.preferences, input.currentUserQuery);
+  const preferences = normalizeKonlingStudyAnswerPreferences(
+    input.preferences,
+    input.currentUserQuery,
+    input.mathToolAvailable,
+  );
   const normativeGuidance = input.answerIntent === 'normative-content'
     ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
       ? 'verified'
@@ -1158,6 +1171,7 @@ function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['int
 function normalizeKonlingStudyAnswerPreferences(
   value: unknown,
   currentUserQuery?: string | null,
+  mathToolAvailable = false,
 ): KonlingStudyAnswerPreferences {
   const source = readRecord(value);
   const query = currentUserQuery?.trim().toLowerCase().normalize('NFKC') ?? '';
@@ -1172,7 +1186,9 @@ function normalizeKonlingStudyAnswerPreferences(
         ? 'concise'
         : includesAny(query, ['详细', '深入', '完整推导', 'detailed', 'in depth'])
           ? 'detailed'
-          : 'standard',
+          : mathToolAvailable
+            ? 'detailed'
+            : 'standard',
     format: format === 'steps' || format === 'table' || format === 'code-first'
       ? format
       : includesAny(query, ['表格', '对照表', 'table'])
@@ -1181,7 +1197,9 @@ function normalizeKonlingStudyAnswerPreferences(
           ? 'steps'
           : includesAny(query, ['先给代码', '代码优先', 'code first'])
             ? 'code-first'
-            : 'default',
+            : mathToolAvailable
+              ? 'steps'
+              : 'default',
     hintStrength: hintStrength === 'guided'
       ? 'guided'
       : includesAny(query, ['循序渐进', '逐步提示', '只给提示', '不要直接给答案', 'guided hint'])
@@ -2117,7 +2135,6 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
-  'calculate',
 ];
 
 export const KONLING_CANDIDATE_READ_TOOLS: KonlingToolName[] = [
@@ -2495,6 +2512,8 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   calculate: toolRegistryEntry('calculate', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+  get_class_assignment_outcomes: toolRegistryEntry('get_class_assignment_outcomes', 'read'),
+  get_class_assessment_outcomes: toolRegistryEntry('get_class_assessment_outcomes', 'read'),
   get_student_risk_flags: toolRegistryEntry('get_student_risk_flags', 'read'),
   get_class_competency_summary: toolRegistryEntry('get_class_competency_summary', 'read'),
   get_student_knowledge_progress: toolRegistryEntry('get_student_knowledge_progress', 'read'),
@@ -3154,6 +3173,8 @@ export async function buildKonlingRuntimeContext(
     ? ['propose_smart_lesson_task_change']
     : citationMode.id === 'teacher-diagnosis'
       ? [
+          'get_class_assignment_outcomes',
+          'get_class_assessment_outcomes',
           'get_student_risk_flags',
           'get_class_competency_summary',
           'get_student_knowledge_progress',
@@ -4203,10 +4224,23 @@ async function buildAdaptivePathToolOutput(
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
+  const plannerLearnerState = operation === 'generated'
+    ? isAdaptiveLearnerStateServiceEnabled()
+      ? await readPathPlannerLearnerState(input.db as any, input.scope.targetUserId, {
+          goal: goalId,
+          classId: input.scope.classId,
+          now: new Date(),
+        }).catch((error) => {
+          console.error('[KonlingRuntime] Planner learner state read failed:', error);
+          return null;
+        })
+      : input.context.learnerState
+    : input.context.learnerState;
+  const learnerStateForPlanning = plannerLearnerState;
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
-    learnerState: normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any)
+    learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
       ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
     graphContext,
@@ -4256,6 +4290,9 @@ async function buildAdaptivePathToolOutput(
     preferredStyleId: args.preferredStyleId ?? null,
     requestedAt: args.requestedAt ?? null,
     candidatePoolDiagnostics,
+    learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(
+      normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any),
+    ),
   });
   const hasPersistablePath = plan.mainPath.length > 0;
   const differenceSummary = adjustmentSource && hasPersistablePath
@@ -4284,7 +4321,7 @@ async function buildAdaptivePathToolOutput(
     plan: persistedPlan,
     pathStatus: 'candidate',
     classId: input.scope.classId ?? null,
-    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    learnerStateRef: learnerStateForPlanning ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
     inputSnapshot: {
       source: 'konling-tool',
       operation,
@@ -7783,7 +7820,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
     }),
     calculate: tool({
-      description: '使用 SymPy 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；支持化简、展开、因式分解、部分分式展开、求导、积分、拉普拉斯变换与逆变换。推导关键代数步骤时应调用本工具确认真实结果。',
+      description: '使用 Wolfram 符号计算引擎求解数学表达式，返回 LaTeX 结果与中间步骤；该运行时入口仅供受治理的服务端调用，不向聊天模型暴露。',
       inputSchema: calculateToolParameters,
       execute: (args) => runtime.calculate(args),
     }),

@@ -1097,10 +1097,15 @@ function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2C
 export async function readPathPlannerLearnerState(
   db: AdaptiveLearnerStateDb,
   userId: string,
+  input: Pick<AdaptiveLearnerStateInput, 'goal' | 'classId' | 'now'> = {},
 ): Promise<AdaptiveLearnerState> {
   return readAdaptiveLearnerState(db, {
     userId,
     role: 'system',
+    goal: input.goal,
+    classId: input.classId,
+    now: input.now,
+    portraitConsumer: 'planner',
   });
 }
 
@@ -2111,6 +2116,9 @@ function confidenceFromFact(fact: Record<string, unknown>): MasteryEvidenceRefer
 function confidenceForVisibleRefs(refs: MasteryEvidenceReference[], fallback: number): number {
   if (refs.length === 0) return 0;
   const refConfidence = Math.max(...refs.map((ref) => confidenceScoreFromReference(ref.confidence)));
+  if (!Number.isFinite(fallback) || fallback <= 0) {
+    return round(refConfidence, 2);
+  }
   return round(Math.min(fallback, refConfidence), 2);
 }
 

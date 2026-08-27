@@ -1,0 +1,18 @@
+{
+ "contract": "remediation-domain-review-partial/v1",
+ "domain": "nonlinear-system-analysis",
+ "sealedAt": "2026-08-24",
+ "codexSummary": {
+  "members": 347,
+  "A": 301,
+  "C-handout-gap": 16,
+  "C-out-of-scope": 30,
+  "note": "both A and C-out-of-scope recommended NO_RELATION for all three families per the corpus-exclusion principles"
+ },
+ "retrievedDetailRows": 23,
+ "status": "PARTIAL — per-member JSONL truncated across two retrievals; full re-review required (new session, batched output) before decisions can be sealed",
+ "knownGapMembers": [
+  "间隙特性",
+  "极限环"
+ ]
+}

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "act-test-failure-inventory/v1",
+  "observedAt": "2026-08-27T04:25:00+08:00",
+  "sourceCommit": "49117482cdda904ac0fde0ba33c93c82fe45d48d",
+  "sourceTree": "2614e8ae6eb6c84f08f156d8f90f69c5a105a4f3",
+  "measurementKind": "implementation-checkpoint",
+  "worktree": {
+    "dirty": false,
+    "mixed": false
+  },
+  "command": {
+    "id": "test:unit",
+    "invocation": "npm run test:unit",
+    "mode": "governed-wrapper",
+    "exitStatus": 0,
+    "discoveryCoreHash": "5531b98699f0dafb75aae48ad49ad6216a3bebf99de43e3f1a011c76e0dc4137",
+    "receiptId": "5ac6378629e30a988645f601727f19b74c5cf4b7bb8384aefa3e14ceb96e56f1",
+    "totals": {
+      "discovered": 1233,
+      "classified": 1230,
+      "excluded": 3,
+      "unresolved": 0
+    },
+    "assertionFailures": 0,
+    "unhandledErrors": 0,
+    "unregisteredSkips": 0,
+    "acceptedFailures": 0,
+    "qualified": true,
+    "qualificationBlockers": []
+  },
+  "productCommands": {
+    "test": {
+      "receiptId": "7533baefc0ad4729d7a682a1ea8b20dfd7d505d58b92caeb10ebc83e217812c3",
+      "exitStatus": 0
+    },
+    "test:release": {
+      "receiptId": "033bbb36d294ff8327221ec2b78358dff6f318c4a8b7d82f6e7f0a37fd975893",
+      "exitStatus": 1,
+      "failures": [
+        {
+          "code": "release-manifest-missing",
+          "identity": "qualification-manifest"
+        }
+      ]
+    }
+  },
+  "failures": [],
+  "unhandledErrors": [],
+  "closedFixes": [
+    {
+      "fingerprint": "vitest:konling-agent-runtime:derived-revision-persist",
+      "identity": "src/lib/__tests__/konling-agent-runtime.test.ts::persists adaptive path revision as a derived batch without switch evidence",
+      "disposition": "fix",
+      "owner": "adaptive-path",
+      "actionEvidence": "supplied a destination-legal planner registry only in the regression fixture"
+    },
+    {
+      "fingerprint": "vitest:assessment-remediation-route:unavailable-attribution",
+      "identity": "src/app/api/assessment/remediation/__tests__/route.test.ts::returns a controlled unavailable result when answer attribution cannot be read safely",
+      "disposition": "fix",
+      "owner": "assessment",
+      "actionEvidence": "exported REMEDIATION_MANUAL_PRACTICE_PATH from the remediation orchestration mock"
+    },
+    {
+      "fingerprint": "vitest:actkg-public-bundle-m1k-cleanup",
+      "identity": "src/lib/__tests__/actkg-public-bundle-compatibility.test.ts::accepts the M1K UNCHANGED_BLOCKED Graph-RAG runtime disposition",
+      "disposition": "fix",
+      "owner": "knowledge",
+      "actionEvidence": "retried recursive fixture removal on ENOTEMPTY from Git object directories"
+    }
+  ],
+  "migrations": [
+    {
+      "fingerprint": "vitest:textbook-v2-canonical-index-smoke",
+      "identity": "src/lib/__tests__/textbook-v2-canonical-index.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly or release qualification consumes the canonical index evidence without a unit-lane skip"
+    },
+    {
+      "fingerprint": "vitest:v018-shipped-prepare-entry",
+      "identity": "src/lib/__tests__/rebase-act-teaching-projection-to-v018.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "test:release or nightly replay of the sealed v0.18 observation with a capture-bound authoring set"
+    },
+    {
+      "fingerprint": "vitest:v022-shipped-prepare-entry",
+      "identity": "src/lib/__tests__/rebase-act-teaching-projection-to-v022.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "test:release or nightly replay of the sealed v0.22 observation with a capture-bound authoring set"
+    },
+    {
+      "fingerprint": "vitest:actkg-public-bundle-v2-upstream",
+      "identity": "src/lib/__tests__/actkg-public-bundle-v2-compatibility.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly consumes the upstream ActKG repository without a unit-lane skipIf"
+    },
+    {
+      "fingerprint": "vitest:knowledge-db-fallback-production",
+      "identity": "src/lib/__tests__/knowledge-db-fallback-production.real-smoke.test.ts",
+      "disposition": "release-input",
+      "status": "blocked",
+      "owner": "knowledge",
+      "closureCondition": "nightly or integration with a permitted production-like database fallback environment"
+    }
+  ]
+}

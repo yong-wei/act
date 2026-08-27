@@ -1,5 +1,10 @@
 {
-  "capturedAt": "2026-08-15T05:41:41.565Z",
+  "capturedAt": "2026-08-26T15:00:18.966Z",
+  "headCommit": "8bcbb787edf84de3922cf637c359b5a9732c686b",
+  "captureRevision": {
+    "commitSha": "8bcbb787edf84de3922cf637c359b5a9732c686b",
+    "treeSha": "3a8728006f3b95083ef18ded20c5a0ed3731104f"
+  },
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",
   "sourceEvidence": {

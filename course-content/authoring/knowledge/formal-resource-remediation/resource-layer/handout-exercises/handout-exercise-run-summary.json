@@ -1,0 +1,8 @@
+{
+ "contract": "remediation-handout-exercise-run/v1",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "resourceCount": 13,
+ "excludedUnits": 18,
+ "atomCount": 46,
+ "runHash": "563906f6c5d7a4cb3619cbc26323db9292d309eea9689d871657bd3d20fde04a"
+}

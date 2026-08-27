@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -26,6 +27,124 @@ def identity(release_id, seed):
     }
 
 
+TYPESCRIPT_ARTIFACT_GENERATOR = """
+import { writeFileSync } from 'node:fs';
+import { openCutoverTransaction, applyJournaledMutation, sealCoordinatedRuntimeAuthorization, type CutoverJournalStore, type CutoverSelectorStore } from '@/lib/latest-authority-oss-cutover/transaction';
+import { buildCoordinatedRuntimeActiveReceiptBinding } from '@/lib/latest-authority-oss-cutover/runtime-binding';
+import { sealCoordinatedCandidateReceipt, sealCoordinationAllocationRecord } from '@/lib/latest-authority-oss-cutover/envelope';
+
+const H = (c: string) => c.repeat(64);
+const allocation = sealCoordinationAllocationRecord({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  capture: {
+    captureHash: H('a'),
+    compatibility: {
+      contract: 'authority-adapter-compatibility/v1',
+      adapterContractVersion: 'existing-act-adapter',
+      classification: 'COMPATIBLE',
+      incompatibleReasons: [],
+      captured: {
+        schemaVersion: '0.3.0',
+        schemaSha256: H('a'),
+        contractVersion: 'actkg-public-bundle/2',
+        requiredMembers: ['release'],
+        profiles: ['runtime'],
+        representativeParse: 'COMPLETE',
+      },
+    },
+  },
+  scopeHash: H('b'),
+  denominatorHash: H('c'),
+  policyVersions: { continuity: 'v1' },
+  implementationIdentities: { builder: 'b1' },
+});
+const candidate = sealCoordinatedCandidateReceipt({
+  sealedAt: '2030-01-01T00:00:00.000Z',
+  allocation,
+  authorityCaptureHash: H('a'),
+  localeQualificationHash: H('d'),
+  teachingProjectionHash: H('a'),
+  teachingClosureReceiptHash: H('d'),
+  formalResourceEnvelopeHash: H('c'),
+  continuityReceiptHash: H('b'),
+  derivationReceiptHash: H('d'),
+  successorRuntimeManifestHash: H('b'),
+  successorRuntimeMaterializationHash: H('c'),
+  domainShardCatalogHash: H('a'),
+  domainShardSetHash: H('b'),
+  prerequisitePublicationHash: H('c'),
+  consumerActivationHash: H('d'),
+  predecessor: [
+    { selectorId: 'authority:current', identity: 'auth-old' },
+    { selectorId: 'runtime:desired', identity: 'runtime-old' },
+  ],
+  predecessorRuntimeLifecycleGeneration: 1,
+  successorSelectorExpectations: [
+    { selectorId: 'authority:current', expectedSuccessorIdentity: 'auth-new' },
+    { selectorId: 'runtime:desired', expectedSuccessorIdentity: 'runtime-new' },
+  ],
+  transactionImplementationIdentity: 'cutover-tx/v1',
+  rollbackPlanHash: H('a'),
+  verificationPolicyHash: H('b'),
+  innerBindings: [],
+});
+class Store implements CutoverSelectorStore {
+  identity: string;
+  constructor(readonly selectorId: string, initial: string) { this.identity = initial; }
+  async readIdentity() { return this.identity; }
+  async writeIdentity(next: string) { this.identity = next; }
+}
+const stores = [new Store('authority:current', 'auth-old'), new Store('runtime:desired', 'runtime-old')];
+const journalStore: CutoverJournalStore = { append: async () => undefined, load: async () => null };
+async function main() {
+  const opened = await openCutoverTransaction({
+    candidateReceipt: candidate,
+    stores,
+    orderedMutationPlans: [
+      { selectorId: 'authority:current', expectedPredecessorIdentity: 'auth-old', successorIdentity: 'auth-new' },
+      { selectorId: 'runtime:desired', expectedPredecessorIdentity: 'runtime-old', successorIdentity: 'runtime-new' },
+    ],
+    journalStore,
+    openedAt: '2030-01-01T00:00:01.000Z',
+  });
+  const receipts = [
+    await applyJournaledMutation(opened.journal, 0, stores[0], '2030-01-01T00:01:00.000Z'),
+    await applyJournaledMutation(opened.journal, 1, stores[1], '2030-01-01T00:01:01.000Z'),
+  ];
+  const runtimeRelease = {
+    schemaVersion: 'runtime-blob-release-identity.v1',
+    releaseId: 'runtime-b',
+    manifestVersion: 'act-runtime-release.v2',
+    manifestSha256: H('e'),
+    manifestWireSha256: H('f'),
+    manifestWireSizeBytes: 10,
+    treeSha256: H('a'),
+  };
+  const binding = buildCoordinatedRuntimeActiveReceiptBinding({
+    transactionId: opened.journal.transactionId,
+    candidateReceiptHash: candidate.receiptHash,
+    runtimeRelease,
+    materializationReceiptHash: H('c'),
+  });
+  const authorization = sealCoordinatedRuntimeAuthorization({
+    journal: opened.journal,
+    candidateReceipt: candidate,
+    observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+    mutationReceipts: receipts,
+    runtimeBindingHash: binding.bindingHash,
+    authorizedAt: '2030-01-01T00:02:00.000Z',
+  });
+  writeFileSync(process.argv[2], JSON.stringify(authorization));
+  writeFileSync(process.argv[3], JSON.stringify(binding));
+  writeFileSync(process.argv[4], JSON.stringify({ candidateReceiptHash: candidate.receiptHash, runtimeRelease }));
+}
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
+"""
+
+
 class RuntimeBlobLifecycleTests(unittest.TestCase):
     def call(self, *args, expect_ok=True):
         result = subprocess.run(["python3", str(SCRIPT), *args], text=True, capture_output=True)
@@ -39,6 +158,52 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
         path = root / (release_id + ".json")
         path.write_text(json.dumps(identity(release_id, seed)), encoding="utf-8")
         return path
+
+    def coordinated_authorization_and_binding(self, root, candidate_identity, candidate_receipt_hash):
+        """Build a Runtime authorization and binding with genuine
+        content-addressed hashes over the same canonical JSON the lifecycle
+        gate recomputes."""
+        binding = {
+            "contract": "coordinated-runtime-active-receipt-binding/v1",
+            "transactionId": "tx-1",
+            "candidateReceiptHash": candidate_receipt_hash,
+            "runtimeRelease": candidate_identity,
+            "materializationReceiptHash": "3" * 64,
+            "bindingHash": "",
+        }
+        binding["bindingHash"] = LIFECYCLE.canonical_digest({
+            "transactionId": binding["transactionId"],
+            "candidateReceiptHash": binding["candidateReceiptHash"],
+            "runtimeRelease": binding["runtimeRelease"],
+            "materializationReceiptHash": binding["materializationReceiptHash"],
+        })
+        authorization = {
+            "contract": "coordinated-runtime-authorization/v1",
+            "authorizationId": "",
+            "authorizedAt": "2030-01-01T00:00:00Z",
+            "transactionId": "tx-1",
+            "journalHash": "1" * 64,
+            "candidateReceiptHash": candidate_receipt_hash,
+            "committedSelectors": [{"selectorId": "authority:current", "identity": "auth-new"}],
+            "mutationReceiptHashes": ["2" * 64],
+            "runtimeBindingHash": binding["bindingHash"],
+            "authorizationHash": "",
+        }
+        payload_hash = LIFECYCLE.canonical_digest({
+            "transactionId": authorization["transactionId"],
+            "journalHash": authorization["journalHash"],
+            "candidateReceiptHash": authorization["candidateReceiptHash"],
+            "committedSelectors": authorization["committedSelectors"],
+            "mutationReceiptHashes": authorization["mutationReceiptHashes"],
+            "runtimeBindingHash": authorization["runtimeBindingHash"],
+        })
+        authorization["authorizationHash"] = payload_hash
+        authorization["authorizationId"] = "auth-" + payload_hash[:24]
+        authorization_path = root / "runtime-authorization.json"
+        authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+        binding_path = root / "runtime-binding.json"
+        binding_path.write_text(json.dumps(binding), encoding="utf-8")
+        return authorization_path, binding_path
 
     def write_v1_state(self, root):
         selection = {
@@ -354,6 +519,238 @@ class RuntimeBlobLifecycleTests(unittest.TestCase):
             self.assertIn("release deadline", before_deadline.stderr)
             released = self.call("release-retained", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(retained), "--now", "2030-01-01T00:06:00Z")
             self.assertEqual(released["retained"], [])
+
+    def test_python_gate_accepts_typescript_coordinated_artifacts(self):
+        """The lifecycle gate must parse the artifacts exactly as the
+        TypeScript library serializes them (contract discriminator and
+        content-addressed hashes)."""
+        if shutil.which("npx") is None:
+            self.skipTest("npx is unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ts_script = root / "generate.ts"
+            receipt_path = root / "ts-runtime-authorization.json"
+            binding_path = root / "ts-runtime-binding.json"
+            summary_path = root / "ts-summary.json"
+            ts_script.write_text(TYPESCRIPT_ARTIFACT_GENERATOR, encoding="utf-8")
+            result = subprocess.run(
+                ["npx", "tsx", "--tsconfig", str(ROOT / "tsconfig.json"),
+                 str(ts_script), str(receipt_path), str(binding_path), str(summary_path)],
+                cwd=str(ROOT), text=True, capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            binding = json.loads(binding_path.read_text(encoding="utf-8"))
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            parsed_receipt = LIFECYCLE.coordinated_runtime_authorization(receipt)
+            parsed_binding = LIFECYCLE.coordinated_runtime_binding(binding)
+            self.assertEqual(parsed_receipt["candidateReceiptHash"], summary["candidateReceiptHash"])
+            self.assertEqual(parsed_receipt["runtimeBindingHash"], parsed_binding["bindingHash"])
+            self.assertEqual(parsed_binding["runtimeRelease"]["releaseId"], summary["runtimeRelease"]["releaseId"])
+
+    def test_attach_coordinated_declaration_to_existing_desired_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate = self.write_identity(root, "runtime-b", "b")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate))
+            identity_b = json.loads(candidate.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **identity_b,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            attached = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "3", "--identity", str(candidate),
+                "--coordinated-cutover", str(declaration),
+            )
+            self.assertEqual(attached["generation"], 4)
+            self.assertTrue((state / "coordinated-cutover.json").exists())
+            # The identical declaration is idempotent and does not create an
+            # extra lifecycle generation that could race the final activation.
+            repeated = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "4", "--identity", str(candidate),
+                "--coordinated-cutover", str(declaration),
+            )
+            self.assertEqual(repeated["generation"], 4)
+            other = self.write_identity(root, "runtime-c", "c")
+            rejected = self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "4", "--identity", str(other),
+                "--coordinated-cutover", str(declaration), expect_ok=False,
+            )
+            self.assertIn("exact current desired identity", rejected.stderr)
+
+    def test_restores_full_captured_lifecycle_after_coordinated_activation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active_a = self.write_identity(root, "runtime-a", "a")
+            active_b = self.write_identity(root, "runtime-b", "b")
+            successor_c = self.write_identity(root, "runtime-c", "c")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active_a))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(active_b))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(active_b))
+            self.call("activate", "--state-dir", str(state), "--expected-generation", "3", "--identity", str(active_b), "--host-state-script", str(HOST_STATE))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(successor_c))
+            predecessor = self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(successor_c))
+            predecessor_path = root / "predecessor-lifecycle.json"
+            predecessor_path.write_text(json.dumps(predecessor), encoding="utf-8")
+            successor_identity = json.loads(successor_c.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **successor_identity,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            self.call(
+                "attach-coordinated-desired", "--state-dir", str(state),
+                "--expected-generation", "6", "--identity", str(successor_c),
+                "--coordinated-cutover", str(declaration),
+            )
+            authorization, binding = self.coordinated_authorization_and_binding(root, successor_identity, "e" * 64)
+            self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "7",
+                "--identity", str(successor_c), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(authorization),
+                "--coordinated-runtime-binding", str(binding),
+            )
+            restored = self.call(
+                "restore-coordinated-predecessor", "--state-dir", str(state),
+                "--predecessor-lifecycle", str(predecessor_path), "--successor-identity", str(successor_c),
+                "--coordinated-cutover", str(declaration), "--host-state-script", str(HOST_STATE),
+            )
+            self.assertTrue(restored["restored"])
+            self.assertEqual(self.call("inspect", "--state-dir", str(state)), predecessor)
+            self.assertFalse((state / "coordinated-cutover.json").exists())
+            host_active = subprocess.run(
+                ["python3", str(HOST_STATE), "active", "--state-dir", str(state)],
+                text=True, capture_output=True,
+            )
+            self.assertEqual(host_active.returncode, 0, host_active.stderr)
+            self.assertEqual(json.loads(host_active.stdout)["activeReleaseId"], predecessor["active"]["releaseId"])
+
+    def test_coordinated_cutover_successor_requires_matching_runtime_authorization(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            active = self.write_identity(root, "runtime-a", "a")
+            candidate_b = self.write_identity(root, "runtime-b", "b")
+            self.call("initialize-v2", "--state-dir", str(state), "--active-identity", str(active))
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_b))
+            identity_b = json.loads(candidate_b.read_text(encoding="utf-8"))
+            declaration = root / "coordinated-cutover.json"
+            declaration.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **identity_b,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            # A declaration that does not match the desired identity is
+            # rejected before the lifecycle state changes.
+            mismatched = root / "coordinated-cutover-mismatch.json"
+            mismatched_identity = {**identity_b, "releaseId": "runtime-c"}
+            mismatched.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **mismatched_identity,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            rejected_decl = self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(mismatched), expect_ok=False,
+            )
+            self.assertIn("must match the desired identity", rejected_decl.stderr)
+            self.call(
+                "set-desired", "--state-dir", str(state), "--expected-generation", "2",
+                "--identity", str(candidate_b), "--coordinated-cutover", str(declaration),
+            )
+            # Activation of the declared coordinated successor without the
+            # pre-activation Runtime authorization fails closed.
+            rejected_activate = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE), expect_ok=False,
+            )
+            self.assertIn("--coordinated-runtime-authorization", rejected_activate.stderr)
+            # A Runtime authorization whose own content-addressed hash is forged, or
+            # that binds a different candidate, is rejected.
+            authorization, binding = self.coordinated_authorization_and_binding(root, identity_b, "e" * 64)
+            forged = json.loads(authorization.read_text(encoding="utf-8"))
+            forged["candidateReceiptHash"] = "9" * 64
+            forged_path = root / "runtime-authorization-forged.json"
+            forged_path.write_text(json.dumps(forged), encoding="utf-8")
+            rejected_forged = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(forged_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
+            )
+            self.assertIn("does not match its own content-addressed hash", rejected_forged.stderr)
+            foreign = json.loads(authorization.read_text(encoding="utf-8"))
+            foreign["candidateReceiptHash"] = "9" * 64
+            foreign["authorizationHash"] = LIFECYCLE.canonical_digest({
+                "transactionId": foreign["transactionId"],
+                "journalHash": foreign["journalHash"],
+                "candidateReceiptHash": foreign["candidateReceiptHash"],
+                "committedSelectors": foreign["committedSelectors"],
+                "mutationReceiptHashes": foreign["mutationReceiptHashes"],
+                "runtimeBindingHash": foreign["runtimeBindingHash"],
+            })
+            foreign["authorizationId"] = "auth-" + foreign["authorizationHash"][:24]
+            foreign_path = root / "runtime-authorization-foreign.json"
+            foreign_path.write_text(json.dumps(foreign), encoding="utf-8")
+            rejected_foreign = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(foreign_path),
+                "--coordinated-runtime-binding", str(binding), expect_ok=False,
+            )
+            self.assertIn("different candidate", rejected_foreign.stderr)
+            # A valid authorization without the runtime binding still fails closed.
+            rejected_no_binding = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(authorization), expect_ok=False,
+            )
+            self.assertIn("--coordinated-runtime-binding", rejected_no_binding.stderr)
+            # The matching Runtime authorization and runtime binding
+            # unlock the activation.
+            activated = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "3",
+                "--identity", str(candidate_b), "--host-state-script", str(HOST_STATE),
+                "--coordinated-runtime-authorization", str(authorization),
+                "--coordinated-runtime-binding", str(binding),
+            )
+            self.assertEqual(activated["active"]["active"]["releaseId"], "runtime-b")
+            # The declaration stays as evidence and constrains only the
+            # release it names: an ordinary later candidate activates
+            # without the coordinated gate.
+            self.assertTrue((state / "coordinated-cutover.json").exists())
+            candidate_d = self.write_identity(root, "runtime-d", "d")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "4", "--identity", str(candidate_d))
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "5", "--identity", str(candidate_d))
+            ordinary = self.call(
+                "activate", "--state-dir", str(state), "--expected-generation", "6",
+                "--identity", str(candidate_d), "--host-state-script", str(HOST_STATE),
+            )
+            self.assertEqual(ordinary["active"]["active"]["releaseId"], "runtime-d")
+            # Cancelling a declared desired candidate removes the declaration.
+            candidate_e = self.write_identity(root, "runtime-e", "e")
+            self.call("begin-publish", "--state-dir", str(state), "--expected-generation", "7", "--identity", str(candidate_e))
+            identity_e = json.loads(candidate_e.read_text(encoding="utf-8"))
+            declaration_e = root / "coordinated-cutover-e.json"
+            declaration_e.write_text(json.dumps({
+                "contract": "runtime-blob-coordinated-cutover.v1",
+                **identity_e,
+                "candidateReceiptHash": "e" * 64,
+            }), encoding="utf-8")
+            self.call("set-desired", "--state-dir", str(state), "--expected-generation", "8", "--identity", str(candidate_e), "--coordinated-cutover", str(declaration_e))
+            self.call("cancel-desired", "--state-dir", str(state), "--expected-generation", "9")
+            self.assertFalse((state / "coordinated-cutover.json").exists())
 
     def test_activate_and_retire_rollback_automatically_create_leases(self):
         with tempfile.TemporaryDirectory() as directory:

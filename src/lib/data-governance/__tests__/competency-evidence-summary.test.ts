@@ -20,7 +20,13 @@ function fact(overrides: Partial<LearningFact>): LearningFact {
     sourceLogId: overrides.sourceLogId ?? 'log-1',
     courseId: overrides.courseId ?? null,
     lessonId: overrides.lessonId ?? 'unit-4-1-design-task-expression-v1',
-    contextJson: overrides.contextJson ?? {},
+    contextJson: overrides.contextJson ?? {
+      evidenceGovernance: {
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'unit-test-complete-governance',
+      },
+    },
     knowledgeIdentityNamespace: overrides.knowledgeIdentityNamespace ?? null,
     canonicalObjectId: overrides.canonicalObjectId ?? null,
     aggregateReleaseSetId: overrides.aggregateReleaseSetId ?? null,

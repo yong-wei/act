@@ -16,11 +16,13 @@ import {
   resolveAuthorityStorePaths,
   type AuthorityStorePaths,
 } from '@/lib/authoritative-knowledge/authority-store';
-import type {
-  ActiveAuthorityProvenance,
-  ActiveAuthoritySource,
-  ActiveCanvasResponse,
-  ActiveNodeDetailResponse,
+import {
+  projectActiveNodeMathematics,
+  projectGovernedFormulaToActiveMathematics,
+  type ActiveAuthorityProvenance,
+  type ActiveAuthoritySource,
+  type ActiveCanvasResponse,
+  type ActiveNodeDetailResponse,
 } from '@/features/knowledge/active-authority-graph-contracts';
 import type {
   KnowledgeRole,
@@ -53,6 +55,15 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
+import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
+import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
+import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
+import {
+  resolveActiveLocaleQualification,
+  resolveActiveLocaleRequest,
+} from '@/lib/authority-locale-readiness/request';
+import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -489,8 +500,9 @@ function shardFailureCode(error: unknown): { code: string; message: string; stat
 export function activeShardResponse<T extends AuthorityLearnerShard>(
   read: () => T,
   role?: KnowledgeRole,
+  request?: Request,
 ): NextResponse {
-  return activeShardResponseForRole(read, role);
+  return activeShardResponseForRole(read, role, request);
 }
 
 /**
@@ -501,12 +513,54 @@ export function activeShardResponse<T extends AuthorityLearnerShard>(
 export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   read: () => T,
   role: KnowledgeRole | undefined,
+  request?: Request,
 ): NextResponse {
   try {
-    const shard = projectAuthorityLearnerShard(read());
-    if (role === 'STUDENT' && shard.shardClass === 'node-detail') {
-      const { teachingFields: _teachingFields, ...node } = (shard as unknown as PublicAuthorityNodeDetailShard).node;
-      return NextResponse.json({ ...shard, node });
+    const qualification = request ? resolveActiveLocaleQualification() : null;
+    const capability = qualification?.capability ?? historicalLocaleCapability();
+    const resolved = request
+      ? resolveActiveLocaleRequest(request, capability)
+      : { ok: true as const, locale: 'zh-CN' as const, capability };
+    if (!resolved.ok) return resolved.response;
+    const raw = read();
+    const activeIdentity = resolveActiveShardIdentity();
+    const receipt = capability.mode === 'complete-locale' && qualification?.qualification
+      ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
+      : null;
+    const localized = applyLocaleToLearnerShard(
+      raw,
+      resolved.locale,
+      capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+      receipt,
+    );
+    const withMath = attachGovernedMathToLearnerShard(localized, resolved.locale);
+    const shard = projectAuthorityLearnerShard(withMath, {
+      localeBinding: localeBindingForCapability(
+        resolved.locale,
+        capability,
+        `acv-${activeIdentity.envelope.authority.snapshotHash}`,
+      ),
+      localeCapability: capability,
+    });
+    if (shard.shardClass === 'node-detail') {
+      const detail = shard as unknown as PublicAuthorityNodeDetailShard;
+      const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
+        ?? projectActiveNodeMathematics(detail.node.teachingFields);
+      const resourceBindings = attachActiveAuthorityResourceBindings(
+        raw as AuthorityNodeDetailShard,
+        role,
+      );
+      if (role === 'STUDENT') {
+        const { teachingFields: _teachingFields, ...node } = detail.node;
+        return NextResponse.json({
+          ...detail,
+          node: { ...node, mathematics, resourceBindings },
+        });
+      }
+      return NextResponse.json({
+        ...detail,
+        node: { ...detail.node, mathematics, resourceBindings },
+      });
     }
     return NextResponse.json(shard);
   } catch (error) {

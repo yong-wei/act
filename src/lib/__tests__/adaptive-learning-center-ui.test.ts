@@ -549,7 +549,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("data-learning-path-option-module={option.isGenerated ? 'route' : undefined}");
     expect(source).toContain('aria-label={`选择${option.title}`');
     expect(source).toContain('aria-label={`请控灵调整${option.title}`');
-    expect(source).toContain('aria-label={`解释${option.title}差异`');
+    expect(source).toContain('aria-label={`选择${option.title}作为比较方案`');
     expect(source).toContain('aria-label={`暂不采用${option.title}`');
     expect(source).toContain('pathOptionFeedback[option.writeOption.optionId]');
     expect(source).not.toContain("key={`${option.id}:actions`}");
@@ -645,8 +645,60 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[0].recommendationProvenance).toBe(options[0].recommendationProvenance);
     expect(displays[1].recommendationProvenance).toBeUndefined();
     expect(displays[1].readiness).toBe('包含后续解锁节点');
+    expect(displays[0].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays[1].scenario).toBe('这条路径结合你的学习记录生成。');
+    expect(displays.every((option) => !option.scenario.includes('adaptive-learner-state'))).toBe(true);
+    expect(displays.every((option) => !option.scenario.includes('LearningFact'))).toBe(true);
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('translates low-confidence path evidence into user-facing copy', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'low-confidence-route',
+      label: '基础路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: ['low-confidence-learner-state', 'adaptive-learner-state'],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    }]);
+
+    expect(display.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
+    expect(display.scenario).not.toContain('low-confidence-learner-state');
+    expect(display.scenario).not.toContain('adaptive-learner-state');
+  });
+
+  it('translates projected evidence labels from the adaptive center contract', () => {
+    const baseOption: AdaptivePathOptionWriteOption = {
+      optionId: 'projected-evidence-option',
+      label: '投影证据路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    };
+
+    const [sufficientDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['学习证据'],
+    }]);
+    expect(sufficientDisplay.scenario).toBe('这条路径结合你的学习记录生成。');
+
+    const [lowDisplay] = buildAdaptivePathOptionDisplays([{
+      ...baseOption,
+      evidenceBasis: ['练习记录', '证据较少'],
+    }]);
+    expect(lowDisplay.scenario).toBe('当前学习记录较少，这条路径会先从基础内容开始。');
   });
 
   it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
@@ -884,6 +936,21 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
   });
 
+  it('keeps the adaptive practice browser entrypoint free of server-only catalog imports', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const bridgeSource = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+    const restoreSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-round-restore.ts'), 'utf8');
+
+    expect(pageSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(pageSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
+    expect(restoreSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(restoreSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
+    expect(bridgeSource).toContain("import type { AdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options'");
+    expect(bridgeSource).not.toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(bridgeSource).toContain('goalContexts: Partial<Record<string, AdaptivePathAdvisorGoalContext>>');
+    expect(bridgeSource).toContain('requestedGoal && goalContexts[requestedGoal]');
+  });
+
   it('builds editable path generation requests from panel controls', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
@@ -897,7 +964,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
     expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
     expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replaceAll('\r\n', '\n'))
       .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
@@ -917,8 +984,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain("sourceCandidateFingerprint: operation === 'revise' ? option?.candidateFingerprint");
     expect(pageSource).toContain("activeProgressVersion: operation === 'revise' ? activeProgressVersion");
     expect(pageSource).toContain("payload.result?.generationStatus === 'no_material_difference'");
-    expect(pageSource).toContain('adjustmentRequestVersionKey !== pathAdjustmentContextVersionKeyRef.current');
-    expect(pageSource).toContain('adjustmentRequestId !== activePathAdjustmentRequestIdRef.current');
+    expect(pageSource).toContain('adjustmentRequestVersionKey === pathAdjustmentContextVersionKeyRef.current');
+    expect(pageSource).toContain('adjustmentRequestId === activePathAdjustmentRequestIdRef.current');
+    expect(pageSource).toContain('const isCurrentAdjustmentRequest = () => operation !== \'revise\' || (');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
     expect(pageSource).toContain('generationRequestId,');
     expect(pageSource).toContain('type PathGenerationRequestStatus,');
@@ -946,7 +1014,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
-    expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain('openPathAdjustment(optionForWrite)');
+    expect(pageSource).toContain("submitPathGeneration('revise', adjustmentSourceOption)");
+    expect(pageSource).toContain('data-adaptive-path-adjustment-source="selected"');
     expect(pageSource).toContain("payload.result?.generationStatus === 'blocked'");
     expect(pageSource).toContain('setPathChoiceMessage(blockedMessage)');
     expect(pageSource).toContain('selectedOptionId');
@@ -960,7 +1030,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('readAdaptivePathCandidateBatch(prisma as any, sourceBatchId)');
     expect(routeSource).toContain('sourceCandidate.fingerprint !== sourceCandidateFingerprint');
     expect(routeSource).toContain('progressVersion: path.updatedAt instanceof Date');
-    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8').replace(/\r\n/g, '\n'))
       .toContain('effectiveRevisionArgs,\n                tx,');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
@@ -974,7 +1044,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain("return readinessError('图谱节点上下文未签名或已失效'");
     expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
-    expect(routeSource).toContain('readPathOptionStyleLookup');
+    expect(routeSource).toContain('readPathOptionContext');
     expect(routeSource).not.toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
@@ -1013,8 +1083,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('比较限制');
     expect(pageSource).toContain('const pathOptionVersionKey = useMemo');
     expect(pageSource).toContain('const pathOptionVersionKeyRef = useRef(pathOptionVersionKey)');
-    expect(pageSource).toContain('explanationRequestVersionKey !== pathOptionVersionKeyRef.current');
-    expect(pageSource).toContain('differenceExplanation.pathId !== currentPathId');
+    expect(pageSource).toContain('activeComparisonRequestKeyRef.current !== explanationRequestVersionKey');
+    expect(pageSource).toContain('differenceExplanation.pathId !== comparisonPathId');
     expect(pageSource).toContain('setPathDifferenceExplanations({})');
     expect(pageSource).toContain('准备度明细');
     expect(pageSource).toContain('terminalValidationNodeIds: getStringArray(metrics.terminalValidationNodeIds)');
@@ -1024,6 +1094,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(runtimeSource).toContain("'insufficient-data'");
     expect(runtimeSource).toContain("'no-material-difference'");
     expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
+  });
+
+  it('places candidate comparison before the active route module', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('className="order-[15]"');
+    expect(pageSource).toContain('data-adaptive-path-module-order="candidate-comparison-before-active-route"');
+    expect(pageSource).toContain('className="order-20 grid min-w-0 w-full gap-4" data-adaptive-path-module-order="active-route-after-candidate-comparison"');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
@@ -1057,7 +1135,7 @@ describe('adaptive learning center UI contracts', () => {
     const layoutSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/layout.tsx'), 'utf8');
 
     expect(source).toContain("import { useSearchParams } from 'next/navigation';");
-    expect(source).toContain('isAdaptivePracticeGoalId(requestedGoal)');
+    expect(source).toContain('requestedGoal && goalContexts[requestedGoal]');
     expect(source).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
     expect(source).toContain('if (activeGraphNodeId) {');
     expect(source).toContain('const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;');

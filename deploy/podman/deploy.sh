@@ -94,6 +94,18 @@ if [ "${ACT_RUNTIME_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
   operator_runtime_active_receipt_path_was_set=1
   operator_runtime_active_receipt_path="$ACT_RUNTIME_ACTIVE_RECEIPT_PATH"
 fi
+operator_coordinated_cutover_required_was_set=0
+operator_coordinated_cutover_required=""
+if [ "${ACT_COORDINATED_CUTOVER_REQUIRED+x}" = "x" ]; then
+  operator_coordinated_cutover_required_was_set=1
+  operator_coordinated_cutover_required="$ACT_COORDINATED_CUTOVER_REQUIRED"
+fi
+operator_coordinated_active_receipt_path_was_set=0
+operator_coordinated_active_receipt_path=""
+if [ "${ACT_COORDINATED_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
+  operator_coordinated_active_receipt_path_was_set=1
+  operator_coordinated_active_receipt_path="$ACT_COORDINATED_ACTIVE_RECEIPT_PATH"
+fi
 file_knowledge_mode_was_set=0
 file_knowledge_mode=""
 if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
@@ -144,6 +156,12 @@ if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
 fi
 if [ "$operator_runtime_active_receipt_path_was_set" = "1" ]; then
   ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$operator_runtime_active_receipt_path"
+fi
+if [ "$operator_coordinated_cutover_required_was_set" = "1" ]; then
+  ACT_COORDINATED_CUTOVER_REQUIRED="$operator_coordinated_cutover_required"
+fi
+if [ "$operator_coordinated_active_receipt_path_was_set" = "1" ]; then
+  ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$operator_coordinated_active_receipt_path"
 fi
 if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
   if [ "$runtime_knowledge_mode" = "cutover" ]; then
@@ -301,6 +319,18 @@ if [ "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" = "$RUNTIME_ACTIVE_RECEIPT_PATH" ]; then
   echo "ERROR: ACT_RUNTIME_ACTIVE_RECEIPT_PATH 必须包含父目录。" >&2
   exit 1
 fi
+ACT_COORDINATED_CUTOVER_REQUIRED="${ACT_COORDINATED_CUTOVER_REQUIRED:-false}"
+case "$ACT_COORDINATED_CUTOVER_REQUIRED" in
+  true|false) ;;
+  *) echo "ERROR: ACT_COORDINATED_CUTOVER_REQUIRED 必须为 true 或 false。" >&2; exit 1 ;;
+esac
+COORDINATED_ACTIVE_RECEIPT_PATH="${ACT_COORDINATED_ACTIVE_RECEIPT_PATH:-${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/coordinated-active-receipt.json}"
+COORDINATED_ACTIVE_RECEIPT_HOST_DIR="${COORDINATED_ACTIVE_RECEIPT_PATH%/*}"
+if [ "$COORDINATED_ACTIVE_RECEIPT_HOST_DIR" != "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+  echo "ERROR: coordinated active receipt 必须位于 active runtime receipt 的同一状态目录。" >&2
+  exit 1
+fi
+COORDINATED_ACTIVE_RECEIPT_CONTAINER_PATH="/app/act-runtime-state/${COORDINATED_ACTIVE_RECEIPT_PATH##*/}"
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -318,6 +348,7 @@ START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start
 if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
   START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
 fi
+WOLFRAM_CLOUD_MCP_URL="${WOLFRAM_CLOUD_MCP_URL:-https://agenttools.wolfram.com/mcp}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -823,7 +854,7 @@ write_runtime_env() {
     fi
     awk -F= '
       BEGIN {
-        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_DELIVERY_MODE RUNTIME_ACTIVE_RECEIPT_PATH ACT_COORDINATED_CUTOVER_REQUIRED ACT_COORDINATED_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
         for (key_index in keys) managed[keys[key_index]] = 1;
       }
       !managed[$1] { print }
@@ -857,6 +888,8 @@ ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
 ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
 ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
 RUNTIME_ACTIVE_RECEIPT_PATH=$RUNTIME_ACTIVE_RECEIPT_PATH
+ACT_COORDINATED_CUTOVER_REQUIRED=$ACT_COORDINATED_CUTOVER_REQUIRED
+ACT_COORDINATED_ACTIVE_RECEIPT_PATH=$COORDINATED_ACTIVE_RECEIPT_PATH
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
@@ -876,6 +909,7 @@ ensure_network_and_volume() {
     echo "- 创建网络: $NETWORK_NAME"
     podman network create "$NETWORK_NAME" >/dev/null
   fi
+
 
   if ! podman volume exists "$DB_VOLUME"; then
     echo "- 创建数据卷: $DB_VOLUME"
@@ -1127,10 +1161,18 @@ SHARED_ENV_ARGS=(
   -e POSTGRES_PASSWORD="$DB_PASSWORD"
   -e APP_DOMAIN="$APP_DOMAIN"
   -e REDIS_URL="$REDIS_URL"
+  -e RUNTIME_DELIVERY_MODE="$RUNTIME_DELIVERY_MODE"
   -e ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
   -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
+WOLFRAM_ENV_ARGS=(-e WOLFRAM_CLOUD_MCP_URL="$WOLFRAM_CLOUD_MCP_URL")
+if [ -n "${WOLFRAM_CLOUD_MCP_TOKEN:-}" ]; then
+  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_CLOUD_MCP_TOKEN="$WOLFRAM_CLOUD_MCP_TOKEN")
+fi
+if [ -n "${WOLFRAM_MCP_SERVICE_API_KEY:-}" ]; then
+  WOLFRAM_ENV_ARGS+=(-e WOLFRAM_MCP_SERVICE_API_KEY="$WOLFRAM_MCP_SERVICE_API_KEY")
+fi
 GRADING_AUDIT_ENV_ARGS=()
 if [ -n "${GRADING_AUDIT_SECRET:-}" ]; then
   GRADING_AUDIT_ENV_ARGS=(-e GRADING_AUDIT_SECRET="$GRADING_AUDIT_SECRET")
@@ -1161,6 +1203,8 @@ APP_ENV_ARGS=(
   -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
   -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
   -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
+  -e ACT_COORDINATED_CUTOVER_REQUIRED="$ACT_COORDINATED_CUTOVER_REQUIRED"
+  -e ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$COORDINATED_ACTIVE_RECEIPT_CONTAINER_PATH"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -1236,6 +1280,19 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
+if podman run --rm --entrypoint /bin/sh "$APP_IMAGE" -c 'test -x /app/scripts/math-calc/check-wolfram-ready.sh'; then
+  echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
+  podman run --rm \
+    --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
+    "${WOLFRAM_ENV_ARGS[@]}" \
+    "$APP_IMAGE"
+elif [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "WARN: runtime cutover 使用不含 Wolfram smoke 的既有镜像，跳过该兼容性检查" >&2
+else
+  echo "ERROR: production image is missing Wolfram Cloud MCP smoke script" >&2
+  exit 1
+fi
+
 if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
   echo "- runtime cutover 跳过 Prisma 迁移、策略物化和作业存储健康检查"
 elif [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
@@ -1245,6 +1302,7 @@ elif [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; t
     --entrypoint ./docker-entrypoint.sh \
     "${DB_HOST_ARGS[@]}" \
     "${POLICY_SEED_ENV_ARGS[@]}" \
+    "${WOLFRAM_ENV_ARGS[@]}" \
     -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
     "$APP_IMAGE" \
     ./node_modules/.bin/tsx scripts/assignments/ensure-grading-policies.ts
@@ -1255,6 +1313,7 @@ else
     --entrypoint ./docker-entrypoint.sh \
     "${DB_HOST_ARGS[@]}" \
     "${SHARED_ENV_ARGS[@]}" \
+    "${WOLFRAM_ENV_ARGS[@]}" \
     -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START" \
     "$APP_IMAGE" \
     true
@@ -1262,9 +1321,9 @@ fi
 
 if [ "$RUNTIME_CUTOVER_APP_ONLY" != "1" ] && [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 验证学生作业对象存储与扫描服务健康"
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
-  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+  podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
 fi
 
 RUNTIME_HELPER_MOUNT_ARGS=()
@@ -1290,6 +1349,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${APP_ENV_ARGS[@]}" \
+  "${WOLFRAM_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
   /app-container-start-wrapper.sh app
 
@@ -1318,6 +1378,7 @@ run_detached_container "$WORKER_CONTAINER" podman run -d \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
   "${WORKER_ENV_ARGS[@]}" \
+  "${WOLFRAM_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
   /app-container-start-wrapper.sh worker
 
@@ -1329,10 +1390,10 @@ fi
 
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
   echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
-  podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
+  podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
 
   echo "- 启动学生作业 GC worker 容器: $SUBMISSION_GC_CONTAINER"
-  podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
+  podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" "${WOLFRAM_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
 fi
 
 echo "[4-deploy] 部署完成。"

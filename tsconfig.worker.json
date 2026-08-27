@@ -1,0 +1,42 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "scripts/workers/**/*.ts",
+    "scripts/assignments/scan-submission-objects.ts",
+    "scripts/assignments/gc-submission-objects.ts",
+    "typescript-graph-fixtures/worker.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts/tests",
+    "scripts/**/__tests__",
+    "scripts/db",
+    "scripts/knowledge",
+    "scripts/knowledge-cutover",
+    "scripts/knowledge-extraction",
+    "scripts/knowledge-governance",
+    "scripts/actkg-release",
+    "scripts/course-coverage",
+    "scripts/data-governance",
+    "scripts/migrations",
+    "scripts/release",
+    "scripts/runtime-release",
+    "scripts/source-pack",
+    "scripts/architecture-*.ts",
+    "scripts/test-command-contracts.ts",
+    "tests",
+    "openspec",
+    "docs",
+    "artifacts",
+    ".logs",
+    "evaluate",
+    "data",
+    "deploy",
+    "course-content",
+    ".next",
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "src/**/*.spec.*",
+    "src/**/fixtures/**"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-7324aa21fc05cd01e7d1cf9d",
+    "canonicalType": "Formula",
+    "label": "\\begin{aligned}\n\\operatorname{rank} \\boldsymbol{V}^{\\prime} & =\\operatorname{rank}\\left[\\begin{array}{lllll}\n(\\boldsymbol{C} \\boldsymbol{P})^{\\mathrm{T}} & \\left(\\boldsymbol{P}^{-1} \\boldsymbol{A} \\boldsymbol{P}\\right)^{\\mathrm{T}}(\\boldsymbol{C} \\boldsymbol{P})^{\\mathrm{T}} & \\left(\\left(\\boldsymbol{P}^{-1} \\boldsymbol{A} \\boldsymbol{P}\\right)^{2}\\right)^{\\mathrm{T}}(\\boldsymbol{C} \\boldsymbol{P})^{\\mathrm{T}} & \\cdots & \\left(\\left(\\boldsymbol{P}^{-1} \\boldsymbol{A} \\boldsymbol{P}\\right)^{n-1}\\right)^{\\mathrm{T}}(\\boldsymbol{C} \\boldsymbol{P})^{\\mathrm{T}}\n\\end{array}\\right] \\\\\n& =\\operatorname{rank}\\left[\\begin{array}{lllll}\n\\boldsymbol{P}^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\boldsymbol{P}^{\\mathrm{T}} \\boldsymbol{A}^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\boldsymbol{P}^{\\mathrm{T}}\\left(\\boldsymbol{A}^{2}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\cdots & \\boldsymbol{P}^{\\mathrm{T}}\\left(\\boldsymbol{A}^{n-1}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}}\n\\end{array}\\right] \\\\\n& =\\operatorname{rank} \\boldsymbol{P}^{\\mathrm{T}}\\left[\\begin{array}{lllll}\n\\boldsymbol{C}^{\\mathrm{T}} & \\boldsymbol{A}^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\left(\\boldsymbol{A}^{2}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\cdots & \\left(\\boldsymbol{A}^{n-1}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}}\n\\end{array}\\right] \\\\\n& =\\operatorname{rank}\\left[\\begin{array}{lllll}\n\\boldsymbol{C}^{\\mathrm{T}} & \\boldsymbol{A}^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\left(\\boldsymbol{A}^{2}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}} & \\cdots & \\left(\\boldsymbol{A}^{n-1}\\right)^{\\mathrm{T}} \\boldsymbol{C}^{\\mathrm{T}}\n\\end{array}\\right]=\\operatorname{rank} \\boldsymbol{V}\n\\end{aligned}",
+    "aliases": [],
+    "description": "变换后系统可观测性不变性证明",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

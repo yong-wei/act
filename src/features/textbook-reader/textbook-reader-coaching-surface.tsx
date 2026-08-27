@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
-import { TEXTBOOK_COURSE_ID, type TextbookReaderProjection } from '@/lib/textbook-reader';
+import { TEXTBOOK_COURSE_ID, type TextbookReaderProjection } from '@/lib/textbook-reader-contracts';
 import { STRUCTURED_TEXTBOOK_UNIT_KIND } from '@/lib/textbook-resource-coach/types';
 
 const SELECTION_HINT_MAX = 500;

@@ -102,6 +102,43 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             self.assertEqual(recovered["active"]["releaseId"], candidate["releaseId"])
             self.assert_projected(state, candidate)
 
+    def test_candidate_readyz_receipt_is_scoped_to_the_selected_candidate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state, active, candidate, _, _ = self.setup_transaction(root)
+            verification = root / "runtime-b-verification.json"
+            verification.write_text(json.dumps({
+                "schemaVersion": "runtime-release-verification.v1",
+                "releaseId": candidate["releaseId"],
+                "manifestSha256": candidate["manifestSha256"],
+                "treeSha256": candidate["treeSha256"],
+            }), encoding="utf-8")
+            self.call(
+                HOST_STATE,
+                "select",
+                "--state-dir", str(state),
+                "--expected-active-release", active["releaseId"],
+                "--verification-receipt", str(verification),
+            )
+            receipt_dir = root / "candidate-receipt"
+            receipt_dir.mkdir()
+            receipt = self.call(
+                HOST_STATE,
+                "candidate-readyz-receipt",
+                "--state-dir", str(state),
+                "--release-id", candidate["releaseId"],
+                "--manifest-sha256", candidate["manifestSha256"],
+                "--tree-sha256", candidate["treeSha256"],
+                "--receipt-dir", str(receipt_dir),
+            )
+            self.assertEqual(receipt["selection"]["releaseId"], candidate["releaseId"])
+            active_after = self.call(HOST_STATE, "active", "--state-dir", str(state))
+            self.assertEqual(active_after["activeReleaseId"], active["releaseId"])
+            self.assertEqual(
+                json.loads((receipt_dir / "act-runtime-active-receipt.json").read_text(encoding="utf-8")),
+                receipt,
+            )
+
     def test_recovery_preserves_v1_fallback_without_v2_authority(self):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory) / "state"

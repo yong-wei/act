@@ -1,0 +1,23 @@
+{
+  "name": "holdout",
+  "pipelineVersion": "act-course-root-containment/v1",
+  "untouched": true,
+  "items": [
+    {
+      "id": "holdout-parent-c",
+      "family": "containment",
+      "relationType": "CONTAINMENT",
+      "sourceCanonicalId": "ctc:c",
+      "targetCanonicalId": "ctc:a",
+      "expected": "admit"
+    },
+    {
+      "id": "holdout-weak",
+      "family": "prerequisite",
+      "relationType": "PREREQUISITE",
+      "sourceCanonicalId": "ctc:c",
+      "targetCanonicalId": "ctc:a",
+      "expected": "exclude"
+    }
+  ]
+}

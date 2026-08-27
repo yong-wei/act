@@ -10,11 +10,21 @@ The system SHALL define a unified adaptive learning center UI contract for learn
 - **THEN** the contract SHALL expose overview, learner-state, mastery, current path, map, timeline, evidence explanation, practice, and Konling views according to available feature flags.
 
 ### Requirement: Existing adaptive routes remain compatible
-The system SHALL keep existing adaptive and AI surfaces operational during migration.
+The system SHALL keep existing adaptive and AI surfaces operational during migration. `/ai` SHALL render the existing AI Workshop and preserve task intent while sourcing learner-facing state from the server-owned evidence projection.
 
 #### Scenario: Legacy adaptive route is opened
 - **WHEN** `/ai`, `/ai/copilot`, `/assessment/adaptive-practice`, or profile adaptive cards are opened during migration
 - **THEN** the route SHALL either render the compatible legacy surface or route into the adaptive center without losing the original task intent.
+
+#### Scenario: AI Workshop is opened without task intent
+- **WHEN** an authenticated learner opens `/ai`
+- **THEN** the route SHALL render the AI Workshop with an evidence-backed available, empty, or unavailable state
+- **AND** it SHALL not render sample learner data as current personal data.
+
+#### Scenario: AI Workshop is opened with report-feedback intent
+- **WHEN** an authenticated learner opens `/ai?task=report-feedback`
+- **THEN** the route SHALL preserve the report-feedback task candidate workflow
+- **AND** the surrounding learner panels SHALL still use the evidence-backed projection.
 
 ### Requirement: Adaptive claims expose confidence and evidence limits
 The system SHALL represent source coverage, confidence, privacy scope, and evidence limitations in product language for students and diagnostic language only for authorized teacher/admin surfaces.
@@ -23,6 +33,11 @@ The system SHALL represent source coverage, confidence, privacy scope, and evide
 - **WHEN** a path, recommendation, mastery state, or Konling intervention is based on weak or incomplete evidence
 - **THEN** the student UI SHALL explain the next usable action and why personalization will improve later
 - **AND** internal limiting reason codes SHALL NOT appear in the student path center.
+
+#### Scenario: AI Workshop evidence is stale or partial
+- **WHEN** the learner-state projection contains stale, partial, or low-confidence markers
+- **THEN** the student UI SHALL display a readable limitation
+- **AND** it SHALL not present the projection as a complete personal portrait.
 
 ### Requirement: Adaptive learning entry preserves route intent
 The adaptive learning center SHALL preserve the intent of the route that opened it and render a complete commercial entry state for practice, learner state, path, and review.
@@ -62,6 +77,12 @@ The adaptive learning center SHALL render empty, stale, low-confidence, and no-d
 #### Scenario: Learner data is incomplete
 - **WHEN** ability profile, evidence, path, recommendation, or practice data is missing or low confidence
 - **THEN** the surface SHALL explain the limitation and provide adjacent actions such as start practice, review evidence, open Interactive Learning, or enter a simulation/Arena task where available.
+
+#### Scenario: AI Workshop has no verified records
+- **WHEN** the AI Workshop receives an empty projection or an empty governed collection
+- **THEN** the relevant panel SHALL state that no verified record is available
+- **AND** it SHALL provide an adjacent learning or evidence-creation action
+- **AND** it SHALL not show a fabricated zero, locked achievement list, or sample record.
 
 ### Requirement: Adaptive center specializes the control-correction learning path
 The adaptive learning center SHALL support `control-correction` as one registered goal while defaulting to a generic path center that can generate paths for all registered learning goals.

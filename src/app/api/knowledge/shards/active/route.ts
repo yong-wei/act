@@ -11,11 +11,11 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /** Product root shard. Identity comes only from the server active pointer. */
-export async function GET(_request: Request) {
+export async function GET(request: Request) {
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;
-    return activeShardResponse(readActiveRootShard);
+    return activeShardResponse(readActiveRootShard, authorization.role, request);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Active Authority root shard request failed:', error);

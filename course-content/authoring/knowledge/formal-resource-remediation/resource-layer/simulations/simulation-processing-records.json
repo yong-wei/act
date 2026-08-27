@@ -1,0 +1,2382 @@
+[
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-b99df478ea878be5b607a5d9",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-ai-report-classroom-ai-report",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-ai-report:registry:classroom-ai-report:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-5e5a4037bf99263cdafb6c00"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-ai-report"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-ai-report"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "0ea2e462946310137f7dc3eb095d8a920dafc440abebbe4ad7bb3b432aa5fd28"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-6bcdd8aa11191365baa310b0",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-assessment-classroom-assessment",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-assessment:registry:classroom-assessment:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e7124dc3e029b3c85105ca51"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-assessment"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-assessment"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "ff8cbfbd8eadbe22cf365de3de0cab55e20ec0f68981e6d0b3abaa75066f2148"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-1c567882e2bffe429bb58287",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-ethical-trigger-classroom-ethical-trigger",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-ethical-trigger:registry:classroom-ethical-trigger:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-f14cc79e72a36a6bb5e68f12"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-ethical-trigger"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-ethical-trigger"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "259f8f423d4006933f7a1f71975ebb26b0b9c9e833fa3f19df55205abbe0b904"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f3efd603465a8ebb44c85433",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-objective-classroom-objective",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-objective:registry:classroom-objective:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-0687c16f9f6b94015656857e"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-objective"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-objective"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "9b65f6cc32098e2105410fe65c0a90c0c2d51826a74e9700c1a641fe316dd2b1"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-6d3b6287855bf3d18bd26c52",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-poll-classroom-poll",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-poll:registry:classroom-poll:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-1675c3a6d321021d0abd84d2"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-poll"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-poll"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "1a9c16896eb1a38a338227aa19f233e2b7e38f52c5ee2d69faa7aab85095580b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-895d1668fd6459b9082b9cd1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-classroom-video-classroom-video",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:classroom-video:registry:classroom-video:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-5b07ac24c2d9d713370eee0b"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:classroom-video"
+  ],
+  "launchOutputIds": [
+   "registry:classroom-video"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "6fadbdc391a175b43fa0a3307dc5fd511736e429ed0d03aae54af934a0549016"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-6fa05300be759bfa9a53e05f",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-sim-pid-v1-cmjrywg360003wi2j68ra9m3l",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjrywg360003wi2j68ra9m3l:registry:sim-pid-v1:config:316a12610005cf557679facc77a8d9defcc2115ba117ec588f5c0dcd00ee3614",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-fe288c01d099ba26572f6130"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:sim-pid-v1"
+  ],
+  "launchOutputIds": [
+   "registry:sim-pid-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "cb2e8b019176efc7e7942b075d1174bc8e2d432adda1df68ab5555da712e90ed"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-5b9c228964e2c6067a92d93c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-ethics-arctic-v1-cmjrywg370005wi2jmywwv5dh",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjrywg370005wi2jmywwv5dh:registry:ethics-arctic-v1:config:826634a6b293508593b13a2ec77eb0cd6b0b154068864d6291cb6ebd286340b3",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-25e45803fa4db1c7412b13bb"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:ethics-arctic-v1"
+  ],
+  "launchOutputIds": [
+   "registry:ethics-arctic-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "259577e6663c71b00d92e4adeb7df066504c521aae2b163ddb27c926c19adcb9"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-7f3fa840417fcb6ab8d97e1d",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-physics-mech-cmjrz8gqh0007eg16h9c8eu4v",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjrz8gqh0007eg16h9c8eu4v:registry:widget-physics-mech:config:f6dae80ed93a7c264586f4ec1054812890e905822a5febf0f4aff2e97600fe3f",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-56198a90bda69162791f8b33"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-physics-mech"
+  ],
+  "launchOutputIds": [
+   "registry:widget-physics-mech"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "39e0933d201555e4b51104f63d588485eed8b3a4f40288fcbdb87832f3a8c0e1"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-945bb3df2a81784b47739d16",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-physics-elec-cmjrz8gqj0009eg16c4p9jopc",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjrz8gqj0009eg16c4p9jopc:registry:widget-physics-elec:config:f82e90aed2e800d8ff4e7f31f73257f46f81c851b65a7f0515df08be71a15a3a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-fff7ebfadbf629710d505b9a"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-physics-elec"
+  ],
+  "launchOutputIds": [
+   "registry:widget-physics-elec"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "a66a7e5133ca85fcb6ffe2b5d5b0ee41cad0c6238d6108260a965fb48512c27e"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ad42f82f69a7b3d8971ad2c3",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-analogy-mapper-cmjrz8gqn000beg16z0dkqafa",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjrz8gqn000beg16z0dkqafa:registry:widget-analogy-mapper:config:fe09f84bd86d2143ddd944bbf903e3adb31302beb4023aa7b9253b372bc960c3",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-1bcecabbe347a90e59e6f000"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-analogy-mapper"
+  ],
+  "launchOutputIds": [
+   "registry:widget-analogy-mapper"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "d1acc669f37399a727548b91dfa0ea78c1c6ef9187669ea830920000282ad6db"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ebff93ec313a46da8ff8a687",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-argument-principle-cmjtc2ur30001d1skr7w074mz",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ur30001d1skr7w074mz:registry:widget-argument-principle:config:2b6d527e9ab5e779848ac762d10ec033f04ea15ed166bf1021fe4137c2ef2af4",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-247bc19c49c6ba8fa8c55658"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-argument-principle"
+  ],
+  "launchOutputIds": [
+   "registry:widget-argument-principle"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "d8b6599199f30a88d05636553630d7c2dc005fe83b8543f065d893661367afc2"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-c8a07d759e2d4da2b0a2e5a8",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-bridge-v1-cmjtc2ur60003d1skws86pe40",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ur60003d1skws86pe40:registry:lesson02-bridge-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-04396689f8a52354aa653ffe"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-bridge-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-bridge-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "941791f700525a620a078bb78ea3ca0f196b63616e31cc4acf468b34df7a8f0b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-c0106373ebbf109d34412ce9",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-objective-v1-cmjtc2ur70005d1skm8zxkvn6",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ur70005d1skm8zxkvn6:registry:lesson02-objective-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e6ce881cf913978cd4a7c1be"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-objective-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-objective-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "55cb859c4af641cea411bd187da7c68624cafb6357fc31e83d0979b375c67e8c"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f8df614ed5e0fc5bac6b5531",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-pretest-v1-cmjtc2ur80007d1skxombq73l",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ur80007d1skxombq73l:registry:lesson02-pretest-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-0aa0687c9173f0aa68608fc7"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-pretest-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-pretest-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "1e1df463718d4fc18815edf2a2d3ec9c1c9912f77ec664617f6f4b217d85a4ab"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-825992981fd9ea58febd93ae",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-mechanical-v1-cmjtc2ur90009d1skiejp4v6v",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ur90009d1skiejp4v6v:registry:lesson02-mechanical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-6d3cac0a321a07bbf3215e06"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-mechanical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-mechanical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "8db8d7dde8f69a674bec48a99367b084ee5badc2a4d50165863478a9d9cec3ce"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-435e6c6ee395f2f5800fcb09",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-electrical-v1-cmjtc2ura000bd1skzn5d0a2c",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ura000bd1skzn5d0a2c:registry:lesson02-electrical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-10b2a0ba93ee70a7ad808ea8"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-electrical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-electrical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "a07a5e6081c94d40da2b727fc9e1da8d50367d7e378f08ed56b6a0a5d4df4be6"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-814d2315627056e02eb029bb",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-analogy-v1-cmjtc2ura000dd1skcs7wrseg",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ura000dd1skcs7wrseg:registry:lesson02-analogy-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-086e18a9588c676f86a41b47"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-analogy-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-analogy-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "d9210768e6a950439a08c51e70b7475857e0ddf55f6fa256ebf62e659aeb497d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-dbc28572e57095a94c67aa10",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-posttest-v1-cmjtc2urb000fd1skul60l1uo",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2urb000fd1skul60l1uo:registry:lesson02-posttest-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-ead2cb25add343905160ca37"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-posttest-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-posttest-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "66229a087760f22baa4271f022d4e3bf23431ecbc673c6b7fde36c3ce2f44329"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-e2eb90de4fb90233bfb2626c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-summary-v1-cmjtc2urc000hd1ski8hzckek",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2urc000hd1ski8hzckek:registry:lesson02-summary-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-f983f6334bcab558d31b4f89"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-summary-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-summary-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "961077f4bd00abfe736c96c0d222bc5fd66f06a6dd9a03b9dd3afe6f5c638fd3"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-75de65281ed380b84f206112",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-intro-v1-cmjtc2urd000jd1skeu7cu73d",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2urd000jd1skeu7cu73d:registry:physics-modeling-intro-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-6c1fbc6c1668a079dfe1f8c1"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-intro-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-intro-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "ed4d440276ffdd9fbd89bb37d28b7fc91de3475624c4fc1034721fc8c0375faa"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-497c178d59421ffa7dbabf1b",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-mechanical-v1-cmjtc2ure000ld1skhtzo3r46",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ure000ld1skhtzo3r46:registry:physics-modeling-mechanical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a23b67b977fb084ff02b5b8e"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-mechanical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-mechanical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "0187d8693640c2e1df14f49255717ac1eb24f27b6986402156583697fd1a7a6d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-e1bdf4a351bda38673dc765a",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-electrical-v1-cmjtc2ure000nd1skrrhoy4hy",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2ure000nd1skrrhoy4hy:registry:physics-modeling-electrical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-15cf48d7cd791e0d89844969"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-electrical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-electrical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "1e9d058e31862eb61e8eecf4c64cd0f1ffec07f3d6b408a33b68b99473430da9"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-07befe2f3e026975f34d8761",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-analogy-v1-cmjtc2urf000pd1skiz2q049m",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2urf000pd1skiz2q049m:registry:physics-modeling-analogy-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-23e96bfa374284c61347c19d"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-analogy-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-analogy-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b8aa00d27b8e30bbeeec0dd217855bde37698ffd83e5f4fd88db7c186196c9e4"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-2a7c1cbee96e0428c8737765",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-practice-v1-cmjtc2urh000rd1sk4d7ypsdd",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjtc2urh000rd1sk4d7ypsdd:registry:physics-modeling-practice-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a5cc093bea5c60fd29e53abd"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-practice-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-practice-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "68790a07bdd64f2b789a84c38b2fd28aba6471989bf1f70010a891b2764f8ef8"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-9c4fd32464c4f4e4c4feccff",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson13-cruise-bridge-cmjyh76xp0001yo3k5jne8fre",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmjyh76xp0001yo3k5jne8fre:registry:lesson13-cruise-bridge:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-77471467eeba04d25034ea89"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson13-cruise-bridge"
+  ],
+  "launchOutputIds": [
+   "registry:lesson13-cruise-bridge"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "877a06ff3e3f7b17226e2de7ab9dbb8004f8e05a14ad41b8f3ca95d5437c0646"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-bff1b9ce6da2f0077eebdbab",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson06-metric-quick-check-cmkax0s1o0001ence6s08oe1q",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkax0s1o0001ence6s08oe1q:registry:lesson06-metric-quick-check:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e83c13affcbf3bad6ff1f87f"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson06-metric-quick-check"
+  ],
+  "launchOutputIds": [
+   "registry:lesson06-metric-quick-check"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "c7a9be0c52bd0c865b130eeec1864916ab060b5392d5b4d06f362c5854952d83"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-715ac51c5a66c42ceb78da82",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson06-metric-handbook-cmkax0s1r0003encevi8q40ua",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkax0s1r0003encevi8q40ua:registry:lesson06-metric-handbook:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-0a5bd07970b9de1b5e5ee5be"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson06-metric-handbook"
+  ],
+  "launchOutputIds": [
+   "registry:lesson06-metric-handbook"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "f7c2257f7ec4528f6a18095daf90552b477af273b812a6a61cc46bf82f9aec88"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-fe4a43b906c4fbbc11e04552",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson06-judge-bench-cmkax0s1s0005ence448uv49j",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkax0s1s0005ence448uv49j:registry:lesson06-judge-bench:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-fdafd81a8df8ca26f3458b1b"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson06-judge-bench"
+  ],
+  "launchOutputIds": [
+   "registry:lesson06-judge-bench"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "e2f57dc34eef6bc624641aba77a1fcfe1fa7e87f63fae0d78b606c89c035ea3e"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-a669c9e040de9f6d62f81452",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-margin-quick-check-cmkcpchyl0001dgrt0ziuxpzc",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpchyl0001dgrt0ziuxpzc:registry:lesson14-margin-quick-check:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-fa97b92356a20d0b98b3a443"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-margin-quick-check"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-margin-quick-check"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "313d43ae49d9be0063d168a5cfb10a5b9a2a35c239961b8a097e7ef2e25cde92"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-1e0f35d81f188495e968e307",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-margin-knowledge-deck-cmkcpe4d40001uwdmfshievea",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpe4d40001uwdmfshievea:registry:lesson14-margin-knowledge-deck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-668b1bb3cd78c19f5ae5ad91"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-margin-knowledge-deck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-margin-knowledge-deck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "96ea25b646831010f41a2dbee4d5909557c9231a81c087ecfb2fd9bbe19b7a5e"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-b923bbf1ee352b0a44e4a8f9",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-margin-tradeoff-lab-cmkcpe4d80003uwdm997yq472",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpe4d80003uwdm997yq472:registry:lesson14-margin-tradeoff-lab:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-abc46e6851355ef3b630ef23"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-margin-tradeoff-lab"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-margin-tradeoff-lab"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "a9862055fc8cbd789c18d28b7450475a2596a8e0eb8b40d5727a28f817613261"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f322f908d30b013bcae014e1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-three-band-studio-cmkcpe4d90005uwdm1f2qwjc3",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpe4d90005uwdm1f2qwjc3:registry:lesson14-three-band-studio:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-822d072bcdad6a430da03d7d"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-three-band-studio"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-three-band-studio"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "a415c1dad4422d711889cfe7f790e2a6686b07bfd2c0ac2256eb1b20a0f0501d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-012b001d85266b1cd716d070",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-margin-exit-quiz-cmkcpe4da0007uwdmyhum0box",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpe4da0007uwdmyhum0box:registry:lesson14-margin-exit-quiz:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-9ec92a9593ccaf23b4b4341e"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-margin-exit-quiz"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-margin-exit-quiz"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "2f741c58ba18347e4d8d9cd8715180200b1e3aeb71c442ece1e7319471cd6398"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-083de889265cf3b0262abf01",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson14-summary-card-cmkcpe4db0009uwdmx7rtopau",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:cmkcpe4db0009uwdmx7rtopau:registry:lesson14-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-b9cb601a0d5b2d41a5eb0f32"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson14-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson14-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "d463fb65591f5995deebc8b0a3919ebe9704aee3d81ad5399755071844fac29f"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-a7fe5dfdac8cb96624b3f74f",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-control-odyssey-v1-control-odyssey-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:control-odyssey-v1:registry:control-odyssey-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-be4da5fa2b2034ba07cbdce1"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:control-odyssey-v1"
+  ],
+  "launchOutputIds": [
+   "registry:control-odyssey-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b67786e6dd57b56295e822a09f5031c23f3247130ef9cb56df4407ce1cd93c1d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-38a2ff79d1d319e91a6823b6",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-ethics-arctic-v1-ethics-arctic-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:ethics-arctic-v1:registry:ethics-arctic-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-74cab813386265ee25169dba"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:ethics-arctic-v1"
+  ],
+  "launchOutputIds": [
+   "registry:ethics-arctic-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "284d737483245241f941401ad4f8bec2cd1e7411219d45a2fbef5b08095e204d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-687bac05d9e438dd5111da77",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-analogy-v1-lesson02-analogy-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-analogy-v1:registry:lesson02-analogy-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-61c1799dfb640e594d5c3b3c"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-analogy-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-analogy-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "6da2fd6ced25195628da1781d2b0fe0b216c420edced9f59c3373fb056a9fd03"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-97042c3703577bcb748f1bbd",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-bridge-v1-lesson02-bridge-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-bridge-v1:registry:lesson02-bridge-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-7ff2aea1091bb041e9238181"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-bridge-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-bridge-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "adda9e59f649f73c4b5e25f90dfe6d9885ef766b441a2e37d39215fa57358805"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-8fd00fb55eb79484cdd1d11b",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-electrical-v1-lesson02-electrical-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-electrical-v1:registry:lesson02-electrical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-f42709c39d815719bf1d4400"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-electrical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-electrical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "326e319f3c70e6ce9d4c53377016bb5b9be8ad5bf8c63209940de75475615857"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-fb308c87e8403566bad24993",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-mechanical-v1-lesson02-mechanical-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-mechanical-v1:registry:lesson02-mechanical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e70092da3315434a2b3ff7fc"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-mechanical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-mechanical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "5581d930a4d5aed9f5abe5b3dfff843ed3971ce769857f20f0089264203a85f2"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-62b0f4c144d19c6a3d397d74",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-objective-v1-lesson02-objective-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-objective-v1:registry:lesson02-objective-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e9315c2985f91b031d66dd36"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-objective-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-objective-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "f688a4a5e39592ae3b2b17d1563b215b1040be629742449502c420af5aac90dd"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-0d2fab4fa6bc371025465f40",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-posttest-v1-lesson02-posttest-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-posttest-v1:registry:lesson02-posttest-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-13d3cf7af3bab2fd236ebe22"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-posttest-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-posttest-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "132491a35314dc0d98ac90333aa24e6af9fe2aacedee9f1d99f1d4cd81179260"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-d55878bba537b36007f6b780",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-pretest-v1-lesson02-pretest-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-pretest-v1:registry:lesson02-pretest-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-669751e94a49fc2b01fa30fe"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-pretest-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-pretest-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "2b8ee9ad596f8e1585cfa3135af61734b80a5c22d435c84bdd462adb345d7d3b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-2eb232bec3220ab91cb9e86a",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson02-summary-v1-lesson02-summary-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson02-summary-v1:registry:lesson02-summary-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-3bcecde32b75baaf034dce75"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson02-summary-v1"
+  ],
+  "launchOutputIds": [
+   "registry:lesson02-summary-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "0babf6c2a78369514d3e850c4b9cb2fc7f0cc3d74e6b6a8adf7c764cb9b4598a"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-52cf315dc3400e4c512d2b7c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-damping-quick-check-lesson07-damping-quick-check",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-damping-quick-check:registry:lesson07-damping-quick-check:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-853d2b1b6de0ec6ab9a5653f"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-damping-quick-check"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-damping-quick-check"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "bc33023c2a991f4485c3bb6fc6938536b23d0e273b57200ab4653b130c4269dd"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-54ae03a56dc8d033ae79af4b",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-parameter-challenge-lesson07-parameter-challenge",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-parameter-challenge:registry:lesson07-parameter-challenge:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-f5f7f7bc8f46a5719d685abf"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-parameter-challenge"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-parameter-challenge"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "7503b2cfddd36e5e35db93afa23752487cc4d3de917b1d83eac8c2c6f2a1e6dd"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-074cbbf1e2595383cc8d0def",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-pole-manipulator-lesson07-pole-manipulator",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-pole-manipulator:registry:lesson07-pole-manipulator:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-86cad742403c8d469b8c9e29"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-pole-manipulator"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-pole-manipulator"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "f0fbed4dcf00d11bf64054a145697c335ca95b3c037bf139f06695a06cee28b2"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-cc7b2883db150351ceb1dfef",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-response-explorer-lesson07-response-explorer",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-response-explorer:registry:lesson07-response-explorer:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-9bd999f5041e7d0e6e1fe774"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-response-explorer"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-response-explorer"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "210fd535ebb113c86d03fc97b78a7e0145088324d6a20a0b4dd60601439b5f94"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ef81b5fc8f36928083abea08",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-second-order-theory-lesson07-second-order-theory",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-second-order-theory:registry:lesson07-second-order-theory:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-c515a636d99a89f5ad824a0f"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-second-order-theory"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-second-order-theory"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "8b14c36a39b886572b718a0c92173fc6aa8eac0d15f38b07225b4773e4acbd3a"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-78a8c21c563a2f646aedef33",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson07-summary-card-lesson07-summary-card",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson07-summary-card:registry:lesson07-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-bd5a1ab948c6a59dc0acc083"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson07-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson07-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "294a930c8ad9c48a190fd745eca1e8c494d77a1790a8d2bf7710851b9043c504"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-63af42be16af2f10f78770f0",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-post-quiz-lesson08-post-quiz",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-post-quiz:registry:lesson08-post-quiz:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-aa1dec83b72acf3539885de2"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-post-quiz"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-post-quiz"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b962bde7fc733943c276a4d1c89efd28b67e52420abb0fab963111e0d57427a9"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f31b8654310cc12ba89e61da",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-routh-guide-lesson08-routh-guide",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-routh-guide:registry:lesson08-routh-guide:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a373a072cd459f842f038f17"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-routh-guide"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-routh-guide"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "27ee3b70157b99375e0c4e475d03c86b600d88c8a6f82d4b66a7b9d631312172"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-e798cd3b8368ead925c7b1fb",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-routh-practice-lesson08-routh-practice",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-routh-practice:registry:lesson08-routh-practice:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-79371e614891199673a1a48a"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-routh-practice"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-routh-practice"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "9776fc6fcba7aa5289e4eab2d31b8e5204400a56503de2c1b2125179621cbb9b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-293042efdd2cde6cdcc576ba",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-stability-precheck-lesson08-stability-precheck",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-stability-precheck:registry:lesson08-stability-precheck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-9d1852b59807bfeecda53764"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-stability-precheck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-stability-precheck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "bf4e39f2322d194ed320297ef8588cfd04f16f52288a796466ee8c2cef56d9b4"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-b13c96c57b8f1c25bd24f934",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-steady-error-deck-lesson08-steady-error-deck",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-steady-error-deck:registry:lesson08-steady-error-deck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-e9f169d0000a340ccc95e83b"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-steady-error-deck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-steady-error-deck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "351b52c1b4d976510d252fb92f4a26a2a47319f8cd4fbd948fa2303cc0cf7d76"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-d92998739a2da03b1ba64e4a",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson08-summary-card-lesson08-summary-card",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson08-summary-card:registry:lesson08-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-cf14acca3a0c0346b3fcb982"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson08-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson08-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b2606a2d2f9edc5b2f49d1f455b1406dfbf91f0af9ddeab322aa42ac3df7d01b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-023b1ed61cab4c11a559d5b5",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson09-correction-precheck-lesson09-correction-precheck",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson09-correction-precheck:registry:lesson09-correction-precheck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-28adfe77fe8b0ee243b4de95"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson09-correction-precheck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson09-correction-precheck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "962dcf5ce8361c83276a35d8f6f3b86299a655847414669788a74a276e0851e0"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-19824dae176eb58ac3c30b9d",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson09-correction-strategy-lesson09-correction-strategy",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson09-correction-strategy:registry:lesson09-correction-strategy:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a325be5071776d19e2f3cc50"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson09-correction-strategy"
+  ],
+  "launchOutputIds": [
+   "registry:lesson09-correction-strategy"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "0b3b34ea4c2436d06258ba270129f20cdc6c428d16326c07201497172a12e3f4"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-942bd9054d19c44cecca3b99",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson09-summary-card-lesson09-summary-card",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson09-summary-card:registry:lesson09-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-8a119363d97ba071f93561db"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson09-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson09-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "07f54aa80f7ba0f5d8cdae3d092d3fc03a9eb515343df3e6afab93d2c63cba17"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-47f07d056b60cbd6d8fa9593",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson09-time-domain-synthesis-lesson09-time-domain-synthesis",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson09-time-domain-synthesis:registry:lesson09-time-domain-synthesis:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-677559a0dffc090b72ed8210"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson09-time-domain-synthesis"
+  ],
+  "launchOutputIds": [
+   "registry:lesson09-time-domain-synthesis"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "08aa0947f5317e2bdd63510e7f02a364cbff1c9083436f2fb5674f993d833178"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-fa10f0f20322e09f1ed55263",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson10-root-locus-workshop-lesson10-root-locus-workshop",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson10-root-locus-workshop:registry:lesson10-root-locus-workshop:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-d0f7aa74773f3b4e7b0aaa9c"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson10-root-locus-workshop"
+  ],
+  "launchOutputIds": [
+   "registry:lesson10-root-locus-workshop"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "ae6ba3d1a667785c0e982fde1c888d7149eed9f36309b894de13a6e029b490dd"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-617d21c34d33eb7f130ae0f1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson11-graphical-thinking-workshop-lesson11-graphical-thinking-workshop",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson11-graphical-thinking-workshop:registry:lesson11-graphical-thinking-workshop:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-7334e4ec094efa1924e6a413"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson11-graphical-thinking-workshop"
+  ],
+  "launchOutputIds": [
+   "registry:lesson11-graphical-thinking-workshop"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "5899eec642c3577dc6744101e2eaeb620f8ea37a2381f14c51ed6d7a0705cb41"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f8880266a8db5fdeabed13ec",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson11-parameter-root-locus-deck-lesson11-parameter-root-locus-deck",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson11-parameter-root-locus-deck:registry:lesson11-parameter-root-locus-deck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-f9c3ad32dd4e192aa928e387"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson11-parameter-root-locus-deck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson11-parameter-root-locus-deck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "28bf1630c8304f55b3ec8f57c16f5eca25bd04dbb7895e94621a4cdd07d79474"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-4185cf2a89315ab34e67ca3e",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson11-summary-card-lesson11-summary-card",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson11-summary-card:registry:lesson11-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-a2c328d82defcb702667e4d3"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson11-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson11-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "ac6881ce6e1a38cfb39b50e5c4d08a9dca898ac7c2616c507628a390a6ec24e7"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-4788ae15584a42dde81cb802",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-bode-plot-recognition-lesson12-bode-plot-recognition",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-bode-plot-recognition:registry:lesson12-bode-plot-recognition:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-bd6ac6e6b213270becbfc3f6"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-bode-plot-recognition"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-bode-plot-recognition"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "7cf3be410a82811abb6e89e40b4226844741b4823add70af057b990ce4ed8cb6"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-4c95c58f7a1bdc140869fa91",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-bode-post-quiz-lesson12-bode-post-quiz",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-bode-post-quiz:registry:lesson12-bode-post-quiz:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-eb44b89a3fac439316bee55f"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-bode-post-quiz"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-bode-post-quiz"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "74962331f3aa95a0d221dec0bdf28c4645d79163f986647b612b2525d826256b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-e62ff7978649f7c25d460cb6",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-bode-slope-puzzle-lesson12-bode-slope-puzzle",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-bode-slope-puzzle:registry:lesson12-bode-slope-puzzle:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-54e0ccad8bf30e52221d3d14"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-bode-slope-puzzle"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-bode-slope-puzzle"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "7df949d403c048aa17a4bb511ab18f334d67d8992db0bd6c0be7a40608aa45c1"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-2163df903ddd0517adc7c748",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-bode-step-sorter-lesson12-bode-step-sorter",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-bode-step-sorter:registry:lesson12-bode-step-sorter:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-77ae7585aab0a3028d61b220"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-bode-step-sorter"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-bode-step-sorter"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "1f0b934c744818cfe681c4c63cc7fb9699930d8d8ab1151586e914cdd421b106"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-95a2077e31a5704b5c8b32f2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-frequency-precheck-lesson12-frequency-precheck",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-frequency-precheck:registry:lesson12-frequency-precheck:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-2f8be5376fd9591592e378f5"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-frequency-precheck"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-frequency-precheck"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "dfef20e08d3087c2221deda09af12eeeedc471886166c82951e665ecd23c0b5d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-704d02cdd820c8712198e8ad",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson12-summary-card-lesson12-summary-card",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson12-summary-card:registry:lesson12-summary-card:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-bbebac49cc8f4ab9acaac6b0"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson12-summary-card"
+  ],
+  "launchOutputIds": [
+   "registry:lesson12-summary-card"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "4bef813b22033d9a2e6a208ec7be913ddbd6396c4b2ea319ed46e614a4da7d6a"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-97beb2f0915b56ba03b8e658",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson13-cruise-typhoon-sim-lesson13-cruise-typhoon-sim",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson13-cruise-typhoon-sim:registry:lesson13-cruise-typhoon-sim:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-8c13bbde3ea82c6543c91387"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson13-cruise-typhoon-sim"
+  ],
+  "launchOutputIds": [
+   "registry:lesson13-cruise-typhoon-sim"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "3ab4a8fb91e1edfa5c06a7fe0ba1bd85a803130bbc77a2bd38b65fdaf6066603"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-b9f3266c66b377e296c47ab9",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson13-iso2631-mapping-lesson13-iso2631-mapping",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson13-iso2631-mapping:registry:lesson13-iso2631-mapping:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-79ce813cdde6d6b883d7dc41"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson13-iso2631-mapping"
+  ],
+  "launchOutputIds": [
+   "registry:lesson13-iso2631-mapping"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "3532c4710681b819b0424fb5269897eaa8a2118d9895791d1810c870d2519936"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-8b35f8c73aa58f53fc859098",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-lesson13-physics-builder-simple-lesson13-physics-builder-simple",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:lesson13-physics-builder-simple:registry:lesson13-physics-builder-simple:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-b7b40dde1d3fe0e662fd84b4"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:lesson13-physics-builder-simple"
+  ],
+  "launchOutputIds": [
+   "registry:lesson13-physics-builder-simple"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "c8d211c30f7548b2e5c7e5f27683de3c4e248bc7056d5d9b1c2881d53ebb0e95"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-ee47c81dbee7511024975013",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-analogy-v1-physics-modeling-analogy-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:physics-modeling-analogy-v1:registry:physics-modeling-analogy-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-1c45fe6112fb7458ec4bb3d2"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-analogy-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-analogy-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "06e0c8dc38af1e94d177fb0f6777066dab6109e4007abc53cf3e883c665d9638"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-6d201b02b42cbd378270068f",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-electrical-v1-physics-modeling-electrical-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:physics-modeling-electrical-v1:registry:physics-modeling-electrical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-09efaec9da41426bce436f73"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-electrical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-electrical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "57afa10e01a425767f2e9d2734bbf1f50e58e6bc1cea4ee39c6c411f39896504"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-d02bff51bfca35745c4af5e2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-intro-v1-physics-modeling-intro-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:physics-modeling-intro-v1:registry:physics-modeling-intro-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-0a67423d1431dcabdae4e2eb"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-intro-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-intro-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "5086383a2975005218940a860b3191eacb7a93c307053a79f02c517ba2aece97"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-0d7345fd519e6b45efaa61cb",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-mechanical-v1-physics-modeling-mechanical-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:physics-modeling-mechanical-v1:registry:physics-modeling-mechanical-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-aacba9b55f9d40c516d98320"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-mechanical-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-mechanical-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b0ec30554930b13bb9bc21b4f5978718f9777a1f6f8b09f112751ede11df77ac"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f5070b5be8e9fa262855c559",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-physics-modeling-practice-v1-physics-modeling-practice-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:physics-modeling-practice-v1:registry:physics-modeling-practice-v1:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-aa295eb7ad0c402643b3178b"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:physics-modeling-practice-v1"
+  ],
+  "launchOutputIds": [
+   "registry:physics-modeling-practice-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "ad24d7a62081ba7bac9dd5b59b7189630f70d5765e5ad8df879b2ee27a1fa1ac"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-839cfefd7ba83650d99ebbd1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-sim-pid-v1-sim-pid-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:sim-pid-v1:registry:sim-pid-v1:config:316a12610005cf557679facc77a8d9defcc2115ba117ec588f5c0dcd00ee3614",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-9e8aa59fd7177c23af687870"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:sim-pid-v1"
+  ],
+  "launchOutputIds": [
+   "registry:sim-pid-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "5c6cda9b5637f51852e66c48b508aee6297b7d58967fcd34e9dad7f0480dd2a3"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-4b0bee8fff844935f7677f6c",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-ten-drops-game-v1-ten-drops-game-v1",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:ten-drops-game-v1:registry:ten-drops-game-v1:config:2d1477776aafd8d71677cf2ae282710c8d6a9541ba880be911de40f8bd6ef4f4",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-0d54268f1ab472ae02158b95"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:ten-drops-game-v1"
+  ],
+  "launchOutputIds": [
+   "registry:ten-drops-game-v1"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "b5d6e39734c340f81efa6b524ffbd4714a6439806ac4dc8d903bc44581d51c8c"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-f7d89dd656778682ff0eea39",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-analogy-mapper-widget-analogy-mapper",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:widget-analogy-mapper:registry:widget-analogy-mapper:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-de996ac85a7d7e2e25ebfdc1"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-analogy-mapper"
+  ],
+  "launchOutputIds": [
+   "registry:widget-analogy-mapper"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "2a26950e6525db060c15ced5c764e22270eb4c1c681fdca95a0dc029208c3dcf"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-8c0301d90c03a406dd08714e",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-argument-principle-widget-argument-principle",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:widget-argument-principle:registry:widget-argument-principle:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-ac2e3f2faf66458079bc54d2"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-argument-principle"
+  ],
+  "launchOutputIds": [
+   "registry:widget-argument-principle"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "295d7a86f981b0e094d511d36f29065ffd86eeaabcd22c8b66a6d3cb0b732f32"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-cc608bc1cc475de0ceed0da7",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-physics-elec-widget-physics-elec",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:widget-physics-elec:registry:widget-physics-elec:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-6b72beb75f652cd7ba88c977"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-physics-elec"
+  ],
+  "launchOutputIds": [
+   "registry:widget-physics-elec"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "d082199cdb882d4e18eb0e25681de32fcd08f999c1019272a69ff8ca3a2df141"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "rec-bd594a32f220d1947666d6ee",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "launcher-widget-physics-mech-widget-physics-mech",
+  "resourceSubtype": "simulation-interactive",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "db:TeachingResource:widget-physics-mech:registry:widget-physics-mech:config:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "externalInputId": null,
+  "processorIdentity": "simulation-processor/v1-db-launcher",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "atom-30a29c52f2d7202a117d0fa0"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "registry:widget-physics-mech"
+  ],
+  "launchOutputIds": [
+   "registry:widget-physics-mech"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "task/scene semantics and Canonical mapping are pending semantic review; bindings imply no path eligibility, assessment authority, mastery, or learning evidence"
+  ],
+  "outputManifestHash": "9cd78e70aaf900fff66d075945ed017b848ad866daab6d2c6707423c39a23580"
+ }
+]

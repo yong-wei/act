@@ -14,6 +14,7 @@ vi.mock('@/features/assessment/remediation-orchestration', () => ({
   orchestrateRemediation: mocks.orchestrateRemediation,
   refreshRemediationOrchestration: mocks.refreshRemediationOrchestration,
   readRemediationOrchestration: mocks.readRemediationOrchestration,
+  REMEDIATION_MANUAL_PRACTICE_PATH: '/assessment/adaptive-practice?intent=practice',
 }));
 vi.mock('@/features/assessment/wrong-answer-attribution', () => ({
   attributeWrongAnswerEvidence: mocks.attributeWrongAnswerEvidence,

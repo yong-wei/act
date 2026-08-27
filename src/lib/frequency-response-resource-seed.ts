@@ -14,7 +14,7 @@ export function buildFrequencyResponseFoundationsResourceSeedInput(): ResourceNo
       {
         id: 'frequency-precheck',
         label: '频率响应课前诊断',
-        type: 'INTERACTIVE_COMP',
+        type: 'ADAPTIVE_QUIZ',
         renderTarget: '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=diagnostic',
         knowledgeNodeIds: ['kn-bode'],
       },
@@ -49,7 +49,7 @@ export function buildFrequencyResponseFoundationsResourceSeedInput(): ResourceNo
       {
         id: 'bode-reflection',
         title: '伯德图理解反思',
-        renderTarget: '/profile/growth?goal=frequency-response-foundations&prompt=bode-reflection',
+        renderTarget: '/assessment/adaptive-practice?goal=frequency-response-foundations&prompt=bode-reflection',
         knowledgeNodeIds: ['kn-bode'],
         prerequisiteNodeIds: ['registry:frequency-precheck'],
       },

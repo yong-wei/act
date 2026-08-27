@@ -2,7 +2,8 @@
  * Authority domain shard delivery (#1375).
  */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -39,6 +40,7 @@ import {
   createAuthorityLabelResolverContext,
   isSafeAuthorityLabel,
   resolveAuthorityLabel,
+  stageAuthorityDomainShards,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
   type AuthorityShardEnvelope,
@@ -465,6 +467,46 @@ function writeTeachingProjectionFixture(root: string) {
 }
 
 describe('authority domain shard delivery', () => {
+  it('stages an immutable shard closure without writing the active pointer', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'authority-shard-stage-'));
+    tempRoots.push(root);
+    const catalog = catalogRuntime();
+    const materialized = buildAuthorityDomainShards({
+      envelope: envelope({
+        catalog: {
+          catalogId: catalog.catalogId,
+          catalogHash: catalog.catalogHash,
+          catalogVersion: catalog.catalogVersion,
+        },
+      }),
+      catalog,
+      engineering: engineeringBody(),
+      activatedAt: '2026-08-26T00:00:00.000Z',
+    });
+    const paths = {
+      runtimeRoot: root,
+      currentPath: path.join(root, 'current.json'),
+      setsDir: path.join(root, 'sets'),
+    };
+
+    stageAuthorityDomainShards(paths, materialized);
+    stageAuthorityDomainShards(paths, materialized);
+
+    expect(existsSync(paths.currentPath)).toBe(false);
+    expect(readFileSync(
+      path.join(paths.setsDir, materialized.manifest.shardSetId, 'manifest.json'),
+      'utf8',
+    )).toContain(materialized.manifest.shardSetHash);
+    writeFileSync(
+      path.join(paths.setsDir, materialized.manifest.shardSetId, 'root.json'),
+      '{}\n',
+      'utf8',
+    );
+    expect(() => stageAuthorityDomainShards(paths, materialized)).toThrow(
+      /refusing to overwrite staged Authority shard/u,
+    );
+  });
+
   it('materializes five shard classes with bounded payloads and equivalent facts', () => {
     const { materialized } = writeShards();
     expect(materialized.root.shardClass).toBe('root');
@@ -495,6 +537,7 @@ describe('authority domain shard delivery', () => {
       contract: AUTHORITY_SHARD_ENVELOPE_CONTRACT,
       authorityCatalogVersion: expect.stringMatching(/^acv-[a-f0-9]{64}$/u),
       teachingVersion: null,
+      localeProfileVersion: expect.stringMatching(/^alp-[a-f0-9]{64}$/u),
       match: { authority: true, catalog: true, teaching: null },
     });
     expect(JSON.stringify(browserRoot)).not.toContain(SNAPSHOT_ID);
@@ -546,6 +589,89 @@ describe('authority domain shard delivery', () => {
     });
     expect(isSafeAuthorityLabel('系统建模')).toBe(true);
     expect(isSafeAuthorityLabel('positive_feedback_inner_loop')).toBe(false);
+  });
+
+  it('accepts only digest-bound r4 presentation evidence for mathematical natural-language labels', () => {
+    const label = '易于推广至多输入和/或多输出系统的方法';
+    const evidence = v2Evidence([{ entityId: MODELING, label, labelType: 'canonical_preferred' }]);
+    const sourceHash = createHash('sha256').update(label).digest('hex');
+    evidence.multilingualLabels[0] = {
+      ...evidence.multilingualLabels[0]!,
+      payload: {
+        contract: 'actkg-r4-sealed-presentation-label/v1',
+        entityId: MODELING,
+        labelSha256: sourceHash,
+        sourceArtifact: 'localized-content-index.jsonl',
+        sourceArtifactSha256: 'a'.repeat(64),
+        sourceRecordId: 'ctl10n:test',
+        sourceRecordHash: 'b'.repeat(64),
+        bundleDigest: 'c'.repeat(64),
+        manifestSha256: 'd'.repeat(64),
+      },
+    };
+    const snapshot = { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID };
+    const object = { ...objectRow(MODELING, label), canonicalType: 'DomainConcept' };
+    expect(isSafeAuthorityLabel(label, object.canonicalType, true)).toBe(false);
+    expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: evidence,
+    }), MODELING).label).toBe(label);
+
+    const drifted = {
+      ...evidence,
+      multilingualLabels: [{ ...evidence.multilingualLabels[0]!, payload: { ...evidence.multilingualLabels[0]!.payload as object, labelSha256: 'e'.repeat(64) } }],
+    };
+    expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [object],
+      v2Evidence: drifted,
+    }), MODELING).status).toBe('unavailable');
+
+    const locator = '../runtime/private';
+    const locatorEvidence = v2Evidence([{ entityId: MODELING, label: locator, labelType: 'canonical_preferred' }]);
+    locatorEvidence.multilingualLabels[0] = {
+      ...locatorEvidence.multilingualLabels[0]!,
+      payload: {
+        contract: 'actkg-r4-sealed-presentation-label/v1',
+        entityId: MODELING,
+        labelSha256: createHash('sha256').update(locator).digest('hex'),
+        sourceArtifact: 'domain-projection.json',
+        sourceArtifactSha256: 'a'.repeat(64),
+        sourceRecordId: MODELING,
+        sourceRecordHash: 'b'.repeat(64),
+        bundleDigest: 'c'.repeat(64),
+        manifestSha256: 'd'.repeat(64),
+      },
+    };
+    expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...objectRow(MODELING, locator), canonicalType: 'DomainConcept' }],
+      v2Evidence: locatorEvidence,
+    }), MODELING).status).toBe('unavailable');
+
+    const formula = String.raw`.\\Phi(s)=G(s)/(1+G(s)H(s))`;
+    const formulaEvidence = v2Evidence([{ entityId: MODELING, label: formula, labelType: 'canonical_preferred' }]);
+    formulaEvidence.multilingualLabels[0] = {
+      ...formulaEvidence.multilingualLabels[0]!,
+      payload: {
+        contract: 'actkg-r4-sealed-presentation-label/v1',
+        entityId: MODELING,
+        labelSha256: createHash('sha256').update(formula).digest('hex'),
+        sourceArtifact: 'domain-projection.json',
+        sourceArtifactSha256: 'a'.repeat(64),
+        sourceRecordId: MODELING,
+        sourceRecordHash: 'b'.repeat(64),
+        bundleDigest: 'c'.repeat(64),
+        manifestSha256: 'd'.repeat(64),
+      },
+    };
+    expect(isSafeAuthorityLabel(formula, 'Formula', true)).toBe(false);
+    expect(resolveAuthorityLabel(createAuthorityLabelResolverContext({
+      snapshot,
+      objects: [{ ...objectRow(MODELING, formula), canonicalType: 'Formula' }],
+      v2Evidence: formulaEvidence,
+    }), MODELING).label).toBe(formula);
   });
 
   it('accepts explicit leading LaTeX formulas but keeps path labels unsafe', () => {

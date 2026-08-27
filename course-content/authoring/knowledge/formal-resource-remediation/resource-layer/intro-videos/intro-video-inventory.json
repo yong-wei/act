@@ -1,0 +1,188 @@
+[
+ {
+  "unit": "1-1",
+  "videoPath": "course-content/runtime/lessons/1-1/media/1-1-intro-video.mp4",
+  "videoSha256": "3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+  "durationSeconds": 205.930667
+ },
+ {
+  "unit": "1-2",
+  "videoPath": "course-content/runtime/lessons/1-2/media/1-2-intro-video.mp4",
+  "videoSha256": "a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+  "durationSeconds": 360.917333
+ },
+ {
+  "unit": "1-3",
+  "videoPath": "course-content/runtime/lessons/1-3/media/1-3-intro-video.mp4",
+  "videoSha256": "29ec09654dae4041c8840349191d8d0876b5622ff9ce2b8aefbdd1a4975db637",
+  "durationSeconds": 238.144
+ },
+ {
+  "unit": "1-4",
+  "videoPath": "course-content/runtime/lessons/1-4/media/1-4-intro-video.mp4",
+  "videoSha256": "77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+  "durationSeconds": 303.786667
+ },
+ {
+  "unit": "1-5",
+  "videoPath": "course-content/runtime/lessons/1-5/media/1-5-intro-video.mp4",
+  "videoSha256": "01c0bcee9b7cff6e77aa607eb68ad8aba0198fca134d38c3d0690cc2284c9ea5",
+  "durationSeconds": 267.946667
+ },
+ {
+  "unit": "2-1",
+  "videoPath": "course-content/runtime/lessons/2-1/media/2-1-intro-video.mp4",
+  "videoSha256": "6d05aee93be5f19bdcfd43898455b5fe8ab022bcc5be643097cfeed1687c7b3b",
+  "durationSeconds": 297.216
+ },
+ {
+  "unit": "2-2",
+  "videoPath": "course-content/runtime/lessons/2-2/media/2-2-intro-video.mp4",
+  "videoSha256": "6b34a827d99d83a4fc067495edf77fb77af9e4658533215c6f2851e8a22dab52",
+  "durationSeconds": 260.245333
+ },
+ {
+  "unit": "2-3",
+  "videoPath": "course-content/runtime/lessons/2-3/media/2-3-intro-video.mp4",
+  "videoSha256": "85fbea586946fc5adfb459a57885a11ba2202660e4aa295069f681cdc84b066f",
+  "durationSeconds": 300.629333
+ },
+ {
+  "unit": "2-4",
+  "videoPath": "course-content/runtime/lessons/2-4/media/2-4-intro-video.mp4",
+  "videoSha256": "a418709fff13c2701f127add5b2d4668f760666d9fe8bc9e3eb818f2dd098903",
+  "durationSeconds": 325.994667
+ },
+ {
+  "unit": "3-1",
+  "videoPath": "course-content/runtime/lessons/3-1/media/3-1-intro-video.mp4",
+  "videoSha256": "8da1c10dc6044cdbd191dbf70ccb398cf8c88ea2d7a401be40a6c562650ad118",
+  "durationSeconds": 234.624
+ },
+ {
+  "unit": "3-2",
+  "videoPath": "course-content/runtime/lessons/3-2/media/3-2-intro-video.mp4",
+  "videoSha256": "6c695f3f5490cc8e39e00120f9ebf687e9fc3a6d2b3ee831a62e3f3ddb30c3fb",
+  "durationSeconds": 273.322667
+ },
+ {
+  "unit": "3-3",
+  "videoPath": "course-content/runtime/lessons/3-3/media/3-3-intro-video.mp4",
+  "videoSha256": "1039768af6dd735dccb057e7f0bd00b6a3baa01575b9dbdb593812b4bdd394d8",
+  "durationSeconds": 234.752
+ },
+ {
+  "unit": "3-4",
+  "videoPath": "course-content/runtime/lessons/3-4/media/3-4-intro-video.mp4",
+  "videoSha256": "643401951b97e262730f9b2b63c2018fe96804b5f35878037fb1adc8e346528a",
+  "durationSeconds": 261.546667
+ },
+ {
+  "unit": "3-5",
+  "videoPath": "course-content/runtime/lessons/3-5/media/3-5-intro-video.mp4",
+  "videoSha256": "96475414188e8619f4784803d41cd34b1d7068e24a46617460e6c4344ec8ad0d",
+  "durationSeconds": 247.722667
+ },
+ {
+  "unit": "3-6",
+  "videoPath": "course-content/runtime/lessons/3-6/media/3-6-intro-video.mp4",
+  "videoSha256": "cf0294dcc2296ede5af11133bed374031e6572d113fb9fff74af1041dbeb57f6",
+  "durationSeconds": 282.624
+ },
+ {
+  "unit": "3-7",
+  "videoPath": "course-content/runtime/lessons/3-7/media/3-7-intro-video.mp4",
+  "videoSha256": "ba4bdfab812083ed206466932abe9eb8714e495fddc37db3b5cb7188b47527c5",
+  "durationSeconds": 150.421333
+ },
+ {
+  "unit": "3-8",
+  "videoPath": "course-content/runtime/lessons/3-8/media/3-8-intro-video.mp4",
+  "videoSha256": "58b400749e3e7335d48e999203185e5e70c003fb78b85ce1bde96ebb4e23e3e0",
+  "durationSeconds": 121.685333
+ },
+ {
+  "unit": "3-9",
+  "videoPath": "course-content/runtime/lessons/3-9/media/3-9-intro-video.mp4",
+  "videoSha256": "a9ba7011ec695a2593fe55b5cf454ef93edfe6ebbe794b828530577c3ce137a1",
+  "durationSeconds": 130.624
+ },
+ {
+  "unit": "4-1",
+  "videoPath": "course-content/runtime/lessons/4-1/media/4-1-intro-video.mp4",
+  "videoSha256": "f7fc05bd74c976288b03276f4ba3b9d219c5c0f991ddeaa5aefd3c60cecfc299",
+  "durationSeconds": 167.957333
+ },
+ {
+  "unit": "4-2",
+  "videoPath": "course-content/runtime/lessons/4-2/media/4-2-intro-video.mp4",
+  "videoSha256": "4e15bda43a9385a61a5cfe72b5271a2e3fe64f07d2c494e86825d5270d0e4d4e",
+  "durationSeconds": 136.789333
+ },
+ {
+  "unit": "4-3",
+  "videoPath": "course-content/runtime/lessons/4-3/media/4-3-intro-video.mp4",
+  "videoSha256": "29e7088fcb7e9c6e3b6de6e42860022c873889552c289e6f6b6f49eca49910a3",
+  "durationSeconds": 117.312
+ },
+ {
+  "unit": "4-4",
+  "videoPath": "course-content/runtime/lessons/4-4/media/4-4-intro-video.mp4",
+  "videoSha256": "6f7d326957e0f107182c70f732e1d5d318f55e2efaf9e02ec9769748cd954f7f",
+  "durationSeconds": 250.688
+ },
+ {
+  "unit": "4-5",
+  "videoPath": "course-content/runtime/lessons/4-5/media/4-5-intro-video.mp4",
+  "videoSha256": "92171732076d81244fb85fa4319e0cfd49e00c50ab779e1dcf41274781a0d6d1",
+  "durationSeconds": 222.485333
+ },
+ {
+  "unit": "4-6",
+  "videoPath": "course-content/runtime/lessons/4-6/media/4-6-intro-video.mp4",
+  "videoSha256": "de99707b2ef656fc403718244adc5b6d7dde0876b7d09f2dc9faf8d9250d3aee",
+  "durationSeconds": 229.013333
+ },
+ {
+  "unit": "4-7",
+  "videoPath": "course-content/runtime/lessons/4-7/media/4-7-intro-video.mp4",
+  "videoSha256": "c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+  "durationSeconds": 200.576
+ },
+ {
+  "unit": "5-1",
+  "videoPath": "course-content/runtime/lessons/5-1/media/5-1-intro-video.mp4",
+  "videoSha256": "47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+  "durationSeconds": 189.376
+ },
+ {
+  "unit": "5-2",
+  "videoPath": "course-content/runtime/lessons/5-2/media/5-2-intro-video.mp4",
+  "videoSha256": "6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+  "durationSeconds": 279.253333
+ },
+ {
+  "unit": "5-3",
+  "videoPath": "course-content/runtime/lessons/5-3/media/5-3-intro-video.mp4",
+  "videoSha256": "75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+  "durationSeconds": 263.914667
+ },
+ {
+  "unit": "5-4",
+  "videoPath": "course-content/runtime/lessons/5-4/media/5-4-intro-video.mp4",
+  "videoSha256": "97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+  "durationSeconds": 192.021333
+ },
+ {
+  "unit": "5-5",
+  "videoPath": "course-content/runtime/lessons/5-5/media/5-5-intro-video.mp4",
+  "videoSha256": "943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+  "durationSeconds": 188.288
+ },
+ {
+  "unit": "5-6",
+  "videoPath": "course-content/runtime/lessons/5-6/media/5-6-intro-video.mp4",
+  "videoSha256": "394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+  "durationSeconds": 240.362667
+ }
+]

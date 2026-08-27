@@ -14,7 +14,7 @@ import {
   type DiagnosisDeliveryProjection,
 } from '@/lib/diagnosis-report-delivery-projection';
 import { renderDiagnosisReportPdf } from '@/lib/diagnosis-report-pdf';
-import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
+import { parseStoredDiagnosisReportBody } from '@/lib/diagnosis-persistence';
 
 export const diagnosisDispositionInputSchema = z.object({
   targetKind: z.enum(['report', 'finding']),
@@ -242,7 +242,9 @@ async function resolveTeacherDeliveryActions(
   teacherId: string,
   report: Awaited<ReturnType<typeof loadTeacherReport>>,
 ): Promise<DiagnosisDeliveryAction[]> {
-  const body = diagnosisReportBodySchema.parse(report.reportBody);
+  const parsedBody = parseStoredDiagnosisReportBody(report.reportBody);
+  if (!parsedBody.success) throw new DiagnosisDeliveryError(409, 'invalid-report');
+  const body = parsedBody.data;
   const nodeIds = [...new Set(body.findings.flatMap((finding) => finding.knowledgeNodeId ? [finding.knowledgeNodeId] : []))];
   const registeredIds = new Set(getAllRegisteredResourceMetadata().map((resource) => resource.id));
   const resources = nodeIds.length === 0 ? [] : await prisma.teachingResource.findMany({
@@ -259,6 +261,12 @@ async function resolveTeacherDeliveryActions(
     orderBy: [{ displayOrder: 'asc' }, { title: 'asc' }],
   });
   const actions: DiagnosisDeliveryAction[] = [];
+  actions.push({
+    kind: 'preparation',
+    label: '进入备课工作台',
+    href: '/teacher/smart-prep',
+    targetKey: 'report',
+  });
   if (report.targetUserId) {
     actions.push({
       kind: 'student',

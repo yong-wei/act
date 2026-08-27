@@ -5,6 +5,8 @@ import type {
   ActiveNodeAdjacency,
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
+import type { GovernedRichTextProjection } from '@/lib/governed-math';
+import { governedSearchHaystack, matchesGovernedSearch, titleIsProductHidden } from '@/lib/governed-math';
 
 /**
  * The active Authority response is intentionally richer than the browser
@@ -41,6 +43,10 @@ export interface ActiveNodePresentation {
   description: string | null;
   type: ActiveNodeTypePresentation;
   sourceNode: ActiveCanvasNode;
+  richTitle?: GovernedRichTextProjection;
+  richDescription?: GovernedRichTextProjection;
+  searchText?: string;
+  accessibleName?: string;
 }
 
 export interface ActiveRelationView {
@@ -165,6 +171,8 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
   },
 };
 
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/iu;
+
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
   approved: '已审核',
   published: '已发布',
@@ -183,7 +191,22 @@ function nonEmpty(value: string | null | undefined): string | null {
 
 function isUnsafeIdentity(value: string): boolean {
   return /^(?:node|relation|source|target|release|snapshot|activation|projection|edition|section)[-_:/]/iu.test(value)
-    || /^[a-f0-9]{32,}$/iu.test(value);
+    || /^[a-f0-9]{32,}$/iu.test(value)
+    || Object.hasOwn(NODE_TYPES, value)
+    || Object.hasOwn(RELATION_TYPES, value)
+    || ['directed', 'undirected', 'unordered', 'source_to_target', 'source-to-target'].includes(value)
+    || RAW_SEMANTIC_MACHINE_TOKEN.test(value);
+}
+
+function presentProjectedRelationText(
+  value: string | null | undefined,
+  rawValue: string | null,
+  fallback: string,
+): string {
+  const normalized = nonEmpty(value);
+  return normalized && normalized !== rawValue && !isUnsafeIdentity(normalized)
+    ? normalized
+    : fallback;
 }
 
 export function presentActiveHumanText(value: string | null | undefined, fallback: string): string {
@@ -192,8 +215,12 @@ export function presentActiveHumanText(value: string | null | undefined, fallbac
 }
 
 /** Return a controlled type state; never return the unknown raw value. */
-export function presentActiveNodeType(canonicalType: string): ActiveNodeTypePresentation {
+export function presentActiveNodeType(
+  canonicalType: string,
+  projectedLabel?: string | null,
+): ActiveNodeTypePresentation {
   const known = NODE_TYPES[canonicalType];
+  const overlay = nonEmpty(projectedLabel);
   if (!known) {
     return {
       canonicalType: 'unknown',
@@ -203,7 +230,7 @@ export function presentActiveNodeType(canonicalType: string): ActiveNodeTypePres
       supported: false,
     };
   }
-  return { canonicalType, ...known };
+  return { canonicalType, ...known, label: overlay ?? known.label };
 }
 
 export const presentActiveType = presentActiveNodeType;
@@ -227,6 +254,7 @@ export function presentActivePredicate(predicate: string): ActivePredicatePresen
 export function presentActiveRelation(
   predicate: string,
   direction: string | null,
+  projected?: { label?: string | null; directionLabel?: string | null },
 ): ActiveRelationPresentation {
   const known = RELATION_TYPES[predicate];
   const isUndirected = direction === 'unordered' || direction === 'undirected';
@@ -244,9 +272,13 @@ export function presentActiveRelation(
   }
   return {
     predicate,
-    label: known.label,
+    label: presentProjectedRelationText(projected?.label, predicate, known.label),
     kind: isUndirected ? 'undirected' : 'directed',
-    directionLabel: isUndirected ? '关联关系' : known.directionLabel,
+    directionLabel: presentProjectedRelationText(
+      projected?.directionLabel,
+      direction,
+      isUndirected ? '关联关系' : known.directionLabel,
+    ),
     supported: true,
   };
 }
@@ -279,6 +311,10 @@ export function presentGovernanceLabel(value: string | null | undefined): string
 export function presentSourceCitation(
   sources: ActiveNodeDetailResponse['node']['sources'] | undefined,
 ): string {
+  const labels = (sources ?? [])
+    .map((source) => nonEmpty(source.label))
+    .filter((label): label is string => Boolean(label));
+  if (labels.length > 0) return labels.join(' · ');
   return sources && sources.length > 0 ? '来源定位暂不可用' : '暂无公开来源';
 }
 
@@ -298,9 +334,11 @@ function relationQualityLabel(relation: ActiveCanvasRelation): string {
 }
 
 function isSupportedNode(node: ActiveCanvasNode): boolean {
+  if (node.richTitle && titleIsProductHidden(node.richTitle)) return false;
+  const label = safeNodeLabel(node);
+  if (!label || label === '名称暂不可用') return false;
   return Boolean(
     nonEmpty(node.id)
-      && safeNodeLabel(node)
       && node.semanticSupport?.supported === true
       && node.semanticSupport?.readOnly === true
       && presentActiveNodeType(node.canonicalType).supported,
@@ -337,8 +375,12 @@ export function createActiveAuthorityGraphModel(
       label: safeNodeLabel(sourceNode) as string,
       aliases: sourceNode.aliases ?? [],
       description: safeDescription(sourceNode),
-      type: presentActiveNodeType(sourceNode.canonicalType),
+      type: presentActiveNodeType(sourceNode.canonicalType, sourceNode.typeLabel),
       sourceNode,
+      richTitle: sourceNode.richTitle,
+      richDescription: sourceNode.richDescription,
+      searchText: sourceNode.searchText,
+      accessibleName: sourceNode.accessibleName,
     } satisfies ActiveNodePresentation))
     .sort(compareKey);
   const nodeByKey = new Map(candidates.map((node) => [node.key, node]));
@@ -348,7 +390,10 @@ export function createActiveAuthorityGraphModel(
       key: sourceRelation.id,
       sourceKey: sourceRelation.sourceId,
       targetKey: sourceRelation.targetId,
-      semantic: presentActiveRelation(sourceRelation.predicate, sourceRelation.direction),
+      semantic: presentActiveRelation(sourceRelation.predicate, sourceRelation.direction, {
+        label: sourceRelation.predicateLabel,
+        directionLabel: sourceRelation.directionLabel,
+      }),
       qualityLabel: relationQualityLabel(sourceRelation),
       sourceRelation,
     } satisfies ActiveRelationView))
@@ -477,7 +522,16 @@ export function activeNodeSearch(
   const needle = query.trim().toLocaleLowerCase();
   return model.nodes
     .filter((node) => !canonicalType || node.type.canonicalType === canonicalType)
-    .filter((node) => !needle || `${node.label} ${node.aliases.join(' ')} ${node.description ?? ''} ${node.type.label}`.toLocaleLowerCase().includes(needle))
+    .filter((node) => {
+      if (!needle) return true;
+      return matchesGovernedSearch(governedSearchHaystack({
+        label: node.label,
+        aliases: node.aliases,
+        description: node.description,
+        searchText: node.searchText,
+        typeLabel: node.type.label,
+      }), query);
+    })
     .sort((left, right) => left.label.localeCompare(right.label) || left.key.localeCompare(right.key));
 }
 
@@ -547,7 +601,9 @@ export function activeNodeRelationSummaries(
   relationLabel: string;
   directionLabel: string;
   neighborLabel: string;
+  neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
+  kind: ActiveRelationKind;
 }> {
   return detail.adjacency
     .map((relation) => {
@@ -559,7 +615,9 @@ export function activeNodeRelationSummaries(
         relationLabel: semantic.label,
         directionLabel: semantic.directionLabel,
         neighborLabel,
+        neighborKey: relation.neighborId,
         traversal: relation.traversal,
+        kind: semantic.kind,
       };
     })
     .filter((value): value is NonNullable<typeof value> => Boolean(value))
@@ -574,7 +632,9 @@ export function activeModelRelationSummaries(
   relationLabel: string;
   directionLabel: string;
   neighborLabel: string;
+  neighborKey: string;
   traversal: ActiveNodeAdjacency['traversal'];
+  kind: ActiveRelationKind;
 }> {
   return (model.adjacency.get(nodeKey) ?? [])
     .map((relation) => {
@@ -584,12 +644,14 @@ export function activeModelRelationSummaries(
         relationLabel: relation.semantic.label,
         directionLabel: relation.semantic.directionLabel,
         neighborLabel: model.nodeByKey.get(neighborKey)?.label ?? '对象名称暂不可用',
+        neighborKey,
         traversal: (relation.sourceKey === nodeKey ? 'outgoing' : 'incoming') as ActiveNodeAdjacency['traversal'],
+        kind: relation.semantic.kind,
       };
     })
     .sort((left, right) => left.key.localeCompare(right.key));
 }
 
 export function knownActiveNodeTypes(): ActiveNodeTypePresentation[] {
-  return Object.keys(NODE_TYPES).sort().map(presentActiveNodeType);
+  return Object.keys(NODE_TYPES).sort().map((canonicalType) => presentActiveNodeType(canonicalType));
 }

@@ -1,0 +1,37 @@
+{
+ "contract": "remediation-final-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "domain": "stability-analysis",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 263,
+ "packRows": 789,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 0,
+  "NO_RELATION": 789,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "edgeEndpoints": {
+  "count": 0,
+  "byFamily": {
+   "containment": 0,
+   "prerequisite": 0,
+   "association": 0
+  },
+  "courseRootCount": 0
+ },
+ "newMemberContribution": {
+  "members": 20,
+  "rows": 60,
+  "publishedEdges": 0
+ },
+ "supersedes": {
+  "artifact": "successor-closure-receipt.json",
+  "sha256": "06213c547fae3030df9682e7af30b5b6f20a007f57e38c016bf973237fe8e993"
+ },
+ "decisionsProvenanceSha256": "474043dc904141dc65b63c3ab8c8e678051b2487f8e86801818e1e43288aa91d",
+ "newMemberDecisionsProvenanceSha256": "4a135bbbe561722387bc1770ced1903d8a847485fff990faf9387f53f752ec34",
+ "closureComplete": true
+}

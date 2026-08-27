@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 
+import { TRUSTED_LEARNING_FACT_POLICY_VERSION } from '../trusted-learning-fact-filter';
 import { materializeIncrementalPortraitV2 } from '../portrait-v2-materialization';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
@@ -60,7 +61,11 @@ describe('cumulative evidence risk and growth materialization', () => {
       outcome: 'success',
       competencyContribution: { controlModeling: 1 },
       contextJson: {
-        evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+        evidenceGovernance: {
+          skipProfileContribution: true,
+          profileWeight: 0,
+          policyReason: 'unrelated-context-only-source',
+        },
       },
       startedAt: new Date('2026-05-05T00:00:00.000Z'),
     });
@@ -273,6 +278,14 @@ function materializationFixture(input: {
 }
 
 function learningFact(id: string, overrides: Record<string, unknown> = {}) {
+  const overrideContext = overrides.contextJson && typeof overrides.contextJson === 'object' && !Array.isArray(overrides.contextJson)
+    ? overrides.contextJson as Record<string, unknown>
+    : {};
+  const overrideGovernance = overrideContext.evidenceGovernance && typeof overrideContext.evidenceGovernance === 'object'
+    && !Array.isArray(overrideContext.evidenceGovernance)
+    ? overrideContext.evidenceGovernance as Record<string, unknown>
+    : {};
+  const { contextJson: _ignoredContextJson, ...rest } = overrides;
   return {
     id,
     sourceEventId: `adaptive-assessment:${id}`,
@@ -284,15 +297,17 @@ function learningFact(id: string, overrides: Record<string, unknown> = {}) {
     score: 1,
     competencyContribution: { controlModeling: 1 },
     contextJson: {
+      ...overrideContext,
       evidenceGovernance: {
         evidenceQuality: 'rich',
         profileWeight: 1,
         skipProfileContribution: false,
         policyReason: 'adaptive_assessment_evidence',
+        ...overrideGovernance,
       },
     },
     createdAt: baseAt,
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -341,6 +356,7 @@ function currentState(
       lastTrend: state.lastTrend,
       lastRisk: state.lastRisk,
       stateKind: 'SNAPSHOT' as const,
+      trustedFactPolicyVersion: TRUSTED_LEARNING_FACT_POLICY_VERSION,
       snapshot: { id: 'snapshot-current', payload },
     },
   };

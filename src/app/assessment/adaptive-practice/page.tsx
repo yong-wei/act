@@ -33,8 +33,8 @@ import {
 } from '@/features/adaptive/adaptive-path-journey-control';
 import {
   resolveAdaptivePathCenterOwnedTargetHref,
-  resolveAdaptivePathJourneyTargetDisposition,
 } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
 import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
@@ -46,6 +46,12 @@ import {
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
+import {
+  studentMicroTutoringStageLabel,
+  studentMicroTutoringUnavailableCopy,
+  type StudentMicroTutoringEligibility,
+  type StudentMicroTutoringStage,
+} from '@/features/assessment/student-micro-tutoring-eligibility-contract';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
@@ -115,7 +121,7 @@ import {
   isAdaptivePracticeGoalId,
   type AdaptivePathAdvisorQuickPrompt,
   type AdaptivePracticeGoalId,
-} from '@/lib/adaptive-path-goal-options';
+} from '@/lib/adaptive-path-goal-options-client';
 import {
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
@@ -177,6 +183,7 @@ interface NextQuestionResponse {
   question: PracticeQuestion;
   estimatedAbility: number;
   confidenceInterval: [number, number];
+  assessmentStage?: StudentMicroTutoringStage;
 }
 
 interface SubmitAnswerResponse {
@@ -189,10 +196,7 @@ interface SubmitAnswerResponse {
   durableSessionId?: string;
   algorithmVersion?: string;
   adaptiveAssessmentRef?: Record<string, unknown>;
-}
-
-function isMicroTutoringEligible(ref: Record<string, unknown> | undefined): boolean {
-  return typeof ref?.catalogItemId === 'string' && ref.reviewState === 'reviewed';
+  microTutoring?: StudentMicroTutoringEligibility;
 }
 
 interface PathAdvisorContextResponse {
@@ -266,6 +270,7 @@ interface AdaptivePathCandidateBatchView {
   goalId: string;
   sourcePathId: string;
   sourcePathVersion: string;
+  metadata?: Record<string, unknown>;
   candidates: Array<{
     id: string;
     fingerprint: string;
@@ -273,6 +278,98 @@ interface AdaptivePathCandidateBatchView {
     label: string;
     snapshot: Record<string, unknown>;
   }>;
+}
+
+interface PathAdjustmentSummary {
+  sourceCandidateId: string;
+  requestedTimeBudgetMinutes: number | null;
+  effectiveTimeBudgetMinutes: number | null;
+  difficultyRhythm: string | null;
+  resourcePreference: string[];
+  checkpointPreference: string | null;
+  allowExternalResources: boolean | null;
+  candidates: Array<{ label: string; changedFields: string[] }>;
+}
+
+function readPathAdjustmentSummary(
+  batch: AdaptivePathCandidateBatchView | null,
+): PathAdjustmentSummary | null {
+  const derivation = getRecord(batch?.metadata).derivation;
+  const derivationRecord = getRecord(derivation);
+  if (derivationRecord.kind !== 'adjustment') return null;
+  const request = getRecord(derivationRecord.requestSnapshot);
+  const difference = getRecord(derivationRecord.differenceSummary);
+  const candidates = Array.isArray(difference.candidates)
+    ? difference.candidates.map((item) => {
+        const candidate = getRecord(item);
+        return {
+          label: typeof candidate.styleId === 'string' ? candidate.styleId : '候选路径',
+          changedFields: Array.isArray(candidate.changedFields)
+            ? candidate.changedFields.filter((field): field is string => typeof field === 'string')
+            : [],
+        };
+      })
+    : [];
+  if (!candidates.length) return null;
+  return {
+    sourceCandidateId: typeof derivationRecord.sourceCandidateId === 'string'
+      ? derivationRecord.sourceCandidateId
+      : '当前候选路径',
+    requestedTimeBudgetMinutes: typeof request.requestedTimeBudgetMinutes === 'number'
+      ? request.requestedTimeBudgetMinutes
+      : null,
+    effectiveTimeBudgetMinutes: typeof request.effectiveTimeBudgetMinutes === 'number'
+      ? request.effectiveTimeBudgetMinutes
+      : null,
+    difficultyRhythm: typeof request.difficultyRhythm === 'string' ? request.difficultyRhythm : null,
+    resourcePreference: Array.isArray(request.resourcePreference)
+      ? request.resourcePreference.filter((item): item is string => typeof item === 'string')
+      : [],
+    checkpointPreference: typeof request.checkpointPreference === 'string'
+      ? request.checkpointPreference
+      : null,
+    allowExternalResources: typeof request.allowExternalResources === 'boolean'
+      ? request.allowExternalResources
+      : null,
+    candidates,
+  };
+}
+
+function formatPathAdjustmentField(field: string): string {
+  switch (field) {
+    case 'nodeIds': return '学习步骤';
+    case 'estimatedMinutes': return '预计用时';
+    case 'resourceMix': return '资源组合';
+    case 'readiness':
+    case 'readinessSummary': return '开始条件';
+    case 'checkpointNodeIds': return '检查点';
+    case 'lockedNodeIds': return '解锁条件';
+    case 'terminalValidationNodeIds': return '终点验证';
+    default: return field;
+  }
+}
+
+function formatAdjustmentRhythm(value: string | null): string {
+  if (value === 'gentle') return '先稳固基础';
+  if (value === 'challenge') return '提高挑战密度';
+  return value ? '稳步推进' : '未提供';
+}
+
+function formatAdjustmentResources(values: string[]): string {
+  const labels: Record<string, string> = {
+    knowledge_card: '知识卡',
+    adaptive_quiz: '练习',
+    simulation: '仿真',
+    arena: 'Arena',
+    external: '站外资源',
+  };
+  return values.length ? values.map((value) => labels[value] ?? value).join('、') : '未指定';
+}
+
+function formatAdjustmentCheckpoint(value: string | null): string {
+  if (value === 'light') return '减少检查点';
+  if (value === 'dense') return '增加检查点';
+  return value ? '标准检查点' : '未提供';
 }
 
 type CandidateBatchLoadResult =
@@ -383,6 +480,8 @@ interface PathExecutionNodeView {
   nodeId: string;
   title: string;
   type: string;
+  sourceKind: string | null;
+  sourceRef: string | null;
   resourceLabel: string;
   status: 'current' | 'completed' | 'skipped' | 'blocked' | 'locked' | 'next' | 'optional';
   target: string;
@@ -458,6 +557,7 @@ const DEMO_SCENES: Record<DemoScene, {
     questionState: {
       estimatedAbility: 0.54,
       confidenceInterval: [0.31, 0.77],
+      assessmentStage: 'practice',
       question: {
         id: 'demo-classic-stable',
         stem: '某系统相位裕度从 45° 降至 20°，且交叉频率上升。以下哪项最符合“频域→时域”映射规律？',
@@ -493,6 +593,7 @@ const DEMO_SCENES: Record<DemoScene, {
     questionState: {
       estimatedAbility: 0.89,
       confidenceInterval: [0.65, 1.12],
+      assessmentStage: 'practice',
       question: {
         id: 'demo-generated-live',
         stem: '【AI现场生成】邮轮横摇舒适度未达标（MSI 偏高），请在保持稳定裕度 > 30° 约束下，给出可执行调参策略。',
@@ -809,6 +910,7 @@ const DEMO_UNLOCK_CHAIN_PATH_NODES = [
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 const DEMO_RECOMMENDATION_PROVENANCE = {
   summary: '依据相位裕度的学习证据安排本路径。',
+  personalizationNotes: ['根据你的学习方式偏好，优先安排视频、讲义和仿真类学习资源。'],
   confidence: 'medium',
   entries: [{
     targetLabel: '相位裕度',
@@ -957,6 +1059,7 @@ const DEMO_LOW_EVIDENCE_PATH_PLAN = {
   pathOptions: [{
     optionId: 'path-option-1',
     nodeIds: DEMO_CONTROL_CORRECTION_PATH_NODES.map((node) => node.nodeId),
+    evidenceBasis: ['low-confidence-learner-state'],
     recommendationProvenance: DEMO_LOW_EVIDENCE_RECOMMENDATION_PROVENANCE,
   }],
   confidence: {
@@ -1215,7 +1318,8 @@ function StudentEvidenceEventList({
 
 function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDisplay }) {
   const provenance = option.recommendationProvenance;
-  if (!option.isGenerated || !provenance) return null;
+  const decisionExplanations = option.decisionEvidence?.explanations ?? [];
+  if (!option.isGenerated || (!provenance && decisionExplanations.length === 0)) return null;
 
   return (
     <section
@@ -1224,14 +1328,42 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold text-foreground">推荐依据</p>
-        <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
-          {recommendationConfidenceLabel(provenance.confidence)}
-        </span>
+        {provenance ? (
+          <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+            {recommendationConfidenceLabel(provenance.confidence)}
+          </span>
+        ) : null}
       </div>
-      <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      {provenance ? (
+        <p className="mt-2 break-words text-sm leading-6 text-foreground">{provenance.summary}</p>
+      ) : null}
+      {provenance?.personalizationNotes?.map((note) => (
+        <p key={note} className="mt-2 break-words text-xs leading-5 text-subtle">
+          {note}
+        </p>
+      ))}
+      {decisionExplanations.map((explanation) => (
+        <p
+          key={explanation.code + explanation.studentText}
+          className="mt-2 break-words text-xs leading-5 text-subtle"
+          data-path-decision-explanation={explanation.code}
+        >
+          {explanation.studentText}
+        </p>
+      ))}
+      {provenance ? (
       <details className="mt-3 border-t border-border pt-3 text-sm" data-learning-path-recommendation-disclosure={option.id}>
         <summary className="cursor-pointer font-medium text-foreground">查看推荐依据</summary>
         <div className="mt-3 grid min-w-0 gap-3">
+          <Link
+            href={provenance.evidenceReviewHref}
+            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
+            data-learning-path-evidence-review-primary
+            aria-label="查看学习记录并复核证据"
+          >
+            &#x67e5;&#x770b;&#x5b66;&#x4e60;&#x8bb0;&#x5f55;&#x5e76;&#x590d;&#x6838;&#x8bc1;&#x636e;
+            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
           {provenance.entries.map((entry, index) => (
             <article
               key={`${option.id}:${entry.targetLabel}:${index}`}
@@ -1277,15 +1409,9 @@ function PathRecommendationProvenance({ option }: { option: AdaptivePathOptionDi
           {provenance.nextAction ? (
             <p className="break-words text-xs leading-5 text-foreground">下一步：{provenance.nextAction}</p>
           ) : null}
-          <Link
-            href={provenance.evidenceReviewHref}
-            className="inline-flex w-fit max-w-full items-center gap-1 break-words text-xs font-medium text-primary hover:underline"
-          >
-            查看学习记录并复核证据
-            <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
-          </Link>
         </div>
       </details>
+      ) : null}
     </section>
   );
 }
@@ -1737,6 +1863,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
       expectedTargetLift: typeof option.expectedTargetLift === 'number' ? option.expectedTargetLift : undefined,
       limitations: getStringArray(option.limitations),
       recommendationProvenance: getPathRecommendationProvenance(option.recommendationProvenance),
+      decisionEvidence: getPathDecisionEvidence(option.decisionEvidence),
       summaryFactAvailability: {
         nodeIds: Array.isArray(option.nodeIds),
         resourceMix: hasResourceMix,
@@ -1785,6 +1912,43 @@ function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | nu
   });
 }
 
+function getPathDecisionEvidence(
+  value: unknown,
+): AdaptivePathOptionWriteOption['decisionEvidence'] {
+  const evidence = getRecord(value);
+  const optionId = typeof evidence.optionId === 'string' ? evidence.optionId : '';
+  const styleId = typeof evidence.styleId === 'string' ? evidence.styleId : '';
+  const explanations = (Array.isArray(evidence.explanations) ? evidence.explanations : [])
+    .map(getRecord)
+    .flatMap((explanation) => (
+      typeof explanation.code === 'string' && typeof explanation.studentText === 'string'
+        ? [{ code: explanation.code, studentText: explanation.studentText }]
+        : []
+    ));
+  const impacts = (Array.isArray(evidence.impacts) ? evidence.impacts : [])
+    .map(getRecord)
+    .flatMap((impact) => {
+      const kind = impact.kind;
+      const source = impact.source;
+      if (
+        (kind !== 'added' && kind !== 'removed' && kind !== 'advanced' && kind !== 'resource-type')
+        || (source !== 'profile' && source !== 'rule' && source !== 'constraint' && source !== 'degraded')
+        || typeof impact.reasonCode !== 'string'
+      ) {
+        return [];
+      }
+      return [{
+        kind: kind as 'added' | 'removed' | 'advanced' | 'resource-type',
+        source: source as 'profile' | 'rule' | 'constraint' | 'degraded',
+        reasonCode: impact.reasonCode,
+        nodeId: typeof impact.nodeId === 'string' ? impact.nodeId : undefined,
+        resourceType: typeof impact.resourceType === 'string' ? impact.resourceType : undefined,
+      }];
+    });
+  if (!optionId || !styleId) return undefined;
+  return { optionId, styleId, impacts, explanations };
+}
+
 function getPathRecommendationProvenance(
   value: unknown,
 ): AdaptivePathOptionWriteOption['recommendationProvenance'] {
@@ -1823,6 +1987,7 @@ function getPathRecommendationProvenance(
     summary: provenance.summary,
     confidence,
     entries,
+    personalizationNotes: getStringArray(provenance.personalizationNotes),
     evidenceReviewHref: '/profile/evidence',
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
@@ -2520,6 +2685,8 @@ function getPathExecutionNodes(
       nodeId,
       title: typeof node.title === 'string' ? node.title : `学习节点 ${index + 1}`,
       type,
+      sourceKind: typeof node.sourceKind === 'string' ? node.sourceKind : null,
+      sourceRef: typeof node.sourceRef === 'string' ? node.sourceRef : null,
       resourceLabel: formatResourceType(type),
       status,
       target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
@@ -2920,6 +3087,8 @@ export default function AdaptivePracticePage() {
     ? `adaptive-path:${activePathId}:${activeNodeId}`
     : null;
   const sessionId = pathAssessmentSessionId ?? practiceSessionId;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
@@ -2958,6 +3127,7 @@ export default function AdaptivePracticePage() {
   });
   const [selectedComparisonPair, setSelectedComparisonPair] = useState<AdaptivePathComparisonPair | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
+  const [adjustmentSourceOption, setAdjustmentSourceOption] = useState<PathOptionView | null>(null);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathGenerationRequestStatus, setPathGenerationRequestStatus] = useState<PathGenerationRequestStatus>('idle');
   const pathGenerationRequestLifecycleRef = useRef(INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE);
@@ -3026,10 +3196,10 @@ export default function AdaptivePracticePage() {
   const pathOptionVersionKeyRef = useRef(pathOptionVersionKey);
   pathOptionVersionKeyRef.current = pathOptionVersionKey;
   const pathAdjustmentContextVersionKey = useMemo(() => [
-    activeGoal ?? 'no-goal',
-    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? 'no-path',
-    readPathProgressVersion(activePathRound?.updatedAt) ?? 'no-progress',
-    activeCandidateBatch?.id ?? 'no-batch',
+    activeGoal ?? '暂无目标',
+    activePathRound?.id ?? activePathPlan?.id ?? activePathId ?? '暂无学习路径',
+    readPathProgressVersion(activePathRound?.updatedAt) ?? '暂无进度',
+    activeCandidateBatch?.id ?? '暂无候选批次',
     ...candidatePathOptions.map((option) => (
       `${option.candidateId ?? 'no-candidate'}:${option.candidateFingerprint ?? 'no-fingerprint'}`
     )),
@@ -3087,6 +3257,21 @@ export default function AdaptivePracticePage() {
       : displays;
   }, [focusedCandidateId, pathComparisonDiversityLimited, pathOptions]);
   const hasGeneratedPathOptions = pathOptions.length > 0;
+  const pathAdjustmentSummary = useMemo(
+    () => readPathAdjustmentSummary(activeCandidateBatch),
+    [activeCandidateBatch],
+  );
+
+  const openPathAdjustment = useCallback((option: PathOptionView) => {
+    setAdjustmentSourceOption(option);
+    setPathChoiceMessage(`已选择“${option.label}”作为调整对象。请修改下方参数后，再生成调整后的候选路径。`);
+    window.setTimeout(() => {
+      document.querySelector('[data-adaptive-path-generation-panel="editable"]')?.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
+    }, 0);
+  }, []);
 
   useEffect(() => {
     activeComparisonRequestKeyRef.current = null;
@@ -3223,7 +3408,17 @@ export default function AdaptivePracticePage() {
     candidateBatchLoadState !== 'failed';
   const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&
     (candidateBatchLoadState === 'missing' || candidateBatchLoadState === 'failed');
-  const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready';
+  // Demo fixtures use the in-memory path plan rather than a persisted candidate batch.
+  // Keep production comparison fail-closed while allowing the evidence route to render
+  // the same recommendation disclosure without requiring an authenticated API session.
+  const canRenderCandidateComparison = (
+    shouldShowCandidateComparison && candidateBatchLoadState === 'ready'
+  ) || (
+    isDemoMode &&
+    showSelectionWorkspace &&
+    !requestedBatchId &&
+    pathOptions.length > 0
+  );
   const hasLoadedPathContextForRecovery = hasLoadedCurrentPathContext || hasCandidateBatchContext;
   const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
     workspaceIntent,
@@ -3566,11 +3761,12 @@ export default function AdaptivePracticePage() {
       return;
     }
 
+    const requestedSessionId = sessionId;
     const response = await fetch('/api/assessment/next-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId,
+        sessionId: requestedSessionId,
         goalId: activeGoal,
         routeIntent: activeGoal ? routeIntent : null,
         pathId: activePathId,
@@ -3579,10 +3775,12 @@ export default function AdaptivePracticePage() {
     });
 
     if (!response.ok) {
+      if (sessionIdRef.current !== requestedSessionId) return;
       throw new Error('下一题加载失败');
     }
 
     const data = (await response.json()) as NextQuestionResponse;
+    if (sessionIdRef.current !== requestedSessionId) return;
     setQuestionState(data);
     setSelectedOption('');
     setFeedback(null);
@@ -4201,6 +4399,9 @@ export default function AdaptivePracticePage() {
             };
             setActiveCandidateBatch(loadedBatch.batch);
             setCandidateBatchLoadState('ready');
+            if (operation === 'revise') {
+              setAdjustmentSourceOption(null);
+            }
             const nextUrl = new URL(window.location.href);
             nextUrl.searchParams.set('batch', generatedBatchId);
             nextUrl.searchParams.delete('candidate');
@@ -4672,11 +4873,16 @@ export default function AdaptivePracticePage() {
   }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
-    const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(node.type, node.target);
-    if (targetDisposition === 'blocked') {
+    const targetContract = resolveAdaptivePathDestinationContract(node.type, node.target, {
+      nodeId: node.nodeId,
+      sourceKind: node.sourceKind,
+      sourceRef: node.sourceRef,
+    });
+    if (targetContract.disposition === 'blocked') {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
       return;
     }
+    const targetDisposition = targetContract.disposition;
     const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
    if (requiresOwningPathCenter(node) && !ownedTarget) {
       setPathExecutionError('路径资源地址未通过平台验证，请返回路径并重新生成。');
@@ -4759,6 +4965,13 @@ export default function AdaptivePracticePage() {
   }, [attemptDiagnosisState, feedback?.durableAnswerId, startAssistantConversation]);
 
   useEffect(() => {
+    setQuestionState(null);
+    setSelectedOption('');
+    setFeedback(null);
+    setAttemptDiagnosisState('idle');
+  }, [sessionId]);
+
+  useEffect(() => {
     if (isDemoMode) {
       applyDemoScene(demoScene);
       return;
@@ -4802,13 +5015,14 @@ export default function AdaptivePracticePage() {
 
     setLoading(true);
     setError(null);
+    const requestedSessionId = sessionId;
 
     try {
       const response = await fetch('/api/assessment/submit-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          sessionId: requestedSessionId,
           questionId: questionState.question.id,
           selectedOption,
           timeSpent: Math.max(1, Math.round((Date.now() - questionStartAt) / 1000)),
@@ -4820,10 +5034,12 @@ export default function AdaptivePracticePage() {
       });
 
       if (!response.ok) {
+        if (sessionIdRef.current !== requestedSessionId) return;
         throw new Error('提交失败');
       }
 
       const data = (await response.json()) as SubmitAnswerResponse;
+      if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
       await syncAdaptiveAssessmentPathResult(data);
@@ -4899,6 +5115,19 @@ export default function AdaptivePracticePage() {
           diagnostic.knowledgeDimensions.design
         ) / 3)))
       : 18;
+    const practiceStage = questionState?.assessmentStage ?? feedback?.microTutoring?.stage ?? 'practice';
+    const practiceStageLabel = studentMicroTutoringStageLabel(practiceStage);
+    const microTutoringEligibility = feedback?.microTutoring;
+    const canStartMicroTutoring = Boolean(
+      feedback
+      && !feedback.isCorrect
+      && feedback.durableAnswerId
+      && microTutoringEligibility?.qualified,
+    );
+    const microTutoringUnavailableReason = !feedback?.isCorrect
+      && !microTutoringEligibility?.qualified
+      ? microTutoringEligibility?.unavailableReason ?? null
+      : null;
 
     return (
       <AppShell
@@ -5297,6 +5526,41 @@ export default function AdaptivePracticePage() {
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
+              {adjustmentSourceOption ? (
+                <div
+                  className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-3"
+                  data-adaptive-path-adjustment-source="selected"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    正在调整：{adjustmentSourceOption.label}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-subtle">
+                    下面的时间、节奏、资源和检查点参数会作为本次调整条件；原路径不会被覆盖。
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void submitPathGeneration('revise', adjustmentSourceOption)}
+                      disabled={pathGenerationPending !== null || !canSubmitPathGeneration}
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      data-adaptive-path-adjustment-action="submit"
+                    >
+                      <RefreshCw className="size-3.5" aria-hidden="true" />
+                      {pathGenerationPending === 'revise' ? '正在生成调整方案' : '生成调整后的候选路径'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdjustmentSourceOption(null)}
+                      disabled={pathGenerationPending !== null}
+                      className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                    >
+                      取消调整
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {pathGenerationDisplayReadiness.status !== 'ready' ? (
                 <div
                   className="mt-4 rounded-lg border border-border bg-muted/45 p-3"
@@ -5707,7 +5971,7 @@ export default function AdaptivePracticePage() {
               summary={hasGeneratedPathOptions
                 ? '不同路径按同一组字段比较，便于直接判断取舍。'
                 : '生成正式学习路径后，系统会展示具体资源、顺序和方案差异。'}
-              className="order-40"
+              className="order-[15]"
               trailing={(
                 <div className="flex items-center gap-2">
                   {focusedCandidateId && activeCandidateBatch ? (
@@ -5734,6 +5998,7 @@ export default function AdaptivePracticePage() {
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
               data-learning-path-options-slot={hasGeneratedPathOptions ? 'three-style' : 'starter-examples'}
               data-learning-path-options-layout="route-modules"
+              data-adaptive-path-module-order="candidate-comparison-before-active-route"
             >
             {pathConfigurationFulfillment.length > 0 || pathBudgetLimitation.insufficient || Boolean(pathOptionFallback) ? (
               <section
@@ -5771,6 +6036,46 @@ export default function AdaptivePracticePage() {
               >
                 当前可用资源有限，推荐方案差异较小。
               </p>
+            ) : null}
+            {pathAdjustmentSummary ? (
+              <section
+                className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3"
+                data-adaptive-path-adjustment-summary="visible"
+              >
+                <p className="font-medium text-foreground">本次调整说明</p>
+                <p className="mt-1 text-sm leading-6 text-subtle">
+                  这是基于你刚才选择的候选路径生成的替代方案。系统只改变候选，不会覆盖原路径。
+                </p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p className="rounded-lg border border-border bg-background/55 p-3">
+                    <span className="block text-xs text-subtle">调整条件</span>
+                    <span className="mt-1 block text-foreground">
+                      {pathAdjustmentSummary.requestedTimeBudgetMinutes ?? pathAdjustmentSummary.effectiveTimeBudgetMinutes ?? '未提供'} 分钟，
+                      {formatAdjustmentRhythm(pathAdjustmentSummary.difficultyRhythm)}，
+                      {formatAdjustmentCheckpoint(pathAdjustmentSummary.checkpointPreference)}
+                    </span>
+                  </p>
+                  <p className="rounded-lg border border-border bg-background/55 p-3">
+                    <span className="block text-xs text-subtle">资源条件</span>
+                    <span className="mt-1 block text-foreground">
+                      {formatAdjustmentResources(pathAdjustmentSummary.resourcePreference)}
+                      {pathAdjustmentSummary.allowExternalResources === true ? '，允许站外资源' : '，不使用站外资源'}
+                    </span>
+                  </p>
+                </div>
+                <div className="mt-3 grid gap-2 text-sm">
+                  {pathAdjustmentSummary.candidates.map((candidate) => (
+                    <p key={`${candidate.label}:${candidate.changedFields.join(',')}`} className="rounded-lg border border-border bg-background/55 p-3">
+                      <span className="font-medium text-foreground">候选 {candidate.label}</span>
+                      <span className="mt-1 block text-subtle">
+                        {candidate.changedFields.length
+                          ? `变化：${candidate.changedFields.map(formatPathAdjustmentField).join('、')}`
+                          : '与原候选在当前维度没有变化'}
+                      </span>
+                    </p>
+                  ))}
+                </div>
+              </section>
             ) : null}
             {activeCandidateBatch ? (
               <CandidateBatchComparisonWorkspace
@@ -5861,7 +6166,7 @@ export default function AdaptivePracticePage() {
                         onClick={() => {
                           const optionForWrite = option.writeOption;
                           if (isPersistedCandidatePathOption(optionForWrite)) {
-                            submitPathGeneration('revise', optionForWrite);
+                            openPathAdjustment(optionForWrite);
                             return;
                           }
                           setPathChoiceUnavailable();
@@ -6028,7 +6333,7 @@ export default function AdaptivePracticePage() {
                         onClick={() => {
                           const optionForWrite = option.writeOption;
                           if (isPersistedCandidatePathOption(optionForWrite)) {
-                            submitPathGeneration('revise', optionForWrite);
+                            openPathAdjustment(optionForWrite);
                             return;
                           }
                           setPathChoiceUnavailable();
@@ -6145,7 +6450,7 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {!showPathContextRecovery && (showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
-            <section className="order-20 grid min-w-0 w-full gap-4">
+            <section className="order-20 grid min-w-0 w-full gap-4" data-adaptive-path-module-order="active-route-after-candidate-comparison">
               {showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <PathWorkspaceModule
                 moduleId="current-path"
@@ -6601,9 +6906,13 @@ export default function AdaptivePracticePage() {
                   </div>
 
                   {questionState && practiceQuestionExpanded ? (
-                    <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-practice-question="active">
+                    <div
+                      className="rounded-lg border border-border bg-background/55 p-4"
+                      data-adaptive-practice-question="active"
+                      data-adaptive-practice-stage={practiceStage}
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold text-foreground">检查节点练习</p>
+                        <p className="text-sm font-semibold text-foreground">{practiceStageLabel}</p>
                         <span className="rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-subtle">
                           能力估计 {questionState.estimatedAbility.toFixed(2)}
                         </span>
@@ -6646,6 +6955,18 @@ export default function AdaptivePracticePage() {
                           <RefreshCw className="size-4" aria-hidden="true" />
                           换一题
                         </button>
+                        {microTutoringEligibility?.retryAttribution ? (
+                          <button
+                            type="button"
+                            onClick={retryNextQuestion}
+                            disabled={loading}
+                            data-micro-tutoring-retry-attribution="true"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground disabled:opacity-60"
+                          >
+                            <RefreshCw className="size-4" aria-hidden="true" />
+                            重新作答
+                          </button>
+                        ) : null}
                       </div>
                       {feedback ? (
                         <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
@@ -6676,12 +6997,19 @@ export default function AdaptivePracticePage() {
                               ) : null}
                             </div>
                           ) : null}
-                          {!feedback.isCorrect && feedback.durableAnswerId &&
-                          isMicroTutoringEligible(feedback.adaptiveAssessmentRef) ? (
+                          {canStartMicroTutoring && feedback.durableAnswerId ? (
                             <StudentMicroTutoringPanel
                               answerId={feedback.durableAnswerId}
                               onRequestHint={requestAttemptDiagnosis}
                             />
+                          ) : null}
+                          {microTutoringUnavailableReason ? (
+                            <p
+                              className="mt-3 text-xs leading-5 text-subtle"
+                              data-micro-tutoring-unavailable={microTutoringUnavailableReason}
+                            >
+                              {studentMicroTutoringUnavailableCopy(microTutoringUnavailableReason)}
+                            </p>
                           ) : null}
                         </div>
                       ) : null}
@@ -6693,9 +7021,14 @@ export default function AdaptivePracticePage() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold text-foreground">检查节点练习已准备</p>
+                          <p
+                            className="text-sm font-semibold text-foreground"
+                            data-adaptive-practice-stage={practiceStage}
+                          >
+                            {practiceStageLabel}已准备
+                          </p>
                           <p className="mt-1 text-sm leading-6 text-subtle">
-                            题面会在选择路径或进入检查节点后展开，避免干扰路径生成与比较。
+                            题面会在选择路径或进入当前阶段后展开，避免干扰路径生成与比较。
                           </p>
                         </div>
                         <button

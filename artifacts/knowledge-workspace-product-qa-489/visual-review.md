@@ -1,11 +1,36 @@
-Final verdict: PASS
+# Knowledge Workspace Independent Visual Review
 
-# 知识工作区产品 QA 独立视觉复核
+- Reviewer: knowledge_visual_review
+- Review scope: `8bcbb787edf84de3922cf637c359b5a9732c686b` 的现有产品 QA 工件：四个 Active 视口、三角色默认/移动/旧版截图和 29 个状态截图。
+- Capture source revision: `8bcbb787edf84de3922cf637c359b5a9732c686b`
+- Capture tree revision: `3a8728006f3b95083ef18ded20c5a0ed3731104f`
+- Source fingerprint: `36d224afa7171a9314922d041308ee8ad3f4c48b373edadffbe4cfaddaad0262`
+- Result: PASS
 
-- 审查者：ui-flow-reviewer（独立复核）；`finalResult=passed`，`blockingFindings=[]`。
-- 捕获绑定：commit `c6281e11ecf225aba32ce57ef62a722f0fc955aa`，tree `d7670b6bfc010d48ea441d6b102b2c85d24648c8`。
-- 截图绑定：33 组 state/screenshot 映射（`stateMatrix` 29 组 + `activeAuthorityVisualMatrix` 4 组）；`reviewedStateSha256` 与两矩阵的 name→screenshotSha256 完整映射逐字节一致。
-- 源码绑定：35 个受管 source paths；`reviewedSourceSha256` 与 `currentSourceSha256` 完整映射逐字节一致。
-- 14 项治理与视觉维度均为 PASS：视觉层级、工具与检查器避让、SVG 和节点文字可见、键盘焦点、主题、移动/平板、压力态、三角色差异及 Authority 信息边界均无阻断发现。
+## Scope
 
-审查了桌面交互、工具、检查器、Konling 压力态、学生/教师/管理员和 320px、1024px、1100px、1279px 截图。当前 Active Authority 表面未见原始 authority ID、release、hash 或 locator。候选 v0.18 仍未激活，本次不将视觉证据表述为生产切换。
+This review verifies the accepted P1 and the evidence-bound workspace states. It covers the Active Authority desktop, tablet and mobile views, three authenticated roles, theme parity, interaction/focus evidence, and the stress state.
+
+## Result
+
+The P1 is closed. The 320×800 initial Active view presents two in-viewport, readable labels and a relation. `visibleNodeLabelCount=2`, `inViewportNodeLabelCount=2`, `readable=true`, and the visible renderer height is 398 CSS pixels. The header and mode controls do not overlap.
+
+The four Active screenshots and all 29 state-matrix screenshots match the capture's SHA-256 map. All 40 recorded source checksums match the inspected source revision; runtime revision capture is clean before and after the browser run.
+
+## Evidence binding
+
+- Screenshot: `artifacts/knowledge-workspace-product-qa-489/active-mobile.png`
+- Capture: `artifacts/knowledge-workspace-product-qa-489/browser-evidence.json`
+- Source checksums and the complete screenshot state map are recorded in that capture's `independentVisualReview` block.
+- The governance checksum map covers 29 state-matrix and four Active Authority visual states.
+- The focused client tests and full product QA capture passed on the stated revision.
+
+## Dimension disposition
+
+`handoffAlignment`, `conceptAdoptionRejection`, `appShellContinuity`, `localTools`, `semanticMap`, `inspectorHierarchy`, `konlingDock`, `interactionStability`, `keyboardFocus`, `themeParity`, `mobileBehavior`, `tabletBreakpoint`, `stressNonOverlap`, and `canvasGeometry` are PASS for the evidence-bound scope.
+
+## Finding status
+
+No blocking findings remain. No P0/P1 issue was introduced by the remediation.
+
+Residual risk: mobile mathematical-object labels retain compact raw LaTex presentation. They are visible and selectable in the reviewed capture, but their typography can be improved independently.

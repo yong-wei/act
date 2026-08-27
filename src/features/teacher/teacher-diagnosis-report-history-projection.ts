@@ -1,4 +1,4 @@
-import type { DiagnosisReportApiItem } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -129,24 +129,8 @@ function buildEvidenceGroups(report: DiagnosisReportApiItem): EvidenceCoverageGr
     .sort((left, right) => left.localeCompare(right, 'zh-CN'));
 
   return [
-    {
-      id: 'assignment',
-      label: '作业',
-      state: 'unavailable',
-      includedLabel: '未提供',
-      missingLabel: '未提供',
-      detailSources: [],
-      explanation: `当前诊断结构没有纳入作业证据，不能据此推断作业覆盖或得分；报告证据截止于 ${formatShortDate(report.evidenceCutoff)}。`,
-    },
-    {
-      id: 'assessment',
-      label: '测验',
-      state: 'unavailable',
-      includedLabel: '未提供',
-      missingLabel: '未提供',
-      detailSources: [],
-      explanation: `当前诊断结构没有纳入测验证据，不能据此推断测验覆盖或得分；报告证据截止于 ${formatShortDate(report.evidenceCutoff)}。`,
-    },
+    outcomeEvidenceGroup('assignment', '作业', coverage.assignment, report.evidenceCutoff),
+    outcomeEvidenceGroup('assessment', '测验', coverage.assessment, report.evidenceCutoff),
     {
       id: 'learning-behavior',
       label: '学习行为',
@@ -161,6 +145,35 @@ function buildEvidenceGroups(report: DiagnosisReportApiItem): EvidenceCoverageGr
   ];
 }
 
+function outcomeEvidenceGroup(
+  id: Extract<EvidenceGroupId, 'assignment' | 'assessment'>,
+  label: string,
+  coverage: { includedStudents: number; missingStudents: number; evidenceCount: number; scoredCount: number } | undefined,
+  evidenceCutoff: string,
+): EvidenceCoverageGroup {
+  if (!coverage) {
+    return {
+      id,
+      label,
+      state: 'unavailable',
+      includedLabel: '未提供',
+      missingLabel: '未提供',
+      detailSources: [],
+      explanation: `当前诊断结构没有纳入${label}证据，不能据此推断${label}覆盖或得分；报告证据截止于 ${formatShortDate(evidenceCutoff)}。`,
+    };
+  }
+  const state = coverage.missingStudents > 0 ? 'partial' : 'available';
+  return {
+    id,
+    label,
+    state,
+    includedLabel: `${coverage.includedStudents} 人`,
+    missingLabel: `${coverage.missingStudents} 人`,
+    detailSources: [`${coverage.evidenceCount} 份结果`, `${coverage.scoredCount} 份已评分结果`],
+    explanation: `已纳入截止时刻前的${label}结果；报告证据截止于 ${formatShortDate(evidenceCutoff)}。`,
+  };
+}
+
 function buildConfidenceReasons(
   report: DiagnosisReportApiItem,
   evidenceGroups: EvidenceCoverageGroup[],
@@ -170,14 +183,19 @@ function buildConfidenceReasons(
   const behavior = evidenceGroups.find((group) => group.id === 'learning-behavior');
   const coverage = report.reportBody.sourceCoverage;
 
-  reasons.push({
-    reason: '当前报告尚未纳入作业证据。',
-    recoveryAction: '补充作业事件接入后，重新生成诊断。',
-  });
-  reasons.push({
-    reason: '当前报告尚未纳入测验证据。',
-    recoveryAction: '补充测验事件接入后，重新生成诊断。',
-  });
+  for (const group of evidenceGroups.filter((item) => item.id === 'assignment' || item.id === 'assessment')) {
+    if (group.state === 'unavailable') {
+      reasons.push({
+        reason: `当前报告尚未纳入${group.label}证据。`,
+        recoveryAction: `补充${group.label}事件接入后，重新生成诊断。`,
+      });
+    } else if (group.state === 'partial') {
+      reasons.push({
+        reason: `${group.label}仅纳入${group.includedLabel}，仍有${group.missingLabel}未纳入。`,
+        recoveryAction: `补齐未纳入学生的${group.label}结果后，重新生成诊断。`,
+      });
+    }
+  }
   if (behavior?.state === 'unavailable') {
     reasons.push({
       reason: '当前报告没有可核验的学习行为来源。',

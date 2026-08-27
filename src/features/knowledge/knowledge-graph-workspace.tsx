@@ -5,6 +5,8 @@ import { useState, type ReactNode } from 'react';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { ActiveAuthorityGraph } from './active-authority-graph';
 import { CandidateAuthoritativeGraph } from './candidate-authoritative-graph';
+import { knowledgeGraphProductVersionLabel } from './graph/graph-presentation-contract';
+import type { GraphDimension } from './graph-runtime-session';
 
 interface KnowledgeGraphWorkspaceProps {
   viewerRole: PlatformRole;
@@ -20,6 +22,7 @@ export function KnowledgeGraphWorkspace({
   legacy,
 }: KnowledgeGraphWorkspaceProps) {
   const [mode, setMode] = useState<'active' | 'legacy' | 'candidate'>('active');
+  const [dimension, setDimension] = useState<GraphDimension>('2d');
   const candidateDiagnosticEnabled = candidateAllowed && controlledVerification;
 
   return (
@@ -31,24 +34,27 @@ export function KnowledgeGraphWorkspace({
       <div
         className="absolute right-3 top-3 z-50 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur max-[639px]:left-3 max-[639px]:right-3 max-[639px]:w-auto max-[639px]:flex-nowrap max-[639px]:overflow-x-auto"
         data-knowledge-mode-switch="true"
+        data-knowledge-workspace-toolbar="true"
       >
         <button
           type="button"
           aria-pressed={mode === 'active'}
           data-knowledge-mode="active"
+          aria-label={knowledgeGraphProductVersionLabel('active')}
           onClick={() => setMode('active')}
           className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'active' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
-          当前 Authority
+          {knowledgeGraphProductVersionLabel('active')}
         </button>
         <button
           type="button"
           aria-pressed={mode === 'legacy'}
           data-knowledge-mode="legacy"
+          aria-label={knowledgeGraphProductVersionLabel('legacy')}
           onClick={() => setMode('legacy')}
           className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${mode === 'legacy' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
         >
-          历史 Legacy
+          {knowledgeGraphProductVersionLabel('legacy')}
         </button>
         {candidateDiagnosticEnabled ? (
           <button
@@ -63,19 +69,26 @@ export function KnowledgeGraphWorkspace({
         ) : null}
       </div>
 
-      {mode === 'active' ? (
-        <ActiveAuthorityGraph key="active" viewerRole={viewerRole} />
-      ) : mode === 'candidate' && candidateDiagnosticEnabled ? (
-        <CandidateAuthoritativeGraph
-          key="candidate"
+      <div className={mode === 'active' ? 'h-full min-h-0' : 'hidden'} data-knowledge-session="active">
+        <ActiveAuthorityGraph
           viewerRole={viewerRole}
-          controlledVerification={controlledVerification}
+          dimension={dimension}
+          onDimensionChange={setDimension}
         />
-      ) : (
-        <div key="legacy" className="h-full min-h-0" data-knowledge-legacy-view="true">
+      </div>
+      {mode === 'candidate' && candidateDiagnosticEnabled ? (
+        <div className="h-full min-h-0" data-knowledge-session="candidate">
+          <CandidateAuthoritativeGraph
+            viewerRole={viewerRole}
+            controlledVerification={controlledVerification}
+          />
+        </div>
+      ) : null}
+      {mode === 'legacy' ? (
+        <div className="h-full min-h-0" data-knowledge-legacy-view="true" data-knowledge-session="legacy">
           {legacy}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,21 @@
+{
+  "evidenceVersion": "konling-math-http-e2e.v1",
+  "generatedAt": "2026-08-23T00:57:56.341Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "question": "求 (s+3)/((s^2+2*s+5)*(s+1)) 的拉普拉斯逆变换",
+  "status": "passed",
+  "elapsedMs": 30236,
+  "assertions": {
+    "noCalculateToolCall": true,
+    "hasWolframStatement": true,
+    "hasApproachSection": true,
+    "hasDetailedSection": true,
+    "hasFinalAnswerSection": true,
+    "hasVerificationSection": true
+  },
+  "privacy": {
+    "containsAuthCookie": false,
+    "containsUserIdentifiers": false
+  },
+  "responseSnippet": "结果与关键中间式已由 Wolfram Engine 计算或验证。\n\n## 解题思路\n本题要求对有理函数进行拉普拉斯逆变换。核心思路是利用部分分式分解，将复杂分式拆解为基本形式，再结合拉普拉斯变换表求出时域响应。由于分母包含一次因子 $(s+1)$ 和不可约二次因子 $(s^2+2s+5)$，需分别设待定系数求解。\n\n## 详细过程\n\n**第 1 步：识别原始表达式**\n- 操作标识：identify\n- 输入：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}$\n- 输出：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}$\n- 说明：确认待逆变换的函数形式。\n\n**第 2 步：分解分母并识别极点因子**\n- 操作标识：factor_denominator\n- 输入：$(s+1) \\left(s^2+2 s+5\\right)$\n- 输出：$(s+1) \\left(s^2+2 s+5\\right)$\n- 说明：分母已分解为一个一次项和一个判别式 $\\Delta = 2^2 - 4 \\times 5 = -16 < 0$ 的二次项，表明存在一个实极点和一对共轭复极点。\n\n**第 3 步：写出待定系数的部分分式形式**\n- 操作标识：partial_fraction_ansatz\n- 输入：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}$\n- 输出：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}=\\frac{a_3 s+a_2}{s^2+2 s+5}+\\frac{a_1}{s+1}$\n- 说明：根据分母因子，一次项对应常数分子 $\\frac{a_1}{s+1}$，二次项对应一次分子 $\\frac{a_3 s+a_2}{s^2+2 s+5}$。\n\n**第 4 步：去分母**\n- 操作标识：clear_denominators\n- 输入：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}=\\frac{a_3 s+a_2}{s^2+2 s+5}+\\frac{a_1}{s+1}$\n- 输出：$s+3=a_1 s^2+a_3 s^2+2 a_1 s+a_2 s+a_3 s+5 a_1+a_2$\n- 说明：等式两边同乘 $(s+1)(s^2+2s+5)$，消去分母。\n\n**第 5 步：比较等幂次系数**\n- 操作标识：coefficient_equations\n- 输入：$s+3=a_1 s^2+a_3 s^2+2 a_1 s+a_2 s+a_3 s+5 a_1+a_2$\n- 输出：$-5 a_1-a_2+3=0,\\quad -2 a_1-a_2-a_3+1=0,\\quad -a_1-a_3=0$\n- 说明：对比 $s^0, s^1, s^2$ 的系数，建立线性方程组。\n\n**第 6 步：求解待定系数方程组**\n- 操作标识：solve_coefficients\n- 输入：$-5 a_1-a_2+3=0,\\quad -2 a_1-a_2-a_3+1=0,\\quad -a_1-a_3=0$\n- 输出：$\\left\\{a_1\\to \\frac{1}{2},a_2\\to \\frac{1}{2},a_3\\to -\\frac{1}{2}\\right\\}$\n- 说明：解得 $a_1=0.5, a_2=0.5, a_3=-0.5$。\n\n**第 7 步：代入系数**\n- 操作标识：substitute_coefficients\n- 输入：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}=\\frac{a_3 s+a_2}{s^2+2 s+5}+\\frac{a_1}{s+1}$\n- 输出：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}=\\frac{\\frac{1}{2}-\\frac{s}{2}}{s^2+2 s+5}+\\frac{1}{2 (s+1)}$\n- 说明：将求得的系数代回分式。\n\n**第 8 步：完成部分分式分解**\n- 操作标识：partial_fraction\n- 输入：$\\frac{s+3}{(s+1) \\left(s^2+2 s+5\\right)}$\n- 输出：$\\frac{1-s}{2 \\left(s^2+2 s+5\\right)}+\\frac{1}{2 (s+1)}$\n- 说明：整理分子，得到 $\\frac{1-s}{2(s^2+2s+5)} + \\frac{1}{2(s+1)}$。\n\n**第 9 步：配方变换**\n- 操作标识：standard_form\n- 输入：$\\frac{1-s}{2 \\left(s^2+2 s+5\\right)}+\\frac{1}{2 (s+1)}$\n- 输出：$\\frac{2-u}{2 \\left(u^2+4\\right)}+\\frac{1}{2 u}$\n- 说明：令 $u=s+1$，则 $s=u-1$，且 $s^2+2s+5 = (s+1)^2+4 = u^2+4$。分子 $1-s = 1-(u-1) = 2-u$。\n\n**第 10 步：匹配逆变换对**\n- 操作标识：standard_transform_pair\n- 输入：$\\frac{2-u}{2 \\left(u^2+4\\right)}+\\frac{1}{2 u}$\n- 输出：$\\mathcal{L}^{-1}\\left\\{\\frac{1}{2 (s+1)}\\right\\}=\\frac{e^{-t}}{2},\\quad \\mathcal{L}^{-1}\\left\\{\\frac{1}{2 \\left(s^2+2 s+5\\right)}\\right\\}=\\frac{1}{4} e^{-t} \\sin (2 t),\\quad \\mathcal{L}^{-1}\\left\\{-\\frac{s}{2 \\left(s^2+2 s+5\\right)}\\right\\}=\\frac{1}{4} e^{-t} (\\sin (2 t)-2 \\cos (2 t))$\n- 说明：利用公式 $\\mathcal{L}^{-1}\\{\\frac{1}{s+a}\\} = e^{-at}$ 和 $\\mathcal{L}^{-1}\\{\\frac{s+a}{(s+a)^2+\\omega^2}\\}, \\mathcal{L}^{-1}\\{\\frac{\\omega}{(s+a)^2+\\omega^2}\\}$ 进行匹配。\n\n**第 11 步：逐项逆变换**\n- 操作标识：inverse_laplace_transform\n- 输入：$\\frac{1-s}{2 \\left(s^2+2 s+5\\right)}+\\frac{1}{2 (s+1)}$\n- 输出：$\\frac{e^{-t}}{2}+\\frac{1}{4} e^{-t} \\sin (2 t)+\\frac{1}{4} e^{-t} (\\sin (2 t)-2 \\cos (2 t))$\n- 说明：对分解后的各项分别进行逆变换并求和。\n\n**第 12 步：合并结果**\n- 操作标识：final_result\n- 输入：$\\frac{e^{-t}}{2}+\\frac{1}{4} e^{-t} \\sin (2 t)+\\frac{1}{4} e^{-t} (\\sin (2 t)-2 \\cos (2 t))$\n- 输出：$e^{-t} \\sin (t) (\\sin (t)+\\cos (t))$\n- 说明：化简三角函数项，合并同类项得到最终时域表达式。\n\n## 最终答案\n$$e^{-t} \\sin (t) (\\sin (t)+\\cos (t))$$\n\n## 验算\n\n**第 13 步：验证拉普拉斯变换往返**\n- 操作标识：verify_laplace_round_trip\n- 输入：$\\frac{"
+}

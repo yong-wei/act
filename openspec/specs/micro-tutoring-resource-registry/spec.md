@@ -2,7 +2,6 @@
 
 ## Purpose
 定义从 TeachingResource 与资源注册表派生的微辅导资源治理投影：按 `kn:` 节点和受控错因复用已审核资源，绑定 registry 身份、revision、学生可见启动地址和学习动作。本投影不是第二套资源正文权威，也不表示 54/54 运行时已完成。
-
 ## Requirements
 ### Requirement: 微辅导资源投影复用现有资源 authority
 
@@ -45,4 +44,20 @@ Git 资源注册输入、数据库 TeachingResource 投影和图谱节点目录 
 - **WHEN** 资源投影的数据库 capture revision 不等于覆盖审计的 Git capture revision
 - **THEN** 系统 SHALL 报告 `REFERENCE_DRIFT`
 - **AND** 不得把任何受影响资源计入完整覆盖
+
+### Requirement: v2 资源投影覆盖全部当前错误选项错因
+
+系统 SHALL 从 `micro-tutoring-option-attributions-v2`（工件版本 `micro-tutoring-option-attributions.v3`）派生独立的 v2 资源投影文件 `micro-tutoring-resource-projection-v2.json`，版本为 `micro-tutoring-resource-projection.v2`。投影 MUST 覆盖该目录中每个唯一 `knowledgeNodeId` 与 `misconceptionTag` 对，使 v2 分母中每个错误选项都能解析到至少一个当前有效、学生可见、可启动的学习资源。v1 资源投影文件 `micro-tutoring-resource-projection.json` 与资格回执 MUST 保持只读历史兼容，不得被原地扩写。
+
+#### Scenario: 当前 v2 错因都有合格资源
+
+- **WHEN** 加载当前 v2 选项归因目录与资源投影
+- **THEN** 每个唯一节点/错因对都有一条学生可见资源关系
+- **AND** 每个 v2 错误选项都能解析到至少一个合格资源动作
+
+#### Scenario: 资源授权撤销
+
+- **WHEN** 匹配资源的学生可见性被撤销或 registry 身份不再有效
+- **THEN** 编排器 SHALL 返回稳定不可用原因
+- **AND** 不得继续创建可启动的学习任务
 

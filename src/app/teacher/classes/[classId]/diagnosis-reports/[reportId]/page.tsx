@@ -57,7 +57,6 @@ export default function TeacherDiagnosisReportPage() {
       projection={delivery.projection}
       actions={delivery.actions}
       dispositionEvents={delivery.dispositionEvents}
-      pdfHref={`/api/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(reportId)}/pdf?role=${role}`}
       dispositionHref={`/api/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(reportId)}/dispositions`}
       returnHref={`/teacher/classes/${encodeURIComponent(classId)}`}
       teacherMode={role === 'teacher'}

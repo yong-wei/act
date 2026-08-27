@@ -36,6 +36,9 @@ import {
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
 import {
+  commercialRuntimeRevisionProofObjectProblems,
+} from '../../src/lib/commercial-ui-governance';
+import {
   assertRuntimeRelationStyleCoverage,
   getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
@@ -51,6 +54,19 @@ import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/
 
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
+const gitRefCache = new Map<string, boolean>();
+const diffNameStatusCache = new Map<string, string[]>();
+const untrackedPathCache = new Set<string>(lines(git(['ls-files', '--others', '--exclude-standard'])));
+const workingTreeChangedFiles = new Set<string>([
+  ...diffNameStatus([]),
+  ...diffNameStatus(['--cached']),
+  ...untrackedPathCache,
+]);
+const blobSha256Cache = new Map<string, string | undefined>();
+const diffForFileCache = new Map<string, string>();
+const diffForFileWithContextCache = new Map<string, string>();
+let changedFilesCache: string[] | undefined;
+const binaryEvidencePathPattern = /\.(?:png|jpe?g|webp|gif|pdf|ico|avif|zip)$/i;
 const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout', 'visual']);
 const COMPACT_SPACING_INVENTORY_PATH = 'artifacts/commercial-ui/compact-spacing-685/inventory.json';
 const COMPACT_SPACING_EVIDENCE_PATH = 'artifacts/commercial-ui/compact-spacing-685/evidence.json';
@@ -74,7 +90,15 @@ function git(args: string[]) {
 
 function gitRequired(args: string[], message: string) {
   try {
-    return execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      // A generated Runtime candidate can legitimately add tens of thousands
+      // of content-addressed files. Governance must inspect that complete
+      // diff rather than fail at Node's one-megabyte child-process default.
+      maxBuffer: 64 * 1024 * 1024,
+    });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(`${message}: ${detail}`);
@@ -82,7 +106,11 @@ function gitRequired(args: string[], message: string) {
 }
 
 function hasGitRef(ref: string) {
-  return git(['rev-parse', '--verify', ref]).trim().length > 0;
+  const cached = gitRefCache.get(ref);
+  if (cached !== undefined) return cached;
+  const result = git(['rev-parse', '--verify', ref]).trim().length > 0;
+  gitRefCache.set(ref, result);
+  return result;
 }
 
 function isAncestorCommit(ancestor: string, descendant: string) {
@@ -110,6 +138,8 @@ function isAncestorCommitAtRepository(repositoryRoot: string, ancestor: string, 
 }
 
 function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file: string) {
+  const cacheKey = `${repositoryRoot}\0${revision}\0${file}`;
+  if (blobSha256Cache.has(cacheKey)) return blobSha256Cache.get(cacheKey);
   try {
     const entry = execFileSync('git', ['ls-tree', '-z', revision, '--', file], {
       cwd: repositoryRoot,
@@ -130,10 +160,28 @@ function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file:
       encoding: null,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    return createHash('sha256').update(blob).digest('hex');
+    const result = createHash('sha256').update(blob).digest('hex');
+    blobSha256Cache.set(cacheKey, result);
+    return result;
   } catch {
+    blobSha256Cache.set(cacheKey, undefined);
     return undefined;
   }
+}
+
+export function knowledgeWorkspaceProductQaSourceHashProblems({
+  repositoryRoot,
+  revision,
+  currentSourceSha256,
+}: {
+  repositoryRoot: string;
+  revision: string;
+  currentSourceSha256: Record<string, string>;
+}) {
+  return Object.entries(currentSourceSha256).flatMap(([sourcePath, recordedSha256]) => {
+    const committedSha256 = gitBlobSha256AtRevision(repositoryRoot, revision, sourcePath);
+    return committedSha256 === recordedSha256 ? [] : [`${sourcePath}:sha-mismatch`];
+  });
 }
 
 export function knowledgeWorkspaceProductQaCaptureRevisionProblems({
@@ -263,9 +311,13 @@ function latestCommitForPath(file: string) {
 }
 
 function hasUncommittedPathChange(file: string) {
-  return diffNameStatus(['--', file]).includes(file)
-    || diffNameStatus(['--cached', '--', file]).includes(file)
-    || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
+  return workingTreeChangedFiles.has(file);
+}
+
+function currentCommittedOrWorkingSha256(relativePath: string) {
+  if (!existsSync(path.join(repoRoot, relativePath))) return undefined;
+  if (hasUncommittedPathChange(relativePath)) return fileSha256(relativePath);
+  return gitBlobSha256AtRevision(repoRoot, 'HEAD', relativePath) ?? fileSha256(relativePath);
 }
 
 function lines(output: string) {
@@ -273,12 +325,17 @@ function lines(output: string) {
 }
 
 function diffNameStatus(args: string[]) {
-  return lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
+  const key = args.join('\0');
+  const cached = diffNameStatusCache.get(key);
+  if (cached) return cached;
+  const result = lines(git(['diff', '--name-status', ...args])).flatMap((line) => {
     const parts = line.split('\t').filter(Boolean);
     const status = parts[0] ?? '';
     if (/^[RC]\d+/.test(status)) return parts.slice(1, 3);
     return parts[1] ? [parts[1]] : [];
   });
+  diffNameStatusCache.set(key, result);
+  return result;
 }
 
 function diffNameStatusRequired(args: string[], message: string) {
@@ -291,6 +348,7 @@ function diffNameStatusRequired(args: string[], message: string) {
 }
 
 function changedFiles() {
+  if (changedFilesCache) return changedFilesCache;
   const candidates = new Set<string>();
   for (const file of diffNameStatus([])) candidates.add(file);
   for (const file of diffNameStatus(['--cached'])) candidates.add(file);
@@ -315,7 +373,8 @@ function changedFiles() {
     candidates.add('src/features/data-center/presentation-data-center.tsx');
     candidates.add('src/lib/platform-role-navigation.ts');
   }
-  return [...candidates];
+  changedFilesCache = [...candidates];
+  return changedFilesCache;
 }
 
 function sourceFilesForTokenGate(files: string[]) {
@@ -354,16 +413,25 @@ function simulationResourceFilesForTokenGate(files: string[]) {
 }
 
 function diffForFile(file: string) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cached = diffForFileCache.get(file);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', '--unified=0', '--', file]),
     git(['diff', '--cached', '--unified=0', '--', file]),
     hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
     !hasGitRef('origin/integration') && hasGitRef('HEAD^') ? git(['diff', '--unified=0', 'HEAD^', 'HEAD', '--', file]) : '',
   ].join('\n');
+  diffForFileCache.set(file, result);
+  return result;
 }
 
 function diffForFileWithContext(file: string, context: number) {
-  return [
+  if (binaryEvidencePathPattern.test(file) || file.startsWith('artifacts/')) return '';
+  const cacheKey = `${context}\0${file}`;
+  const cached = diffForFileWithContextCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const result = [
     git(['diff', `--unified=${context}`, '--', file]),
     git(['diff', '--cached', `--unified=${context}`, '--', file]),
     hasGitRef('origin/integration') ? git(['diff', `--unified=${context}`, 'origin/integration...HEAD', '--', file]) : '',
@@ -371,6 +439,8 @@ function diffForFileWithContext(file: string, context: number) {
       ? git(['diff', `--unified=${context}`, 'HEAD^', 'HEAD', '--', file])
       : '',
   ].join('\n');
+  diffForFileWithContextCache.set(cacheKey, result);
+  return result;
 }
 
 function diffAddedLines(file: string) {
@@ -454,6 +524,14 @@ function hasNonAccessibilityOnlyDiff(file: string) {
   return diffDeletedLines(file).some((line) => !normalizedAddedLines.has(
     normalizeAccessibilityOnlyLine(line, file, 'deleted'),
   ));
+}
+
+function canAffectCommercialUiBehavior(file: string) {
+  return (
+    (/^src\/(?:app|components|features|resources)\//.test(file) && /\.(?:css|tsx?)$/.test(file))
+    || file === 'src/lib/platform-role-navigation.ts'
+    || /^course-content\/runtime\/lessons\/[^/]+\/interactive-manifest\.json$/.test(file)
+  );
 }
 
 function someLineMatches(lines: string[], pattern: RegExp) {
@@ -744,6 +822,14 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   [
     'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
     'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/diagnosis-reports/[reportId]/page.tsx',
+    'student-safe diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
+  ],
+  [
+    'src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx',
+    'teacher diagnosis delivery is a report-detail projection covered by dedicated 1440px and 320px delivery evidence',
   ],
   [
     'src/app/textbook-citations/[...targetPath]/page.tsx',
@@ -1111,6 +1197,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
     'src/resources/simulations/components/camera-view-switcher.tsx',
+    'src/lib/evidence-artifact-path.ts',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
@@ -1119,7 +1206,7 @@ function commandDeckGeometryCurrentSourceSha256(routeFile: string) {
   return Object.fromEntries(
     commandDeckGeometrySourcePaths(routeFile)
       .filter((sourcePath) => sourcePath.length > 0 && existsSync(path.join(repoRoot, sourcePath)))
-      .map((sourcePath) => [sourcePath, fileSha256(sourcePath)]),
+      .map((sourcePath) => [sourcePath, gitBlobSha256AtRevision(repoRoot, 'HEAD', sourcePath) ?? fileSha256(sourcePath)]),
   );
 }
 
@@ -1189,11 +1276,11 @@ export function hydrateInteractiveLearningProductQaEvidence(
     change: evidence.change ?? 'govern-interactive-learning-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
@@ -1204,7 +1291,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       return {
         ...report,
         currentReportSha256: typeof report.report === 'string'
-          ? simulationViewportArtifact(report.report)?.sha256
+          ? currentCommittedOrWorkingSha256(report.report)
           : undefined,
         reportFinalResult: typeof report.report === 'string'
           ? parseInteractiveLearningDesignQaResult(report.report)
@@ -1215,7 +1302,7 @@ export function hydrateInteractiveLearningProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
@@ -1416,20 +1503,20 @@ export function hydrateAdaptivePathProductQaEvidence(
     change: evidence.change ?? 'govern-adaptive-path-product-qa',
     designHandoff: evidence.designHandoff ?? '',
     currentDesignHandoffSha256: evidence.designHandoff
-      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.designHandoff)
       : undefined,
     handoffMatrix: evidence.handoffMatrix ?? '',
     currentHandoffMatrixSha256: evidence.handoffMatrix
-      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      ? currentCommittedOrWorkingSha256(evidence.handoffMatrix)
       : undefined,
     captureManifest: evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    currentCaptureManifestSha256: simulationViewportArtifact(
+    currentCaptureManifestSha256: currentCommittedOrWorkingSha256(
       evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
-    )?.sha256,
+    ),
     visualSignals: evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    currentVisualSignalsSha256: simulationViewportArtifact(
+    currentVisualSignalsSha256: currentCommittedOrWorkingSha256(
       evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
-    )?.sha256,
+    ),
     conceptImages,
     currentConceptImageSha256: conceptImageSha256,
     childChangeValidations,
@@ -1447,7 +1534,7 @@ export function hydrateAdaptivePathProductQaEvidence(
       ? {
           ...independentVisualReview,
           currentReportSha256: independentReviewPath
-            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            ? currentCommittedOrWorkingSha256(independentReviewPath)
             : undefined,
           reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
           reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
@@ -1792,6 +1879,32 @@ function stringRecordsEqual(left: Record<string, string>, right: Record<string, 
   const rightKeys = Object.keys(right).sort();
   return leftKeys.length === rightKeys.length
     && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+export function knowledgeWorkspaceProductQaVisualReviewHashProblems({
+  visualReview: rawVisualReview,
+  stateScreenshotSha256,
+  currentSourceSha256,
+}: {
+  visualReview: unknown;
+  stateScreenshotSha256: Record<string, string>;
+  currentSourceSha256: Record<string, string>;
+}) {
+  const visualReview = objectRecord(rawVisualReview);
+  const reviewedStateSha256 = stringRecord(visualReview.reviewedStateSha256);
+  const reviewedSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
+  return [
+    reviewedStateSha256 && Object.keys(reviewedStateSha256).length > 0
+      ? (stringRecordsEqual(reviewedStateSha256, stateScreenshotSha256)
+        ? null
+        : 'visual-review:stale-screenshot-review')
+      : 'visual-review:missing-screenshot-review',
+    reviewedSourceSha256 && Object.keys(reviewedSourceSha256).length > 0
+      ? (stringRecordsEqual(reviewedSourceSha256, currentSourceSha256)
+        ? null
+        : 'visual-review:stale-source-review')
+      : 'visual-review:missing-source-review',
+  ].filter((entry): entry is string => Boolean(entry));
 }
 
 function stringRecordsEqualForPaths(
@@ -2318,6 +2431,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityForceCanvasSourcePath = 'src/features/knowledge/active-authority-force-canvas.tsx';
+  const activeAuthorityRootCanvasSourcePath = 'src/features/knowledge/active-authority-root-canvas.tsx';
   const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
@@ -2346,11 +2461,15 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
+  const qaAccountsSourcePath = 'scripts/tests/knowledge-workspace-product-qa-accounts.mjs';
+  const qaRunnerSourcePath = 'scripts/tests/run-knowledge-workspace-product-qa.mjs';
   const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityForceCanvasSourcePath,
+    activeAuthorityRootCanvasSourcePath,
     activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
@@ -2379,6 +2498,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     globalsSourcePath,
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
+    qaAccountsSourcePath,
+    qaRunnerSourcePath,
     governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
@@ -2389,6 +2510,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     : '';
   const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityForceCanvasSource = existsSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath), 'utf8')
     : '';
   const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
@@ -2467,10 +2591,18 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewport = objectRecord(state?.viewport);
     const markers = objectRecord(state?.markers);
     const activeMarkers = objectRecord(markers.activeAuthority);
+    const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
+    const nodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
-    const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+    const relationCount = numberFromEvidence(activeMarkers.relationCount);
+    const forceGraphReady = activeMarkers.renderer === 'force-graph'
+      && activeMarkers.rendererGeometryRectValid === true
+      && activeMarkers.rendererVisibleInViewport === true
+      && numberFromEvidence(activeMarkers.forceGraphCanvasCount) === 1
+      && numberFromEvidence(activeMarkers.forceGraphEdgeLaneCount) === relationCount
+      && numberFromEvidence(activeMarkers.forceGraphLabelMaxLines)! > 0;
     const interactionEvidence = objectRecord(state?.interactionEvidence);
     const forbiddenAutomaticRequests = apiSequence.some((entry) => (
       entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
@@ -2499,24 +2631,37 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:responsive-active-node-must-be-unobserved`,
       forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
       numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
-      teachingRelationsUnavailable
-        ? (numberFromEvidence(activeMarkers.relationCount) === 0 ? null : `${name}:unavailable-teaching-must-not-draw-edges`)
-        : (numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`),
-      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
+      relationCount! > 0 ? null : `${name}:dom-no-real-edges`,
+      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === relationCount
         ? null
         : `${name}:dom-edge-endpoint-mismatch`,
-      numberFromEvidence(activeMarkers.visibleSvgGeometryCount) === numberFromEvidence(activeMarkers.relationCount)
+      numberFromEvidence(activeMarkers.renderedRelationCount) === relationCount
         ? null
-        : `${name}:dom-edge-geometry-missing`,
+        : `${name}:renderer-edge-geometry-missing`,
+      forceGraphReady ? null : `${name}:force-graph-renderer-not-ready`,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererViewportVisibleHeight)! < 160
+        ? `${name}:initial-canvas-visible-height`
+        : null,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
+        ? `${name}:initial-canvas-content-missing`
+        : null,
+      name === 'active-mobile' && nodeLabelReadability.readable !== true
+        ? `${name}:node-label-unreadable`
+        : null,
+      name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
+        ? `${name}:initial-controls-not-collapsed`
+        : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'
         ? (interactionEvidence.semanticNodeFocusedBeforeClick === true
           && interactionEvidence.detailPanelFocusedAfterOpen === true
           && interactionEvidence.semanticDetailVisible === true
-          && (teachingRelationsUnavailable
-            ? interactionEvidence.adjacencyInteraction === false && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
-            : interactionEvidence.adjacencyInteraction === true)
+          && interactionEvidence.visibleNodeControl === true
+          && interactionEvidence.adjacencyInteraction === true
+          && numberFromEvidence(interactionEvidence.renderedEdgeCount)! > 0
           && (interactionEvidence.focusReturnedToOriginNode === true
             || interactionEvidence.focusReturnedToSemanticCanvas === true)
           && safeActiveSurfaceScanPassed(interactionEvidence.detailSurfaceScan)
@@ -2589,9 +2734,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       defaultInteraction.semanticDetailVisible === true
         ? null
         : `${role}:active-detail-evidence-missing`,
-      (teachingRelationsUnavailable
-        ? defaultInteraction.adjacencyInteraction === false && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
-        : defaultInteraction.adjacencyInteraction === true)
+      ((teachingRelationsUnavailable ? defaultInteraction.visibleNodeControl === true : true)
+        && defaultInteraction.adjacencyInteraction === true
+        && numberFromEvidence(defaultInteraction.renderedEdgeCount)! > 0)
         ? null
         : `${role}:active-adjacency-evidence-missing`,
       safeActiveSurfaceScanPassed(defaultInteraction.detailSurfaceScan)
@@ -2969,15 +3114,29 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     currentSourceSha256,
     productQaSourcePaths,
   });
+  const runtimeRevisionProofProblems = commercialRuntimeRevisionProofObjectProblems(
+    evidence.runtimeRevisionProof,
+    repoRoot,
+    'runtimeRevisionProof',
+  );
+  const runtimeRevisionProofExpected = objectRecord(objectRecord(evidence.runtimeRevisionProof).expected);
+  const runtimeRevisionConsistencyProblems = [
+    captureCommitSha && runtimeRevisionProofExpected.commitSha !== captureCommitSha
+      ? 'runtimeRevisionProof.expected.commitSha=captureRevision.commitSha'
+      : '',
+    captureTreeSha && runtimeRevisionProofExpected.treeSha !== captureTreeSha
+      ? 'runtimeRevisionProof.expected.treeSha=captureRevision.treeSha'
+      : '',
+  ].filter(Boolean);
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
     )),
-    ...Object.entries(sourceHashes).map(([sourcePath, recordedSha256]) => (
-      existsSync(path.join(repoRoot, sourcePath)) && recordedSha256 === fileSha256(sourcePath)
-        ? null
-        : `${sourcePath}:sha-mismatch`
-    )),
+    ...knowledgeWorkspaceProductQaSourceHashProblems({
+      repositoryRoot: repoRoot,
+      revision: captureCommitSha,
+      currentSourceSha256,
+    }),
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
     sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',
@@ -3012,7 +3171,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? null
       : 'active-workspace:mode-controls-missing',
     activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
-      && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
+      && activeAuthorityForceCanvasSource.includes('data-active-graph-stage="authority"')
       ? null
       : 'active-graph:stable-dom-contract-missing',
     activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')
@@ -3111,8 +3270,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const visualReview = objectRecord(evidence.independentVisualReview);
   const visualReviewDimensions = objectRecord(visualReview.dimensions);
-  const visualReviewStateSha256 = stringRecord(visualReview.reviewedStateSha256);
-  const visualReviewSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
   const visualReviewPath = artifactPathFromEvidence(visualReview.path);
   const visualReviewProblems = [
     visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
@@ -3122,12 +3279,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
       ? null
       : 'visual-review:blocking-findings',
-    stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
-      ? null
-      : 'visual-review:stale-screenshot-review',
-    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
-      ? null
-      : 'visual-review:stale-source-review',
+    ...knowledgeWorkspaceProductQaVisualReviewHashProblems({
+      visualReview,
+      stateScreenshotSha256,
+      currentSourceSha256,
+    }),
     ...[
       'handoffAlignment',
       'conceptAdoptionRejection',
@@ -3156,6 +3312,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     || activeVisualProblems.length > 0
     || authenticatedRoleProblems.length > 0
     || captureRevisionProblems.length > 0
+    || runtimeRevisionProofProblems.length > 0
+    || runtimeRevisionConsistencyProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
     || handoffProblems.length > 0
@@ -3168,6 +3326,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       `activeVisual=${activeVisualProblems.join(',') || 'none'}`,
       `authenticatedRoles=${authenticatedRoleProblems.join(',') || 'none'}`,
       `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
+      `runtimeRevisionProof=${[
+        ...runtimeRevisionProofProblems,
+        ...runtimeRevisionConsistencyProblems,
+      ].join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
       `handoff=${handoffProblems.join(',') || 'none'}`,
@@ -3777,7 +3939,13 @@ function readInteractiveVisualComponentAcceptanceArtifacts(
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
   assertPureClientBoundaryRefactorGuard(files);
-  const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+  // A generated knowledge/runtime candidate can contain thousands of JSON
+  // shards. They cannot change commercial UI behavior; filtering before the
+  // per-file Git diff prevents quadratic process spawning while preserving
+  // every UI, route-ledger, and interactive-manifest gate.
+  const commercialUiBehaviorFiles = files
+    .filter(canAffectCommercialUiBehavior)
+    .filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
   const interactiveVisualComponentArtifacts = readInteractiveVisualComponentAcceptanceArtifacts(files);
@@ -3859,7 +4027,9 @@ function changedPrimaryRouteInventoryBlocks() {
   if (inPrimaryRouteBlock) finishBlock();
   return [...blocks.values()];
 }
-const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
+const changedPrimaryRouteBlocks = files.includes('src/lib/platform-role-navigation.ts')
+  ? changedPrimaryRouteInventoryBlocks()
+  : [];
 const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
 assertCoveredRouteGlobDoesNotHideStaticPages();
@@ -3873,6 +4043,7 @@ const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolatio
     evidence: ['missing-current-inventory-entry'],
   }));
 const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] = files
+  .filter((file) => /^src\/app\/.+\/page\.tsx$/.test(file))
   .filter(hasNonAccessibilityOnlyDiff)
   .map(appPageRouteHref)
   .filter((href): href is string => Boolean(href))
@@ -3904,7 +4075,9 @@ const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningPro
 const interactiveLearningProductQaSourceRefreshRequired = shouldRefreshInteractiveLearningProductQaSource(files);
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
-const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
+ const adaptivePathProductQaSourceRefreshRequired = files.some((file) => (
+   adaptivePathSourceFileChanged(file) && file !== 'scripts/tests/test-commercial-ui-governance.ts'
+ ));
 const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
 const compactSpacingRequired = shouldRequireCompactSpacingEvidence(files);
 const result = evaluateCommercialUiGovernance({

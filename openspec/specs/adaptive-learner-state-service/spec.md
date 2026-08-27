@@ -258,6 +258,11 @@ fall back to a legacy snapshot, feature cache, old
 - **THEN** consumers SHALL NOT read legacy `StudentPortraitV2Snapshot`, `StudentEvidenceFeatureCache`, `StudentCompetencySnapshot`, or legacy competency vector values as portrait input
 - **AND** the learner SHALL be treated as having no trusted evidence for personalization.
 
+#### Scenario: AI Workshop consumes learner state
+- **WHEN** the AI Workshop reads learner state
+- **THEN** it SHALL use the server-owned response and its explicit portrait/evidence state
+- **AND** it SHALL render `NO_EVIDENCE` or `UNAVAILABLE` as a limitation rather than deriving a legacy or sample profile.
+
 ### Requirement: Learner portrait is cumulative and evidence-triggered
 The learner-state service SHALL expose one canonical cumulative portrait v2
 formed from all trusted eligible learning facts for the learner. The portrait
@@ -425,6 +430,11 @@ The learner-state service SHALL expose the task-normalized `simulationValidation
 - **WHEN** the learner has no eligible task contribution for the simulation dimension
 - **THEN** learner state preserves an explicit no-evidence limitation for that dimension
 - **AND** it SHALL NOT present a synthetic zero-valued simulation capability
+
+#### Scenario: AI Workshop has no eligible simulation evidence
+- **WHEN** no eligible simulation task contribution exists
+- **THEN** the AI Workshop SHALL show no verified simulation record
+- **AND** it SHALL not substitute a hard-coded experiment count, score, duration, or unlocked state.
 
 ### Requirement: Learner-state producers obey the active knowledge authority selector
 Every governed knowledge-scoped producer MUST resolve one active knowledge authority and write through the corresponding fixed-identity adapter.

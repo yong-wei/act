@@ -120,6 +120,7 @@ const shardEnvelope: AuthorityShardPublicEnvelope = {
   contract: 'act-authority-shard-envelope/v1' as const,
   authorityCatalogVersion: 'acv-test-shards',
   teachingVersion: null,
+  localeProfileVersion: 'alp-test-historical-zh-CN',
   match: { authority: true as const, catalog: true as const, teaching: null },
 };
 
@@ -402,10 +403,18 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => button!.click());
     await act(async () => Promise.resolve());
     if (options.families === false) return;
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    const restoreMobileTools = mobileToolsToggle?.getAttribute('aria-expanded') === 'false';
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
+    }
     for (const family of ['association', 'application-and-analysis'] as const) {
       const familyButton = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
       expect(familyButton).not.toBeNull();
       await act(async () => familyButton!.click());
+    }
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
     }
     await act(async () => Promise.resolve());
   }
@@ -642,7 +651,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+    expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
   it('fails closed when a relation-family response reports identity drift without an envelope', async () => {
@@ -667,7 +676,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+    expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
   it('rolls back an optimistic relation-family enable and exposes a retry after a load failure', async () => {
@@ -729,7 +738,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+    expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
   it('keeps the canvas visible and exposes a retry after a neighborhood load failure', async () => {
@@ -802,7 +811,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); });
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+    expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
   it('fails closed when a node-detail response reports identity drift without an envelope', async () => {
@@ -827,7 +836,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(container.querySelector('[data-active-graph-stage]')).toBeNull();
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('当前 Authority 身份发生漂移');
+    expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
   it('invalidates Teaching caches when family, neighborhood, or detail observes a new identity', () => {
@@ -881,7 +890,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-graph-stage="authority"]')).not.toBeNull();
     expect(container.textContent).toContain('当前知识图谱');
-    expect(container.querySelector('[aria-label="当前 Authority 语义关系画布"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="新版语义关系画布"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-inspector-surface]')).toBeNull();
     expect(container.textContent).not.toContain('internal-release');
     expect(container.textContent).not.toContain('internal-snapshot');
     expect(container.textContent).not.toContain('future_internal');
@@ -898,6 +908,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     const detail = container.querySelector('[data-active-node-detail]');
     expect(detail).not.toBeNull();
+    expect(container.querySelector('[data-active-inspector-surface="desktop-overlay"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node-type-label]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node-label-placement="below"]')).not.toBeNull();
     expect(document.activeElement).toBe(detail);
     expect(container.textContent).toContain('来源定位暂不可用');
     expect(container.textContent).not.toContain('internal-edition');
@@ -917,21 +930,43 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
 
     await act(async () => {
-      [...container.querySelectorAll('button')].find((button) => button.textContent === '历史 Legacy')!.click();
+      [...container.querySelectorAll('button')].find((button) => button.textContent === '旧版')!.click();
     });
     expect(container.querySelector('[data-legacy="true"]')).not.toBeNull();
     await act(async () => {
-      [...container.querySelectorAll('button')].find((button) => button.textContent === '当前 Authority')!.click();
+      [...container.querySelectorAll('button')].find((button) => button.textContent === '新版')!.click();
     });
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-authority-graph="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-node-detail]')).toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested[0]).toBe('/api/knowledge/shards/active');
     expect(requested).toContain('/api/knowledge/shards/active/domains/modeling');
     expect(requested).toContain('/api/knowledge/shards/active/nodes/node-concept');
     expect(requested.some((url) => url.includes('/graph/active'))).toBe(false);
     expect(requested.every((url) => url.includes('/active'))).toBe(true);
+  });
+
+  it('contains mobile inspector keyboard focus in a dialog drawer', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      await Promise.resolve();
+    });
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    const drawer = container.querySelector('[data-active-inspector-surface="mobile-drawer"]');
+    expect(drawer).not.toBeNull();
+    expect(drawer?.getAttribute('role')).toBe('dialog');
+    expect(drawer?.getAttribute('aria-modal')).toBe('true');
+    expect(drawer?.getAttribute('data-active-inspector-focus-contract')).toBe('mobile-contained-drawer');
+    expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
   });
 
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {
@@ -1064,8 +1099,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    expect(container.querySelector('[data-active-authority-node="node-isolated"]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-model"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-isolated"]')).not.toBeNull();
 
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter');
     expect(filter).not.toBeNull();
@@ -1073,6 +1110,29 @@ describe('active Authority knowledge workspace client boundary', () => {
       filter!.value = 'Formula';
       filter!.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+  });
+
+  it('materializes both endpoints of published teaching relations even when one is a secondary type', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) {
+        return mockResponse(domainDefaultShard(canvas.nodes, [], {
+          teachingRelations: [teachingRelation('teaching-formula', 'node-concept', 'node-formula')],
+          teachingCoverage: { status: 'available', relationCount: 1, coreNodeCount: 2, note: '已发布教学顺序' },
+        }));
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    expect(container.querySelector('[data-active-authority-relation="teaching-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
   });
 
@@ -1136,15 +1196,39 @@ describe('active Authority knowledge workspace client boundary', () => {
       await new Promise((resolve) => window.setTimeout(resolve, 5));
     });
     expect(document.activeElement?.getAttribute('data-active-authority-node')).toBe('node-isolated');
-    expect(container.querySelector('[aria-label="放大图谱"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="缩小图谱"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="重置图谱视图"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-dimension="3d"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
     const filter = container.querySelector<HTMLSelectElement>('#active-authority-type-filter')!;
     await act(async () => {
       filter.value = 'Formula';
       filter.dispatchEvent(new Event('change', { bubbles: true }));
     });
     expect(container.textContent).toContain('公式');
+  });
+
+  it('keeps a visible, focusable node directory when relations are unavailable', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: true });
+
+    const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="visible"]');
+    const node = container.querySelector<HTMLButtonElement>('[data-active-authority-visible-node="true"][data-active-authority-node="node-concept"]');
+    expect(directory).not.toBeNull();
+    expect(node).not.toBeNull();
+    expect(node?.textContent).toContain('稳定性');
+
+    await act(async () => node!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(node?.dataset.activeAuthorityNodeSelected).toBe('true');
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await new Promise((resolve) => window.setTimeout(resolve, 5));
+    });
+    expect(document.activeElement).toBe(node);
   });
 
   it('enters a boundary node owning domain before selecting it and loading its neighborhood', async () => {
@@ -1352,26 +1436,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     await enterModelingDomain();
 
-    const directedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-applies"] line');
-    const unorderedLine = container.querySelector<SVGLineElement>('[data-active-authority-relation="relation-association"] line');
-    const targetPolygon = container.querySelector<SVGGElement>('[data-active-authority-node="node-model"] polygon');
-    expect(directedLine).not.toBeNull();
-    expect(unorderedLine).not.toBeNull();
-    expect(targetPolygon).not.toBeNull();
-    expect(directedLine?.getAttribute('marker-end')).toBe('url(#active-authority-arrow)');
-    expect(unorderedLine?.getAttribute('marker-end')).toBeNull();
-
-    const targetVertices = targetPolygon?.getAttribute('points')?.split(' ').map((vertex) => vertex.split(',').map(Number)) ?? [];
-    const targetCenter = {
-      x: targetVertices.reduce((sum, [x]) => sum + x, 0) / targetVertices.length,
-      y: targetVertices.reduce((sum, [, y]) => sum + y, 0) / targetVertices.length,
-    };
-    const targetEndpoint = {
-      x: Number(directedLine?.getAttribute('x2')),
-      y: Number(directedLine?.getAttribute('y2')),
-    };
-    expect(Math.hypot(targetEndpoint.x - targetCenter.x, targetEndpoint.y - targetCenter.y)).toBeGreaterThan(20);
-    expect(targetEndpoint.y).not.toBeCloseTo(targetCenter.y, 5);
+    const directed = container.querySelector('[data-active-authority-relation="relation-applies"]');
+    const unordered = container.querySelector('[data-active-authority-relation="relation-association"]');
+    expect(directed?.getAttribute('data-active-authority-relation-kind')).toBe('directed');
+    expect(unordered?.getAttribute('data-active-authority-relation-kind')).toBe('undirected');
 
     const horizontalEndpoints = activeAuthorityEdgeEndpoints(
       'circle',
@@ -1379,9 +1447,9 @@ describe('active Authority knowledge workspace client boundary', () => {
       { x: 100, y: 100 },
       { x: 300, y: 100 },
     );
-    expect(horizontalEndpoints.source.x).toBeCloseTo(130, 5);
-    expect(horizontalEndpoints.target.x).toBeCloseTo(258, 5);
-    expect(activeAuthorityNodeBoundaryPoint('diamond', { x: 200, y: 100 }, { x: 300, y: 100 }).x).toBeCloseTo(242, 5);
+    expect(horizontalEndpoints.source.x).toBeCloseTo(118, 5);
+    expect(horizontalEndpoints.target.x).toBeCloseTo(276, 5);
+    expect(activeAuthorityNodeBoundaryPoint('diamond', { x: 200, y: 100 }, { x: 300, y: 100 }).x).toBeCloseTo(224, 5);
   });
 
   it('does not describe an unordered association with outgoing or incoming traversal', async () => {
@@ -1416,8 +1484,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     const nonIncident = container.querySelector<SVGGElement>('[data-active-authority-relation="relation-applies"]');
     expect(incident?.getAttribute('data-active-authority-relation-selected')).toBe('true');
     expect(nonIncident?.getAttribute('data-active-authority-relation-selected')).toBe('false');
-    expect(incident?.querySelector('line')?.getAttribute('stroke-width')).toBe('3');
-    expect(nonIncident?.querySelector('line')?.getAttribute('stroke-width')).toBe('2');
+    expect(incident).not.toBeNull();
+    expect(nonIncident).not.toBeNull();
   });
 
   it('moves detail focus when selecting a second node without closing the inspector', async () => {
@@ -1579,27 +1647,40 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
-    await enterModelingDomain();
+    await enterModelingDomain({ families: false });
 
-    const svg = container.querySelector<SVGSVGElement>('[data-active-authority-svg="true"]');
-    expect(svg).not.toBeNull();
-    expect(svg?.getAttribute('data-active-authority-viewport')).toBe('compact');
-    expect(svg?.getAttribute('data-active-authority-node-limit')).toBe('6');
-    expect(svg?.getAttribute('viewBox')).toBe('0 0 320 520');
-    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
-    const labels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-label]')];
-    expect(labels.length).toBeGreaterThan(0);
-    expect(labels.every((label) => Number(label.getAttribute('font-size')) >= 13)).toBe(true);
-    const typeLabels = [...container.querySelectorAll<SVGTextElement>('[data-active-authority-node-type-label]')];
-    expect(typeLabels.every((label) => Number(label.getAttribute('font-size')) >= 11)).toBe(true);
+    const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
+    expect(canvas).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-active-authority-node]')).toHaveLength(2);
+    expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(container.querySelector('#active-authority-mobile-tools')).toBeNull();
+
+    await act(async () => mobileToolsToggle!.click());
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('#active-authority-mobile-tools')).not.toBeNull();
+
+    const association = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(association).not.toBeNull();
+    await act(async () => association!.click());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-authority-relation]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
 
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     expect(graphSource).toContain('max-[639px]:pt-14');
     expect(graphSource).toContain('max-[639px]:flex-nowrap');
     expect(graphSource).toContain('max-[639px]:overflow-x-auto');
+    expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
+    expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
+    expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
+    const forceCanvasSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-force-canvas.tsx'), 'utf8');
+    expect(forceCanvasSource).toContain('labelPriority: compactLabelPriority');
   });
 
   it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
@@ -1733,6 +1814,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('if (!pathName.startsWith(prefix)) return null;');
     expect(captureSource).toContain('detailPanelFocusedAfterOpen');
     expect(captureSource).toContain('nodeLabelReadability');
+    expect(captureSource).toContain('data-knowledge-2d-dom-label-layer');
     expect(captureSource).toContain('minPixelSize');
     expect(captureSource).toContain('activeNodeLabelGeometryValid');
     expect(captureSource).toContain('nodeGeometryWithinSvgCount');
@@ -1742,6 +1824,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain("state.name === 'active-mobile'");
     expect(captureSource).toContain('titleControlsOverlap');
     expect(captureSource).toContain('nodeGeometryWithinViewportCount');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS');
+    expect(captureSource).toContain('rendererViewportVisibleHeight');
+    expect(captureSource).toContain('rendererVisiblePaintPixelCount');
+    expect(captureSource).toContain('nodeLabelsReadable');
+    expect(captureSource).toContain('mobileToolsExpanded');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
     expect(captureSource).toContain('firstViewport: {');
@@ -1750,6 +1838,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
+    const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
+    expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
+    expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
+    expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
+    expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
+    expect(governanceSource).toContain('initial-controls-not-collapsed');
   });
 
   it('fails closed before slicing unrelated Knowledge API paths', () => {

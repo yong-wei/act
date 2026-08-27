@@ -1,0 +1,30 @@
+{
+  "contract": "act-governed-math-upstream-repair/v1",
+  "releaseId": "ctr:release:control-theory-engineering-v0.37",
+  "releaseHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+  "items": [
+    {
+      "identityKey": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39:ctkg:v3e-object-7eff4a56f030e68b38e4fe61:formula_render:zh-CN:ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+      "documentId": "ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "fieldPath": "formula_render",
+      "locale": "zh-CN",
+      "mathAssetId": "ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "contentHash": "multiple-tag-strict-katex",
+      "reasonCode": "katex-strict-failed",
+      "trustedLatex": "\\dot{\\mathbf{x}} =\\mathbf{A} \\mathbf{x}+\\mathbf{B} u, \\tag{7.107a}\\\\ z =\\mathbf{C}_{1} \\mathbf{x}"
+    },
+    {
+      "identityKey": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39:ctkg:v3e-object-7eff4a56f030e68b38e4fe61:formula_render:en:ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseHash": "cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39",
+      "documentId": "ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "fieldPath": "formula_render",
+      "locale": "en",
+      "mathAssetId": "ctkg:v3e-object-7eff4a56f030e68b38e4fe61",
+      "contentHash": "multiple-tag-strict-katex",
+      "reasonCode": "katex-strict-failed"
+    }
+  ]
+}

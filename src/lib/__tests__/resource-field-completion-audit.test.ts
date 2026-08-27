@@ -835,7 +835,7 @@ describe('resource field completion audit', () => {
       ...input,
       frozenRows: legacyRows,
       materializationPhase: 'materialized',
-    })).toThrow('Frozen core semantic formal row mismatch');
+    })).toThrow('Frozen core semantic formal blocker projection mismatch');
     expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
       ...input,
       reviewItems: [
@@ -3727,7 +3727,7 @@ describe('resource field completion audit', () => {
           id: 'planner-selected-frequency',
           title: 'Planner selected frequency card',
           sourceRef: 'kn:autocontrol:frequency-response',
-          renderTarget: '/resources/knowledge-card:planner-selected-frequency',
+          renderTarget: '/knowledge',
           knowledgeNodeIds: ['kn:autocontrol:frequency-response'],
           planningOverride: { estimatedTimeMinutes: 5 },
         }],

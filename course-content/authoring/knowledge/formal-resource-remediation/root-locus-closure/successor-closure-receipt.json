@@ -1,0 +1,3127 @@
+{
+ "contract": "remediation-root-locus-closure-receipt/v1",
+ "sealedAt": "2026-08-24",
+ "domain": "root-locus",
+ "packId": "rp-fc7ced65674fde5f7a98fa9e",
+ "packRows": 309,
+ "totalDecisions": 309,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 45,
+  "NO_RELATION": 264,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "outcomes": [
+  {
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-01781c7700bbf33340d39614",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-046d539f3b7005bb49884851",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-110792a593c8f23f058bf750",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-160c78d3827065aca5585f55",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则7：复极点出射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则7：复极点出射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则7：复极点出射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点",
+     "src:3-2#两个边界点对应两种不同的临界根结构"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点",
+     "src:3-2#两个边界点对应两种不同的临界根结构"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点",
+     "src:3-2#两个边界点对应两种不同的临界根结构"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-35bacac12472ebce3fd8ca03",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3919da0292885d130aff2c77",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则2：分支数、连续性与实轴对称"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则2：分支数、连续性与实轴对称"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则2：分支数、连续性与实轴对称"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-44d931dcd9405d845e782f87",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-485febfa90a27cfcedd997ff",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据",
+     "src:terminology#根轨迹与时域（1-3）"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据",
+     "src:terminology#根轨迹与时域（1-3）"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据",
+     "src:terminology#根轨迹与时域（1-3）"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-67c03c5207c095a08e761361",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6b04c8283d317cd809eae369",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-6c5064d654265c2b32389beb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-73552d8da29fbd2073b5f21a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#动态性能指标的定义、公式与物理意义"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-8dbc090e09d5c07e280c6319",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#时域分析的研究对象、任务与典型输入"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#时域分析的研究对象、任务与典型输入"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#时域分析的研究对象、任务与典型输入"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-97c34f1eca6199404a4ccf79",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则8：复零点入射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则8：复零点入射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则8：复零点入射角"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则6：虚轴交点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a066f5e5a1852fcde776a250",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统四种典型响应形态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-a8b5ea28f2d127b68833e809",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b79da91dde120d5d6d3721cd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹完整法则"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-cd72ae39f59955a649bff662",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d25e6196c789c546f7a61064",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d81f72b09d08ab1f36c29305",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#引入：为什么稳定区间还不够"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#引入：为什么稳定区间还不够"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#引入：为什么稳定区间还不够"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#主导极点决定主要动态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#主导极点决定主要动态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#主导极点决定主要动态"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:2-2#二阶系统标准型与单位阶跃响应的严格表达"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则3：实轴区段判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则3：实轴区段判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则3：实轴区段判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#法则5：分离点与汇合点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "PUBLISHED_EDGE",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-25bef73ca6c64f3148fe711c",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-3cca6763977003965dc8eb7d",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-52b608fbcb40fa90981fb845",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-5acd63248314e82b98bb4baa",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-1#闭环极点先回答稳定性"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#幅值条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-8115508e073d25a13b9578ca",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-9812fcdb6565adbecc0367f1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-aecffbe88aa384070ea681b8",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f561e570652bc9be7eaa051b",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则4：渐近线条数、交点与角度"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f8084b28976c8ace6316b1d4",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#相角条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#相角条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-421039c1eb7bf803ef9de317",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#相角条件"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-455f0e568ad226bb8b617760",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#普通根轨迹的定义与两大判据"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctk:v11g-9840f883d2655d2a1322fb60",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#法则1：起点与终点"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "association",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "containment",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  },
+  {
+   "canonicalId": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+   "family": "prerequisite",
+   "finalDisposition": {
+    "kind": "NO_RELATION",
+    "evidenceRefs": [
+     "src:3-3#学习范围"
+    ]
+   }
+  }
+ ],
+ "decidedBy": "course-owner-yongwei (rule: corpus-exclusion-principles via codex review round2)",
+ "closureComplete": true,
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "supersedes": {
+  "sha256": "0471a226af75ba776d4c13dc16a37edb6bb3ccf3afe8d6ead65b907ecef4af14"
+ },
+ "decisionsProvenanceSha256": "0af88db7ec0838e9b60f68a6a25f711585d22e7208a628ae7588399cad97e11e",
+ "edgeEndpoints": 44,
+ "edgeEndpointsByFamily": {
+  "containment": 14,
+  "prerequisite": 15,
+  "association": 15
+ },
+ "droppedInvalidIds": 0
+}

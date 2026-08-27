@@ -168,6 +168,62 @@ describe('adaptive path candidate batches', () => {
     expect(learningPathUpdate).not.toHaveBeenCalled();
   });
 
+  it('freezes generation-time decision evidence onto batch metadata and candidate snapshots', async () => {
+    const { db } = dbFixture();
+    const generated = plan();
+    const decisionEvidence = {
+      snapshot: {
+        version: 'personalized-path-decision-evidence.v1' as const,
+        capturedAt: '2026-08-26T00:00:00.000Z',
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        learnerStateVersion: 'adaptive-learner-state.v1',
+        learnerStateGeneratedAt: '2026-08-25T00:00:00.000Z',
+        weakTargets: [],
+        preferredModalities: ['video'],
+        preferredModalityConfidence: 'medium',
+        evidenceWindow: null,
+        freshness: 'current' as const,
+        sourceCoverage: {},
+        missingEvidence: [],
+        limitations: [],
+        degradationReasons: [],
+      },
+      paths: [{
+        optionId: 'path-option-1',
+        styleId: 'foundation-remediation',
+        impacts: [],
+        explanations: [{
+          code: 'weak-target',
+          studentText: '你在频域分析相关学习中的掌握度仍有提升空间，因此增加了相关讲解和练习。',
+        }],
+      }],
+    };
+    generated.policyBundle!.decisionEvidence = decisionEvidence;
+    generated.policyBundle!.paths[0]!.decisionEvidence = decisionEvidence.paths[0];
+
+    const batch = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'request-evidence',
+      plan: generated,
+    });
+
+    decisionEvidence.snapshot.preferredModalities.push('simulation');
+    decisionEvidence.paths[0]!.explanations[0]!.studentText = '后续画像改写';
+
+    expect(batch.metadata.decisionEvidence).toEqual(expect.objectContaining({
+      snapshot: expect.objectContaining({
+        version: 'personalized-path-decision-evidence.v1',
+        preferredModalities: ['video'],
+      }),
+    }));
+    expect(batch.candidates[0]?.snapshot.decisionEvidence).toEqual(expect.objectContaining({
+      optionId: 'path-option-1',
+      explanations: [{
+        code: 'weak-target',
+        studentText: '你在频域分析相关学习中的掌握度仍有提升空间，因此增加了相关讲解和练习。',
+      }],
+    }));
+  });
+
   it('reuses the same batch and candidate identities for a repeated request', async () => {
     const { db, create } = dbFixture();
     const first = await persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-1', plan: plan() });

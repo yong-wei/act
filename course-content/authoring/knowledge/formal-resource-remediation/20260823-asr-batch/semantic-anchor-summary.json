@@ -1,0 +1,10 @@
+{
+ "contract": "remediation-semantic-anchor-run/v1",
+ "sealedAt": "2026-08-24",
+ "units": 28,
+ "totalParagraphs": 2977,
+ "totalAnchored": 3,
+ "anchorRate": 0.001,
+ "method": "sliding-window longest-common-fragment (>=12 chars anywhere in paragraph) matched against transcript word sequence; prefix matching alone scored 0.008 and is deprecated",
+ "limitation": "spoken audio freely paraphrases the handout; residual unmatched paragraphs require embedding or n-gram similarity alignment (pending)"
+}

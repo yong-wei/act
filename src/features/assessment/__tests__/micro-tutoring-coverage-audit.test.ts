@@ -10,6 +10,7 @@ import {
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   buildMicroTutoringCoverageAuditReport,
+  microTutoringCoverageAuditIsGitContentComplete,
   microTutoringCoverageAuditIsStrictlyComplete,
   microTutoringCoverageAuditMarkdown,
   type MicroTutoringOptionAttribution,
@@ -22,6 +23,10 @@ import {
 } from '../micro-tutoring-option-attribution';
 import { resolveMicroTutoringGoalNode } from '../micro-tutoring-goal-node-catalog';
 import { listMicroTutoringGovernedResources } from '../micro-tutoring-resource-registry';
+import { listMicroTutoringGovernedValidationItems } from '../micro-tutoring-validation-registry';
+import publishedResourceProjection from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection.json';
+import publishedValidationRegistry from '../../../../course-content/runtime/resource-governance/micro-tutoring-validation-registry.json';
+import publishedPracticeBaseline from '../../../../course-content/runtime/resource-governance/micro-tutoring-practice-baseline.json';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OPTION_REFERENCE_SECRET = 'test-only-micro-tutoring-option-reference-secret';
@@ -144,6 +149,8 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
         knowledgeNodeId,
         misconceptionTag,
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
       }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
       resolveValidationItems: () => [],
     });
@@ -157,7 +164,14 @@ describe('micro tutoring coverage audit', () => {
       resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
         knowledgeNodeId,
         misconceptionTag,
-        authorityRows: listMicroTutoringGovernedResources({ knowledgeNodeId, misconceptionTag })
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
+        authorityRows: listMicroTutoringGovernedResources({
+          knowledgeNodeId,
+          misconceptionTag,
+          projection: publishedResourceProjection,
+          optionAttributions: publishedOptionAttributions,
+        })
           .map((resource) => ({
             id: resource.registryId,
             registryId: resource.registryId,
@@ -167,6 +181,39 @@ describe('micro tutoring coverage audit', () => {
       resolveValidationItems: () => [],
     });
     expect(authorityResult.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
+  });
+
+  it('zeros known VALIDATION_QUESTION_UNAVAILABLE content gaps from the published validation registry', () => {
+    const result = reportWithPublishedAttributions({
+      resolveResources: (knowledgeNodeId, misconceptionTag) => listMicroTutoringGovernedResources({
+        knowledgeNodeId,
+        misconceptionTag,
+        projection: publishedResourceProjection,
+        optionAttributions: publishedOptionAttributions,
+      }).map(({ registryId: _registryId, actionId: _actionId, actionVersion: _actionVersion, ...resource }) => resource),
+      resolveValidationItems: (sourceQuestionId, sourceContentHash, knowledgeNodeId, misconceptionTag) =>
+        listMicroTutoringGovernedValidationItems({
+          knowledgeNodeId,
+          misconceptionTag,
+          sourceQuestionId,
+          sourceContentHash,
+          registry: publishedValidationRegistry,
+          optionAttributions: publishedOptionAttributions,
+          practiceBaseline: publishedPracticeBaseline,
+        }),
+    });
+
+    expect(result.gapReasonCounts.RESOURCE_UNAVAILABLE).toBe(0);
+    expect(result.gapReasonCounts.VALIDATION_QUESTION_UNAVAILABLE).toBe(0);
+    expect(result.rows.every((row) => row.resources.length === 1)).toBe(true);
+    expect(result.rows.every((row) => row.validationItems.length === 5)).toBe(true);
+    expect(result.rows.every((row) =>
+      row.validationItems.every((item) => item.contentHash !== row.contentHash))).toBe(true);
+    expect(JSON.stringify(result)).not.toContain('independenceRationale');
+    expect(JSON.stringify(result)).not.toContain('purposeRationale');
+    expect(result.contentDigest).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(microTutoringCoverageAuditIsGitContentComplete(result)).toBe(true);
+    expect(microTutoringCoverageAuditIsStrictlyComplete(result)).toBe(true);
   });
 
   it('resolves only an exact published option attribution', () => {
@@ -521,6 +568,22 @@ describe('micro tutoring coverage audit', () => {
       }],
     });
     expect(sameQuestionResult.rows
+      .filter((row) => row.catalogItemId === sourceItem.catalogItemId)
+      .every((row) => row.reasons.includes('VALIDATION_QUESTION_UNAVAILABLE')))
+      .toBe(true);
+
+    const sameHashResult = report({
+      optionAttributions: attributions,
+      resolveValidationItems: () => [{
+        id: 'renamed-copy',
+        questionId: `${sourceItem.sourceId}-copy`,
+        contentHash: sourceItem.contentHash,
+        version: 'validation.v1',
+        estimatedMinutes: 2,
+        actionPath: '/assessment/adaptive-practice',
+      }],
+    });
+    expect(sameHashResult.rows
       .filter((row) => row.catalogItemId === sourceItem.catalogItemId)
       .every((row) => row.reasons.includes('VALIDATION_QUESTION_UNAVAILABLE')))
       .toBe(true);

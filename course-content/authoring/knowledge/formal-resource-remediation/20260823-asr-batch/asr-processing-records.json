@@ -1,0 +1,814 @@
+[
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-1-1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-1-1-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/1-1/media/processed/1-1-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "1-1-transcript",
+   "1-1-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "1-1-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "1-1-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "d4af9f1e985cb0ad47010415b354587ca755a43e90f3d91b86b0aff4849bc75b"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-1-2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-1-2-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/1-2/media/processed/1-2-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "1-2-transcript",
+   "1-2-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "1-2-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "1-2-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "f294c2eee047a602f9298dc3e3a573388ec5f114c164774d2facd87b5c45cd35"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-2-1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-2-1-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/2-1/media/processed/2-1-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "2-1-transcript",
+   "2-1-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "2-1-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "2-1-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "1a98dac35bde8b089ea412bdf54124286ebfdff366f42b96a0b4f37e4a0e3915"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-2-2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-2-2-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/2-2/media/processed/2-2-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "2-2-transcript",
+   "2-2-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "2-2-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "2-2-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "bbc02a2a0d81e85bbb742f6e1123f3ad3408e20124050be2311827c6c30e9852"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-2-3",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-2-3-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/2-3/media/processed/2-3-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "2-3-transcript",
+   "2-3-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "2-3-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "2-3-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "fa834552ac246b396436b064532ef2671a242975f10a161a100e3a8420c564a4"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-2-4",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-2-4-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/2-4/media/processed/2-4-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "2-4-transcript",
+   "2-4-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "2-4-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "2-4-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "c2d0f279d34ab7506da7989019365b3000bca5de5c7ac763456e8966904e6c0c"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-1-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-1/media/processed/3-1-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-1-transcript",
+   "3-1-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-1-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-1-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "d42bc405543431a6dbc692eb0fdeab9da286d329116be6a160fad1b1dad32399"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-2-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-2/media/processed/3-2-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-2-transcript",
+   "3-2-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-2-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-2-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "e46099a77f349c822766a6f40407f6aa8565ff420d42a2c596f214b3d2cf09c6"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-3",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-3-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-3/media/processed/3-3-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-3-transcript",
+   "3-3-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-3-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-3-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "37b789b6991f83571bb77f4d4d625c81c5089fa1477aaadce9952eebc9111e89"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-4",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-4-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-4/media/processed/3-4-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-4-transcript",
+   "3-4-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-4-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-4-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "4525261943ac449f4c84551bd508cd1d4653e18f3b9929928005303840f8cb7c"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-5",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-5-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-5/media/processed/3-5-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-5-transcript",
+   "3-5-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-5-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-5-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "c0a020897f9e34d6bb0eb1b2845f6c723bf5816f932e5bdb70a44cac08ff187e"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-6",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-6-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-6/media/processed/3-6-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-6-transcript",
+   "3-6-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-6-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-6-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "5e4a1963124520e38ce1702424dac09bad6cad0948279a0aab45a01283e5d1ec"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-7",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-7-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-7/media/processed/3-7-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-7-transcript",
+   "3-7-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-7-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-7-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "e62aeca1fbe8799d20faaa7e048506334708accdf29c3c120a9dd432dc93fa7d"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-8",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-8-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-8/media/processed/3-8-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-8-transcript",
+   "3-8-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-8-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-8-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "1d889cd24a5dcf0c2716b03a2068a5b6ee24b5a6cddbd6b186aac347db2963a9"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-3-9",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-3-9-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/3-9/media/processed/3-9-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "3-9-transcript",
+   "3-9-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "3-9-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "3-9-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "4a3a7c39de2a7f8303e689ea07e7591e00a8abf773a0ae194b1ad5f465bd32d9"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-1-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-1/media/processed/4-1-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-1-transcript",
+   "4-1-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-1-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-1-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "2d560a1606bb682c7a6ea56a8b819fc4f17a5e7a001cfdcefe4ab9711530ef98"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-2-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-2/media/processed/4-2-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-2-transcript",
+   "4-2-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-2-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-2-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "5089f3fa31ae706dcf36e009caee0fa0d098c6f778f8f5bea39bf56b95957df0"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-3",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-3-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-3/media/processed/4-3-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-3-transcript",
+   "4-3-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-3-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-3-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "7402d950e4ec26d3705277e3a05afbe5645a2be13a256e40a9d87bb40d030746"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-4",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-4-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-4/media/processed/4-4-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-4-transcript",
+   "4-4-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-4-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-4-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "aecd93aad8e9fde87f1864d7c454b25948a0f1b611ec5d65e396d47a8fc456d1"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-5",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-5-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-5/media/processed/4-5-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-5-transcript",
+   "4-5-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-5-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-5-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "8fe1d2818981de6773043fde7b01349b8abf4271b403222f261fe6c5c52565d8"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-6",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-6-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-6/media/processed/4-6-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-6-transcript",
+   "4-6-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-6-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-6-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "37decced92682a07dabb8b6953198f77b2cee83c70afc5275bce47540c6cadc3"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-4-7",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-4-7-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/4-7/media/processed/4-7-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "4-7-transcript",
+   "4-7-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "4-7-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "4-7-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "5aa04c8ea13ee4aaae812e38017f59b678a52c38fe234b5a6639a5ef0b182b54"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-1",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-1-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-1/media/processed/5-1-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-1-transcript",
+   "5-1-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-1-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-1-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "c97751e2fa17ee508080600977bcd58d001fa72bf8eac4ac1679581431c26e99"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-2",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-2-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-2/media/processed/5-2-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-2-transcript",
+   "5-2-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-2-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-2-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "a98c1ea2658ba206ac7740fd5b14023e0b593a8e5eb29b36b876ab00885f5134"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-3",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-3-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-3/media/processed/5-3-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-3-transcript",
+   "5-3-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-3-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-3-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "b1f86d7a5b2f322acc8f1bab19471285b9c0c2fa59a328da8a012fa81a927fd8"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-4",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-4-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-4/media/processed/5-4-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-4-transcript",
+   "5-4-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-4-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-4-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "50bb1c1a3558f748060bc8503fbd3c024ef50d1660e3f2cba4e02abef52a5e07"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-5",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-5-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-5/media/processed/5-5-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-5-transcript",
+   "5-5-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-5-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-5-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "e7c202154905e5f885c39706221c7d00ebb0a97eb9076ea8945e260e4b73e5b7"
+ },
+ {
+  "contract": "resource-processing-record/v1",
+  "recordId": "asr-5-6",
+  "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+  "resourceId": "media-5-6-audio",
+  "resourceSubtype": "audio",
+  "origin": "ACTIVE_BASELINE",
+  "sourceIdentity": "authoring:lessons/5-6/media/processed/5-6-audio.m4a",
+  "externalInputId": null,
+  "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+vad (registry 61a631d0 + VAD addendum)",
+  "validatorIdentity": "remediation-validator/v1",
+  "atomOutputIds": [
+   "5-6-transcript",
+   "5-6-word-timestamps"
+  ],
+  "mappingOutputIds": [],
+  "anchorOutputIds": [
+   "5-6-word-timestamps"
+  ],
+  "launchOutputIds": [
+   "5-6-audio-seek"
+  ],
+  "disposition": "INCLUDED",
+  "failureCodes": [],
+  "limitations": [
+   "word timestamps derived by window-batched forced alignment; segment anchors pending handout-paragraph alignment pass"
+  ],
+  "outputManifestHash": "d217deb0bc869ca810f0cc72e63e18db0cc5d4b75a8e761b9ed553b6db3b14cb"
+ }
+]

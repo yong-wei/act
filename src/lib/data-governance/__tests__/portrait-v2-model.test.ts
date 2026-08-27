@@ -538,12 +538,12 @@ describe('portrait v2 primary model', () => {
     expect(PORTRAIT_V2_EVIDENCE_FAMILIES).toEqual(getProfileEligibleEvidenceSourceIds());
     expect(PORTRAIT_V2_EVIDENCE_FAMILIES).toEqual(expect.arrayContaining([
       'AbilityAssessment',
-      'PromptAssessment',
       'InteractionLog',
       'StudentStepResponse',
     ]));
+    expect(PORTRAIT_V2_EVIDENCE_FAMILIES).not.toContain('PromptAssessment');
 
-    for (const family of ['AbilityAssessment', 'PromptAssessment', 'InteractionLog', 'StudentStepResponse']) {
+    for (const family of ['AbilityAssessment', 'InteractionLog', 'StudentStepResponse']) {
       const payload = nativePayload();
       payload.dimensions[0].evidenceSummary.sourceFamilyCounts = { [family]: 2 };
       payload.dimensions[0].sourceLineage[0] = {

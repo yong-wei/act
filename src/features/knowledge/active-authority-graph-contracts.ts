@@ -7,6 +7,10 @@
  */
 
 import type { AuthorityNodeLearningContent } from '@/lib/authority-domain-shards/contracts';
+import type {
+  GovernedFormulaProjection,
+  GovernedRichTextProjection,
+} from '@/lib/governed-math';
 
 export interface ActiveAuthoritySource {
   authorityState: 'active';
@@ -59,6 +63,11 @@ export interface ActiveCanvasNode {
   sourceCoverageCount?: number;
   conceptKind?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
+  typeLabel?: string | null;
+  richTitle?: GovernedRichTextProjection;
+  richDescription?: GovernedRichTextProjection;
+  searchText?: string;
+  accessibleName?: string;
 }
 
 export interface ActiveCanvasRelation {
@@ -78,6 +87,8 @@ export interface ActiveCanvasRelation {
   layer?: 'ENGINEERING' | 'ACT_TEACHING';
   evidenceState?: string;
   releaseTier?: string | null;
+  predicateLabel?: string | null;
+  directionLabel?: string | null;
   semanticSupport: { supported: boolean; readOnly: true };
 }
 
@@ -128,6 +139,74 @@ export interface ActiveNodeAdjacency {
   releaseTier?: string | null;
 }
 
+export type ActiveNodeMathematics =
+  | {
+    state: 'available';
+    expression: string;
+    display: 'block' | 'inline';
+    accessibleLabel?: string;
+    copyLatex?: string;
+    renderKey?: string;
+    macroProfileId?: string;
+    macroProfileHash?: string;
+  }
+  | { state: 'unavailable'; message: string }
+  | { state: 'missing' };
+
+export function projectGovernedFormulaToActiveMathematics(
+  projection: GovernedFormulaProjection | null | undefined,
+): ActiveNodeMathematics | null {
+  if (!projection || projection.state === 'missing') return null;
+  if (projection.state === 'registered-unavailable') {
+    return { state: 'unavailable', message: projection.fallbackText };
+  }
+  return {
+    state: 'available',
+    expression: projection.latex,
+    display: projection.display,
+    accessibleLabel: projection.accessibleLabel,
+    copyLatex: projection.copyLatex,
+    renderKey: projection.renderKey,
+    macroProfileId: projection.macroProfileId,
+    macroProfileHash: projection.macroProfileHash,
+  };
+}
+
+export const ACTIVE_RESOURCE_BINDING_ROLES = ['讲解', '练习', '评价', '引用'] as const;
+export type ActiveResourceBindingRole = (typeof ACTIVE_RESOURCE_BINDING_ROLES)[number];
+
+export interface ActiveResourceLaunchDescriptor {
+  kind: 'direct-route' | 'registry-resource' | 'unavailable';
+  href: string | null;
+}
+
+export interface ActiveResourceBinding {
+  title: string;
+  bindingRole: ActiveResourceBindingRole;
+  resourceKind: string;
+  availability: 'available' | 'unavailable';
+  launch: ActiveResourceLaunchDescriptor;
+}
+
+export type ActiveNodeResourceBindings =
+  | { state: 'available'; items: ActiveResourceBinding[] }
+  | { state: 'empty'; message: string }
+  | { state: 'unavailable'; message: string };
+
+export function projectActiveNodeMathematics(
+  teachingFields: Record<string, unknown> | null | undefined,
+): ActiveNodeMathematics {
+  const expression = teachingFields?.formula_latex;
+  if (typeof expression !== 'string' || expression.trim().length === 0) {
+    return { state: 'missing' };
+  }
+  return {
+    state: 'available',
+    expression: expression.trim(),
+    display: 'block',
+  };
+}
+
 export interface ActiveNodeDetailResponse {
   projectionVersion: 'act.node-detail.v2';
   source: ActiveAuthoritySource;
@@ -141,12 +220,19 @@ export interface ActiveNodeDetailResponse {
     canonicalType: string;
     label: string;
     description: string | null;
+    typeLabel?: string | null;
     adjacency: ActiveNodeAdjacency[];
-    sources: Array<{ sourceEditionId: string; sectionId: string }>;
+    sources: Array<{ sourceEditionId: string; sectionId: string; label?: string | null }>;
     semanticSupport: { supported: boolean; readOnly: true };
     releaseTier?: string;
     aliases?: string[];
     teachingFields?: Record<string, unknown>;
+    richTitle?: GovernedRichTextProjection;
+    richDescription?: GovernedRichTextProjection;
+    searchText?: string;
+    accessibleName?: string;
+    mathematics?: ActiveNodeMathematics;
+    resourceBindings?: ActiveNodeResourceBindings;
     governance?: {
       reviewStatus: string | null;
       publicationStatus: string | null;

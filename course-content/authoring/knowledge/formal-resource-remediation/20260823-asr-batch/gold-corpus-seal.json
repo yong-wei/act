@@ -1,0 +1,69 @@
+{
+ "contract": "remediation-gold-corpus-seal/v1",
+ "sealedAt": "2026-08-23",
+ "policy": "calibration/gold split for hotword paired tuning; holdout is a separate blind corpus not yet opened",
+ "selectionDimensions": [
+  "module layer 1-x..5-x",
+  "hotword density 19..96",
+  "fixed 60s window @480s"
+ ],
+ "members": [
+  {
+   "unit": "1-1",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "43b42f874a57d7a48a29d6fe57180e620f5e287dca87fb441e75dec142d63091",
+   "hotwordCount": 59
+  },
+  {
+   "unit": "2-1",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "12d67fdec82caed76c8cc0d3ef77c900e756d805433b28938604cddddb644879",
+   "hotwordCount": 23
+  },
+  {
+   "unit": "3-4",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "84f4a7a88785191d334f0ff45e676c2ddd39bfcec5b6583343bfdbfabf071ee5",
+   "hotwordCount": 60
+  },
+  {
+   "unit": "4-3",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "af4cdba9a368813daeebc8acb866608cec75cd1ce6f8c5fd3735ddc8734ca71e",
+   "hotwordCount": 60
+  },
+  {
+   "unit": "4-4",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "8d3498d80523976b709326c17acad9df22c4102bf9b855db68e3a9589641e63b",
+   "hotwordCount": 19
+  },
+  {
+   "unit": "5-4",
+   "audioWindow": [
+    480,
+    540
+   ],
+   "referenceSha256": "f92671801d54b2ebfd0cc5900c96bab59735a844fa1d9106cc208c09b5fd076e",
+   "hotwordCount": 60
+  }
+ ],
+ "decidedBy": "course-owner-yongwei",
+ "holdoutPolicy": "to be sealed separately: 3 units, owner writes reference from audio WITHOUT seeing machine output",
+ "sealHash": "fecd1c6af1848c52b268685e69fe56e9dfa4deac968df6ccd990046248b423f7"
+}

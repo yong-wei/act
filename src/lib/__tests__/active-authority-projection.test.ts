@@ -14,6 +14,20 @@ vi.mock('@/lib/authoritative-knowledge/projections', () => ({
   buildActiveAuthorityCanvasProjection: mocks.canvas,
   buildActiveAuthorityNodeDetailProjection: mocks.nodeDetail,
 }));
+vi.mock('@/lib/authority-domain-shards/identity', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/authority-domain-shards/identity')>();
+  return {
+    ...original,
+    resolveActiveShardIdentity: () => ({
+      envelope: {
+        authority: {
+          releaseId: 'release-1',
+          snapshotHash: 'a'.repeat(64),
+        },
+      },
+    }),
+  };
+});
 
 import {
   activeShardResponse,
@@ -157,6 +171,7 @@ describe('active Authority role-safe projections', () => {
     const response = activeShardResponse(() => nodeShard, role);
     const body = await response.json();
     expect(Object.prototype.hasOwnProperty.call(body.node, 'teachingFields')).toBe(includesTeachingFields);
+    expect(body.node.mathematics).toEqual({ state: 'missing' });
     if (!includesTeachingFields) expect(JSON.stringify(body)).not.toContain('concept_kind');
   });
 

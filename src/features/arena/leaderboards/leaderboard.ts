@@ -1,5 +1,5 @@
 import type { ControllerMethod, LeaderboardType, MetricDefinition } from '../types';
-import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import type { ArenaSubmissionRecord } from '../submissions/types';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { getArenaChallengeTask, getArenaLeaderboardPolicy, getArenaMetricProfile } from '../data/seed-challenges';
 

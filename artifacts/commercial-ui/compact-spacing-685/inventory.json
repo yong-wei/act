@@ -129,6 +129,22 @@
       "classification": "temporary-exception",
       "reason": "These flows require follow-up page-shell migration so route frames, not broad page wrappers, own page width.",
       "removalCondition": "Remove after auth and single-form routes move narrow measures into internal form components."
+    },
+    {
+      "path": "src/app/diagnosis-reports/[reportId]/page.tsx, src/app/teacher/classes/[classId]/diagnosis-reports/[reportId]/page.tsx",
+      "owner": "issue-1485-diagnosis-outcomes-print-only",
+      "scope": "Diagnosis delivery loading and error feedback measures",
+      "classification": "component-intrinsic-exception",
+      "reason": "The centered max-width wrapper bounds only the loading or failure message; the report itself is rendered by the shared delivery surface and verified separately at 1440px and 320px.",
+      "removalCondition": "Permanent feedback-measure exception unless loading and failure feedback move into a shared status component."
+    },
+    {
+      "path": "src/features/teacher/diagnosis-report-delivery-view.tsx, src/features/teacher/teacher-diagnosis-report-history.tsx",
+      "owner": "issue-1485-diagnosis-outcomes-print-only",
+      "scope": "Diagnosis report reading measure and history empty/error feedback",
+      "classification": "component-intrinsic-exception",
+      "reason": "These bounds are intrinsic to a readable report ledger and its local status feedback, not to the AppShell route frame; dedicated diagnosis capture verifies the resulting desktop and narrow layouts.",
+      "removalCondition": "Remove if the diagnosis report and its local feedback adopt a shared report-ledger reading-measure component."
     }
   ]
 }

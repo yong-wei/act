@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
+import { AppShell } from '@/components/platform/app-shell';
 import { DiagnosisReportDeliveryView } from '@/features/teacher/diagnosis-report-delivery-view';
 import type { StudentDiagnosisDeliveryProjection } from '@/lib/diagnosis-report-delivery-projection';
 
@@ -26,17 +27,46 @@ export default function StudentDiagnosisReportPage() {
     return () => controller.abort();
   }, [reportId]);
 
-  if (error) return <StudentStatus title="无法打开个人诊断报告" message={error} />;
-  if (!projection) return <StudentStatus title="正在读取个人诊断报告" message="正在核验报告归属与安全投影。" />;
+  if (error) {
+    return (
+      <StudentDiagnosisReportShell>
+        <StudentStatus title="无法打开个人诊断报告" message={error} />
+      </StudentDiagnosisReportShell>
+    );
+  }
+  if (!projection) {
+    return (
+      <StudentDiagnosisReportShell>
+        <StudentStatus title="正在读取个人诊断报告" message="正在核验报告归属与安全投影。" />
+      </StudentDiagnosisReportShell>
+    );
+  }
   return (
-    <DiagnosisReportDeliveryView
-      projection={projection}
-      actions={[]}
-      dispositionEvents={[]}
-      pdfHref={`/api/diagnosis-reports/${encodeURIComponent(reportId)}/student-safe/pdf`}
-      returnHref="/dashboard"
-      teacherMode={false}
-    />
+    <StudentDiagnosisReportShell>
+      <DiagnosisReportDeliveryView
+        projection={projection}
+        actions={[]}
+        dispositionEvents={[]}
+        returnHref="/dashboard"
+        teacherMode={false}
+      />
+    </StudentDiagnosisReportShell>
+  );
+}
+
+function StudentDiagnosisReportShell({ children }: { children: ReactNode }) {
+  return (
+    <AppShell
+      viewerRole="student"
+      title="个人诊断报告"
+      subtitle="查看已发布的个人诊断结论"
+      activeHref="/dashboard"
+      sidebarMode="collapsible"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人诊断报告' }]}
+      className="surface-page"
+    >
+      {children}
+    </AppShell>
   );
 }
 

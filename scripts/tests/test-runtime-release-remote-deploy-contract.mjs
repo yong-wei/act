@@ -46,6 +46,19 @@ assert.doesNotMatch(remoteDeploy, /Step 0\/8: 在 runtime 锁内替换 Legacy ru
 assert.doesNotMatch(remoteDeploy, /rsync "\$\{runtime_rsync_args\[@\]\}"/, 'retired legacy-rsync must not keep a working rsync implementation');
 
 assert.match(podmanDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'Podman deploy must default to the production blob view');
+const sharedEnvArgsMatch = podmanDeploy.match(/SHARED_ENV_ARGS=\([\s\S]*?\n\)/);
+assert.ok(sharedEnvArgsMatch, 'Podman deploy must define shared container environment arguments');
+assert.match(
+  sharedEnvArgsMatch[0],
+  /-e RUNTIME_DELIVERY_MODE="\$RUNTIME_DELIVERY_MODE"/,
+  'Podman deploy must expose the selected runtime delivery mode to app and worker containers',
+);
+const managedRuntimeEnvKeysMatch = podmanDeploy.match(/split\("([^"]+)", keys, " "\);/);
+assert.ok(managedRuntimeEnvKeysMatch, 'Podman deploy must define managed persisted runtime keys');
+assert.ok(
+  managedRuntimeEnvKeysMatch[1].split(' ').includes('RUNTIME_DELIVERY_MODE'),
+  'persisted runtime mode must be replaced instead of accumulated as a stale duplicate',
+);
 assert.match(
   podmanDeploy,
   /data\/runtime\/blob-views\/current/,

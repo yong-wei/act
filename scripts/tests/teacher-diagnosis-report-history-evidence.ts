@@ -15,6 +15,7 @@ export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
   'src/lib/diagnosis-generation.ts',
   'src/lib/diagnosis-generation-preflight.ts',
   'src/lib/diagnosis-persistence.ts',
+  'src/lib/commercial-ui-capture-revision-runtime.ts',
 ] as const;
 
 interface EvidenceCapture {
@@ -47,7 +48,7 @@ export interface TeacherDiagnosisReportHistoryEvidenceManifest {
     failure: boolean;
     degraded: boolean;
     multipleHistorySelection: boolean;
-    serverPreparationLink: boolean;
+    findingPreparationActionOmitted: boolean;
     rawEvidenceIdentifiersHidden: boolean;
     generationQueued: boolean;
     generationCompleted: boolean;
@@ -83,7 +84,7 @@ const REQUIRED_ASSERTIONS = [
   'failure',
   'degraded',
   'multipleHistorySelection',
-  'serverPreparationLink',
+  'findingPreparationActionOmitted',
   'rawEvidenceIdentifiersHidden',
   'generationQueued',
   'generationCompleted',

@@ -8,6 +8,10 @@ import {
   type ActiveAuthorityRootPackedEntry,
 } from './active-authority-root-entries';
 import { KNOWLEDGE_ROOT_BUBBLE_STYLE } from './graph/root-layout';
+import {
+  KNOWLEDGE_ROOT_LABEL_POLICY,
+  layoutKnowledgeRootLabel,
+} from './graph/graph-presentation-contract';
 
 interface ActiveAuthorityRootCanvasProps {
   catalog: PublicAuthorityRootShard['root'];
@@ -49,6 +53,7 @@ export function ActiveAuthorityRootCanvas({
       className="relative min-h-[28rem] flex-1"
       data-authority-shard-root="true"
       data-authority-root-canvas="true"
+      data-authority-root-domain-count={catalog.domains.length}
     >
       <svg
         className="h-full w-full"
@@ -81,6 +86,17 @@ function RootBubble({
     'data-authority-root-unavailable': entry.unavailable ? 'true' : 'false',
   };
 
+  const nameLayout = layoutKnowledgeRootLabel(entry.name);
+  const summaryLayout = entry.unavailable || !entry.summary
+    ? null
+    : layoutKnowledgeRootLabel(entry.summary);
+  const nameHeight = nameLayout.lines.length * KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight;
+  const summaryHeight = summaryLayout
+    ? summaryLayout.lines.length * 12
+    : 0;
+  const blockHeight = nameHeight + (summaryLayout ? 6 + summaryHeight : 0);
+  const nameStartY = entry.y - blockHeight / 2 + KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight / 2;
+
   const body = (
     <g pointerEvents="none" aria-hidden="true">
       {isAggregate ? (
@@ -102,27 +118,45 @@ function RootBubble({
         strokeWidth={isAggregate ? 2.5 : 1.5}
       />
       <text
+        data-authority-root-label="name"
         x={entry.x}
-        y={entry.y - (entry.unavailable ? 0 : 6)}
+        y={nameStartY}
         textAnchor="middle"
         fill={KNOWLEDGE_ROOT_BUBBLE_STYLE.label}
-        fontSize={13}
-        fontWeight={600}
+        fontSize={KNOWLEDGE_ROOT_LABEL_POLICY.fontSize}
+        fontWeight={KNOWLEDGE_ROOT_LABEL_POLICY.fontWeight}
       >
-        {entry.name}
+        {nameLayout.lines.map((line, index) => (
+          <tspan
+            key={`${line.text}-${index}`}
+            x={entry.x}
+            dy={index === 0 ? 0 : KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight}
+          >
+            {line.text}
+          </tspan>
+        ))}
       </text>
-      {entry.unavailable || !entry.summary ? null : (
+      {summaryLayout ? (
         <text
+          data-authority-root-label="summary"
           x={entry.x}
-          y={entry.y + 12}
+          y={nameStartY + nameHeight + 6}
           textAnchor="middle"
           fill={KNOWLEDGE_ROOT_BUBBLE_STYLE.label}
           fontSize={10}
           opacity={0.88}
         >
-          {entry.summary}
+          {summaryLayout.lines.map((line, index) => (
+            <tspan
+              key={`${line.text}-${index}`}
+              x={entry.x}
+              dy={index === 0 ? 0 : 12}
+            >
+              {line.text}
+            </tspan>
+          ))}
         </text>
-      )}
+      ) : null}
     </g>
   );
 

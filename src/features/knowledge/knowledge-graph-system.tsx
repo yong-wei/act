@@ -146,6 +146,8 @@ export interface KnowledgeNodeData {
   graphDegree?: number;
   graphImportanceScore?: number;
   importance?: number;
+  /** Renderer-only label visibility priority; it is not learning-domain rank. */
+  labelPriority?: boolean;
   /**
    * Projection-shaped governance attributes (ActKG adapter). Absent means
    * "unknown"; `candidate: true` marks a governance candidate that
@@ -159,6 +161,7 @@ export interface KnowledgeNodeData {
     state: 'expandable' | 'leaf' | 'unknown';
     revealableNeighborCount?: number;
   };
+  richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
 }
 
 // 知识连接接口

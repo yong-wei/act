@@ -265,8 +265,8 @@ export type TeachingProjectionAvailability =
  */
 export interface ActkgTeachingProjectionRelation {
   id: string;
-  namespace: 'actkg-teaching-projection';
-  authority: 'ACTKG';
+  namespace: 'actkg-teaching-projection' | 'act-teaching-projection';
+  authority: 'ACTKG' | 'ACT';
   predicate: ActkgTeachingProjectionPredicate;
   sourceCanonicalId: string;
   targetCanonicalId: string;

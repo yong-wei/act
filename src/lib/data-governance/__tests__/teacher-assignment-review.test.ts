@@ -541,7 +541,7 @@ describe('teacher assignment review persistence', () => {
       },
     } as any;
     const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-1' }));
-    const auditCreate = vi.fn().mockResolvedValue({});
+    const auditCreate = vi.fn().mockResolvedValue({ id: 'audit-1' });
     const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
     const outboxUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const reviewUpdateMany = vi.fn().mockResolvedValue({ count: 1 });

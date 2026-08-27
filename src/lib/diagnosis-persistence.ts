@@ -1,5 +1,7 @@
+import { type Prisma } from '@prisma/client';
+
+import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
 import { prisma } from '@/lib/prisma';
-import { buildDiagnosisPrepLink } from '@/lib/diagnosis-prep-link';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 import { z } from 'zod';
 
@@ -8,7 +10,7 @@ const diagnosisEvidenceRefSchema = z.string()
   .min(1)
   .max(500)
   .regex(
-    /^(student-risk-flag|student-competency-snapshot|knowledge-progress):[A-Za-z0-9._:-]+$/,
+    /^(assignment-submission|adaptive-assessment-session|student-risk-flag|student-competency-snapshot|knowledge-progress):[A-Za-z0-9._:-]+$/,
     'diagnosis evidence reference uses an unsupported source',
   );
 
@@ -32,15 +34,23 @@ const diagnosisFindingSchema = z.object({
 }).strict();
 
 export type DiagnosisReportFindingInput = z.output<typeof diagnosisFindingSchema>;
-export type DiagnosisReportFinding = DiagnosisReportFindingInput & {
-  prepLink?: string;
-};
+export type DiagnosisReportFinding = DiagnosisReportFindingInput;
+
+const diagnosisOutcomeCoverageSchema = z.object({
+  availability: z.literal('available'),
+  includedStudents: z.number().int().nonnegative(),
+  missingStudents: z.number().int().nonnegative(),
+  evidenceCount: z.number().int().nonnegative(),
+  scoredCount: z.number().int().nonnegative(),
+}).strict();
 
 const diagnosisSourceCoverageSchema = z.object({
   classMembers: z.number().int().nonnegative().optional(),
   includedStudents: z.number().int().nonnegative().optional(),
   progressRows: z.number().int().nonnegative().optional(),
   coverage: z.number().min(0).max(1).optional(),
+  assignment: diagnosisOutcomeCoverageSchema.optional(),
+  assessment: diagnosisOutcomeCoverageSchema.optional(),
 }).strict().refine(
   (coverage) => Object.keys(coverage).length > 0,
   'source coverage must contain at least one governed metric',
@@ -55,6 +65,26 @@ export const diagnosisReportBodySchema = z.object({
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
 }).strict();
+
+/**
+ * Older reports incorrectly persisted the UI-only preparation link in each
+ * finding. Accept that one legacy field when reading reports, but keep the
+ * canonical stored report body strict for every other field.
+ */
+export function parseStoredDiagnosisReportBody(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return diagnosisReportBodySchema.safeParse(value);
+  }
+  const body = value as Record<string, unknown>;
+  const findings = Array.isArray(body.findings)
+    ? body.findings.map((finding) => {
+        if (!finding || typeof finding !== 'object' || Array.isArray(finding)) return finding;
+        const { prepLink: _prepLink, ...canonicalFinding } = finding as Record<string, unknown>;
+        return canonicalFinding;
+      })
+    : body.findings;
+  return diagnosisReportBodySchema.safeParse({ ...body, findings });
+}
 
 export type DiagnosisReportBody = Omit<z.output<typeof diagnosisReportBodySchema>, 'findings'> & {
   findings: DiagnosisReportFinding[];
@@ -133,6 +163,32 @@ export interface DiagnosisPersistenceDb {
       lastVisited: Date;
     }>>;
   };
+  assignmentSubmission?: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      id: string;
+      studentId: string;
+      frozenStudentId: string;
+      frozenAudienceClassId: string;
+      assignmentRevisionId: string;
+      reviewState: string;
+      reviewedAt: Date | null;
+      audience: {
+        classId: string;
+        assignmentRevisionId: string;
+      };
+      revision: {
+        id: string;
+      };
+    }>>;
+  };
+  adaptiveAssessmentSession?: {
+    findMany(args: Record<string, unknown>): Promise<Array<{
+      id: string;
+      userId: string;
+      metadata: Prisma.JsonValue;
+      answers: Array<{ answeredAt: Date }>;
+    }>>;
+  };
   diagnosisReport: {
     create(args: Record<string, unknown>): Promise<unknown>;
     findMany(args: Record<string, unknown>): Promise<DiagnosisReportReadModel[]>;
@@ -204,6 +260,8 @@ function buildRiskSummary(findings: z.output<typeof diagnosisFindingSchema>[]) {
 }
 
 type DiagnosisEvidenceSource =
+  | 'assignment-submission'
+  | 'adaptive-assessment-session'
   | 'student-risk-flag'
   | 'student-competency-snapshot'
   | 'knowledge-progress';
@@ -222,6 +280,19 @@ function parseEvidenceRef(ref: string) {
   };
 }
 
+function classAssessmentSessionMetadata(value: Prisma.JsonValue) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const metadata = (value as Record<string, unknown>).diagnosisClassAssessment;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null;
+  const record = metadata as Record<string, unknown>;
+  return record.schemaVersion === 'diagnosis-class-assessment-session.v1'
+    && typeof record.classId === 'string'
+    && typeof record.assessmentId === 'string'
+    && typeof record.contentDigest === 'string'
+    ? { classId: record.classId }
+    : null;
+}
+
 async function assertEvidenceScope(
   db: DiagnosisPersistenceDb,
   input: {
@@ -232,6 +303,8 @@ async function assertEvidenceScope(
   },
 ) {
   const refsBySource = new Map<DiagnosisEvidenceSource, Set<string>>([
+    ['assignment-submission', new Set()],
+    ['adaptive-assessment-session', new Set()],
     ['student-risk-flag', new Set()],
     ['student-competency-snapshot', new Set()],
     ['knowledge-progress', new Set()],
@@ -244,7 +317,9 @@ async function assertEvidenceScope(
   const riskFlagIds = [...refsBySource.get('student-risk-flag')!];
   const competencySnapshotIds = [...refsBySource.get('student-competency-snapshot')!];
   const knowledgeProgressIds = [...refsBySource.get('knowledge-progress')!];
-  const [riskFlags, competencySnapshots, knowledgeProgressRows] = await Promise.all([
+  const assignmentSubmissionIds = [...refsBySource.get('assignment-submission')!];
+  const assessmentSessionIds = [...refsBySource.get('adaptive-assessment-session')!];
+  const [riskFlags, competencySnapshots, knowledgeProgressRows, assignmentSubmissions, assessmentSessions] = await Promise.all([
     riskFlagIds.length === 0
       ? []
       : db.studentRiskFlag.findMany({
@@ -271,6 +346,53 @@ async function assertEvidenceScope(
           where: { id: { in: knowledgeProgressIds } },
           select: { id: true, userId: true, lastVisited: true },
         }),
+    assignmentSubmissionIds.length === 0 || !db.assignmentSubmission
+      ? []
+      : db.assignmentSubmission.findMany({
+          where: {
+            id: { in: assignmentSubmissionIds },
+            frozenAudienceClassId: input.classId,
+            reviewState: 'REVIEWED',
+            reviewedAt: { not: null, lte: input.evidenceCutoff },
+          },
+          select: {
+            id: true,
+            studentId: true,
+            frozenStudentId: true,
+            frozenAudienceClassId: true,
+            assignmentRevisionId: true,
+            reviewState: true,
+            reviewedAt: true,
+            audience: {
+              select: {
+                classId: true,
+                assignmentRevisionId: true,
+              },
+            },
+            revision: {
+              select: { id: true },
+            },
+          },
+        }),
+    assessmentSessionIds.length === 0 || !db.adaptiveAssessmentSession
+      ? []
+      : db.adaptiveAssessmentSession.findMany({
+          where: {
+            id: { in: assessmentSessionIds },
+            answers: { some: { answeredAt: { lte: input.evidenceCutoff } } },
+          },
+          select: {
+            id: true,
+            userId: true,
+            metadata: true,
+            answers: {
+              where: { answeredAt: { lte: input.evidenceCutoff } },
+              orderBy: [{ answeredAt: 'desc' }, { id: 'desc' }],
+              select: { answeredAt: true },
+              take: 1,
+            },
+          },
+        }),
   ]);
   const currentRiskTypes = new Set<string>(CURRENT_RISK_FLAG_TYPES);
   if (riskFlags.some((row) => !currentRiskTypes.has(row.flagType))) {
@@ -292,6 +414,22 @@ async function assertEvidenceScope(
       userId: row.userId,
       observedAt: row.lastVisited,
     })),
+    ...assignmentSubmissions.flatMap((row) => (
+      hasConsistentFrozenAssignmentSubmissionLineage(row, input.classId) && row.reviewedAt
+        ? [{
+            ref: `assignment-submission:${row.id}`,
+            userId: row.studentId,
+            observedAt: row.reviewedAt,
+          }]
+        : []
+    )),
+    ...assessmentSessions.flatMap((row) => {
+      const metadata = classAssessmentSessionMetadata(row.metadata);
+      const observedAt = row.answers[0]?.answeredAt;
+      return metadata?.classId === input.classId && observedAt
+        ? [{ ref: `adaptive-assessment-session:${row.id}`, userId: row.userId, observedAt }]
+        : [];
+    }),
   ];
   const resolvedRefs = new Set(evidenceRows.map((row) => row.ref));
   const requestedRefs = new Set(input.evidenceRefs);
@@ -371,7 +509,6 @@ export async function persistDiagnosisReport(
         ? {
             ...finding,
             knowledgeNodeId,
-            prepLink: buildDiagnosisPrepLink(knowledgeNodeId, params.classId),
           }
         : finding;
     }),
@@ -417,7 +554,7 @@ export async function readDiagnosisReports(
     targetStudentId: params.targetStudentId,
   });
   const limit = Math.min(Math.max(params.limit ?? 20, 1), 100);
-  return db.diagnosisReport.findMany({
+  const reports = await db.diagnosisReport.findMany({
     where: {
       classId: params.classId,
       ...(params.targetStudentId
@@ -443,5 +580,10 @@ export async function readDiagnosisReports(
       inputSummary: true,
       generatedAt: true,
     },
+  });
+  return reports.map((report) => {
+    const parsed = parseStoredDiagnosisReportBody(report.reportBody);
+    if (!parsed.success) throw parsed.error;
+    return { ...report, reportBody: parsed.data };
   });
 }

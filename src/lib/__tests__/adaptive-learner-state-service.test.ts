@@ -7,7 +7,10 @@ import {
   type MasteryEvidenceSourceType,
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
-import type { StudentPathEvidenceSourceReference } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  buildStudentEvidenceFeaturePayload,
+  type StudentPathEvidenceSourceReference,
+} from '@/lib/data-governance/student-evidence-feature-cache';
 
 const now = new Date('2026-06-19T06:00:00.000Z');
 
@@ -518,76 +521,72 @@ function fact(id: string, factType: string, score: number, context: Record<strin
     courseId: '3-6',
     contextJson: {
       goalId: CONTROL_CORRECTION_GOAL_ID,
+      evidenceGovernance: {
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'unit-test-complete-governance',
+      },
       ...context,
     },
   };
 }
 
 function featureCache(vector: CompetencyVector) {
-  const pathSourceReferences: StudentPathEvidenceSourceReference[] = [
-    {
-      sourceType: 'LearningPathExecution',
-      sourceId: 'path-exec-1',
-      pathId: 'path-active-control',
-      goalId: CONTROL_CORRECTION_GOAL_ID,
-      nodeId: 'node-simulation',
-      occurredAt: '2026-06-18T06:00:00.000Z',
-      privacyLevel: 'student-visible',
-      status: 'completed',
-      resourceType: 'simulation',
-      confidence: 'high',
+  const payload = buildStudentEvidenceFeaturePayload({
+    userId: 'student-1',
+    facts: [],
+    latestSnapshot: {
+      snapshotAt: new Date('2026-06-18T02:00:00.000Z'),
+      factCount: 5,
+      calculationVersion: 'test',
+      competencyVector: vector,
     },
-  ];
+    profileSummary: {
+      updatedAt: now,
+      overallScore: 78,
+      riskLevel: 'low',
+      trendDirection: 'stable',
+    },
+    pathEvidence: {
+      executions: [{
+        id: 'path-exec-1',
+        pathId: 'path-active-control',
+        nodeId: 'node-simulation',
+        status: 'completed',
+        resourceType: 'simulation',
+        completedAt: new Date('2026-06-18T06:00:00.000Z'),
+        createdAt: new Date('2026-06-18T06:00:00.000Z'),
+        path: { goalId: CONTROL_CORRECTION_GOAL_ID },
+      }],
+      deviations: [],
+      interventions: [],
+    },
+    now,
+  });
+  const adaptiveLearnerState = payload.features.adaptiveLearnerState;
 
   return {
     id: 'feature-cache-1',
-    userId: 'student-1',
-    payloadVersion: 'student-evidence-features.v4',
+    ...payload,
     refreshedAt: now,
-    evidenceWindow: {
-      firstStartedAt: '2026-06-01T00:00:00.000Z',
-      lastStartedAt: '2026-06-18T09:00:00.000Z',
-      daysCovered: 18,
-    },
-    sourceCounts: {
-      LearningFact: 5,
-      StudentCompetencySnapshot: 1,
-      StudentProfileSummary: 1,
-      byFactType: {},
-    },
-    sourceCoverage: {
-      LearningFact: 'available',
-      StudentCompetencySnapshot: 'available',
-      StudentProfileSummary: 'available',
-    },
     confidenceMarkers: {
-      level: 'high',
+      level: 'high' as const,
       score: 0.86,
       evidenceCount: 5,
       sourceCompleteness: 0.9,
     },
     statusMarkers: [],
     features: {
-      approvedAggregates: {
-        latestSnapshot: {
-          snapshotAt: '2026-06-18T02:00:00.000Z',
-          factCount: 5,
-          calculationVersion: 'test',
-          competencyVector: vector,
-        },
-      },
-      simulationArena: {
-        allTime: {
-          sourceCoverage: {
-            simulation: 'available',
-            arena: 'available',
-          },
-          qualityMarkers: [],
-        },
-      },
-      pathExecution: {
-        allTime: {
-          sourceReferences: pathSourceReferences,
+      ...payload.features,
+      adaptiveLearnerState: {
+        ...adaptiveLearnerState,
+        confidence: {
+          ...adaptiveLearnerState.confidence,
+          level: 'high' as const,
+          score: 0.86,
+          evidenceCount: 5,
+          sourceCompleteness: 0.9,
+          markers: [],
         },
       },
     },

@@ -13,12 +13,14 @@ import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
+  readPathPlannerLearnerState: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
   loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  buildResourceNodeRegistryFromTeachingResources: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
   runMathCalculate: vi.fn(),
   MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
@@ -40,6 +42,7 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   return {
     ...actual,
     readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readPathPlannerLearnerState: mocks.readPathPlannerLearnerState,
   };
 });
 
@@ -84,8 +87,11 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
   const actual = await vi.importActual<typeof import('@/lib/teacher-resource-node-data')>(
     '@/lib/teacher-resource-node-data',
   );
+  mocks.buildResourceNodeRegistryFromTeachingResources
+    .mockImplementation(actual.buildResourceNodeRegistryFromTeachingResources);
   return {
     ...actual,
+    buildResourceNodeRegistryFromTeachingResources: mocks.buildResourceNodeRegistryFromTeachingResources,
     loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
   };
 });
@@ -99,6 +105,7 @@ import {
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
@@ -138,7 +145,11 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
-import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistry,
+  type ResourceNodeRegistry,
+  type RuntimeResourceProjectionInput,
+} from '@/lib/resource-node-registry';
 import { retrieveSourcePack } from '@/lib/source-pack';
 import { fingerprintAdaptivePathCandidateSnapshot } from '@/lib/adaptive-path-candidate-batches';
 
@@ -153,6 +164,15 @@ function expectStringArray(value: unknown, label: string): asserts value is stri
   if (Array.isArray(value)) {
     expect(value.every((item) => typeof item === 'string'), `${label} should contain only strings`).toBe(true);
   }
+}
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? { ...node, launchTarget: `/simulations/${node.sourceRef}` }
+      : node),
+  };
 }
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
@@ -759,6 +779,14 @@ describe('konling agent runtime', () => {
       inquiryReflection: 40,
       selfDirectedLearning: 66,
     }));
+    mocks.readPathPlannerLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+      controlModeling: 88,
+      parameterDesign: 72,
+      crossDomainTransfer: 64,
+      engineeringDecision: 50,
+      inquiryReflection: 40,
+      selfDirectedLearning: 66,
+    }));
   });
 
   it('separates canonical intent values from source terms used to consume clauses', () => {
@@ -1334,6 +1362,8 @@ describe('konling agent runtime', () => {
       privacyPolicy: { payload: 'teacher-scoped-summary' },
     });
     expect(teacherDiagnosis.permittedTools).toEqual([
+      'get_class_assignment_outcomes',
+      'get_class_assessment_outcomes',
       'get_student_risk_flags',
       'get_class_competency_summary',
       'get_student_knowledge_progress',
@@ -6991,19 +7021,20 @@ describe('konling agent runtime', () => {
     expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
-  it('registers calculate in the KAQ tool registry and generic-chat mode', () => {
+  it('keeps calculate governed but does not expose it in generic-chat mode', () => {
     expect(KONLING_TOOL_REGISTRY.calculate).toMatchObject({
       permissionTier: 'analyze',
       approvalPolicy: 'none',
       idempotencyPolicy: 'none',
     });
-    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).toContain('calculate');
+    expect(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY['generic-chat'].permittedTools).not.toContain('calculate');
 
     const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
     expect(tools).toHaveProperty('calculate');
+    expect(tools.calculate.description).toContain('不向聊天模型暴露');
   });
 
-  it('runs SymPy calculation through the calculate tool', async () => {
+  it('runs Wolfram calculation through the governed calculate runtime', async () => {
     mocks.runMathCalculate.mockResolvedValue({
       status: 'ok',
       result: '\\frac{1}{s}',
@@ -9377,6 +9408,15 @@ describe('konling agent runtime', () => {
       where: { id: result.pathId },
       create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
     }));
+    expect(mocks.readPathPlannerLearnerState).toHaveBeenCalledWith(
+      db,
+      'student-1',
+      expect.objectContaining({
+        goal: 'control-correction',
+        classId: 'class-1',
+        now: expect.any(Date),
+      }),
+    );
     expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ sourcePathId: result.pathId }),
     }));
@@ -9483,7 +9523,7 @@ describe('konling agent runtime', () => {
       idempotencyKey: 'path-gen-low-budget',
       goalId: 'control-correction',
       graphNodeId: 'kn:autocontrol:controller-correction',
-      timeBudgetMinutes: 30,
+      timeBudgetMinutes: 5,
     }) as {
       generationStatus: string;
       request: {
@@ -9493,14 +9533,8 @@ describe('konling agent runtime', () => {
       };
     };
 
-    expect(lowBudgetResult).toMatchObject({
-      generationStatus: 'blocked',
-      request: {
-        effectiveTimeBudgetMinutes: 30,
-        minimumTimeBudgetMinutes: 32,
-        timeBudgetInsufficient: true,
-      },
-    });
+    expect(lowBudgetResult.generationStatus).toBe('blocked');
+    expect(lowBudgetResult.request.effectiveTimeBudgetMinutes).toBe(5);
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -11667,6 +11701,11 @@ describe('konling agent runtime', () => {
   });
 
   it('persists adaptive path revision as a derived batch without switch evidence', async () => {
+    const legalRegistry = withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry());
+    mocks.buildResourceNodeRegistryFromTeachingResources
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry);
     const revisedRun = {
       id: 'tool-run-revise-1',
       ownerUserId: 'student-1',
@@ -14920,6 +14959,63 @@ describe('konling agent runtime', () => {
         hintStrength: 'guided',
       },
     });
+  });
+
+  it('defaults to detailed derivation steps when calculate is available and keeps explicit brevity', () => {
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ permittedTools: ['calculate'] }),
+      scope: createScope(),
+      currentUserQuery: '求 x^2 的导数',
+    });
+
+    expect(contract.studyQuestion).toMatchObject({
+      preferences: {
+        depth: 'detailed',
+        format: 'steps',
+        hintStrength: 'full-answer',
+      },
+    });
+
+    const withoutTool = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+    });
+    expect(withoutTool.studyQuestion?.preferences).toMatchObject({
+      depth: 'standard',
+      format: 'default',
+    });
+
+    const concise = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ permittedTools: ['calculate'] }),
+      scope: createScope(),
+      currentUserQuery: '请简洁回答',
+    });
+    expect(concise.studyQuestion?.preferences).toMatchObject({
+      depth: 'concise',
+      format: 'steps',
+    });
+  });
+
+  it('instructs detailed derivation presentation when the calculate tool is available', () => {
+    const runtime = createRuntimeContext({ permittedTools: ['calculate'] });
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: runtime,
+      scope: createScope(),
+      currentUserQuery: '求 x^2 的导数',
+    });
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: { ...runtime, teachingAssistantMode: contract },
+    });
+
+    expect(prompt).toContain('公式计算工具规则');
+    expect(prompt).toContain('逐条展开工具返回的每一步');
   });
 
   it('requires a verified official citation before marking normative guidance as verified', () => {

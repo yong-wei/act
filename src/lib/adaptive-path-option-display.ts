@@ -4,6 +4,7 @@ import {
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearningPathRecommendationProvenance } from './adaptive-learning-path-planner';
+import type { PersonalizedPathDecisionPathEvidence } from './adaptive-path-decision-evidence';
 
 export type AdaptivePathResourceKind =
   | 'interactive_lesson'
@@ -55,6 +56,7 @@ export interface AdaptivePathOptionWriteOption {
   expectedTargetLift?: number;
   limitations: string[];
   recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+  decisionEvidence?: PersonalizedPathDecisionPathEvidence;
 }
 
 export interface AdaptivePathOptionPreviewNode {
@@ -84,6 +86,7 @@ export interface AdaptivePathOptionDisplay {
   expectedAbilityImprovement?: string;
   riskNote: string;
   recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
+  decisionEvidence?: PersonalizedPathDecisionPathEvidence;
   diversityLimited?: boolean;
   writeOption?: AdaptivePathOptionWriteOption;
 }
@@ -176,9 +179,7 @@ export function buildAdaptivePathOptionDisplays(
     orderedNodes: buildOrderedNodes(option, nodeOccurrences, pathOptions.length),
     checkpoints: formatCheckpoints(option),
     readiness: formatReadiness(option),
-    scenario: option.evidenceBasis.length > 0
-      ? `依据 ${option.evidenceBasis.slice(0, 2).join('、')} 生成。`
-      : '按当前学习记录生成。',
+    scenario: formatScenario(option.evidenceBasis, option.recommendationProvenance?.confidence),
     reason: option.targetDeficits.length > 0
       ? `面向 ${option.targetDeficits.length} 个当前薄弱项安排资源。`
       : '按当前学习证据安排资源组合。',
@@ -188,9 +189,40 @@ export function buildAdaptivePathOptionDisplays(
     expectedAbilityImprovement: formatExpectedAbilityImprovement(option.expectedTargetLift),
     riskNote: option.limitations[0] ?? '当前没有明显风险提示。',
     recommendationProvenance: option.recommendationProvenance,
+    decisionEvidence: option.decisionEvidence,
     diversityLimited: context.diversityLimited,
     writeOption: option,
   }));
+}
+
+function formatScenario(
+  evidenceBasis: string[],
+  provenanceConfidence?: AdaptiveLearningPathRecommendationProvenance['confidence'],
+): string {
+  if (provenanceConfidence === 'low') {
+    return '当前学习记录较少，这条路径会先从基础内容开始。';
+  }
+
+  if (evidenceBasis.some((source) => [
+    'low-confidence-learner-state',
+    '当前证据较少，路径会从基础资源开始。',
+    '当前证据较少',
+    '证据较少',
+  ].includes(source))) {
+    return '当前学习记录较少，这条路径会先从基础内容开始。';
+  }
+
+  if (evidenceBasis.some((source) => [
+    'adaptive-learner-state',
+    'LearningFact',
+    '学习证据',
+    '练习记录',
+    '路径已结合你的近期学习证据。',
+  ].includes(source))) {
+    return '这条路径结合你的学习记录生成。';
+  }
+
+  return '这条路径根据当前学习记录生成。';
 }
 
 function buildNodeOccurrences(pathOptions: AdaptivePathOptionWriteOption[]): Map<string, number> {

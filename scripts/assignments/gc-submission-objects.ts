@@ -1,6 +1,6 @@
 import { createSubmissionGcObjectStore } from '../../src/lib/assignments/submission-object-store';
 import { garbageCollectQuarantine, garbageCollectSourceAssets } from '../../src/lib/assignments/submission-service';
-import { runGradingRetentionGc } from '../../src/lib/data-governance/math-document-grading-lifecycle';
+import { runGradingRetentionGc, type LifecyclePolicyInput } from '../../src/lib/data-governance/math-document-grading-lifecycle';
 import { prisma } from '../../src/lib/prisma';
 
 async function main() {
@@ -17,7 +17,17 @@ async function main() {
     },
     orderBy: { createdAt: 'desc' },
   });
-  const grading = await runGradingRetentionGc({ db: prisma, store, policies, now: new Date() });
+  const gradingPolicies: LifecyclePolicyInput[] = policies.map((policy) => ({
+    id: policy.id,
+    dataClass: policy.dataClass,
+    version: policy.version,
+    retentionSeconds: policy.retentionSeconds,
+    governedRecordRule: policy.governedRecordRule,
+    deleteStrategy: policy.deleteStrategy as LifecyclePolicyInput['deleteStrategy'],
+    providerRetentionSeconds: policy.providerRetentionSeconds,
+    enabled: policy.enabled,
+  }));
+  const grading = await runGradingRetentionGc({ db: prisma, store, policies: gradingPolicies, now: new Date() });
   process.stdout.write(`${JSON.stringify({ submission: result, sourceAssets, grading })}\n`);
 }
 

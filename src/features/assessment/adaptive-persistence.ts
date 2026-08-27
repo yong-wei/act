@@ -23,6 +23,9 @@ import {
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
+import { isMicroInterventionEvidenceConsumerEnabled } from './micro-intervention-evidence-policy';
+import { applyMicroInterventionMasteryPolicy } from './micro-intervention-learning-evidence';
+import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 
 import {
   buildSubmitAnswerResult,
@@ -137,6 +140,13 @@ type AdaptiveAssessmentPersistenceTx = {
       data: Prisma.LearningFactCreateManyInput[];
       skipDuplicates?: boolean;
     }): Promise<CreateManyResult>;
+    findMany?(args: Record<string, unknown>): Promise<Array<{
+      sourceEventId: string | null;
+      factType: string;
+      outcome: string;
+      startedAt: Date;
+      contextJson: unknown;
+    }>>;
   };
 };
 
@@ -1009,6 +1019,12 @@ async function persistAdaptiveAssessmentSubmission(
   ], {
     algorithmVersion: algorithm.version,
     parameters: readBktParameters(algorithm.parameters),
+    consumeMicroInterventionEvidence: isMicroInterventionEvidenceConsumerEnabled(),
+    microInterventionEvidence: await loadMicroInterventionMasteryEvidence(
+      tx,
+      effectiveDetails.record.userId,
+      answeredAt,
+    ),
   });
   const currentUpdates = rebuiltUpdates.filter((update) => update.answerId === answer.id);
   const masteryResult = await tx.adaptiveMasteryUpdate.createMany({
@@ -1106,6 +1122,37 @@ export async function submitAnswerWithPersistenceFallback(
   }
 
   return submitAnswerDurably(params, db);
+}
+
+async function loadMicroInterventionMasteryEvidence(
+  tx: AdaptiveAssessmentPersistenceTx,
+  userId: string,
+  now: Date,
+): Promise<MicroInterventionMasteryEvidence[]> {
+  if (typeof tx.learningFact.findMany !== 'function') return [];
+  const rows = await tx.learningFact.findMany({
+    where: {
+      userId,
+      factType: 'micro_intervention_validation',
+    },
+  });
+  const raw = rows.flatMap((row) => {
+    const context = row.contextJson && typeof row.contextJson === 'object' && !Array.isArray(row.contextJson)
+      ? row.contextJson as Record<string, unknown>
+      : {};
+    const evidence = context.microInterventionEvidence && typeof context.microInterventionEvidence === 'object'
+      ? context.microInterventionEvidence as Record<string, unknown>
+      : {};
+    const canonicalNodeId = typeof evidence.canonicalNodeId === 'string' ? evidence.canonicalNodeId : '';
+    if (!row.sourceEventId || !canonicalNodeId) return [];
+    return [{
+      evidenceId: row.sourceEventId,
+      canonicalNodeId,
+      isCorrect: row.outcome === 'success',
+      occurredAt: row.startedAt,
+    }];
+  });
+  return applyMicroInterventionMasteryPolicy(raw, now);
 }
 
 async function loadPersistedAnswerRecords(

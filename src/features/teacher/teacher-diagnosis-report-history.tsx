@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   DiagnosisReportApiItem,
   DiagnosisReportsPayload,
-} from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+} from '@/features/teacher/diagnosis/public-api';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
 import {
@@ -596,9 +596,11 @@ function ReportDetail({
         <div className="mt-5 flex flex-wrap gap-2" data-diagnosis-delivery-entry>
           <Link
             href={`/teacher/classes/${encodeURIComponent(classId)}/diagnosis-reports/${encodeURIComponent(report.id)}`}
-            className="btn-themed rounded-lg px-3 py-2 text-sm"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,box-shadow,transform] hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-px"
+            data-diagnosis-delivery-primary="true"
           >
             打开教师交付版
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
           {report.scopeType === 'student' ? (
             <Link
@@ -655,16 +657,6 @@ function ReportDetail({
                   {finding.confidence ? <span>· {CONFIDENCE_LABELS[finding.confidence]}</span> : null}
                   <span>· {finding.evidenceRefs.length} 条受治理证据</span>
                 </div>
-                {finding.prepLink ? (
-                  <Link
-                    href={finding.prepLink}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg border border-sky-500/25 bg-sky-500/5 px-3 py-2 text-xs font-medium text-sky-700 transition hover:bg-sky-500/10 dark:text-sky-300"
-                  >
-                    <BookOpenCheck className="h-3.5 w-3.5" />
-                    打开对应备课位置
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : null}
               </section>
             ))}
           </div>

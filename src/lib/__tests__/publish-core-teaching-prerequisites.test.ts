@@ -846,6 +846,45 @@ describe('Publication gate, evidence, and fail-closed store (#1270)', () => {
     );
   });
 
+  it('does not inherit a local current publication for an isolated candidate stage', () => {
+    const paths = tempStore();
+    const active = publishPrerequisitePublication(paths, validPublishedInput());
+    const isolatedDecision = createPrerequisiteAuthorDecision({
+      sourceNodeId: 'node.laplace-transform',
+      targetNodeId: 'node.transfer-function',
+      strength: 'REQUIRED',
+      scopeId: SCOPE,
+      evidenceRefs: ['authoring/handouts/1-1/laplace-to-tf.md'],
+      curatorRationale: 'Hard teaching dependency',
+      curatorId: 'teacher.core-path',
+      rationale: 'Author decision for isolated candidate',
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-isolated',
+      authoringRevision: commitB,
+    });
+    const staged = stagePrerequisitePublication(paths, {
+      ...validPublishedInput({ authoringRevision: commitB, projectionCaptureId: 'proj-capture-isolated' }),
+      edges: [{
+        sourceNodeId: 'node.laplace-transform',
+        targetNodeId: 'node.transfer-function',
+        strength: 'REQUIRED',
+        scopeId: SCOPE,
+        evidenceRefs: ['authoring/handouts/1-1/laplace-to-tf.md'],
+        curatorId: 'teacher.core-path',
+        curatorRationale: 'Hard teaching dependency',
+        status: 'PUBLISHED',
+        authorDecisionId: isolatedDecision.decisionId,
+      }],
+      decisions: [isolatedDecision],
+      useCurrentAsPrior: false,
+    });
+
+    expect(staged.priorPreserved).toBe(false);
+    expect(staged.publicationId).not.toBe(active.publicationId);
+    expect(staged.artifacts.manifest.authoringRevision).toBe(commitB);
+    expect(readCurrentPrerequisitePointer(paths)?.publicationId).toBe(active.publicationId);
+  });
+
   it('is byte-deterministic across repeated builds and stages', () => {
     const paths = tempStore();
     const evidenceRefs = ['authoring/handouts/1-1/laplace-to-tf.md'];

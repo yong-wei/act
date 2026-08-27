@@ -7,12 +7,16 @@ import {
   authorizeActiveGraph,
   readActiveDetailInfograph,
 } from '@/app/api/knowledge/_active-authority';
+import {
+  activeLocaleCapability,
+  resolveActiveLocaleRequest,
+} from '@/lib/authority-locale-readiness/request';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   props: { params: Promise<{ id: string }> },
 ) {
   const { id } = await props.params;
@@ -25,6 +29,8 @@ export async function GET(
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;
+    const locale = resolveActiveLocaleRequest(request, activeLocaleCapability());
+    if (!locale.ok) return locale.response;
     const image = readActiveDetailInfograph(id);
     if (!image) {
       return NextResponse.json(

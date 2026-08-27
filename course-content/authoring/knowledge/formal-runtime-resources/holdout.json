@@ -1,0 +1,9 @@
+{
+  "name": "holdout",
+  "pipelines": {
+    "asr": [{ "id": "h1", "expected": "admit" }],
+    "segmentation": [{ "id": "sh1", "expected": "admit" }],
+    "time-alignment": [{ "id": "th1", "expected": "admit" }],
+    "canonical-mapping": [{ "id": "map-holdout", "expected": "admit" }]
+  }
+}

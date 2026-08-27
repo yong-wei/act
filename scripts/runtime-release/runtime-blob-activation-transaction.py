@@ -64,6 +64,8 @@ def main():
         command.add_argument("--host-state-script")
     commands.choices["activate"].add_argument("--expected-generation", required=True, type=int)
     commands.choices["activate"].add_argument("--identity", required=True)
+    commands.choices["activate"].add_argument("--coordinated-runtime-authorization")
+    commands.choices["activate"].add_argument("--coordinated-runtime-binding")
     commands.choices["rollback"].add_argument("--expected-generation", required=True, type=int)
     args = parser.parse_args()
     if args.command is None:
@@ -78,14 +80,19 @@ def main():
             "--host-state-script", host_script,
         ])
     elif args.command == "activate":
-        result = run([
+        activate_command = [
             lifecycle_script,
             "activate-and-project",
             "--state-dir", args.state_dir,
             "--expected-generation", args.expected_generation,
             "--identity", args.identity,
             "--host-state-script", host_script,
-        ])
+        ]
+        if args.coordinated_runtime_authorization:
+            activate_command.extend(["--coordinated-runtime-authorization", args.coordinated_runtime_authorization])
+        if getattr(args, "coordinated_runtime_binding", None):
+            activate_command.extend(["--coordinated-runtime-binding", args.coordinated_runtime_binding])
+        result = run(activate_command)
     else:
         result = run([
             lifecycle_script,

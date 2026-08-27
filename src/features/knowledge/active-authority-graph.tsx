@@ -8,17 +8,22 @@ import {
   CircleHelp,
   Crosshair,
   Loader2,
-  Minus,
   Network,
-  Plus,
   RotateCcw,
   Search,
   X,
 } from 'lucide-react';
 
-import type {
-  ActiveNodeDetailResponse,
+import {
+  ACTIVE_RESOURCE_BINDING_ROLES,
+  type ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
+import 'katex/dist/katex.min.css';
+import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
+import {
+  GOVERNED_KATEX_MACRO_PROFILE_HASH,
+  GOVERNED_KATEX_MACRO_PROFILE_ID,
+} from '@/lib/governed-math';
 import {
   activeModelRelationSummaries,
   activeNodeRelationSummaries,
@@ -40,15 +45,23 @@ import {
 } from './active-authority-presentation';
 import {
   createEmptyAuthorityShardWorkspace,
+  disableAuthorityShardFamily,
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
   mergeAuthorityShard,
+  completeAuthorityLocaleRefresh,
   resetAuthorityShardDomain,
   shardIdentityDrift,
   visibleAuthorityShardRelations,
   type AuthorityShardWorkspaceState,
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
+import { ActiveAuthorityForceCanvas } from './active-authority-force-canvas';
+import {
+  createAuthorityGraphViewModel,
+  defaultEnabledTeachingFamilies,
+} from './authority-graph-view-model';
+import type { GraphDimension } from './graph-runtime-session';
 import type {
   AuthorityShardPublicEnvelope,
   AuthorityShardMembership,
@@ -60,23 +73,40 @@ import {
   isPublicAuthorityLearnerShard,
   publicEnvelopesShareAuthorityAndCatalog,
 } from '@/lib/authority-domain-shards/envelope';
+import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
+import {
+  createGraphLanguageState,
+  projectOptionalContentForLocale,
+  selectGraphLanguage,
+} from '@/lib/authority-locale-readiness/presentation-state';
+import {
+  boundaryEnterCopy,
+  familyLabel,
+  formatLoadMore,
+  formatLoadMoreAria,
+  formatSearchShownCount,
+  graphCopy,
+  reviewedDomainHeaderCopy,
+  shardUrl,
+  totalCoverageCopy,
+  visibleCoverageCopy,
+} from './active-authority-graph-i18n';
 import { ActiveAuthorityRootCanvas } from './active-authority-root-canvas';
+import {
+  KNOWLEDGE_NODE_LABEL_POLICY,
+  layoutKnowledgeNodeLabel,
+} from './graph/graph-presentation-contract';
 
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
+  dimension?: GraphDimension;
+  onDimensionChange?: (dimension: GraphDimension) => void;
 }
 
 type WorkspaceLoadState =
   | { status: 'loading' }
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
   | { status: 'error'; message: string };
-
-const FAMILY_LABELS: Record<EngineeringRelationFamily, string> = {
-  structure: '结构',
-  'derivation-and-representation': '推导与表示',
-  'application-and-analysis': '应用与分析',
-  association: '关联',
-};
 
 /** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
@@ -95,11 +125,11 @@ export function selectActiveAuthorityMembership(
     ?? null;
 }
 
-function errorMessage(status: number): string {
-  if (status === 401) return '请先登录后查看当前 Authority 图谱。';
-  if (status === 403) return '当前身份无权查看知识图谱。';
-  if (status === 409) return '当前 Authority 身份发生漂移，已停止显示。';
-  return '当前 Authority 图谱暂时无法加载。';
+function errorMessage(status: number, locale: AdmittedLocale = 'zh-CN'): string {
+  if (status === 401) return graphCopy(locale, 'error.login');
+  if (status === 403) return graphCopy(locale, 'error.forbidden');
+  if (status === 409) return graphCopy(locale, 'error.identityDrift');
+  return graphCopy(locale, 'error.generic');
 }
 
 class AuthorityShardFetchError extends Error {
@@ -132,16 +162,17 @@ async function fetchAuthorityShard(
   if (!response.ok) throw new AuthorityShardFetchError(response.status);
   const payload: unknown = await response.json();
   if (!isShardClass(payload, shardClass)) {
-    throw new Error('当前 Authority 响应身份校验失败，已停止显示。');
+    throw new Error('当前知识图谱响应身份校验失败，已停止显示。');
   }
   return payload as IncomingAuthorityShard;
 }
 
-function useActiveAuthorityWorkspace(retry: number): {
+function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
   state: WorkspaceLoadState;
   workspace: AuthorityShardWorkspaceState;
   enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
+  disableFamily: (family: EngineeringRelationFamily) => void;
   familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
   neighborhoodFailures: Record<string, string>;
@@ -157,6 +188,8 @@ function useActiveAuthorityWorkspace(retry: number): {
   const requestGenerationRef = useRef(0);
   const requestControllersRef = useRef(new Set<AbortController>());
   const failClosedRef = useRef(false);
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
   workspaceRef.current = workspace;
 
   function updateWorkspace(
@@ -186,14 +219,14 @@ function useActiveAuthorityWorkspace(retry: number): {
     setWorkspace(empty);
     setFamilyFailures({});
     setNeighborhoodFailures({});
-    setState({ status: 'error', message: errorMessage(409) });
+    setState({ status: 'error', message: errorMessage(409, locale) });
   }
 
   function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): Promise<boolean> {
     const controller = new AbortController();
     requestControllersRef.current.add(controller);
     return fetchAuthorityShard(
-      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`,
+      shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`, localeRef.current),
       'domain-default',
       controller.signal,
     )
@@ -206,7 +239,7 @@ function useActiveAuthorityWorkspace(retry: number): {
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : '当前领域分片暂时无法加载。',
+          message: error instanceof Error ? error.message : graphCopy(locale, 'error.domainShard'),
         });
         return false;
       })
@@ -258,16 +291,20 @@ function useActiveAuthorityWorkspace(retry: number): {
     return true;
   }
 
+  // Root loading is deliberately retried only through `retry`; its helpers
+  // coordinate the latest workspace and request generation through refs.
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const controller = new AbortController();
+    const requestControllers = requestControllersRef.current;
     const generation = nextRequestGeneration();
     failClosedRef.current = false;
-    requestControllersRef.current.add(controller);
+    requestControllers.add(controller);
     setState({ status: 'loading' });
     setFamilyFailures({});
     setNeighborhoodFailures({});
     updateWorkspace(() => createEmptyAuthorityShardWorkspace());
-    fetchAuthorityShard('/api/knowledge/shards/active', 'root', controller.signal)
+    fetchAuthorityShard(shardUrl('/api/knowledge/shards/active', localeRef.current), 'root', controller.signal)
       .then((shard) => {
         applyShard(shard, generation);
       })
@@ -279,15 +316,87 @@ function useActiveAuthorityWorkspace(retry: number): {
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : '当前 Authority 图谱暂时无法加载。',
+          message: error instanceof Error ? error.message : graphCopy(locale, 'error.generic'),
         });
       });
     return () => {
       controller.abort();
-      requestControllersRef.current.delete(controller);
+      requestControllers.delete(controller);
       nextRequestGeneration();
     };
+    // Root reload is keyed only by retry. applyShard/onIdentityFailure close
+    // over the current request generation and must not retrigger the fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retry]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  useEffect(() => {
+    const current = workspaceRef.current;
+    if (state.status !== 'ready' || !current.envelope) return;
+    if (current.selectedLocale === locale) return;
+    const visualRole = current.activeVisualRole;
+    const families = [...current.enabledFamilies];
+    const selectedId = current.selectedCanonicalId;
+    const loadedNodeIds = [...new Set([
+      ...current.loadedShardKeys
+        .filter((key) => key.startsWith('node-neighborhood:') || key.startsWith('node-detail:'))
+        .map((key) => key.slice(key.indexOf(':') + 1)),
+      ...selectedId ? [selectedId] : [],
+    ])];
+    updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
+    const generation = nextRequestGeneration();
+    const domainRevision = current.domainRevision;
+    const controller = new AbortController();
+    const requestControllers = requestControllersRef.current;
+    requestControllers.add(controller);
+    fetchAuthorityShard(shardUrl('/api/knowledge/shards/active', locale), 'root', controller.signal)
+      .then(async (shard) => {
+        const applyRequired = (next: IncomingAuthorityShard): boolean => (
+          applyShard(next, generation, domainRevision) && !controller.signal.aborted
+        );
+        if (!applyRequired(shard)) return;
+        if (visualRole) {
+          const domainOk = await fetchDomainDefault(visualRole, generation, domainRevision);
+          if (!domainOk || controller.signal.aborted) return;
+        }
+        for (const family of families) {
+          if (!visualRole) break;
+          const familyShard = await fetchAuthorityShard(
+            shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
+            'relation-family',
+            controller.signal,
+          );
+          if (!applyRequired(familyShard)) return;
+        }
+        for (const nodeId of loadedNodeIds) {
+          const neighborhood = await fetchAuthorityShard(
+            shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
+            'node-neighborhood',
+            controller.signal,
+          );
+          if (!applyRequired(neighborhood)) return;
+          const detail = await fetchAuthorityShard(
+            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
+            'node-detail',
+            controller.signal,
+          );
+          if (!applyRequired(detail)) return;
+        }
+        if (generation === requestGenerationRef.current) {
+          updateWorkspace(completeAuthorityLocaleRefresh);
+        }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || isIdentityFailure(error)) return;
+      })
+      .finally(() => requestControllers.delete(controller));
+    return () => {
+      controller.abort();
+      requestControllers.delete(controller);
+    };
+    // Locale changes refresh display only; retry remains the identity reload.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, state.status]);
 
   function enterDomain(visualRole: string): Promise<boolean> {
     const current = workspaceRef.current;
@@ -308,6 +417,10 @@ function useActiveAuthorityWorkspace(retry: number): {
     return fetchDomainDefault(visualRole, generation, workspaceRef.current.domainRevision);
   }
 
+  function disableFamily(family: EngineeringRelationFamily) {
+    updateWorkspace((workspace) => disableAuthorityShardFamily(workspace, family));
+  }
+
   function enableFamily(family: EngineeringRelationFamily) {
     const current = workspaceRef.current;
     const domainId = current.activeDomainId;
@@ -322,12 +435,14 @@ function useActiveAuthorityWorkspace(retry: number): {
     updateWorkspace((workspace) => enableAuthorityShardFamily(workspace, family));
     if (!domainId || !visualRole) return;
     const key = `relation-family:${domainId}:${family}`;
-    if (workspaceRef.current.loadedShardKeys.includes(key)) return;
+    const envelope = workspaceRef.current.envelope;
+    const displayKey = envelope ? `${envelope.localeProfileVersion}:${key}` : key;
+    if (workspaceRef.current.loadedDisplayKeys.includes(displayKey)) return;
     const generation = requestGenerationRef.current;
     const controller = new AbortController();
     requestControllersRef.current.add(controller);
     fetchAuthorityShard(
-      `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`,
+      shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, localeRef.current),
       'relation-family',
       controller.signal,
       )
@@ -354,7 +469,7 @@ function useActiveAuthorityWorkspace(retry: number): {
         }));
         setFamilyFailures((currentFailures) => ({
           ...currentFailures,
-          [family]: error instanceof Error ? error.message : '关系族分片暂时无法加载，请重试。',
+          [family]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -362,7 +477,9 @@ function useActiveAuthorityWorkspace(retry: number): {
 
   function requestNeighborhood(nodeId: string) {
     const key = `node-neighborhood:${nodeId}`;
-    if (workspaceRef.current.loadedShardKeys.includes(key)) return;
+    const envelope = workspaceRef.current.envelope;
+    const displayKey = envelope ? `${envelope.localeProfileVersion}:${key}` : key;
+    if (workspaceRef.current.loadedDisplayKeys.includes(displayKey)) return;
     const domainRevision = workspaceRef.current.domainRevision;
     const generation = requestGenerationRef.current;
     setNeighborhoodFailures((currentFailures) => {
@@ -374,7 +491,7 @@ function useActiveAuthorityWorkspace(retry: number): {
     const controller = new AbortController();
     requestControllersRef.current.add(controller);
     fetchAuthorityShard(
-      `/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`,
+      shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, localeRef.current),
       'node-neighborhood',
       controller.signal,
       )
@@ -397,7 +514,7 @@ function useActiveAuthorityWorkspace(retry: number): {
         }
         setNeighborhoodFailures((currentFailures) => ({
           ...currentFailures,
-          [nodeId]: error instanceof Error ? error.message : '邻域分片暂时无法加载，请重试。',
+          [nodeId]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -415,6 +532,7 @@ function useActiveAuthorityWorkspace(retry: number): {
     workspace,
     enterDomain,
     enableFamily,
+    disableFamily,
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
@@ -429,6 +547,7 @@ function useActiveNodeDetail(
   expectedEnvelope: AuthorityShardPublicEnvelope | null,
   onShard?: (shard: IncomingAuthorityShard) => boolean,
   onIdentityFailure?: () => void,
+  locale: AdmittedLocale = 'zh-CN',
 ): {
   detail: ActiveNodeDetailResponse | null;
   failure: string | null;
@@ -453,7 +572,7 @@ function useActiveNodeDetail(
     setDetail(null);
     setFailure(null);
     setLoading(true);
-    fetch(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, {
+    fetch(shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale), {
       signal: controller.signal,
       headers: { accept: 'application/json' },
     })
@@ -464,11 +583,11 @@ function useActiveNodeDetail(
         }
         const candidate: unknown = await response.json();
         if (!isShardClass(candidate, 'node-detail')) {
-          throw new Error('节点详情暂时无法加载。');
+          throw new Error(graphCopy(locale, 'error.detail'));
         }
         const shard = candidate;
         if (onShardRef.current && !onShardRef.current(shard)) {
-          throw new Error('当前 Authority 身份发生漂移，已停止显示。');
+          throw new Error('当前知识图谱身份发生漂移，已停止显示。');
         }
         if (!publicEnvelopesShareAuthorityAndCatalog(expectedEnvelope, shard.envelope)) {
           throw new Error('节点详情身份校验失败，已停止显示。');
@@ -518,7 +637,7 @@ function useActiveNodeDetail(
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [nodeId, expectedEnvelope]);
+  }, [nodeId, expectedEnvelope, locale]);
 
   return { detail, failure, loading };
 }
@@ -555,17 +674,17 @@ interface Point {
 
 type ActiveNodeShape = ActiveNodePresentation['type']['shape'];
 
-const ACTIVE_NODE_CIRCLE_RADIUS = 30;
-const ACTIVE_NODE_RECT_HALF_WIDTH = 44;
-const ACTIVE_NODE_RECT_HALF_HEIGHT = 27;
-const ACTIVE_NODE_DIAMOND_HALF_WIDTH = 42;
-const ACTIVE_NODE_DIAMOND_HALF_HEIGHT = 28;
-const ACTIVE_NODE_HEXAGON_HALF_WIDTH = 42;
-const ACTIVE_NODE_HEXAGON_SLOPE_X = 21;
-const ACTIVE_NODE_HEXAGON_SLOPE_Y = 20;
-const ACTIVE_NODE_HEXAGON_HALF_HEIGHT = 30;
-const ACTIVE_NODE_ROUNDED_RADIUS = 18;
-const ACTIVE_NODE_SQUARE_RADIUS = 7;
+const ACTIVE_NODE_CIRCLE_RADIUS = 18;
+const ACTIVE_NODE_RECT_HALF_WIDTH = 26;
+const ACTIVE_NODE_RECT_HALF_HEIGHT = 16;
+const ACTIVE_NODE_DIAMOND_HALF_WIDTH = 24;
+const ACTIVE_NODE_DIAMOND_HALF_HEIGHT = 16;
+const ACTIVE_NODE_HEXAGON_HALF_WIDTH = 24;
+const ACTIVE_NODE_HEXAGON_SLOPE_X = 12;
+const ACTIVE_NODE_HEXAGON_SLOPE_Y = 12;
+const ACTIVE_NODE_HEXAGON_HALF_HEIGHT = 18;
+const ACTIVE_NODE_ROUNDED_RADIUS = 12;
+const ACTIVE_NODE_SQUARE_RADIUS = 5;
 
 function polygonBoundaryPoint(center: Point, direction: Point, vertices: readonly Point[]): Point {
   const epsilon = 1e-9;
@@ -753,6 +872,13 @@ function nodePolygon(shape: ActiveNodePresentation['type']['shape'], x: number, 
   return null;
 }
 
+function glyphHalfHeight(shape: ActiveNodeShape): number {
+  if (shape === 'circle') return ACTIVE_NODE_CIRCLE_RADIUS;
+  if (shape === 'diamond') return ACTIVE_NODE_DIAMOND_HALF_HEIGHT;
+  if (shape === 'hexagon') return ACTIVE_NODE_HEXAGON_HALF_HEIGHT;
+  return ACTIVE_NODE_RECT_HALF_HEIGHT;
+}
+
 function GraphNode({
   node,
   point,
@@ -767,12 +893,14 @@ function GraphNode({
   compact: boolean;
 }) {
   const polygon = nodePolygon(node.type.shape, point.x, point.y);
-  const label = `${node.label}，${node.type.label}`;
+  const accessibleName = `${node.label}，${node.type.label}`;
+  const labelLayout = layoutKnowledgeNodeLabel(node.label);
+  const labelY = point.y + glyphHalfHeight(node.type.shape) + 14;
   return (
     <g
       role="button"
       tabIndex={0}
-      aria-label={label}
+      aria-label={accessibleName}
       aria-pressed={selected}
       data-active-authority-node={node.key}
       data-active-authority-node-shape={node.type.shape}
@@ -785,7 +913,7 @@ function GraphNode({
       }}
       className="cursor-pointer outline-none focus-visible:ring-2"
     >
-      <title>{label}</title>
+      <title>{accessibleName}</title>
       {polygon ? (
         <polygon points={polygon} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       ) : node.type.shape === 'circle' ? (
@@ -793,11 +921,25 @@ function GraphNode({
       ) : (
         <rect x={point.x - ACTIVE_NODE_RECT_HALF_WIDTH} y={point.y - ACTIVE_NODE_RECT_HALF_HEIGHT} width={ACTIVE_NODE_RECT_HALF_WIDTH * 2} height={ACTIVE_NODE_RECT_HALF_HEIGHT * 2} rx={node.type.shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
       )}
-      <text data-active-authority-node-label="true" x={point.x} y={point.y - 3} textAnchor="middle" fill="#f8fafc" fontSize={compact ? 13 : 12} fontWeight="600">
-        {node.label.slice(0, 14)}
-      </text>
-      <text data-active-authority-node-type-label="true" x={point.x} y={point.y + 15} textAnchor="middle" fill="#cbd5e1" fontSize={compact ? 11 : 10}>
-        {node.type.label}
+      <text
+        data-active-authority-node-label="true"
+        data-active-authority-node-label-placement="below"
+        x={point.x}
+        y={labelY}
+        textAnchor="middle"
+        fill="#e2e8f0"
+        fontSize={compact ? 13 : 13}
+        fontWeight="600"
+      >
+        {labelLayout.lines.map((line, index) => (
+          <tspan
+            key={`${line.text}-${index}`}
+            x={point.x}
+            dy={index === 0 ? 0 : KNOWLEDGE_NODE_LABEL_POLICY.lineHeight}
+          >
+            {line.text}
+          </tspan>
+        ))}
       </text>
     </g>
   );
@@ -874,6 +1016,30 @@ function GraphEdge({
   );
 }
 
+function trapInspectorFocus(event: KeyboardEvent<HTMLElement>, root: HTMLElement | null) {
+  if (event.key !== 'Tab' || !root) return;
+  const focusable = [...root.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => element.tabIndex !== -1 && !element.hasAttribute('disabled'));
+  if (focusable.length === 0) {
+    event.preventDefault();
+    root.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !root.contains(active))) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && (active === last || !root.contains(active))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 function ActiveNodeDetail({
   nodeKey,
   fallbackNode,
@@ -882,6 +1048,9 @@ function ActiveNodeDetail({
   onShard,
   onIdentityFailure,
   onClose,
+  compact,
+  onActivateNeighbor,
+  locale,
 }: {
   nodeKey: string;
   fallbackNode: ActiveNodePresentation | undefined;
@@ -890,8 +1059,11 @@ function ActiveNodeDetail({
   onShard: (shard: IncomingAuthorityShard) => boolean;
   onIdentityFailure: () => void;
   onClose: () => void;
+  compact: boolean;
+  onActivateNeighbor: (key: string) => void;
+  locale: AdmittedLocale;
 }) {
-  const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure);
+  const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure, locale);
   const panelRef = useRef<HTMLElement>(null);
   const [infographFailed, setInfographFailed] = useState(false);
   useEffect(() => {
@@ -901,31 +1073,51 @@ function ActiveNodeDetail({
     setInfographFailed(false);
   }, [nodeKey, detail?.node.learningContent?.infograph.state]);
   const node = detail?.node;
-  const type = presentActiveNodeType(node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '');
+  const type = presentActiveNodeType(
+    node?.canonicalType ?? fallbackNode?.type.canonicalType ?? '',
+    node?.typeLabel ?? fallbackNode?.type.label,
+  );
   const summaries = node && node.adjacency.length > 0
     ? activeNodeRelationSummaries(node, model)
     : activeModelRelationSummaries(model, nodeKey);
   const detailLabel = presentActiveHumanText(
     node && node.label !== nodeKey ? node.label : fallbackNode?.label,
-    '名称暂不可用',
+    graphCopy(locale, 'inspector.nameUnavailable'),
   );
+  const cardProjection = projectOptionalContentForLocale({
+    availableLocales: ['zh-CN'],
+    bodyLocale: 'zh-CN',
+    selectedLocale: locale,
+  });
+  const infographProjection = projectOptionalContentForLocale({
+    availableLocales: ['zh-CN'],
+    bodyLocale: 'zh-CN',
+    selectedLocale: locale,
+  });
   return (
     <aside
       ref={panelRef}
       tabIndex={-1}
-      className="min-h-0 overflow-y-auto border-l border-platform-border bg-platform-surface/95 p-4 outline-none max-lg:border-l-0 max-lg:border-t"
-      aria-label="当前 Authority 节点详情"
+      role={compact ? 'dialog' : 'complementary'}
+      aria-modal={compact ? true : undefined}
+      onKeyDown={compact ? (event) => trapInspectorFocus(event, panelRef.current) : undefined}
+      className={compact
+        ? 'absolute inset-x-3 bottom-3 z-20 max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
+        : 'absolute inset-y-3 right-3 z-20 w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
+      aria-label={graphCopy(locale, 'inspector.label')}
       data-active-node-detail={nodeKey}
+      data-active-inspector-surface={compact ? 'mobile-drawer' : 'desktop-overlay'}
+      data-active-inspector-focus-contract={compact ? 'mobile-contained-drawer' : 'desktop-overlay'}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-medium text-platform-fg-muted">当前 Authority 节点详情</div>
-          <div className="mt-1 text-sm text-platform-fg-secondary">语义对象信息</div>
+          <div className="text-xs font-medium text-platform-fg-muted">{graphCopy(locale, 'inspector.label')}</div>
+          <div className="mt-1 text-sm text-platform-fg-secondary">{graphCopy(locale, 'inspector.subtitle')}</div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="关闭当前 Authority 节点详情"
+          aria-label={graphCopy(locale, 'inspector.close')}
           className="rounded-md border border-platform-border p-2 text-platform-fg-secondary hover:bg-platform-action-subtle"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -935,7 +1127,7 @@ function ActiveNodeDetail({
       {loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-platform-fg-secondary" role="status">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          正在加载当前 Authority 详情…
+          {graphCopy(locale, 'loading.detail')}
         </div>
       ) : failure ? (
         <div className="mt-6 rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
@@ -944,52 +1136,63 @@ function ActiveNodeDetail({
       ) : detail ? (
         <div className="mt-5 space-y-5">
           <div>
-            <div className="text-lg font-semibold text-platform-fg-primary">{detailLabel}</div>
+            <div className="text-lg font-semibold text-platform-fg-primary">
+              {node?.richTitle
+                ? <GovernedRichText projection={node.richTitle} density="detail" />
+                : detailLabel}
+            </div>
             <div className="mt-1 text-xs text-platform-fg-muted">{type.label}</div>
-            <p className="mt-3 text-sm leading-6 text-platform-fg-secondary">
-              {presentActiveHumanText(node?.description ?? fallbackNode?.description, '该对象暂无公开说明。')}
-            </p>
+            <div className="mt-3 text-sm leading-6 text-platform-fg-secondary">
+              {node?.richDescription
+                ? <GovernedRichText projection={node.richDescription} density="detail" />
+                : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
+            </div>
             {node?.aliases && node.aliases.length > 0 ? (
-              <p className="mt-2 text-xs text-platform-fg-muted">别名：{node.aliases.join('、')}</p>
+              <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
+            ) : null}
+            {node?.mathematics?.state === 'available' ? (
+              <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
+                {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
+                  <GovernedBlockMath
+                    latex={node.mathematics.expression}
+                    macroProfileId={node.mathematics.macroProfileId}
+                    macroProfileHash={node.mathematics.macroProfileHash}
+                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                    display={node.mathematics.display}
+                  />
+                ) : (
+                  <GovernedBlockMath
+                    latex={node.mathematics.expression}
+                    macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                    macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                    display={node.mathematics.display}
+                  />
+                )}
+              </div>
+            ) : node?.mathematics?.state === 'unavailable' ? (
+              <GovernedUnavailableMath message={node.mathematics.message} />
             ) : null}
           </div>
-          <section aria-labelledby="active-detail-relations">
-            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">一跳关系</h3>
-            <div className="mt-2 space-y-2">
-              {summaries.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? '部分关系暂不可解释，已隐藏。' : '暂无已发布关系。'}</p>
-              ) : summaries.slice(0, 20).map((relation) => (
-                <div key={relation.key} className="rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-xs">
-                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
-                  <span className="ml-2 text-platform-fg-muted">
-                    {relation.directionLabel === '关联关系'
-                      ? `${relation.directionLabel} · ${relation.neighborLabel}`
-                      : `${relation.traversal === 'outgoing' ? '出向' : '入向'} · ${relation.directionLabel} · ${relation.neighborLabel}`}
-                  </span>
-                </div>
-              ))}
-              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">部分关系暂不可解释，已隐藏。</p> : null}
-            </div>
-          </section>
-          <section aria-labelledby="active-detail-sources">
-            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">参考来源</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
-          </section>
-          {node?.learningContent?.card.state === 'available' ? (
+          {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
             <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">知识卡</h3>
+              <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
               <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
                 <p>{node.learningContent.card.summary}</p>
                 {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
                 {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
               </div>
             </section>
+          ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
+            <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>
           ) : null}
-          {node?.learningContent?.infograph.state === 'available' && !infographFailed ? (
+          {node?.learningContent?.infograph.state === 'available' && !infographFailed && infographProjection.visibility === 'render' ? (
             <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">信息图</h3>
+              <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.infograph')}</h3>
               <Image
-                src={`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`}
+                src={shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)}
                 alt={node.learningContent.infograph.alternativeText}
                 width={1200}
                 height={675}
@@ -1000,12 +1203,86 @@ function ActiveNodeDetail({
               />
             </section>
           ) : null}
+          <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
+            <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
+            {node?.resourceBindings?.state === 'available' ? (
+              <div className="mt-2 space-y-3">
+                {ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
+                  const bindings = node.resourceBindings;
+                  const items = bindings?.state === 'available'
+                    ? bindings.items.filter((item) => item.bindingRole === role)
+                    : [];
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={role} data-active-resource-role={role}>
+                      <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
+                      <div className="mt-1 space-y-1">
+                        {items.map((item) => (
+                          item.availability === 'available' && item.launch.href ? (
+                            <a
+                              key={`${role}-${item.title}`}
+                              href={item.launch.href}
+                              data-active-resource-launch={item.launch.kind}
+                              className="block rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                            >
+                              {item.title}
+                              <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
+                            </a>
+                          ) : (
+                            <p
+                              key={`${role}-${item.title}`}
+                              data-active-resource-unavailable="true"
+                              className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
+                            >
+                              {item.title}（暂不可启动）
+                            </p>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-platform-fg-muted">
+                {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
+              </p>
+            )}
+          </section>
+          <section aria-labelledby="active-detail-relations">
+            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.relations')}</h3>
+            <div className="mt-2 space-y-2">
+              {summaries.length === 0 ? (
+                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? graphCopy(locale, 'inspector.hiddenRelations') : graphCopy(locale, 'empty.noPublishedRelation')}</p>
+              ) : summaries.slice(0, 20).map((relation) => (
+                <button
+                  key={relation.key}
+                  type="button"
+                  data-active-inspector-neighbor={relation.neighborKey}
+                  onClick={() => onActivateNeighbor(relation.neighborKey)}
+                  className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
+                >
+                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
+                  <span className="ml-2 text-platform-fg-muted">
+                    {relation.kind === 'undirected'
+                      ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
+                      : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                  </span>
+                </button>
+              ))}
+              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
+            </div>
+          </section>
+          <section aria-labelledby="active-detail-sources">
+            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
+            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
+          </section>
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
-              <h3 className="font-semibold text-platform-fg-primary">内容状态</h3>
+              <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>审核</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus)}</dd>
-                <dt>发布</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus)}</dd>
+                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus)}</dd>
+                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus)}</dd>
               </dl>
             </section>
           ) : null}
@@ -1018,9 +1295,11 @@ function ActiveNodeDetail({
 function SearchResults({
   results,
   onSelect,
+  locale,
 }: {
   results: readonly ActiveNodePresentation[];
   onSelect: (key: string) => void;
+  locale: AdmittedLocale;
 }) {
   const [visibleCount, setVisibleCount] = useState(SEARCH_RESULT_PAGE_SIZE);
   if (results.length === 0) return null;
@@ -1029,7 +1308,7 @@ function SearchResults({
   return (
     <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
       <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
-        已显示 {visibleResults.length} / {results.length} 个匹配对象
+        {formatSearchShownCount(locale, visibleResults.length, results.length)}
       </div>
       {visibleResults.map((node) => (
         <button
@@ -1040,7 +1319,11 @@ function SearchResults({
           data-active-authority-search-result={node.key}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
-          <span className="truncate text-platform-fg-primary">{node.label}</span>
+          <span className="truncate text-platform-fg-primary">
+            {node.richTitle
+              ? <GovernedRichText projection={node.richTitle} density="preview" />
+              : node.label}
+          </span>
           <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
         </button>
       ))}
@@ -1048,43 +1331,61 @@ function SearchResults({
         <button
           type="button"
           onClick={() => setVisibleCount((current) => Math.min(results.length, current + SEARCH_RESULT_PAGE_SIZE))}
-          aria-label={`加载更多搜索结果，还剩${remainingCount}项`}
+          aria-label={formatLoadMoreAria(locale, remainingCount)}
           data-active-authority-search-load-more
           className="w-full border-t border-platform-border px-3 py-2 text-left text-xs text-platform-action-primary hover:bg-platform-action-subtle"
         >
-          加载更多搜索结果（还剩 {remainingCount} 项）
+          {formatLoadMore(locale, remainingCount)}
         </button>
       ) : null}
     </div>
   );
 }
 
-export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorityGraphProps) {
+export function ActiveAuthorityGraph({
+  viewerRole: _viewerRole,
+  dimension: dimensionProp,
+  onDimensionChange,
+}: ActiveAuthorityGraphProps) {
   const [retry, setRetry] = useState(0);
+  const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
+  const [internalDimension, setInternalDimension] = useState<GraphDimension>('2d');
+  const dimension = dimensionProp ?? internalDimension;
+  const setDimension = onDimensionChange ?? setInternalDimension;
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
     state,
     workspace,
     enterDomain,
     enableFamily,
+    disableFamily,
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
     resetDomain,
     applyShard,
     onIdentityFailure,
-  } = useActiveAuthorityWorkspace(retry);
+  } = useActiveAuthorityWorkspace(retry, locale);
+  const languageState = selectGraphLanguage(
+    createGraphLanguageState(workspace.localeCapability),
+    locale,
+  );
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
+  const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
+  const graphMainRef = useRef<HTMLElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
+  const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
 
   useEffect(() => {
@@ -1093,6 +1394,11 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     window.addEventListener('resize', updateViewportWidth);
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
+
+  useEffect(() => {
+    setBoundaryDirectoryExpanded(false);
+    setMobileGraphControlsExpanded(false);
+  }, [workspace.activeDomainId]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1139,15 +1445,21 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
           key: `${relation.layer}:${relation.id}:${boundary.id}`,
           nodeId: boundary.id,
           domainName: domain.displayName,
-          relationLabel: presentActiveRelation(relation.predicate, relation.direction).label,
-          objectLabel: presentActiveHumanText(boundary.label, '名称暂不可用'),
+          relationLabel: presentActiveRelation(relation.predicate, relation.direction, {
+            label: relation.predicateLabel,
+            directionLabel: relation.directionLabel,
+          }).label,
+          objectLabel: presentActiveHumanText(boundary.label, graphCopy(locale, 'inspector.nameUnavailable')),
         }];
       })
       .sort((left, right) => left.domainName.localeCompare(right.domainName) || left.objectLabel.localeCompare(right.objectLabel) || left.key.localeCompare(right.key));
-  }, [workspace]);
+  }, [workspace, locale]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
   const modelReady = Boolean(model);
+  // This reset is intentionally tied to readiness rather than model identity:
+  // filtering and selection rebuild the derived model without resetting view state.
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!model) return;
     const pending = pendingCrossDomainSelectionRef.current;
@@ -1157,23 +1469,41 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       pendingCrossDomainSelectionRef.current = null;
     } else {
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(selectInitialPrimaryDomainScope(model, visibleNodeLimit));
+      setVisibleKeys(isCompactViewport
+        ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+        : new Set(model.nodes.map((node) => node.key)));
       setSelectedNodeKey(null);
     }
     setQuery('');
     setTypeFilter('');
     setZoom(1);
     setPan({ x: 0, y: 0 });
-  }, [domainEpoch, modelReady, visibleNodeLimit]);
+    // modelReady gates the first composed graph; later model identity changes
+    // (family/neighborhood merges) must not reset selection, pan, or zoom.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     if (!model) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        if (workspace.enabledFamilies.length === 0) return current;
+        const disclosedRelation = model.relations[0];
+        return disclosedRelation
+          ? expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)
+          : current;
+      }
       const next = new Set(current);
       for (const relation of model.relations) {
         const source = model.nodeByKey.get(relation.sourceKey);
         const target = model.nodeByKey.get(relation.targetKey);
-        if (workspace.enabledFamilies.length === 0 && (!source || !target || !isPrimaryDomainObject(source) || !isPrimaryDomainObject(target))) {
+        const teachingRelation = relation.sourceRelation.layer === 'ACT_TEACHING';
+        if (
+          !teachingRelation
+          && workspace.enabledFamilies.length === 0
+          && (!source || !target || !isPrimaryDomainObject(source) || !isPrimaryDomainObject(target))
+        ) {
           continue;
         }
         next.add(relation.sourceKey);
@@ -1181,11 +1511,14 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       }
       return next;
     });
-  }, [model, workspace.enabledFamilies.length]);
+  }, [isCompactViewport, model, visibleNodeLimit, workspace.enabledFamilies.length]);
 
   useEffect(() => {
     if (!model || !selectedNodeKey) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        return materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit);
+      }
       const next = new Set(current);
       if (model.nodeByKey.has(selectedNodeKey)) next.add(selectedNodeKey);
       for (const relation of model.adjacency.get(selectedNodeKey) ?? []) {
@@ -1194,7 +1527,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
       }
       return next;
     });
-  }, [model, selectedNodeKey]);
+  }, [isCompactViewport, model, selectedNodeKey, visibleNodeLimit]);
 
   useEffect(() => {
     if (!selectedNodeKey) return;
@@ -1208,6 +1541,13 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [selectedNodeKey]);
 
+  useEffect(() => {
+    const main = graphMainRef.current;
+    if (!main || !isCompactViewport || !selectedNodeKey) return;
+    main.setAttribute('inert', '');
+    return () => main.removeAttribute('inert');
+  }, [isCompactViewport, selectedNodeKey]);
+
   const searchResults = useMemo(
     () => model ? activeNodeSearch(model, query, typeFilter || undefined) : [],
     [model, query, typeFilter],
@@ -1219,11 +1559,29 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
     const filteredKeys = new Set(scoped.nodes.filter((node) => node.type.canonicalType === typeFilter).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
   }, [model, typeFilter, visibleKeys]);
-  const layout = useMemo(
-    () => layoutActiveAuthorityNodes(scopedGraph?.nodes ?? [], isCompactViewport),
-    [isCompactViewport, scopedGraph],
-  );
+  const authorityView = useMemo(() => {
+    if (!scopedGraph) return null;
+    const haloIds = Object.keys(workspace.boundaryRefsByCanonicalId);
+    return createAuthorityGraphViewModel({
+      nodes: scopedGraph.nodes.map((row) => row.sourceNode),
+      relations: scopedGraph.relations.map((row) => row.sourceRelation),
+      crossDomainCanonicalIds: haloIds,
+      enabledRelationFamilies: [
+        ...defaultEnabledTeachingFamilies(),
+        ...workspace.enabledFamilies,
+      ],
+    });
+  }, [scopedGraph, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
+  const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
+    ? {
+      name: model.nodeByKey.get(hoveredNodeId)!.label,
+      typeLabel: model.nodeByKey.get(hoveredNodeId)!.type.label,
+      summary: model.nodeByKey.get(hoveredNodeId)!.description ?? graphCopy(locale, 'empty.domain'),
+      richTitle: model.nodeByKey.get(hoveredNodeId)!.richTitle,
+      richDescription: model.nodeByKey.get(hoveredNodeId)!.richDescription,
+    }
+    : null;
 
   function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
     if (!model && !workspace.objectsByCanonicalId[key]) return;
@@ -1337,46 +1695,81 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph">
+    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-graph-locale={locale}>
       <header
         className="border-b border-platform-border bg-platform-surface/95 px-4 py-3 max-[639px]:pt-14 max-[639px]:pb-2"
         data-active-authority-header="true"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-3 max-[639px]:flex-nowrap max-[639px]:gap-2">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold" data-active-authority-title="true">当前知识图谱</h2>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">工程知识</span>
+              <h2 className="text-base font-semibold max-[639px]:whitespace-nowrap" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100 max-[639px]:sr-only">{graphCopy(locale, 'badge.engineering')}</span>
             </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary">先选择知识领域，再按需加载教学骨架与工程关系族。</p>
+            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-1">{graphCopy(locale, 'subtitle.graph')}</p>
           </div>
+          <div className="flex flex-col items-end gap-2 max-[639px]:shrink-0 max-[639px]:gap-0">
+            <div
+              role="group"
+              aria-label={graphCopy(locale, 'language.group')}
+              data-graph-language-switch="true"
+              className="flex rounded-md border border-platform-border p-0.5"
+            >
+              <button
+                type="button"
+                data-graph-language="zh-CN"
+                aria-pressed={locale === 'zh-CN'}
+                onClick={() => setLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
+                className={`rounded px-2 py-1 text-xs ${locale === 'zh-CN' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'}`}
+              >
+                {graphCopy(locale, 'language.zh')}
+              </button>
+              <button
+                type="button"
+                data-graph-language="en"
+                aria-pressed={locale === 'en'}
+                aria-disabled={!languageState.englishAvailable}
+                disabled={!languageState.englishAvailable}
+                title={languageState.englishUnavailableReason ?? undefined}
+                onClick={() => setLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
+                className={`rounded px-2 py-1 text-xs ${locale === 'en' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'} disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {graphCopy(locale, 'language.en')}
+              </button>
+            </div>
+            {languageState.englishAvailable ? null : (
+              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted max-[639px]:sr-only">
+                {languageState.englishUnavailableReason}
+              </p>
+            )}
           {workspace.root ? (
-            <div className="text-right text-xs text-platform-fg-secondary">
-              <div>已审领域 {workspace.root.domains.length} 个 · 综合入口 1 个</div>
+            <div className="text-right text-xs text-platform-fg-secondary max-[639px]:sr-only">
+              <div>{reviewedDomainHeaderCopy(locale, workspace.root.domains.length)}</div>
               <div className="mt-1 text-emerald-200">
-                {teachingCoverage?.note ?? '教学关系尚未发布'}
+                {teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnpublished')}
               </div>
             </div>
           ) : null}
+          </div>
         </div>
       </header>
 
       {state.status === 'loading' ? (
         <div className="flex flex-1 items-center justify-center" role="status">
-          <div className="text-center text-sm text-platform-fg-secondary"><Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />正在加载当前 Authority 图谱…</div>
+          <div className="text-center text-sm text-platform-fg-secondary"><Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />{graphCopy(locale, 'loading.graph')}</div>
         </div>
       ) : state.status === 'error' ? (
         <div className="flex flex-1 items-center justify-center p-6">
           <div className="max-w-md rounded-xl border border-red-400/35 bg-red-400/10 p-5 text-center" role="alert">
             <AlertTriangle className="mx-auto h-6 w-6 text-red-200" aria-hidden="true" />
             <p className="mt-3 text-sm text-red-50">{state.message}</p>
-            <p className="mt-2 text-xs text-red-100/75">当前 Authority 不可用；未请求 Legacy API，也未自动补齐。</p>
-            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />重试当前 Authority</button>
+            <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
+            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          <p className="px-4 pt-3 text-sm text-platform-fg-secondary">选择一个已审知识领域进入默认教学骨架。完整图谱不会在此加载。</p>
+          <p className="px-4 pt-3 text-sm text-platform-fg-secondary">{graphCopy(locale, 'root.chooseDomain')}</p>
           <ActiveAuthorityRootCanvas
             catalog={workspace.root}
             onEnterDomain={(visualRole) => {
@@ -1386,26 +1779,39 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
         </div>
       ) : !model || !scopedGraph ? (
         <div className="flex flex-1 items-center justify-center p-6 text-center">
-          <div><Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" /><p className="mt-3 text-sm text-platform-fg-secondary">当前领域暂无可显示对象。</p><p className="mt-1 text-xs text-platform-fg-muted">未请求完整图谱或 Legacy API。</p></div>
+          <div><Network className="mx-auto h-7 w-7 text-platform-fg-muted" aria-hidden="true" /><p className="mt-3 text-sm text-platform-fg-secondary">{graphCopy(locale, 'empty.domain')}</p><p className="mt-1 text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noLegacyFallback')}</p></div>
         </div>
       ) : (
-        <div className={`grid min-h-0 flex-1 ${selectedNodeKey ? 'grid-cols-[minmax(0,1fr)_minmax(19rem,27rem)] max-lg:grid-cols-1' : 'grid-cols-1'}`}>
-          <main className="min-h-0 overflow-y-auto p-4" aria-label="当前 Authority 知识图谱">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3" data-active-authority-toolbar="true">
+        <div className="relative min-h-0 flex-1">
+          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4 max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+            <div className="mb-3 max-[639px]:mb-1" data-active-authority-toolbar="true">
+              <button
+                type="button"
+                data-active-authority-mobile-tools-toggle="true"
+                aria-expanded={mobileGraphControlsExpanded}
+                aria-controls="active-authority-mobile-tools"
+                onClick={() => setMobileGraphControlsExpanded((expanded) => !expanded)}
+                className="hidden w-full items-center justify-between rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2 text-sm text-platform-fg-primary max-[639px]:inline-flex"
+              >
+                <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'search.label')}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${mobileGraphControlsExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              {graphControlsVisible ? (
+              <div id="active-authority-mobile-tools" className="mt-2 flex flex-wrap items-end justify-between gap-3">
               <div className="min-w-[15rem] flex-1">
-                <label className="sr-only" htmlFor="active-authority-search">搜索当前 Authority 对象</label>
+                <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
                 <div className="relative max-[639px]:shrink-0">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
-                  <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder="搜索对象名称或类型" className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
+                  <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
                 </div>
-                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} /> : null}
+                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} locale={locale} /> : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-                <label className="sr-only" htmlFor="active-authority-type-filter">按对象类型筛选</label>
+                <label className="sr-only" htmlFor="active-authority-type-filter">{graphCopy(locale, 'filter.type')}</label>
                 <div className="relative">
                   <select
                     id="active-authority-type-filter"
-                    aria-label="按对象类型筛选"
+                    aria-label={graphCopy(locale, 'filter.type')}
                     value={typeFilter}
                     onChange={(event) => {
                       const value = event.target.value;
@@ -1419,8 +1825,8 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                     }}
                     className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary"
                   >
-                    <option value="">全部类型</option>
-                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{presentActiveNodeType(canonicalType).label}</option>)}
+                    <option value="">{graphCopy(locale, 'filter.allTypes')}</option>
+                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{model.nodes.find((node) => node.type.canonicalType === canonicalType)?.type.label ?? presentActiveNodeType(canonicalType).label}</option>)}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
                 </div>
@@ -1428,7 +1834,7 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   data-authority-relation-family="teaching-order"
                   className="rounded-md border border-sky-300/50 bg-sky-400/10 px-2.5 py-2 text-xs text-sky-100 max-[639px]:shrink-0"
                 >
-                  教学顺序（默认）
+                  {graphCopy(locale, 'filter.teachingOrder')}
                 </span>
                 {ENGINEERING_RELATION_FAMILIES.map((family) => {
                   const enabled = workspace.enabledFamilies.includes(family);
@@ -1440,11 +1846,11 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                       data-authority-relation-family={family}
                       data-authority-family-enabled={enabled ? 'true' : 'false'}
                       aria-pressed={enabled}
-                      aria-label={failure ? `${FAMILY_LABELS[family]}关系加载失败，点击重试` : undefined}
-                      onClick={() => enableFamily(family)}
+                      aria-label={failure ? `${familyLabel(locale, family)}${graphCopy(locale, 'filter.family.loadFailed')}` : undefined}
+                      onClick={() => (enabled ? disableFamily(family) : enableFamily(family))}
                       className={`rounded-md border px-2.5 py-2 text-xs ${enabled ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
                     >
-                      {FAMILY_LABELS[family]}
+                      {familyLabel(locale, family)}
                     </button>
                     {failure ? (
                       <span
@@ -1457,46 +1863,67 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                         <button
                           type="button"
                           onClick={() => enableFamily(family)}
-                          aria-label={`重试${FAMILY_LABELS[family]}关系`}
+                          aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
                           data-authority-family-retry={family}
                           className="ml-1 underline underline-offset-2"
-                        >重试</button>
+                        >{graphCopy(locale, 'filter.family.retry')}</button>
                       </span>
                     ) : null}
                     </div>
                   );
                 })}
-                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />返回领域</button>
+                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0" data-active-authority-domain-return="true"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'controls.returnDomain')}</button>
+                <button type="button" aria-pressed={dimension === '2d'} data-active-authority-dimension="2d" onClick={() => setDimension('2d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '2d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>2D</button>
+                <button type="button" aria-pressed={dimension === '3d'} data-active-authority-dimension="3d" onClick={() => setDimension('3d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '3d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>3D</button>
               </div>
+              </div>
+              ) : null}
             </div>
 
+            {graphControlsVisible ? (
             <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
-              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />教学顺序</span>
-              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />工程关系</span>
-              <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? '教学关系暂不可用'}</span>
+              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />{graphCopy(locale, 'legend.teachingOrder')}</span>
+              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />{graphCopy(locale, 'legend.engineering')}</span>
+              <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable')}</span>
             </div>
+            ) : null}
             {boundaryCues.length > 0 ? (
-              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3" aria-labelledby="active-authority-boundaries">
-                <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary">跨领域入口</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
+              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary max-[639px]:sr-only">{graphCopy(locale, 'boundary.title')}</h3>
+                  <button
+                    type="button"
+                    data-active-authority-boundary-toggle="true"
+                    aria-expanded={boundaryDirectoryExpanded}
+                    aria-controls="active-authority-boundary-directory"
+                    onClick={() => setBoundaryDirectoryExpanded((expanded) => !expanded)}
+                    className="hidden items-center gap-1 text-xs font-semibold text-platform-fg-primary max-[639px]:inline-flex"
+                  >
+                    {graphCopy(locale, 'boundary.title')} ({boundaryCues.length})
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${boundaryDirectoryExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                </div>
+                {(!isCompactViewport || boundaryDirectoryExpanded) ? (
+                <div id="active-authority-boundary-directory" className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                   {boundaryCues.map((cue) => (
                     <button
                       key={cue.key}
                       type="button"
                       data-authority-boundary-node={cue.nodeId}
                       onClick={() => followBoundary(cue.nodeId)}
-                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:max-w-64 max-[639px]:shrink-0 max-[639px]:truncate max-[639px]:whitespace-nowrap"
                     >
-                      进入{cue.domainName}查看{cue.objectLabel}（{cue.relationLabel}）
+                      {boundaryEnterCopy(locale, cue.domainName, cue.objectLabel, cue.relationLabel)}
                     </button>
                   ))}
                 </div>
+                ) : null}
               </section>
             ) : null}
 
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-              <span>{scopedGraph.nodes.length} 个对象 · {scopedGraph.relations.length} 条关系 · 可见范围</span>
-              <span>总覆盖 {model.totalNodeCount} 个对象 · {model.totalRelationCount} 条关系</span>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
+              <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
+              <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
             </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
@@ -1506,63 +1933,28 @@ export function ActiveAuthorityGraph({ viewerRole: _viewerRole }: ActiveAuthorit
                   onClick={() => requestNeighborhood(selectedNodeKey)}
                   data-authority-neighborhood-retry={selectedNodeKey}
                   className="shrink-0 underline underline-offset-2"
-                >重试邻域</button>
+                >{graphCopy(locale, 'error.retryNeighborhood')}</button>
               </div>
             ) : null}
-            <div className="relative overflow-hidden rounded-xl border border-platform-border bg-[#07111f]" data-active-graph-stage="authority" tabIndex={-1}>
-              <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-platform-border bg-platform-surface/90 p-1">
-                <button type="button" aria-label="缩小图谱" onClick={() => setZoom((value) => Math.max(0.65, Number((value - 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Minus className="h-3.5 w-3.5" aria-hidden="true" /></button>
-                <span className="min-w-10 text-center text-[10px] text-platform-fg-muted">{Math.round(zoom * 100)}%</span>
-                <button type="button" aria-label="放大图谱" onClick={() => setZoom((value) => Math.min(1.75, Number((value + 0.15).toFixed(2))))} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><Plus className="h-3.5 w-3.5" aria-hidden="true" /></button>
-                <button type="button" aria-label="重置图谱视图" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="rounded p-1.5 text-platform-fg-secondary hover:bg-platform-action-subtle"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /></button>
+            {authorityView ? (
+              <div className="h-[min(70vh,40rem)] min-h-[23rem]" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <ActiveAuthorityForceCanvas
+                  view={authorityView}
+                  dimension={dimension}
+                  selectedNodeId={selectedNodeKey}
+                  onSelect={(key) => resolveNodeSelection(key, 'canvas')}
+                  onHover={setHoveredNodeId}
+                  hoverPreview={hoverPreview}
+                  canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                  showUnavailableTeachingDirectory={teachingCoverage?.note === '教学关系暂不可用'}
+                />
               </div>
-              <svg
-                data-active-authority-svg="true"
-                data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'}
-                data-active-authority-node-limit={visibleNodeLimit}
-                viewBox={isCompactViewport ? ACTIVE_MOBILE_VIEWBOX : ACTIVE_DESKTOP_VIEWBOX}
-                className="h-[min(60vh,520px)] min-h-[23rem] w-full touch-none"
-                role="application"
-                aria-label="当前 Authority 语义关系画布"
-                onPointerDown={onStagePointerDown}
-                onPointerMove={onStagePointerMove}
-                onPointerUp={onStagePointerUp}
-                onPointerCancel={onStagePointerUp}
-              >
-                <defs><marker id="active-authority-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" /></marker></defs>
-                <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
-                  {scopedGraph.relations.map((relation) => {
-                    const source = layout.get(relation.sourceKey);
-                    const target = layout.get(relation.targetKey);
-                    const sourceNode = model.nodeByKey.get(relation.sourceKey);
-                    const targetNode = model.nodeByKey.get(relation.targetKey);
-                    return source && target && sourceNode && targetNode
-                      ? <GraphEdge
-                        key={relation.key}
-                        relation={relation}
-                        source={source}
-                        target={target}
-                        sourceShape={sourceNode.type.shape}
-                        targetShape={targetNode.type.shape}
-                        sourceLabel={sourceNode.label}
-                        targetLabel={targetNode.label}
-                        compact={isCompactViewport}
-                        selected={Boolean(selectedNodeKey && (selectedNodeKey === relation.sourceKey || selectedNodeKey === relation.targetKey))}
-                      />
-                      : null;
-                  })}
-                  {scopedGraph.nodes.map((node) => {
-                    const point = layout.get(node.key);
-                    return point ? <GraphNode key={node.key} node={node} point={point} selected={selectedNodeKey === node.key} onSelect={selectNode} compact={isCompactViewport} /> : null;
-                  })}
-                </g>
-              </svg>
-              {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-platform-fg-muted">该对象暂无已发布关系</div> : null}
-            </div>
-            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">部分内容暂不可解释，已隐藏以保持语义安全。</p> : null}
-            {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />没有匹配的语义对象。</p> : null}
+            ) : null}
+            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
+            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
+            {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'search.empty')}</p> : null}
           </main>
-          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} /> : null}
+          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} /> : null}
         </div>
       )}
     </div>

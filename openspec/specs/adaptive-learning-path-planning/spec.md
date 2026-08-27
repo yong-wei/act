@@ -715,15 +715,21 @@ The system SHALL preserve the declared learning goal or user intent of a stopped
 - **THEN** that goal SHALL remain available as input to later replanning while the Legacy steps remain historical
 
 ### Requirement: Canonical paths are independently regenerated
-When a formal ActKG Teaching Projection is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, version-matched CourseCoverage, reviewed KAQ bindings, and supported Canonical teaching relations. An engineering-only ReleaseSet without formal Teaching Projection MUST NOT satisfy this gate.
+When a formal ACT Teaching Projection matching the current Authority, course active-domain scope, CourseCoverage, reviewed KAQ bindings, and resource readiness is active, the planner SHALL generate a new path identity from the preserved goal, current cumulative portrait, and its supported Canonical teaching relations. An Engineering-only ActKG ReleaseSet, an ActKG Engineering relation set, an unresolved KAQ fallback conflict, or an unmatched Teaching Projection MUST NOT satisfy this gate.
 
 #### Scenario: Teaching semantics are ready
-- **WHEN** all required Canonical planning inputs pass validation
+- **WHEN** the matching ACT Teaching Projection and all other required Canonical planning inputs pass validation
 - **THEN** the planner SHALL create a new path with Canonical IDs and versions and no inherited Legacy progress
+- **AND** it SHALL consume only admitted ACT teaching relations from the selected projection
 
 #### Scenario: Teaching semantics are unavailable
-- **WHEN** the released graph lacks a formal Teaching Projection or required teaching relations
-- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from engineering relations or Legacy fallback
+- **WHEN** the released graph lacks a matching formal ACT Teaching Projection or required teaching relations, or an applicable KAQ fallback conflict exists without a resolved matching retirement record
+- **THEN** the planner SHALL keep the goal pending and MUST NOT infer a path from ActKG Engineering relations, an unmatched projection, or a Legacy fallback
+
+#### Scenario: No KAQ fallback conflict exists
+- **WHEN** the matching formal ACT Teaching Projection and all other Canonical planning inputs pass while no applicable KAQ fallback conflict exists
+- **THEN** the absence of a conflict decision or retirement record SHALL NOT block independent path regeneration
+- **AND** the planner SHALL consume only admitted ACT teaching relations from the selected projection
 
 ### Requirement: Planner honors explicit personalized path configuration
 The adaptive learning path planner SHALL treat request-level resource preferences, difficulty rhythm, checkpoint preference, and external-resource permission as planning inputs that affect candidate selection or path assembly. Goal boundaries, prerequisites, readiness, teacher policy, privacy, terminal validation, evidence policy, and safety constraints SHALL remain higher-priority constraints.
@@ -924,4 +930,81 @@ The adaptive learning path planner SHALL distinguish adjusted candidates using g
 - **WHEN** 目标没有合格 terminal-validation 候选，但存在 generated-provisional、practice 或 checkpoint 题目
 - **THEN** 规划器 SHALL 返回缺失终结验证的低置信度或受控 fallback
 - **AND** 不得把其他阶段题目静默替代为 terminal validation
+
+### Requirement: 路径规划只消费治理后的微干预证据摘要
+
+路径规划 SHALL 仅消费微干预 evidence projector 生成的 confidence、freshness、quality、identity 和 limitation 摘要，不得读取原始答案或由参与事件直接改变路径。低置信度、冲突或 stale 微干预证据 MAY 触发补救或再验证，但 MUST NOT 绕过 readiness、checkpoint 或 terminal-validation 门禁。
+
+#### Scenario: 当前验证证据支持路径调整
+
+- **WHEN** 受治理摘要显示当前节点存在有界、足够新鲜的微干预验证证据
+- **THEN** 规划器 MAY 将其作为解释性输入调整后续练习或补救优先级
+- **AND** 决策 SHALL 记录所用 evidence summary 和算法版本
+
+#### Scenario: 证据低置信度或冲突
+
+- **WHEN** 摘要标记重复、过期、冲突或身份漂移
+- **THEN** 规划器 SHALL 保留/增加评估门禁或请求再验证
+- **AND** 不得将路径节点直接标为已掌握
+
+### Requirement: Path generation consumes the authoritative learner-state snapshot
+新建学习路径时，系统 SHALL 直接读取现有权威学习者状态服务，并在规划开始时固定学习者状态版本、证据窗口、置信度和新鲜度作为本次规划快照；系统 MUST NOT 从个人中心页面抓取或复制展示数据。
+
+#### Scenario: New path uses the learner profile state
+- **WHEN** a student starts a new path for a registered learning goal
+- **THEN** the planner SHALL read the authorized learner-state slice for that goal
+- **AND** the generated path SHALL retain a reference to the state snapshot used for planning
+
+#### Scenario: Existing path is resumed
+- **WHEN** a student chooses to continue an existing path
+- **THEN** the system SHALL restore the persisted path and its original planning snapshot
+- **AND** it SHALL NOT regenerate the path from the latest learner state
+
+### Requirement: Learner-state fields produce explainable path decisions
+路径规划 SHALL 使用已有学习者状态事实影响路径重点、难度、资源组合、节奏或检查点，并为每项个性化调整保留对应证据引用和限制说明。
+
+#### Scenario: Profile evidence changes a new path
+- **WHEN** learner-state evidence identifies a weak knowledge area or a resource preference
+- **THEN** the new path SHALL reflect that evidence in at least one applicable planning dimension
+- **AND** the explanation SHALL identify the evidence category and its confidence limitation
+
+#### Scenario: No applicable evidence exists
+- **WHEN** the learner-state slice is missing, stale, or insufficient for a planning dimension
+- **THEN** the planner SHALL use a documented starter or fallback rule for that dimension
+- **AND** it SHALL NOT claim a personalized adjustment that has no supporting evidence
+
+### Requirement: Path planning exposes a student-safe personalization explanation
+路径规划结果 SHALL 同时保留可审计的机器元数据和用户可理解的中文说明；学生可见说明 MUST NOT 暴露内部服务字段、批次标识、提示词或模型术语。
+
+#### Scenario: Student views why a path was generated
+- **WHEN** a student opens a newly generated path summary
+- **THEN** the page SHALL show the relevant adjustment and its plain-language reason
+- **AND** missing or low-confidence evidence SHALL be shown as a limitation
+
+### Requirement: Unsatisfiable terminal validation is not a candidate endpoint
+
+The planner SHALL NOT select a terminal validation node as an official candidate endpoint when the current learner still misses `minimumCompetency` or `minimumEvidenceCount` and the node has no remaining `requiredCompletedNodeIds` or `requiredOutcomeRefs`. Completing other path nodes does not create Portrait V2 competency or evidence. Terminals that still have path-closable completion or outcome gates MAY remain official locked future work. If no official terminal remains, the planner SHALL return fallback or evidence-needed instead of an unexecutable closed path.
+
+#### Scenario: Cold-start learner is not given an unsatisfiable Arena endpoint
+
+- **WHEN** a learner without trusted Portrait V2 evidence requests a control-correction path
+- **THEN** the planner SHALL NOT end an executable candidate on a terminal locked only by `minimumCompetency` or `minimumEvidenceCount`
+- **AND** it SHALL choose a reachable official terminal, or return fallback with an explicit limitation
+- **AND** it SHALL NOT fabricate completion events or portrait evidence to unlock the terminal
+
+### Requirement: Locked terminal validation is reported as included but unverifiable
+
+当路径纳入终点检验节点但这些节点当前都不是 ready 时，Planner SHALL 明确报告终点已纳入且当前不可验证。客户端 MUST NOT 把未 ready 的终点展示为可立即检验。
+
+#### Scenario: Included Arena terminal is locked
+
+- **WHEN** `terminalValidationNodeIds` 非空，且这些终点没有一个 ready
+- **THEN** `terminalValidationStrategy.summary` SHALL 表达终点已纳入但当前不可验证
+- **AND** `paths[].limitations` SHALL 包含稳定受限文案“终点已纳入但当前不可验证”
+- **AND** `activeNodeIds` MUST NOT 包含该 locked 终点
+
+#### Scenario: Ready Arena terminal keeps existing reporting
+
+- **WHEN** 纳入的终点检验节点至少有一个 ready
+- **THEN** `terminalValidationStrategy` 与 `limitations` SHALL 保持现有可验证报告行为
 

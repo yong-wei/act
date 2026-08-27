@@ -65,7 +65,7 @@ The local production release writer SHALL upload only a changed or otherwise unk
 - **THEN** the publisher SHALL fail before receipt or terminal manifest publication
 
 ### Requirement: Materialized runtime preserves the selected logical release
-The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`.
+The system SHALL build a temporary host-owned materialized runtime view only from blobs reachable in one verified manifest. When a matching parent view is available, it SHALL derive the candidate from local directory/symlink topology plus manifest delta and write a receipt binding manifest identity, path set, blob set, helper mount and hot-cache identities. Before selection it SHALL validate path topology, changed links and the receipt rather than rehashing every inherited blob, require the blob mount and materialized view to be read-only to application consumers, and atomically select the view under the host lifecycle lock. The application SHALL continue to receive exactly one read-only bind at `/app/course-content/runtime`. If the host restores persistent control-plane state after materialization, it SHALL copy only repository-defined control-plane paths, SHALL NOT copy a textbook retrieval cache or other runtime data merely because it is a regular file, and SHALL repeat a coverage-aware materialized-view verification before any consumer switch or active lifecycle commit.
 
 #### Scenario: Missing or mismatched blob blocks selection
 - **WHEN** a selected manifest references a missing blob, a blob with a different size or SHA-256, or a dangling materialized entry
@@ -74,6 +74,12 @@ The system SHALL build a temporary host-owned materialized runtime view only fro
 #### Scenario: Candidate materialization proves filesystem compatibility
 - **WHEN** the materialization strategy is evaluated before production selection
 - **THEN** the system SHALL run the declared filesystem-consumer, route, media and textbook-retrieval evidence against the candidate view and SHALL not select it when any required contract differs
+
+#### Scenario: Host control-plane restoration encounters a regular textbook cache
+- **WHEN** a parent view contains regular textbook retrieval cache files and a candidate release declares different cache hashes
+- **THEN** restoration SHALL leave the candidate cache bound to its own manifest
+- **AND** it SHALL preserve only explicit control-plane overlays
+- **AND** it SHALL reject the candidate before consumer switch if post-restoration verification finds any non-overlay logical file that differs from the candidate manifest
 
 ### Requirement: Runtime blob garbage collection is reachability-safe
 The system SHALL persist one durable v2 lifecycle record under the host lock and recovery journal. It SHALL record normalized desired, active, rollback and publishing identities, plus retained leases containing an immutable identity, UTC retention time, signed-media maximum lifetime, derived release deadline and policy version, with a monotonic lifecycle generation. It SHALL preserve desired-versus-active divergence after a failed candidate activation. Garbage collection SHALL compute deletion candidates only from a locked snapshot of that record and verified immutable manifests and receipts for desired, active, rollback, publishing and explicitly retained leases. It SHALL delete a blob only when the blob is absent from that protected reachable set and all selector generations and lifecycle state remain unchanged through revalidation. It SHALL record the input identities, retention leases, candidate set, deletion results and post-operation verification in a GC receipt.
@@ -188,4 +194,75 @@ Before selecting a candidate textbook corpus, the candidate workflow SHALL valid
 - **WHEN** any v1 candidate book after the first catalog entry fails runtime, reader or index validation
 - **THEN** selection SHALL fail closed
 - **AND** the existing active and rollback identities SHALL remain unchanged
+
+### Requirement: Formal resource admission is sealed by the existing v2 release authority
+A Runtime Release v2 candidate that declares the formal-resource contract SHALL extend its existing manifest and immutable publication receipt with one canonical formal-resource envelope. The envelope MUST bind the source revision and logical tree identity, candidate/included/excluded resource set counts and hashes, atomic binding-set hash, Authority identity, course scope, pipeline qualification receipt hashes, and validator/builder versions. The existing v2 lifecycle record, active receipt, and production pointer SHALL remain the only release-selection authority; no resource-specific current pointer or selector MAY be introduced.
+
+#### Scenario: Formal candidate is constructed
+- **WHEN** a v2 candidate includes formally governed teaching resources
+- **THEN** its manifest and receipt SHALL seal the complete formal-resource envelope under the same immutable release identity
+- **AND** candidate, included, excluded, and binding sets SHALL remain independently countable and hash-verifiable
+
+#### Scenario: One formal-resource identity drifts
+- **WHEN** a candidate, included, excluded, binding, Authority, course-scope, source, qualification, or builder identity differs from the sealed envelope
+- **THEN** publication and selection SHALL fail before any terminal manifest, active receipt, or lifecycle pointer update
+- **AND** the prior active and rollback releases SHALL remain unchanged
+
+#### Scenario: Existing historical v2 release is read
+- **WHEN** a v2 release created under an earlier schema has no formal-resource contract
+- **THEN** it SHALL retain its historical validation and rollback semantics
+- **AND** it SHALL not be represented as satisfying the new formal-resource gate
+
+### Requirement: Formal resource sources use only governed v2 source identities
+Every file or generated artifact referenced by the formal-resource envelope SHALL resolve to a Git blob in the target source revision or to an exact external/generated input declared and validated under the existing v2 source-proof contract. A URL, signed URL, filename, title, local working directory, or runtime-discovered registry entry MUST NOT establish source or content identity.
+
+#### Scenario: External media is admitted
+- **WHEN** a formal video or audio originates outside the Git tree
+- **THEN** its immutable declared external-input identity, final content hash, source-proof, and formal-resource envelope SHALL agree before publication
+- **AND** its delivery URL or signed URL SHALL remain a temporary launch mechanism only
+
+#### Scenario: Local file was not declared
+- **WHEN** a working-tree media, transcript, review output, or generated binding file has no governed Git or declared external/generated source identity
+- **THEN** v2 planning SHALL fail or exclude the affected candidate before any blob write
+- **AND** it SHALL not copy the local bytes into a formal release by fallback
+
+### Requirement: Active readiness binds the formal envelope without exposing governance data
+For a release declaring the formal-resource contract, the active receipt, materialized manifest, readiness result, resource resolver, active Teaching Projection, and graph resource projection SHALL bind the same Release ID, manifest identities, logical tree digest, formal-resource envelope hash, Authority identity, course scope, and atomic binding-set hash. Readiness and product APIs SHALL expose only the existing minimal safe active identity and bounded availability; they SHALL NOT expose candidate/excluded ledgers, atom text, transcript bodies, confidence, review state, object keys, local paths, credentials, or signed URLs.
+
+#### Scenario: Active formal envelope matches
+- **WHEN** the selected manifest, active receipt, materialized view, Teaching Projection, and resource projection bind the same formal envelope
+- **THEN** readiness MAY report the release ready and formal resource consumers MAY resolve its authorized atomic bindings
+- **AND** the public readiness shape SHALL remain minimal and non-cacheable
+
+#### Scenario: Binding receipt differs from active release
+- **WHEN** the active resource projection or Teaching Projection names a different binding-set or formal-envelope hash
+- **THEN** formal resource readiness and graph markers SHALL fail closed
+- **AND** the prior active release's valid consumers and base semantic node detail SHALL remain available
+
+#### Scenario: Candidate contains an excluded resource
+- **WHEN** a resource is present in the candidate ledger but sealed as excluded
+- **THEN** readiness SHALL verify the exclusion hash without making the resource launchable or visible as a formal marker
+- **AND** the product API SHALL not expose the exclusion reason or review artifact
+
+### Requirement: Coordinated Runtime Release selection binds the complete graph and resource combination
+A successor Runtime Release v2 used by the coordinated Authority and active OSS resource cutover SHALL bind the active-baseline-plus-explicit-delta denominator, formal atomic resource envelope, captured Authority, complete Teaching Projection, domain shards, prerequisite publication, shared consumer activation, coordination allocation record, and complete predecessor Runtime and graph identities. The later outer coordinated candidate receipt SHALL bind that immutable Runtime manifest and its materialization receipt. During activation, the Runtime active receipt SHALL bind the preallocated transaction ID and coordinated candidate receipt, but MUST NOT refer to the later final coordinated active receipt. Its desired selection, active receipt, rollback identity, and readiness projection MUST remain subordinate to the outer coordinated journal while that transaction is active. An ordinary Runtime lifecycle operation MUST NOT represent the successor as active when the coordinated graph combination has not committed.
+
+#### Scenario: Successor Runtime Release closes over the coordinated envelope
+- **WHEN** the Runtime manifest, materialization receipt, formal resource envelope, coordinated candidate, and graph successor identities all revalidate exactly
+- **THEN** the Runtime Release MAY enter the stopped-service coordinated transaction
+- **AND** its active receipt SHALL bind the transaction ID and coordinated candidate receipt before the final coordinated active receipt binds that Runtime active-receipt hash
+
+#### Scenario: Runtime and graph successors differ
+- **WHEN** the Runtime Release references a different Authority, Teaching Projection, resource denominator, binding set, shard set, prerequisite publication, consumer activation, or coordinated candidate
+- **THEN** Runtime selection and coordinated activation SHALL fail before the active receipt changes
+
+#### Scenario: Coordinated transaction fails after Runtime mutation
+- **WHEN** a Runtime desired or active lifecycle mutation succeeds but any later coordinated selector, receipt, or readiness gate fails
+- **THEN** the outer journal SHALL restore the exact predecessor Runtime lifecycle and graph selector combination while consumers remain stopped
+- **AND** garbage collection SHALL continue to protect every predecessor, successor, rollback, and journal-reachable release
+
+#### Scenario: Runtime candidate is independently newer
+- **WHEN** a verified successor Runtime Release exists without a matching committed coordinated graph combination
+- **THEN** readiness and media signing SHALL continue to project only the prior active Runtime identity
+- **AND** the newer candidate SHALL remain non-active
 

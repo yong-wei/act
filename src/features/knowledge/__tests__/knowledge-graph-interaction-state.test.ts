@@ -488,7 +488,7 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
 
-    expect(globalSidebarSource).toContain('knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? activeAssistantBinding?.modeClientContextHints');
+    expect(globalSidebarSource).toContain('knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints');
     expect(chatRouteSource).toContain('knowledgeWorkspaceHint,');
     expect(chatRouteSource).toContain('normalizeKonlingKnowledgeWorkspaceHint');
     expect(chatRouteSource).toContain('knowledgeWorkspaceHint ?? modeClientContextHints');

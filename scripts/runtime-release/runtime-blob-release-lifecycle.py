@@ -33,6 +33,8 @@ JOURNAL_FILE = "act-runtime-blob-lifecycle.journal.json"
 LOCK_FILE = ".act-runtime-blob-lifecycle.lock"
 ACTIVATION_SCHEMA = "runtime-blob-activation-journal.v1"
 ACTIVATION_FILE = ".act-runtime-blob-activation.journal.json"
+COORDINATED_CUTOVER_FILE = "coordinated-cutover.json"
+COORDINATED_CUTOVER_SCHEMA = "runtime-blob-coordinated-cutover.v1"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 RFC3339_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -312,6 +314,209 @@ def read_identity_file(path: str) -> Dict[str, Any]:
     return read_json(Path(path), identity)
 
 
+def coordinated_cutover_declaration(value: Any, label: str = "coordinated cutover declaration") -> Dict[str, Any]:
+    # Coordinated cutover artifacts are serialized by the TypeScript library
+    # and use its `contract` discriminator, unlike this script's local
+    # `schemaVersion` records.
+    value = exact(value, ["contract", "schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256", "candidateReceiptHash"], label)
+    if value["contract"] != COORDINATED_CUTOVER_SCHEMA:
+        fail("%s has an unsupported contract" % label)
+    runtime_identity = identity({
+        "schemaVersion": value["schemaVersion"],
+        "releaseId": value["releaseId"],
+        "manifestVersion": value["manifestVersion"],
+        "manifestSha256": value["manifestSha256"],
+        "manifestWireSha256": value["manifestWireSha256"],
+        "manifestWireSizeBytes": value["manifestWireSizeBytes"],
+        "treeSha256": value["treeSha256"],
+    }, label + ".runtimeRelease")
+    return {
+        "contract": COORDINATED_CUTOVER_SCHEMA,
+        **runtime_identity,
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+    }
+
+
+def read_coordinated_cutover_declaration(state_dir: Path) -> Optional[Dict[str, Any]]:
+    path = state_dir / COORDINATED_CUTOVER_FILE
+    if not path.exists():
+        return None
+    return read_json(path, coordinated_cutover_declaration)
+
+
+def write_coordinated_cutover_declaration(state_dir: Path, declaration: Dict[str, Any]) -> None:
+    write_atomic(state_dir / COORDINATED_CUTOVER_FILE, declaration)
+
+
+def remove_coordinated_cutover_declaration(state_dir: Path) -> None:
+    path = state_dir / COORDINATED_CUTOVER_FILE
+    if path.exists():
+        path.unlink()
+
+
+def canonical_digest(payload: Dict[str, Any]) -> str:
+    """sha256 over canonical JSON (sorted keys, compact separators), matching
+    the TypeScript projectionDigest serialization for ASCII-safe data."""
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def coordinated_active_receipt_payload_hash(receipt: Dict[str, Any]) -> str:
+    return canonical_digest({
+        "transactionId": receipt["transactionId"],
+        "journalHash": receipt["journalHash"],
+        "candidateReceiptHash": receipt["candidateReceiptHash"],
+        "committedSelectors": receipt["committedSelectors"],
+        "mutationReceiptHashes": receipt["mutationReceiptHashes"],
+        "runtimeActiveReceiptHash": receipt["runtimeActiveReceiptHash"],
+    })
+
+
+def committed_selector_entries(value: Any, label: str) -> List[Dict[str, str]]:
+    if not isinstance(value, list) or not value:
+        fail("%s must be a non-empty array" % label)
+    entries: List[Dict[str, str]] = []
+    for index, item in enumerate(value):
+        row = exact(item, ["selectorId", "identity"], "%s[%d]" % (label, index))
+        entries.append({
+            "selectorId": string(row["selectorId"], "%s[%d].selectorId" % (label, index)),
+            "identity": string(row["identity"], "%s[%d].identity" % (label, index)),
+        })
+    return entries
+
+
+def coordinated_graph_receipt(value: Any, label: str = "coordinated graph receipt") -> Dict[str, Any]:
+    # Uses the TypeScript `contract` discriminator: this artifact is produced
+    # by sealCoordinatedActiveReceipt and consumed here across languages.
+    value = exact(value, [
+        "contract", "receiptId", "sealedAt", "transactionId", "journalHash",
+        "candidateReceiptHash", "committedSelectors", "mutationReceiptHashes",
+        "runtimeActiveReceiptHash", "receiptHash",
+    ], label)
+    if value["contract"] != "coordinated-active-receipt/v1":
+        fail("%s has an unsupported contract" % label)
+    runtime_active = None if value["runtimeActiveReceiptHash"] is None else sha(value["runtimeActiveReceiptHash"], label + ".runtimeActiveReceiptHash")
+    hashes = value["mutationReceiptHashes"]
+    if not isinstance(hashes, list):
+        fail("%s.mutationReceiptHashes must be an array" % label)
+    receipt = {
+        "contract": "coordinated-active-receipt/v1",
+        "receiptId": string(value["receiptId"], label + ".receiptId"),
+        "sealedAt": string(value["sealedAt"], label + ".sealedAt"),
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "journalHash": sha(value["journalHash"], label + ".journalHash"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "committedSelectors": committed_selector_entries(value["committedSelectors"], label + ".committedSelectors"),
+        "mutationReceiptHashes": [sha(item, "%s.mutationReceiptHashes[%d]" % (label, index)) for index, item in enumerate(hashes)],
+        "runtimeActiveReceiptHash": runtime_active,
+        "receiptHash": sha(value["receiptHash"], label + ".receiptHash"),
+    }
+    expected = coordinated_active_receipt_payload_hash(receipt)
+    if receipt["receiptHash"] != expected or receipt["receiptId"] != "act-" + expected[:24]:
+        fail("%s does not match its own content-addressed hash" % label)
+    return receipt
+
+
+def coordinated_runtime_binding(value: Any, label: str = "coordinated runtime binding") -> Dict[str, Any]:
+    # Uses the TypeScript `contract` discriminator: this artifact is produced
+    # by buildCoordinatedRuntimeActiveReceiptBinding.
+    value = exact(value, [
+        "contract", "transactionId", "candidateReceiptHash",
+        "runtimeRelease", "materializationReceiptHash", "bindingHash",
+    ], label)
+    if value["contract"] != "coordinated-runtime-active-receipt-binding/v1":
+        fail("%s has an unsupported contract" % label)
+    runtime_release = identity(value["runtimeRelease"], label + ".runtimeRelease")
+    binding = {
+        "contract": "coordinated-runtime-active-receipt-binding/v1",
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "runtimeRelease": runtime_release,
+        "materializationReceiptHash": sha(value["materializationReceiptHash"], label + ".materializationReceiptHash"),
+        "bindingHash": sha(value["bindingHash"], label + ".bindingHash"),
+    }
+    expected = canonical_digest({
+        "transactionId": binding["transactionId"],
+        "candidateReceiptHash": binding["candidateReceiptHash"],
+        "runtimeRelease": binding["runtimeRelease"],
+        "materializationReceiptHash": binding["materializationReceiptHash"],
+    })
+    if binding["bindingHash"] != expected:
+        fail("%s does not match its own content-addressed hash" % label)
+    return binding
+
+
+def coordinated_runtime_authorization(value: Any, label: str = "coordinated runtime authorization") -> Dict[str, Any]:
+    value = exact(value, [
+        "contract", "authorizationId", "authorizedAt", "transactionId", "journalHash",
+        "candidateReceiptHash", "committedSelectors", "mutationReceiptHashes",
+        "runtimeBindingHash", "authorizationHash",
+    ], label)
+    if value["contract"] != "coordinated-runtime-authorization/v1":
+        fail("%s has an unsupported contract" % label)
+    hashes = value["mutationReceiptHashes"]
+    if not isinstance(hashes, list):
+        fail("%s.mutationReceiptHashes must be an array" % label)
+    authorization = {
+        "contract": "coordinated-runtime-authorization/v1",
+        "authorizationId": string(value["authorizationId"], label + ".authorizationId"),
+        "authorizedAt": string(value["authorizedAt"], label + ".authorizedAt"),
+        "transactionId": string(value["transactionId"], label + ".transactionId"),
+        "journalHash": sha(value["journalHash"], label + ".journalHash"),
+        "candidateReceiptHash": sha(value["candidateReceiptHash"], label + ".candidateReceiptHash"),
+        "committedSelectors": committed_selector_entries(value["committedSelectors"], label + ".committedSelectors"),
+        "mutationReceiptHashes": [sha(item, "%s.mutationReceiptHashes[%d]" % (label, index)) for index, item in enumerate(hashes)],
+        "runtimeBindingHash": sha(value["runtimeBindingHash"], label + ".runtimeBindingHash"),
+        "authorizationHash": sha(value["authorizationHash"], label + ".authorizationHash"),
+    }
+    expected = canonical_digest({
+        "transactionId": authorization["transactionId"],
+        "journalHash": authorization["journalHash"],
+        "candidateReceiptHash": authorization["candidateReceiptHash"],
+        "committedSelectors": authorization["committedSelectors"],
+        "mutationReceiptHashes": authorization["mutationReceiptHashes"],
+        "runtimeBindingHash": authorization["runtimeBindingHash"],
+    })
+    if authorization["authorizationHash"] != expected or authorization["authorizationId"] != "auth-" + expected[:24]:
+        fail("%s does not match its own content-addressed hash" % label)
+    return authorization
+
+
+def require_coordinated_activation_gate(state_dir: Path, candidate: Dict[str, Any], args: argparse.Namespace) -> None:
+    """A desired identity declared as a coordinated cutover successor may be
+    activated only with the matching pre-activation Runtime authorization and
+    runtime binding."""
+    declaration = read_coordinated_cutover_declaration(state_dir)
+    if declaration is None:
+        return
+    if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
+        return
+    authorization_path = getattr(args, "coordinated_runtime_authorization", None)
+    if not authorization_path:
+        fail("coordinated cutover successor requires --coordinated-runtime-authorization")
+    try:
+        authorization = coordinated_runtime_authorization(json.loads(Path(authorization_path).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated Runtime authorization is unreadable: %s" % error)
+    if authorization["candidateReceiptHash"] != declaration["candidateReceiptHash"]:
+        fail("coordinated Runtime authorization binds a different candidate than the declared cutover")
+    binding_path = getattr(args, "coordinated_runtime_binding", None)
+    if not binding_path:
+        fail("coordinated cutover successor requires --coordinated-runtime-binding")
+    try:
+        binding = coordinated_runtime_binding(json.loads(Path(binding_path).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated runtime binding is unreadable: %s" % error)
+    if binding["candidateReceiptHash"] != authorization["candidateReceiptHash"]:
+        fail("coordinated runtime binding binds a different candidate than the Runtime authorization")
+    if binding["transactionId"] != authorization["transactionId"]:
+        fail("coordinated runtime binding belongs to a different transaction than the Runtime authorization")
+    if authorization["runtimeBindingHash"] != binding["bindingHash"]:
+        fail("coordinated Runtime authorization does not close over the provided runtime active binding")
+    if binding["runtimeRelease"] != candidate:
+        fail("coordinated runtime binding references a different runtime release than the candidate")
+
+
 def make_retention_lease(candidate: Dict[str, Any], now: datetime, ttl: int) -> Dict[str, Any]:
     ttl = signed_url_ttl(ttl)
     retained_at = now.replace(microsecond=0)
@@ -538,10 +743,39 @@ def mutate(args: argparse.Namespace, operation: str) -> Dict[str, Any]:
                 fail("desired candidate must first be a verified publishing identity")
             after["desired"] = candidate
             after["publishing"] = [item for item in current["publishing"] if item["releaseId"] != candidate["releaseId"]]
+            declaration_source = getattr(args, "coordinated_cutover", None)
+            if declaration_source:
+                try:
+                    declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
+                except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                    fail("coordinated cutover declaration is unreadable: %s" % error)
+                if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
+                    fail("coordinated cutover declaration must match the desired identity")
+                write_coordinated_cutover_declaration(state_dir, declaration)
+        elif operation == "attach-coordinated-desired":
+            candidate = read_identity_file(args.identity)
+            if current["desired"] != candidate:
+                fail("coordinated declaration requires the exact current desired identity")
+            declaration_source = getattr(args, "coordinated_cutover", None)
+            if not declaration_source:
+                fail("coordinated declaration source is required")
+            try:
+                declaration = coordinated_cutover_declaration(json.loads(Path(declaration_source).read_text(encoding="utf-8")))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                fail("coordinated cutover declaration is unreadable: %s" % error)
+            if any(declaration[key] != candidate[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
+                fail("coordinated cutover declaration must match the current desired identity")
+            existing = read_coordinated_cutover_declaration(state_dir)
+            if existing is not None:
+                if existing != declaration:
+                    fail("a different coordinated declaration is already attached to the desired identity")
+                return current
+            write_coordinated_cutover_declaration(state_dir, declaration)
         elif operation == "cancel-desired":
             if current["desired"] is None:
                 fail("there is no desired candidate to cancel")
             after["desired"] = None
+            remove_coordinated_cutover_declaration(state_dir)
         elif operation == "retire-rollback":
             if current["rollback"] is None:
                 fail("there is no verified rollback release")
@@ -592,6 +826,104 @@ def inspect(args: argparse.Namespace) -> Dict[str, Any]:
     lock = locked(state_dir)
     try:
         return read_v2(state_dir)
+    finally:
+        lock.close()
+
+
+def read_lifecycle_file(path_value: str, label: str) -> Dict[str, Any]:
+    path = Path(path_value)
+    if path.is_symlink() or not path.is_file():
+        fail("%s must be a regular non-symlink file" % label)
+    value = read_json(path, lifecycle)
+    if value is None:
+        fail("%s is missing" % label)
+    return value
+
+
+def is_attached_coordinated_predecessor(current: Dict[str, Any], predecessor: Dict[str, Any]) -> bool:
+    return (
+        current["generation"] == predecessor["generation"] + 1
+        and current["schemaVersion"] == predecessor["schemaVersion"]
+        and current["desired"] == predecessor["desired"]
+        and current["active"] == predecessor["active"]
+        and current["rollback"] == predecessor["rollback"]
+        and current["publishing"] == predecessor["publishing"]
+        and current["retained"] == predecessor["retained"]
+    )
+
+
+def is_activated_coordinated_successor(
+    current: Dict[str, Any],
+    predecessor: Dict[str, Any],
+    successor: Dict[str, Any],
+) -> bool:
+    if (
+        current["generation"] != predecessor["generation"] + 2
+        or current["active"] != successor
+        or current["desired"] is not None
+        or current["rollback"] != predecessor["active"]
+        or current["publishing"] != predecessor["publishing"]
+    ):
+        return False
+    prior_rollback = predecessor["rollback"]
+    if prior_rollback is None:
+        return current["retained"] == predecessor["retained"]
+    replacement = [
+        item for item in current["retained"]
+        if item["identity"]["releaseId"] == prior_rollback["releaseId"]
+    ]
+    retained_without_prior = [
+        item for item in current["retained"]
+        if item["identity"]["releaseId"] != prior_rollback["releaseId"]
+    ]
+    return len(replacement) == 1 and replacement[0]["identity"] == prior_rollback and retained_without_prior == predecessor["retained"]
+
+
+def restore_coordinated_predecessor(args: argparse.Namespace) -> Dict[str, Any]:
+    """Restore a c5 lifecycle image only from one recorded transaction state.
+
+    A coordinated desired declaration changes the lifecycle once before
+    activation, and activation changes it once more.  A plain runtime rollback
+    cannot recreate the original desired candidate, rollback root, retained
+    set, generation or transaction identity, so compensation has to restore
+    the complete captured predecessor instead.
+    """
+    state_dir = Path(args.state_dir)
+    predecessor = read_lifecycle_file(args.predecessor_lifecycle, "captured predecessor lifecycle")
+    successor = read_identity_file(args.successor_identity)
+    try:
+        declaration = coordinated_cutover_declaration(json.loads(Path(args.coordinated_cutover).read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("coordinated cutover declaration is unreadable: %s" % error)
+    if predecessor["desired"] != successor:
+        fail("captured predecessor must retain the exact staged coordinated successor")
+    if any(declaration[key] != successor[key] for key in ("schemaVersion", "releaseId", "manifestVersion", "manifestSha256", "manifestWireSha256", "manifestWireSizeBytes", "treeSha256")):
+        fail("coordinated cutover declaration does not match the staged successor")
+    host_script = require_runtime_script(args.host_state_script, "host state script")
+    lock = locked(state_dir)
+    try:
+        current = read_v2(state_dir)
+        existing = read_coordinated_cutover_declaration(state_dir)
+        if current == predecessor:
+            if existing is not None and existing != declaration:
+                fail("current coordinated declaration differs from the recorded transaction")
+            project_host_active(state_dir, host_script, predecessor["active"])
+            if existing is not None:
+                remove_coordinated_cutover_declaration(state_dir)
+            return {"active": predecessor["active"], "generation": predecessor["generation"], "restored": True}
+        attached = is_attached_coordinated_predecessor(current, predecessor)
+        activated = is_activated_coordinated_successor(current, predecessor, successor)
+        if not attached and not activated:
+            fail("current lifecycle is outside the recorded coordinated transaction states")
+        if existing != declaration:
+            fail("current coordinated declaration differs from the recorded transaction")
+        transaction(state_dir, predecessor)
+        # This reopens the v1 host receipt for the exact restored active
+        # identity before the declaration is removed.  A failure keeps the
+        # declaration in place and lets the outer transaction remain blocked.
+        project_host_active(state_dir, host_script, predecessor["active"])
+        remove_coordinated_cutover_declaration(state_dir)
+        return {"active": predecessor["active"], "generation": predecessor["generation"], "restored": True}
     finally:
         lock.close()
 
@@ -707,6 +1039,7 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
             fail("there is no verified rollback release")
         if operation == "activate" and current["desired"] != candidate:
             fail("only the exact desired candidate may be activated")
+        require_coordinated_activation_gate(state_dir, candidate, args)
         journal_value = {
             "schemaVersion": ACTIVATION_SCHEMA,
             "status": "prepared",
@@ -925,11 +1258,13 @@ def main() -> None:
     import_parser.add_argument("--active-identity-file", required=True)
     import_parser.add_argument("--v1-desired-selection-file")
     import_parser.add_argument("--desired-identity-file")
-    for name in ("begin-publish", "cancel-publishing", "set-desired", "retain", "release-retained"):
+    for name in ("begin-publish", "cancel-publishing", "set-desired", "attach-coordinated-desired", "retain", "release-retained"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--identity", required=True)
+    commands.choices["set-desired"].add_argument("--coordinated-cutover")
+    commands.choices["attach-coordinated-desired"].add_argument("--coordinated-cutover", required=True)
     for name in ("retain", "release-retained"):
         commands.choices[name].add_argument("--now", help=argparse.SUPPRESS)
     activate_parser = commands.add_parser("activate")
@@ -937,6 +1272,8 @@ def main() -> None:
     activate_parser.add_argument("--expected-generation", required=True, type=int)
     activate_parser.add_argument("--identity", required=True)
     activate_parser.add_argument("--host-state-script", required=True)
+    activate_parser.add_argument("--coordinated-runtime-authorization")
+    activate_parser.add_argument("--coordinated-runtime-binding")
     activate_parser.add_argument("--now", help=argparse.SUPPRESS)
     rollback_parser = commands.add_parser("rollback")
     rollback_parser.add_argument("--state-dir", required=True)
@@ -974,6 +1311,12 @@ def main() -> None:
     protected_parser.add_argument("--state-dir", required=True)
     inspect_parser = commands.add_parser("inspect")
     inspect_parser.add_argument("--state-dir", required=True)
+    restore_predecessor_parser = commands.add_parser("restore-coordinated-predecessor")
+    restore_predecessor_parser.add_argument("--state-dir", required=True)
+    restore_predecessor_parser.add_argument("--predecessor-lifecycle", required=True)
+    restore_predecessor_parser.add_argument("--successor-identity", required=True)
+    restore_predecessor_parser.add_argument("--coordinated-cutover", required=True)
+    restore_predecessor_parser.add_argument("--host-state-script", required=True)
     recover_parser = commands.add_parser("recover")
     recover_parser.add_argument("--state-dir", required=True)
     project_recover_parser = commands.add_parser("recover-and-project")
@@ -985,17 +1328,21 @@ def main() -> None:
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
+    commands.choices["activate-and-project"].add_argument("--coordinated-runtime-authorization")
+    commands.choices["activate-and-project"].add_argument("--coordinated-runtime-binding")
     args = parser.parse_args()
     if args.command == "initialize-v2":
         result = initialize(args)
     elif args.command == "initialize-v2-from-v1":
         result = initialize_from_v1(args)
-    elif args.command in {"begin-publish", "cancel-publishing", "set-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
+    elif args.command in {"begin-publish", "cancel-publishing", "set-desired", "attach-coordinated-desired", "cancel-desired", "retire-rollback", "retain", "release-retained"}:
         result = mutate(args, args.command)
     elif args.command == "protected-set":
         result = protected(args)
     elif args.command == "inspect":
         result = inspect(args)
+    elif args.command == "restore-coordinated-predecessor":
+        result = restore_coordinated_predecessor(args)
     elif args.command == "recover":
         result = recover(args)
     elif args.command == "recover-and-project":

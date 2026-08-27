@@ -1,0 +1,270 @@
+{
+  "contract": "act-coordinated-projection-adjustments/v1",
+  "scopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+  "authoritySnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+  "stagedAt": "2026-08-26T07:17:00.000Z",
+  "suppressedSelfLoopPrerequisites": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "edgeId": "3dcd401c4d2ea6234db32b4d5e00725bff7eb846ddfe9d8f3023689623d17957",
+      "evidenceRefs": [
+        "src:2-2#时域分析的研究对象、任务与典型输入"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+      "edgeId": "95fee27984370bb1518dd168ddfb5e83ac52374944c3842ea273d288d07ecbd9",
+      "evidenceRefs": [
+        "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+        "src:course-content/authoring/lessons/3-8/design/3-8-handout.md",
+        "src:course-content/authoring/terminology.md"
+      ]
+    }
+  ],
+  "inactiveDuplicateCards": [
+    {
+      "resourceId": "act:card:PID控制器_6_656b8b52",
+      "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b"
+    },
+    {
+      "resourceId": "act:card:PID控制器_8_34f1aeb5",
+      "canonicalId": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b"
+    },
+    {
+      "resourceId": "act:card:PI控制器_8_50f96fae",
+      "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81"
+    },
+    {
+      "resourceId": "act:card:主导极点_4_7b49c6c5",
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27"
+    },
+    {
+      "resourceId": "act:card:主导极点_5_5a720cf2",
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27"
+    },
+    {
+      "resourceId": "act:card:传递函数_1_2",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:传递函数_1_5b0faf8b",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:传递函数_10_6c2d17e5",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:传递函数_2_2c5e2589",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:传递函数_3_92e14aa2",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:传递函数_9_a86a3adf",
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903"
+    },
+    {
+      "resourceId": "act:card:信号流图_2_372d4084",
+      "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220"
+    },
+    {
+      "resourceId": "act:card:最小相位系统_6_d74d6ebe",
+      "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2"
+    },
+    {
+      "resourceId": "act:card:前置滤波器_6_15e51383",
+      "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee"
+    },
+    {
+      "resourceId": "act:card:单位阶跃响应_3_04fc55dc",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253"
+    },
+    {
+      "resourceId": "act:card:单位阶跃响应_9_dd4abbe1",
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253"
+    },
+    {
+      "resourceId": "act:card:复合控制_6_31b7c736",
+      "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785"
+    },
+    {
+      "resourceId": "act:card:带宽_5_6730fda4",
+      "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785"
+    },
+    {
+      "resourceId": "act:card:带宽频率_6_8857a560",
+      "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df"
+    },
+    {
+      "resourceId": "act:card:幅值裕度_6_29a8a2e1",
+      "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742"
+    },
+    {
+      "resourceId": "act:card:开环传递函数_4_5b19827b",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e"
+    },
+    {
+      "resourceId": "act:card:开环传递函数_5_4c26df45",
+      "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e"
+    },
+    {
+      "resourceId": "act:card:开环增益_3_d73dc120",
+      "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e"
+    },
+    {
+      "resourceId": "act:card:开环增益_6_9a930dd7",
+      "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e"
+    },
+    {
+      "resourceId": "act:card:性能指标_6_6af5c715",
+      "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede"
+    },
+    {
+      "resourceId": "act:card:截止频率_6_d39c12b0",
+      "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346"
+    },
+    {
+      "resourceId": "act:card:时间常数_3_17162973",
+      "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830"
+    },
+    {
+      "resourceId": "act:card:极点_1_2",
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953"
+    },
+    {
+      "resourceId": "act:card:极点_2_cc79a4c5",
+      "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953"
+    },
+    {
+      "resourceId": "act:card:极点配置_9_b5578c51",
+      "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb"
+    },
+    {
+      "resourceId": "act:card:根轨迹_4_c19f8854",
+      "canonicalId": "ctc:v11g-5845390ded447e37f06ea222"
+    },
+    {
+      "resourceId": "act:card:根轨迹法_4_4e598387",
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538"
+    },
+    {
+      "resourceId": "act:card:相角裕度_6_b44a6a10",
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837"
+    },
+    {
+      "resourceId": "act:card:稳定性_1_7288b4ea",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b"
+    },
+    {
+      "resourceId": "act:card:稳定性_3_72d04fbd",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b"
+    },
+    {
+      "resourceId": "act:card:稳定性_4_b56bde88",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b"
+    },
+    {
+      "resourceId": "act:card:稳定性_7_2e521218",
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b"
+    },
+    {
+      "resourceId": "act:card:稳态误差_3_c0207063",
+      "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:card:稳态误差_4_ef410c98",
+      "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:card:稳态误差_7_18e1e095",
+      "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:card:稳态跟踪误差_7_222f853d",
+      "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+    },
+    {
+      "resourceId": "act:card:稳态跟踪误差_9_73c6314b",
+      "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+    },
+    {
+      "resourceId": "act:card:系统型别_5_13c42c40",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077"
+    },
+    {
+      "resourceId": "act:card:系统型别_6_be6e63a4",
+      "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077"
+    },
+    {
+      "resourceId": "act:card:终值定理_7_0adf63db",
+      "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3"
+    },
+    {
+      "resourceId": "act:card:自然频率_3_ab7d6dc0",
+      "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1"
+    },
+    {
+      "resourceId": "act:card:调节时间_3_bc329c21",
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609"
+    },
+    {
+      "resourceId": "act:card:调节时间_6_c53f6314",
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609"
+    },
+    {
+      "resourceId": "act:card:超调量_4_bad49999",
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562"
+    },
+    {
+      "resourceId": "act:card:超调量_6_f91c1939",
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562"
+    },
+    {
+      "resourceId": "act:card:速度反馈_8_c94fe545",
+      "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424"
+    },
+    {
+      "resourceId": "act:card:闭环主导极点_4_0f26f554",
+      "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77"
+    },
+    {
+      "resourceId": "act:card:闭环传递函数_4_8325ffbe",
+      "canonicalId": "ctc:v11g-69118dc66489d66b1732901b"
+    },
+    {
+      "resourceId": "act:card:闭环极点_4_f359fb50",
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d"
+    },
+    {
+      "resourceId": "act:card:闭环极点_9_a8bbda51",
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d"
+    },
+    {
+      "resourceId": "act:card:闭环特征方程_3_87c88e19",
+      "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580"
+    },
+    {
+      "resourceId": "act:card:闭环特征方程_4_455ce3a5",
+      "canonicalId": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580"
+    },
+    {
+      "resourceId": "act:card:闭环零点_4_949a3b23",
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550"
+    },
+    {
+      "resourceId": "act:card:闭环零点_9_2ab177de",
+      "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550"
+    },
+    {
+      "resourceId": "act:card:阻尼比_4_bf7557b3",
+      "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02"
+    },
+    {
+      "resourceId": "act:card:非最小相位系统_5_02634a20",
+      "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180"
+    }
+  ]
+}

@@ -1,28 +1,35 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "dom.iterable", "es2022"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    ]
   },
-  "include": ["types/next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", "scripts/**/*", "deploy/**/*", "evaluate/**/*"]
+  "include": [
+    "next-env.d.ts",
+    "types/next-env.d.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next/cache",
+    ".next/server",
+    "scripts",
+    "tests",
+    "openspec",
+    "docs",
+    "artifacts",
+    ".logs",
+    "evaluate",
+    "data",
+    "deploy",
+    "course-content",
+    "generated-images",
+    "dist",
+    "build",
+    "out"
+  ]
 }

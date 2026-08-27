@@ -11,6 +11,7 @@ const rootShard = {
     contract: 'act-authority-shard-envelope/v1',
     authorityCatalogVersion: 'acv-playwright',
     teachingVersion: null,
+    localeProfileVersion: 'alp-test-historical-zh-CN',
     match: { authority: true, catalog: true, teaching: null },
   },
   root: {
@@ -180,7 +181,7 @@ test.describe('issue 1445 active circular root', () => {
       await page.screenshot({ path: join(evidenceDir, 'inspector-desktop-light.png'), fullPage: true });
     }
 
-    await expect(page.getByRole('button', { name: '历史 Legacy' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '旧版' })).toBeVisible();
     expect(errors.filter((item) => !item.includes('favicon'))).toEqual([]);
   });
 });

@@ -1,14 +1,22 @@
 /**
- * 受治理的 SymPy 公式计算执行器。
+ * 受治理的 Wolfram 公式计算执行器。
  *
- * API 路由与 KAQ calculate 工具共用此入口：以受限 JSON 载荷调用
- * scripts/math-calc/calc.py，并将结构化结果（LaTeX + 中间步骤）返回给调用方。
+ * API 路由与控灵预计算共用此入口：把 scripts/math-calc/calc.wls 交给
+ * Wolfram Cloud MCP 的 WolframLanguageEvaluator，并将结构化结果
+ * （LaTeX + 中间步骤）返回给调用方。
  */
 
-import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { z } from 'zod';
+
+import {
+  WolframCloudMcpError,
+  buildCalcWlsCloudProgram,
+  evaluateWolframLanguage,
+  unwrapWolframEvaluatorText,
+} from '@/lib/wolfram-cloud-mcp';
 
 export const MATH_CALC_OPERATIONS = [
   'simplify',
@@ -57,9 +65,9 @@ export interface MathCalculateFailure {
 
 export type MathCalculateResponse = MathCalculateSuccess | MathCalculateFailure;
 
-const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.py');
-const MATH_CALC_TIMEOUT_MS = 10_000;
-const MAX_CONCURRENT_CALCULATIONS = 4;
+const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.wls');
+const MATH_CALC_TIMEOUT_MS = 30_000;
+const MAX_CONCURRENT_CALCULATIONS = 1;
 const MAX_QUEUED_CALCULATIONS = 8;
 
 let activeCalculations = 0;
@@ -99,10 +107,6 @@ function releaseCalculationSlot(): void {
     return;
   }
   activeCalculations = Math.max(0, activeCalculations - 1);
-}
-
-function isErrnoError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && 'code' in error;
 }
 
 function isMathCalculateStep(value: unknown): value is MathCalculateStep {
@@ -147,86 +151,55 @@ function parseMathCalculateResponse(stdout: string): MathCalculateResponse | nul
   };
 }
 
+function loadCalcScript(): string {
+  try {
+    return readFileSync(MATH_CALC_SCRIPT_PATH, 'utf8');
+  } catch {
+    throw new MathCalculateUnavailableError('公式计算运行时不可用');
+  }
+}
+
 /**
- * 执行一次 SymPy 计算。
+ * 执行一次 Wolfram Cloud MCP 计算。
  *
- * 子进程 10 秒超时；Python 或脚本缺失时抛出
+ * 30 秒超时；Cloud MCP 不可达或脚本缺失时抛出
  * MathCalculateUnavailableError，调用方应投影为 503。
  */
 async function executeMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {
-  const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
   const payload = JSON.stringify(input);
+  const program = buildCalcWlsCloudProgram(loadCalcScript(), payload);
+  const timeConstraintSeconds = Math.max(1, Math.ceil(MATH_CALC_TIMEOUT_MS / 1000));
 
-  return new Promise<MathCalculateResponse>((resolve, reject) => {
-    const child = spawn(pythonCommand, [MATH_CALC_SCRIPT_PATH], {
-      cwd: process.cwd(),
-      windowsHide: true,
-      stdio: ['pipe', 'pipe', 'pipe'],
+  let output: string;
+  try {
+    output = await evaluateWolframLanguage(program, {
+      timeoutMs: MATH_CALC_TIMEOUT_MS,
+      timeConstraintSeconds,
     });
+  } catch (error) {
+    if (error instanceof WolframCloudMcpError && error.message === '公式计算超时') {
+      return {
+        status: 'error',
+        result: '',
+        steps: [],
+        error: '公式计算超时',
+      };
+    }
+    throw new MathCalculateUnavailableError('公式计算运行时不可用');
+  }
 
-    let stdout = '';
-    let settled = false;
+  let jsonText: string;
+  try {
+    jsonText = unwrapWolframEvaluatorText(output);
+  } catch {
+    throw new MathCalculateUnavailableError('公式计算运行时不可用');
+  }
 
-    const timeout = setTimeout(() => {
-      child.kill('SIGKILL');
-      if (!settled) {
-        settled = true;
-        resolve({
-          status: 'error',
-          result: '',
-          steps: [],
-          error: '公式计算超时',
-        });
-      }
-    }, MATH_CALC_TIMEOUT_MS);
-
-    child.stdout.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString('utf8');
-    });
-    child.stderr.on('data', (chunk: Buffer) => {
-      // Consume stderr without exposing provider or runtime details to callers.
-      void chunk;
-    });
-
-    child.on('error', (error) => {
-      clearTimeout(timeout);
-      if (settled) return;
-      settled = true;
-      if (isErrnoError(error) && error.code === 'ENOENT') {
-        reject(new MathCalculateUnavailableError('Python 运行时不可用'));
-        return;
-      }
-      reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
-    });
-
-    child.on('close', (code) => {
-      clearTimeout(timeout);
-      if (settled) return;
-      settled = true;
-
-      const parsed = parseMathCalculateResponse(stdout);
-      if (code !== 0) {
-        if (parsed?.status === 'error') {
-          resolve(parsed);
-          return;
-        }
-        reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
-        return;
-      }
-
-      if (!parsed) {
-        reject(new MathCalculateUnavailableError('公式计算运行时不可用'));
-        return;
-      }
-      resolve(parsed);
-    });
-
-    child.stdin.on('error', () => {
-      // 子进程提前退出时忽略 EPIPE。
-    });
-    child.stdin.write(payload, 'utf8');
-    child.stdin.end();
-  });
+  const parsed = parseMathCalculateResponse(jsonText);
+  if (!parsed) {
+    throw new MathCalculateUnavailableError('公式计算运行时不可用');
+  }
+  return parsed;
 }
 
 export async function runMathCalculate(input: MathCalculateRequest): Promise<MathCalculateResponse> {

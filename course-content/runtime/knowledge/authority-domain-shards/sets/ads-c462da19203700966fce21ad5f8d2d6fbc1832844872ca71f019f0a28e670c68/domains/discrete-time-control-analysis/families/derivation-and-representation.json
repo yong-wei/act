@@ -1,0 +1,4072 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "domainId": "discrete-time-control-analysis",
+  "family": "derivation-and-representation",
+  "objects": [
+    {
+      "id": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "canonicalType": "DomainConcept",
+      "label": "一阶被控对象离散模型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+      "canonicalType": "DomainConcept",
+      "label": "开环脉冲传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:5c38c5d27e227eaa858d0533",
+      "canonicalType": "Formula",
+      "label": "含零阶保持器的被控对象离散传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1k:relation-00882669eee2606dfae254ea",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-239421efbf80f528b88e9577",
+      "targetId": "ctkg:v3e-object-9bf321264a2adbb92fa2a0a1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-01a2d6d36c1dadff99845910",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-4780e095dfa442ad31586b8f",
+      "targetId": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-028666e90fef91bb885a2a09",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-57ed2eb4dbc7ad501c9ef8c5",
+      "targetId": "ctkg:v3e-object-6df6e0328ae3778c6cb89e5d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-02bbbbe024f6b1cc0329cf9f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7599e8cf11c007f2bb14267e",
+      "targetId": "ctkg:v3e-object-b98052e59fcb2f23a693dae0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-03f6ed0cc3b26e7c44c1cd07",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ae13db01c39b6fd980a87ca",
+      "targetId": "ctkg:v3e-object-a8e0c79d708bd8650b1131eb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0499d9d5b41eca4351067bcc",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-d5e610534480410940108202",
+      "targetId": "ctkg:v3e-object-b5bf685a23be1ecaeb4a1439",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-07d4efbae19c46cf1eff7bdd",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-843e61c23991ea0964be1e1b",
+      "targetId": "ctkg:v3e-object-07ee3fdb09dfcd7de6e93934",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0937c295d94c27fb0cc44b7d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "targetId": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-09f05d499f044791b18a1ef2",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+      "targetId": "ctkg:v3e-object-9e00aba57926f0f5f243f6be",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0b2f8e34dcaa12028027e9e3",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-23e2220c6a4dfbaa3715a843",
+      "targetId": "ctkg:v3e-object-63d1802f3e86f3ecb138f82d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0bcb15f921d682396c8e29e9",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "targetId": "ctkg:v3e-object-54065f17d6844eb8dac1e2f0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0bf4b7f7efb11cafe65ec7a5",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-374506d08649c511b656d66e",
+      "targetId": "ctkg:v3e-object-48f8ff3c2a4a58b2abb9e303",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-0bfb622e9dd2d482b605b79f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "targetId": "ctkg:v3e-object-de052ff65f60098502a3ec8e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-135dcedf929b6637dd6fea4e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-d74df2af2499a774657bcf10",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1368bad37f0294529a5e57e0",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8f93b6b3842cc39fa81d8bc1",
+      "targetId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-13b2b2ce67cc1d693cac93de",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-163f51292a12ed8a4af70189",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-d91010bcb305f6662786a130",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1695429df686c17da4194ed8",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-5e9b15e39c1bf1bcf49fb8fa",
+      "targetId": "ctkg:v3e-object-4637752d5f2ddd4c4a9c704c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-16a194c756bb9cc348f3080e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-5a759f9ebd2c6cf98ec20572",
+      "targetId": "ctkg:v3e-object-b72eed3f2ab9831c330d3274",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1812ce19acaaf9b244143fa2",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f4d767e8e0fc87702894454a",
+      "targetId": "ctkg:v3e-object-17174d62aece8a22a8725a20",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-19544b270d0a49d1c726f407",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-41b576480c7ef6e2fc5f6de3",
+      "targetId": "ctkg:v3e-object-1a5aef7b8bf0891e128a7fa2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1a826ccb81214d6d985d1ec1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-05669186264c0dd0e89c683c",
+      "targetId": "ctkg:v3e-object-32b887489dff86bc441e756f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1cda3cb22c0752a6d7cce43e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-bf53b87f8830f2c2d0fde76f",
+      "targetId": "ctkg:v3e-object-17b5f22decca32ecf3491b18",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1d5963e9cca60ce4a3e7fa68",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-0e5df270abeaa062e3a81d33",
+      "targetId": "ctkg:v3e-object-2b8cab8c3abd78d69532b5ef",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-1e86cc2e6e34da24a485e9d0",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-82b273916fea52f3622caae7",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-21ec42441731b27daa19151c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-deb4c027e8b4c5c4e94f70b7",
+      "targetId": "ctkg:v3e-object-17b0c595719d2d8f699208e5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-226b66b10c405dd96d576d56",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-9cf703ff76ac7d7033c3aae1",
+      "targetId": "ctkg:v3e-object-7e85f98afc47f7d4350dd123",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-22d2a2e3977051cf417a8f26",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-7d3704ae133f6be94bf5991b",
+      "targetId": "ctkg:v3e-object-ea778b2a909a8229c7754ca2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2399b260b3b52be4370cf392",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-a01359a6bcde3626b76f4b44",
+      "targetId": "ctkg:v3e-object-1e4b72ecc2e1206f76791c42",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-23a42c7ead4448be092a8b80",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-09e70b003a861507fa71ad40",
+      "targetId": "ctkg:v3e-object-a885bad5e12fd8dc39214433",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2401694301d66da42ee6e70c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-9bf321264a2adbb92fa2a0a1",
+      "targetId": "ctkg:v3e-object-ad5771e84033a6f521b692ca",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-241ae27493d0ce0a6efc4040",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-513a1e2247cca470ce88783f",
+      "targetId": "ctkg:v3e-object-c48ceeda1ba4dc2b7714e367",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-24dedae18447d23a9657cf7b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "targetId": "ctkg:v3e-object-81a9f4ad7a84d89332107a3d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2bcfd6bd2c1aa3fce85affe4",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-2c8bc9ef3a950a444e3a28da",
+      "targetId": "ctkg:v3e-object-a863ccf8ec7bfc3a92bc1601",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2c0217613bc7825e1e969bf3",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-0e47dcfcbb836c2a9a5f655a",
+      "targetId": "ctkg:v3e-object-e6467bbc4abc8e164700dead",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2c06f88b975d8cd142208ea0",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-e6756d04e6a6a8df6dab78ac",
+      "targetId": "ctkg:v3e-object-69f47d46ff7e556d36bb10df",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2cae1bda97694537b6e26fe6",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8e3c22a1f25ad377d97bdc08",
+      "targetId": "ctkg:v3e-object-7ca2c75eb92f65075a8ec793",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2d63d1febd90ed62c9e36267",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-57c2a511bf07dbbc2a36f1eb",
+      "targetId": "ctkg:v3e-object-4637752d5f2ddd4c4a9c704c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2dab85a390111a03b8fd682d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-e29c068153f73d036fca9bfe",
+      "targetId": "ctkg:v3e-object-476e6f531eebde6502af36f6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-2dabac1b310ea0f93fe69b47",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-9e7cdae12c6f417b5333c1b2",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-31a2cb12066ff4495ea79421",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-0e2fd1303478a746919816fc",
+      "targetId": "ctkg:v3e-object-bcc1e652eceb1f771d5c5dea",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-33c3e9c0f706a064e1ab0073",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-32e9960208772712469da287",
+      "targetId": "ctkg:v3e-object-a3e0ec7e2b591f964416e657",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-34f4c1b5e4b7703a09dd126e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-164939b5eaf8476f1023e4b1",
+      "targetId": "ctkg:v3e-object-1645b010f879617503f47f21",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-359f15c7d14d290c5504dcec",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-e4392b68d76f88d3e008e479",
+      "targetId": "ctkg:v3e-object-257299e3671fae5920fa6aa5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-35df1c149cf9eaf1e3d12a4e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "targetId": "ctkg:v3e-object-5addb3aa1e46334e28e031a5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-3823dd2db66a802441a69e5f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-ef452ef92cb2e0813b2427cb",
+      "targetId": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-39565653874bfc81dbc8d0fe",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-79c4d9b90e5dd806e3537fd2",
+      "targetId": "ctkg:v3e-object-077a4ec4c19112baa379c0f5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-3a5012e3e753f0e1cfb66a9c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8afe09dcafe0ade1cea01746",
+      "targetId": "ctkg:v3e-object-db7328254c50227c2cdbaabd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-3ba7e8affa6910d8eea34493",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f07608fa43e06b9b73f841c6",
+      "targetId": "ctkg:v3e-object-fea9ae715fd623c780e07cb7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4115326586f566419e6a7fec",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c10d0aa080a06aa450ee64ba",
+      "targetId": "ctkg:v3e-object-81a9f4ad7a84d89332107a3d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-41840f0dfb1881ea7ef35a2d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-6097c1a1d85c8ebea0bd8069",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-428537a3061600917a6555e5",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-c863de521bc8c800a42e5e45",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4402090b3256e5719c4b663a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-1a5aef7b8bf0891e128a7fa2",
+      "targetId": "ctkg:v3e-object-41b576480c7ef6e2fc5f6de3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-450a773c1e9aa004552d8c0d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+      "targetId": "ctkg:v3e-object-8092204c03a8af260e3e672f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4723e0b122ebb1de73617374",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-f0c75f6692f200b0dc0163b4",
+      "targetId": "ctkg:v3e-object-903b4bcdcd4448cb8d4da938",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-48279391e51c7880ddaa9e05",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-24b1a97f32dc1d06382d0503",
+      "targetId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-487e97499d63ab262eab7c4d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "targetId": "ctkg:v3e-object-c40b37cc1c49e72b8f522855",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-49b224c88dcaaa02c8784ce9",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "targetId": "ctkg:v3e-object-2031980a333e2a693ac1b6e0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-49ecf3df71f9c44c46100147",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-c8a31e16c174bbcc07ba4afb",
+      "targetId": "ctkg:v3e-object-58d5e6f4990cdd51af8d0806",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4a168e771914137783a4d35b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-40894c9e9bd84adde46fbaba",
+      "targetId": "ctkg:v3e-object-69f47d46ff7e556d36bb10df",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4addf317a76e8cdff1d97734",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-30acaf204141d9ff01c907b5",
+      "targetId": "ctkg:v3e-object-5a759f9ebd2c6cf98ec20572",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4b0820911c7996bea2d2f8ec",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "targetId": "ctkg:v3e-object-7b3126e5082607dd70acda78",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4ce15be80b0a8b27fade5d9d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-84a0f77616c13db595858d90",
+      "targetId": "ctkg:v3e-object-e504bc0a9fefb69a877e2c63",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4e919c5b25ef4e4754cdeb4b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c2a4a18be7cf359b5580520d",
+      "targetId": "ctkg:v3e-object-81a9f4ad7a84d89332107a3d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4ec91c0fa3b7740451ce9b3a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "targetId": "ctkg:v3e-object-513a1e2247cca470ce88783f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4f2b0d56d0ad6ae1c0f90905",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7a4cf6556ee796f95427a71d",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4fc809406dcbf4a6f88e7748",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-03271918d53eff70169e9add",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-502044c1ca12209e9d184ace",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f48b44c103bf4e9902e5446",
+      "targetId": "ctkg:v3e-object-5591590d6d1c13f4fb047c9d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5330c8be9802f41307e511e1",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-d19100cdafdfe0b7ef96cd25",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-548ba45337fbb9be5203bb44",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-bb152a62e48c52ee6fb1f22d",
+      "targetId": "ctkg:v3e-object-35516e6d05dbde59e6fa3f1b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-56c90d7df96e0b6d37216fbd",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "targetId": "ctkg:v3e-object-17b0c595719d2d8f699208e5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-57405c7c0cc6cc2c7fe3319e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-5ad86f95129a719014d9ebd3",
+      "targetId": "ctkg:v3e-object-e44e4bc8a420a8e792204ce7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-58ace83bc87ca19094f39887",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-8e2d1a59b0583cad1108b4b6",
+      "targetId": "ctkg:v3e-object-247ec6d3f25a437b7f4faab0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-59dd609fc091468588498025",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-32c97138cf980b3e1e0e3c5a",
+      "targetId": "ctkg:v3e-object-fd3d0c9f3afa6c08ab915421",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5ac5c9124874da9a0c91331f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "targetId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5c8a366d985f9bbc62fb3241",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "targetId": "ctkg:v3e-object-6d5e31a008cf94ca048b1be2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5d5c4015e5b8a36b98be6138",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-4791b5ce2a4a06f41b0b6f2c",
+      "targetId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5dcb643130888698bba03e7c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-1fd8d89cd7fb1bc75f132aa4",
+      "targetId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5ed8221a7de752735590addc",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-60e586e95c15f18d0afdc57f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f48b44c103bf4e9902e5446",
+      "targetId": "ctkg:v3e-object-328002a5b5bd491b5fd88827",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-665b27b77fdaefb6dd75f202",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "targetId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6892585aba8785d8114fd368",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-e7954f31e4691036a1865999",
+      "targetId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-68cfaec183480ea33109c893",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "targetId": "ctkg:v3e-object-54065f17d6844eb8dac1e2f0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6b823bbae15a24b6981626ae",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "targetId": "ctkg:v3e-object-c8a31e16c174bbcc07ba4afb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6bb961cc0b5740fa82a30dd8",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8fdfc02efaeb085e23417f12",
+      "targetId": "ctkg:v3e-object-c863de521bc8c800a42e5e45",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6ca4125e43987ab11433bda2",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-6d1db6977ad62639b73afe79",
+      "targetId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6d17f96324d3440f5c0d3cd8",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-7c77bb6291ea7abfc17ca05b",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6d4f19eafe978febd4f1db8c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "targetId": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6d87e58317e6886004a2b24f",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-b081f9aea42b7c21a3fa2143",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-6df6d34750856be11a7f34af",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+      "targetId": "ctkg:v3e-object-a10f9670359feb9d1a53ba36",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-710241a6cf85ac3401355824",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-712f1f811d24118b0da1cc31",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-232cdd6078b2d401f9b53c32",
+      "targetId": "ctkg:v3e-object-0b069e17e765ec20a26d5e40",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-73cb8c9bf88cae72e0884e46",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-81a9f4ad7a84d89332107a3d",
+      "targetId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-760f9371119ebfd16cbe48b6",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "targetId": "ctkg:v3e-object-a704fec45cbbca4d9f9331dd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-76cf473592c76daa908859f2",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-3f8fcee23b83794856759706",
+      "targetId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-77cce3193ac545dce30c9713",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7a235e33844f1ac9928d5cb9",
+      "targetId": "ctkg:v3e-object-6f17c9b89c1fb15f9f1f2113",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-7858b54d73e89b50864a93ee",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-165b1e72f526043a3c2b3cb6",
+      "targetId": "ctkg:v3e-object-75133150a7d64f1f5bdbf1f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-7a56e651b531068e776b4f50",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "targetId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-7b1e5a646af77ac7b70cec8b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-40894c9e9bd84adde46fbaba",
+      "targetId": "ctkg:v3e-object-e6467bbc4abc8e164700dead",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-7ca4d175afce4d90973ae0d2",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2d2078e6afdce60b2fd0ba11",
+      "targetId": "ctkg:v3e-object-5a54aaa84976e858356ef9a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-7cc01834ea8a387278a17bbf",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-903b4bcdcd4448cb8d4da938",
+      "targetId": "ctkg:v3e-object-cf1ff6156fb0b5866a59b008",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-81c65b4702cf89405d8ed2c0",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-80339a3e1faad4e0b81a6462",
+      "targetId": "ctkg:v3e-object-81a9f4ad7a84d89332107a3d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-81e9db1fc0fa59e3d437d2e8",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-d1ed4773fc13132e9344b645",
+      "targetId": "ctkg:v3e-object-4637752d5f2ddd4c4a9c704c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-82883ad074234825b3d621f1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-1046498f1c5d17864ddaeb71",
+      "targetId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-83d9c96f340f407c5d863ab8",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "targetId": "ctkg:v3e-object-631fc16a53ec6f0c6644db85",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-85f80b08e5ea26c8bc57a15d",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-2c8bc9ef3a950a444e3a28da",
+      "targetId": "ctkg:v3e-object-064983b287f2ea82fbd37bf1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-886be172e5f27282d73b89ad",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-a1331e39964424f795579e81",
+      "targetId": "ctkg:v3e-object-1e4b72ecc2e1206f76791c42",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-88f8c322a6daf3fa90ac3252",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-cb6ca6b992b089bcdc2f0285",
+      "targetId": "ctkg:v3e-object-2aba0655d57881d80d76aa5c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-8b2b98271c98c6734c1a80b8",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-581ad59cfd51bb25e50aa652",
+      "targetId": "ctkg:v3e-object-01a9ac4b7e6150a3e686a428",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-8b80ef147d9430277f1242b3",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-5eb50007d0dc046e1646374d",
+      "targetId": "ctkg:v3e-object-e9b365b3f16db46b1e342744",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-8c7e0c5c856af77d89929607",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-1fd8d89cd7fb1bc75f132aa4",
+      "targetId": "ctkg:v3e-object-58ac85d08842fd2385fda612",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-8df2c11ed68a77f3d7b5d8d4",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-54065f17d6844eb8dac1e2f0",
+      "targetId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-8f81ec273da81e685532a87b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8870e5dc15d433f7a788018d",
+      "targetId": "ctkg:v3e-object-91b954991d8d99e4d88e5299",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-902d794d359c57f84ebcca9e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "targetId": "ctkg:v3e-object-3d63786a8fe79b558dc20cff",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-908e909cd1f38302310119ad",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-07ee3fdb09dfcd7de6e93934",
+      "targetId": "ctkg:v3e-object-3b3c6bcd50825914955ce322",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-91975ce5dc7295d963615bc4",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-33b5864700b961b1eba0b483",
+      "targetId": "ctkg:v3e-object-714c7da666b6a7c00b9f269b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-92d58474987ac1b9e2c069a0",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-03af91c8f7511b5b5b088fb8",
+      "targetId": "ctkg:v3e-object-02693ac0dcef1cf5c62638da",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-93c79bbd96d329c424fd3029",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-26a0ab48ebf2148373b04e71",
+      "targetId": "ctkg:v3e-object-9bad410f2b9662132c16c8f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-94a3bad89016287dfb65357d",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-5ad86f95129a719014d9ebd3",
+      "targetId": "ctkg:v3e-object-e44e4bc8a420a8e792204ce7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-94cf191bed2d2a7d69245f52",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-4fee78f83d07d1b607433b4b",
+      "targetId": "ctkg:v3e-object-af9ac5e3ba61da889da30973",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-94dc1d5992922cc3be021253",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-4780e095dfa442ad31586b8f",
+      "targetId": "ctkg:v3e-object-ef452ef92cb2e0813b2427cb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-96d69adb745ccad7da48a0a7",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-257299e3671fae5920fa6aa5",
+      "targetId": "ctkg:v3e-object-2c8bc9ef3a950a444e3a28da",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-96dcc0c0a3fcf7eb7a0a195d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+      "targetId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-981846b9ef04ea4c5e2935b1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-58d5e6f4990cdd51af8d0806",
+      "targetId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-99233fb6f087a903824cf2f6",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-09e70b003a861507fa71ad40",
+      "targetId": "ctkg:v3e-object-2031980a333e2a693ac1b6e0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9bbc0857db58ce69b1e750b9",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-21ab191374a8f8cedb0c13da",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9bce98b7d7ff5638500d9017",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-17b5f22decca32ecf3491b18",
+      "targetId": "ctkg:v3e-object-e6467bbc4abc8e164700dead",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9e0ee18230d5ad052950f162",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-49daf47c5d38485df931cbf6",
+      "targetId": "ctkg:v3e-object-3b3c6bcd50825914955ce322",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9e87dfa96eea7504c6f88d68",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-83d078f69dbc44d1e611e4a7",
+      "targetId": "ctkg:v3e-object-54065f17d6844eb8dac1e2f0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9f475c44b4acf202046f23ef",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "targetId": "ctkg:v3e-object-6e1bf5fe6bd837e822b8f624",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a1a6c3947ece5716513f197d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-818f3e281304411a0fded508",
+      "targetId": "ctkg:v3e-object-7599e8cf11c007f2bb14267e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a2eabdd11752321f50328b96",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-4e521e8e41f22137350b33fd",
+      "targetId": "ctkg:v3e-object-c863de521bc8c800a42e5e45",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a3200dd01860e0df4c61a5e0",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-dc100c0a7e752839af01bbea",
+      "targetId": "ctkg:v3e-object-82bbe279be405d6a9485b087",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a4b995a1f5a4924c385a7fc1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-f2043c62f7852b9f7e0bb3a8",
+      "targetId": "ctkg:v3e-object-a704fec45cbbca4d9f9331dd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a728e0de9c8686b655325ead",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-6e2e9a351d5d4095bdf2fb5c",
+      "targetId": "ctkg:v3e-object-23f468b43f22b97b2b5d84d6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a77e088e83abb8f1bfe0d4c8",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "targetId": "ctkg:v3e-object-58d5e6f4990cdd51af8d0806",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a7b7acfca9121c7dd0e55175",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-d901108d3599403310f55cd9",
+      "targetId": "ctkg:v3e-object-a89bf57a4c009c838014e436",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-a97614caba8f2905f411b1d2",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-5096ed36b74bda12bacf70a0",
+      "targetId": "ctkg:v3e-object-7e85f98afc47f7d4350dd123",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ad39365d360aab046a241a80",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-8fc1c3a112026b4f156b596e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ad9095fd619697aed6747920",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-f40db991c1138aa8387d0ad6",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b06159d9626ba843e24905e3",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-66cdaee3220f052f819e24fa",
+      "targetId": "ctkg:v3e-object-a704fec45cbbca4d9f9331dd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b1a8bfbc97bfec1f0d6b59fc",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7bc9ebe2ac4e62ae63aa3390",
+      "targetId": "ctkg:v3e-object-69f47d46ff7e556d36bb10df",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b1c9105f6af30c172f63ba74",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-deb4c027e8b4c5c4e94f70b7",
+      "targetId": "ctkg:v3e-object-30bc0b9fb0b08c82f30a7ab3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b220aea624c0baeacb84b943",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+      "targetId": "ctkg:v3e-object-8a4b4cee7935d3ae567d8a55",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b4e76165d703c61f3ece59d1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-8c0f11e55cf7371c1296cad0",
+      "targetId": "ctkg:v3e-object-0e47dcfcbb836c2a9a5f655a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b52e73ff5abdf83c354099c9",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-015b499ba1d6e9093a992d44",
+      "targetId": "ctkg:v3e-object-5a759f9ebd2c6cf98ec20572",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b86dacb6967e7c5da61b48eb",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-b5bf685a23be1ecaeb4a1439",
+      "targetId": "ctkg:v3e-object-d5e610534480410940108202",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-b9ccf9bbb06da1111d078ab9",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-903b4bcdcd4448cb8d4da938",
+      "targetId": "ctkg:v3e-object-ec392599340f15d1a9fead27",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ba7a994c2bdd3c1d90d54a85",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-bda749cc0a7ec650aa767a24",
+      "targetId": "ctkg:v3e-object-4637752d5f2ddd4c4a9c704c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ba7c2d963f8388f996364697",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-256b7b4e6dd8071dc7ce3512",
+      "targetId": "ctkg:v3e-object-3dfb156f599a14a4534f06ba",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-bbb188f1535ea51ad449aa49",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-7eb18afde167284dfe0c3bf1",
+      "targetId": "ctkg:v3e-object-4bf855cf4d79124ac4017769",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-bcfa823d21a8ae92dc93e024",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-476e6f531eebde6502af36f6",
+      "targetId": "ctkg:v3e-object-a3f9fdd2166d349dd51d7ce0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c0100ddf842091d4ccbb65e4",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7748721bb04376f9b75386f9",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c2c35b170e4d870f880d2f82",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2d888f7e8ccc21fed0584aaf",
+      "targetId": "ctkg:v3e-object-725e306dea61cd9780e4d536",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c2ce4ac5ffb7d63ffe722ce7",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-6e2e9a351d5d4095bdf2fb5c",
+      "targetId": "ctkg:v3e-object-23f468b43f22b97b2b5d84d6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c530a44e197f46f7c229e97c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-83d60508ec6c88812508be47",
+      "targetId": "ctkg:v3e-object-3b3c6bcd50825914955ce322",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c55beb6a340075e25ba7d755",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "targetId": "ctkg:v3e-object-27eb45a250307fcc571ac92c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c627dcc08c2408b6c062b672",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-3398f1e1a186a253d20aef71",
+      "targetId": "ctkg:v3e-object-4637752d5f2ddd4c4a9c704c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c689bac109609c1321ea9610",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "targetId": "ctkg:v3e-object-cc879188760f9c79394713cb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c6d80e5e62333669dcf2bb0e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-426b00984f58823bb334f0d9",
+      "targetId": "ctkg:v3e-object-fd3d0c9f3afa6c08ab915421",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cc578074abd2367751db9d39",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-102da175ebcbcc3ceed65b4f",
+      "targetId": "ctkg:v3e-object-683669a4b467dc55ddcf5d48",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cdf32cf52d68461291e17108",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "targetId": "ctkg:v3e-object-a344d7472e1349a2c76e403a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cecd957a2c607d67b874ebf5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-86d5f30d2f3bbb90aaccb759",
+      "targetId": "ctkg:v3e-object-92ea66e1570491793f06209a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cee441c41ccbbf0f9f87df2d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c04fbd0da8d9b34dbcb322c9",
+      "targetId": "ctkg:v3e-object-5a54aaa84976e858356ef9a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cf1ad514bbd83b43ff09298c",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-e51687a10eefac5851fee671",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cfe7434c1b87f6bc878e8f75",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+      "targetId": "ctkg:v3e-object-03271918d53eff70169e9add",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d0b85dc9a786eddc54c61021",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2c9e374db409c6c020c4af62",
+      "targetId": "ctkg:v3e-object-10392ceace3daf30af90f6e7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d158dc88d292462111182c4d",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-1ae13db01c39b6fd980a87ca",
+      "targetId": "ctkg:v3e-object-a8e0c79d708bd8650b1131eb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d38317161dfa75b14b13e237",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "targetId": "ctkg:v3e-object-af34d1bfae67d7e39ec06ac4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d404060321a906d50cd8e979",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+      "targetId": "ctkg:v3e-object-7144e0bcd42701f46aed8540",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d418d039cfaaaa7488c6a782",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-234e836510060ef1c1313554",
+      "targetId": "ctkg:v3e-object-410315ae95a77fb7e690fb92",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d49397de52e295a5dc3ae93e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-164939b5eaf8476f1023e4b1",
+      "targetId": "ctkg:v3e-object-69f47d46ff7e556d36bb10df",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d50cf3c8930b727df11064eb",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-44779d6418d71c86c7eff611",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d537b084d54c99bf1671a189",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-be5c797381e083e79c8c4422",
+      "targetId": "ctkg:v3e-object-54095598351974e2167111f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d801a42e3b97866c43b1239b",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "targetId": "ctkg:v3e-object-c8a31e16c174bbcc07ba4afb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-d81cbec0bb5c401262b0df18",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-47a3daab2682628d60c97ae7",
+      "targetId": "ctkg:v3e-object-5a785684dd8838114e0b0d9c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-dcca99480c9ef05a994287b2",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-6c53a467c785f5f37a7aa09a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-dd43869cd376024a49d47239",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-8e2d1a59b0583cad1108b4b6",
+      "targetId": "ctkg:v3e-object-16bc24a2dccb2ea01c2b421c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-dfc5fe6857fa6b3ecd952a07",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7776c53ddfe8f149d3b246b6",
+      "targetId": "ctkg:v3e-object-426b00984f58823bb334f0d9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e000afac514dc7ac3a03c2ef",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+      "targetId": "ctkg:v3e-object-7bc84800d9aa5bfc5aa7165f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e0785d2f0bf9bbb38931d26b",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-a45ef926714effc870faa01e",
+      "targetId": "ctkg:v3e-object-6ca8140f61e8805a2e5c8201",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e0950ad3974fa6a9d3854d16",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-7b3379583132bd69b05d6a94",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e30f3b47383a306d541e6eba",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "targetId": "ctkg:v3e-object-30bc0b9fb0b08c82f30a7ab3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e318cc3f659ad08e6d81a009",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-234e836510060ef1c1313554",
+      "targetId": "ctkg:v3e-object-8ad96de0387035ab0540de74",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e4297ddad85ef0cd17008aab",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-a36f17ddac0ec65e08118916",
+      "targetId": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e4c30d575768c9a245a62f73",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-0e6d07cc58af6a4af000cfcd",
+      "targetId": "ctkg:v3e-object-074ba027193fc06624e26f0a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e4ee6c241d2f5e6fab5fc4e5",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-fc3b406175f916e07b4dc62d",
+      "targetId": "ctkg:v3e-object-b2b033cd7fec431cdea9394a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e6cbc24a7b3be2a3577f6f6b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-cf1ff6156fb0b5866a59b008",
+      "targetId": "ctkg:v3e-object-ec392599340f15d1a9fead27",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-e9ef5b013a59c33120d099d6",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-09e70b003a861507fa71ad40",
+      "targetId": "ctkg:v3e-object-0fb13991d9a86497863e3cb1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ebe7220a695e356b07483f07",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-98262f082c656f2cc7455eb2",
+      "targetId": "ctkg:v3e-object-2e6fc0bcf82c1bd477331ab3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ec6d7a45ace82b0a2d26b8ef",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8c10719421e3d0e0b4bed4b",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-eda9d27db5ac9041190977c4",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-18f59ad463ce423de29f632b",
+      "targetId": "ctkg:v3e-object-58d5e6f4990cdd51af8d0806",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-edb865f04158bb3b6e7f4cf8",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-945f4c10a0932dae42f1f9d0",
+      "targetId": "ctkg:v3e-object-8bbfb750159b93a5b786f14a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-ef7f9cf6294c46a94857e88f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-14e04f731c5540bd641d14ae",
+      "targetId": "ctkg:v3e-object-48f8ff3c2a4a58b2abb9e303",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-eff2a482702ebfd04c0d4919",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-6f17c9b89c1fb15f9f1f2113",
+      "targetId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f110e00a59fa218f3821e4ce",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-15f288c43328cbdc1a39d927",
+      "targetId": "ctkg:v3e-object-2d2078e6afdce60b2fd0ba11",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f15216cc2c49e9ed10850fc4",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-cbbcc7c85dd352b7995d6131",
+      "targetId": "ctkg:v3e-object-9e7cdae12c6f417b5333c1b2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f4ea29286a36c2d83bf1c73a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-47d5f02b96d8db36bdfd8cf9",
+      "targetId": "ctkg:v3e-object-93eb69e774d8b15232decd45",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f63f15f4045abae5b41e71e3",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7776c53ddfe8f149d3b246b6",
+      "targetId": "ctkg:v3e-object-32c97138cf980b3e1e0e3c5a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f7c4b9ada20a6ca0fa49b352",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-e2974061130fc27944d9b3e3",
+      "targetId": "ctkg:v3e-object-48645111f43b115b3aaa9016",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-f8fcc3b3f11da98ef493b595",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-48f8ff3c2a4a58b2abb9e303",
+      "targetId": "ctkg:v3e-object-14e04f731c5540bd641d14ae",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-fa5156fa4999303d1ca70fdc",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-09b98488322cb384d8e9aea6",
+      "targetId": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-fb1eb343a1fa3b8749db19c2",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-0b069e17e765ec20a26d5e40",
+      "targetId": "ctkg:v3e-object-dfa7a5ac22524a279f93ceff",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-fc1cfde77968d0b11f4654b2",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f25dbceaebe61d10f667fe4f",
+      "targetId": "ctkg:v3e-object-63d1802f3e86f3ecb138f82d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1o:rel-19dac7be2e2b4a734f7a972e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "targetId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1o:rel-d4be6a9724434511549c9ac9",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:formula:5c38c5d27e227eaa858d0533",
+      "targetId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1o:rel-ee2f04fbc787fc3aca40dc62",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+      "targetId": "ctkg:v3e-object-873f5f00bcc6ce4ae802fd6f",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "label": "一阶被控对象离散模型",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "discrete-time-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+      "label": "开环脉冲传递函数",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "discrete-time-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:formula:5c38c5d27e227eaa858d0533",
+      "label": "含零阶保持器的被控对象离散传递函数",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "discrete-time-control-design"
+      ]
+    }
+  ]
+}

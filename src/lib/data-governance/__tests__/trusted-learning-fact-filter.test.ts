@@ -97,6 +97,32 @@ describe('trusted learning fact filter', () => {
     })).toBe(true);
   });
 
+  it('accepts both document-grading producer identities only with server anchors', () => {
+    const anchoredFacts = [
+      {
+        sourceEventId: 'grading:run-1:criterion-1:rubric-v1',
+        sourceLogId: 'draft-approved-1',
+      },
+      {
+        sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:rubric-v1',
+        sourceLogId: 'audit-1',
+      },
+    ];
+    expect(anchoredFacts.every(isTrustedLearningFact)).toBe(true);
+    expect(isTrustedLearningFact({
+      sourceEventId: anchoredFacts[0].sourceEventId,
+      sourceLogId: null,
+    })).toBe(false);
+    expect(isTrustedLearningFact({
+      sourceEventId: anchoredFacts[1].sourceEventId,
+      sourceLogId: '',
+    })).toBe(false);
+    expect(isTrustedLearningFact({
+      sourceEventId: 'historical:document-rubric-grading:run-1',
+      sourceLogId: null,
+    })).toBe(false);
+  });
+
   it('does not read an application-side trusted marker', () => {
     const fact = {
       sourceEventId: 'historical:event-1',

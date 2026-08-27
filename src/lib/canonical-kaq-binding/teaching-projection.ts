@@ -190,9 +190,24 @@ export function actkgRelationMatchesAvailability(
     && relation.pinnedContextDigest === availability.pinnedContextDigest
     && relation.projectionId === availability.projectionId
     && relation.projectionDigest === availability.projectionDigest
-    && relation.namespace === 'actkg-teaching-projection'
-    && relation.authority === 'ACTKG'
+    && (
+      (
+        relation.namespace === 'act-teaching-projection'
+        && relation.authority === 'ACT'
+      )
+      || (
+        relation.namespace === 'actkg-teaching-projection'
+        && relation.authority === 'ACTKG'
+      )
+    )
   );
+}
+
+export function isActOwnedTeachingProjectionRelation(
+  relation: Pick<ActkgTeachingProjectionRelation, 'namespace' | 'authority'>,
+): boolean {
+  return relation.namespace === 'act-teaching-projection'
+    && relation.authority === 'ACT';
 }
 
 export function buildActkgTeachingProjectionRelation(input: {
@@ -278,6 +293,16 @@ export function buildActkgTeachingProjectionRelation(input: {
     );
   }
   return relation;
+}
+
+export function buildActOwnedTeachingProjectionRelation(
+  input: Parameters<typeof buildActkgTeachingProjectionRelation>[0],
+): ActkgTeachingProjectionRelation {
+  return {
+    ...buildActkgTeachingProjectionRelation(input),
+    namespace: 'act-teaching-projection',
+    authority: 'ACT',
+  };
 }
 
 export type TypedRelationAuthority =

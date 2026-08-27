@@ -2,7 +2,7 @@ import {
   AdaptiveAssessmentCatalogSelectionError,
   selectCatalogBackedAssessmentItemFromArtifacts,
   type CatalogBackedAssessmentSelection,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selection';
 import {
   LIFECYCLE_COVERAGE_V2_VERSION,
   loadFrozenTerminalValidationOverlay,

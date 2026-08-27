@@ -1,0 +1,37 @@
+{
+ "contract": "remediation-final-closure-receipt/v1",
+ "sealedAt": "2026-08-25T02:30:00.000Z",
+ "domain": "state-space-control-analysis-and-design",
+ "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+ "scopeHash": "ae9b6c6e9c3880f6d702f3103adc85e3f12edd58dc97986b938726c68bd28cb8",
+ "memberCount": 1300,
+ "packRows": 3900,
+ "unresolvedAfter": 0,
+ "outcomeCounts": {
+  "PUBLISHED_EDGE": 19,
+  "NO_RELATION": 3881,
+  "COURSE_ROOT": 0,
+  "REJECTED": 0
+ },
+ "edgeEndpoints": {
+  "count": 19,
+  "byFamily": {
+   "containment": 6,
+   "prerequisite": 7,
+   "association": 6
+  },
+  "courseRootCount": 0
+ },
+ "newMemberContribution": {
+  "members": 18,
+  "rows": 54,
+  "publishedEdges": 6
+ },
+ "supersedes": {
+  "artifact": "successor-closure-receipt.json",
+  "sha256": "bc7bef2ec5aecf7b36e9450b71775806e0fdb1d43c2d11cdf308f8fde83c1511"
+ },
+ "decisionsProvenanceSha256": "dee10e0a892bb4e423bc10b0aa4b893d7878475624d748865cbab02253245e91",
+ "newMemberDecisionsProvenanceSha256": "4a135bbbe561722387bc1770ced1903d8a847485fff990faf9387f53f752ec34",
+ "closureComplete": true
+}

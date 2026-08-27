@@ -1,0 +1,9 @@
+{
+ "contract": "remediation-audio-segmentation-run/v1",
+ "sealedAt": "2026-08-24",
+ "units": 28,
+ "totalSegments": 1170,
+ "boundSegments": 355,
+ "bindRate": 0.303,
+ "method": "sentence-end + 8s min / 25s max windows over word timestamps; node binding by terminology overlap >=2 (label weight 2, description weight 1), top-3 per segment"
+}

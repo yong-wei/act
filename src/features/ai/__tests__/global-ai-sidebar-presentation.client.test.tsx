@@ -302,7 +302,8 @@ describe('GlobalAISidebar presentation continuity', () => {
     await act(async () => root.render(<GlobalAISidebar />));
     await flush();
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const selectionCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/learning-paths/path-1/choices'));
+    expect(selectionCalls).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledWith('/api/learning-paths/path-1/choices', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
@@ -347,9 +348,17 @@ describe('GlobalAISidebar presentation continuity', () => {
         },
       }],
     }];
-    const fetchMock = vi.fn()
-      .mockRejectedValueOnce(new Error('response lost'))
-      .mockResolvedValueOnce({ ok: true });
+    let selectionAttempts = 0;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).includes('/learning-paths/path-1/choices')) {
+        selectionAttempts += 1;
+        if (selectionAttempts === 1) {
+          throw new Error('response lost');
+        }
+        return { ok: true };
+      }
+      return { ok: true, json: async () => ({}) };
+    });
     vi.stubGlobal('fetch', fetchMock);
     const refreshEvents: unknown[] = [];
     const listener = (event: Event) => refreshEvents.push((event as CustomEvent).detail);
@@ -357,7 +366,8 @@ describe('GlobalAISidebar presentation continuity', () => {
 
     await act(async () => root.render(<GlobalAISidebar />));
     await flush();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const selectionCallsAfterFirstMount = fetchMock.mock.calls.filter(([url]) => String(url).includes('/learning-paths/path-1/choices'));
+    expect(selectionCallsAfterFirstMount).toHaveLength(1);
     expect(refreshEvents).toEqual([]);
     expect(container.textContent).toContain('路径选择未能同步，请重试。');
 
@@ -366,7 +376,8 @@ describe('GlobalAISidebar presentation continuity', () => {
     await act(async () => root.render(<GlobalAISidebar />));
     await flush();
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const selectionCallsAfterRemount = fetchMock.mock.calls.filter(([url]) => String(url).includes('/learning-paths/path-1/choices'));
+    expect(selectionCallsAfterRemount).toHaveLength(2);
     expect(refreshEvents).toEqual([expect.objectContaining({
       batchId: 'batch-1',
       candidateId: 'candidate-1',
