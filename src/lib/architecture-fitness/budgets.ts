@@ -987,6 +987,16 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
   if (input.expectedLedgerHash !== undefined && input.expectedLedgerHash !== fitnessBudgetLedgerHash(input.ledger)) {
     failures.push(failure('ledger-hash-drift', 'ledger'));
   }
+  const rebuiltLedger = createFitnessBudgetLedger({
+    baselineCore: input.baselineCore,
+    allowlist: input.baselineAllowlist ?? input.allowlist,
+    baselineIdentity: baselineHash(input.baselineCore),
+    dependencyAllowlistIdentity: allowlistHash(input.baselineAllowlist ?? input.allowlist),
+    charterIdentity: (input.baselineAllowlist ?? input.allowlist).charterSha256,
+  });
+  if (fitnessBudgetLedgerHash(rebuiltLedger) !== fitnessBudgetLedgerHash(input.ledger)) {
+    failures.push(failure('ledger-rebuild-drift', 'ledger'));
+  }
   if (input.allowlist.schemaVersion !== 'act-architecture-fitness/v1') {
     failures.push(failure('allowlist-schema-drift', 'allowlist'));
   }
@@ -1072,9 +1082,11 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
   const shouldProjectGraphs = input.requireGraphInputs || input.graphReceipts || input.graphManifests || input.baselineGraphReceipts;
   if (shouldProjectGraphs) {
     const frozenReceipts = input.baselineGraphReceipts ?? [];
-    const requiredFrozenGraphs = input.requireFrozenReceipts === undefined
-      ? GRAPH_IDS.filter((graph) => frozenReceipts.some((receipt) => receipt.graph === graph))
-      : input.requireFrozenReceipts ? [...GRAPH_IDS] : [];
+    const requiredFrozenGraphs = input.requireFrozenReceipts === false
+      ? []
+      : input.requireFrozenReceipts === true || input.requireGraphInputs
+        ? [...GRAPH_IDS]
+        : GRAPH_IDS.filter((graph) => frozenReceipts.some((receipt) => receipt.graph === graph));
     const compileProjection = projectCompileBudgets({
       sourceCommit,
       sourceTree,

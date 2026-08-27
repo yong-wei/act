@@ -30,7 +30,7 @@ graph runner 为每次命令生成两类工件：
 
 当前工作区存在未提交修改时，receipt 会记录 `dirty: true`；这不是 qualified release evidence。后续门禁消费 receipt 时必须同时校验 source commit/tree、`dirty`、status 和 exit status。tools/test receipt 是 PR 或 integration 的 mandatory inputs；main/release 不得以 nightly 或缺失 receipt 替代。
 
-架构 fitness CLI 将 `.logs/typescript-graphs/` 作为当前 revision receipts，并把 `docs/architecture/typescript-graphs/frozen-receipts/` 作为可选 frozen baseline 输入；目录不存在或为空不构成缺失，不能用伪造 receipt 填充。
+架构 fitness CLI 将 `.logs/typescript-graphs/` 作为当前 revision receipts，并把 `docs/architecture/typescript-graphs/frozen-receipts/` 作为可选 frozen baseline 输入。目录不存在或为空时 compile-resource 保持 blocked；不能用伪造 receipt 填充。
 
 ## 失败夹具与验证
 

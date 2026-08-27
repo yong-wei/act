@@ -176,6 +176,7 @@ describe('architecture fitness budgets', () => {
       expectedLedgerHash: fitnessBudgetLedgerHash(alteredLedger),
     });
     expect(ledgerConsistent.failures).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-hash-drift' })]));
+    expect(ledgerConsistent.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-rebuild-drift' })]));
   });
 
   it('fails new feature-to-app, deep-import, and SCC debt while preserving the old contract', () => {
@@ -379,7 +380,20 @@ describe('architecture fitness budgets', () => {
       graphManifests: manifests,
       requireGraphInputs: true,
     });
-    expect(noFrozenBaseline.failures.some((item) => item.code === 'graph-frozen-receipt-missing')).toBe(false);
-    expect(noFrozenBaseline.status).toBe('trend');
+    expect(noFrozenBaseline.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-frozen-receipt-missing' })]));
+    expect(noFrozenBaseline.status).toBe('blocked');
+    const observedWithoutFrozenRequirement = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: current,
+      allowlist,
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+      graphReceipts: receipts,
+      graphManifests: manifests,
+      requireFrozenReceipts: false,
+    });
+    expect(observedWithoutFrozenRequirement.failures.some((item) => item.code === 'graph-frozen-receipt-missing')).toBe(false);
+    expect(observedWithoutFrozenRequirement.status).toBe('trend');
   });
 });
