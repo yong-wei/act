@@ -8,6 +8,7 @@
     "tools/boundary/**/*.ts",
     "tools/evidence-lifecycle/**/*.ts",
     "tools/migration-backfill/**/*.ts",
+    "tools/teaching-projection-publishing/**/*.ts",
     "typescript-graph-fixtures/tools.ts"
   ],
   "exclude": [

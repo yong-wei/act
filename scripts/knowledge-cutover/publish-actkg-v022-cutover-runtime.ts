@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import {
   executeV022ReleaseGates,
   publishActKgV022CutoverRuntime,
-} from '../../src/lib/teaching-projection/publish/v022-runtime-release';
+} from '../../tools/teaching-projection-publishing/publish/v022-runtime-release';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);

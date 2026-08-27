@@ -17,17 +17,17 @@ import {
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   V018_STAGED_QUALIFICATION_SHA256,
   type HostShadowObservation,
-} from '../teaching-projection/publish/v018-host-shadow';
+} from '../../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 import {
   DOCKER_MIN_MEMORY_BYTES,
   V018_SEALED_QUALIFICATION_SHA256,
   publishActKgV018CutoverRuntime,
   resolveSealedFrozenImage,
-} from '../teaching-projection/publish/v018-runtime-release';
+} from '../../../tools/teaching-projection-publishing/publish/v018-runtime-release';
 import {
   assertV018ProductionPointersUnchanged,
   snapshotCurrentPointers,
-} from '../teaching-projection/qualify/v018-qualify';
+} from '../../../tools/teaching-projection-publishing/qualify/v018-qualify';
 
 const roots: string[] = [];
 const REPO_ROOT = path.resolve(__dirname, '../../..');

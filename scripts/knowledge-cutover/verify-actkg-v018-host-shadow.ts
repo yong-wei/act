@@ -14,8 +14,9 @@ import {
   hostPointerHashesFromObservation,
   V09_HOST_POINTER_HASHES,
   type HostShadowObservation,
-} from '../../src/lib/teaching-projection/publish/v018-host-shadow';
-import { asRecord, writeCanonical } from '../../src/lib/teaching-projection/qualify/v018-shared';
+} from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
+import { publishingToolingIdentity } from '../../tools/teaching-projection-publishing/check';
+import { asRecord, writeCanonical } from '../../tools/teaching-projection-publishing/qualify/v018-shared';
 import { accountByKey } from '../db/verified-test-accounts.mjs';
 
 const DEFAULT_PUBLIC_URL = 'https://act.adapt-learn.online';
@@ -30,7 +31,35 @@ function ssh(target: string, script: string): string {
   return execFileSync('ssh', [target, script], { encoding: 'utf8' }).trim();
 }
 
-function runDeployedImageStagedShadow(sshTarget: string): {
+function stageRemotePublishingModules(sshTarget: string, revision: string): {
+  remoteDir: string;
+  remoteContentHash: string;
+} {
+  const runId = `v018-tp-${Date.now()}-${process.pid}`;
+  const remoteDir = `/tmp/${runId}`;
+  execFileSync('ssh', [sshTarget, `rm -rf '${remoteDir}' && mkdir -p '${remoteDir}'`], { encoding: 'utf8' });
+  const archive = execFileSync('git', ['archive', '--format=tar', revision, 'tools/teaching-projection-publishing']);
+  execFileSync('ssh', [sshTarget, `tar -x -C '${remoteDir}'`], { input: archive });
+  const remoteContentHash = ssh(sshTarget, [
+    'python3 - <<\'PY\'',
+    'import hashlib, os',
+    f'root = {JSON.stringify(`${remoteDir}/tools/teaching-projection-publishing`)}',
+    'entries = []',
+    'for dirpath, dirnames, filenames in os.walk(root):',
+    '    for name in filenames:',
+    '        path = os.path.join(dirpath, name)',
+    '        rel = os.path.relpath(path, root).replace("\\\\", "/")',
+    '        entries.append((rel, open(path, "rb").read()))',
+    'digest = hashlib.sha256()',
+    'for rel, data in sorted(entries):',
+    '    digest.update(rel.encode("utf-8") + b"\\0" + data)',
+    'print(digest.hexdigest())',
+    'PY',
+  ].join('\n')).trim();
+  return { remoteDir: `${remoteDir}/tools/teaching-projection-publishing`, remoteContentHash };
+}
+
+function runDeployedImageStagedShadow(sshTarget: string, remoteToolsDir: string): {
   source: 'deployed-image-staged-candidate' | 'local-qualification';
   consumers: Array<{ consumerId: string; status: string }>;
   mountedAuthorityReceiptSha256?: string;
@@ -52,7 +81,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     'cat > /tmp/v018-host-shadow-run.mjs <<\'JS\'',
     'import { createHash } from "node:crypto";',
     'import { readFileSync, writeFileSync } from "node:fs";',
-    'import { qualifyActKgV018CutoverCandidate } from "./src/lib/teaching-projection/qualify/v018-qualify.ts";',
+    'import { qualifyActKgV018CutoverCandidate } from "./tools/teaching-projection-publishing/qualify/v018-qualify.ts";',
     'const result = await qualifyActKgV018CutoverCandidate({ repoRoot: "/app", outputRoot: "/out" });',
     'const receipt = readFileSync("/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/candidate-receipt.json");',
     'writeFileSync("/out/result.json", JSON.stringify({',
@@ -61,6 +90,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     '}));',
     'JS',
     'podman run --rm --network none --entrypoint ./node_modules/.bin/tsx \\',
+    `  -v ${remoteToolsDir}:/app/tools/teaching-projection-publishing:ro \\`,
     '  -v "$fixture/knowledge:/app/course-content/runtime/knowledge:ro" \\',
     '  -v "$authority/current.json:/app/course-content/authoring/knowledge/authority/current.json:ro" \\',
     '  -v "$authority/releases/$v09snap:/app/course-content/authoring/knowledge/authority/releases/$v09snap:ro" \\',
@@ -229,9 +259,13 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   ].join('\n'))) as HostShadowObservation;
   const readyz = asRecord(JSON.parse(ssh(sshTarget, 'curl -sS -m 15 http://127.0.0.1:8084/api/readyz')));
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
+  const tooling = publishingToolingIdentity(process.cwd());
   let sidecar: ReturnType<typeof runDeployedImageStagedShadow>;
+  let remoteContentHash: string | undefined;
   try {
-    sidecar = runDeployedImageStagedShadow(sshTarget);
+    const staged = stageRemotePublishingModules(sshTarget, tooling.sourceRevision);
+    remoteContentHash = staged.remoteContentHash;
+    sidecar = runDeployedImageStagedShadow(sshTarget, staged.remoteDir);
   } catch {
     sidecar = { source: 'local-qualification', consumers: [] };
   }
@@ -260,6 +294,12 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
       && remote.prerequisiteSha256 === V09_HOST_POINTER_HASHES.prerequisites
       && remote.activationSha256 === V09_HOST_POINTER_HASHES.activation
       && remote.shardSha256 === V09_HOST_POINTER_HASHES.shards,
+    toolSourceRevision: tooling.sourceRevision,
+    toolSourceTree: tooling.sourceTree,
+    toolContentHash: remoteContentHash,
+    expectedToolSourceRevision: process.env.ACT_TEACHING_PROJECTION_SOURCE_REVISION ?? tooling.sourceRevision,
+    expectedToolSourceTree: process.env.ACT_TEACHING_PROJECTION_SOURCE_TREE ?? tooling.sourceTree,
+    expectedToolContentHash: process.env.ACT_TEACHING_PROJECTION_TOOLS_HASH ?? tooling.contentHash,
   };
   const evaluated = evaluateV018HostShadow(observation);
   const pointerHashes = hostPointerHashesFromObservation(observation);

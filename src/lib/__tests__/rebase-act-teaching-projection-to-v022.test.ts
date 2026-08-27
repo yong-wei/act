@@ -21,29 +21,29 @@ import {
   expectedV022AdmissionSchemaIdentity,
   validateV022DatabaseObservation,
   V022_DATABASE_QUERY_CONTRACT_HASH,
-} from '../teaching-projection/rebase/v022-capture';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-capture';
 import {
   assertV022IdentityOnlyEvidence,
   buildV022ImpactEvidence,
   classifyV022IdentityMappings,
   resolveV022CanonicalId,
-} from '../teaching-projection/rebase/v022-mapping';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-mapping';
 import {
   buildV022IdentityRebase,
-} from '../teaching-projection/rebase/v022-rebuild';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-rebuild';
 import {
   assertV022CandidateSelectorSafety,
   assertV022PointerBytesUnchanged,
   buildV022DualBuildIdentity,
   buildV022RebaseReceipt,
   readV022PointerSnapshots,
-} from '../teaching-projection/rebase/v022-receipt';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-receipt';
 import type {
   V022AuthorityBinding,
   V022AuthorityNodeRecord,
   V022CaptureManifest,
-} from '../teaching-projection/rebase/v022-contracts';
-import { ACT_V022_AUTHORITY_RELEASE_ID } from '../teaching-projection/rebase/v022-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-contracts';
+import { ACT_V022_AUTHORITY_RELEASE_ID } from '../../../tools/teaching-projection-publishing/rebase/v022-contracts';
 
 const roots: string[] = [];
 

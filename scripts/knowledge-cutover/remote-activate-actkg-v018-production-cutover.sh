@@ -68,12 +68,12 @@ echo "=== host observation ==="
 collect_observation
 
 echo "=== stage operator modules ==="
-ssh_run "mkdir -p '$REMOTE_WORK/src/lib/teaching-projection/publish' '$REMOTE_WORK/src/lib/teaching-projection/qualify' '$REMOTE_WORK/scripts/knowledge-cutover' '$REMOTE_WORK/live/course-content/authoring/knowledge' '$REMOTE_WORK/live/course-content/runtime' '$REMOTE_WORK/out'
+ssh_run "mkdir -p '$REMOTE_WORK/tools/teaching-projection-publishing/publish' '$REMOTE_WORK/tools/teaching-projection-publishing/qualify' '$REMOTE_WORK/scripts/knowledge-cutover' '$REMOTE_WORK/live/course-content/authoring/knowledge' '$REMOTE_WORK/live/course-content/runtime' '$REMOTE_WORK/out'
 chmod 0777 '$REMOTE_WORK/out'"
-rsync -a "$ROOT/src/lib/teaching-projection/publish/" \
-  "$SSH_TARGET:$REMOTE_WORK/src/lib/teaching-projection/publish/"
-rsync -a "$ROOT/src/lib/teaching-projection/qualify/" \
-  "$SSH_TARGET:$REMOTE_WORK/src/lib/teaching-projection/qualify/"
+rsync -a "$ROOT/tools/teaching-projection-publishing/publish/" \
+  "$SSH_TARGET:$REMOTE_WORK/tools/teaching-projection-publishing/publish/"
+rsync -a "$ROOT/tools/teaching-projection-publishing/qualify/" \
+  "$SSH_TARGET:$REMOTE_WORK/tools/teaching-projection-publishing/qualify/"
 rsync -a "$ROOT/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts" \
   "$SSH_TARGET:$REMOTE_WORK/scripts/knowledge-cutover/"
 rsync -a "$ROOT/scripts/db/verified-test-accounts.mjs" \
@@ -130,9 +130,9 @@ run_sidecar() {{
   local action="$1"
   podman run --rm --network host --user 0:0 \\
     --entrypoint ./node_modules/.bin/tsx \\
-    -v "$REMOTE_WORK/src/lib/teaching-projection/publish:/app/src/lib/teaching-projection/publish:ro" \\
+    -v "$REMOTE_WORK/tools/teaching-projection-publishing/publish:/app/tools/teaching-projection-publishing/publish:ro" \\
     -v "$REMOTE_WORK/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:/app/scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts:ro" \\
-    -v "$REMOTE_WORK/src/lib/teaching-projection/qualify:/app/src/lib/teaching-projection/qualify:ro" \\
+    -v "$REMOTE_WORK/tools/teaching-projection-publishing/qualify:/app/tools/teaching-projection-publishing/qualify:ro" \\
     -v "$REMOTE_WORK/live/course-content/authoring/knowledge/authority:/app/course-content/authoring/knowledge/authority" \\
     -v /home/projects/act/data/runtime/blob-views/current:/app/course-content/runtime \\
     -v /home/projects/act/data/runtime/knowledge-cutover/candidates/control-theory-engineering-v0.18/qualification:/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.18:ro \\

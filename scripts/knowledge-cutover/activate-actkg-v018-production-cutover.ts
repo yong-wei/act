@@ -4,11 +4,11 @@ import { execFileSync } from 'node:child_process';
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { createMapPointerBackend } from '../../src/lib/teaching-projection/publish/v018-production-cutover-backend';
+import { createMapPointerBackend } from '../../tools/teaching-projection-publishing/publish/v018-production-cutover-backend';
 import {
   createLivePointerBackend,
   materializeV018CutoverTrees,
-} from '../../src/lib/teaching-projection/publish/v018-production-cutover-live';
+} from '../../tools/teaching-projection-publishing/publish/v018-production-cutover-live';
 import {
   V018_CUTOVER_COMPONENTS,
   V018_EXPECTED_OBJECT_COUNT,
@@ -28,16 +28,16 @@ import {
   type CutoverJournal,
   type PointerIdentity,
   type V018CutoverComponent,
-} from '../../src/lib/teaching-projection/publish/v018-production-cutover';
+} from '../../tools/teaching-projection-publishing/publish/v018-production-cutover';
 import {
   V09_PUBLIC_DOMAIN_LABELS,
-} from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+} from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 import {
   V018_RELEASE_ID,
   V018_SNAPSHOT,
-} from '../../src/lib/teaching-projection/qualify/v018-shared';
-import { runLiveNamedConsumerShadowReads } from '../../src/lib/teaching-projection/qualify/v018-consumers';
-import { V018_NAMED_CONSUMERS } from '../../src/lib/teaching-projection/qualify/v018-qualify-contract';
+} from '../../tools/teaching-projection-publishing/qualify/v018-shared';
+import { runLiveNamedConsumerShadowReads } from '../../tools/teaching-projection-publishing/qualify/v018-consumers';
+import { V018_NAMED_CONSUMERS } from '../../tools/teaching-projection-publishing/qualify/v018-qualify-contract';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);

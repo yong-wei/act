@@ -34,23 +34,23 @@ import {
   validateV018DatabaseObservation,
   V018CaptureError,
   V018_DATABASE_QUERY_CONTRACT_HASH,
-} from '../../src/lib/teaching-projection/rebase/v018-capture';
+} from '../../tools/teaching-projection-publishing/rebase/v018-capture';
 import {
   buildV018IdentityRebase,
-} from '../../src/lib/teaching-projection/rebase/v018-rebuild';
+} from '../../tools/teaching-projection-publishing/rebase/v018-rebuild';
 import {
   assertV018CandidateSelectorSafety,
   buildV018DualBuildIdentity,
   buildV018RebaseReceipt,
   readV018PointerSnapshots,
-} from '../../src/lib/teaching-projection/rebase/v018-receipt';
+} from '../../tools/teaching-projection-publishing/rebase/v018-receipt';
 import type {
   V018AuthorityBinding,
   V018AuthorityNodeRecord,
   V018CaptureManifest,
   V018DatabaseObservation,
-} from '../../src/lib/teaching-projection/rebase/v018-contracts';
-import { V018_CURRENT_POINTER_PATHS, V018_REFERENCE_KINDS } from '../../src/lib/teaching-projection/rebase/v018-contracts';
+} from '../../tools/teaching-projection-publishing/rebase/v018-contracts';
+import { V018_CURRENT_POINTER_PATHS, V018_REFERENCE_KINDS } from '../../tools/teaching-projection-publishing/rebase/v018-contracts';
 import {
   loadStagedTeachingProjection,
   readCurrentTeachingProjectionPointer,
