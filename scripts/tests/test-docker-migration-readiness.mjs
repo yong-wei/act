@@ -964,8 +964,12 @@ function main() {
   );
   assert.match(
     remoteDeployScript,
-    /podman exec '\$\{APP_NAME_HINT\}' npm run db:verify-authoritative-knowledge-deployment/,
-    'remote-deploy 最终阶段必须核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
+    /podman exec '\$\{APP_NAME_HINT\}' \.\/node_modules\/\.bin\/tsx scripts\/db\/import-authoritative-actkg-release\.ts --verify-only/,
+    'remote-deploy 最终阶段必须以只读模式核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
+  );
+  assert.ok(
+    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
+    'remote-deploy 必须在受控发布路径中实际同步 runtime 知识图谱，不能调用仅拒绝执行的 package gate',
   );
 
   assert.match(

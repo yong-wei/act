@@ -718,7 +718,9 @@ remote "bash -lc 'set -euo pipefail
     APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   fi
   echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
-  podman exec \"${APP_NAME_HINT}\" npm run seed:knowledge
+  # seed:knowledge is intentionally apply-gated for ad-hoc use. This is the
+  # controlled deployment execution path after the immutable runtime is mounted.
+  podman exec \"${APP_NAME_HINT}\" node scripts/db/seed-all-knowledge.mjs
   echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
   \"${REMOTE_NGINX_SCRIPT}\"
   echo \"[remote-deploy] Step 8/8: 配置 systemd 开机自启\"
@@ -809,7 +811,7 @@ podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NA
 '"
 
 log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
-remote "podman exec '${APP_NAME_HINT}' npm run db:verify-authoritative-knowledge-deployment"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-authoritative-actkg-release.ts --verify-only"
 
 log "- 校验 runtime 知识图谱已同步到数据库"
 remote "bash -lc '
