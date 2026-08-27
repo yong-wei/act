@@ -44,9 +44,11 @@ import { buildActiveResourceReviewPack } from '@/lib/latest-authority-oss-cutove
 import { buildRuntimeMediaSourceBridge } from '@/lib/latest-authority-oss-cutover/runtime-media-source-bridge';
 import {
   adapterSupportsPublicBundle3,
+  assertMaterializedActkgDirectoryRegular,
   assertSealedActkgTreeDirectory,
   assertSealedActkgTreeFile,
   capturedPublicContractFromBundle,
+  discoverLatestCompleteAggregate,
   materializeSealedActkgCommit,
   resolveSealedActkgMainCommit,
 } from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
@@ -221,6 +223,53 @@ describe('execution-time Authority capture', () => {
       }
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects tracked symlinks from a materialized automatic-discovery bundle', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-archive-link-'));
+    const outside = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-archive-link-outside-'));
+    const git = (...args: string[]) => execFileSync('git', ['-C', root, ...args], {
+      encoding: 'utf8',
+    }).trim();
+    try {
+      git('init', '--quiet');
+      git('config', 'user.email', 'test@example.invalid');
+      git('config', 'user.name', 'ACT test');
+      git('checkout', '--quiet', '-b', 'main');
+      const bundle = path.join(root, 'releases', 'control-theory-engineering-v0.37');
+      mkdirSync(bundle, { recursive: true });
+      writeFileSync(path.join(bundle, 'bundle-manifest.json'), JSON.stringify({
+        bundle_kind: 'aggregate',
+        release_stage: 'stable',
+        bundle_id: 'bundle-r4',
+        bundle_digest: 'a'.repeat(64),
+        bundle_revision: 4,
+        release: { release_id: 'ctr:release:control-theory-engineering-v0.37', release_version: 'v0.37' },
+        source_revision: { commit: 'a'.repeat(40), tag: 'control-theory-engineering-v0.37-source-r5' },
+        schema: { version: '0.3.0', sha256: 'b'.repeat(64) },
+        publication: { tag: 'control-theory-engineering-v0.37-r4' },
+      }) + '\n');
+      writeFileSync(path.join(bundle, 'validation-report.json'), '{}\n');
+      writeFileSync(path.join(outside, 'SHA256SUMS'), 'external\n');
+      symlinkSync(path.join(outside, 'SHA256SUMS'), path.join(bundle, 'SHA256SUMS'));
+      git('add', '.');
+      git('commit', '--quiet', '-m', 'tracked archive link');
+      const archiveRoot = materializeSealedActkgCommit(root, git('rev-parse', 'main'));
+      try {
+        expect(() => assertMaterializedActkgDirectoryRegular(
+          archiveRoot,
+          path.join(archiveRoot, 'releases', 'control-theory-engineering-v0.37'),
+          'automatic aggregate bundle',
+        )).toThrow(/non-regular entry/);
+        expect(() => discoverLatestCompleteAggregate(archiveRoot))
+          .toThrow(/non-regular entry/);
+      } finally {
+        rmSync(archiveRoot, { recursive: true, force: true });
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
     }
   });
 

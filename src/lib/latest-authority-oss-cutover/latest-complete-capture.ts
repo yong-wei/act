@@ -8,7 +8,7 @@
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { lstatSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -79,6 +79,63 @@ export function materializeSealedActkgCommit(
     rmSync(outputRoot, { recursive: true, force: true });
     failUnsealedInput(`sealed ActKG commit ${commit} could not be materialized: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+/**
+ * An archive preserves Git symlink entries. Before any parser touches an
+ * archive subtree, require its complete materialized closure to contain only
+ * ordinary directories and files, never a link that tar would follow outside
+ * the sealed commit.
+ */
+export function assertMaterializedActkgDirectoryRegular(
+  materializedRoot: string,
+  requestedPath: string,
+  label: string,
+): string {
+  const lexicalRoot = path.resolve(materializedRoot);
+  const requested = path.resolve(requestedPath);
+  const relative = path.relative(lexicalRoot, requested);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    failUnsealedInput(`${label} must resolve inside the materialized sealed ActKG tree.`);
+  }
+  const root = realpathSync(materializedRoot);
+  const absolute = path.join(root, relative);
+  const visit = (current: string): void => {
+    const state = lstatSync(current);
+    if (state.isSymbolicLink() || !state.isDirectory()) {
+      failUnsealedInput(`${label} contains a non-directory entry at ${path.relative(root, current)}.`);
+    }
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const child = path.join(current, entry.name);
+      const childState = lstatSync(child);
+      if (childState.isSymbolicLink() || (!childState.isDirectory() && !childState.isFile())) {
+        failUnsealedInput(`${label} contains a non-regular entry at ${path.relative(root, child)}.`);
+      }
+      if (childState.isDirectory()) visit(child);
+    }
+  };
+  visit(absolute);
+  return absolute;
+}
+
+export function assertMaterializedActkgFileRegular(
+  materializedRoot: string,
+  requestedPath: string,
+  label: string,
+): string {
+  const lexicalRoot = path.resolve(materializedRoot);
+  const requested = path.resolve(requestedPath);
+  const relative = path.relative(lexicalRoot, requested);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    failUnsealedInput(`${label} must resolve inside the materialized sealed ActKG tree.`);
+  }
+  const root = realpathSync(materializedRoot);
+  const absolute = path.join(root, relative);
+  const state = lstatSync(absolute);
+  if (state.isSymbolicLink() || !state.isFile()) {
+    failUnsealedInput(`${label} is not a regular file in the materialized sealed ActKG tree.`);
+  }
+  return absolute;
 }
 
 interface GitTreeEntry {
@@ -262,7 +319,11 @@ export function discoverLatestCompleteAggregate(
         path.join(releasesRoot, releaseName),
         `aggregate bundle ${releaseName}`,
       )
-      : path.join(releasesRoot, releaseName);
+      : assertMaterializedActkgDirectoryRegular(
+        actkgRoot,
+        path.join(releasesRoot, releaseName),
+        `aggregate bundle ${releaseName}`,
+      );
     try {
       identities.push(readSealedBundleIdentity(bundleDir));
     } catch {

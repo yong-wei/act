@@ -70,6 +70,8 @@ import { projectionDigest } from '@/lib/teaching-projection/hash';
 import { REVIEWED_V0_18_V2_REGISTRY } from '../actkg-release/bundle-compatibility-registry-v2';
 import {
   adapterSupportsPublicBundle3,
+  assertMaterializedActkgDirectoryRegular,
+  assertMaterializedActkgFileRegular,
   assertSealedActkgTreeDirectory,
   assertSealedActkgTreeFile,
   capturedPublicContractFromBundle,
@@ -194,12 +196,34 @@ async function runCapture(values: Map<string, string>): Promise<void> {
   const sealedRoot = materializeSealedActkgCommit(actkgRoot, actkgMainCommit);
   try {
     const sealed = explicitBundleRelative
-      ? readSealedBundleIdentity(path.join(sealedRoot, explicitBundleRelative))
+      ? readSealedBundleIdentity(assertMaterializedActkgDirectoryRegular(
+        sealedRoot,
+        path.join(sealedRoot, explicitBundleRelative),
+        '--bundle-dir',
+      ))
       : discoverLatestCompleteAggregate(sealedRoot);
-    const bundleDir = sealed.bundleDir;
-    const lineagePath = path.join(sealedRoot, lineageRelative);
-    const registrySummaryPath = path.join(sealedRoot, registrySummaryRelative);
-    const componentsFile = componentsRelative ? path.join(sealedRoot, componentsRelative) : undefined;
+    const bundleDir = assertMaterializedActkgDirectoryRegular(
+      sealedRoot,
+      sealed.bundleDir,
+      `aggregate bundle ${sealed.stableTag}`,
+    );
+    const lineagePath = assertMaterializedActkgFileRegular(
+      sealedRoot,
+      path.join(sealedRoot, lineageRelative),
+      '--lineage',
+    );
+    const registrySummaryPath = assertMaterializedActkgFileRegular(
+      sealedRoot,
+      path.join(sealedRoot, registrySummaryRelative),
+      '--registry-summary',
+    );
+    const componentsFile = componentsRelative
+      ? assertMaterializedActkgFileRegular(
+        sealedRoot,
+        path.join(sealedRoot, componentsRelative),
+        '--components',
+      )
+      : undefined;
     const components: AuthorityComponentIdentity[] = componentsFile
       ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
       : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
