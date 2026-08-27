@@ -7,12 +7,24 @@ function startsWithPath(path: string, prefix: string): boolean {
 }
 
 export function listTracked(cwd: string, path: string): string[] {
-  const output = execFileSync('git', ['ls-files', '-z', '--', path], {
+  return [...listTrackedBlobs(cwd, path).keys()].sort((left, right) => left.localeCompare(right));
+}
+
+export function listTrackedBlobs(cwd: string, path: string): Map<string, string> {
+  const output = execFileSync('git', ['ls-files', '-s', '-z', '--', path], {
     cwd,
     encoding: 'utf8',
     maxBuffer: 16 * 1024 * 1024,
   });
-  return output.split('\0').filter(Boolean).sort((left, right) => left.localeCompare(right));
+  const blobs = new Map<string, string>();
+  for (const record of output.split('\0').filter(Boolean)) {
+    const tab = record.indexOf('\t');
+    if (tab === -1) continue;
+    const blob = record.slice(0, tab).split(' ')[1];
+    const filePath = record.slice(tab + 1);
+    if (blob) blobs.set(filePath, blob);
+  }
+  return blobs;
 }
 
 const READ_ONLY_DB_FILES = new Set([

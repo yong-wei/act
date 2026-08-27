@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import type { ApplyGateInput, ApplyGateResult, CommandReceipt } from './types';
+import type { ApplyGateInput, ApplyGateResult, CommandReceipt, OneOffCommand } from './types';
 import { MIGRATION_BACKFILL_SCHEMA_VERSION } from './types';
 
 const FIXTURE_APPROVAL = 'fixture-approval';
@@ -15,6 +15,13 @@ const FORBIDDEN = [
 
 export function hashValue(value: string): string {
   return createHash('sha256').update(`${value}\n`).digest('hex');
+}
+
+export function commandInputHash(
+  command: Pick<OneOffCommand, 'commandId' | 'safetyMode'>,
+  blobSha: string,
+): string {
+  return hashValue(`${command.commandId}\n${command.safetyMode}\n${blobSha}`);
 }
 
 export function redactTargetIdentity(raw: string): string {

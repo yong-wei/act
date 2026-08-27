@@ -1,9 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { worktreeIsClean } from '../../../tools/boundary/git-source';
-import { evaluateApplyGate } from '../../../tools/migration-backfill/apply-gate';
+import { commandInputHash, evaluateApplyGate } from '../../../tools/migration-backfill/apply-gate';
 import { checkMigrationBackfillCompetition } from '../../../tools/migration-backfill/check';
 import { classifyOneOffPath } from '../../../tools/migration-backfill/classify';
+import { findUngatedApplyPackageScripts } from '../../../tools/migration-backfill/entrypoints';
 
 describe('migration backfill competition toolchains', () => {
   it('classifies migrations, backfills, and competition helpers', () => {
@@ -54,14 +58,29 @@ describe('migration backfill competition toolchains', () => {
 
   it('qualifies the live one-off inventory without product writer imports', () => {
     const result = checkMigrationBackfillCompetition(process.cwd());
+    expect(result.commands.filter((item) => item.path.startsWith('scripts/migrations/'))).toHaveLength(3);
+    expect(result.commands.some((item) => item.oneOffClass === 'competition-material')).toBe(true);
+    expect(JSON.stringify(result.sampleReceipt)).not.toMatch(/DATABASE_URL=/);
+    expect(findUngatedApplyPackageScripts(process.cwd(), result.commands)).toEqual([]);
+    const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    expect(pkg.scripts['seed:fixed-passwords']).toContain('tools/migration-backfill/cli.ts');
+    expect(pkg.scripts['db:set-ai-provider-qwen-default']).toContain('tools/migration-backfill/cli.ts');
+    const first = result.commands.find((item) => item.path === 'scripts/db/set-ai-provider-qwen-default.ts');
+    const second = result.commands.find((item) => item.path === 'scripts/db/update-fixed-account-passwords.mjs');
+    expect(first && second).toBeTruthy();
+    if (first && second) {
+      expect(commandInputHash(first, result.blobs.get(first.path) ?? '')).not.toEqual(
+        commandInputHash(second, result.blobs.get(second.path) ?? ''),
+      );
+    }
     if (result.failures.includes('dirty-worktree')) {
       expect(worktreeIsClean(process.cwd())).toBe(false);
+      expect(result.failures.filter((item) => item !== 'dirty-worktree')).toEqual([]);
       return;
     }
     expect(result.failures).toEqual([]);
     expect(result.ok).toBe(true);
-    expect(result.commands.filter((item) => item.path.startsWith('scripts/migrations/'))).toHaveLength(3);
-    expect(result.commands.some((item) => item.oneOffClass === 'competition-material')).toBe(true);
-    expect(JSON.stringify(result.sampleReceipt)).not.toMatch(/DATABASE_URL=/);
   });
 });
