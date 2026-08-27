@@ -1,18 +1,16 @@
 {
   "schemaVersion": "act-esa-delivery-qualification/v1",
-  "sourceCommit": "2d84af7816fc72eaf293b70e9cf03a7d05da4733",
-  "sourceTree": "122b5a300951e45c9e4e4ae9ce3f4508ed0929c6",
-  "dirty": true,
+  "sourceCommit": "f4385cbc58762928bc2d89f1bd512f2a39f0244f",
+  "sourceTree": "fb8391e31328a5f04230b11c1853326dbbfa01e7",
+  "dirty": false,
   "mixedWorktree": false,
   "toolVersion": "static-esa-delivery/1",
   "capturedAt": "2026-08-27T12:00:00.000Z",
-  "status": "blocked",
+  "status": "incomplete",
   "hostname": "static.adapt-learn.online",
   "deliveryBucket": "act-course-delivery",
   "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
-  "blockingReasons": [
-    "dirty-worktree"
-  ],
+  "blockingReasons": [],
   "missingEvidence": [
     "cost",
     "dns-trusted-observation",
@@ -53,5 +51,5 @@
     "cost": null
   },
   "evidenceFingerprint": "2f64f7b1dc1be3197131973e574354d19114def7da7407c2e9f53deed93356a8",
-  "qualificationId": "15d36b168ee061fc6ac58134d72ff46a182ba8526f46f1338262c7f53ae28f79"
+  "qualificationId": "a2de293910d79fe6dd9da2f5bce278c30c201397a0c098854a9b12cd9f145e4b"
 }

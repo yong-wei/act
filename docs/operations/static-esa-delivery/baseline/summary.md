@@ -1,15 +1,15 @@
 # static ESA Delivery PoC
 
-- status: `blocked`
+- status: `incomplete`
 - hostname: `static.adapt-learn.online`
 - bucket: `act-course-delivery`
 - objectKey: `assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb`
-- sourceCommit: `2d84af7816fc72eaf293b70e9cf03a7d05da4733`
+- sourceCommit: `f4385cbc58762928bc2d89f1bd512f2a39f0244f`
 - dnsApplied: false
 - serviceRoleAccepted: false
 
 Blocking reasons:
-- dirty-worktree
+- none
 
 Missing evidence:
 - cost
