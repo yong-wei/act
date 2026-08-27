@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 import { privacyViolation } from '../../src/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '../../src/lib/architecture-census/serialize';
@@ -471,9 +472,55 @@ export function validatePackageCommandAuthority(repoRoot: string, registry: Qual
     .map((command) => ({ code: 'local-command-script-missing', identity: command.id, detail: command.npmScript }));
 }
 
-function hasYamlTrigger(text: string, trigger: string): boolean {
-  return new RegExp(`^\\s*${trigger}\\s*:`, 'mu').test(text)
-    || new RegExp(`(?:^|\\n)on:\\s*\\[[^\\]]*\\b${trigger}\\b`, 'u').test(text);
+const FORBIDDEN_PR_EVENTS = new Set([
+  'pull_request',
+  'pull_request_target',
+  'pull_request_review',
+  'pull_request_review_comment',
+]);
+
+function asStringList(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string');
+  return [];
+}
+
+function workflowEventNames(onValue: unknown): string[] {
+  if (typeof onValue === 'string') return [onValue];
+  if (Array.isArray(onValue)) return asStringList(onValue);
+  if (onValue && typeof onValue === 'object') return Object.keys(onValue as Record<string, unknown>);
+  return [];
+}
+
+function workflowEventBranches(onValue: unknown, event: string): string[] {
+  if (!onValue || typeof onValue !== 'object' || Array.isArray(onValue)) return [];
+  const spec = (onValue as Record<string, unknown>)[event];
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return [];
+  return asStringList((spec as { branches?: unknown }).branches);
+}
+
+function namesIntegrationBranch(branch: string): boolean {
+  return branch === 'integration' || branch.startsWith('integration/');
+}
+
+function parseWorkflowOn(text: string): {
+  readonly events: readonly string[];
+  readonly pushBranches: readonly string[];
+  readonly integrationTargeted: boolean;
+  readonly parseError: boolean;
+} {
+  try {
+    const parsed = parseYaml(text) as { on?: unknown } | null;
+    if (!parsed || typeof parsed !== 'object') {
+      return { events: [], pushBranches: [], integrationTargeted: false, parseError: true };
+    }
+    const events = workflowEventNames(parsed.on);
+    const pushBranches = workflowEventBranches(parsed.on, 'push');
+    const integrationTargeted = events.some((event) => workflowEventBranches(parsed.on, event).some(namesIntegrationBranch));
+    return { events, pushBranches, integrationTargeted, parseError: false };
+  } catch {
+    return { events: [], pushBranches: [], integrationTargeted: false, parseError: true };
+  }
 }
 
 export function validateWorkflowText(workflowPath: string, text: string): RegistryFailure[] {
@@ -488,19 +535,21 @@ export function validateWorkflowText(workflowPath: string, text: string): Regist
   }
   if (/continue-on-error\s*:\s*true/u.test(text)) failures.push({ code: 'workflow-accepted-failure', identity: workflowPath });
   if (/\|\|\s*true/u.test(text)) failures.push({ code: 'workflow-silent-skip', identity: workflowPath });
-  if (hasYamlTrigger(text, 'pull_request')) failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
-  if (hasYamlTrigger(text, 'schedule')) failures.push({ code: 'github-nightly-schedule-forbidden', identity: workflowPath });
-  if (/^\s+-\s+integration\s*$/mu.test(text) || /branches:\s*\[[^\]]*integration/u.test(text)) {
-    failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
+  const workflowOn = parseWorkflowOn(text);
+  if (workflowOn.parseError) failures.push({ code: 'workflow-on-unparseable', identity: workflowPath });
+  if (workflowOn.events.some((event) => FORBIDDEN_PR_EVENTS.has(event))) {
+    failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
   }
+  if (workflowOn.events.includes('schedule')) failures.push({ code: 'github-nightly-schedule-forbidden', identity: workflowPath });
+  if (workflowOn.integrationTargeted) failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
   if (/quality-gates:run/u.test(text)) failures.push({ code: 'github-quality-gate-runner-hosted', identity: workflowPath });
   if (isCi) {
     if (/release\/\*\*/u.test(text)) failures.push({ code: 'github-release-branch-trigger-forbidden', identity: workflowPath });
     if (/main-release-quality-gates/u.test(text)) failures.push({ code: 'github-main-release-quality-job-forbidden', identity: workflowPath });
-    if (!/workflow_dispatch/u.test(text)) failures.push({ code: 'github-workflow-dispatch-missing', identity: workflowPath });
-    if (!/^\s+-\s+main\s*$/mu.test(text)) failures.push({ code: 'github-main-push-trigger-missing', identity: workflowPath });
+    if (!workflowOn.events.includes('workflow_dispatch')) failures.push({ code: 'github-workflow-dispatch-missing', identity: workflowPath });
+    if (!workflowOn.pushBranches.includes('main')) failures.push({ code: 'github-main-push-trigger-missing', identity: workflowPath });
   }
-  if (isWolfram && hasYamlTrigger(text, 'push')) {
+  if (isWolfram && workflowOn.events.includes('push')) {
     failures.push({ code: 'github-specialized-workflow-push-forbidden', identity: workflowPath });
   }
   return failures;

@@ -130,6 +130,10 @@ describe('PR and integration quality gate contracts', () => {
       'github-integration-push-trigger-forbidden',
       'github-nightly-schedule-forbidden',
     ]));
+    for (const scalar of ['on: pull_request', 'on: "pull_request"', "on: 'pull_request'", 'on: [pull_request]', 'on:\n  - pull_request', 'on: pull_request_target']) {
+      expect(validateWorkflowText('.github/workflows/pr-checks.yml', scalar).map((failure) => failure.code)).toContain('github-pull-request-trigger-forbidden');
+    }
+    expect(validateWorkflowText('.github/workflows/nightly.yml', 'on: schedule').map((failure) => failure.code)).toContain('github-nightly-schedule-forbidden');
     const hosted = validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, [
       'on:',
       '  pull_request:',
