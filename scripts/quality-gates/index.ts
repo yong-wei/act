@@ -1,6 +1,8 @@
 export {
   DEFAULT_QUALITY_GATE_REGISTRY,
+  HOSTED_CI_WORKFLOW_PATHS,
   QUALITY_COMMAND_DEFINITIONS,
+  QUALITY_EVENTS,
   QUALITY_GATE_RECEIPT_SCHEMA_VERSION,
   QUALITY_GATE_REGISTRY_SCHEMA_VERSION,
   QUALITY_LAYER_IDS,
@@ -8,6 +10,7 @@ export {
   qualityCommand,
   qualityGateRegistryHash,
   serializeQualityGateRegistry,
+  validateGitHubHostedCiBoundary,
   validateMainReleasePreservation,
   validatePackageCommandAuthority,
   validateQualityGateRegistry,
@@ -59,6 +62,7 @@ export {
   validateIntegrationProtectionReceipt,
   INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION,
   PROTECTION_RESPONSE_CLASSES,
+  UNREAD_PROTECTION_RESPONSE_CLASSES,
 } from './branch-protection';
 export type {
   IntegrationProtectionReceipt,

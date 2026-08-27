@@ -1,9 +1,5 @@
-# enforce-pr-integration-quality-gates Specification
+## MODIFIED Requirements
 
-## Purpose
-定义 PR 合入、integration revision、main/release 资格和 nightly 广度所需的可审计本地证据。合入证据由本地 `verify:commit`、`verify:push`、typecheck、相关测试和 exact-current-HEAD 审查承担；GitHub Actions 只保留现有 `main` push、明确授权的 `workflow_dispatch`，以及后续单独授权的发布验证。本能力不得把这些证据要求实现为面向 `integration` 的 GitHub `pull_request` CI 或 required status check。
-
-## Requirements
 ### Requirement: CI has explicit PR, integration, main/release, and nightly layers
 The project SHALL define separate quality-evidence layers for pull-request merge evidence, integration revision evidence, main/release qualification, and nightly breadth. Each layer SHALL declare scope and required local inputs. These layers SHALL be local evidence registries; they SHALL NOT be GitHub-hosted workflows, pull_request triggers, or required GitHub status checks.
 
@@ -44,19 +40,6 @@ Every required merge-evidence check SHALL resolve to exactly one local command I
 - **THEN** the change SHALL update and validate the corresponding local command contract if it still maps to a governed command
 - **AND** a hand-maintained second test list SHALL not become a new authority
 - **AND** adding `pull_request`, `integration` push, nightly schedule, or required quality status checks SHALL fail the GitHub-hosted CI boundary.
-
-### Requirement: PR impact selection closes its denominator
-PR gates SHALL compute affected domains and required tests from the declared dependency, TypeScript, test-discovery, owner, migration, package, workflow, and release inputs.
-
-#### Scenario: A shared boundary changes
-- **WHEN** a PR changes a shared contract, schema, package, tsconfig, workflow, release input, or unresolved graph boundary
-- **THEN** the gate SHALL include all affected domain and integration checks or fail closed
-- **AND** it SHALL not rely on an empty path match to skip mandatory verification.
-
-#### Scenario: Impact analysis is incomplete
-- **WHEN** dynamic imports, unresolved owners, graph drift, or denominator gaps prevent safe narrowing
-- **THEN** the gate SHALL expand to the full related scope or return a blocked result
-- **AND** the receipt SHALL record the reason and fallback scope.
 
 ### Requirement: Integration branch protection is verified from platform truth
 The project SHALL treat GitHub-hosted CI status checks as out of scope for integration PR merge gates. Integration PRs SHALL NOT add a generic quality `pull_request` trigger and SHALL NOT require GitHub CI status checks. Commit and push gates SHALL remain local `verify:commit`, `verify:push`, typecheck, related tests, and exact-current-HEAD review evidence. Platform verification SHALL prove the absence of generic GitHub quality CI for integration, not the presence of required GitHub checks that mirror the local registry.
@@ -112,6 +95,8 @@ Every layer result SHALL bind source revision/tree, local producer identity, che
 - **WHEN** the same source revision is evaluated again
 - **THEN** deterministic check mapping and scope data SHALL remain stable
 - **AND** a new local run or environment observation SHALL create a new receipt identity rather than overwrite the old one.
+
+## ADDED Requirements
 
 ### Requirement: GitHub Actions stays on the authorized main baseline
 GitHub Actions SHALL keep the existing `main` push workflow, explicitly authorized `workflow_dispatch`, and later separately authorized release verification. The project SHALL NOT add a generic quality-gate workflow for integration PRs, integration pushes, or nightly schedules. `#1554` MAY govern which auditable evidence a PR needs to merge, but SHALL NOT require that evidence to be produced by GitHub-hosted CI.

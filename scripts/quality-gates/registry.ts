@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 import { privacyViolation } from '../../src/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '../../src/lib/architecture-census/serialize';
@@ -23,8 +24,13 @@ export const GENERIC_COMMAND_RECEIPT_SCHEMA_VERSION = 'act-governed-command-rece
 export const QUALITY_LAYER_IDS = ['pr', 'integration', 'main-release', 'nightly'] as const;
 export type QualityLayerId = (typeof QUALITY_LAYER_IDS)[number];
 
-export const QUALITY_EVENTS = ['pull_request', 'push', 'schedule', 'workflow_dispatch'] as const;
+export const QUALITY_EVENTS = ['local'] as const;
 export type QualityEvent = (typeof QUALITY_EVENTS)[number];
+export const HOSTED_CI_WORKFLOW_PATHS = {
+  main: '.github/workflows/ci.yml',
+  forbiddenQualityGates: '.github/workflows/quality-gates.yml',
+  specializedWolfram: '.github/workflows/docker-wolfram-verify.yml',
+} as const;
 
 export type FailurePolicy = 'block' | 'observe';
 export type CommandKind = 'test-contract' | 'typescript-graph' | 'architecture-fitness' | 'npm-script';
@@ -270,7 +276,7 @@ const CHECKS: readonly RequiredQualityCheck[] = [
 const LAYERS: readonly QualityLayerDefinition[] = [
   {
     id: 'pr',
-    events: ['pull_request'],
+    events: ['local'],
     branches: ['integration'],
     scope: 'affected-pr-with-denominator-closed-fallback',
     checkIds: PR_CHECKS.map((item) => item.checkId).sort(),
@@ -280,7 +286,7 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'integration',
-    events: ['push'],
+    events: ['local'],
     branches: ['integration'],
     scope: 'full-integration-source-revision',
     checkIds: INTEGRATION_CHECKS.map((item) => item.checkId).sort(),
@@ -290,8 +296,8 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'main-release',
-    events: ['push', 'workflow_dispatch'],
-    branches: ['main', 'release/**'],
+    events: ['local'],
+    branches: ['main'],
     scope: 'release-qualification-and-production-compatibility',
     checkIds: MAIN_RELEASE_CHECKS.map((item) => item.checkId).sort(),
     fallback: 'not-applicable',
@@ -300,7 +306,7 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'nightly',
-    events: ['schedule', 'workflow_dispatch'],
+    events: ['local'],
     branches: [],
     scope: 'declared-breadth-without-pr-repair-semantics',
     checkIds: NIGHTLY_CHECKS.map((item) => item.checkId).sort(),
@@ -410,6 +416,9 @@ export function validateQualityGateRegistry(
   for (const layer of registry.layers) {
     layerMap.set(layer.id, layer);
     if (!layer.owner) failures.push({ code: 'layer-owner-missing', identity: layer.id });
+    for (const event of layer.events) {
+      if (event !== 'local') failures.push({ code: 'layer-non-local-event', identity: `${layer.id}:${event}` });
+    }
     const layerCheckIds = new Set<string>();
     for (const checkId of layer.checkIds) {
       if (layerCheckIds.has(checkId)) failures.push({ code: 'layer-check-duplicate', identity: `${layer.id}:${checkId}` });
@@ -463,14 +472,105 @@ export function validatePackageCommandAuthority(repoRoot: string, registry: Qual
     .map((command) => ({ code: 'local-command-script-missing', identity: command.id, detail: command.npmScript }));
 }
 
+const FORBIDDEN_PR_EVENTS = new Set([
+  'pull_request',
+  'pull_request_target',
+  'pull_request_review',
+  'pull_request_review_comment',
+]);
+
+function asStringList(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string');
+  return [];
+}
+
+function workflowEventNames(onValue: unknown): string[] {
+  if (typeof onValue === 'string') return [onValue];
+  if (Array.isArray(onValue)) return asStringList(onValue);
+  if (onValue && typeof onValue === 'object') return Object.keys(onValue as Record<string, unknown>);
+  return [];
+}
+
+function workflowEventBranches(onValue: unknown, event: string): string[] {
+  if (!onValue || typeof onValue !== 'object' || Array.isArray(onValue)) return [];
+  const spec = (onValue as Record<string, unknown>)[event];
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return [];
+  return asStringList((spec as { branches?: unknown }).branches);
+}
+
+function namesIntegrationBranch(branch: string): boolean {
+  return branch === 'integration' || branch.startsWith('integration/');
+}
+
+function parseWorkflowOn(text: string): {
+  readonly events: readonly string[];
+  readonly pushBranches: readonly string[];
+  readonly integrationTargeted: boolean;
+  readonly parseError: boolean;
+} {
+  try {
+    const parsed = parseYaml(text) as { on?: unknown } | null;
+    if (!parsed || typeof parsed !== 'object') {
+      return { events: [], pushBranches: [], integrationTargeted: false, parseError: true };
+    }
+    const events = workflowEventNames(parsed.on);
+    const pushBranches = workflowEventBranches(parsed.on, 'push');
+    const integrationTargeted = events.some((event) => workflowEventBranches(parsed.on, event).some(namesIntegrationBranch));
+    return { events, pushBranches, integrationTargeted, parseError: false };
+  } catch {
+    return { events: [], pushBranches: [], integrationTargeted: false, parseError: true };
+  }
+}
+
 export function validateWorkflowText(workflowPath: string, text: string): RegistryFailure[] {
   const failures: RegistryFailure[] = [];
+  const normalizedPath = workflowPath.replace(/\\/g, '/');
+  const isCi = normalizedPath.endsWith(HOSTED_CI_WORKFLOW_PATHS.main) || normalizedPath === 'ci.yml';
+  const isWolfram = normalizedPath.endsWith(HOSTED_CI_WORKFLOW_PATHS.specializedWolfram);
+  if (normalizedPath.endsWith('quality-gates.yml')) failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: workflowPath });
   if (text.includes('node --import tsx/esm')) failures.push({ code: 'forbidden-node-tsx-esm-loader', identity: workflowPath });
-  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text)) failures.push({ code: 'workflow-manual-test-list', identity: workflowPath });
+  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text) && !isWolfram) {
+    failures.push({ code: 'workflow-manual-test-list', identity: workflowPath });
+  }
   if (/continue-on-error\s*:\s*true/u.test(text)) failures.push({ code: 'workflow-accepted-failure', identity: workflowPath });
   if (/\|\|\s*true/u.test(text)) failures.push({ code: 'workflow-silent-skip', identity: workflowPath });
-  if (workflowPath.endsWith('quality-gates.yml') && !text.includes('quality-gates:run')) failures.push({ code: 'workflow-registry-runner-missing', identity: workflowPath });
+  const workflowOn = parseWorkflowOn(text);
+  if (workflowOn.parseError) failures.push({ code: 'workflow-on-unparseable', identity: workflowPath });
+  if (workflowOn.events.some((event) => FORBIDDEN_PR_EVENTS.has(event))) {
+    failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
+  }
+  if (workflowOn.events.includes('schedule')) failures.push({ code: 'github-nightly-schedule-forbidden', identity: workflowPath });
+  if (workflowOn.integrationTargeted) failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
+  if (/quality-gates:run/u.test(text)) failures.push({ code: 'github-quality-gate-runner-hosted', identity: workflowPath });
+  if (isCi) {
+    if (/release\/\*\*/u.test(text)) failures.push({ code: 'github-release-branch-trigger-forbidden', identity: workflowPath });
+    if (/main-release-quality-gates/u.test(text)) failures.push({ code: 'github-main-release-quality-job-forbidden', identity: workflowPath });
+    if (!workflowOn.events.includes('workflow_dispatch')) failures.push({ code: 'github-workflow-dispatch-missing', identity: workflowPath });
+    if (!workflowOn.pushBranches.includes('main')) failures.push({ code: 'github-main-push-trigger-missing', identity: workflowPath });
+  }
+  if (isWolfram && workflowOn.events.includes('push')) {
+    failures.push({ code: 'github-specialized-workflow-push-forbidden', identity: workflowPath });
+  }
   return failures;
+}
+
+export function validateGitHubHostedCiBoundary(repoRoot: string): RegistryFailure[] {
+  const failures: RegistryFailure[] = [];
+  const workflowDir = join(repoRoot, '.github/workflows');
+  if (!existsSync(workflowDir)) {
+    failures.push({ code: 'github-workflows-directory-missing', identity: '.github/workflows' });
+    return uniqueFailures(failures);
+  }
+  const workflowFiles = readdirSync(workflowDir)
+    .filter((name) => /\.ya?ml$/iu.test(name))
+    .sort((left, right) => left.localeCompare(right));
+  if (!workflowFiles.includes('ci.yml')) failures.push({ code: 'github-main-ci-missing', identity: HOSTED_CI_WORKFLOW_PATHS.main });
+  for (const name of workflowFiles) {
+    const relativePath = `.github/workflows/${name}`;
+    failures.push(...validateWorkflowText(relativePath, readFileSync(join(workflowDir, name), 'utf8')));
+  }
+  return uniqueFailures(failures);
 }
 
 export function validateMainReleasePreservation(
